@@ -7,12 +7,11 @@ namespace HBP.Quest
     public sealed class QuestAnatomyInput : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
-        [SerializeField] private QuestAnatomyManipulator manipulator;
         [SerializeField] private QuestDevicePoseTracker head;
         [SerializeField] private QuestDevicePoseTracker left;
         [SerializeField] private QuestDevicePoseTracker right;
         private InputAction leftTrigger, rightTrigger, recenter, toggleSurface, recalculate;
-        private Mesh previousMesh;
+        private HBP.Data.Module3D.Base3DScene previousScene;
         private bool placed;
         private bool focused = true;
         private bool paused;
@@ -21,9 +20,9 @@ namespace HBP.Quest
         {
             leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
             rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
-            recenter = new InputAction("Recenter anatomy (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
+            recenter = new InputAction("Recenter columns (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
             toggleSurface = new InputAction("Hide/show brain (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
-            recalculate = new InputAction("Recalculate density", InputActionType.Button, "<XRController>{RightHand}/thumbstickClicked");
+            recalculate = new InputAction("Recalculate projection", InputActionType.Button, "<XRController>{RightHand}/thumbstickClicked");
             recalculate.Enable();
             leftTrigger.Enable();
             rightTrigger.Enable();
@@ -33,30 +32,56 @@ namespace HBP.Quest
 
         private void LateUpdate()
         {
-            if (view == null || manipulator == null || head == null || left == null || right == null) return;
+            if (view == null || head == null || left == null || right == null) return;
             if (!focused || paused || !head.IsTracked)
             {
-                manipulator.CancelGrab();
+                CancelGrabs();
                 return;
             }
 
-            if (previousMesh != view.SharedMesh)
+            if (previousScene != view.Scene)
             {
-                manipulator.CancelGrab();
-                previousMesh = view.SharedMesh;
+                CancelGrabs();
+                previousScene = view.Scene;
+                placed = false;
             }
 
             if (right.IsTracked && recalculate.WasPressedThisFrame()) view.RecalculateProjection();
             if (right.IsTracked && toggleSurface.WasPressedThisFrame()) view.ToggleSurface();
 
-            if (view.SharedMesh != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
+            if (view.Scene != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
             {
-                manipulator.Recenter(ReadPose(head));
+                int index = 0;
+                foreach (var column in view.Columns)
+                {
+                    column.Manipulator.Recenter(ReadPose(head));
+                    column.transform.position += head.transform.right * (index++ - (view.Columns.Count - 1) * 0.5f) * 0.35f;
+                }
+
                 placed = true;
                 return;
             }
 
-            manipulator.Step(ReadPose(left), left.IsTracked, leftTrigger.IsPressed(), ReadPose(right), right.IsTracked, rightTrigger.IsPressed());
+            // A controller belongs to at most one column for the duration of a grab.
+            var grabbed = System.Linq.Enumerable.FirstOrDefault(view.Columns, column => column.Manipulator.IsGrabbed);
+            foreach (var column in view.Columns)
+            {
+                if (grabbed != null && grabbed != column)
+                {
+                    column.Manipulator.CancelGrab();
+                    continue;
+                }
+
+                column.Manipulator.Step(ReadPose(left), left.IsTracked, leftTrigger.IsPressed(), ReadPose(right), right.IsTracked, rightTrigger.IsPressed());
+                if (column.Manipulator.IsGrabbed) grabbed = column;
+            }
+        }
+
+        private void CancelGrabs()
+        {
+            if (view != null)
+                foreach (var column in view.Columns)
+                    column.Manipulator.CancelGrab();
         }
 
         private static Pose ReadPose(Component tracker) => new Pose(tracker.transform.position, tracker.transform.rotation);
@@ -64,13 +89,13 @@ namespace HBP.Quest
         private void OnApplicationFocus(bool value)
         {
             focused = value;
-            if (!value && manipulator != null) manipulator.CancelGrab();
+            if (!value && view != null) CancelGrabs();
         }
 
         private void OnApplicationPause(bool value)
         {
             paused = value;
-            if (value && manipulator != null) manipulator.CancelGrab();
+            if (value && view != null) CancelGrabs();
         }
 
         private void OnDisable()
@@ -81,7 +106,7 @@ namespace HBP.Quest
             toggleSurface?.Dispose();
             recalculate?.Dispose();
             leftTrigger = rightTrigger = recenter = toggleSurface = null;
-            if (manipulator != null) manipulator.CancelGrab();
+            if (view != null) CancelGrabs();
         }
     }
 }

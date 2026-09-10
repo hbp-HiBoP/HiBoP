@@ -5,7 +5,15 @@ namespace HBP.Quest
     /// <summary>Local presentation only. Never writes to the anatomical frame or snapshot buffers.</summary>
     public sealed class QuestAnatomyManipulator : MonoBehaviour
     {
-        [SerializeField] private QuestAnatomyView view;
+        private HBP.Data.Module3D.Column3D column;
+        public Mesh SharedMesh => column != null && column.BrainMesh != null ? column.BrainMesh.GetComponent<MeshFilter>().sharedMesh : null;
+
+        public void Bind(HBP.Data.Module3D.Column3D value)
+        {
+            column = value;
+            CancelGrab();
+        }
+
         [SerializeField, Min(0.01f)] private float minimumScale = 0.25f;
         [SerializeField, Min(0.01f)] private float maximumScale = 4f;
         [SerializeField, Min(0)] private float grabPaddingMeters = 0.12f;
@@ -51,7 +59,7 @@ namespace HBP.Quest
             bool rightPress = rightTracked && !rightBlocked && rightGrip && !rightHeld;
             leftHeld = leftGrip;
             rightHeld = rightGrip;
-            if (view == null || view.SharedMesh == null)
+            if (SharedMesh == null)
             {
                 CancelGrab();
                 return;
@@ -111,21 +119,21 @@ namespace HBP.Quest
         {
             // The bounds stay in prepared millimeters; only presentation-space points are converted.
             Vector3 local = transform.InverseTransformPoint(position) * 1000f;
-            Vector3 closest = view.SharedMesh.bounds.ClosestPoint(local) * 0.001f;
+            Vector3 closest = SharedMesh.bounds.ClosestPoint(local) * 0.001f;
             return Vector3.Distance(position, transform.TransformPoint(closest)) <= grabPaddingMeters;
         }
 
         public void Recenter(Pose head)
         {
             CancelGrab();
-            if (view == null || view.SharedMesh == null) return;
+            if (SharedMesh == null) return;
             Vector3 forward = Vector3.ProjectOnPlane(head.rotation * Vector3.forward, Vector3.up).normalized;
             if (forward.sqrMagnitude < 0.5f) forward = Vector3.forward;
             Quaternion rotation = Quaternion.LookRotation(forward) * Quaternion.Euler(recenterEuler);
             Vector3 center = head.position + forward * recenterDistanceMeters + Vector3.up * recenterHeightMeters;
             transform.rotation = rotation;
             // Keep the chosen scale, surface, landmarks and any future sites in the same parent.
-            transform.position = center - transform.TransformVector(view.SharedMesh.bounds.center * 0.001f);
+            transform.position = center - transform.TransformVector(SharedMesh.bounds.center * 0.001f);
         }
     }
 }

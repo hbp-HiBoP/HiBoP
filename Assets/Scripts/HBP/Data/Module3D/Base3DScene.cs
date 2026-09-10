@@ -1914,6 +1914,52 @@ namespace HBP.Data.Module3D
             }
         }
 
+        public VisualizationConfiguration CaptureConfiguration()
+        {
+            var configuration = (VisualizationConfiguration)Visualization.Configuration.Clone();
+            configuration.BrainColor = BrainColor;
+            configuration.BrainCutColor = CutColor;
+            configuration.Colormap = Colormap;
+            configuration.MeshPart = MeshManager.MeshPartToDisplay;
+            configuration.SurfaceRepresentation = MeshManager.SelectedMesh.Representation;
+            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D)
+            {
+                configuration.MeshName = m_MeshManager.SelectedMesh.Name;
+            }
+
+            configuration.MRIName = m_MRIManager.SelectedMRI.Name;
+            configuration.ImplantationName = m_ImplantationManager.SelectedImplantation != null ? m_ImplantationManager.SelectedImplantation.Name : "";
+            configuration.ShowEdges = EdgeMode;
+            configuration.TransparentBrain = IsBrainTransparent;
+            configuration.BrainAlpha = BrainMaterials.Alpha;
+            configuration.StrongCuts = StrongCuts;
+            configuration.HideBlacklistedSites = m_HideBlacklistedSites;
+            configuration.ShowAllSites = ShowAllSites;
+            configuration.AutomaticCutAroundSelectedSite = AutomaticCutAroundSelectedSite;
+            configuration.SiteGain = SiteGain;
+            configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
+            configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
+            configuration.CameraType = CameraType;
+
+            List<Core.Data.Cut> cuts = new();
+            foreach (Core.Object3D.Cut cut in Cuts)
+            {
+                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
+            }
+
+            configuration.Cuts = cuts;
+
+            List<RegionOfInterest> rois = new();
+            foreach (ROI roi in ROIManager.ROIs)
+            {
+                rois.Add(new RegionOfInterest(roi.name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList()));
+            }
+
+            configuration.RegionsOfInterest = rois;
+
+            return configuration;
+        }
+
         /// <summary>
         /// Reset the settings of the loaded scene
         /// </summary>
@@ -2652,9 +2698,22 @@ namespace HBP.Data.Module3D
         /// Load missing anatomy if not preloaded
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async UniTask LoadMissingAnatomyAsync()
+        private async UniTask LoadMissingAnatomyAsync(bool includeAllPatients = false)
         {
             await UniTask.SwitchToThreadPool();
+            if (includeAllPatients && Type != SceneType.SinglePatient)
+            {
+                foreach (var patient in Visualization.Patients)
+                {
+                    foreach (var mesh in patient.Meshes.Where(mesh => mesh.IsUsable))
+                        if (!m_MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes) || !meshes.Any(item => item.Name == mesh.Name))
+                            m_MeshManager.AddPreloaded(mesh, patient);
+                    foreach (var mri in patient.MRIs.Where(mri => mri.IsUsable))
+                        if (!m_MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris) || !mris.Any(item => item.Name == mri.Name))
+                            m_MRIManager.AddPreloaded(mri, patient);
+                }
+            }
+
             m_MeshManager.LoadMissing();
             m_MRIManager.LoadMissing();
         }
@@ -2676,6 +2735,7 @@ namespace HBP.Data.Module3D
 
         private async UniTask ComputeGeneratorsAsync()
         {
+            m_PreparationError = null;
             m_UpdatingGenerators = true;
             var completion = new UniTaskCompletionSource();
             m_GeneratorWork = completion.Task;
@@ -2686,6 +2746,11 @@ namespace HBP.Data.Module3D
                 OnUpdatingGenerators.Invoke(true);
                 await LoadActivityAsync();
                 succeeded = true;
+            }
+            catch (Exception exception)
+            {
+                m_PreparationError = exception;
+                throw;
             }
             finally
             {

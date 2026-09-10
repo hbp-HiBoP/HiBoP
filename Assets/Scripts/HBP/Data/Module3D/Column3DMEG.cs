@@ -160,16 +160,18 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnMEGData.MEGConfiguration.NegativeMin = MEGParameters.FMRINegativeCalMinFactor;
-            ColumnMEGData.MEGConfiguration.NegativeMax = MEGParameters.FMRINegativeCalMaxFactor;
-            ColumnMEGData.MEGConfiguration.PositiveMin = MEGParameters.FMRIPositiveCalMinFactor;
-            ColumnMEGData.MEGConfiguration.PositiveMax = MEGParameters.FMRIPositiveCalMaxFactor;
-            ColumnMEGData.MEGConfiguration.HideLowerValues = MEGParameters.HideLowerValues;
-            ColumnMEGData.MEGConfiguration.HideMiddleValues = MEGParameters.HideMiddleValues;
-            ColumnMEGData.MEGConfiguration.HideHigherValues = MEGParameters.HideHigherValues;
-            base.SaveConfiguration();
+            ((MEGColumn)target).MEGConfiguration.NegativeMin = MEGParameters.FMRINegativeCalMinFactor;
+            ((MEGColumn)target).MEGConfiguration.NegativeMax = MEGParameters.FMRINegativeCalMaxFactor;
+            ((MEGColumn)target).MEGConfiguration.PositiveMin = MEGParameters.FMRIPositiveCalMinFactor;
+            ((MEGColumn)target).MEGConfiguration.PositiveMax = MEGParameters.FMRIPositiveCalMaxFactor;
+            ((MEGColumn)target).MEGConfiguration.HideLowerValues = MEGParameters.HideLowerValues;
+            ((MEGColumn)target).MEGConfiguration.HideMiddleValues = MEGParameters.HideMiddleValues;
+            ((MEGColumn)target).MEGConfiguration.HideHigherValues = MEGParameters.HideHigherValues;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

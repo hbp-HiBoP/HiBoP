@@ -1,8 +1,11 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
 #if UNITY_EDITOR
 using System;
 using System.Collections;
 using System.Threading.Tasks;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using NUnit.Framework;
 using UnityEditor;
@@ -22,7 +25,7 @@ namespace HBP.Tests.Quest
         [UnityTest]
         public IEnumerator ReplacementClearAndDestroy_ReleaseMeshesWithoutFrameRebuilds()
         {
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab"));
             var view = root.GetComponent<QuestAnatomyView>();
             var renderer = root.GetComponentInChildren<MeshRenderer>();
             Material material = renderer.sharedMaterial;
@@ -80,7 +83,7 @@ namespace HBP.Tests.Quest
         [Test]
         public async Task WorkerDelivery_IsRejectedWithoutChangingTheView()
         {
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab"));
             var view = root.GetComponent<QuestAnatomyView>();
             var snapshot = Snapshot("worker");
             try

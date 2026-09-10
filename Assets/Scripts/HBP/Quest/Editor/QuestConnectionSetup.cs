@@ -57,7 +57,6 @@ namespace HBP.Quest.Editor
                 var camera = root.GetComponentInChildren<Camera>();
                 Transform previous = camera.transform.Find("Quest Connection Panel");
                 if (previous != null) Object.DestroyImmediate(previous.gameObject);
-                foreach (var diagnostic in root.GetComponentsInChildren<QuestAnatomyDiagnostic>(true)) diagnostic.enabled = false;
                 var diagnosticText = camera.transform.Find("Anatomy Diagnostic Status");
                 if (diagnosticText != null) diagnosticText.gameObject.SetActive(false);
                 // Keep the diagnostic bootstrap component for tests/logging, hide its debug overlay.
@@ -129,7 +128,7 @@ namespace HBP.Quest.Editor
                 code.characterLimit = 6;
                 code.contentType = InputField.ContentType.IntegerNumber;
                 var pair = Button(panel, "Pair", 335, -285, 180);
-                var selection = Label(panel, "Selection", "Select a complete MNI anatomical column.", 20, -340, 630, 58);
+                var selection = Label(panel, "Selection", "Select a complete visualization anatomical column.", 20, -340, 630, 58);
                 var send = Button(panel, "Envoyer au Quest", 20, -410, 230);
                 var retry = Button(panel, "Retry same snapshot", 265, -410, 235);
                 var cancel = Button(panel, "Cancel", 515, -410, 135);

@@ -1,7 +1,12 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using QuestAnatomyManipulator = HBP.Quest.Legacy.QuestAnatomyManipulator;
+using QuestAnatomyInput = HBP.Quest.Legacy.QuestAnatomyInput;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
 #if UNITY_EDITOR
 using System;
 using System.IO;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using NUnit.Framework;
 using UnityEditor;
@@ -20,7 +25,7 @@ namespace HBP.Tests.QuestAnatomy
         [SetUp]
         public void SetUp()
         {
-            root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"));
+            root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab"));
             view = root.GetComponent<QuestAnatomyView>();
             manipulation = root.GetComponent<QuestAnatomyManipulator>();
             view.ApplySnapshot(Snapshot());
@@ -233,7 +238,7 @@ namespace HBP.Tests.QuestAnatomy
         [Test]
         public void Prefabs_SerializeManipulationSettingsAndRigReferences()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestBootstrap.prefab");
             var input = new SerializedObject(prefab.GetComponentInChildren<QuestAnatomyInput>(true));
             foreach (string field in new[] { "view", "manipulator", "head", "left", "right" })
                 Assert.That(input.FindProperty(field).objectReferenceValue, Is.Not.Null, field);

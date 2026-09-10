@@ -47,6 +47,17 @@ namespace HBP.Core.Preferences
 
         #region Private Methods
 
+        /// <summary>Install a received session context in memory after all previous scenes have closed.</summary>
+        public static void ApplySessionData(UserPreferences preferences, TagCollection tags, AliasCollection aliases, FilterConditionsPresetCollection filterPresets)
+        {
+            if (!IsInitialized) throw new InvalidOperationException("Persistent data must be initialized before installing session data.");
+            if (preferences == null || tags == null || aliases == null || filterPresets == null) throw new ArgumentNullException("Session data is incomplete.");
+            m_Instance.m_UserPreferences = preferences;
+            m_Instance.m_Tags = tags;
+            m_Instance.m_Aliases = aliases;
+            m_Instance.m_FilterConditionsPresets = filterPresets;
+        }
+
         protected override void Initialization()
         {
             base.Initialization();

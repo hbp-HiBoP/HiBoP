@@ -339,9 +339,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void LoadMissing()
         {
-            foreach (var mesh in Meshes)
+            foreach (var mesh in Meshes.Distinct())
             {
                 if (!mesh.IsLoaded) mesh.Load();
+                if (!mesh.IsLoaded) throw new System.IO.IOException($"Unable to prepare mesh '{mesh.Name}'.");
             }
         }
 

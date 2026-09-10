@@ -304,6 +304,24 @@ namespace HBP.Core.Object3D
         {
         }
 
+        /// <summary>Takes ownership of prepared anatomical and optional inflated surfaces.</summary>
+        public static Mesh3D FromPrepared(string name, MeshType type, DLL.Surface both, DLL.Surface simplifiedBoth, DLL.Surface left, DLL.Surface right, DLL.Surface simplifiedLeft, DLL.Surface simplifiedRight, DLL.Surface inflatedBoth, DLL.Surface inflatedSimplifiedBoth, DLL.Surface inflatedLeft, DLL.Surface inflatedRight, DLL.Surface inflatedSimplifiedLeft, DLL.Surface inflatedSimplifiedRight, MRI3D sourceMRI = null, DLL.PreviewSurfaceReport generationReport = default, Mesh3DInflationSettings? inflationSettings = null, SurfaceInflationCoordinateSpace coordinateSpace = SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates)
+        {
+            // Prepared topology is transferred exactly: erasure masks index these triangles.
+            Mesh3D mesh = sourceMRI != null ? new RuntimeSingleMesh3D(sourceMRI, both, generationReport, simplifiedBoth) : left != null ? new LeftRightMesh3D(name, type, both, simplifiedBoth, left, right, simplifiedLeft, simplifiedRight) : new SingleMesh3D { Name = name, Type = type, Both = both, SimplifiedBoth = simplifiedBoth };
+            mesh.Name = name;
+            mesh.HasBeenLoadedOutside = false;
+            if (inflatedBoth != null)
+            {
+                var key = new SurfaceInflationCacheKey(mesh.CreateSourceGeometryIdentity(), inflationSettings ?? Mesh3DInflationSettings.Inflated);
+                var representation = new Mesh3DInflatedRepresentation(key, inflatedBoth, inflatedSimplifiedBoth, null, coordinateSpace, inflatedLeft, inflatedRight, inflatedSimplifiedLeft, inflatedSimplifiedRight);
+                mesh.m_InflatedRepresentations.Add(key, representation);
+                mesh.m_ActiveInflatedRepresentation = representation;
+            }
+
+            return mesh;
+        }
+
         #endregion
 
         #region Public Methods
@@ -1006,6 +1024,19 @@ namespace HBP.Core.Object3D
             SimplifiedRight = right.Simplify();
             SimplifiedBoth = both.Simplify();
             HasBeenLoadedOutside = true;
+        }
+
+        internal LeftRightMesh3D(string name, MeshType type, DLL.Surface both, DLL.Surface simplifiedBoth, DLL.Surface left, DLL.Surface right, DLL.Surface simplifiedLeft, DLL.Surface simplifiedRight, bool shared = false)
+        {
+            HasBeenLoadedOutside = shared;
+            Name = name;
+            Type = type;
+            Both = both;
+            SimplifiedBoth = simplifiedBoth;
+            Left = left;
+            Right = right;
+            SimplifiedLeft = simplifiedLeft;
+            SimplifiedRight = simplifiedRight;
         }
 
         public LeftRightMesh3D()

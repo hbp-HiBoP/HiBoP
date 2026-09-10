@@ -2,7 +2,7 @@
 
 Révision du cadrage : **2026-09-10**. Lot A implémenté le **2026-09-10** (001, puis 002, puis 003). Validation runtime
 différée selon la cadence du chantier. Voir [le journal](reports/JOURNAL.md).
-Les lots B et C restent à faire.
+Lot B implémenté le **2026-09-10** (004 → 005 → 006 → 007). Le Lot C reste à faire.
 
 Avancement code : A_FAIRE, EN_COURS, IMPLEMENTEE, BLOQUEE.
 Validation : DIFFEREE, PARTIELLE, REUSSIE, ECHEC.
@@ -14,10 +14,10 @@ IMPLEMENTEE avec DIFFEREE est un état attendu durant les lots A/B.
 | [SCENE-001](tasks/SCENE-001.md) | Inventaire ciblé et choix concrets | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
 | [SCENE-002](tasks/SCENE-002.md) | Généraliser scène, colonnes et présentation | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
 | [SCENE-003](tasks/SCENE-003.md) | Partager les opérations de toutes les modalités | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
-| [SCENE-004](tasks/SCENE-004.md) | Préparer toutes les ressources et le Data Quest | A_FAIRE | DIFFEREE | NON_REQUIS |
-| [SCENE-005](tasks/SCENE-005.md) | Capturer et restaurer la visualisation complète | A_FAIRE | DIFFEREE | NON_REQUIS |
-| [SCENE-006](tasks/SCENE-006.md) | Afficher les colonnes communes sur Quest | A_FAIRE | DIFFEREE | DIFFERE |
-| [SCENE-007](tasks/SCENE-007.md) | Achever l’intégration et retirer le prototype remplacé | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-004](tasks/SCENE-004.md) | Préparer toutes les ressources et le Data Quest | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
+| [SCENE-005](tasks/SCENE-005.md) | Capturer et restaurer la visualisation complète | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
+| [SCENE-006](tasks/SCENE-006.md) | Afficher les colonnes communes sur Quest | IMPLEMENTEE | DIFFEREE | DIFFERE |
+| [SCENE-007](tasks/SCENE-007.md) | Achever l’intégration et retirer le prototype remplacé | IMPLEMENTEE | DIFFEREE | NON_REQUIS |
 | [SCENE-008](tasks/SCENE-008.md) | Stabiliser et qualifier la version intégrée | A_FAIRE | DIFFEREE | DIFFERE |
 
 La validation finale peut couvrir plusieurs fiches en une même exécution.

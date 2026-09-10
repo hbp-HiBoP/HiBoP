@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 515707500142266548}
   - component: {fileID: 2358289573187672703}
   - component: {fileID: 8790038459031253835}
+  - component: {fileID: 910000000000000001}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -77,7 +78,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 4273995775
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -783,3 +784,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestBoundaryVisibility
   passthrough: {fileID: 7251435037861318519}
   freeMovementInPassthrough: 1
+--- !u!114 &910000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 148099692572303258}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f0ac7c682c548c484fbab4e8fb49aaa, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  m_EdgesEnabled: 0

@@ -57,7 +57,7 @@ namespace HBP.Data.Module3D
         /// <param name="size">New size for the lists</param>
         public void Resize(int size, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators, Core.DLL.ActivityGenerator activityGenerator)
         {
-            _3DPreferences preferences = PersistentDataManager.UserPreferences.Visualization._3D;
+            var preferences = PersistentDataManager.UserPreferences.Visualization._3D;
             activityGenerator?.SetSmoothActivityBoundaries(preferences.SmoothActivityBoundaries);
 
             while (Size < size)

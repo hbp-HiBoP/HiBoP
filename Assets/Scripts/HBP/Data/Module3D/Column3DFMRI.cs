@@ -155,16 +155,18 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnFMRIData.FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
-            ColumnFMRIData.FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
-            ColumnFMRIData.FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
-            ColumnFMRIData.FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
-            ColumnFMRIData.FMRIConfiguration.HideLowerValues = FMRIParameters.HideLowerValues;
-            ColumnFMRIData.FMRIConfiguration.HideMiddleValues = FMRIParameters.HideMiddleValues;
-            ColumnFMRIData.FMRIConfiguration.HideHigherValues = FMRIParameters.HideHigherValues;
-            base.SaveConfiguration();
+            ((FMRIColumn)target).FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
+            ((FMRIColumn)target).FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
+            ((FMRIColumn)target).FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
+            ((FMRIColumn)target).FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            ((FMRIColumn)target).FMRIConfiguration.HideLowerValues = FMRIParameters.HideLowerValues;
+            ((FMRIColumn)target).FMRIConfiguration.HideMiddleValues = FMRIParameters.HideMiddleValues;
+            ((FMRIColumn)target).FMRIConfiguration.HideHigherValues = FMRIParameters.HideHigherValues;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

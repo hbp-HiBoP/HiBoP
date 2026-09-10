@@ -300,7 +300,7 @@ namespace HBP.Data.Module3D
                 site.State.IsMasked = true;
             }
 
-            StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
+            StringTag marsAtlasTag = Sites.SelectMany(site => site.Information.SiteData.Tags).Select(value => value.Tag).OfType<StringTag>().FirstOrDefault(tag => tag.Name == "MarsAtlas");
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 
@@ -308,7 +308,7 @@ namespace HBP.Data.Module3D
 
             // Sort sites by mars atlas label
             Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new();
-            List<StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as StringTagValue).ToList(); // FIXME: try perf with linq
+            List<StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag?.ID == marsAtlasTag.ID) as StringTagValue).ToList();
             foreach (var label in marsAtlasLabels)
             {
                 string labelName = string.Format("{0}_{1}", Object3DManager.MarsAtlas.Hemisphere(label), Object3DManager.MarsAtlas.Name(label));
@@ -561,13 +561,15 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnCCEPData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnCCEPData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
-            ColumnCCEPData.DynamicConfiguration.Middle = DynamicParameters.Middle;
-            ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
-            base.SaveConfiguration();
+            ((CCEPColumn)target).DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
+            ((CCEPColumn)target).DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
+            ((CCEPColumn)target).DynamicConfiguration.Middle = DynamicParameters.Middle;
+            ((CCEPColumn)target).DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

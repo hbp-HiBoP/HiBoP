@@ -1,5 +1,0 @@
-{
-    "name": "HBP.Transfer.Anatomy.Desktop",
-    "references": ["HBP.Transfer.Projection", "HBP.Transfer.Transport", "HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Anatomy.Delivery", "HBP.Core.Runtime", "HBP.Data.Runtime", "UniTask"],
-    "autoReferenced": false
-}

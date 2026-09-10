@@ -1,6 +1,12 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using QuestAnatomyManipulator = HBP.Quest.Legacy.QuestAnatomyManipulator;
+using QuestAnatomyInput = HBP.Quest.Legacy.QuestAnatomyInput;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
+using QuestAnatomyDiagnostic = HBP.Quest.Legacy.QuestAnatomyDiagnostic;
 #if UNITY_EDITOR
 using System;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using NUnit.Framework;
 using UnityEditor;
@@ -27,7 +33,7 @@ namespace HBP.Tests.Quest
             var head = InputSystem.AddDevice<XRHMD>();
             InputSystem.SetDeviceUsage(left, CommonUsages.LeftHand);
             InputSystem.SetDeviceUsage(right, CommonUsages.RightHand);
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestBootstrap.prefab"));
             root.GetComponentInChildren<QuestAnatomyDiagnostic>().enabled = false;
             var input = root.GetComponentInChildren<QuestAnatomyInput>();
             var view = root.GetComponentInChildren<QuestAnatomyView>();

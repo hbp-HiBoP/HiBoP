@@ -73,6 +73,7 @@ namespace HBP.Core.DLL
         public bool IsLoaded { get; private set; }
         public string SourceFilePath { get; private set; }
         public string SourceFileSha256 { get; private set; }
+        public string SourceCompanionSha256 { get; private set; }
 
         public Vector3 Center
         {
@@ -139,21 +140,25 @@ namespace HBP.Core.DLL
         {
             SourceFilePath = null;
             SourceFileSha256 = null;
+            SourceCompanionSha256 = null;
             // Keep provenance for single-file projection transfer without retaining a second volume in RAM.
             // Sharing permits the native reader but denies concurrent writers on Windows.
-            if (File.Exists(path) && string.Equals(Path.GetExtension(path), ".nii", StringComparison.OrdinalIgnoreCase))
+            if (File.Exists(path))
             {
                 try
                 {
                     using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
                     using var sha = SHA256.Create();
                     string hash = BitConverter.ToString(sha.ComputeHash(source));
+                    string companion = Core.Tools.StandardData.CompanionFile(path);
+                    string companionHash = companion == null ? null : Core.Tools.StandardData.HashFile(companion);
                     IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
                     source.Position = 0;
-                    if (IsLoaded && hash == BitConverter.ToString(sha.ComputeHash(source)))
+                    if (IsLoaded && hash == BitConverter.ToString(sha.ComputeHash(source)) && (companion == null || companionHash == Core.Tools.StandardData.HashFile(companion)))
                     {
                         SourceFilePath = Path.GetFullPath(path);
                         SourceFileSha256 = hash;
+                        SourceCompanionSha256 = companionHash;
                     }
 
                     return IsLoaded;

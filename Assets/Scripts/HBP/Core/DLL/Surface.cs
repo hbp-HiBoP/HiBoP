@@ -213,6 +213,10 @@ namespace HBP.Core.DLL
 
         public bool IsLoaded { get; private set; }
         public bool IsMarsAtlasLoaded { get; private set; }
+
+        /// <summary>Restore the atlas flag together with validated prepared surface colors.</summary>
+        public void SetPreparedAtlasAvailability(bool available) => IsMarsAtlasLoaded = available;
+
         public long GeometryVersion { get; private set; }
 
         public Vector3 Center

@@ -65,11 +65,11 @@ namespace HBP.Core.Object3D
             HasBeenLoadedOutside = false;
         }
 
-        public MRI3D(string name, DLL.Volume volume)
+        public MRI3D(string name, DLL.Volume volume, bool shared = true)
         {
             Name = name;
             Volume = volume;
-            HasBeenLoadedOutside = true;
+            HasBeenLoadedOutside = shared;
         }
 
         public MRI3D()
@@ -86,8 +86,14 @@ namespace HBP.Core.Object3D
         public void Load()
         {
             m_IsLoading = true;
-            m_Volume.LoadNIFTIFile(m_MRI.File);
-            m_IsLoading = false;
+            try
+            {
+                if (!m_Volume.LoadNIFTIFile(m_MRI.File)) throw new System.IO.IOException($"Unable to load MRI '{Name}'.");
+            }
+            finally
+            {
+                m_IsLoading = false;
+            }
         }
 
         /// <summary>

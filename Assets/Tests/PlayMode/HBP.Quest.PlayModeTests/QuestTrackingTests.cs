@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;

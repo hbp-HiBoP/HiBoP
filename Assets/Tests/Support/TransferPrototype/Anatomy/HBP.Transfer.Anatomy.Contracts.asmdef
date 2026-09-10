@@ -1,0 +1,15 @@
+{
+    "name": "HBP.Transfer.Anatomy.Contracts",
+    "rootNamespace": "HBP.Transfer.Anatomy",
+    "references": [],
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "noEngineReferences": true,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ]
+}

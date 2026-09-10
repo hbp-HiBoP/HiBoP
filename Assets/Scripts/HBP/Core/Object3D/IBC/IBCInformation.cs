@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -45,6 +45,8 @@ namespace HBP.Core.Object3D
 
         #endregion
 
+        public UniTask LoadCompletion { get; private set; }
+
         #region Properties
 
         public List<Labels> AllLabels { get; } = new List<Labels>();
@@ -57,14 +59,15 @@ namespace HBP.Core.Object3D
 
         public IBCInformation(string csvFile)
         {
-            LoadAsync(csvFile).Forget();
+            LoadCompletion = LoadAsync(csvFile).ToAsyncLazy().Task;
+            LoadCompletion.Forget();
         }
 
         #endregion
 
         #region Private Methods
 
-        private async UniTaskVoid LoadAsync(string csvFile)
+        private async UniTask LoadAsync(string csvFile)
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;

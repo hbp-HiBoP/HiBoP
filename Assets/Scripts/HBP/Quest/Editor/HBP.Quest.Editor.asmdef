@@ -1,5 +1,24 @@
 {
     "name": "HBP.Quest.Editor",
-    "references": ["HBP.Quest.Runtime", "HBP.UI.Runtime", "Unity.InputSystem", "Unity.XR.CoreUtils", "Unity.XR.Management", "Unity.XR.Management.Editor", "Unity.XR.OpenXR", "Unity.XR.OpenXR.Editor", "Unity.XR.MetaOpenXR", "Unity.XR.OpenXR.Features.MetaQuestSupport", "Unity.XR.ARFoundation", "Unity.XR.ARSubsystems", "Unity.RenderPipelines.Universal.Runtime"],
-    "includePlatforms": ["Editor"]
+    "references": [
+        "HBP.Quest.Runtime",
+        "HBP.UI.Runtime",
+        "Unity.InputSystem",
+        "Unity.XR.CoreUtils",
+        "Unity.XR.Management",
+        "Unity.XR.Management.Editor",
+        "Unity.XR.OpenXR",
+        "Unity.XR.OpenXR.Editor",
+        "Unity.XR.MetaOpenXR",
+        "Unity.XR.OpenXR.Features.MetaQuestSupport",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARSubsystems",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Rendering.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ]
 }

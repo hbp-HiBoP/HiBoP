@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.DLL;
 using HBP.Core.Exceptions;
 using HBP.Core.Tools;
@@ -17,7 +17,14 @@ namespace HBP.Core.Object3D
         public string Name { get; set; }
 
         private readonly string m_File = "";
+        private AsyncLazy m_LoadWork;
         private readonly string m_MaskFile = "";
+        public string SourceFile => m_File;
+        public string MaskFile => m_MaskFile;
+        public string SourceHash { get; private set; }
+        public string MaskHash { get; private set; }
+        public string SourceCompanionHash { get; private set; }
+        public string MaskCompanionHash { get; private set; }
         public List<Volume> Volumes { get; private set; } = new List<Volume>();
         public Volume MaskVolume { get; private set; } = new Volume();
         public bool Loading { get; private set; } = false;
@@ -50,17 +57,12 @@ namespace HBP.Core.Object3D
             m_File = file;
             m_MaskFile = maskFile;
             if (loadInBackground)
-                Load(file, maskFile).Forget();
+                LoadAsync().Forget();
         }
 
         #endregion
 
         #region Private Methods
-
-        private async UniTaskVoid Load(string file, string maskFile)
-        {
-            await LoadAsync(file, maskFile);
-        }
 
         /// <summary>
         /// Load the FMRI
@@ -69,54 +71,74 @@ namespace HBP.Core.Object3D
         {
             await UniTask.SwitchToThreadPool();
             Loading = true;
-            // FILE
-            var nifti = new NIFTI();
-            if (!nifti.Load(file))
+            try
             {
-                throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
-            }
-
-            for (int i = 0; i < nifti.NumberOfVolumes; i++)
-            {
-                Volumes.Add(nifti.ExtractVolume(i));
-            }
-
-            ExtremeValues = nifti.ExtremeValues;
-            HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
-            if (nifti.NumberOfVolumes > 0)
-            {
-                StartTime = nifti.StartTime;
-                TimeStep = nifti.TimeStep;
-                TimeUnit = nifti.TimeUnit;
-            }
-
-            nifti.Dispose();
-            // MASK
-            if (!string.IsNullOrEmpty(maskFile))
-            {
-                MaskVolume = new Volume();
-                if (!MaskVolume.LoadNIFTIFile(maskFile))
+                SourceHash = StandardData.HashFile(file);
+                if (StandardData.CompanionFile(file) is string sourceCompanion) SourceCompanionHash = StandardData.HashFile(sourceCompanion);
+                if (!string.IsNullOrEmpty(maskFile)) MaskHash = StandardData.HashFile(maskFile);
+                if (!string.IsNullOrEmpty(maskFile) && StandardData.CompanionFile(maskFile) is string maskCompanion) MaskCompanionHash = StandardData.HashFile(maskCompanion);
+                // FILE
+                using var nifti = new NIFTI();
+                if (!nifti.Load(file))
                 {
-                    throw new HBPException("Mask loading error", $"The mask of the fMRI {Name} could not be loaded.");
+                    throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
                 }
 
-                if (!MaskVolume.BoundingBox.Compare(Volumes[0].BoundingBox))
+                if (nifti.NumberOfVolumes < 1) throw new HBPException("fMRI loading error", "The fMRI contains no volumes.");
+                for (int i = 0; i < nifti.NumberOfVolumes; i++)
                 {
-                    throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask of the fMRI {Name} does not have the same bounding box as the fMRI.");
+                    Volumes.Add(nifti.ExtractVolume(i));
                 }
-            }
 
-            Loading = false;
-            Loaded = true;
+                ExtremeValues = nifti.ExtremeValues;
+                HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
+                if (nifti.NumberOfVolumes > 0)
+                {
+                    StartTime = nifti.StartTime;
+                    TimeStep = nifti.TimeStep;
+                    TimeUnit = nifti.TimeUnit;
+                }
+
+                // MASK
+                if (!string.IsNullOrEmpty(maskFile))
+                {
+                    if (!MaskVolume.LoadNIFTIFile(maskFile))
+                    {
+                        throw new HBPException("Mask loading error", $"The mask of the fMRI {Name} could not be loaded.");
+                    }
+
+                    if (!MaskVolume.BoundingBox.Compare(Volumes[0].BoundingBox))
+                    {
+                        throw new HBPException("Mask and fMRI bounding box mismatch", $"The mask of the fMRI {Name} does not have the same bounding box as the fMRI.");
+                    }
+                }
+
+                if (SourceHash != StandardData.HashFile(file) || (!string.IsNullOrEmpty(maskFile) && MaskHash != StandardData.HashFile(maskFile)))
+                    throw new System.IO.IOException($"fMRI files changed during loading: {Name}");
+                if (SourceCompanionHash != null && SourceCompanionHash != StandardData.HashFile(StandardData.CompanionFile(file))) throw new System.IO.IOException("fMRI companion changed during loading.");
+                if (MaskCompanionHash != null && MaskCompanionHash != StandardData.HashFile(StandardData.CompanionFile(maskFile))) throw new System.IO.IOException("Mask companion changed during loading.");
+                Loaded = true;
+            }
+            catch
+            {
+                Clean();
+                Volumes.Clear();
+                throw;
+            }
+            finally
+            {
+                Loading = false;
+            }
         }
 
         #endregion
 
         #region Public Methods
 
-        public async UniTask LoadAsync()
+        public UniTask LoadAsync()
         {
-            await LoadAsync(m_File, m_MaskFile);
+            m_LoadWork ??= UniTask.Lazy(() => LoadAsync(m_File, m_MaskFile));
+            return m_LoadWork.Task;
         }
 
         /// <summary>
@@ -128,6 +150,8 @@ namespace HBP.Core.Object3D
             {
                 volume.Dispose();
             }
+
+            MaskVolume?.Dispose();
         }
 
         #endregion

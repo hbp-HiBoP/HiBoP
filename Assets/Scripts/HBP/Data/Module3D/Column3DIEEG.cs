@@ -17,6 +17,9 @@ namespace HBP.Data.Module3D
     /// </summary>
     public class Column3DIEEG : Column3DDynamic
     {
+        public float CorrelationAlpha => PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha;
+        public bool BonferroniCorrection => PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection;
+
         #region Properties
 
         /// <summary>
@@ -247,8 +250,8 @@ namespace HBP.Data.Module3D
                     {
                         if (correlationBySite.TryGetValue(s, out float correlationValue))
                         {
-                            float threshold = PersistentDataManager.UserPreferences.Data.EEG.CorrelationAlpha;
-                            if (PersistentDataManager.UserPreferences.Data.EEG.BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
+                            float threshold = CorrelationAlpha;
+                            if (BonferroniCorrection) threshold /= siteCount * (siteCount - 1) / 2;
                             if (correlationValue < threshold)
                             {
                                 result.Add(s);
@@ -276,13 +279,15 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnIEEGData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnIEEGData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
-            ColumnIEEGData.DynamicConfiguration.Middle = DynamicParameters.Middle;
-            ColumnIEEGData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
-            base.SaveConfiguration();
+            ((IEEGColumn)target).DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
+            ((IEEGColumn)target).DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
+            ((IEEGColumn)target).DynamicConfiguration.Middle = DynamicParameters.Middle;
+            ((IEEGColumn)target).DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

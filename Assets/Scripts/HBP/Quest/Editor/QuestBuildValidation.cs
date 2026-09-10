@@ -42,7 +42,7 @@ namespace HBP.Quest.Editor
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(QuestBootstrapSetup.PipelinePath);
             var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(QuestBootstrapSetup.RendererPath);
             Require(pipeline != null && !pipeline.supportsHDR && pipeline.msaaSampleCount == 4, "Quest URP, no HDR, MSAA 4x");
-            Require(renderer != null && renderer.intermediateTextureMode == IntermediateTextureMode.Auto && renderer.rendererFeatures.Count == 0, "Quest renderer without Desktop effects");
+            Require(renderer != null && renderer.intermediateTextureMode == IntermediateTextureMode.Auto && renderer.rendererFeatures.Count == 1 && renderer.rendererFeatures[0] is HBP.Rendering.HBPEdgeRendererFeature, "Quest renderer with shared scientific rendering");
             Require(new SerializedObject(pipeline).FindProperty("m_RendererDataList").GetArrayElementAtIndex(0).objectReferenceValue == renderer, "Quest renderer reference");
             var quality = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/QualitySettings.asset")[0]);
             var defaults = quality.FindProperty("m_PerPlatformDefaultQuality");

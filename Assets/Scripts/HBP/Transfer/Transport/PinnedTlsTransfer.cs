@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace HBP.Transfer.Transport
 {
     /// <summary>Bounded, one-shot TLS transfer. Receipt follows successful application publication. No discovery or persistence.</summary>
-    public static class PinnedTlsTransfer
+    public static partial class PinnedTlsTransfer
     {
         public const int ChunkBytes = 64 * 1024;
         public const int MaximumPayloadBytes = 64 * 1024 * 1024;

@@ -647,10 +647,33 @@ namespace HBP.Data.Module3D
         /// </summary>
         public virtual void SaveConfiguration()
         {
-            ColumnData.BaseConfiguration.ActivityAlpha = ActivityAlpha;
+            CaptureConfiguration(ColumnData);
+        }
+
+        public virtual void CaptureConfiguration(Core.Data.Column target)
+        {
+            target.BaseConfiguration.ActivityAlpha = ActivityAlpha;
+            if (!ReferenceEquals(target, ColumnData))
+                foreach (var entry in SiteStateBySiteID)
+                {
+                    var state = entry.Value;
+                    var configuration = target.BaseConfiguration.ConfigurationBySite.TryGetValue(entry.Key, out var saved) ? (Core.Data.SiteConfiguration)saved.Clone() : new Core.Data.SiteConfiguration();
+                    configuration.IsBlacklisted = state.IsBlackListed;
+                    configuration.IsHighlighted = state.IsHighlighted;
+                    configuration.Color = state.Color;
+                    configuration.Labels = state.Labels.ToArray();
+                    target.BaseConfiguration.ConfigurationBySite[entry.Key] = configuration;
+                }
+
             foreach (Core.Object3D.Site site in Sites)
             {
-                site.SaveConfiguration();
+                var configuration = (Core.Data.SiteConfiguration)site.Configuration.Clone();
+                configuration.IsBlacklisted = site.State.IsBlackListed;
+                configuration.IsHighlighted = site.State.IsHighlighted;
+                configuration.Color = site.State.Color;
+                configuration.Labels = site.State.Labels.ToArray();
+                if (ReferenceEquals(target, ColumnData)) site.SaveConfiguration();
+                else target.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = configuration;
             }
         }
 

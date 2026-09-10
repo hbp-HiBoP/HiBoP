@@ -18,6 +18,7 @@ namespace HBP.Rendering
         }
 
         [SerializeField] private Settings m_Settings = new();
+        [SerializeField] private Shader m_Shader;
 
         private Material m_Material;
         private HBPTransparentBrainRenderPass m_TransparentBrainPass;
@@ -28,7 +29,7 @@ namespace HBP.Rendering
         public override void Create()
         {
             CoreUtils.Destroy(m_Material);
-            Shader shader = Shader.Find("Hidden/HBP/Edges");
+            Shader shader = m_Shader != null ? m_Shader : Shader.Find("Hidden/HBP/Edges");
             m_Material = shader == null ? null : CoreUtils.CreateEngineMaterial(shader);
             m_TransparentBrainPass = new HBPTransparentBrainRenderPass();
             m_Pass = new HBPEdgeRenderPass();

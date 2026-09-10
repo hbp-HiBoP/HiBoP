@@ -1,5 +1,0 @@
-{
-    "name": "HBP.Transfer.Projection",
-    "references": ["HBP.Transfer.Anatomy.Contracts", "HBP.Core.Runtime"],
-    "autoReferenced": false
-}

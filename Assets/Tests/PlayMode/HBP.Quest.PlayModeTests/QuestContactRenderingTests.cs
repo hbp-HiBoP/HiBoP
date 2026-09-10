@@ -1,3 +1,8 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using QuestAnatomySession = HBP.Quest.Legacy.QuestAnatomySession;
+using QuestAnatomyManipulator = HBP.Quest.Legacy.QuestAnatomyManipulator;
+using QuestContactRenderer = HBP.Quest.Legacy.QuestContactRenderer;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
 #if UNITY_EDITOR
 using System;
 using System.Collections;
@@ -5,6 +10,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using NUnit.Framework;
 using UnityEditor;
@@ -17,7 +23,7 @@ namespace HBP.Tests.Quest
 {
     public class QuestContactRenderingTests
     {
-        private const string Prefab = "Assets/Prefabs/Quest/QuestAnatomy.prefab";
+        private const string Prefab = "Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab";
 
         private static AnatomySnapshot Snapshot(bool surfaceVisible = true, bool contacts = true, AnatomyContacts prepared = null)
         {

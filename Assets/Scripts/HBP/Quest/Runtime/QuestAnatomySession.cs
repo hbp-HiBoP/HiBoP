@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using HBP.Transfer.Anatomy;
+using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using UnityEngine;
 
@@ -28,15 +28,16 @@ namespace HBP.Quest
         private CancellationTokenSource reception;
         private Entry current;
         private bool destroyed;
-        private QuestAnatomyMeasurements measurements;
+        private PairingContext globals;
+        private SceneArchive globalArchive;
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
-        public bool IsReady => current != null && view != null && view.SharedMesh != null;
+        public bool IsReady => current != null && view != null && view.Scene != null;
         public string TransferId => current?.TransferId;
         public string ContentHash => current?.ContentHash;
         public string SessionId => current?.SessionId;
         public string LastError { get; private set; }
-        public int ReceivedBytes { get; private set; }
+        public long ReceivedBytes { get; private set; }
 
         private sealed class Entry
         {
@@ -50,16 +51,6 @@ namespace HBP.Quest
         {
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
-            if (Debug.isDebugBuild && File.Exists(Path.Combine(Application.persistentDataPath, "quest012-measure")))
-                measurements = new QuestAnatomyMeasurements();
-        }
-
-        private void Update() => measurements?.Sample(this, view);
-
-        /// <summary>Call on the main thread. One attempt at a time; interruption restarts from byte zero.</summary>
-        public async Task<DeliveryReceipt> ReceiveAsync(string host, int port, byte[] pin, byte[] secret, CancellationToken stop = default)
-        {
-            return await ReceiveCoreAsync((token, publish, progress) => PinnedTlsTransfer.ReceiveAsync(host, port, pin, secret, token, publish, progress), stop);
         }
 
         /// <summary>Accept an authenticated incoming stream using the same publication and cancellation owner.</summary>
@@ -68,20 +59,68 @@ namespace HBP.Quest
             Task<DeliveryReceipt> receptionTask = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
             {
                 using var closeStream = token.Register(stream.Dispose);
-                return await PinnedTlsTransfer.ReceivePayloadAsync(stream, token, publish, progress).ConfigureAwait(false);
+                return await ReceiveFileAsync(stream, token, publish, progress).ConfigureAwait(false);
             }, stop), stop).ConfigureAwait(false);
             return await receptionTask.ConfigureAwait(false);
         }
 
-        private async Task<DeliveryReceipt> ReceiveCoreAsync(Func<CancellationToken, Func<byte[], CancellationToken, Task<DeliveryStatus>>, Action<int>, Task<DeliveryReceipt>> receive, CancellationToken stop)
+        public async Task<DeliveryReceipt> ReceiveGlobalsAsync(Stream stream, CancellationToken stop)
+        {
+            Task<DeliveryReceipt> work = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
+            {
+                using var close = token.Register(stream.Dispose);
+                return await ReceiveFileAsync(stream, token, publish, progress).ConfigureAwait(false);
+            }, stop, InstallGlobalsAsync), stop).ConfigureAwait(false);
+            return await work.ConfigureAwait(false);
+        }
+
+        private async Task<DeliveryStatus> InstallGlobalsAsync(string file, string hash, CancellationToken stop)
+        {
+            string directory = await OnUnityThreadAsync(() => Path.Combine(Application.temporaryCachePath, "PairingData", Guid.NewGuid().ToString("N")), stop).ConfigureAwait(false);
+            var archive = new SceneArchive(directory, true);
+            bool consumed = false;
+            try
+            {
+                var candidate = await Task.Run(() =>
+                {
+                    var context = new PairingContext(archive.ReadGlobalData(file, stop));
+                    context.RestoreFilterPresets(archive);
+                    return context;
+                }, stop).ConfigureAwait(false);
+                Task installation = await OnUnityThreadAsync(async () =>
+                {
+                    if (!HBP.Core.Preferences.PersistentDataManager.IsInitialized || !HBP.Core.Database.DatabaseManager.IsInitialized)
+                        throw new InvalidOperationException("The Quest common services must be initialized before pairing.");
+                    await view.ClearAsync();
+                    stop.ThrowIfCancellationRequested();
+                    if (destroyed) throw new ObjectDisposedException(nameof(QuestAnatomySession));
+                    HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
+                    HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
+                    HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;
+                    HBP.Core.DLL.ActivityProjectionSettings.VolumeInterpolation = candidate.Data.Interpolation;
+                    var previous = globalArchive;
+                    globals = candidate;
+                    globalArchive = archive;
+                    consumed = true;
+                    current = null;
+                    deliveries.Clear();
+                    previous?.Dispose();
+                }, stop).ConfigureAwait(false);
+                await installation.ConfigureAwait(false);
+                return DeliveryStatus.Published;
+            }
+            finally
+            {
+                if (!consumed) archive.Dispose();
+            }
+        }
+
+        private async Task<DeliveryReceipt> ReceiveCoreAsync(Func<CancellationToken, Func<string, string, CancellationToken, Task<DeliveryStatus>>, Action<long>, Task<DeliveryReceipt>> receive, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> prepare = null)
         {
             RequireMainThread();
             if (destroyed || !isActiveAndEnabled) throw new InvalidOperationException("The session receiver is unavailable.");
             if (view == null || unityContext == null) throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
             if (reception != null) throw new InvalidOperationException("A delivery is already in progress.");
-            // Local file injection and network delivery cannot both own this view.
-            var diagnostic = GetComponentInParent<QuestAnatomyDiagnostic>();
-            if (diagnostic != null && diagnostic.enabled) diagnostic.enabled = false;
             using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stop);
             reception = attempt;
             LastError = null;
@@ -89,7 +128,7 @@ namespace HBP.Quest
             ReceptionState = AnatomyReceptionState.Connecting;
             try
             {
-                return await receive(attempt.Token, (bytes, token) => PrepareAsync(bytes, token), count => unityContext.Post(_ =>
+                return await receive(attempt.Token, prepare ?? PrepareAsync, count => unityContext.Post(_ =>
                 {
                     if (destroyed || reception != attempt || attempt.IsCancellationRequested) return;
                     IsConnected = true;
@@ -111,33 +150,43 @@ namespace HBP.Quest
             }
         }
 
-        private async Task<DeliveryStatus> PrepareAsync(byte[] bytes, CancellationToken stop)
+        private async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress)
         {
-            await OnUnityThreadAsync(() =>
+            string file = Path.Combine(Application.temporaryCachePath, "scene-" + Guid.NewGuid().ToString("N") + ".hbscene");
+            try
             {
-                ReceptionState = AnatomyReceptionState.Preparing;
-                return true;
-            }, stop).ConfigureAwait(false);
-            // The transport owns this complete, hash-checked buffer. Neither decoder nor renderer mutates it.
-            var elapsed = System.Diagnostics.Stopwatch.StartNew();
-            AnatomySnapshot snapshot = await Task.Run(() => AnatomySnapshotCodec.Decode(bytes), stop).ConfigureAwait(false);
-            string hash = new DeliveryReceipt(TransportIdentity.Hash(bytes), DeliveryStatus.Published).ContentHash;
-            double decodeAndHashMs = elapsed.Elapsed.TotalMilliseconds;
-            Task<DeliveryStatus> publication = await OnUnityThreadAsync(async () =>
+                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress).ConfigureAwait(false);
+            }
+            finally
             {
-                Vector3 position = view.transform.position;
-                Quaternion rotation = view.transform.rotation;
-                Vector3 scale = view.transform.localScale;
-                elapsed.Restart();
-                DeliveryStatus status = await PublishAsync(snapshot, hash, stop);
-                double publicationMs = elapsed.Elapsed.TotalMilliseconds;
-                measurements?.Published(this, view, snapshot, bytes, status, decodeAndHashMs, publicationMs, position, rotation, scale);
-                return status;
-            }, stop).ConfigureAwait(false);
-            return await publication.ConfigureAwait(false);
+                if (File.Exists(file)) File.Delete(file);
+            }
         }
 
-        private async Task<DeliveryStatus> PublishAsync(AnatomySnapshot snapshot, string hash, CancellationToken stop)
+        private async Task<DeliveryStatus> PrepareAsync(string file, string hash, CancellationToken stop)
+        {
+            string directory = await OnUnityThreadAsync(() =>
+            {
+                ReceptionState = AnatomyReceptionState.Preparing;
+                return Path.Combine(Application.temporaryCachePath, "SceneRestoration", Guid.NewGuid().ToString("N"));
+            }, stop).ConfigureAwait(false);
+            var archive = new SceneArchive(directory, true, globals);
+            bool consumed = false;
+            try
+            {
+                ScenePayload payload = await Task.Run(() => archive.Read(file, stop), stop).ConfigureAwait(false);
+                Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
+                DeliveryStatus result = await publication.ConfigureAwait(false);
+                consumed = result == DeliveryStatus.Published;
+                return result;
+            }
+            finally
+            {
+                if (!consumed) archive.Dispose();
+            }
+        }
+
+        private async Task<DeliveryStatus> PublishAsync(ScenePayload snapshot, SceneArchive archive, string hash, CancellationToken stop)
         {
             if (deliveries.TryGetValue(snapshot.TransferId, out Entry existing))
             {
@@ -151,7 +200,7 @@ namespace HBP.Quest
             deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
             try
             {
-                await view.ApplySnapshotAsync(snapshot, stop); // ACK only after complete local iEEG computation and publication.
+                await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
             }
             catch
             {
@@ -228,6 +277,21 @@ namespace HBP.Quest
             destroyed = true;
             CloseSession();
             deliveries.Clear();
+            _ = ReleaseGlobalsAsync();
+        }
+
+        private async Task ReleaseGlobalsAsync()
+        {
+            try
+            {
+                if (!ReferenceEquals(view, null)) await view.ClearAsync();
+                globalArchive?.Dispose();
+                globalArchive = null;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+            }
         }
     }
 }

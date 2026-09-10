@@ -29,6 +29,29 @@ Les données sources utiles et les conventions de calcul ne doivent pas être
 perdues. Les ressources ne doivent pas dépendre de chemins absolus Desktop,
 de handles natifs, de callbacks ou d’une sérialisation exécutable des GameObjects.
 
+## Données globales au pairing (décision de relecture du 2026-09-10)
+
+Le pairing transmet un instantané de `UserPreferences`, des définitions globales
+de tags, du catalogue de protocoles (illustrations incluses), des alias et des
+préréglages de filtres. Les paramètres globaux de grille/interpolation suivent
+le même chemin. Cet instantané est installé en mémoire sur Quest ; les fichiers
+de préférences et de base Desktop ne sont pas réécrits.
+
+La scène référence ces définitions par identité et empreinte ; les valeurs de
+tags attribuées aux patients/sites restent dans son payload. Les objets résolus,
+y compris les clés de dictionnaires des essais/timelines, sont ceux du contexte
+global reçu. Le format de scène est désormais version 2 et identifie son pairing.
+Une définition absente ou modifiée, une identité ambiguë ou une scène d’un autre
+pairing provoque un refus explicite. Les préférences ne sont pas resynchronisées
+à chaque scène : leurs évolutions après pairing sont volontairement différées.
+
+Les opérations communes lisent directement `PersistentDataManager.UserPreferences`.
+Un nouveau contexte est entièrement validé avant de fermer et d’attendre les
+scènes précédentes, puis d’installer les globaux. Les fichiers d’illustrations
+restent disponibles jusqu’à la fin de leurs utilisateurs. Le pairing n’est prêt
+qu’après installation réussie ; une interruption après réservation du propriétaire
+demande un nouvel appairage. Aucun protocole de synchronisation continue n’est ajouté.
+
 ## Attendre le chargement complet
 
 Le code actuel lance LoadMissingAnatomy après FinalizeInitialization, en arrière-plan.

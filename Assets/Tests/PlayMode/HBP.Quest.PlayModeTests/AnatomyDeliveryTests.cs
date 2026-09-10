@@ -1,3 +1,7 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using QuestAnatomySession = HBP.Quest.Legacy.QuestAnatomySession;
+using QuestAnatomyManipulator = HBP.Quest.Legacy.QuestAnatomyManipulator;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
 #if UNITY_EDITOR
 using System;
 using System.IO;
@@ -10,6 +14,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using HBP.Transfer.Anatomy.Delivery;
 using HBP.Transfer.Transport;
@@ -37,7 +42,7 @@ namespace HBP.Tests.Quest
         [SetUp]
         public void SetUp()
         {
-            root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"));
+            root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab"));
             view = root.GetComponent<QuestAnatomyView>();
             session = root.GetComponent<QuestAnatomySession>();
         }

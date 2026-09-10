@@ -52,8 +52,8 @@ dans une autre : travailler par parcours cohérent plutôt que maintenir des
 façades uniquement pour respecter l’ordre des numéros.
 
 Une future demande d’implémenter le chantier autorise ces lots et leurs corrections
-nécessaires. Une demande explicitement limitée reste limitée. L’autorisation
-actuelle concerne **la réécriture documentaire**, pas le démarrage du code.
+nécessaires. Une demande explicitement limitée reste limitée. Les demandes suivantes ont autorisé et conduit à l’implémentation des lots A
+et B. Le Lot C reste distinct et non exécuté ; voir l’état du chantier.
 
 ## Baseline et suite historique
 

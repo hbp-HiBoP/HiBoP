@@ -23,10 +23,13 @@ namespace HBP.Transfer.Transport
         private readonly Stopwatch age = Stopwatch.StartNew();
         private int attempts;
         private int paired;
+        private int ownerClaimed;
+        private int preparing;
         public string Code { get; }
         public string Fingerprint => FormatPin(TransportIdentity.Hash(identity.RawData));
         public bool IsPaired => Volatile.Read(ref paired) != 0;
-        public bool IsLocked => Volatile.Read(ref attempts) >= 5 || age.Elapsed >= TimeSpan.FromMinutes(5);
+        public bool IsPreparing => Volatile.Read(ref preparing) != 0;
+        public bool IsLocked => (Volatile.Read(ref ownerClaimed) != 0 && !IsPaired) || Volatile.Read(ref attempts) >= 5 || age.Elapsed >= TimeSpan.FromMinutes(5);
 
         public QuestPairing()
         {
@@ -41,7 +44,7 @@ namespace HBP.Transfer.Transport
             Code = (value % 1000000).ToString("D6");
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
             try
@@ -70,9 +73,9 @@ namespace HBP.Transfer.Transport
                             var command = new byte[1];
                             await PinnedTlsTransfer.ReadExactAsync(tls, command, 0, 1, deadline.Token).ConfigureAwait(false);
                             if (command[0] == 0) continue; // Certificate inspection only.
-                            if (command[0] == 1)
+                            if (command[0] == 1 || command[0] == 3)
                             {
-                                bool allowed = !IsPaired && !IsLocked;
+                                bool allowed = !IsPaired && !IsLocked && ((command[0] == 3) == (receiveGlobals != null));
                                 if (allowed) Interlocked.Increment(ref attempts);
                                 var code = new byte[6];
                                 await PinnedTlsTransfer.ReadExactAsync(tls, code, 0, code.Length, deadline.Token).ConfigureAwait(false);
@@ -86,8 +89,24 @@ namespace HBP.Transfer.Transport
                                 }
 
                                 // Commit before replying: an interrupted reply must not permit another owner.
-                                Interlocked.Exchange(ref paired, 1);
+                                Interlocked.Exchange(ref ownerClaimed, 1);
                                 await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
+                                if (command[0] == 3)
+                                {
+                                    state("Receiving global preferences, protocols and tags...");
+                                    deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                                    Interlocked.Exchange(ref preparing, 1);
+                                    try
+                                    {
+                                        await receiveGlobals(tls, deadline.Token).ConfigureAwait(false);
+                                    }
+                                    finally
+                                    {
+                                        Interlocked.Exchange(ref preparing, 0);
+                                    }
+                                }
+
+                                Interlocked.Exchange(ref paired, 1);
                                 state("Paired. Ready to receive.");
                             }
                             else if (command[0] == 2)
@@ -98,14 +117,15 @@ namespace HBP.Transfer.Transport
                                 Array.Clear(offered, 0, offered.Length);
                                 await tls.WriteAsync(new[] { (byte)(allowed ? 1 : 0) }, 0, 1, deadline.Token).ConfigureAwait(false);
                                 if (!allowed) continue;
+                                deadline.CancelAfter(TimeSpan.FromMinutes(30));
                                 DeliveryReceipt receipt = await receive(tls, deadline.Token).ConfigureAwait(false);
-                                state(receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Ready offline. You can manipulate the anatomy." : "Old delivery closed/replaced. Send a new snapshot from Desktop.");
+                                state(receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Ready offline. You can explore all visualization columns." : "Old delivery closed/replaced. Send a new snapshot from Desktop.");
                             }
                             else throw new InvalidDataException("Unknown pairing command.");
                         }
                         catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException)
                         {
-                            if (!stop.IsCancellationRequested) state("Connection interrupted. Retry from Desktop; existing anatomy is retained.");
+                            if (!stop.IsCancellationRequested) state("Connection interrupted. Retry from Desktop; press Y to pair again if global setup was interrupted.");
                         }
                     }
                 }
@@ -127,7 +147,7 @@ namespace HBP.Transfer.Transport
             return observed;
         }
 
-        public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop)
+        public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals = null)
         {
             RequirePin(confirmedPin);
             if (code == null || code.Length != 6 || Array.Exists(code.ToCharArray(), c => c < '0' || c > '9')) throw new ArgumentException("Enter the six-digit code shown in the headset.");
@@ -136,7 +156,7 @@ namespace HBP.Transfer.Transport
             {
                 await ConnectAsync(host, confirmedPin, stop, async (tls, token) =>
                 {
-                    byte[] request = Encoding.ASCII.GetBytes("\u0001" + code);
+                    byte[] request = Encoding.ASCII.GetBytes((sendGlobals == null ? "\u0001" : "\u0003") + code);
                     try
                     {
                         await tls.WriteAsync(request, 0, request.Length, token).ConfigureAwait(false);
@@ -148,7 +168,8 @@ namespace HBP.Transfer.Transport
 
                     await AcceptedAsync(tls, token).ConfigureAwait(false);
                     await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, credential.Length, token).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                    if (sendGlobals != null) await sendGlobals(tls, token).ConfigureAwait(false);
+                }, sendGlobals == null ? null : TimeSpan.FromMinutes(30)).ConfigureAwait(false);
                 return credential;
             }
             catch
@@ -172,7 +193,7 @@ namespace HBP.Transfer.Transport
                     await tls.WriteAsync(credential, 0, credential.Length, token).ConfigureAwait(false);
                     await AcceptedAsync(tls, token).ConfigureAwait(false);
                     receipt = await send(tls, token).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                }, TimeSpan.FromMinutes(30)).ConfigureAwait(false);
                 return receipt;
             }
             finally
@@ -181,7 +202,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action)
+        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null)
         {
             if (!IPAddress.TryParse(host, out IPAddress address) || address.AddressFamily != AddressFamily.InterNetwork || address.Equals(IPAddress.Any) || address.Equals(IPAddress.Broadcast)) throw new ArgumentException("Enter the Quest IPv4 address, without a port.");
             pin = pin == null ? null : (byte[])pin.Clone();
@@ -192,6 +213,7 @@ namespace HBP.Transfer.Transport
             await peer.ConnectAsync(address, Port).ConfigureAwait(false);
             using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => pin == null || TransportIdentity.Matches(certificate, pin));
             await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+            if (operationTimeout.HasValue) deadline.CancelAfter(operationTimeout.Value);
             await action(tls, deadline.Token).ConfigureAwait(false);
         }
 

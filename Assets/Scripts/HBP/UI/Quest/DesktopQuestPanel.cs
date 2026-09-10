@@ -3,8 +3,7 @@ using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
-using HBP.Transfer.Anatomy.Desktop;
-using HBP.Transfer.Anatomy.Delivery;
+using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,7 +18,8 @@ namespace HBP.UI.Quest
         [SerializeField] private Toggle confirmed;
         [SerializeField] private Button inspect, pair, send, retry, cancel;
         private byte[] pin, credential;
-        private AnatomyDelivery offer;
+        private SceneDelivery offer;
+        private PairingSnapshot globals;
         private CancellationTokenSource operation;
         private bool busy;
         private bool failedDelivery;
@@ -43,8 +43,11 @@ namespace HBP.UI.Quest
         {
             if (credential != null) Array.Clear(credential, 0, credential.Length);
             credential = pin = null;
+            globals?.Dispose();
+            globals = null;
             confirmed.isOn = false;
             fingerprint.text = "Compare the complete fingerprint with the headset.";
+            offer?.Dispose();
             offer = null;
             failedDelivery = false;
         }
@@ -64,17 +67,26 @@ namespace HBP.UI.Quest
             RunAsync(async token =>
             {
                 if (!confirmed.isOn || pin == null) throw new InvalidOperationException("Compare and confirm the complete fingerprint first.");
-                status.text = "Pairing...";
-                byte[] next = await QuestPairing.PairAsync(address.text.Trim(), pin, code.text.Trim(), token);
-                if (token.IsCancellationRequested)
+                status.text = "Preparing global preferences, protocols and tags...";
+                var snapshot = PairingSnapshot.Capture();
+                byte[] next = null;
+                try
                 {
-                    Array.Clear(next, 0, next.Length);
+                    next = await QuestPairing.PairAsync(address.text.Trim(), pin, code.text.Trim(), token, (stream, stop) => snapshot.Delivery.SendAsync(stream, stop));
                     token.ThrowIfCancellationRequested();
                 }
+                catch
+                {
+                    if (next != null) Array.Clear(next, 0, next.Length);
+                    snapshot.Dispose();
+                    throw;
+                }
 
+                globals?.Dispose();
+                globals = snapshot;
                 credential = next;
                 code.text = "";
-                status.text = "Paired. Select an anatomical or iEEG column, then Envoyer au Quest.";
+                status.text = "Paired. Select a visualization, then Envoyer au Quest.";
             });
 
         public Task SendAsync(bool repeat) =>
@@ -88,22 +100,25 @@ namespace HBP.UI.Quest
                 {
                     if (!repeat)
                     {
+                        offer?.Dispose();
                         offer = null;
-                        status.text = "Preparing selected anatomy...";
-                        offer = await DesktopAnatomyCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, token);
+                        status.text = "Preparing all visualization resources...";
+                        offer = await DesktopSceneCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, globals.Context, token);
                         captureMs = elapsed.Elapsed.TotalMilliseconds;
                     }
 
                     if (offer == null) throw new InvalidOperationException("No captured delivery to retry. Use Envoyer au Quest.");
                     token.ThrowIfCancellationRequested();
                     status.text = "Connecting to paired Quest...";
+                    var delivery = offer;
                     var context = SynchronizationContext.Current;
-                    DeliveryReceipt receipt = await QuestPairing.SendAsync(address.text.Trim(), pin, credential, token, (stream, stop) => offer.SendAsync(stream, stop, count => context.Post(_ =>
+                    DeliveryReceipt receipt = await QuestPairing.SendAsync(address.text.Trim(), pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop, count => context.Post(_ =>
                     {
-                        if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = count < offer.EncodedBytes ? $"Sending: {100L * count / offer.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
+                        if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = count < delivery.EncodedBytes ? $"Sending: {100L * count / delivery.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
                     }, null)));
-                    status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Anatomy ready on Quest. Views are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
-                    if (offer.IEEGSummary != null && (receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished)) status.text = offer.IEEGSummary + "\nInputs received; iEEG rendering pending.";
+                    token.ThrowIfCancellationRequested();
+                    status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Visualization ready on Quest. Columns are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
+                    if (offer.Summary != null && (receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished)) status.text = offer.Summary + "\nVisualization ready on Quest.";
                     Debug.Log($"QUEST-011 delivery={receipt.Status}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}");
                     if (Debug.isDebugBuild)
                         Debug.Log("QUEST012_SEND " + JsonUtility.ToJson(new DeliveryMeasurement { utc = DateTime.UtcNow.ToString("O"), retry = repeat, transfer = offer.TransferId, hash = receipt.ContentHash, bytes = offer.EncodedBytes, captureAndEncodeMs = captureMs, connectSendAndReceiptMs = elapsed.Elapsed.TotalMilliseconds - captureMs, totalMs = elapsed.Elapsed.TotalMilliseconds, status = receipt.Status.ToString() }));
@@ -127,12 +142,17 @@ namespace HBP.UI.Quest
             }
             catch (Exception exception)
             {
-                if (this) status.text = attempt.IsCancellationRequested ? "Cancelled. A published anatomy remains on Quest; retry is safe." : exception is AuthenticationException ? "Pairing/security check failed. Verify the fingerprint and code; Y on Quest starts a new pairing." : exception is SocketException ? "Quest unreachable. Check the address and Wi-Fi, then retry." : exception is ArgumentException || exception is InvalidOperationException ? exception.Message : "Connection or preparation failed. Check Quest and retry. If pairing was interrupted, press Y in the headset.";
+                if (this) status.text = attempt.IsCancellationRequested ? "Cancelled. A published visualization remains on Quest; retry is safe." : exception is AuthenticationException ? "Pairing/security check failed. Verify the fingerprint and code; Y on Quest starts a new pairing." : exception is SocketException ? "Quest unreachable. Check the address and Wi-Fi, then retry." : exception is ArgumentException || exception is InvalidOperationException ? exception.Message : "Connection or preparation failed. Check Quest and retry. If pairing was interrupted, press Y in the headset.";
             }
             finally
             {
                 operation = null;
                 busy = false;
+                if (!this)
+                {
+                    offer?.Dispose();
+                    offer = null;
+                }
             }
         }
 
@@ -141,7 +161,7 @@ namespace HBP.UI.Quest
         {
             public string utc, transfer, hash, status;
             public bool retry;
-            public int bytes;
+            public long bytes;
             public double captureAndEncodeMs, connectSendAndReceiptMs, totalMs;
         }
 
@@ -151,8 +171,8 @@ namespace HBP.UI.Quest
             if (Time.unscaledTime >= nextCheck)
             {
                 nextCheck = Time.unscaledTime + 0.5f;
-                selectionError = DesktopAnatomyCapture.GetSelectionError();
-                selection.text = selectionError ?? "Selected anatomy is ready to send.";
+                selectionError = DesktopSceneCapture.GetSelectionError();
+                selection.text = selectionError ?? "Selected visualization is ready to send.";
             }
 
             address.interactable = code.interactable = confirmed.interactable = !busy;
@@ -170,6 +190,9 @@ namespace HBP.UI.Quest
             operation?.Cancel();
             if (credential != null) Array.Clear(credential, 0, credential.Length);
             credential = pin = null;
+            globals?.Dispose();
+            globals = null;
+            offer?.Dispose();
             offer = null;
         }
     }

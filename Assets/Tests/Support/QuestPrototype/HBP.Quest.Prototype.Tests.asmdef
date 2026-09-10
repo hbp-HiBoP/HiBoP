@@ -1,0 +1,27 @@
+{
+    "name": "HBP.Quest.Prototype.Tests",
+    "references": [
+        "HBP.Quest.Runtime",
+        "HBP.Core.Runtime",
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Projection",
+        "HBP.Transfer.Transport",
+        "UniTask",
+        "Unity.InputSystem",
+        "HBP.Transfer.Anatomy.Desktop",
+        "HBP.Data.Runtime",
+        "HBP.Input.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "precompiledReferences": [
+        "Newtonsoft.Json.dll"
+    ],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ]
+}

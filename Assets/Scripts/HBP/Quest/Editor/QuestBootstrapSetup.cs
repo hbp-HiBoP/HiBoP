@@ -105,6 +105,22 @@ namespace HBP.Quest.Editor
                 AssetDatabase.CreateAsset(renderer, RendererPath);
             }
 
+            if (!renderer.rendererFeatures.OfType<HBP.Rendering.HBPEdgeRendererFeature>().Any())
+            {
+                var edges = ScriptableObject.CreateInstance<HBP.Rendering.HBPEdgeRendererFeature>();
+                edges.name = "HBP Edges";
+                AssetDatabase.AddObjectToAsset(edges, renderer);
+                renderer.rendererFeatures.Add(edges);
+                renderer.SetDirty();
+            }
+
+            foreach (var edges in renderer.rendererFeatures.OfType<HBP.Rendering.HBPEdgeRendererFeature>())
+            {
+                var serializedEdges = new SerializedObject(edges);
+                serializedEdges.FindProperty("m_Shader").objectReferenceValue = Shader.Find("Hidden/HBP/Edges");
+                serializedEdges.ApplyModifiedPropertiesWithoutUndo();
+            }
+
             renderer.intermediateTextureMode = IntermediateTextureMode.Auto;
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
             if (pipeline == null)
@@ -166,6 +182,8 @@ namespace HBP.Quest.Editor
             var cameraObject = Child(offset.transform, "Main Camera");
             cameraObject.tag = "MainCamera";
             var camera = cameraObject.AddComponent<Camera>();
+            cameraObject.AddComponent<HBP.Rendering.HBPEdgeCameraSettings>();
+            camera.cullingMask = ~(LayerMask.GetMask("Inactive", "Hidden Meshes"));
             camera.nearClipPlane = 0.05f;
             camera.farClipPlane = 100f;
             camera.clearFlags = CameraClearFlags.SolidColor;

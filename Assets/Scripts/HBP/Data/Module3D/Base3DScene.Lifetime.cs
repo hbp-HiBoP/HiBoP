@@ -98,7 +98,7 @@ namespace HBP.Data.Module3D
             // Observe all workers even when one failed, before releasing any shared input.
             // These operations have already started. Await each completion even if
             // another failed: UniTask.WhenAll can report a failure before all finish.
-            foreach (var work in new[] { m_InitializationWork, m_AnatomyWork, m_ColliderWork, m_GeneratorWork, m_CorrelationWork })
+            foreach (var work in new[] { m_ExternalPreparationWork, m_InitializationWork, m_AnatomyWork, m_ColliderWork, m_GeneratorWork, m_CorrelationWork })
             {
                 try
                 {

@@ -75,7 +75,7 @@ namespace HBP.Quest
                 await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
                 {
                     if (!stop.IsCancellationRequested) status = message;
-                }, null));
+                }, null), session.ReceiveGlobalsAsync);
             }
             catch (Exception) when (stop.IsCancellationRequested)
             {
@@ -101,15 +101,10 @@ namespace HBP.Quest
             {
                 AnatomyReceptionState.Connecting => "Connecting...",
                 AnatomyReceptionState.Receiving => $"Receiving: {session.ReceivedBytes / 1024} KiB",
-                AnatomyReceptionState.Preparing => "Preparing anatomy...",
+                AnatomyReceptionState.Preparing => "Preparing all visualization columns...",
                 _ => status
             };
-            string content = session.IsReady && view.IEEG != null ? view.IEEG.Summary + "\niEEG ready | Available offline\nRight stick click: recalculate offline" : session.IsReady ? $"Anatomy ready | {view.Contacts.Sites.Count} contacts\nAvailable offline" : "No anatomy received";
-            if (view.IEEGComputing) content += "\nCalculating local iEEG...";
-            else if (view.IEEGError != null) content += "\niEEG failed: " + view.IEEGError;
-            if (view.DensityComputing) content += "\nCalculating local density...";
-            else if (view.DensityError != null) content += "\nDensity failed: " + view.DensityError;
-            else if (view.Density != null) content += $"\nDensity ready | max {view.Density.MaxDensity:G5}\nRight stick click: recalculate offline";
+            string content = view.Summary;
             string surface = view.SurfaceHidden ? "A: show brain" : "A: hide brain";
             if (!details && session.IsReady)
             {
@@ -117,7 +112,7 @@ namespace HBP.Quest
                 return;
             }
 
-            string credentials = pairing == null ? "" : pairing.IsPaired ? "Paired with Desktop" : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nCompare ALL fingerprint groups on Desktop:\n{pairing.Fingerprint}";
+            string credentials = pairing == null ? "" : pairing.IsPaired ? "Paired with Desktop" : pairing.IsPreparing ? "Installing preferences and shared data..." : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nCompare ALL fingerprint groups on Desktop:\n{pairing.Fingerprint}";
             statusText.text = Wrap($"HiBoP | Quest connection\n{address}\n{credentials}\n\n{progress}\n{content}\nY: restart pairing | B: hide/show panel\nIndex triggers: move / rotate / scale\nX: recenter | {surface}");
         }
 

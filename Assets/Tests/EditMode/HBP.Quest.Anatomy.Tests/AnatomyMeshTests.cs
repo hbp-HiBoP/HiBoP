@@ -1,7 +1,10 @@
+using QuestAnatomyView = HBP.Quest.Legacy.QuestAnatomyView;
+using AnatomyMeshUploader = HBP.Quest.Legacy.AnatomyMeshUploader;
 using System;
 using System.IO;
 using System.Linq;
 using HBP.Quest;
+using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
 using NUnit.Framework;
 using UnityEditor;
@@ -61,7 +64,7 @@ namespace HBP.Tests.QuestAnatomy
         [Test]
         public void Prefab_SerializesOneUnitConversionAndOpaqueMaterial()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Tests/Support/QuestPrototype/QuestAnatomy.prefab");
             var view = new SerializedObject(prefab.GetComponent<QuestAnatomyView>());
             foreach (string field in new[] { "millimeterFrame", "meshFilter", "meshRenderer", "opaqueMaterial" })
                 Assert.That(view.FindProperty(field).objectReferenceValue, Is.Not.Null, field);

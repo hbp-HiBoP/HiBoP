@@ -162,9 +162,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void LoadMissing()
         {
-            foreach (var mri in MRIs)
+            foreach (var mri in MRIs.Distinct())
             {
                 if (!mri.IsLoaded) mri.Load();
+                if (!mri.IsLoaded) throw new System.IO.IOException($"Unable to prepare MRI '{mri.Name}'.");
             }
         }
 

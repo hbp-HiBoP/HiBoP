@@ -15,6 +15,7 @@ Shader "Hidden/HBP/Edges"
             #pragma target 3.5
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             TEXTURE2D_X(_BlitTexture);
@@ -30,17 +31,21 @@ Shader "Hidden/HBP/Edges"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
-                Varyings output;
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
                 return output;
@@ -63,6 +68,7 @@ Shader "Hidden/HBP/Edges"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 float2 offset = _BlitTexture_TexelSize.xy * max(_HBPEdgeThickness, 0.5);
                 float2 leftUv = input.uv - float2(offset.x, 0.0);
                 float2 rightUv = input.uv + float2(offset.x, 0.0);
@@ -115,6 +121,7 @@ Shader "Hidden/HBP/Edges"
             #pragma target 3.5
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
 
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             TEXTURE2D_X(_BlitTexture);
@@ -125,17 +132,21 @@ Shader "Hidden/HBP/Edges"
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
             };
 
             struct Varyings
             {
                 float4 positionCS : SV_POSITION;
                 float2 uv : TEXCOORD0;
+                UNITY_VERTEX_OUTPUT_STEREO
             };
 
             Varyings Vert(Attributes input)
             {
-                Varyings output;
+                Varyings output = (Varyings)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
                 output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
                 output.uv = GetFullScreenTriangleTexCoord(input.vertexID);
                 return output;
@@ -143,6 +154,7 @@ Shader "Hidden/HBP/Edges"
 
             half4 Frag(Varyings input) : SV_Target
             {
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
                 half4 source = SAMPLE_TEXTURE2D_X(_BlitTexture, sampler_LinearClamp, input.uv);
                 half4 surface = SAMPLE_TEXTURE2D_X(_HBPTransparentBrainSurface, sampler_LinearClamp, input.uv);
                 float brainDepth = SAMPLE_TEXTURE2D_X(_HBPTransparentBrainDepth, sampler_PointClamp, input.uv).r;

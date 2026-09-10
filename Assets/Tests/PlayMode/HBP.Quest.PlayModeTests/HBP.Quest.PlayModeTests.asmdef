@@ -1,7 +1,21 @@
 {
     "name": "HBP.Quest.PlayModeTests",
-    "references": ["HBP.UI.Runtime", "HBP.Transfer.Anatomy.Contracts", "HBP.Transfer.Transport", "HBP.Transfer.Anatomy.Delivery", "HBP.Quest.Runtime", "HBP.Transfer.Projection", "HBP.Core.Runtime", "Unity.InputSystem"],
+    "references": [
+        "HBP.UI.Runtime",
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Transport",
+        "HBP.Transfer.Anatomy.Delivery",
+        "HBP.Quest.Runtime",
+        "HBP.Transfer.Projection",
+        "HBP.Core.Runtime",
+        "Unity.InputSystem",
+        "HBP.Quest.Prototype.Tests"
+    ],
     "includePlatforms": [],
-    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
-    "optionalUnityReferences": ["TestAssemblies"]
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
 }

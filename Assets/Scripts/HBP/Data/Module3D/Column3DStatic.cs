@@ -322,13 +322,15 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnStaticData.StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
-            ColumnStaticData.StaticConfiguration.SpanMin = StaticParameters.SpanMin;
-            ColumnStaticData.StaticConfiguration.Middle = StaticParameters.Middle;
-            ColumnStaticData.StaticConfiguration.SpanMax = StaticParameters.SpanMax;
-            base.SaveConfiguration();
+            ((StaticColumn)target).StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
+            ((StaticColumn)target).StaticConfiguration.SpanMin = StaticParameters.SpanMin;
+            ((StaticColumn)target).StaticConfiguration.Middle = StaticParameters.Middle;
+            ((StaticColumn)target).StaticConfiguration.SpanMax = StaticParameters.SpanMax;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

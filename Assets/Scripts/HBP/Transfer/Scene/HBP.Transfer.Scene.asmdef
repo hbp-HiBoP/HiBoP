@@ -1,0 +1,9 @@
+{
+    "name": "HBP.Transfer.Scene",
+    "references": [
+        "HBP.Core.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Transfer.Transport",
+        "UniTask"
+    ]
+}
