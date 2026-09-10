@@ -1,67 +1,41 @@
-# Rapport SCENE-NNN — Titre
+# Rapport final — 3D commune et visualisation complète
 
-> Modèle de rapport, pas une preuve d'exécution. Remplacer les champs et retirer
-> les sections non applicables. Aucun succès ou retour utilisateur n'est prérempli.
+Modèle à utiliser en SCENE-008 dans `reports/FINAL.md`.
+Pendant l’implémentation, un court `reports/JOURNAL.md` suffit ; aucun rapport
+détaillé par fiche n’est demandé.
 
 ## Résultat
 
-Comportement avant/après, périmètre réalisé et valeur pour la scène commune.
-Lien vers la fiche ; écarts de périmètre et décision associée s'il y en a.
+Décrire le résultat concret Desktop/Quest et les écarts de périmètre.
+Distinguer code implémenté, fonctionnement vérifié et retour manuel.
 
-## État et provenance
+## Architecture effective
 
-- Implémentation : à renseigner selon le registre local.
-- Technique : à renseigner ; distinguer partiel, réussi et non exécuté.
-- Manuel : à renseigner ; chaque retour est daté/référencé.
-- Branche, commit, changements non commités précisément identifiés.
-- Versions Unity/packages et provenance native effective.
-- Baseline et dépendances réellement utilisées, limites de leurs preuves.
-- Lien vers le manifeste local `evidence/SCENE-NNN/manifest.json`.
+Donner les principaux points d’entrée et le chemin commun réellement utilisé.
+Résumer les spécialisations Desktop/Quest, les opérations sorties des UI et
+les propriétaires de ressources. Référencer les constats de revue indépendante
+pertinents et leur traitement ; éviter l’inventaire exhaustif des fichiers.
 
-## Chemin commun et ressources
+## Couverture et vérifications
 
-Expliquer d'où viennent les données et comment Desktop/restauration alimentent
-les mêmes scène/colonnes. Identifier l'opération publique, les dépendances de
-recalcul et la publication. Distinguer les ressources possédées, prêtées, copiées
-et partagées, leur mutabilité et le moment réel de leur libération.
-
-Si la tâche ne change pas ces chemins, référencer la preuve applicable et expliquer
-pourquoi elle reste valide. Lister les façades transitoires, callers et sortie prévue.
-
-## Points de review
-
-| Priorité | Fichier/symbole/objet réel | Changement et raison | Invariant à vérifier |
+| Fonction/modalité ou contrat | Fixture et environnement | Résultat | Preuve ou limite |
 | --- | --- | --- | --- |
-| 1 | À renseigner | À renseigner | I01–I10 ou obligation spécifique |
+| À renseigner | À renseigner | NON_EXECUTE avant vérification | À renseigner |
 
-Limiter la lecture prioritaire à 3–5 points utiles. Pour une revue indépendante,
-consigner son périmètre, constats, réponses et preuves après correction.
+Inclure projets Desktop, modalités, données complètes, opérations locales,
+multicolonne, ressources standard, transfert et cycle de vie.
+Donner commandes, versions/sources, binaires testés et résultats utiles.
+Référencer une seule fois les preuves partagées entre fiches.
 
-## Vérifications
+## Recette et retour manuel
 
-| ID | Scénario et commande exacte | Environnement/fixture | Résultat, exit code et preuve |
-| --- | --- | --- | --- |
-| T1 | À renseigner | À renseigner | NON_EXECUTE avant réalisation |
+Fournir chemins des binaires, fixture, actions disponibles et résultats attendus.
+Recueillir un retour explicite ; ne pas transformer une compilation ou un test
+automatisé en validation manuelle. Documenter récupération des preuves et arrêt
+de l’application Quest lorsque la recette est terminée.
 
-Indiquer nombres de tests, valeurs/unités/tolérances utiles et sources des
-artefacts. Distinguer test de modèle sans UI, Editor, Player et appareil physique.
-Comparer avant/après quand requis. Expliquer les preuves reprises sans les
-présenter comme des exécutions nouvelles.
+## Bugs, limites et suite
 
-## Validation manuelle
-
-Si nécessaire, fournir binaires/fixtures/contrôles/valeurs exacts avant demande.
-
-| ID | Action précise | Résultat attendu | Statut et retour explicite |
-| --- | --- | --- | --- |
-| M1 | À renseigner | À renseigner | EN_ATTENTE avant réponse |
-
-Sinon : NON_REQUIS et justification. Ne pas déléguer les tests techniques au
-propriétaire. Distinguer arrêt de HiBoP vérifié, non exécuté ou non applicable.
-
-## Décisions, limites et suite
-
-Règles respectées, décisions SC-Dxx ou ultérieures, hypothèses restant à lever,
-preuves obsolètes/absentes, modalités hors migration et compatibilités effectives.
-Conclusion sur les critères de fin et prochaine tâche prête, sans l'exécuter.
-Pour SCENE-008, inclure le bloc de reprise concret de QUEST-024.
+Lister défauts connus, contrôles non exécutés, mesures pertinentes et impact réel.
+Identifier les preuves réutilisables pour QUEST-024 et les points restant à traiter.
+Ne pas annoncer les nouvelles interactions Quest ou commandes comme implémentées.

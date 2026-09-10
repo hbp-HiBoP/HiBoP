@@ -1,21 +1,26 @@
-# Index des tâches SCENE
+# Fiches de travail
 
-Lire le [contrat local](../TASK-WORKFLOW.md) et le [registre](../TASK-STATUS.md).
-Ce chantier s'intercale après QUEST-023 et avant QUEST-024. La présente liste
-n'active aucune tâche et ne remplace pas la vérification de ses dépendances.
+Les huit identifiants sont conservés, mais leurs contenus du 9 septembre sont
+remplacés. Ne pas utiliser une ancienne fiche ou un ancien résumé comme contrat.
 
-| ID | Titre | Dépendance | Référence principale |
-| --- | --- | --- | --- |
-| [SCENE-001](SCENE-001.md) | Auditer le prototype et fixer la migration | QUEST-023 | [Migration](../04-migration-and-validation.md) |
-| [SCENE-002](SCENE-002.md) | Extraire le socle Scène/Colonne et son cycle de vie | SCENE-001 | [Architecture](../02-target-architecture.md) |
-| [SCENE-003](SCENE-003.md) | Faire utiliser le socle par Desktop | SCENE-002 | [Architecture](../02-target-architecture.md) |
-| [SCENE-004](SCENE-004.md) | Exporter et restaurer la scène scientifique | SCENE-003 | [Payload](../03-payload-and-restoration.md) |
-| [SCENE-005](SCENE-005.md) | Raccorder Quest au modèle commun | SCENE-004 | [Architecture](../02-target-architecture.md) |
-| [SCENE-006](SCENE-006.md) | Vérifier et compléter les opérations communes | SCENE-005 | [Migration](../04-migration-and-validation.md) |
-| [SCENE-007](SCENE-007.md) | Retirer les chemins remplacés | SCENE-006 | [Architecture](../02-target-architecture.md) |
-| [SCENE-008](SCENE-008.md) | Vérifier l'intégration et préparer QUEST-024 | SCENE-007 | [Migration](../04-migration-and-validation.md) |
+| Lot | Fiche | Résultat |
+| --- | --- | --- |
+| A | [SCENE-001](SCENE-001.md) | Inventaire ciblé et choix concrets |
+| A | [SCENE-002](SCENE-002.md) | Généraliser scène, colonnes et présentation |
+| A | [SCENE-003](SCENE-003.md) | Partager les opérations de toutes les modalités |
+| B | [SCENE-004](SCENE-004.md) | Préparer toutes les ressources et le Data Quest |
+| B | [SCENE-005](SCENE-005.md) | Capturer et restaurer la visualisation complète |
+| B | [SCENE-006](SCENE-006.md) | Afficher les colonnes communes sur Quest |
+| B | [SCENE-007](SCENE-007.md) | Achever l’intégration et retirer le prototype remplacé |
+| C | [SCENE-008](SCENE-008.md) | Stabiliser et qualifier la version intégrée |
 
-Les huit lots sont provisoires. SCENE-001 vérifie leur faisabilité sur le code
-après 023 ; les noms de types et les points d'entrée sont à résoudre sur cet état.
-Une tâche ne peut être déclarée terminée en reportant un de ses critères obligatoires
-sur une suivante sans décision explicite et traçable.
+L’ordre indique des dépendances pratiques, pas des frontières strictes de code.
+002/003 se développent ensemble ; 004/005/006 peuvent nécessiter des allers-retours.
+007 termine l’intégration et les suppressions avant 008.
+
+**001–007 : pas de compilation, build, suite de tests ou recette manuelle imposés
+par fiche. 008 : stabilisation et validation regroupées.**
+Les seuls contrôles anticipés résolvent un obstacle concret à la poursuite.
+
+Voir le [registre](../TASK-STATUS.md), le [workflow](../TASK-WORKFLOW.md) et
+[la stratégie de réalisation](../04-migration-and-validation.md).

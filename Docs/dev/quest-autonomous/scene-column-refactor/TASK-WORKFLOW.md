@@ -1,90 +1,90 @@
-# Exécuter une tâche SCENE
+# Workflow de ce chantier
 
-## Autorisation et reprise
+## Autorisation
 
-Une demande « Implémente SCENE-003 » vise la fiche de ce dossier et autorise son
-périmètre uniquement. Chercher l'ID dans [l'index](tasks/README.md). Ne pas
-enchaîner la suivante. La création de ces documents n'autorise pas leur exécution.
+La réécriture du dossier a été autorisée le 10 septembre 2026 ; elle ne lance pas
+l’implémentation.
 
-Lire les AGENTS.md applicables, cette fiche, la tâche, les références thématiques,
-le [registre local](TASK-STATUS.md) et les rapports des dépendances. Le
-[contrat Quest](../TASK-WORKFLOW.md) reste applicable pour les outils, Unity,
-les appareils, l'asynchronisme, la provenance et les tests, avec les adaptations
-de chemins et d'ordre d'exécution précisées ici.
+Une demande future « implémente le chantier scene-column-refactor » autorise
+l’ensemble des lots et les corrections nécessaires jusqu’à la stabilisation.
+Une demande portant sur un lot autorise ses fiches et les adaptations nécessaires.
+Une demande explicitement limitée à une fiche ou à une analyse respecte cette limite.
 
-Les décisions SC-D01–SC-D06 de [la spécification](01-objective-and-scope.md)
-complètent le cadrage historique : 018–023 se terminent avant ce chantier ;
-024 est repris après SCENE-008. Cette insertion approuvée ne demande pas une
-nouvelle autorisation générale à chaque fiche. Une incertitude produit nouvelle
-ou un élargissement matériel demande une décision précise, après travail indépendant.
+Ne pas recréer une demande d’autorisation à chaque fiche dans un périmètre déjà
+autorisé. Les fiches sont des repères, pas des étapes à lancer dans huit
+conversations distinctes. Ne pas déduire une extension de scope du silence du
+propriétaire ; demander seulement les décisions produit réellement nouvelles.
 
-## Concurrence et périmètre d'écriture
+## À la reprise
 
-Au début, relever branche, commit, changements locaux et activité concurrente.
-Ne pas attribuer les modifications d'un autre agent à cette tâche, les formater,
-les corriger, les restaurer ou les supprimer pour nettoyer le checkout.
-Ne pas changer de branche, stager globalement, committer ou pousser implicitement.
+Lire les AGENTS.md, le README, les quatre documents thématiques et le registre.
+Relever branche, commit et modifications locales. Préserver les travaux concurrents.
+Reprendre l’inventaire/journal déjà disponible sans refaire tout l’audit ni les
+anciennes campagnes Quest.
 
-La rédaction initiale est limitée au nouveau dossier. Les futures demandes
-d'implémentation autorisent les changements de code/prefabs/tests nécessaires
-à leur fiche. Elles ne demandent pas de modifier les documents historiques
-QUEST-018–030, leurs rapports ou leur registre. Le suivi SCENE reste ici.
-Tout raccordement des index historiques est une action distincte à coordonner.
+Les nouvelles décisions de ce dossier priment sur les anciennes contraintes
+documentaires du prototype : périmètre complet, anciennes versions de transfert
+abandonnées, grandes passes de code et validation finale regroupée.
+Le contrat Quest historique ne doit pas réintroduire une recette par fiche.
 
-La baseline après 023 doit être vérifiée dans le code et les preuves, pas déduite
-du seul numéro de tâche. Une validation manuelle en attente n'est pas un blocage
-automatique : expliquer si elle conditionne réellement le travail. Un résultat
-scientifique incertain ne peut pas servir de référence approuvée.
+## Exécution autonome
 
-## Exécution
+- Appliquer [la cadence de développement](04-migration-and-validation.md).
+- Utiliser les classes existantes ; conserver Unity et les composants communs
+  lorsqu’ils conviennent. Pas de deuxième branche métier Quest.
+- Respecter prefab-first et sérialiser les références nécessaires.
+- Maintenir les contrats des projets Desktop ; ne pas utiliser une copie de
+  projet utilisateur pour des tests destructifs de sauvegarde.
+- Respecter les règles async/non-blocage et la terminaison native réelle.
+- Suivre les AGENTS.md pour MCP si Unity est ouvert et CLI si fermé. Ne pas
+  démarrer, arrêter ou réinitialiser une application pour résoudre une incertitude
+  d’état que l’utilisateur peut clarifier.
+- Aucun test/build obligatoire durant A/B. Un obstacle concret peut justifier
+  un contrôle court ; reprendre ensuite le travail.
+- Formater les C# selon AGENTS.md avant review/handoff, en respectant les travaux
+  concurrents. Ce formatage n’impose pas un build.
+- Effectuer une revue indépendante bornée pour la conception et les risques de
+  concurrence/intégrité selon AGENTS.md ; pas une revue imposée à chaque fiche.
 
-- Donner le résultat visé et la preuve attendue ; implémenter le minimum concret.
-- Préserver Desktop, les modalités hors migration et les conventions scientifiques.
-- Respecter prefab-first ; aucun faux renderer, caméra ou toolbar pour activer le socle.
-- Utiliser MCP si Unity est ouvert et la CLI appropriée sinon, selon AGENTS.md.
-  Ne pas lancer ou interrompre des applications pour résoudre une incertitude d'état.
-- Attendre directement les opérations async ; aucune attente bloquante sur le
-  thread Unity. Une annulation d'attente n'autorise pas la libération anticipée.
-- Exécuter `Tools/format-code.cmd` pour les C# modifiés avant handoff, en
-  coordonnant son périmètre si d'autres C# non commités appartiennent à un agent.
-- Exécuter les vérifications nécessaires puis le contrôle du diff. Une preuve
-  absente reste NON_EXECUTE/PARTIEL ; ne pas inventer une qualification.
+Ne pas committer, pousser ou changer de branche implicitement.
+L’implémentation peut toucher les dépôts associés si nécessaire à cette portée,
+en suivant leurs instructions. La présente rédaction ne modifie que ce dossier.
 
-Les revues indépendantes bornées de conception, concurrence et intégrité suivent
-AGENTS.md. Garder l'agent principal responsable des preuves et de l'intégration.
-Ne pas déléguer simplement pour remplir des créneaux disponibles.
+## Suivi léger
 
-Pour les appareils, réutiliser les autorisations pertinentes déjà données dans
-la session ; une ancienne preuve d'essai ne vaut pas état courant du matériel.
-Après validation d'un essai Quest, récupérer les preuves puis arrêter HiBoP
-sur la cible identifiée selon le contrat Quest, sans couper ADB. Ne pas arrêter
-l'application pendant que le propriétaire doit encore effectuer sa recette.
+Le registre distingue avancement du code et validation. Les fiches 001–007
+peuvent être IMPLEMENTEE avec validation DIFFEREE jusqu’à 008.
+Cela signifie que le code est écrit/intégré, pas que son fonctionnement est prouvé.
 
-## Rapport et registre
+Créer au besoin un unique `reports/JOURNAL.md` : décisions d’implémentation,
+carte succincte des responsabilités, références de fixtures et liste des défauts
+ou contrôles différés. Une ligne utile vaut mieux qu’un inventaire de fichiers.
 
-Créer `reports/SCENE-NNN.md` selon [le modèle](reports/TEMPLATE.md) et
-`evidence/SCENE-NNN/manifest.json` selon [les consignes](evidence/README.md).
-Mettre à jour seulement la ligne de cette tâche dans le registre local, avec
-trois états indépendants : implémentation, technique, manuel.
+En fin de chantier, produire `reports/FINAL.md` selon [le modèle](reports/TEMPLATE.md)
+et `evidence/final/manifest.json` selon [les consignes](evidence/README.md).
+Aucun manifeste intermédiaire obligatoire.
 
-Le rapport présente le comportement avant/après, 3–5 points de review, le chemin
-commun réellement utilisé, les propriétaires de ressources, les preuves, limites
-et éventuels chemins transitoires à retirer. Un inventaire de fichiers n'est pas
-une preuve d'architecture commune.
+## Appareils et validation manuelle finale
 
-Une validation manuelle nécessite un retour explicite daté/référencé. Préparer
-d'abord les binaires, fixtures et actions exactes ; ne pas demander au propriétaire
-de vérifier des hashes, conversions ou invariants que les tests couvrent.
-Ne pas confondre approbation de cette spécification et réussite d'une future tâche.
+Réutiliser les autorisations pertinentes de la session, sans supposer qu’un
+ancien état d’appareil est encore actuel. Fournir les binaires/fixtures et une
+recette concrète avant de demander les gestes au propriétaire.
+Ne pas demander de vérifier des hashes, valeurs scientifiques ou invariants
+mémoire que l’agent peut contrôler.
 
-Si la fiche doit être subdivisée, conserver les résultats acquis et proposer des
-IDs stables SCENE-NNN-A/B avec dépendances. Le découpage ne doit pas masquer un
-élargissement du périmètre initial. Actualiser les documents de ce dossier après
-la décision requise, sans modifier le backlog historique en parallèle.
+Ne pas arrêter HiBoP pendant une recette manuelle en attente. Après confirmation
+de l’essai terminé/validé, récupérer les preuves puis arrêter HiBoP sur le Quest
+identifié, conformément à la consigne appareil existante, sans couper ADB.
+Ne pas confondre retour utilisateur, preuve automatisée et simple compilation.
 
-## Fin de tâche
+## Fin
 
-Répondre avec le résultat, le lien absolu du rapport, les vérifications effectuées,
-les limites réelles et les actions manuelles utiles. Proposer la prochaine tâche
-prête sans l'exécuter. Après SCENE-008, transmettre son rapport comme contexte
-supplémentaire à la future exécution de QUEST-024 ; ne pas la lancer implicitement.
+Après A/B : continuer si le périmètre autorisé le permet ; ne pas attendre une
+acceptation intermédiaire. Si la demande était limitée, transmettre un état bref
+et les vérifications différées, sans lancer une qualification pour rendre le
+handoff artificiellement « vert ».
+
+Après C : rapport final, résultats, bugs connus et limites réelles.
+Une preuve absente reste absente. Ne pas déclarer toute la migration validée si
+une modalité obligatoire ou le parcours physique n’a pas été vérifié.
+Fournir les éléments réutilisables pour 024 sans modifier son registre hors scope.

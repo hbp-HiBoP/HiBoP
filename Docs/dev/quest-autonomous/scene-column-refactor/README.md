@@ -1,67 +1,69 @@
-# Scène et colonnes communes — chantier de refactorisation
+# Refactor de la 3D commune et transfert d’une visualisation complète
 
-Statut : spécification et tâches rédigées, aucune implémentation de ce chantier
-revendiquée. Décision du propriétaire le **2026-09-09**, conversation
-`01a085ce-1d2d-72a3-8006-ffd59c832fe4`.
+Cadrage réécrit le **2026-09-10**, selon la discussion propriétaire dans la tâche
+`01a08a59-a909-7ba0-967b-57fd91ed5183`. Cette édition remplace intégralement
+la spécification du 9 septembre. Les IDs SCENE-001 à SCENE-008 sont conservés
+pour le repérage, mais **leur contenu a changé**.
 
-## Objectif
+## Résultat attendu
 
-Faire fonctionner la même scène scientifique et les mêmes colonnes sur Desktop
-et Quest. Les fonctionnalités communes retrouvent leurs données, modifient leur
-état et déclenchent leurs calculs sans connaître la provenance des données ni
-la présentation. Desktop et Quest fournissent les interactions et le rendu.
+Généraliser `Base3DScene`, `Column3D`, leurs dérivées et collaborateurs afin que
+Desktop et Quest exécutent les mêmes fonctionnalités 3D. Extraire seulement
+les dépendances de présentation et les opérations enfermées dans les outils UI.
+Conserver les composants Unity et le rendu commun quand ils conviennent.
 
-La vision retenue est `Base3DScene.ToPayload()` → transfert →
-`Base3DScene.FromPayload()`, après extraction des responsabilités de présentation
-de `Base3DScene`, `Column3D` et de leurs collaborateurs. Cette notation décrit
-un contrat de comportement ; elle ne fige ni une signature synchrone ni le
-placement du codec dans un MonoBehaviour.
+Exporter une **visualisation complète**, toutes ses colonnes et les données
+nécessaires à leurs fonctionnalités, puis la restaurer localement sur Quest.
+Un cerveau par colonne, manipulable indépendamment. Les nouvelles interfaces
+scientifiques Quest et la synchronisation de commandes viendront plus tard.
 
-## Ordre d'exécution décidé
+## Priorité de développement
 
-**QUEST-018 à QUEST-023 → SCENE-001 à SCENE-008 → QUEST-024 → autres
-qualifications de plateformes et suite du chantier Quest.**
+**Implémenter beaucoup entre les validations.** Les fiches sont des repères de
+travail, pas huit cycles compilation → tests → builds → essais manuels.
+Les régressions ordinaires seront principalement détectées et corrigées après
+l’intégration complète. Aucun build Windows/Android, suite longue ou recette
+manuelle n’est obligatoire à la fin d’une fiche ou d’un lot d’implémentation.
 
-- [QUEST-018](../tasks/QUEST-018.md) continue dans son périmètre actuel.
-- [QUEST-023](../tasks/QUEST-023.md) fournit le prototype de référence : anatomie,
-  sites, densité et un instant iEEG calculé localement sur Quest.
-- [SCENE-008](tasks/SCENE-008.md) établit les preuves permettant de reprendre
-  [QUEST-024](../tasks/QUEST-024.md) sur l'architecture refactorisée.
-- La rédaction présente n'autorise l'exécution d'aucune tâche. Une demande
-  explicite d'implémentation autorise la tâche correspondante, pas toute la suite.
+Les vérifications intermédiaires sont exceptionnelles et ciblées : elles doivent
+résoudre une incertitude qui empêche réellement de continuer. Le détail est dans
+[la stratégie de réalisation](04-migration-and-validation.md).
 
-Les documents historiques restent intacts : leur dépendance directe 023 → 024
-ne reflète donc pas encore cette insertion. Ce dossier consigne la décision
-complémentaire récente ; une mise à jour des index historiques sera coordonnée
-séparément. Il n'existe aucun routage automatique vers ce nouveau dossier.
-Pour une nouvelle conversation, fournir le chemin de la fiche concernée.
+## Documents de référence
 
-## Lire et exécuter
+- [Vision, périmètre et décisions](01-objective-and-scope.md).
+- [Généralisation du code existant](02-target-architecture.md).
+- [Données, ressources locales et transfert complet](03-payload-and-restoration.md).
+- [Grands lots et validation regroupée](04-migration-and-validation.md).
+- [Workflow](TASK-WORKFLOW.md), [état du chantier](TASK-STATUS.md),
+  [fiches de travail](tasks/README.md).
 
-1. [Objectif, périmètre et décisions](01-objective-and-scope.md).
-2. [Architecture cible et invariants](02-target-architecture.md).
-3. [Payload et restauration](03-payload-and-restoration.md).
-4. [Migration, dépendances et validation](04-migration-and-validation.md).
-5. [Contrat d'exécution](TASK-WORKFLOW.md), [registre](TASK-STATUS.md) et
-   [index des tâches](tasks/README.md).
+## Déroulement
 
-Exemple de reprise : « Implémente SCENE-001 décrite dans
-Docs/dev/quest-autonomous/scene-column-refactor/tasks/SCENE-001.md ».
+| Lot | Fiches | Résultat de travail |
+| --- | --- | --- |
+| A — Généraliser la 3D | 001–003 | Classes communes utilisées par Desktop et opérations accessibles sans ses contrôles |
+| B — Transférer et présenter | 004–007 | Ressources complètes, restauration, colonnes Quest et parcours intégré |
+| C — Stabiliser | 008 | Détection/correction des bugs, vérifications ciblées puis campagne finale |
 
-Les huit fiches sont des lots provisoires, à confirmer en SCENE-001 après 023.
-Elles ne constituent ni une estimation de durée garantie ni une migration de
-toutes les fonctionnalités historiques. Une tâche trop large doit être découpée
-explicitement, sans masquer du travail supplémentaire sous un seul identifiant.
+Les lots A et B peuvent s’enchaîner sans campagne intermédiaire. Leur frontière
+n’impose ni arrêt ni compilation. Une fiche peut nécessiter des changements
+dans une autre : travailler par parcours cohérent plutôt que maintenir des
+façades uniquement pour respecter l’ordre des numéros.
 
-## Isolation du travail en cours
+Une future demande d’implémenter le chantier autorise ces lots et leurs corrections
+nécessaires. Une demande explicitement limitée reste limitée. L’autorisation
+actuelle concerne **la réécriture documentaire**, pas le démarrage du code.
 
-Au moment de la rédaction, un autre agent travaille sur QUEST-018. Cette livraison
-ajoute seulement ce dossier : aucun code, document existant, état Unity, build,
-appareil ou branche n'est modifié. Les changements de cet agent ne constituent
-pas une baseline stable à auditer ou à corriger ici.
+## Baseline et suite historique
 
-Les futures tâches commenceront depuis l'état réel après 023 et préserveront les
-travaux concurrents. Les rapports et preuves de ce chantier seront produits dans
-[reports](reports/TEMPLATE.md) et [evidence](evidence/README.md), avec suivi dans
-le registre local. Les rapports historiques conservent leur valeur de provenance,
-sans devenir des preuves de la nouvelle architecture.
+Le registre Quest indique 018–023 implémentées et validées, dont 023 le 10 septembre.
+La lecture initiale du code a été faite sur `feature/xr-autonomous@639e88306`.
+Vérifier l’état réel à la reprise, sans rejouer une qualification de baseline.
+
+Le chantier reste placé avant QUEST-024 et les qualifications de plateformes
+suivantes. Toutefois les anciennes fiches Quest décrivent un prototype limité :
+elles ne définissent pas le nouveau périmètre. SCENE-008 rassemble une campagne
+finale réutilisable pour les besoins pertinents de 024, sans doublonner les essais
+ni revendiquer son acceptation administrative. Les documents historiques hors de
+ce dossier ne sont pas modifiés par cette réécriture.

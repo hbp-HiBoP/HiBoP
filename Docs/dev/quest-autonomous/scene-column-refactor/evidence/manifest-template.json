@@ -1,33 +1,21 @@
 {
   "template": true,
-  "task": "SCENE-NNN",
+  "scope": "scene-column-refactor — visualisation complète",
   "createdUtc": null,
-  "implementation": "A_FAIRE",
-  "technical": "NON_EXECUTE",
-  "manual": "NON_DEMANDE",
-  "report": null,
-  "baseline": {
-    "task": "QUEST-023",
-    "commit": null,
-    "evidence": []
-  },
   "source": {
     "branch": null,
     "commit": null,
-    "uncommittedFiles": []
+    "uncommittedFiles": [],
+    "nativeRevisions": []
   },
-  "environment": {
-    "unity": null,
-    "packages": [],
-    "nativeProvenance": [],
-    "players": []
-  },
-  "commands": [],
-  "artifacts": [],
-  "invariants": [],
-  "reusedEvidence": [],
-  "independentReview": null,
+  "report": "reports/FINAL.md",
+  "fixtures": [],
+  "localReferenceData": [],
+  "players": [],
+  "checks": [],
   "manualReview": [],
-  "deviceStop": null,
-  "limitations": []
+  "reusedEvidence": [],
+  "knownIssues": [],
+  "notExecuted": [],
+  "deviceStop": null
 }

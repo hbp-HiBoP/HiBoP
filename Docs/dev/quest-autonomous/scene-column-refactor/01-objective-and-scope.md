@@ -1,91 +1,88 @@
-# Objectif, périmètre et décisions
+# Vision, périmètre et décisions
 
-## Besoin produit
+## Intention du propriétaire
 
-Le propriétaire veut qu'une fonctionnalité ajoutée à la scène ou à une colonne
-puisse être utilisée sur Quest avec la même implémentation métier. Sa présentation
-peut nécessiter une UI, un gizmo ou un geste différent. Son code ne doit pas
-chercher les données dans une structure Desktop d'un côté et dans une structure
-Quest de l'autre.
+Une fonctionnalité ou une correction 3D doit être développée une seule fois,
+sauf si elle concerne effectivement la présentation propre à une plateforme.
+La priorité est de généraliser l’existant avec des extractions minimales.
+Il n’est pas demandé de reconstruire la 3D autour d’un nouveau modèle abstrait.
 
-Le prototype actuel établit progressivement transfert, exploration autonome et
-calcul local. Les tâches 018–023 mutualisent la projection, y compris certaines
-responsabilités de ressources et d'invalidation. Elles ne garantissent pas à
-elles seules un modèle Scène/Colonne commun pour toutes les opérations. La
-réussite numérique du prototype et l'absence de divergence architecturale sont
-deux critères distincts.
+La référence HoloLens concerne le fonctionnement d’une vraie scène 3D spatiale,
+avec ses colonnes et fonctionnalités. Sa copie divergente de HiBoP ne doit pas
+être reproduite. Desktop et Quest restent dans le même projet Unity ;
+Quest exécute et calcule localement après réception.
 
-## Décisions approuvées le 2026-09-09
+## Décisions de cette discussion — 10 septembre 2026
 
-Source : discussion avec le propriétaire dans la conversation
-`01a085ce-1d2d-72a3-8006-ffd59c832fe4`, suivie de l'autorisation d'écrire ce dossier.
+| ID | Décision |
+| --- | --- |
+| D01 | Généraliser Base3DScene, les colonnes et leurs collaborateurs ; extraire uniquement ce qui empêche le partage ou constitue une interaction spécifique. |
+| D02 | Migrer la plupart des fonctionnalités 3D existantes ; toute modalité de visualisation existante doit être exportable, et pas seulement anatomie/densité/iEEG. |
+| D03 | Transférer les données complètes utiles : toutes les colonnes, les données des sites et des instants, y compris celles destinées à des outils non encore présents sur Quest. |
+| D04 | Les opérations et leur rendu doivent fonctionner après restauration ; les nouvelles UI/gizmos scientifiques Quest sont différés. |
+| D05 | Tous les meshes et volumes disponibles dans la visualisation font partie de son contenu. Un envoi progressif serait possible, mais attendre le chargement complet est la stratégie initiale retenue. |
+| D06 | Privilégier les ressources MNI locales issues de Data sur Quest, livrées avec l’installation, plutôt qu’un transfert à la première connexion. |
+| D07 | Afficher un cerveau par colonne, manipulable indépendamment ; pas de fusion/séparation à la HoloLens. |
+| D08 | Aucune compatibilité à maintenir avec les anciens transferts Quest ou le prototype HoloLens. Préserver le contrat des projets Desktop. |
+| D09 | La synchronisation future des opérations/configurations Desktop–Quest est différée. Ne pas construire maintenant son protocole de commandes. |
+| D10 | Favoriser de grands lots de code ; regrouper principalement détection, correction et validation à la fin. Accepter des états intermédiaires incomplets et non qualifiés. |
 
-| ID | Décision | Conséquence |
-| --- | --- | --- |
-| SC-D01 | Conserver une scène et des colonnes scientifiques communes, après extraction des modules spécifiques. | Une simple collection de calculateurs communs ne satisfait pas le chantier. |
-| SC-D02 | Viser l'export et la restauration de cette scène, exprimés conceptuellement par `ToPayload` / `FromPayload`. | Le graphe restauré doit être utilisable par les mêmes opérations, pas seulement affichable. |
-| SC-D03 | Laisser terminer 018–023 avant ce refactoring ; insérer celui-ci avant 024. | Ne pas interrompre ni élargir 018 ; qualifier ensuite le prototype refactorisé. |
-| SC-D04 | Les présentations sont distinctes ; `View3D` et `Camera3D` Desktop ne sont pas imposées au Quest. | Aucun objet factice de présentation pour faire tourner la science. |
-| SC-D05 | Accepter une reprise ciblée du prototype, avec un ordre de grandeur discuté autour d'une dizaine de tâches. | Les huit lots proposés sont provisoires, pas un engagement de coût ni une refonte illimitée. |
-| SC-D06 | Créer un dossier autonome sans modifier aucun document existant pendant la rédaction. | Le registre, les décisions et les fiches de ce chantier restent locaux ; raccordement historique différé. |
+Ces décisions remplacent les anciennes SC-D01–SC-D06 et les exclusions associées
+dans la version précédente du dossier.
 
-## Périmètre obligatoire de cette migration
+## Fonctionnalités concernées
 
-- Scène et colonnes portant les données et paramètres du prototype anatomie,
-  sites, densité et iEEG. Identités, relations et accès scientifiques communs.
-- Opérations locales réellement utilisées : paramètres de projection, masques
-  effectifs, préparation, calcul, résultats, remplacement et fermeture.
-- Même chemin métier sur une scène issue de la préparation Desktop et sur une
-  scène restaurée ; données locales accessibles après déconnexion.
-- Propriété des ressources, invalidation, annulation et publication cohérentes.
-- Export explicite du sous-ensemble sélectionné et restauration sans dépendance
-  au projet Desktop, à son système de fichiers ou à son UI.
-- Préservation de l'expérience Desktop existante et des autres modalités qui
-  utilisent des portions des classes modifiées.
+L’inventaire initial doit couvrir anatomie/densité, iEEG, CCEP, MEG, fMRI et
+colonnes statiques, ainsi que leurs dépendances : surfaces et représentations,
+volumes, implantations, sites et états, timelines, projections, coupes, ROI,
+atlas, coloration, seuils et effacement de triangles selon les fonctions existantes.
 
-Le modèle doit représenter la relation scène/colonnes et les ressources partagées
-sans être conçu comme « la colonne unique du casque ». Des tests avec deux
-colonnes sont requis pour les identités, l'indépendance des paramètres et le
-partage de ressources. Cela n'ajoute pas de disposition ou d'interface multicolonne
-Quest, ni l'export utilisateur de toutes les colonnes.
+Pour chaque fonction, distinguer opération commune, données, rendu et contrôles.
+Une fonction n’est pas « migrée » si ses règles restent enfermées dans une toolbar
+Desktop. L’absence de contrôle Quest ne justifie ni la suppression des données
+ni une deuxième implémentation de l’opération.
 
-## Ce que « commun » garantit
+L’affichage de matrices d’essais ou d’autres fenêtres Desktop sur Quest n’est pas
+demandé maintenant. Les données nécessaires appartenant à la visualisation
+doivent néanmoins être conservées dans le transfert, notamment les essais et
+métadonnées nécessaires aux outils de sites existants.
 
-Une correction dans une opération commune bénéficie aux deux Players reconstruits
-depuis cette source. Une UI appelle cette opération et consomme son résultat.
-La scène restaurée ne reçoit pas une copie différente des règles métier.
+« N’importe quel type de visualisation » signifie couvrir les modalités et
+structures existantes, dont les visualisations à plusieurs colonnes et patients.
+Cela ne promet pas une capacité mémoire illimitée : traiter les limites réelles
+sans réduction silencieuse des données ni exclusion implicite d’une modalité.
 
-Les données sont des instances locales à chaque processus : aucun partage de
-mémoire entre Desktop et Quest, aucune dépendance réseau par frame. Le partage
-du code n'implique pas une synchronisation des modifications entre appareils.
+## Préservation Desktop
 
-Une nouvelle fonction qui demande des données absentes nécessite d'étendre la
-préparation et le payload. Par exemple, un instant iEEG ne permet pas de parcourir
-une séquence entière. Un backend peut aussi nécessiter un rendu adapté. Ces
-limites sont explicites et ne justifient pas une seconde logique scientifique.
+Conserver l’ouverture, l’utilisation et la sauvegarde des projets existants.
+Le refactor des objets runtime et le format réseau n’exigent pas de changer le
+contrat de sauvegarde. Préserver champs sérialisés, IDs et résolution des références.
+Si une modification de type sérialisé est réellement nécessaire, maintenir la
+lecture historique et exposer son impact ; ne pas déduire une rupture du refactor.
 
-## Hors périmètre
+Préserver également les références Unity des scènes/prefabs et leurs GUID utiles.
+Ces références d’assets sont distinctes du contrat des fichiers projets.
 
-Pas de nouvelle coupe, timeline Quest, édition de ROI, modalité scientifique,
-import EEG Quest, sauvegarde de projet portable, synchronisation bidirectionnelle,
-nouvel appairage ou qualification Mac/Linux dans ce chantier. Pas de refonte de
-toutes les modalités ni de framework générique d'événements, plugins ou commandes.
-Pas d'optimisation changeant algorithmes, normalisation, résolution ou sampling.
+## Hors de cette passe
 
-Des adaptations minimales d'autres modalités Desktop sont autorisées si nécessaires
-pour préserver leur comportement après extraction. Leur port sur Quest est une
-autre tâche. Toute extension majeure du périmètre doit être exposée et décidée,
-pas absorbée silencieusement pour tenir dans huit fiches.
+- Nouvelles interactions scientifiques Quest : gizmos de coupe, contrôles de
+  timeline, sélection de sites, matrices d’essais et nouvelles fenêtres.
+- Synchronisation continue de configurations ou commandes entre appareils,
+  collaboration, gestion de conflits et reprise de journaux réseau.
+- Import ou préparation de projets EEG directement sur Quest.
+- Sauvegarde/reprise de la session Quest après arrêt et format de projet portable.
+- Fusion/séparation des colonnes, qualification Mac/Linux et perfection graphique.
+- Nouveaux algorithmes ou changements scientifiques destinés à alléger le contenu.
 
-## Points à résoudre par l'audit, sans nouvelle décision produit par défaut
+L’adaptation nécessaire du rendu existant au Quest fait partie de la migration.
+Un obstacle constaté doit être corrigé ou présenté comme un écart précis ;
+il ne permet pas de déclarer la fonctionnalité terminée sans son rendu.
 
-SCENE-001 localise les responsabilités réelles après 023, choisit le découpage
-minimal et précise quels types historiques deviennent communs ou restent des
-adaptateurs. Le nom `Base3DScene` doit être examiné explicitement : conserver le
-type commun est souhaitable si son extraction le permet. Un renommage peut être
-justifié, mais laisser deux modèles métier derrière un nom partagé ne l'est pas.
+## Règle de portée
 
-Restent à établir : stratégie d'adoption des ressources Desktop, APIs de mutation,
-notifications, contenu minimal de scène exportable, compatibilité du format et
-étendue des tests de non-régression. Aucun nom provisoire d'API dans ces documents
-ne justifie à lui seul une classe nouvelle ou une dépendance supplémentaire.
+Réutiliser le code et les conventions existantes, mais ne pas limiter l’extraction
+aux seuls chemins du prototype. Les changements adjacents nécessaires dans
+managers, outils, prefabs, chargement ou bibliothèques natives font partie du
+chantier. Éviter les nettoyages sans rapport et les architectures anticipant des
+besoins non demandés. Demander une décision seulement pour une véritable nouvelle
+incertitude produit ; les choix ordinaires d’implémentation restent autonomes.

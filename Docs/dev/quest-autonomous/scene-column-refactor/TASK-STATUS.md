@@ -1,25 +1,33 @@
-# Registre du refactoring Scène/Colonne
+# État du chantier
 
-Créé le 2026-09-09. Les tâches sont spécifiées ; aucune exécution n'est attestée.
-L'autorisation de rédiger et les décisions de cadrage ne valent pas validation
-technique ou manuelle des futures implémentations.
+Révision du cadrage : **2026-09-10**. Spécification réécrite selon la discussion
+propriétaire ; aucune implémentation du nouveau chantier ni validation runtime
+n’est revendiquée. Les anciens contenus des fiches SCENE sont remplacés.
 
-- Implémentation : A_FAIRE, EN_COURS, IMPLEMENTEE, BLOQUEE, NON_APPLICABLE.
-- Technique : NON_EXECUTE, PARTIEL, REUSSI, ECHEC, OBSOLETE, NON_REQUIS.
-- Manuel : NON_DEMANDE, EN_ATTENTE, VALIDE, REFUSE, OBSOLETE, NON_REQUIS.
-- Une validation manuelle exige un retour explicite daté et référencé au rapport.
-- Les dépendances se vérifient dans le code et les preuves, pas seulement ici.
+Avancement code : A_FAIRE, EN_COURS, IMPLEMENTEE, BLOQUEE.
+Validation : DIFFEREE, PARTIELLE, REUSSIE, ECHEC.
+Manuel : NON_REQUIS, DIFFERE, EN_ATTENTE, VALIDE, REFUSE.
+IMPLEMENTEE avec DIFFEREE est un état attendu durant les lots A/B.
 
-| ID | Implémentation | Technique | Manuel | Rapport / preuve / décision |
+| Fiche | Travail | Code | Validation | Manuel |
 | --- | --- | --- | --- | --- |
-| <a id="scene-001"></a>[SCENE-001](tasks/SCENE-001.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | Audit à exécuter après QUEST-023. |
-| <a id="scene-002"></a>[SCENE-002](tasks/SCENE-002.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-003"></a>[SCENE-003](tasks/SCENE-003.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-004"></a>[SCENE-004](tasks/SCENE-004.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-005"></a>[SCENE-005](tasks/SCENE-005.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-006"></a>[SCENE-006](tasks/SCENE-006.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-007"></a>[SCENE-007](tasks/SCENE-007.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="scene-008"></a>[SCENE-008](tasks/SCENE-008.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | Prépare la reprise de QUEST-024 ; ne la qualifie pas par anticipation. |
+| [SCENE-001](tasks/SCENE-001.md) | Inventaire ciblé et choix concrets | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-002](tasks/SCENE-002.md) | Généraliser scène, colonnes et présentation | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-003](tasks/SCENE-003.md) | Partager les opérations de toutes les modalités | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-004](tasks/SCENE-004.md) | Préparer toutes les ressources et le Data Quest | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-005](tasks/SCENE-005.md) | Capturer et restaurer la visualisation complète | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-006](tasks/SCENE-006.md) | Afficher les colonnes communes sur Quest | A_FAIRE | DIFFEREE | DIFFERE |
+| [SCENE-007](tasks/SCENE-007.md) | Achever l’intégration et retirer le prototype remplacé | A_FAIRE | DIFFEREE | NON_REQUIS |
+| [SCENE-008](tasks/SCENE-008.md) | Stabiliser et qualifier la version intégrée | A_FAIRE | DIFFEREE | DIFFERE |
 
-Ordre approuvé : 018–023 → ce registre → 024 → qualifications suivantes.
-Le registre historique reste inchangé pendant la rédaction et le travail de 018.
+La validation finale peut couvrir plusieurs fiches en une même exécution.
+Consigner les références dans le journal puis le rapport final, sans dupliquer
+des résultats dans huit rapports.
+
+## Références de départ
+
+Le registre historique déclare QUEST-018–023 implémentées et validées.
+Sources inspectées pour le cadrage : feature/xr-autonomous@639e88306.
+Les anciens résultats sont des références du prototype, pas des preuves du futur
+code. Les anciens statuts SCENE n’attestent aucune réalisation de cette nouvelle
+version.

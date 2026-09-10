@@ -1,68 +1,39 @@
-# SCENE-007 — Retirer les chemins remplacés
+# SCENE-007 — Achever l’intégration et retirer le prototype remplacé
 
-Type : suppression ciblée de redondances et non-régression.
-Dépendance : [SCENE-006](SCENE-006.md). Suivi : [registre](../TASK-STATUS.md#scene-007).
+Édition du 10 septembre 2026. Lot B.
+Lire le [workflow](../TASK-WORKFLOW.md) et la
+[cadence de développement](../04-migration-and-validation.md).
+La fiche est un repère d’implémentation, pas une porte de qualification.
 
-## Reprise
+## Résultat visé
 
-Lire le [contrat local](../TASK-WORKFLOW.md), [l'architecture](../02-target-architecture.md),
-les inventaires de SCENE-001 et les listes de façades/résidus des rapports 002–006.
-Ne pas considérer tout code Desktop historique comme obsolète.
+Terminer le code du parcours complet avant la phase de stabilisation, et supprimer
+les doublons rendus inutiles par la migration.
 
-## Points d'entrée à inspecter
+## Travail
 
-Callers de scène/colonnes et pipelines, propriétaires scientifiques Quest retirés,
-accès aux données par payload/vue, abonnements et caches, asmdefs, prefabs et
-diagnostics affectés. Localiser usages sérialisés et réflexion avant suppression.
+- Parcourir Desktop → préparation → capture → transport → restauration → rendu
+  commun Quest dans les sources et terminer les raccordements manquants.
+- Reprendre la matrice 001 : toutes les modalités et fonctionnalités du périmètre
+  ont leur opération, leurs données et leur rendu ; absence d’UI Quest explicite.
+- Retirer les anciens chemins scientifiques Quest, états en double, façades et
+  propriétaires remplacés. Conserver le transport et les adaptations légitimes.
+- Mettre à jour les références de prefabs, assemblies, diagnostics et tests
+  réellement affectées ; ne pas supprimer un test scientifique pour cacher une régression.
+- Vérifier par lecture les appels à la présentation Desktop depuis les opérations
+  communes et corriger les dépendances restantes.
+- Préparer les fixtures et scénarios manquants de la campagne finale, sans
+  multiplier les outils de test ni remettre une campagne par fonctionnalité.
+- Mettre à jour le journal avec les défauts/risques à investiguer en 008.
+  Corriger immédiatement les erreurs évidentes, sans chercher à qualifier ici
+  chaque branche de code.
 
-## À implémenter
+## Passage à la suite
 
-- Retirer les branches scientifiques, stocks d'état modifiables, propriétaires
-  et façades de transition remplacés pour anatomie/sites/densité/iEEG.
-- Un adaptateur de présentation légitime peut rester ; il délègue au socle sans
-  contenir règles métier, recherche alternative de données ou scheduling scientifique.
-- Préserver les conversions de formats antérieurs encore supportés en les faisant
-  alimenter le modèle commun ; ne pas retirer une compatibilité par nettoyage.
-- Conserver les chemins historiques nécessaires aux autres modalités Desktop et
-  documenter exactement leur périmètre, sans promettre leur exécution sur Quest.
-- Corriger les références de code/prefabs/tests/diagnostics réellement orphelines
-  de ces suppressions, en préservant sérialisation et fonctionnement existants.
-- Produire un inventaire final des responsabilités et des chemins restants dans
-  ce dossier, sans modifier les rapports et registres historiques.
+L’implémentation de bout en bout est prête pour la stabilisation, les chemins
+remplacés sont retirés et les incertitudes restantes sont explicites. Ce jalon
+ne signifie pas que l’application est déjà compilée ou validée. Passer à 008
+sans exiger un rapport ou un manifeste par fiche.
 
-## Hors périmètre
-
-Pas de nettoyage global du dépôt, suppression d'anciens chantiers, port d'autres
-modalités, migration générale de namespaces ou suppression de compatibilité non
-décidée. Aucun travail appartenant à un autre agent n'est inclus dans le nettoyage.
-
-## Vérifications par l'agent
-
-- Rechercher les anciens points d'accès/branches et inspecter les références
-  effectives ; une absence de texte seule ne prouve pas la suppression d'un usage sérialisé.
-- Vérifier dépendances d'assemblies et chemins métier : pas d'appel scientifique
-  vers toolbar, caméra, renderer, connexion ou payload après chargement.
-- Prouver que les deux Players utilisent toujours le socle après retrait des
-  façades ; exécuter les tests pertinents de 003–006.
-- Ouvrir/charger les scènes, prefabs et projets représentatifs ; vérifier les
-  modalités hors migration réellement affectées et les diagnostics conservés.
-- Contrôler builds utiles, ressources et abonnements sur les chemins modifiés.
-  Ne pas effacer un test de non-régression pour faire passer la suppression.
-
-## Validation manuelle
-
-NON_REQUIS si les suppressions ne changent aucun comportement visible et que
-les preuves correspondantes restent valides. Si un comportement est affecté,
-préparer une recette ciblée et recueillir le retour ; ne pas déduire le succès
-manuel de la compilation.
-
-## Rapport et critère de fin
-
-Produire `reports/SCENE-007.md`, `evidence/SCENE-007/manifest.json` et sa ligne
-locale. Montrer ce qui a été supprimé, les callers remplacés, les adaptateurs
-légitimes et les modalités historiques volontairement conservées.
-
-Terminé lorsque le périmètre migré n'a plus deux chemins métier ou autorités
-d'état, et que les suppressions sont vérifiées. Un résidu obligatoire non traité
-reste un écart explicite, pas un commentaire TODO de fin de chantier.
-Prochaine tâche : [SCENE-008](SCENE-008.md).
+Le périmètre autorisé détermine la poursuite ; aucune nouvelle permission n’est
+requise à cette frontière lorsque le lot ou le chantier entier a été demandé.

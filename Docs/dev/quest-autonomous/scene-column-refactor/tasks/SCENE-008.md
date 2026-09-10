@@ -1,79 +1,46 @@
-# SCENE-008 — Vérifier l'intégration et préparer QUEST-024
+# SCENE-008 — Stabiliser et qualifier la version intégrée
 
-Type : vérification finale du refactoring et transmission à la qualification.
-Dépendance : [SCENE-007](SCENE-007.md) et preuves utiles de 001–006.
-Suivi : [registre](../TASK-STATUS.md#scene-008).
+Édition du 10 septembre 2026. Lot C.
+Lire le [workflow](../TASK-WORKFLOW.md) et la
+[cadence de développement](../04-migration-and-validation.md).
+La fiche est un repère d’implémentation, pas une porte de qualification.
 
-## Reprise
+## Résultat visé
 
-Lire le [contrat local](../TASK-WORKFLOW.md), [la migration](../04-migration-and-validation.md),
-les rapports locaux et [QUEST-024](../../tasks/QUEST-024.md). Le propriétaire a
-approuvé l'insertion de ce chantier entre 023 et 024 ; le document historique
-reste inchangé et doit être lu avec ce contexte complémentaire.
+Détecter et corriger les bugs après l’implémentation complète, puis vérifier le
+résultat sur Desktop et Quest avec une campagne finale regroupée.
 
-## Points d'entrée à inspecter
+## Travail
 
-Deux chemins de production, format final, Players, fixtures et preuves réelles
-du refactoring ; recettes de référence du prototype après 023. Les chemins et
-hashes d'anciens binaires ne valent pas preuve des nouveaux.
+- Appliquer 04-migration-and-validation.md : formatage, compilation intégrée,
+  corrections, tests ciblés existants et compléments réellement nécessaires.
+- Vérifier les opérations communes et la couverture des modalités, données
+  temporelles/essais, ressources alternatives, coupes et autres fonctions migrées.
+- Vérifier ouverture/sauvegarde/rechargement des projets Desktop existants et
+  conservation du comportement de leurs fonctionnalités.
+- Vérifier capture/restauration cohérentes, MNI local identifié, plusieurs colonnes,
+  indépendance des paramètres et poses, invalidation et ressources partagées.
+- Reprendre annulation, fermeture et remplacement durant chargement/calcul :
+  aucune publication tardive, libération prématurée ou scène partiellement remplacée.
+- Construire Windows/Quest depuis les mêmes sources ; exercer les vrais parcours,
+  la restauration des modalités représentatives et le fonctionnement hors connexion.
+- Mesurer les temps et pics mémoire utiles ; corriger les défauts bloquants sans
+  réduction silencieuse des données ni changement des conventions scientifiques.
+- Fournir une recette manuelle unique pour rendu, lisibilité et manipulation
+  indépendante des colonnes. Les opérations sans contrôles Quest sont exercées
+  par l’agent via un diagnostic ou appel de test ciblé.
+- Corriger par groupes et rejouer les vérifications affectées. Ne répéter toute
+  la campagne que si l’étendue d’une modification le justifie réellement.
+- Produire reports/FINAL.md et evidence/final/manifest.json ; mettre à jour le
+  registre et fournir les preuves réutilisables pour les besoins pertinents de 024.
 
-## À réaliser
+## Passage à la suite
 
-- Assembler une recette reproductible couvrant anatomie/sites/densité/iEEG dans
-  les Players refactorisés, sources applicatives et natives identifiées.
-- Exécuter les preuves d'intégration nécessaires pour relier Desktop réel,
-  export, transport, restauration du même modèle, calcul autonome et rendu Quest.
-- Consolider I01–I10 avec liens vers preuves valides, code et limites. Vérifier
-  explicitement modèle/accès/opérations communs, pas seulement la parité numérique.
-- Vérifier les ressources sur remplacement, déconnexion, nouvelle tentative et
-  fermeture ; reprendre les mesures utiles de temps et mémoire sur la même fixture.
-- Corriger seulement les défauts empêchant cette preuve ; si un problème remet
-  en cause une étape, identifier la tâche et les preuves affectées.
-- Fournir dans le rapport un bloc de reprise pour 024 : versions, binaires,
-  fixtures, commandes, différences par rapport à 023 et contrôles encore requis.
+Le résultat est qualifié sur les parcours et plateformes effectivement testés,
+ou les écarts restant à résoudre sont explicitement listés. Aucune modalité
+obligatoire absente ne peut être masquée derrière le succès anatomie/iEEG.
+Les retours manuels et preuves non exécutées restent distincts. La clôture
+administrative de QUEST-024 et les autres plateformes ne sont pas implicites.
 
-## Hors périmètre
-
-Pas d'exécution implicite de 024, acceptation globale du prototype, qualification
-Mac/Linux ou nouvel appairage 030. Pas de nouvelle fonctionnalité ou optimisation
-finale. Aucun verdict manuel ou support de plateforme déduit du seul build.
-
-## Vérifications par l'agent
-
-- Comparer les résultats scientifiques à la baseline et entre Windows/Quest,
-  avec tolérances justifiées et preuve de calcul local après déconnexion.
-- Exécuter les scénarios d'opération commune de scène et de colonne sans UI,
-  puis vérifier les vrais consommateurs ; couvrir l'invalidation entre colonnes
-  et les invariants de partage de ressources via les tests du modèle.
-- Rejouer les scénarios d'intégration affectés : contenu invalide conservant
-  l'ancien, retry idempotent, fermeture/calcul en vol, nettoyage et présentation indépendante.
-- Contrôler absence de dépendance de la science aux vues/caméras, payload et
-  transport ; recouper les conclusions de SCENE-007 avec le code final.
-- Vérifier les preuves de non-régression Desktop et autres modalités touchées ;
-  ne réutiliser une preuve ancienne que si son périmètre reste applicable.
-- Identifier APK/Player/fixtures, sources et résultats réellement testés ; récupérer
-  les preuves et arrêter HiBoP sur Quest conformément au contrat d'essai.
-
-## Validation manuelle
-
-L'acceptation globale visuelle et de confort reste portée par QUEST-024. Aucune
-nouvelle validation manuelle interne n'est obligatoire ici si les retours utiles
-de 003/005 sont acquis et restent applicables. Répertorier les retours encore
-en attente et leur impact ; ne pas les convertir en VALIDE par agrégation.
-
-Si une correction finale invalide un retour, fournir la recette ciblée à refaire.
-Un défaut visuel connu n'est pas caché derrière l'absence d'exigence manuelle de
-cette fiche.
-
-## Rapport et critère de fin
-
-Produire `reports/SCENE-008.md`, `evidence/SCENE-008/manifest.json` et sa ligne
-locale. Inclure une conclusion explicite « prêt pour exécuter QUEST-024 » ou
-« écarts à lever avant QUEST-024 », fondée sur les preuves et retours requis.
-
-Terminé techniquement lorsque les invariants obligatoires sont établis dans les
-Players et tests pertinents, Desktop est préservé et la recette de qualification
-est concrète. Une preuve obligatoire absente conserve un état partiel.
-
-Proposer ensuite QUEST-024 en joignant ce rapport comme contexte de reprise.
-Ne pas la lancer, mettre à jour son statut ou modifier sa fiche automatiquement.
+Le périmètre autorisé détermine la poursuite ; aucune nouvelle permission n’est
+requise à cette frontière lorsque le lot ou le chantier entier a été demandé.
