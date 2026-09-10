@@ -30,9 +30,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
+        private Timeline m_NavigationTimeline;
+
         public override Timeline Timeline
         {
-            get { return ColumnCCEPData.Data.Timeline; }
+            get { return m_NavigationTimeline ??= ColumnCCEPData.Data.Timeline.CopyForNavigation(); }
         }
 
         public override Timeline ProjectionTimeline => ColumnCCEPData.Data.ProjectionTimeline;
@@ -76,6 +78,8 @@ namespace HBP.Data.Module3D
             get { return m_SelectedSiteSource; }
             set
             {
+                if (value != null && !Sources.Contains(value))
+                    throw new System.ArgumentException("The CCEP source must belong to this column's available sources.", nameof(value));
                 if (m_SelectedSiteSource != value)
                 {
                     m_SelectedSiteSource = value;
@@ -537,7 +541,7 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }

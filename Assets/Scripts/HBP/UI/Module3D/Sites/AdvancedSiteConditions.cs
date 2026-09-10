@@ -17,28 +17,28 @@ namespace HBP.UI.Module3D
     {
         #region Properties
 
-        public const string TRUE = "TRUE";
-        public const string FALSE = "FALSE";
-        public const string HIGHLIGHTED = "H";
-        public const string BLACKLISTED = "B";
-        public const string LABEL = "LABEL";
-        public const string IN_ROI = "ROI";
-        public const string IN_MESH = "MESH";
-        public const string IN_LEFT_HEMISPHERE = "L";
-        public const string IN_RIGHT_HEMISPHERE = "R";
-        public const string ON_PLANE = "CUT";
-        public const string ATLAS_AREA = "ATLAS_AREA";
-        public const string POS_X = "X";
-        public const string POS_Y = "Y";
-        public const string POS_Z = "Z";
-        public const string NAME = "NAME";
-        public const string PATIENT_NAME = "PAT_NAME";
-        public const string TAG = "TAG";
-        public const string MEAN = "MEAN";
-        public const string MEDIAN = "MEDIAN";
-        public const string MAX = "MAX";
-        public const string MIN = "MIN";
-        public const string STANDARD_DEVIATION = "STDEV";
+        public const string TRUE = SiteConditions.TRUE;
+        public const string FALSE = SiteConditions.FALSE;
+        public const string HIGHLIGHTED = SiteConditions.HIGHLIGHTED;
+        public const string BLACKLISTED = SiteConditions.BLACKLISTED;
+        public const string LABEL = SiteConditions.LABEL;
+        public const string IN_ROI = SiteConditions.IN_ROI;
+        public const string IN_MESH = SiteConditions.IN_MESH;
+        public const string IN_LEFT_HEMISPHERE = SiteConditions.IN_LEFT_HEMISPHERE;
+        public const string IN_RIGHT_HEMISPHERE = SiteConditions.IN_RIGHT_HEMISPHERE;
+        public const string ON_PLANE = SiteConditions.ON_PLANE;
+        public const string ATLAS_AREA = SiteConditions.ATLAS_AREA;
+        public const string POS_X = SiteConditions.POS_X;
+        public const string POS_Y = SiteConditions.POS_Y;
+        public const string POS_Z = SiteConditions.POS_Z;
+        public const string NAME = SiteConditions.NAME;
+        public const string PATIENT_NAME = SiteConditions.PATIENT_NAME;
+        public const string TAG = SiteConditions.TAG;
+        public const string MEAN = SiteConditions.MEAN;
+        public const string MEDIAN = SiteConditions.MEDIAN;
+        public const string MAX = SiteConditions.MAX;
+        public const string MIN = SiteConditions.MIN;
+        public const string STANDARD_DEVIATION = SiteConditions.STANDARD_DEVIATION;
 
         /// <summary>
         /// InputField used to write the string to be parsed as a set of conditions
@@ -48,7 +48,7 @@ namespace HBP.UI.Module3D
         /// <summary>
         /// Boolean expression parsed from the string
         /// </summary>
-        private BooleanExpression m_BooleanExpression;
+        private System.Func<Core.Object3D.Site, bool> m_Filter;
 
         [SerializeField] AdvancedSiteConditionList m_AdvancedSiteConditionList;
         [SerializeField] Button m_StoreConditionButton;
@@ -66,271 +66,7 @@ namespace HBP.UI.Module3D
             m_ApplySelectedConditionButton.onClick.AddListener(ApplySelectedCondition);
         }
 
-        /// <summary>
-        /// Check all the set conditions for a specific site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if the conditions are met</returns>
-        protected override bool CheckConditions(Core.Object3D.Site site)
-        {
-            foreach (var booleanValue in m_BooleanExpression.GetAllBooleanValuesUnderThisOne())
-            {
-                booleanValue.SetBooleanValue((s) => ParseConditionAndCheckValue(site, s));
-            }
-
-            return m_BooleanExpression.Evaluate();
-        }
-
-        /// <summary>
-        /// Parse the string containing the conditions and get the value 
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <param name="s">String to be parsed</param>
-        /// <returns>True if the site matches the set of conditions</returns>
-        private bool ParseConditionAndCheckValue(Core.Object3D.Site site, string s)
-        {
-            s = s.ToUpper();
-            if (s.Contains("=") || s.Contains(">") || s.Contains("<"))
-            {
-                string[] elements = s.Split('=', '<', '>');
-                if (elements.Length == 2)
-                {
-                    string label = elements[0].Replace(" ", "").Replace("\"", "").Replace("[", "").Replace("]", "");
-                    string value = elements[1].Replace("\"", "");
-                    string deblankedValue = Regex.Replace(value, "^\\s+", "");
-                    deblankedValue = Regex.Replace(deblankedValue, "\\s+$", "");
-                    if (label == LABEL)
-                    {
-                        return CheckLabel(site, deblankedValue);
-                    }
-                    else if (label == NAME)
-                    {
-                        return CheckName(site, deblankedValue);
-                    }
-                    else if (label == PATIENT_NAME)
-                    {
-                        return CheckPatientName(site, deblankedValue);
-                    }
-                    else if (label == ATLAS_AREA)
-                    {
-                        return CheckAtlas(site, deblankedValue);
-                    }
-                    else if (label == POS_X)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckX(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckX(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == POS_Y)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckY(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckY(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == POS_Z)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckZ(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckZ(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == TAG)
-                    {
-                        string[] splits = deblankedValue.Split(':');
-                        if (splits.Length == 2)
-                        {
-                            string tagName = Regex.Replace(splits[0], "^\\s+", "");
-                            tagName = Regex.Replace(tagName, "\\s+$", "");
-                            string tagValue = Regex.Replace(splits[1], "^\\s+", "");
-                            tagValue = Regex.Replace(tagValue, "\\s+$", "");
-                            BaseTag tag = PersistentDataManager.Tags.SitesTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
-                            if (tag == null) tag = PersistentDataManager.Tags.GeneralTags.FirstOrDefault(t => t.Name.ToUpper() == tagName);
-                            return CheckTag(site, tag, tagValue);
-                        }
-                    }
-                    else if (label == MEAN)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckMean(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckMean(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == MEDIAN)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckMedian(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckMedian(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == MAX)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckMax(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckMax(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == MIN)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckMin(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckMin(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label == STANDARD_DEVIATION)
-                    {
-                        if (s.Contains("<"))
-                        {
-                            return CheckStandardDeviation(site, false, deblankedValue);
-                        }
-                        else if (s.Contains(">"))
-                        {
-                            return CheckStandardDeviation(site, true, deblankedValue);
-                        }
-                    }
-                    else if (label.StartsWith(MEAN) || label.StartsWith(MEDIAN) || label.StartsWith(MAX) || label.StartsWith(MIN) || label.StartsWith(STANDARD_DEVIATION))
-                    {
-                        Regex regex = new("(\\w+){(\\d+):(\\d+)}");
-                        Match match = regex.Match(label);
-                        if (match.Success)
-                        {
-                            string subLabel = match.Groups[1].ToString();
-                            if (int.TryParse(match.Groups[2].ToString(), out int start) && int.TryParse(match.Groups[3].ToString(), out int end) && m_Scene.SelectedColumn is Column3DDynamic dynamicColumn)
-                            {
-                                int startIndex = dynamicColumn.Timeline.Frequency.ConvertToFlooredNumberOfSamples(start);
-                                int endIndex = dynamicColumn.Timeline.Frequency.ConvertToCeiledNumberOfSamples(end);
-                                if (subLabel == MEAN)
-                                {
-                                    if (s.Contains("<"))
-                                    {
-                                        return CheckMean(site, false, deblankedValue, start, end);
-                                    }
-                                    else if (s.Contains(">"))
-                                    {
-                                        return CheckMean(site, true, deblankedValue, start, end);
-                                    }
-                                }
-                                else if (subLabel == MEDIAN)
-                                {
-                                    if (s.Contains("<"))
-                                    {
-                                        return CheckMedian(site, false, deblankedValue, start, end);
-                                    }
-                                    else if (s.Contains(">"))
-                                    {
-                                        return CheckMedian(site, true, deblankedValue, start, end);
-                                    }
-                                }
-                                else if (subLabel == MAX)
-                                {
-                                    if (s.Contains("<"))
-                                    {
-                                        return CheckMax(site, false, deblankedValue, start, end);
-                                    }
-                                    else if (s.Contains(">"))
-                                    {
-                                        return CheckMax(site, true, deblankedValue, start, end);
-                                    }
-                                }
-                                else if (subLabel == MIN)
-                                {
-                                    if (s.Contains("<"))
-                                    {
-                                        return CheckMin(site, false, deblankedValue, start, end);
-                                    }
-                                    else if (s.Contains(">"))
-                                    {
-                                        return CheckMin(site, true, deblankedValue, start, end);
-                                    }
-                                }
-                                else if (subLabel == STANDARD_DEVIATION)
-                                {
-                                    if (s.Contains("<"))
-                                    {
-                                        return CheckStandardDeviation(site, false, deblankedValue, start, end);
-                                    }
-                                    else if (s.Contains(">"))
-                                    {
-                                        return CheckStandardDeviation(site, true, deblankedValue, start, end);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else
-            {
-                s = s.Replace(" ", "").Replace("\"", "").Replace("[", "").Replace("]", "");
-                if (s == TRUE)
-                {
-                    return true;
-                }
-                else if (s == FALSE)
-                {
-                    return false;
-                }
-                else if (s == HIGHLIGHTED)
-                {
-                    return CheckHighlighted(site);
-                }
-                else if (s == BLACKLISTED)
-                {
-                    return CheckBlacklisted(site);
-                }
-                else if (s == IN_ROI)
-                {
-                    return CheckInROI(site);
-                }
-                else if (s == IN_MESH)
-                {
-                    return CheckInMesh(site);
-                }
-                else if (s == IN_LEFT_HEMISPHERE)
-                {
-                    return CheckInLeftHemisphere(site);
-                }
-                else if (s == IN_RIGHT_HEMISPHERE)
-                {
-                    return CheckInRightHemisphere(site);
-                }
-                else if (s == ON_PLANE)
-                {
-                    return CheckOnPlane(site);
-                }
-            }
-
-            throw new InvalidConditionException(s);
-        }
+        protected override System.Func<Core.Object3D.Site, bool> CreateFilter() => m_Filter;
 
         #endregion
 
@@ -341,7 +77,7 @@ namespace HBP.UI.Module3D
         /// </summary>
         public void ParseConditions()
         {
-            m_BooleanExpression = BooleanExpressionParser.Parse(m_InputField.text.Replace("\n", "").Replace("\r", ""));
+            m_Filter = Conditions.Parse(m_InputField.text);
         }
 
         public void StoreCondition()

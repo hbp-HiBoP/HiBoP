@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -53,14 +53,6 @@ namespace HBP.UI.Module3D
 
         public void ApplyFilters()
         {
-            foreach (var column in m_Scene.Columns)
-            {
-                foreach (var site in column.Sites)
-                {
-                    site.State.IsFiltered = false;
-                }
-            }
-
             List<Core.Object3D.Site> sites = new();
             foreach (var column in m_Scene.Columns)
             {
@@ -92,18 +84,20 @@ namespace HBP.UI.Module3D
 
         public void ResetFilters()
         {
-            foreach (var column in m_Scene.Columns)
-            {
-                foreach (var site in column.Sites)
-                {
-                    site.State.IsFiltered = true;
-                }
-            }
+            m_Scene.ResetSiteFilters();
         }
 
         #endregion
 
         #region Private Methods
+
+        private void OnDestroy()
+        {
+            m_FilterSource?.Cancel();
+            m_ProgressSource?.Cancel();
+            m_FilterSource?.Dispose();
+            m_ProgressSource?.Dispose();
+        }
 
         private void Awake()
         {
@@ -120,7 +114,7 @@ namespace HBP.UI.Module3D
             m_ProgressSource?.Cancel();
             m_Filtering = false;
             m_ProgressBar.End();
-            if (!filterCompleted) ResetFilters();
+
             OnRequestListUpdate.Invoke();
         }
 

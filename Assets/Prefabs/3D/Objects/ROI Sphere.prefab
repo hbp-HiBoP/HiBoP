@@ -125,6 +125,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31f289ea1bd411b4f87ffae9d841d21e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_SharedMaterials: {fileID: 11400000, guid: f1e8c5c55a519de48ab5bfd01bbc325b, type: 2}
   OnChangeRadius:
     m_PersistentCalls:
       m_Calls: []

@@ -14,6 +14,8 @@ namespace HBP.Data.Module3D
     {
         #region Properties
 
+        public override Core.Data.BasicTimeline NavigationTimeline => Timeline;
+
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
@@ -185,15 +187,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public override void ComputeActivityData()
         {
-            Timeline.OnUpdateCurrentIndex.AddListener(() =>
-            {
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
-                }
-            });
-            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
+            ObserveTimeline(Timeline, OnUpdateCurrentTimelineID.Invoke);
             SetActivityData();
         }
 
@@ -219,7 +213,7 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!site.IsActive) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, appearance.Type, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, appearance.Type, site.State.Color);
                 site.transform.localScale = Vector3.one * appearance.Scale * gain;
             }
         }

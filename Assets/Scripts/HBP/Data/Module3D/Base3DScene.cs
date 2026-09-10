@@ -25,7 +25,7 @@ namespace HBP.Data.Module3D
     /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
     /// <seealso cref="MeshManager"/> <seealso cref="MRIManager"/> <seealso cref="ImplantationManager"/> <seealso cref="TriangleEraser"/> <seealso cref="AtlasManager"/> <seealso cref="FMRIManager"/> <seealso cref="DisplayedObjects"/>
     /// </remarks>
-    public class Base3DScene : MonoBehaviour, IConfigurable
+    public partial class Base3DScene : MonoBehaviour, IConfigurable
     {
         #region Properties
 
@@ -49,6 +49,12 @@ namespace HBP.Data.Module3D
         /// Visualization associated to this scene
         /// </summary>
         public Visualization Visualization { get; private set; }
+
+        [SerializeField] private DesktopScenePresentation m_DesktopPresentation;
+        public DesktopScenePresentation DesktopPresentation => m_DesktopPresentation;
+
+        // Includes scenes outside Module3DMain and scenes still finishing native work.
+        private static readonly HashSet<Base3DScene> s_LiveScenes = new();
 
         private bool m_IsSelected;
 
@@ -420,13 +426,7 @@ namespace HBP.Data.Module3D
             set
             {
                 m_EdgeMode = value;
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        view.ShowEdges = m_EdgeMode;
-                    }
-                }
+                if (m_DesktopPresentation) m_DesktopPresentation.UpdateViews(view => view.ShowEdges = m_EdgeMode);
             }
         }
 
@@ -457,13 +457,7 @@ namespace HBP.Data.Module3D
             set
             {
                 m_AutomaticRotation = value;
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        view.AutomaticRotation = m_AutomaticRotation;
-                    }
-                }
+                if (m_DesktopPresentation) m_DesktopPresentation.UpdateViews(view => view.AutomaticRotation = m_AutomaticRotation);
             }
         }
 
@@ -478,13 +472,7 @@ namespace HBP.Data.Module3D
             set
             {
                 m_AutomaticRotationSpeed = value;
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        view.AutomaticRotationSpeed = m_AutomaticRotationSpeed;
-                    }
-                }
+                if (m_DesktopPresentation) m_DesktopPresentation.UpdateViews(view => view.AutomaticRotationSpeed = m_AutomaticRotationSpeed);
             }
         }
 
@@ -499,13 +487,7 @@ namespace HBP.Data.Module3D
             set
             {
                 m_CameraType = value;
-                foreach (Column3D column in Columns)
-                {
-                    foreach (View3D view in column.Views)
-                    {
-                        view.CameraType = m_CameraType;
-                    }
-                }
+                if (m_DesktopPresentation) m_DesktopPresentation.UpdateViews(view => view.CameraType = m_CameraType);
             }
         }
 
@@ -568,7 +550,7 @@ namespace HBP.Data.Module3D
         private bool m_UpdatingGenerators = false;
 
         private readonly List<Action> m_PendingGeneratorUpdates = new();
-        private System.Threading.Tasks.Task m_GeneratorWork = System.Threading.Tasks.Task.CompletedTask;
+        private UniTask m_GeneratorWork = UniTask.CompletedTask;
 
         private bool m_IsGeneratorUpToDate = false;
 
@@ -852,17 +834,9 @@ namespace HBP.Data.Module3D
                 UpdateVisibleState(true);
                 SceneInformation.CompletelyLoaded = true;
                 OnSceneCompletelyLoaded.Invoke();
-                PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(() =>
-                {
-                    UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
-                    SceneInformation.CutsNeedUpdate = true;
-                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-                    foreach (Column3D column in Columns)
-                    {
-                        column.SurfaceNeedsUpdate = true;
-                    }
-                });
-                if (Visualization.Configuration.FirstColumnToSelect < Columns.Count)
+                m_ObservedPreferences = PersistentDataManager.UserPreferences;
+                m_ObservedPreferences.OnSavePreferences.AddListener(PreferencesChanged);
+                if (Visualization.Configuration.FirstColumnToSelect >= 0 && Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
                     Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
                 }
@@ -888,23 +862,7 @@ namespace HBP.Data.Module3D
 
         private void OnDestroy()
         {
-            m_DestroyRequested = true;
-            m_SurfaceRepresentationLifetime.Cancel();
-            m_SurfaceRepresentationLifetime.Dispose();
-            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
-            ReleaseProjectionResources().Forget();
-        }
-
-        private async UniTaskVoid ReleaseProjectionResources()
-        {
-            await ReleaseProjectionResourcesAsync();
-        }
-
-        private async UniTask ReleaseProjectionResourcesAsync()
-        {
-            await m_GeneratorWork;
-            foreach (var dllMRIGeometryCutGenerator in CutGeometryGenerators) dllMRIGeometryCutGenerator.Dispose();
-            m_ActivityProjectionGrid?.Dispose();
+            BeginClose().Forget();
         }
 
         /// <summary>
@@ -1260,9 +1218,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         private async UniTaskVoid UpdateMeshesColliders()
         {
-            await new WaitUntil(() => !m_UpdatingColliders);
+            if (m_UpdatingColliders || m_DestroyRequested) return;
             SceneInformation.CollidersNeedUpdate = false;
-            await UpdateMeshesCollidersAsync();
+            m_ColliderWork = UpdateMeshesCollidersAsync().ToAsyncLazy().Task;
+            await m_ColliderWork;
         }
 
         /// <summary>
@@ -1351,10 +1310,6 @@ namespace HBP.Data.Module3D
                     if (c != column)
                     {
                         c.IsSelected = false;
-                        foreach (View3D v in c.Views)
-                        {
-                            v.IsSelected = false;
-                        }
                     }
                 }
 
@@ -1362,7 +1317,6 @@ namespace HBP.Data.Module3D
                 SceneInformation.GUICutTexturesNeedUpdate = true;
                 OnUpdateCuts.Invoke();
             });
-            column.OnMoveView.AddListener((view) => { SynchronizeViewsToReferenceView(view); });
             column.OnChangeMinimizedState.AddListener(() => { OnChangeColumnMinimizedState.Invoke(); });
             column.OnSelectSite.AddListener((site) =>
             {
@@ -1503,26 +1457,10 @@ namespace HBP.Data.Module3D
                 });
             }
 
+            column.SetRenderLayer(m_DesktopPresentation ? m_DesktopPresentation.GetColumnLayer(Columns.Count) : LayerMask.LayerToName(column.gameObject.layer));
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             Columns.Add(column);
-        }
-
-        /// <summary>
-        /// Synchronize all cameras from the same view line
-        /// </summary>
-        /// <param name="referenceView">View to synchronize with</param>
-        private void SynchronizeViewsToReferenceView(View3D referenceView)
-        {
-            foreach (Column3D column in Columns)
-            {
-                foreach (View3D view in column.Views)
-                {
-                    if (view.LineID == referenceView.LineID)
-                    {
-                        view.SynchronizeCamera(referenceView);
-                    }
-                }
-            }
+            if (m_DesktopPresentation) m_DesktopPresentation.InitializeColumn(column);
         }
 
         #endregion
@@ -1547,7 +1485,7 @@ namespace HBP.Data.Module3D
             {
                 Module3DMain.OnSelectScene.Invoke(this);
                 Module3DMain.OnSelectColumn.Invoke(SelectedColumn);
-                Module3DMain.OnSelectView.Invoke(SelectedColumn.SelectedView);
+                if (m_DesktopPresentation) Module3DMain.OnSelectView.Invoke(SelectedColumn?.SelectedView);
             }
 
             IsSelected = state;
@@ -1558,12 +1496,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void AddViewLine()
         {
-            foreach (Column3D column in Columns)
-            {
-                column.AddView();
-            }
-
-            OnAddViewLine.Invoke();
+            if (m_DesktopPresentation) m_DesktopPresentation.AddViewLine();
         }
 
         /// <summary>
@@ -1572,19 +1505,7 @@ namespace HBP.Data.Module3D
         /// <param name="lineID">ID of the line of the view to be removed</param>
         public void RemoveViewLine(int lineID = -1)
         {
-            if (lineID == -1) lineID = ViewLineNumber - 1;
-            bool wasSelected = false;
-            foreach (Column3D column in Columns)
-            {
-                wasSelected |= column.Views[lineID].IsSelected;
-                column.RemoveView(lineID);
-            }
-
-            OnRemoveViewLine.Invoke(ViewLineNumber);
-            if (wasSelected)
-            {
-                SelectedColumn.Views.First().IsSelected = true;
-            }
+            if (m_DesktopPresentation) m_DesktopPresentation.RemoveViewLine(lineID);
         }
 
         #endregion
@@ -1746,7 +1667,7 @@ namespace HBP.Data.Module3D
                 RemoveCutPlane(cut);
             }
 
-            Core.Object3D.Site site = SelectedColumn.SelectedSite;
+            Core.Object3D.Site site = SelectedColumn?.SelectedSite;
             if (!site) return;
 
             Vector3 sitePosition = site.transform.localPosition;
@@ -1811,7 +1732,9 @@ namespace HBP.Data.Module3D
             Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
             Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
 
-            transform.position = new Vector3(Module3DMain.SPACE_BETWEEN_SCENES_GAME_OBJECTS * Module3DMain.NumberOfScenesLoadedSinceStart++, transform.position.y, transform.position.z);
+            s_LiveScenes.Add(this);
+            SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
+            if (m_DesktopPresentation) m_DesktopPresentation.Initialize();
         }
 
         /// <summary>
@@ -1819,10 +1742,16 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void FinalizeInitialization()
         {
-            Columns[0].Views[0].IsSelected = true; // Select default view
-            Columns[0].SelectFirstOrDefaultSiteByName();
+            if (Columns.Count > 0)
+            {
+                Columns[0].IsSelected = true;
+                if (m_DesktopPresentation) m_DesktopPresentation.SelectDefaultView();
+                Columns[0].SelectFirstOrDefaultSiteByName();
+            }
+
             SceneInformation.Initialized = true;
-            LoadMissingAnatomy().Forget();
+            m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
+            m_AnatomyWork.Forget();
         }
 
         /// <summary>
@@ -1875,19 +1804,7 @@ namespace HBP.Data.Module3D
                 UpdateCutPlane(newCut);
             }
 
-            for (int i = 0; i < Visualization.Configuration.Views.Count; i++)
-            {
-                View view = Visualization.Configuration.Views[i];
-                if (i != 0)
-                {
-                    AddViewLine();
-                }
-
-                foreach (Column3D column in Columns)
-                {
-                    column.Views.Last().SetCamera(view.Position.ToVector3(), view.Rotation.ToQuaternion(), view.Target.ToVector3());
-                }
-            }
+            if (m_DesktopPresentation) m_DesktopPresentation.LoadConfiguration();
 
             m_ROIManager.LoadROIsFromConfiguration(Visualization.Configuration.RegionsOfInterest);
 
@@ -1981,16 +1898,7 @@ namespace HBP.Data.Module3D
 
             Visualization.Configuration.Cuts = cuts;
 
-            List<View> views = new();
-            if (Columns.Count > 0)
-            {
-                foreach (var view in Columns[0].Views)
-                {
-                    views.Add(new View(view.LocalCameraPosition, view.LocalCameraRotation, view.LocalCameraTarget));
-                }
-            }
-
-            Visualization.Configuration.Views = views;
+            if (m_DesktopPresentation) m_DesktopPresentation.SaveConfiguration();
 
             List<RegionOfInterest> rois = new();
             foreach (ROI roi in ROIManager.ROIs)
@@ -2052,18 +1960,7 @@ namespace HBP.Data.Module3D
                 RemoveCutPlane(Cuts.Last());
             }
 
-            while (ViewLineNumber > 1)
-            {
-                RemoveViewLine();
-            }
-
-            foreach (Column3D column in Columns)
-            {
-                foreach (View3D view in column.Views)
-                {
-                    view.Default();
-                }
-            }
+            if (m_DesktopPresentation) m_DesktopPresentation.ResetConfiguration();
 
             m_ROIManager.Clear();
 
@@ -2300,18 +2197,12 @@ namespace HBP.Data.Module3D
         /// <param name="column">Column on which the raycast in performed</param>
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            if (IsSurfaceRepresentationTransitioning) return;
-            if (SceneInformation.CollidersNeedUpdate) UpdateMeshesColliders().Forget();
+            if (m_DesktopPresentation) m_DesktopPresentation.PassiveRaycastOnScene(ray, column);
+        }
 
-            int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
-
-            RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
-
-            m_AtlasManager.DisplayAtlasInformation((raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh) && MeshManager.SelectedMesh.Type == MeshType.MNI, hitPoint); // FIXME when we have hoverable atlases in single patient scenes
-            m_ImplantationManager.DisplaySiteInformation(raycastResult == RaycastHitResult.Site, column, hit);
+        internal void RefreshColliders()
+        {
+            if (!m_DestroyRequested && SceneInformation.CollidersNeedUpdate) UpdateMeshesColliders().Forget();
         }
 
         /// <summary>
@@ -2320,28 +2211,34 @@ namespace HBP.Data.Module3D
         /// <param name="ray">Ray of the raycast</param>
         public void ClickOnScene(Ray ray)
         {
+            if (SelectedColumn) ClickOnScene(ray, SelectedColumn);
+        }
+
+        public void ClickOnScene(Ray ray, Column3D column)
+        {
+            RequireColumn(column);
             if (IsSurfaceRepresentationTransitioning) return;
             int layerMask = 0;
             layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
-            RaycastHitResult raycastResult = SelectedColumn.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? hit.point - transform.position : Vector3.zero;
+            RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
+            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? column.transform.InverseTransformPoint(hit.point) : Vector3.zero;
 
             if (raycastResult == RaycastHitResult.Site)
             {
-                SelectedColumn.Sites[hit.collider.gameObject.GetComponent<Core.Object3D.Site>().Information.Index].IsSelected = true;
+                SelectSite(column, hit.collider.GetComponent<Core.Object3D.Site>());
             }
             else
             {
-                SelectedColumn.UnselectSite();
+                column.UnselectSite();
             }
 
             if (raycastResult == RaycastHitResult.Mesh)
             {
                 if (m_TriangleEraser.IsEnabled && m_TriangleEraser.IsClickAvailable)
                 {
-                    m_TriangleEraser.EraseTriangles(ray.direction, hitPoint);
+                    m_TriangleEraser.EraseTriangles(column.transform.InverseTransformDirection(ray.direction), hitPoint);
                 }
             }
 
@@ -2378,8 +2275,17 @@ namespace HBP.Data.Module3D
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <param name="outPut">Action to execute if an exception is raised</param>
         /// <returns>Coroutine return</returns>
-        public async UniTask InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
+        public UniTask InitializeAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
+            if (m_DestroyRequested) throw new ObjectDisposedException(nameof(Base3DScene));
+            m_InitializationWork = InitializeContentAsync(visualization, onChangeProgress, token).ToAsyncLazy().Task;
+            return m_InitializationWork;
+        }
+
+        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken)
+        {
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
+            CancellationToken token = lifetime.Token;
             // Compute progress variables
             float progress = 0f;
             float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingPreviewMeshProgress = 0, loadingPreviewMeshTime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
@@ -2737,7 +2643,6 @@ namespace HBP.Data.Module3D
             await UniTask.SwitchToMainThread();
             foreach (Column column in Visualization.Columns)
                 AddColumn(column);
-            await UniTask.SwitchToThreadPool();
 
             foreach (var column in Columns)
                 column.ComputeActivityData();
@@ -2747,7 +2652,7 @@ namespace HBP.Data.Module3D
         /// Load missing anatomy if not preloaded
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async UniTaskVoid LoadMissingAnatomy()
+        private async UniTask LoadMissingAnatomyAsync()
         {
             await UniTask.SwitchToThreadPool();
             m_MeshManager.LoadMissing();
@@ -2772,7 +2677,7 @@ namespace HBP.Data.Module3D
         private async UniTask ComputeGeneratorsAsync()
         {
             m_UpdatingGenerators = true;
-            var completion = new System.Threading.Tasks.TaskCompletionSource<bool>();
+            var completion = new UniTaskCompletionSource();
             m_GeneratorWork = completion.Task;
             foreach (var column in Columns) column.GeneratorWork = completion.Task;
             bool succeeded = false;
@@ -2796,7 +2701,7 @@ namespace HBP.Data.Module3D
                     m_PendingGeneratorUpdates.Clear();
                     m_UpdatingGenerators = false;
                     // Complete only after the native worker and its progress monitor stop.
-                    completion.TrySetResult(true);
+                    completion.TrySetResult();
                     if (!m_DestroyRequested) OnUpdatingGenerators.Invoke(false);
                 }
             }
@@ -2861,7 +2766,7 @@ namespace HBP.Data.Module3D
                         await UniTask.SwitchToMainThread();
                     }
 
-                    if (!m_DestroyRequested && computation.Column) computation.Work.Publish?.Invoke();
+                    if (!m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && computation.Column) computation.Work.Publish?.Invoke();
                 }
 
                 currentMessage = "Finalizing";
@@ -2881,37 +2786,40 @@ namespace HBP.Data.Module3D
         private async UniTask UpdateMeshesCollidersAsync()
         {
             m_UpdatingColliders = true;
-
-            await UniTask.SwitchToThreadPool();
+            // Own a snapshot so another mesh selection cannot free the worker's input.
+            var source = (Core.DLL.Surface)(MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated ? MeshManager.SimplifiedBrainSurface : MeshManager.SimplifiedMeshToUse).Clone();
+            var planes = Cuts.Select(cut => new Core.Object3D.Cut(cut.Point, cut.Normal)).ToArray();
+            bool clip = MeshManager.SelectedMesh.Representation != SurfaceRepresentation.Inflated && planes.Length > 0;
+            bool strongCuts = StrongCuts;
             List<Core.DLL.Surface> cuts = new();
-            if (MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated)
-                cuts.Add((Core.DLL.Surface)MeshManager.SimplifiedBrainSurface.Clone());
-            else if (Cuts.Count > 0)
-                cuts.AddRange(MeshManager.SimplifiedMeshToUse.Cut(Cuts.ToArray(), false, StrongCuts));
-            else
-                cuts.Add((Core.DLL.Surface)MeshManager.SimplifiedMeshToUse.Clone());
-
-            await UniTask.SwitchToMainThread();
-            cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
-
-            await UniTask.SwitchToThreadPool();
-            foreach (var cut in cuts)
-                cut.Dispose();
-
-            await UniTask.SwitchToMainThread();
-            m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = null;
-            if (m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh.triangles.Length > 0)
-                m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
-
-            // update cuts colliders
-            for (int ii = 0; ii < m_DisplayedObjects.BrainCutMeshes.Count; ++ii)
+            try
             {
-                m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = null;
-                if (m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh.triangles.Length > 0)
-                    m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshCollider>().sharedMesh = m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh;
+                await UniTask.SwitchToThreadPool();
+                if (clip) cuts.AddRange(source.Cut(planes, false, strongCuts));
+                else cuts.Add((Core.DLL.Surface)source.Clone());
+                await UniTask.SwitchToMainThread();
+                if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate) return;
+                cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+                var filter = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>();
+                var collider = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>();
+                collider.sharedMesh = null;
+                if (filter.sharedMesh.triangles.Length > 0) collider.sharedMesh = filter.sharedMesh;
+                foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
+                {
+                    var cutCollider = cut.GetComponent<MeshCollider>();
+                    var mesh = cut.GetComponent<MeshFilter>().mesh;
+                    cutCollider.sharedMesh = null;
+                    if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
+                }
             }
-
-            m_UpdatingColliders = false;
+            finally
+            {
+                foreach (var cut in cuts) cut.Dispose();
+                source.Dispose();
+                foreach (var plane in planes) plane.Dispose();
+                await UniTask.SwitchToMainThread();
+                m_UpdatingColliders = false;
+            }
         }
 
         /// <summary>
@@ -2925,47 +2833,11 @@ namespace HBP.Data.Module3D
 
         public async UniTask CleanAsync()
         {
-            SceneInformation.GeneratorNeedsUpdate = true;
-            m_DestroyRequested = true;
-            m_SurfaceRepresentationLifetime.Cancel();
-            await new WaitUntil(() => !m_UpdatingGenerators);
-            Visualization.Unload();
-            Destroy(gameObject);
-            await Resources.UnloadUnusedAssets();
-            // Clean Meshes
-            foreach (var mesh in m_MeshManager.Meshes)
+            await BeginClose();
+            if (this)
             {
-                if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
-                mesh.ClearInflatedRepresentations();
-                if (mesh.HasBeenLoadedOutside) continue;
-                mesh.Clean();
-            }
-
-            foreach (var mesh in m_MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm))
-            {
-                if (Module3DMain.Scenes.Any(s => s.MeshManager.Meshes.Contains(mesh))) continue;
-                if (Module3DMain.Scenes.Any(s => s.MeshManager.PreloadedMeshes.Values.SelectMany(pm => pm).Contains(mesh))) continue;
-                mesh.ClearInflatedRepresentations();
-                if (mesh.HasBeenLoadedOutside) continue;
-                mesh.Clean();
-            }
-
-            // Clean MRIs
-            foreach (var mri in m_MRIManager.MRIs)
-            {
-                if (mri.HasBeenLoadedOutside) continue;
-                if (Module3DMain.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (Module3DMain.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
-                mri.Clean();
-            }
-
-            foreach (var mri in m_MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm))
-            {
-                if (mri.HasBeenLoadedOutside) continue;
-                if (Module3DMain.Scenes.Any(s => s.MRIManager.MRIs.Contains(mri))) continue;
-                if (Module3DMain.Scenes.Any(s => s.MRIManager.PreloadedMRIs.Values.SelectMany(pm => pm).Contains(mri))) continue;
-                mri.Clean();
+                Destroy(gameObject);
+                await Resources.UnloadUnusedAssets();
             }
         }
 

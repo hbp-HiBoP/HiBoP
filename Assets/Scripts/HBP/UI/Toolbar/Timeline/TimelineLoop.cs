@@ -1,4 +1,4 @@
-﻿using HBP.Data.Module3D;
+using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -40,24 +40,10 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void Initialize()
         {
-            m_Toggle.onValueChanged.AddListener((isOn) =>
+            m_Toggle.onValueChanged.AddListener(value =>
             {
                 if (ListenerLock) return;
-
-                if (SelectedColumn is Column3DDynamic)
-                {
-                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.IsLooping = m_Toggle.isOn;
-                    }
-                }
-                else if (SelectedColumn is Column3DFMRI)
-                {
-                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.IsLooping = m_Toggle.isOn;
-                    }
-                }
+                SelectedScene.SetTimelineLooping(SelectedColumn, value, IsGlobal);
             });
         }
 
@@ -75,7 +61,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn?.NavigationTimeline != null;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
@@ -86,18 +72,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateStatus()
         {
-            if (SelectedColumn is Column3DDynamic dynamicColumn)
-            {
-                m_Toggle.isOn = dynamicColumn.Timeline.IsLooping;
-            }
-            else if (SelectedColumn is Column3DFMRI fmriColumn)
-            {
-                m_Toggle.isOn = fmriColumn.Timeline.IsLooping;
-            }
-            else
-            {
-                m_Toggle.isOn = false;
-            }
+            m_Toggle.isOn = SelectedColumn?.NavigationTimeline?.IsLooping ?? false;
         }
 
         #endregion

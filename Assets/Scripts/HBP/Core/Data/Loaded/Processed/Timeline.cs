@@ -1,4 +1,4 @@
-﻿using HBP.Core.Tools;
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using HBP.Core.Enums;
 using System.Linq;
@@ -151,6 +151,22 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 
         #region Constructors
 
+        private Timeline(Timeline source)
+        {
+            Length = source.Length;
+            Unit = source.Unit;
+            TimeLength = source.TimeLength;
+            Frequency = source.Frequency;
+            m_CurrentIndex = source.CurrentIndex;
+            Step = source.Step;
+            IsLooping = source.IsLooping;
+            IsPlaying = source.IsPlaying;
+            SubTimelinesBySubBloc = source.SubTimelinesBySubBloc.ToDictionary(pair => pair.Key, pair => (SubTimeline)pair.Value.Clone());
+        }
+
+        /// <summary>Share signal metadata while keeping navigation state and event listeners column-local.</summary>
+        public Timeline CopyForNavigation() => new Timeline(this);
+
         public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.Frequency frequency)
         {
             Frequency = frequency;
@@ -257,7 +273,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
     }
 
-    public class SubTimeline
+    public class SubTimeline : System.ICloneable
     {
         #region Properties
 
@@ -380,6 +396,16 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Clone the timeline metadata and statistics dictionary, preserving the event definitions.
+        /// </summary>
+        public object Clone()
+        {
+            var clone = (SubTimeline)MemberwiseClone();
+            clone.StatisticsByEvent = new Dictionary<Event, EventStatistics>(StatisticsByEvent);
+            return clone;
+        }
 
         public void Move(int distance)
         {

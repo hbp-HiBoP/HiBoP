@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Data;
@@ -29,9 +30,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
+        private Timeline m_NavigationTimeline;
+
         public override Timeline Timeline
         {
-            get { return ColumnIEEGData.Data.Timeline; }
+            get { return m_NavigationTimeline ??= ColumnIEEGData.Data.Timeline.CopyForNavigation(); }
         }
 
         public override Timeline ProjectionTimeline => ColumnIEEGData.Data.ProjectionTimeline;
@@ -139,13 +142,17 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Compute correlations for all site pairs
         /// </summary>
+        /// <param name="updateProgress">Callback reporting computation progress.</param>
+        /// <param name="token">Cancellation token linked to the owning content's lifetime by the caller.</param>
         public async UniTask ComputeCorrelationsAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             try
             {
-                await UniTask.SwitchToThreadPool();
-                CorrelationBySitePair.Clear();
-                CorrelationMeanBySitePair.Clear();
+                await UniTask.SwitchToMainThread();
+                token.ThrowIfCancellationRequested();
+                var correlations = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+                var means = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+                string columnName = Name;
                 updateProgress.Invoke(0, 0, new LoadingText("Computing correlations"));
                 Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new();
                 foreach (var site in Sites)
@@ -169,11 +176,13 @@ namespace HBP.Data.Module3D
                     }
                 }
 
+                var names = valuesByChannel.Keys.ToDictionary(site => site, site => site.Information.Name);
+                await UniTask.SwitchToThreadPool();
                 int siteCount = valuesByChannel.Count;
                 int progressCount = 0;
                 foreach (var kv1 in valuesByChannel)
                 {
-                    updateProgress.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", kv1.Key.Information.Name, Name)));
+                    updateProgress.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", names[kv1.Key], columnName)));
                     Dictionary<Core.Object3D.Site, float> correlation = new();
                     Dictionary<Core.Object3D.Site, float> mean = new();
                     int numberOfTrials = kv1.Value.Count;
@@ -181,7 +190,7 @@ namespace HBP.Data.Module3D
                     foreach (var kv2 in valuesByChannel)
                     {
                         token.ThrowIfCancellationRequested();
-                        if (kv1.Key == kv2.Key) continue;
+                        if (ReferenceEquals(kv1.Key, kv2.Key)) continue;
                         if (kv2.Value.Count != numberOfTrials) continue;
 
                         double[] blackData = new double[numberOfTrials];
@@ -199,22 +208,25 @@ namespace HBP.Data.Module3D
                         mean.Add(kv2.Key, (float)blackData.Mean());
                     }
 
-                    CorrelationBySitePair.Add(kv1.Key, correlation);
-                    CorrelationMeanBySitePair.Add(kv1.Key, mean);
+                    correlations.Add(kv1.Key, correlation);
+                    means.Add(kv1.Key, mean);
                 }
+
+                await UniTask.SwitchToMainThread();
+                token.ThrowIfCancellationRequested();
+                if (!this || correlations.Keys.Any(site => !site || !Sites.Contains(site)))
+                    throw new OperationCanceledException("The column changed during correlation computation.");
+                CorrelationBySitePair = correlations;
+                CorrelationMeanBySitePair = means;
             }
             catch (OperationCanceledException e)
             {
-                CorrelationBySitePair.Clear();
-                CorrelationMeanBySitePair.Clear();
-                throw e;
+                throw;
             }
             catch (Exception e)
             {
-                CorrelationBySitePair.Clear();
-                CorrelationMeanBySitePair.Clear();
                 Debug.LogException(e);
-                throw e;
+                throw;
             }
         }
 

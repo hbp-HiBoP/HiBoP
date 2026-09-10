@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
@@ -86,7 +87,7 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
 
             Assert.That(error, invalidate ? Is.Null : Is.TypeOf<ArgumentException>());
             Assert.That(typeof(Base3DScene).GetField("m_UpdatingGenerators", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(m_Scene), Is.False);
-            Assert.That(((Task)typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(m_Scene)).IsCompleted, Is.True);
+            Assert.That(((UniTask)typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(m_Scene)).Status.IsCompleted(), Is.True);
             Assert.That(notifications, Is.EqualTo(new[] { true, false }));
             Assert.That(parameterApplied, Is.True, "Deferred parameters apply even on failure/invalidation.");
             Assert.That(m_Scene.IsGeneratorUpToDate, Is.False);

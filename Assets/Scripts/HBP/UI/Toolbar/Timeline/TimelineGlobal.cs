@@ -54,7 +54,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn?.NavigationTimeline != null;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;

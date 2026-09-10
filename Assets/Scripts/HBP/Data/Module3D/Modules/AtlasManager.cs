@@ -1,4 +1,3 @@
-using HBP.Input;
 using UnityEngine;
 using HBP.Core.Object3D;
 
@@ -168,7 +167,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="canDisplay">Can we display the atlas information ? (Did we hit a mesh or a cut with the raycast ?)</param>
         /// <param name="hitPoint">Point on the mesh or on the cut where the atlas area has to be considered</param>
-        public void DisplayAtlasInformation(bool canDisplay, Vector3 hitPoint)
+        public AtlasInfo GetAtlasInformation(bool canDisplay, Vector3 hitPoint, Vector2 screenPosition = default)
         {
             if (canDisplay && SelectedAtlas != null)
             {
@@ -176,21 +175,21 @@ namespace HBP.Data.Module3D
                 string[] information = SelectedAtlas.GetInformation(HoveredArea);
                 if (information.Length == 5)
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, DesktopInput.MousePosition, AtlasInfo.AtlasType.MarsAtlas, information[0] + " - ID:" + HoveredArea, information[1], information[2], information[3], information[4]));
+                    return new AtlasInfo(true, screenPosition, AtlasInfo.AtlasType.MarsAtlas, information[0] + " - ID:" + HoveredArea, information[1], information[2], information[3], information[4]);
                 }
                 else if (information.Length == 1 && !string.IsNullOrEmpty(information[0]))
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(true, DesktopInput.MousePosition, AtlasInfo.AtlasType.JuBrainAtlas, information[0] + " - ID:" + HoveredArea));
+                    return new AtlasInfo(true, screenPosition, AtlasInfo.AtlasType.JuBrainAtlas, information[0] + " - ID:" + HoveredArea);
                 }
                 else
                 {
-                    Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, DesktopInput.MousePosition));
+                    return new AtlasInfo(false, screenPosition);
                 }
             }
             else
             {
                 HoveredArea = -1;
-                Module3DMain.OnDisplayAtlasInformation.Invoke(new AtlasInfo(false, DesktopInput.MousePosition));
+                return new AtlasInfo(false, screenPosition);
             }
         }
 

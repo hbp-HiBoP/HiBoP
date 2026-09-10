@@ -36,11 +36,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                foreach (var column in SelectedScene.Columns)
-                foreach (var site in column.Sites)
-                    site.State.IsFiltered = true;
-
-                Module3DMain.OnRequestUpdateInSiteList.Invoke();
+                SelectedScene.ResetSiteFilters();
             });
         }
 

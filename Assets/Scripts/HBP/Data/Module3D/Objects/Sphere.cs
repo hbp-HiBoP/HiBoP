@@ -1,4 +1,4 @@
-﻿using HBP.Core.Object3D;
+using HBP.Core.Object3D;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -10,6 +10,8 @@ namespace HBP.Data.Module3D
     public class Sphere : MonoBehaviour
     {
         #region Properties
+
+        [SerializeField] private SharedMaterials m_SharedMaterials;
 
         /// <summary>
         /// Minimum value for the radius of the sphere
@@ -96,11 +98,11 @@ namespace HBP.Data.Module3D
                 m_Selected = value;
                 if (m_Selected)
                 {
-                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Selected;
+                    GetComponent<Renderer>().sharedMaterial = m_SharedMaterials.ROI.Selected;
                 }
                 else
                 {
-                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Normal;
+                    GetComponent<Renderer>().sharedMaterial = m_SharedMaterials.ROI.Normal;
                 }
             }
         }

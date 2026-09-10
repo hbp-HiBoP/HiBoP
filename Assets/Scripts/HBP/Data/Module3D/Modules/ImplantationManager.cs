@@ -1,4 +1,3 @@
-using HBP.Input;
 using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Enums;
@@ -76,14 +75,6 @@ namespace HBP.Data.Module3D
 
         #region Private Methods
 
-        private void OnDestroy()
-        {
-            foreach (var implantation in Implantations)
-            {
-                implantation.Clean();
-            }
-        }
-
         #endregion
 
         #region Public Methods
@@ -133,11 +124,10 @@ namespace HBP.Data.Module3D
         /// <param name="canDisplay">Is a site under the mouse ?</param>
         /// <param name="column">Column on which the raycast is performed</param>
         /// <param name="hit">RaycastHit of the raycast</param>
-        public void DisplaySiteInformation(bool canDisplay, Column3D column, RaycastHit hit)
+        public Core.Object3D.SiteInfo GetSiteInformation(Core.Object3D.Site site, Column3D column, Vector2 screenPosition = default)
         {
-            if (canDisplay)
+            if (site != null)
             {
-                Core.Object3D.Site site = hit.collider.GetComponent<Core.Object3D.Site>();
                 // Compute each required variable
                 int siteID = site.Information.Index;
                 string CCEPLatency = "none", CCEPAmplitude = "none";
@@ -184,11 +174,11 @@ namespace HBP.Data.Module3D
                     displayMode = SiteInformationDisplayMode.Anatomy;
                 }
 
-                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, DesktopInput.MousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                return new Core.Object3D.SiteInfo(site, true, screenPosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency);
             }
             else
             {
-                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, DesktopInput.MousePosition));
+                return new Core.Object3D.SiteInfo(null, false, screenPosition);
             }
         }
 

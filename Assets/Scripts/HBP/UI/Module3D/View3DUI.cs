@@ -335,7 +335,7 @@ namespace HBP.UI.Module3D
             {
                 if (CursorToRay(out Ray ray))
                 {
-                    m_Scene.ClickOnScene(ray);
+                    m_Scene.ClickOnScene(ray, m_Column);
                 }
             }
         }
@@ -351,7 +351,7 @@ namespace HBP.UI.Module3D
                 case PointerEventData.InputButton.Left:
                     if (m_Scene.ROIManager.ROICreationMode)
                     {
-                        m_Scene.ROIManager.MoveSelectedROISphere(m_View.Camera, delta);
+                        m_Scene.DesktopPresentation.MoveSelectedROISphere(m_View.Camera, delta);
                     }
 
                     break;

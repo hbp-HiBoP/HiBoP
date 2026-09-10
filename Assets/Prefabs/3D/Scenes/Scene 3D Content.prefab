@@ -18,9 +18,8 @@ GameObject:
   - component: {fileID: 918098473269265543}
   - component: {fileID: 2650653117591474225}
   - component: {fileID: 114190350104675632}
-  - component: {fileID: 805049300100100100}
   m_Layer: 0
-  m_Name: Scene 3D
+  m_Name: Scene 3D Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -57,7 +56,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 990c767bc4d48434e9155dde44254ab3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_DesktopPresentation: {fileID: 805049300100100100}
   m_MeshManager: {fileID: 6129308064157964879}
   m_MRIManager: {fileID: 1903086371074279216}
   m_ImplantationManager: {fileID: -4160790342801908923}
@@ -424,16 +422,3 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4289153140307932}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &805049300100100100
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1358675683431572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31d1b67e195b4ca4ae884550e064677f, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  m_Scene: {fileID: 114175234550947748}

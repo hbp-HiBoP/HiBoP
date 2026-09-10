@@ -34,6 +34,20 @@ namespace HBP.Data.Module3D
         /// </summary>
         public string Layer { get; protected set; }
 
+        public virtual Core.Data.BasicTimeline NavigationTimeline => null;
+        [SerializeField] private Core.Object3D.SharedMaterials m_SharedMaterials;
+        public Core.Object3D.SharedMaterials SharedMaterials => m_SharedMaterials;
+        [SerializeField] private Transform m_ViewsParent;
+        internal Transform ViewsParent => m_ViewsParent;
+        internal GameObject ViewPrefab => m_ViewPrefab;
+
+        public void SetRenderLayer(string layer)
+        {
+            if (ColumnData != null) throw new System.InvalidOperationException("Set the render layer before initializing the column.");
+            if (LayerMask.NameToLayer(layer) < 0) throw new System.ArgumentException("Unknown render layer.", nameof(layer));
+            Layer = layer;
+        }
+
         private bool m_IsSelected;
 
         /// <summary>
@@ -215,17 +229,65 @@ namespace HBP.Data.Module3D
 
         #region Private Methods
 
-        internal System.Threading.Tasks.Task GeneratorWork { get; set; } = System.Threading.Tasks.Task.CompletedTask;
+        private readonly List<(Core.Object3D.SiteState State, UnityAction Listener)> m_SiteStateListeners = new();
+        private Core.Data.BasicTimeline m_ObservedTimeline;
+        private UnityAction m_TimelineChanged;
+        private static void NotifyTimelineStopped() => Module3DMain.OnRequestUpdateInToolbar.Invoke();
+
+        protected void ObserveTimeline(Core.Data.BasicTimeline timeline, UnityAction changed)
+        {
+            UnobserveTimeline();
+            m_ObservedTimeline = timeline;
+            m_TimelineChanged = () =>
+            {
+                changed();
+                if (IsSelected) Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+            };
+            timeline.OnUpdateCurrentIndex.AddListener(m_TimelineChanged);
+            timeline.OnStopTimelinePlay.AddListener(NotifyTimelineStopped);
+        }
+
+        private void UnobserveTimeline()
+        {
+            if (m_ObservedTimeline == null) return;
+            m_ObservedTimeline.OnUpdateCurrentIndex.RemoveListener(m_TimelineChanged);
+            m_ObservedTimeline.OnStopTimelinePlay.RemoveListener(NotifyTimelineStopped);
+            m_ObservedTimeline = null;
+        }
+
+        private void UnobserveSites()
+        {
+            foreach (var listener in m_SiteStateListeners) listener.State.OnChangeState.RemoveListener(listener.Listener);
+            m_SiteStateListeners.Clear();
+        }
+
+        private async UniTaskVoid RetireSites(Core.DLL.RawSiteList sites, UniTask work)
+        {
+            await work;
+            sites?.Dispose();
+        }
+
+        internal UniTask GeneratorWork { get; set; } = UniTask.CompletedTask;
 
         private void OnDestroy()
         {
+            UnobserveTimeline();
+            UnobserveSites();
             Core.Data.DataManager.UnregisterMemoryUsage(this);
             ReleaseGeneratorResources().Forget();
         }
 
+        private AsyncLazy m_ReleaseWork;
+
+        internal UniTask ReleaseResources()
+        {
+            m_ReleaseWork ??= UniTask.Lazy(ReleaseGeneratorResourcesAsync);
+            return m_ReleaseWork.Task;
+        }
+
         private async UniTaskVoid ReleaseGeneratorResources()
         {
-            await ReleaseGeneratorResourcesAsync();
+            await ReleaseResources();
         }
 
         private async UniTask ReleaseGeneratorResourcesAsync()
@@ -250,11 +312,10 @@ namespace HBP.Data.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            Layer = "Column" + idColumn;
+            Layer ??= LayerMask.LayerToName(gameObject.layer);
             ColumnData = baseColumn;
             CutTextures.Column = this;
             UpdateSites(implantation, sceneSitePatientParent);
-            AddView();
 
             SurfaceGenerator = new Core.DLL.SurfaceGenerator();
         }
@@ -266,6 +327,11 @@ namespace HBP.Data.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
+            UnselectSite();
+            UnobserveSites();
+            var previousSites = RawElectrodes;
+            RawElectrodes = implantation != null ? new Core.DLL.RawSiteList(implantation.RawSiteList) : new Core.DLL.RawSiteList();
+            RetireSites(previousSites, GeneratorWork).Forget();
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
@@ -276,7 +342,6 @@ namespace HBP.Data.Module3D
             if (implantation == null) return;
 
             Sites = new List<Core.Object3D.Site>(implantation.SiteInfos.Count);
-            RawElectrodes = new Core.DLL.RawSiteList(implantation.RawSiteList);
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
                 Transform sceneSitePatient = sceneSitePatientParent[i].transform;
@@ -304,7 +369,9 @@ namespace HBP.Data.Module3D
                         }
 
                         site.State = siteState;
-                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        UnityAction changed = () => OnChangeSiteState.Invoke(site);
+                        site.State.OnChangeState.AddListener(changed);
+                        m_SiteStateListeners.Add((site.State, changed));
                         // Configuration
                         if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Core.Data.SiteConfiguration siteConfiguration))
                         {
@@ -427,32 +494,9 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
-        }
-
-        /// <summary>
-        /// Add a view to this column
-        /// </summary>
-        public void AddView()
-        {
-            View3D view = Instantiate(m_ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
-            view.Initialize(Views.Count, Layer);
-            view.OnSelect.AddListener(() =>
-            {
-                foreach (View3D v in Views)
-                {
-                    if (v != view)
-                    {
-                        v.IsSelected = false;
-                    }
-                }
-
-                IsSelected = true;
-            });
-            view.OnMoveView.AddListener(() => { OnMoveView.Invoke(view); });
-            Views.Add(view);
         }
 
         /// <summary>

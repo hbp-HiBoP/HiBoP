@@ -431,12 +431,7 @@ namespace HBP.UI.Toolbar
             int result = await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Reset correlations", "This will erase all loaded or computed correlations. Please make sure you saved the computed correlations to files before reseting them.", "Reset", "Cancel");
             if (result == 0)
             {
-                foreach (var column in SelectedScene.ColumnsIEEG)
-                {
-                    column.CorrelationBySitePair.Clear();
-                }
-
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                SelectedScene.ResetCorrelations();
             }
         }
 
@@ -451,31 +446,19 @@ namespace HBP.UI.Toolbar
         /// <returns>Coroutine return</returns>
         private async UniTask ComputeCorrelations(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            Base3DScene scene = SelectedScene;
             m_CorrelationsComputing = true;
-            await UniTask.SwitchToMainThread();
             UpdateInteractable();
-            await UniTask.SwitchToThreadPool();
-            List<Column3DIEEG> columns = SelectedScene.ColumnsIEEG;
             try
             {
-                for (int i = 0; i < columns.Count; i++)
-                {
-                    await columns[i].ComputeCorrelationsAsync((progress, duration, text) => { updateProgress((i + progress) / columns.Count, duration, text); }, token);
-                }
+                await scene.ComputeCorrelationsAsync(updateProgress, token);
             }
-            catch (Exception)
+            finally
             {
-                m_CorrelationsComputing = false;
                 await UniTask.SwitchToMainThread();
+                m_CorrelationsComputing = false;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                return;
             }
-
-            m_CorrelationsComputing = false;
-            updateProgress(1, 0, new LoadingText("Correlations computed"));
-            await UniTask.SwitchToMainThread();
-            SelectedScene.DisplayCorrelations = true;
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         #endregion

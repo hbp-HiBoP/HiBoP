@@ -12,6 +12,8 @@ namespace HBP.Data.Module3D
     {
         #region Properties
 
+        public override Core.Data.BasicTimeline NavigationTimeline => Timeline;
+
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
         /// </summary>
@@ -135,15 +137,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public override void ComputeActivityData()
         {
-            Timeline.OnUpdateCurrentIndex.AddListener(() =>
-            {
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
-                }
-            });
-            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
+            ObserveTimeline(Timeline, OnUpdateCurrentTimelineID.Invoke);
         }
 
         /// <summary>

@@ -158,19 +158,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="camera">Reference camera</param>
         /// <param name="delta">Distance and direction of the movement</param>
-        public void MoveSelectedROISphere(Camera camera, Vector3 delta)
+        public void MoveSelectedROISphere(Vector3 scientificDelta)
         {
-            if (m_SelectedROI)
-            {
-                if (m_SelectedROI.SelectedSphereID != -1)
-                {
-                    Vector3 position = camera.WorldToScreenPoint(m_SelectedROI.SelectedSphere.transform.position);
-                    position += delta;
-                    position = camera.ScreenToWorldPoint(position);
-                    position -= m_SelectedROI.SelectedSphere.transform.position;
-                    m_SelectedROI.MoveSelectedSphere(position);
-                }
-            }
+            if (m_SelectedROI && m_SelectedROI.SelectedSphereID != -1)
+                m_SelectedROI.MoveSelectedSphere(scientificDelta);
         }
 
         /// <summary>

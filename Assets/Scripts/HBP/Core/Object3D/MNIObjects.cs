@@ -81,7 +81,7 @@ namespace HBP.Core.Object3D
 
         #region Public Methods
 
-        public async UniTaskVoid Load()
+        public async UniTask Load()
         {
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
             await LoadDataAsync(baseIRMDir, baseMeshDir);

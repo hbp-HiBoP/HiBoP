@@ -1,4 +1,4 @@
-﻿using HBP.Data.Module3D;
+using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -53,80 +53,19 @@ namespace HBP.UI.Toolbar
             m_Minus.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-
-                if (SelectedColumn is Column3DDynamic)
-                {
-                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.CurrentIndex -= column.Timeline.Step;
-                    }
-                }
-                else if (SelectedColumn is Column3DFMRI)
-                {
-                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.CurrentIndex -= column.Timeline.Step;
-                    }
-                }
+                SelectedScene.AdvanceTimeline(SelectedColumn, -1, IsGlobal);
             });
-
             m_Plus.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-
-                if (SelectedColumn is Column3DDynamic)
-                {
-                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.CurrentIndex += column.Timeline.Step;
-                    }
-                }
-                else if (SelectedColumn is Column3DFMRI)
-                {
-                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.CurrentIndex += column.Timeline.Step;
-                    }
-                }
+                SelectedScene.AdvanceTimeline(SelectedColumn, 1, IsGlobal);
             });
-
-            m_InputField.onEndEdit.AddListener((value) =>
+            m_InputField.onEndEdit.AddListener(value =>
             {
                 if (ListenerLock) return;
-
-                int step = 1;
-                if (int.TryParse(value, out int val))
-                {
-                    step = val;
-                    if (step < 1)
-                    {
-                        step = 1;
-                        val = 1;
-                    }
-
-                    m_InputField.text = val.ToString();
-                }
-                else
-                {
-                    step = 1;
-                    val = 1;
-                    m_InputField.text = val.ToString();
-                }
-
-                if (SelectedColumn is Column3DDynamic)
-                {
-                    foreach (Column3DDynamic column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.Step = step;
-                    }
-                }
-                else if (SelectedColumn is Column3DFMRI)
-                {
-                    foreach (Column3DFMRI column in GetColumnsDependingOnTypeAndGlobal(IsGlobal))
-                    {
-                        column.Timeline.Step = step;
-                    }
-                }
+                int step = int.TryParse(value, out int parsed) ? parsed : 1;
+                SelectedScene.SetTimelineStep(SelectedColumn, step, IsGlobal);
+                m_InputField.text = (SelectedColumn.NavigationTimeline?.Step ?? 1).ToString();
             });
         }
 
@@ -146,7 +85,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool isColumnDynamicOrFMRI = SelectedColumn is Column3DDynamic || SelectedColumn is Column3DFMRI;
+            bool isColumnDynamicOrFMRI = SelectedColumn?.NavigationTimeline != null;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
             m_Minus.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
@@ -159,18 +98,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateStatus()
         {
-            if (SelectedColumn is Column3DDynamic dynamicColumn)
-            {
-                m_InputField.text = dynamicColumn.Timeline.Step.ToString();
-            }
-            else if (SelectedColumn is Column3DFMRI fmriColumn)
-            {
-                m_InputField.text = fmriColumn.Timeline.Step.ToString();
-            }
-            else
-            {
-                m_InputField.text = "1";
-            }
+            m_InputField.text = (SelectedColumn?.NavigationTimeline?.Step ?? 1).ToString();
         }
 
         #endregion

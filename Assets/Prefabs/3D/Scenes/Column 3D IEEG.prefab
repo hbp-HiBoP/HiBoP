@@ -113,6 +113,8 @@ MonoBehaviour:
   m_BrainSurfaceMeshesParent: {fileID: 4001866412327978}
   m_CutMeshesParent: {fileID: 3947590392241638456}
   m_SitesMeshesParent: {fileID: 4422457731123658}
+  m_SharedMaterials: {fileID: 11400000, guid: f1e8c5c55a519de48ab5bfd01bbc325b, type: 2}
+  m_ViewsParent: {fileID: 4634872364129438}
   m_ViewPrefab: {fileID: 1293318828649388, guid: 0ea555ed0bae635488b350051e783aa2,
     type: 3}
   OnSelect:

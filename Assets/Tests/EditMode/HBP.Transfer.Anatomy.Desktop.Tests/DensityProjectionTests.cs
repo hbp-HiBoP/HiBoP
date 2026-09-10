@@ -192,11 +192,12 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
                     finished.TrySetResult(true);
                 }
             });
-            typeof(Column3D).GetProperty("GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(column, finished.Task);
-            typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, finished.Task);
+            var completion = finished.Task.AsUniTask().ToAsyncLazy().Task;
+            typeof(Column3D).GetProperty("GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(column, completion);
+            typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, completion);
             typeof(Base3DScene).GetField("m_ActivityProjectionGrid", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, grid);
-            var releaseColumn = ((UniTask)typeof(Column3D).GetMethod("ReleaseGeneratorResourcesAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(column, null)).AsTask();
-            var releaseScene = ((UniTask)typeof(Base3DScene).GetMethod("ReleaseProjectionResourcesAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scene, null)).AsTask();
+            var releaseColumn = (UniTask)typeof(Column3D).GetMethod("ReleaseResources", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(column, null);
+            var releaseScene = (UniTask)typeof(Base3DScene).GetMethod("BeginClose", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scene, null);
             try
             {
                 var observer = finished.Task.AsUniTask().AttachExternalCancellation(observerCancellation.Token);
@@ -212,7 +213,7 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
                 }
 
                 Assert.That(observerError, Is.Not.Null, "Only the observer was cancelled, not the native worker.");
-                Assert.That(releaseColumn.IsCompleted || releaseScene.IsCompleted, Is.False);
+                Assert.That(releaseColumn.Status.IsCompleted() || releaseScene.Status.IsCompleted(), Is.False);
                 Assert.That(sites.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
                 Assert.That(density.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));
                 Assert.That(grid.getHandle().Handle, Is.Not.EqualTo(IntPtr.Zero));

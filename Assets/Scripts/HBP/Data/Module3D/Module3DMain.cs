@@ -197,37 +197,12 @@ namespace HBP.Data.Module3D
 
         protected override void Initialization()
         {
-            SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
             Preload3D();
-        }
-
-        private static bool? CheckSpecificSiteLocation(SpecificSiteLocationFilterCondition condition, Core.Object3D.Site site)
-        {
-            Base3DScene selectedScene = SelectedScene;
-            if (selectedScene == null) return false;
-
-            switch (condition.LocationType)
-            {
-                case SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh:
-                    Surface mesh = condition.MeshPart switch
-                    {
-                        MeshPart.Both => selectedScene.MeshManager.SelectedMesh.SimplifiedBoth,
-                        MeshPart.Left => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedLeft : null,
-                        MeshPart.Right => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedRight : null,
-                        _ => null
-                    };
-                    return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
-                case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
-                    var planes = selectedScene.Cuts.Select(c => (Core.DLL.Plane)c).ToList();
-                    return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
-                default:
-                    return null;
-            }
         }
 
         void OnDestroy()
         {
-            Object3DManager.Reset();
+            Base3DScene.ResetStandardResourcesWhenUnused();
         }
 
         #endregion
@@ -404,27 +379,36 @@ namespace HBP.Data.Module3D
         {
             await UniTask.SwitchToMainThread();
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
-            scene.Initialize(visualization);
-            token.ThrowIfCancellationRequested();
-            await scene.InitializeAsync(visualization, onChangeProgress, token);
-            // Add the listeners
-            scene.OnSelect.AddListener(() =>
+            try
             {
-                foreach (Base3DScene s in m_Instance.m_Scenes)
+                scene.Initialize(visualization);
+                token.ThrowIfCancellationRequested();
+                await scene.InitializeAsync(visualization, onChangeProgress, token);
+                // Add the listeners
+                scene.OnSelect.AddListener(() =>
                 {
-                    if (s != scene)
+                    foreach (Base3DScene s in m_Instance.m_Scenes)
                     {
-                        s.IsSelected = false;
+                        if (s != scene)
+                        {
+                            s.IsSelected = false;
+                        }
                     }
-                }
-            });
-            // Add the scene to the list
-            m_Instance.m_Scenes.Add(scene);
-            scene.FinalizeInitialization();
-            OnAddScene.Invoke(scene);
-            scene.LoadConfiguration();
-            IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
-            await scene.RestoreConfiguredSurfaceRepresentationAsync(inflationProgress, token, animate: false);
+                });
+                // Add the scene to the list
+                m_Instance.m_Scenes.Add(scene);
+                scene.FinalizeInitialization();
+                OnAddScene.Invoke(scene);
+                scene.LoadConfiguration();
+                IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
+                await scene.RestoreConfiguredSurfaceRepresentationAsync(inflationProgress, token, animate: false);
+            }
+            catch
+            {
+                if (m_Instance.m_Scenes.Remove(scene)) OnRemoveScene.Invoke(scene);
+                await scene.CleanAsync();
+                throw;
+            }
         }
 
         private static void Preload3D()
@@ -435,7 +419,7 @@ namespace HBP.Data.Module3D
             QualitySettings.vSyncCount = 0;
 
             // Objects 3D
-            Object3DManager.MNI.Load().Forget();
+            Base3DScene.TrackStandardPreparation(Object3DManager.MNI.Load());
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
             if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
