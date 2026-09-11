@@ -1,0 +1,137 @@
+{
+  "apk": {
+    "path": ".artifacts/scene-009/Android/HiBoP.Quest.apk",
+    "bytes": 394365917,
+    "sha256": "4110a8d9105ff3a2d3a54a89e6f99ccd655178db7929e224a5d4d8986a5dce68"
+  },
+  "certificateSha256": "0cf833382569e08b3fb6353a26913195519fd8990da94b8dcd228b8c69378190",
+  "standardFilesVerified": [
+    {
+      "path": "IRM/MNI.nii",
+      "sha256": "d7ba082a644a0334c140b760e1df607655e85b8f4a0bc63139b0680911ba0c96"
+    },
+    {
+      "path": "Meshes/MNI.trm",
+      "sha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee"
+    },
+    {
+      "path": "Meshes/MNI_Lhemi.gii",
+      "sha256": "1e5c67969dbea35e1316c9b0a16e098179be4629a91c6cd60e4852892554a348"
+    },
+    {
+      "path": "Meshes/MNI_Rhemi.gii",
+      "sha256": "3aab5ac60f7c179a5b67d8d09e47c5f38c76b4a8e9e1560d0a5cee98c73a9fd6"
+    },
+    {
+      "path": "Meshes/MNI_Lwhite.gii",
+      "sha256": "67288f09ccd760eac9626e4ed5a1a48405d40e0613dad62a85742eee3233a224"
+    },
+    {
+      "path": "Meshes/MNI_Rwhite.gii",
+      "sha256": "7fa5c371eb4dbbe6f7104b77bf105a8f80453b02e0b509d03a61adffc86d0beb"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/2mm/maps.nii.gz",
+      "sha256": "37d7da8d1b6fdf57f9d9edda4fea8d97665f616690407ff2a3b679d519e12b67"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/2mm/resampled_maps.nii.gz",
+      "sha256": "f5bc6a2b2d83a3cca59017a73ba49ab2a6bbfa69e9bc51407602b8a8ade279aa"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/3mm/maps.nii.gz",
+      "sha256": "97f194a8fb09bf0e332e8233274514a1e8409ccd0893abbaa0b15348c7205064"
+    },
+    {
+      "path": "Atlases/DiFuMo/1024/labels_1024_dictionary.csv",
+      "sha256": "7b9c06557ff344624972a449053a5a081991b0efc9e444e2f930ad714cabaf09"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/2mm/maps.nii.gz",
+      "sha256": "bf11058c79ad07a74aef955a5cf6147e645b24ecf5d47ffc54160abb5fd6eb6c"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/3mm/maps.nii.gz",
+      "sha256": "decadcb092d3a08311df125caa50f06b5495962b0a36509461ba0f605f2e84aa"
+    },
+    {
+      "path": "Atlases/DiFuMo/128/labels_128_dictionary.csv",
+      "sha256": "d9e335c5aed0155e8beb43818e006fcfa8499459c853ee16dcaf966b84c94ab2"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/2mm/maps.nii.gz",
+      "sha256": "c9f5b7f2a8da4b41c7a42e850dfcfcba5327e7eee2ef61650041a0183f651b3a"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/3mm/maps.nii.gz",
+      "sha256": "41fd2b94d5ef33373607e9e42ff59a3223e15f0daaabac5ec877eb5818e3c66c"
+    },
+    {
+      "path": "Atlases/DiFuMo/256/labels_256_dictionary.csv",
+      "sha256": "e762a7b491f7d517cdbcca1a2df24825c68958a2b9db9ecb758e1667997460b6"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/2mm/maps.nii.gz",
+      "sha256": "1de41df48d726d43c70e420b6a7a98b57e18f65768c9224bb6b057f329de9238"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/3mm/maps.nii.gz",
+      "sha256": "8e5036f58fb935ed6e41af65fe0575ea6d271ab7f08ca8888cf7f02c0ee1cda8"
+    },
+    {
+      "path": "Atlases/DiFuMo/512/labels_512_dictionary.csv",
+      "sha256": "d9f572423bef8751db83186fe5c8e6557d56420b03b7f10015a1d31513b62ae7"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/2mm/maps.nii.gz",
+      "sha256": "c16cd4d84d648be1d6c09719def825fc0028d852b4302e2e4784739f3ee0f0f5"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/3mm/maps.nii.gz",
+      "sha256": "5dfc063e7d50104cdb88585afe437c808dc3d90a32987b8837409badbc90c634"
+    },
+    {
+      "path": "Atlases/DiFuMo/64/labels_64_dictionary.csv",
+      "sha256": "5585f75c49d727a63db31feb90467d02ee04288eedb2708be896c374017363b5"
+    },
+    {
+      "path": "Atlases/IBC/all_maps.nii.gz",
+      "sha256": "0915eb6f1fa702230300acc66722123fc438eb9b8af2129deed3e2b3333651c6"
+    },
+    {
+      "path": "Atlases/IBC/gm_mask_3mm.nii.gz",
+      "sha256": "4c701b986c19a7b48a7cf225078e801f02c3fa5c4f938e83e6bbe490e0718a64"
+    },
+    {
+      "path": "Atlases/IBC/map_labels.csv",
+      "sha256": "c3928cb375ebe09ca50ec46cd58d99d5c120083f9f3430736c78984346f8b071"
+    },
+    {
+      "path": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_lh_Colin27.nii.gz",
+      "sha256": "070589c1f730ddaabc672c1e7318fb6456d497235c059ad801ecaa95a32818f7"
+    },
+    {
+      "path": "Atlases/JuBrain/JulichBrainAtlas_3.1_207areas_MPM_rh_Colin27.nii.gz",
+      "sha256": "01668905d74f184888a17bcc3a96c777b77a54a70a17d29f542378b12f41a419"
+    },
+    {
+      "path": "Atlases/JuBrain/jubrain_labels_3.1.json",
+      "sha256": "205a78674303de2c4c9fb05fa0aee0635850977baf630160258b143decea3f5b"
+    },
+    {
+      "path": "Atlases/MarsAtlas/brodmann_areas.txt",
+      "sha256": "6896a9f8546a8da3f835c0516e712451f3ccd11c370c1b3e83710edd1002aae3"
+    },
+    {
+      "path": "Atlases/MarsAtlas/colin27_MNI_MarsAtlas.nii",
+      "sha256": "d14331ff2a133483adbd9db0438683b447c65559cbad9ea721c8de749a02449c"
+    },
+    {
+      "path": "Atlases/MarsAtlas/mars_atlas_index.csv",
+      "sha256": "4a8b445d1c8139611119b02248c21190ff76b0f2cf1b98dd3cfd99c0cbc064a2"
+    }
+  ],
+  "localizerEntries": 0,
+  "nativeCoreSha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+  "globalDataFormatVersion": 2
+}

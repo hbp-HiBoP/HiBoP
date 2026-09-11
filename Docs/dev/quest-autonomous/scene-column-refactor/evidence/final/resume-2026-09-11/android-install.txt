@@ -1,0 +1,4 @@
+adb -s 2G0YC5ZHB20370 install -r .artifacts/scene-008/Android/HiBoP.Quest.apk
+Exit code: 1
+INSTALL_FAILED_UPDATE_INCOMPATIBLE: Existing package fr.crnl.hibop.quest signatures do not match newer version; ignoring!
+Existing application and data preserved; no uninstall attempted.

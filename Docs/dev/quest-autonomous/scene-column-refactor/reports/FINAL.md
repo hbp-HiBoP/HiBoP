@@ -1,5 +1,94 @@
 # SCENE-008 — qualification intégrée du Lot C
 
+## Reprise du 11 septembre 2026
+
+Le checkout récupéré est `feature/xr-autonomous@f9db4b56e14d0a7d1a3f9f94f7c3b0b7ac6236a1`,
+initialement propre. Les résultats de cette reprise sont identifiés séparément
+dans [le manifeste de continuation](../evidence/final/resume-2026-09-11/manifest.json).
+Les chiffres de la campagne du 10 septembre ci-dessous restent historiques.
+
+Les nouveaux builds Windows et Android ont réussi. Un défaut de la fixture
+provoquait un dialogue « ID issue » : la configuration du site masqué avait le
+même ID dans les six colonnes. Le générateur attribue maintenant un ID propre à
+chaque colonne. Les deux archives contiennent chacune 79 objets identifiés sans
+doublon. Avec cette correction, le Player Windows réussit les diagnostics MNI
+(12 états, 12,01 s) et patient (13 états, 15,46 s), sans exception dans les journaux.
+Les essais de démarrage précédant cette correction ne constituent pas des passes.
+
+Le laboratoire ne disposant pas de Wi-Fi utilisable, le transfert sera réalisé
+par redirection ADB USB du port 45871, avec `127.0.0.1` dans le Desktop. Cela
+conserve le parcours d'appairage/livraison de HiBoP ; la qualification Wi-Fi
+restera distincte. L'installation initiale a été refusée par Android pour une
+signature différente de celle de l'ancien poste. Après autorisation explicite,
+l'ancienne application a été désinstallée une fois et le nouvel APK installé.
+L'ancien APK, les données privées et les fichiers externes sont sauvegardés
+localement, avec 159 fichiers et leurs SHA-256 vérifiés (environ 3,14 Go).
+
+À la demande du propriétaire, une clé de développement commune a été créée
+hors Git, dans `%LOCALAPPDATA%\HiBoP\Signing\QuestDevelopment`, pour copie sur
+le second ordinateur. Le lanceur vérifie son empreinte publique avant Unity,
+puis signe et vérifie l'APK final. Voir [la procédure de signature](../../../../../Tools/QuestSigning.md).
+La revue indépendante de ce parcours n'a trouvé aucun défaut bloquant.
+La migration est terminée : les 4 fichiers privés et 148 fichiers externes
+(hors caches régénérables) ont été restaurés et leurs SHA-256 vérifiés. La
+sauvegarde complète reste conservée localement.
+
+Le premier APK de ce poste comportait 31 références standard vérifiées. Le
+propriétaire a ensuite copié les 18 localizers VISU ignorés par Git ; leurs
+empreintes diffèrent de celles de l'ancien poste. Le propriétaire confirme leur
+distribution séparée, y compris pour les builds de développement. `HBPBuilder`
+reste inchangé ; `QuestStandardDataBuild` exclut également ces fichiers de
+l'APK. Une copie séparée pour la recette est conservée sous
+`.artifacts/scene-008/optional-localizers`, en dehors du Player Windows. La
+reconstruction Android avec cette exclusion et la clé commune a réussi :
+394 365 917 octets, 31 références standard vérifiées, aucun localizer embarqué.
+Le SHA-256 de l'APK installé correspond au binaire final. Après validation
+du dialogue système Meta « contrôleurs requis », HiBoP tourne (PID 8444) et
+OpenXR atteint `COMPOSITION READY`. Le journal capturé ne contient pas
+l’exception de préférences ; des erreurs Meta de visibilité de limite de jeu
+restent à corréler au retour visuel. Un échantillon avant appairage mesure
+1 652 691 Ko de PSS (pas un pic). Appairage et publication restent à effectuer.
+
+L'appairage réel a ensuite échoué. Un diagnostic Windows isolé reproduit
+l'erreur avant le réseau : le calcul d'empreinte des protocoles lit une
+illustration absente (`[DATABASE_FOLDER]/Images/LEC1_SEM.jpg`). Conformément à
+la demande du propriétaire, les définitions sont désormais indépendantes de
+ces fichiers facultatifs : images disponibles capturées, images indisponibles
+omises, empreintes sans chemin ni contenu d'illustration. Aucun fichier de la
+base locale n'a été réparé. Le format global passe à 2 ; les deux Players sont
+reconstruits avec succès. Le Player Windows capture désormais les globaux
+réels sans erreur puis réussit les six modalités, dont les buffers sont
+identiques bit à bit à ceux précédant la correction. Le nouvel APK est installé
+par mise à jour (`adb install -r`), sans effacement des données.
+Les 23 tests EditMode de transfert passent ; la revue
+indépendante ne relève aucun défaut bloquant. Voir
+[la preuve de correction](../evidence/final/resume-2026-09-11/optional-illustrations-fix.json).
+L'appairage réussit ensuite d'après le propriétaire, qui lance trois envois.
+La préparation Quest échoue après réception sur `DllNotFoundException: hbp_math`
+lors du calcul de moyenne de la colonne statique. La bibliothèque Android
+manquait dans l'APK. Elle est compilée depuis le commit math déjà verrouillé
+pour Desktop, sans modification d'algorithme : 17 exports C ABI, API 32,
+ARM64, libc++ statique et alignement ELF 16 KiB. Le probe natif sur Quest
+réussit, avec des résultats identiques à Windows pour les cas SEM/Pearson/Wilcoxon
+mesurés. Quatre tests du contrôle de build passent. Les validations Unity et
+APK exigent désormais les deux bibliothèques `hbp_core` et `hbp_math`.
+Le nouvel APK est construit, signé et installé par mise à jour, données conservées.
+Son SHA-256 installé est `b840bd02ed764711f0f1f4a416b4fe3644bb09a6485b7af54dc5e453fe51764e`.
+Les 31 références standard sont vérifiées ; aucun localizer n’est embarqué.
+La bibliothèque finale, dépouillée des symboles non nécessaires comme dans
+Gradle, correspond exactement au verrou et au contenu APK ; le probe a été
+réexécuté avec ces octets finaux. Voir
+[la preuve de correction native](../evidence/final/resume-2026-09-11/math-deployment-fix.json).
+La reconstruction suivante (`scene-011`) a permis une livraison `Published`
+confirmée dans le journal Desktop : 998 083 octets, 16,79 s au total. Le
+propriétaire confirme l’affichage des différentes colonnes et de leurs labels,
+puis avoir essayé déplacement, rotation et redimensionnement.
+Voir [la première publication](../evidence/final/resume-2026-09-11/first-published-scene.json).
+Le Quest n’est plus détecté en USB lors du suivi : le diagnostic scientifique
+et les interactions restent à qualifier. Statut global toujours **PARTIELLE**.
+
+## Campagne historique du 10 septembre 2026
+
 Campagne du 10 septembre 2026 sur `feature/xr-autonomous`, base `753d3ce7219d66ede83c4fe281b5640b5b71329e`.
 Les modifications du Lot C restent locales, sans commit ni changement de branche.
 

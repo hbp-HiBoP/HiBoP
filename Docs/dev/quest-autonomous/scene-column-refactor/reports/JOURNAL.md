@@ -454,3 +454,162 @@ historique, antérieur aux dernières corrections. Les sorties `.artifacts` et
 `.test-results` sont locales et ignorées par Git. Les trois changements générés par
 Unity (BuildInfo et réglages URP Desktop/Quest) ont été restaurés après compilation.
 État maintenu : IMPLEMENTEE / PARTIELLE / EN_ATTENTE. Aucun commit ni push effectué.
+
+### 2026-09-11 — reprise sur le poste du laboratoire
+
+Checkout `feature/xr-autonomous@f9db4b56e14d0a7d1a3f9f94f7c3b0b7ac6236a1`,
+initialement propre : le Lot C et les corrections de pause sont désormais dans
+ce commit. Unity 6000.5.2f1, Windows IL2CPP, Android SDK/NDK r27c/OpenJDK et
+Python 3.13.7 présents. Les quatre plugins Windows/Android contrôlés correspondent
+exactement à `Tools/NativePlugins.lock.json`. Les deux fixtures sont régénérées
+avec les chemins de ce checkout. L'utilisateur confirme l'éditeur fermé ; les
+builds utilisent le lanceur CLI hors sandbox.
+
+Quest 3 USB `2G0YC5ZHB20370` détecté, puis débogage autorisé dans le casque par
+l'utilisateur. Le laboratoire ne dispose pas de Wi-Fi accessible. Le transport
+de cette recette utilisera une redirection ADB USB
+`tcp:45871 -> tcp:45871`, avec `127.0.0.1` dans le panneau Desktop. Le code
+existant accepte cette adresse ; appairage TLS et livraison restent inchangés.
+Les mesures seront identifiées comme USB : elles ne qualifient ni débit ni
+reconnexion Wi-Fi. Les preuves de préparation sont conservées dans
+`.test-results/scene-008/resume-20260911/preflight.json`.
+
+La capture utilisateur du dialogue « ID issue » révèle un doublon dans la
+fixture : `quest-020-blacklist` était réutilisé par les six configurations de
+site. Le générateur attribue désormais des IDs par colonne. Les deux archives
+ont 79 objets identifiés sans doublon ; les diagnostics Windows MNI et patient
+réussissent ensuite (12 et 13 états, 12,01 s et 15,46 s), sans exception dans
+les journaux. Les premières exécutions bloquées/expirées sont conservées.
+
+La mise à jour du Quest est refusée pour signature incompatible. L'ancien APK,
+les données privées et externes sont sauvegardés (159 fichiers, environ 3,14 Go,
+empreintes vérifiées). Aucune désinstallation n'est encore effectuée. Le
+propriétaire demande une clé commune aux deux PC : génération explicite d'une
+identité dédiée hors Git, valide jusqu'au 18 août 2126. Le lanceur vérifie
+l'empreinte publique épinglée avant Unity, puis signe et vérifie l'APK avec
+`apksigner`, sans modifier les réglages Unity ni y stocker de secrets. La revue
+indépendante de cette solution ne trouve aucun défaut bloquant ; contrôles
+réels de signature, clé absente et refus de régénération réussis.
+
+Les 18 localizers VISU fournis ensuite par le propriétaire sont présents, avec
+des empreintes différentes de l'ancien poste. Il confirme qu'ils doivent
+rester distribués séparément : la modification envisagée de `HBPBuilder` est
+annulée ; le packaging Quest les exclut également. La copie préparée est placée
+sous `.artifacts/scene-008/optional-localizers`, hors du Player Windows. Les
+localizers restent disponibles dans `Assets/Data` pour une installation séparée.
+
+### 11 septembre — migration Quest autorisée et restauration vérifiée
+
+Le propriétaire autorise explicitement la désinstallation unique, l’installation
+du nouvel APK et la restauration. Les deux commandes Android réussissent.
+L’APK installé correspond exactement au SHA-256 du binaire final avec clé commune
+(394 365 917 octets, 31 références standard, zéro localizer). Restauration vérifiée
+par SHA-256 : 4 fichiers privés et 148 fichiers externes, hors caches régénérables.
+La restriction `adb push` sur la création des dossiers a été résolue par création
+explicite avec `adb shell mkdir -p`, puis copie des fichiers. Sauvegarde conservée.
+Le lancement initial est intercepté par le dialogue Meta « contrôleurs requis » ;
+validation et réveil des manettes demandés au propriétaire. Aucun résultat physique
+de démarrage/rendu n’est encore attribué au nouvel APK.
+
+### 11 septembre — premier démarrage du nouvel APK
+
+Le propriétaire confirme avoir validé le dialogue contrôleurs. PID 8444 actif,
+OpenXR `COMPOSITION READY`, aucune exception de préférences dans le journal
+capturé. Erreurs Meta `xrRequestBoundaryVisibilityMETA / XR_ERROR_RUNTIME_FAILURE`
+observées lors des transitions de session ; effet visuel en attente de retour.
+PSS ponctuel avant appairage : 1 652 691 Ko, sans prétendre à un pic.
+Parcours manuel d’appairage USB à 127.0.0.1 puis livraison demandé au propriétaire ;
+le contrôle UI HiBoP demeure refusé et l’authentification ne doit pas être automatisée.
+
+### 11 septembre — appairage bloqué par les illustrations facultatives
+
+Le propriétaire signale plusieurs échecs de Pair malgré Y et confirme garder
+le casque porté. Le diagnostic Windows isolé reproduit `DirectoryNotFoundException`
+pour `[DATABASE_FOLDER]/Images/LEC1_SEM.jpg` dans `PairingContext.Fingerprint`,
+avant toute connexion. Le catalogue local référence aussi 24 illustrations
+absentes de sa base locale ; aucun fichier local n’a été restauré.
+
+Le propriétaire impose que la validité de ces fichiers ne conditionne pas le
+transfert des définitions. Les chemins/octets d’illustrations sont exclus des
+empreintes ; les images lisibles sont capturées séparément, les sources
+indisponibles omises. Les erreurs d’écriture d’archive et les checksums reçus
+restent stricts. Format global 2, reconstruction simultanée des deux Players
+requise. Ajout de journalisation des échecs Desktop et diagnostic de capture
+sans réseau `-scenePairingEvidence`. Tests EditMode transfert : 23/23 réussis.
+La validation réelle après reconstruction reste à effectuer.
+
+### 11 septembre — correction compilée et APK mis à jour
+
+Les deux builds de correction réussissent sous `.artifacts/scene-009` (dossier
+d’exécution, toujours qualification SCENE-008). La capture des globaux réels
+réussit sans réparer les images ; les six modalités Windows réussissent et
+leurs buffers sont identiques bit à bit à la version précédente. Formatage C#
+réussi. Nouvel APK signé commun et installé par `adb install -r`, sans
+désinstallation ; SHA-256 installé vérifié :
+`4110a8d9105ff3a2d3a54a89e6f99ccd655178db7929e224a5d4d8986a5dce68`.
+31 références vérifiées, aucun localizer. Le Desktop corrigé est rouvert après
+fermeture de l’ancien par le propriétaire. La validation du dialogue contrôleurs
+puis le nouvel appairage manuel sont demandés. Preuves courantes dans
+`optional-illustrations-fix.json`, distinctes des binaires de la première migration.
+
+### 11 septembre — livraison reçue, préparation interrompue par hbp_math absent
+
+Le propriétaire réussit l’appairage et lance trois envois. Le Desktop termine
+l’envoi puis perd l’accusé de publication ; le Quest journalise
+`DllNotFoundException: hbp_math` dans `MathDLL.Mean` / colonne statique.
+La dépendance Android était absente du catalogue et de l’APK. Compilation
+du même commit math que Desktop, sans modification d’algorithme : NDK 27.2,
+API 32, ARM64, libc++ statique, segments ELF alignés 16 KiB. Les 17 exports
+ABI sont présents. Le probe exécuté directement sur le Quest réussit ses
+assertions exactes ; SEM/Pearson/Wilcoxon des cas testés sont identiques aux
+résultats Windows. Ce probe ne vaut pas validation de la scène IL2CPP.
+Ajout du plugin/meta, provenance Android au lock, contrôle avant build et
+inspection de l’APK après build. L’ancien APK est désormais rejeté. Limite
+du native updater pour Android math explicitée dans Tools/QuestMathPlugin.md.
+Le nouvel APK est en construction ; aucune publication réussie n’est encore
+revendiquée.
+
+### 11 septembre — dépendance native installée, nouvel essai demandé
+
+Build Unity Android réussi, quatre tests du contrôle de build réussis.
+La première inspection post-build détecte que Gradle a retiré les symboles non
+nécessaires du plugin et changé son empreinte. Le script applique désormais
+la même opération avant verrouillage ; le plugin final correspond exactement
+aux octets déjà présents dans l’APK. Inspection stricte relancée avec succès,
+sans assouplir le contrôle de hash. Probe réexécuté sur ce plugin final :
+17 exports, assertions exactes réussies et résultats comparatifs inchangés.
+APK final de 394 447 911 octets, 31 références standard vérifiées, zéro localizer,
+signé avec la clé commune. Installation `adb install -r` réussie et SHA-256
+installé vérifié : `b840bd02ed764711f0f1f4a416b4fe3644bb09a6485b7af54dc5e453fe51764e`.
+Redirection USB rétablie et ouverture demandée à Android. Le propriétaire est
+invité à valider le dialogue Meta éventuel puis refaire la livraison ; aucune
+publication réussie de la scène IL2CPP n’est encore revendiquée.
+
+### 11 septembre — builds relancés à la demande du propriétaire
+
+Les builds Windows et Quest sous `.artifacts/scene-011` réussissent. Diagnostic
+Windows réussi, comparaison aux buffers scene-009 identique bit à bit. Player
+visible rouvert sur les six colonnes. APK signé commun, 31 références vérifiées,
+zéro Localizer, bibliothèques core et math conformes au verrou. Installation
+`adb install -r` réussie, SHA-256 installé vérifié, redirection USB rétablie et
+ouverture Quest demandée. Identités dans `rebuild-scene-011.json`. Le plugin
+math de qualification reste celui déjà installé précédemment ; les adaptations
+de scripts natifs ne l’ont pas remplacé. Publication physique encore à vérifier.
+
+### 11 septembre — première publication et affichage confirmés
+
+Le propriétaire confirme que la visualisation testée affichait les différentes
+colonnes et leurs labels. Le journal Desktop scene-011 contient une livraison
+`Published` le 11 septembre à 10:33:02 UTC : 998 083 octets, 806 ms de capture,
+15 982 ms de connexion/envoi/accusé et 16 788 ms au total. Cela confirme la
+publication réelle après les corrections illustrations et dépendance math.
+Cinq erreurs ultérieures `Connection refused` sont également présentes ; leur
+contexte n’est pas établi et elles n’annulent pas l’accusé Published précédent.
+Le Quest est absent d’ADB au suivi ; aucun diagnostic Quest n’est récupéré.
+Précision sur les manipulations et reconnexion proposées au propriétaire.
+Preuve : `first-published-scene.json`. Qualification globale encore partielle.
+
+Complément propriétaire : « J’ai essayé tout ça » en réponse à déplacement,
+rotation et redimensionnement. Ces manipulations ont donc été essayées dans
+ce retour globalement positif. Stabilité après relâchement, indépendance de
+chaque colonne et comparaison scientifique restent à confirmer spécifiquement.

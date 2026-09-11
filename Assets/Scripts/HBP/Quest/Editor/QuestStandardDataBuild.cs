@@ -18,6 +18,8 @@ namespace HBP.Quest.Editor
             var manifest = new StringBuilder();
             foreach (string relative in StandardData.EnumerateFiles(source))
             {
+                // Localizers are distributed separately on both Desktop and Quest.
+                if (relative.StartsWith("Atlases/Localizers/", System.StringComparison.Ordinal)) continue;
                 string input = StandardData.Resolve(source, relative);
                 context.AddAdditionalPathToStreamingAssets(input, "ScientificData/" + StandardData.PackagedPath(relative));
                 manifest.Append(StandardData.HashFile(input)).Append(' ').Append(relative).Append('\n');

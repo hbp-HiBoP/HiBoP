@@ -69,10 +69,18 @@ namespace HBP.Dev
             if (!quest) return;
             if (PlayerSettings.GetScriptingBackend(NamedBuildTarget.Android) != ScriptingImplementation.IL2CPP || PlayerSettings.Android.targetArchitectures != AndroidArchitecture.ARM64)
                 throw new BuildFailedException("Quest requires IL2CPP and ARM64 only.");
+            string[] requiredPlugins = { "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so", "Assets/Plugins/Native/Android/arm64-v8a/libhbp_math.so" };
+            foreach (string path in requiredPlugins)
+            {
+                var plugin = AssetImporter.GetAtPath(path) as PluginImporter;
+                if (plugin == null || !plugin.GetCompatibleWithPlatform(BuildTarget.Android))
+                    throw new BuildFailedException($"Quest requires the Android native plugin: {path}");
+            }
+
             foreach (var plugin in PluginImporter.GetAllImporters().Where(p => p.isNativePlugin && p.assetPath.StartsWith("Assets/")))
             {
-                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android) && (plugin.assetPath != "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so" || plugin.GetCompatibleWithAnyPlatform() || plugin.GetCompatibleWithEditor() || plugin.GetPlatformData(BuildTarget.Android, "CPU") != "ARM64"))
-                    throw new BuildFailedException($"Quest bootstrap must not include Desktop native plugin: {plugin.assetPath}");
+                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android) && (!requiredPlugins.Contains(plugin.assetPath) || plugin.GetCompatibleWithAnyPlatform() || plugin.GetCompatibleWithEditor() || plugin.GetPlatformData(BuildTarget.Android, "CPU") != "ARM64"))
+                    throw new BuildFailedException($"Quest must not include an incompatible native plugin: {plugin.assetPath}");
             }
         }
 

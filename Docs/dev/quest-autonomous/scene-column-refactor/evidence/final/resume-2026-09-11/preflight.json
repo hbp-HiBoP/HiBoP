@@ -1,0 +1,46 @@
+{
+  "recordedUtc": "2026-09-11T08:09:39.7256262Z",
+  "checkout": "C:\\HBP\\Software\\HiBoP",
+  "commit": "f9db4b56e14d0a7d1a3f9f94f7c3b0b7ac6236a1",
+  "branch": "feature/xr-autonomous",
+  "initialWorktree": "clean",
+  "unity": "6000.5.2f1",
+  "editorInitiallyClosedByUser": true,
+  "plugins": [
+    {
+      "path": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+      "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec",
+      "matchesLock": true,
+      "bytes": 1005056
+    },
+    {
+      "path": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+      "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e",
+      "matchesLock": true,
+      "bytes": 1450608
+    },
+    {
+      "path": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+      "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+      "matchesLock": true,
+      "bytes": 1378816
+    },
+    {
+      "path": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+      "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa",
+      "matchesLock": true,
+      "bytes": 246784
+    }
+  ],
+  "fixtureCommand": "python Tools/Prepare-SceneQualificationFixture.py",
+  "fixtureExitCode": 0,
+  "questSerial": "2G0YC5ZHB20370",
+  "adbAuthorized": true,
+  "wifi": "unavailable at laboratory",
+  "transport": "ADB USB forward tcp:45871 -> tcp:45871; Desktop address 127.0.0.1",
+  "limitations": [
+    "Physical qualification pending",
+    "USB transfer will not qualify Wi-Fi performance/reconnection",
+    "Previous test totals are historical, not rerun results"
+  ]
+}

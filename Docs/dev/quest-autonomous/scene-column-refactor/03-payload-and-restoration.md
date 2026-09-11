@@ -32,7 +32,7 @@ de handles natifs, de callbacks ou d’une sérialisation exécutable des GameOb
 ## Données globales au pairing (décision de relecture du 2026-09-10)
 
 Le pairing transmet un instantané de `UserPreferences`, des définitions globales
-de tags, du catalogue de protocoles (illustrations incluses), des alias et des
+de tags, du catalogue de protocoles (illustrations disponibles incluses), des alias et des
 préréglages de filtres. Les paramètres globaux de grille/interpolation suivent
 le même chemin. Cet instantané est installé en mémoire sur Quest ; les fichiers
 de préférences et de base Desktop ne sont pas réécrits.
@@ -44,6 +44,17 @@ global reçu. Le format de scène est désormais version 2 et identifie son pair
 Une définition absente ou modifiée, une identité ambiguë ou une scène d’un autre
 pairing provoque un refus explicite. Les préférences ne sont pas resynchronisées
 à chaque scène : leurs évolutions après pairing sont volontairement différées.
+
+Depuis la correction du 2026-09-11, les illustrations sont facultatives : un
+fichier absent, illisible ou de chemin inutilisable ne bloque pas sa définition.
+Son emplacement est vide dans l'instantané reçu, sans modifier la base Desktop.
+Les chemins et octets d'illustrations sont exclus des empreintes de définition ;
+leur suppression, apparition ou modification après pairing ne bloque donc pas
+l'envoi d'une scène. Les images déjà capturées restent celles de la session.
+Les autres champs des protocoles restent contrôlés. Le format des données
+globales passe à la version 2 : reconstruire Desktop et Quest ensemble.
+Les erreurs d'écriture d'archive et les contrôles d'intégrité des ressources
+reçues restent bloquants ; les buffers scientifiques ne deviennent pas facultatifs.
 
 Les opérations communes lisent directement `PersistentDataManager.UserPreferences`.
 Un nouveau contexte est entièrement validé avant de fermer et d’attendre les

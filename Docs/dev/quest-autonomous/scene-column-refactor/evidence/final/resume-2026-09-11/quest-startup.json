@@ -1,0 +1,37 @@
+{
+  "recordedUtc": "2026-09-11T08:59:46.886501+00:00",
+  "pid": 8444,
+  "status": "RUNNING_XR_COMPOSITION_READY",
+  "logWindow": {
+    "firstLine": "--------- beginnin",
+    "lastLine": "09-11 10:58:43.001"
+  },
+  "managedExceptionsInCapturedLog": 0,
+  "readOnlyPreferencesErrorInCapturedLog": false,
+  "renderingVisuallyValidated": false,
+  "unityErrorLines": [
+    "09-11 10:58:28.458  8444  8472 E Unity   : [XR] [OpenXR Meta] xrRequestBoundaryVisibilityMETA failed with result XR_ERROR_RUNTIME_FAILURE.",
+    "09-11 10:58:28.473  8444  8472 E Unity   : [XR] [OpenXR Meta] xrRequestBoundaryVisibilityMETA failed with result XR_ERROR_RUNTIME_FAILURE.",
+    "09-11 10:58:32.217  8444  8472 E Unity   : [XR] [OpenXR Meta] xrRequestBoundaryVisibilityMETA failed with result XR_ERROR_RUNTIME_FAILURE.",
+    "09-11 10:58:32.252  8444  8472 E Unity   : [XR] [OpenXR Meta] [XrFuncTable] Failed to look up xrDiscoverSpacesMETA",
+    "09-11 10:58:32.252  8444  8472 E Unity   : [XR] [OpenXR Meta] [XrFuncTable] Failed to look up xrDiscoverSpacesMETA",
+    "09-11 10:58:32.358  8444  8472 E Unity   : [XR] [OpenXR Meta] xrRequestBoundaryVisibilityMETA failed with result XR_ERROR_RUNTIME_FAILURE.",
+    "09-11 10:58:34.846  8444  8472 E Unity   : [XR] [OpenXR Meta] [XrFuncTable] Failed to look up xrDiscoverSpacesMETA",
+    "09-11 10:58:34.846  8444  8472 E Unity   : [XR] [OpenXR Meta] [XrFuncTable] Failed to look up xrDiscoverSpacesMETA"
+  ],
+  "pssSampleKb": 1652691,
+  "pssIsPeak": false,
+  "phase": "before pairing and publication",
+  "files": [
+    {
+      "path": ".test-results/scene-008/resume-20260911/quest-startup.log",
+      "bytes": 118093,
+      "sha256": "490af97ce9c4abb6b116c877fd9264166ba6775710abe5cfcc4ed1a805d70cf1"
+    },
+    {
+      "path": ".test-results/scene-008/resume-20260911/quest-startup-meminfo.txt",
+      "bytes": 3186,
+      "sha256": "af77d7afb3a42b649a4528457b3da631e4c2c1c96e23dcf89b6100c8c29ded90"
+    }
+  ]
+}

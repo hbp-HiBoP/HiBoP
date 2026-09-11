@@ -2,6 +2,43 @@
 
 Copier le texte ci-dessous dans une nouvelle tâche ouverte sur le dépôt HiBoP du nouvel ordinateur. État arrêté le 10 septembre 2026 au soir.
 
+## Mise à jour du 11 septembre 2026
+
+Dernier jalon : builds scene-011 installés, première livraison `Published`
+confirmée par le journal Desktop et colonnes/labels vus par le propriétaire.
+Voir `evidence/final/resume-2026-09-11/first-published-scene.json` et
+`rebuild-scene-011.json`, qui remplacent les identités de builds ci-dessous.
+Quest absent d’ADB lors du dernier suivi ; interactions et diagnostic
+scientifique sur Quest restent à vérifier.
+
+Le texte du 10 septembre ci-dessous reste historique. L’état courant est dans
+`evidence/final/resume-2026-09-11/manifest.json`, `optional-illustrations-fix.json`
+et `math-deployment-fix.json`. Sur le poste du laboratoire :
+
+- Quest USB `2G0YC5ZHB20370`, app `fr.crnl.hibop.quest`, redirection ADB du
+  port 45871 ; adresse Desktop `127.0.0.1`, aucun Wi-Fi requis pour cette recette.
+- Migration vers une clé commune terminée et données restaurées/vérifiées.
+  Clé privée hors Git : `%LOCALAPPDATA%/HiBoP/Signing/QuestDevelopment`.
+  Ne pas désinstaller à nouveau ni exposer les secrets ; mises à jour `install -r`.
+- Illustrations facultatives absentes corrigées, sans restaurer les fichiers :
+  elles ne conditionnent plus empreinte/appairage/transfert des protocoles.
+  Tests de transfert : 23/23 ; nouveaux Players au format global 2.
+- Après appairage réussi, trois livraisons ont échoué pendant la préparation
+  Quest avec `DllNotFoundException hbp_math`. Plugin Android du même commit que
+  Desktop ajouté, probe réel passé, contrôles de build renforcés : 4/4 tests.
+- APK courant installé : `.artifacts/scene-010/Android/HiBoP.Quest.apk`, SHA-256
+  `b840bd02ed764711f0f1f4a416b4fe3644bb09a6485b7af54dc5e453fe51764e`.
+  Desktop corrigé : `.artifacts/scene-009/Windows/HiBoP.6.1.0.win64/HiBoP.exe`.
+  31 références standard vérifiées ; aucun Localizer embarqué. Leur distribution
+  séparée reste une exigence explicite, y compris en développement.
+- Un nouvel essai manuel est demandé au propriétaire après cette installation.
+  Publication des six colonnes, interaction physique et qualification complète
+  IL2CPP restent à prouver. Ne pas confondre probe natif et scène validée.
+- HiBoP n’est pas autorisé dans l’outil de contrôle UI. Le propriétaire effectue
+  l’appairage et valide le dialogue Meta « contrôleurs requis » si présent.
+- Aucun commit ni push. Sauvegarde de migration conservée sous
+  `.test-results/scene-008/resume-20260911/device-backup`.
+
 ---
 
 Reprends la qualification du Lot C (SCENE-008), dans `Docs/dev/quest-autonomous/scene-column-refactor`. L'implémentation est présente ; l'objectif reste de revalider globalement QUEST-001 à QUEST-023 avec le système commun de scènes et les six modalités, puis de corriger les défauts trouvés. Ne considère pas les succès du prototype comme une validation du nouveau système.

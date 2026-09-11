@@ -1,0 +1,10 @@
+{
+  "recordedUtc": "2026-09-11T08:55:53.516517+00:00",
+  "installedApkSha256": "817cf0381afd81576ee3ce2d9fbc6a164c7a8aa433cb2dad859027271a7dabbb",
+  "deviceLogStart": null,
+  "launchOutput": "Starting: Intent { cmp=fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity }\n",
+  "forward": "tcp:45871 -> tcp:45871 USB",
+  "startupStatus": "BLOCKED_BY_SYSTEM_CONTROLLER_REQUIRED_DIALOG",
+  "systemLog": "quest-launch-system.log",
+  "controllerDialogObservedDeviceTime": "09-11 10:56:19.021"
+}

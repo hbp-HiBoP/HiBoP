@@ -1,0 +1,27 @@
+{
+  "recordedUtc": "2026-09-11T11:04:36.996281+00:00",
+  "buildEvidence": "rebuild-scene-011.json",
+  "desktopReceipt": {
+    "utc": "2026-09-11T10:33:02.8270576Z",
+    "transfer": "c40caf4e1186441e9aa19910f917dd33",
+    "hash": "d0555c3e489cc41b6691b4d811f5909837107c2a5bb34ad103ffd9770820d8f2",
+    "status": "Published",
+    "retry": false,
+    "bytes": 998083,
+    "captureAndEncodeMs": 806.0722000000001,
+    "connectSendAndReceiptMs": 15982.3712,
+    "totalMs": 16788.4438
+  },
+  "userReport": "Sur la visualisation testée, les différentes colonnes avec leur label étaient visibles et cela avait l’air de plutôt bien marcher.",
+  "visualColumnsAndLabelsConfirmed": true,
+  "manipulationConfirmed": true,
+  "questScientificDiagnosticCollected": false,
+  "deviceAvailableAtFollowup": false,
+  "laterDesktopLog": "Five Connection refused errors after successful Published receipt; context not yet established.",
+  "desktopLog": {
+    "path": ".artifacts\\scene-011\\device-desktop\\player.log",
+    "sha256": "566d95dee6400ece57c37f0e53d97e6bd60166ffde1731d296617064bf8b8d92"
+  },
+  "scope": "Successful publication and user-reported visual column/label display; full SCENE-008 qualification remains partial.",
+  "manipulationScope": "User confirms having tried moving, rotating and resizing; overall prior feedback positive. Independent-column behavior and stability after release not specifically confirmed."
+}

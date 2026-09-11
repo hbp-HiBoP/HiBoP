@@ -26,6 +26,16 @@ des résultats dans huit rapports.
 
 ## Références de départ
 
+Reprise du **2026-09-11** sur le commit `f9db4b56e14d` : fixtures corrigées
+(IDs des configurations de sites), deux diagnostics Windows réussis, builds
+Windows/Android réussis. Migration de signature Android terminée, données
+restaurées et vérifiées. L’appairage a réussi après correction des illustrations
+facultatives ; la livraison a révélé une dépendance native math absente.
+L’APK corrigé est installé et vérifié. Une livraison est confirmée `Published`
+(16,8 s) et le propriétaire confirme voir les colonnes et leurs labels.
+Interactions physiques et diagnostic scientifique Quest restent à qualifier. Les résultats courants sont dans le manifeste de continuation lié
+depuis le rapport. La clé de développement commune reste hors Git.
+
 Le registre historique déclare QUEST-018–023 implémentées et validées.
 Sources inspectées pour le cadrage : feature/xr-autonomous@639e88306.
 Les anciens résultats sont des références du prototype, pas des preuves du futur

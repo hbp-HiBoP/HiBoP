@@ -67,6 +67,61 @@ namespace HBP.Transfer.Scene
             return name;
         }
 
+        /// <summary>Illustrations are optional; unavailable source files must not block their definitions.</summary>
+        public string AddIllustration(string path)
+        {
+            if (!File.Exists(path)) return "";
+            string extension = Path.GetExtension(path).ToLowerInvariant();
+            if (extension.Length < 4 || extension.Length > 16 || extension.Substring(1).Any(c => !char.IsLetter(c) && c != '.')) return "";
+            FileStream source;
+            try
+            {
+                source = File.OpenRead(path);
+            }
+            catch (IOException)
+            {
+                return "";
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return "";
+            }
+
+            string temporary = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
+            using (source)
+                try
+                {
+                    using (var output = File.Create(temporary))
+                    {
+                        byte[] buffer = new byte[81920];
+                        while (true)
+                        {
+                            int count;
+                            try
+                            {
+                                count = source.Read(buffer, 0, buffer.Length);
+                            }
+                            catch (IOException)
+                            {
+                                return "";
+                            }
+
+                            if (count == 0) break;
+                            output.Write(buffer, 0, count);
+                        }
+                    }
+
+                    string name = StandardData.HashFile(temporary) + extension;
+                    string target = Resolve(name);
+                    if (!File.Exists(target)) File.Move(temporary, target);
+                    return name;
+                }
+                finally
+                {
+                    if (File.Exists(temporary)) File.Delete(temporary);
+                }
+        }
+
         public string Resolve(string name)
         {
             if (name == null || name.Length < 68 || name.Length > 80 || name.Take(64).Any(c => !"0123456789abcdef".Contains(c)) || name[64] != '.' || name.Substring(65).Any(c => !char.IsLetter(c) && c != '.')) throw new InvalidDataException("Invalid content resource identity.");

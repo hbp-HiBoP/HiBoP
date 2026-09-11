@@ -1,0 +1,26 @@
+{
+  "android": {
+    "exports": 17,
+    "exactSmokeChecksPassed": true,
+    "sem": 0.5773502588272095,
+    "pearson": 0.9999999341753772,
+    "wilcoxonRankSum": 0.4192445902189239,
+    "wilcoxonSignedRank": 0.01581784012822629
+  },
+  "windows": {
+    "pearson": 0.9999999341753772,
+    "wilcoxonRankSum": 0.4192445902189239,
+    "wilcoxonSignedRank": 0.01581784012822629,
+    "sem": 0.5773502588272095
+  },
+  "absoluteDeltas": {
+    "pearson": 0.0,
+    "wilcoxonRankSum": 0.0,
+    "wilcoxonSignedRank": 0.0,
+    "sem": 0.0
+  },
+  "scientificTolerance": null,
+  "scope": "Standalone native loader/ABI and elementary exact checks; not Unity or full-scene qualification",
+  "librarySha256": "7f44158bd74b3b40eee9f656d2a0c347bb6cb8c879d6bbf24da57348a78b1b16",
+  "stripUnneeded": true
+}

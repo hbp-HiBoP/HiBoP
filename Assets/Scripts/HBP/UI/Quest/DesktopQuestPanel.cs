@@ -142,6 +142,7 @@ namespace HBP.UI.Quest
             }
             catch (Exception exception)
             {
+                if (Debug.isDebugBuild && !attempt.IsCancellationRequested) Debug.LogWarning("QUEST-011 Desktop operation failed: " + exception);
                 if (this) status.text = attempt.IsCancellationRequested ? "Cancelled. A published visualization remains on Quest; retry is safe." : exception is AuthenticationException ? "Pairing/security check failed. Verify the fingerprint and code; Y on Quest starts a new pairing." : exception is SocketException ? "Quest unreachable. Check the address and Wi-Fi, then retry." : exception is ArgumentException || exception is InvalidOperationException ? exception.Message : "Connection or preparation failed. Check Quest and retry. If pairing was interrupted, press Y in the headset.";
             }
             finally

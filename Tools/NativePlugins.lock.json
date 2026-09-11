@@ -176,6 +176,43 @@
       "runUrl": "https://github.com/hbp-HiBoP/hbp_math/actions/runs/34339402353",
       "artifacts": [
         {
+          "platform": "Android",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_math.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 997568,
+              "sha256": "7f44158bd74b3b40eee9f656d2a0c347bb6cb8c879d6bbf24da57348a78b1b16"
+            }
+          ],
+          "provenance": {
+            "sourceMode": "git-archive",
+            "sourceArchiveSha256": "33883fdffbfb7ac3a05cac0512ee5267a83b5fbcabc0fba9cd8f2bf6e1875c72",
+            "android": {
+              "stl": "c++_static",
+              "ndkVersion": "27.2.12479018",
+              "api": 32,
+              "abi": "arm64-v8a",
+              "pageSize": 16384,
+              "cmakeVersion": "3.22.1"
+            },
+            "runtimeDependencies": [
+              "libm.so",
+              "libdl.so",
+              "libc.so"
+            ],
+            "publicExportCount": 17,
+            "buildTools": [
+              {
+                "path": "Tools/Build-QuestMathPlugin.ps1",
+                "sha256": "0cc53e058775b0df91dd7d115de06c9f117f5fce319a905becfcb6588e6f4662"
+              }
+            ],
+            "stripUnneeded": true
+          }
+        },
+        {
           "platform": "Linux",
           "architecture": "x86_64",
           "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",

@@ -1,0 +1,8 @@
+{
+  "recordedUtc": "2026-09-11T09:27:34.626083+00:00",
+  "status": "SUCCESS",
+  "operation": "adb install -r (no uninstall)",
+  "installedApkSha256": "4110a8d9105ff3a2d3a54a89e6f99ccd655178db7929e224a5d4d8986a5dce68",
+  "launch": "Starting: Intent { cmp=fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity }\n",
+  "forward": "tcp:45871 -> tcp:45871"
+}

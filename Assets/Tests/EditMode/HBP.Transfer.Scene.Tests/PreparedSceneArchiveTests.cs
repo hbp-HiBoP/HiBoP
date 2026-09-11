@@ -117,8 +117,9 @@ namespace HBP.Tests.Transfer
             Assert.That(File.ReadAllText(Path.ChangeExtension(archive.ResolveNativeFile(secondId), ".hdr")), Is.EqualTo("second header"));
         }
 
-        [Test]
-        public void PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages(bool deleteSourceImage)
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"));
             var payload = Fixture(source);
@@ -148,6 +149,8 @@ namespace HBP.Tests.Transfer
             Assert.That(((ProtocolFilterCondition)conditions[0]).Protocols.Single(), Is.SameAs(paired.Data.Protocols.Single()));
             Assert.That(((PatientTagFilterCondition)conditions[1]).Tag, Is.SameAs(paired.Data.Tags.AllTags.Single()));
 
+            if (deleteSourceImage) File.Delete(illustration);
+            else File.WriteAllBytes(illustration, new byte[] { 4, 5, 6 });
             string sceneFile = Path.Combine(directory, "scene.hbscene");
             source.Write(payload, sceneFile);
             using var target = new SceneArchive(Path.Combine(directory, "target"), true, paired);
@@ -163,6 +166,58 @@ namespace HBP.Tests.Transfer
             string metadata = json.ReadToEnd();
             Assert.That(metadata, Does.Not.Contain("\"Preferences\""));
             Assert.That(metadata, Does.Contain("\"global\""));
+        }
+
+        [TestCase("missing")]
+        [TestCase("unresolved-alias")]
+        [TestCase("locked")]
+        [TestCase("unsupported-extension")]
+        public void UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(string kind)
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"));
+            var payload = Fixture(source);
+            var data = source.Globals.Data;
+            var protocol = data.Protocols.Single();
+            string path = kind == "unresolved-alias" ? "[UNRESOLVED]/illustration.png" : Path.Combine(directory, kind == "unsupported-extension" ? "illustration.png1" : "illustration.png");
+            if (kind == "locked" || kind == "unsupported-extension") File.WriteAllBytes(path, new byte[] { 1, 2, 3 });
+            using var locked = kind == "locked" ? File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None) : null;
+            protocol.Blocs[0].IllustrationPath = path;
+            protocol.Blocs[0].SubBlocs[0].Icons.Add(new Icon("unavailable icon", path, new TimeWindow(0, 100), "optional-icon"));
+            source.Globals = new PairingContext(data);
+            using var globalsSource = new SceneArchive(Path.Combine(directory, "globals-source"));
+            source.Globals.CaptureFilterPresets(new FilterConditionsPresetCollection(), globalsSource);
+            string globalFile = Path.Combine(directory, "globals.hbglobal");
+            globalsSource.WriteGlobalData(data, globalFile);
+            using var globalsTarget = new SceneArchive(Path.Combine(directory, "globals-target"));
+            var paired = new PairingContext(globalsTarget.ReadGlobalData(globalFile));
+            paired.RestoreFilterPresets(globalsTarget);
+            Assert.That(paired.Data.Protocols.Single().Blocs.Single().IllustrationPath, Is.Empty);
+            var icon = paired.Data.Protocols.Single().Blocs.Single().SubBlocs[0].Icons.Single();
+            Assert.That(icon.ImagePath, Is.Empty);
+            Assert.That(icon.Name, Is.EqualTo("unavailable icon"));
+            Assert.That(icon.ID, Is.EqualTo("optional-icon"));
+            Assert.That(paired.Data.Protocols.Single().Name, Is.EqualTo(protocol.Name));
+            Assert.That(protocol.Blocs[0].IllustrationPath, Is.EqualTo(path.StandardizeToEnvironement()));
+            Assert.That(Directory.GetFiles(globalsSource.DirectoryPath).Select(Path.GetFileName), Is.EquivalentTo(new[] { "globals.json" }));
+            // A file appearing after pairing must not change the definition fingerprint either.
+            if (kind == "missing") File.WriteAllBytes(path, new byte[] { 7, 8, 9 });
+            string sceneFile = Path.Combine(directory, "scene.hbscene");
+            source.Write(payload, sceneFile);
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true, paired);
+            var restored = target.Read(sceneFile);
+            Assert.That(((IEEGColumn)restored.Visualization.Columns[1]).Dataset.Protocol, Is.SameAs(paired.Data.Protocols.Single()));
+            protocol.Name += " changed";
+            Assert.Throws<InvalidOperationException>(() => source.Write(payload, Path.Combine(directory, "changed.hbscene")));
+        }
+
+        [Test]
+        public void OptionalIllustrationsDoNotHideArchiveWriteFailures()
+        {
+            using var archive = new SceneArchive(Path.Combine(directory, "archive"));
+            string image = Path.Combine(directory, "illustration.png");
+            File.WriteAllBytes(image, new byte[] { 1, 2, 3 });
+            Directory.Delete(archive.DirectoryPath);
+            Assert.Throws<DirectoryNotFoundException>(() => archive.AddIllustration(image));
         }
 
         [TestCase(false)]

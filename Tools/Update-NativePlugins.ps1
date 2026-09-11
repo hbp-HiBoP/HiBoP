@@ -119,7 +119,7 @@ function Get-NativePluginConfiguration
 
         $targets = @($library.targets)
         $expectedPlatforms = @("Windows", "Linux", "MacOS")
-        if ($library.name -eq "hbp_core" -and (!$ConfigurationOverride -or @($targets | Where-Object platform -eq 'Android').Count)) { $expectedPlatforms += "Android" }
+        if ($library.name -in @("hbp_core", "hbp_math") -and (!$ConfigurationOverride -or @($targets | Where-Object platform -eq 'Android').Count)) { $expectedPlatforms += "Android" }
         if ($targets.Count -ne $expectedPlatforms.Count)
         {
             throw "Expected $($expectedPlatforms.Count) platform targets for $($library.name)."
@@ -237,7 +237,8 @@ function Select-RunArtifacts
     param(
         [string]$LibraryName,
         [long]$RunId,
-        [object[]]$Artifacts
+        [object[]]$Artifacts,
+        [string[]]$Platforms
     )
 
     $specifications = @(
@@ -256,8 +257,8 @@ function Select-RunArtifacts
                 "$LibraryName-macos-arm64-$RunId.tar.gz")
         }
     )
-    if ($LibraryName -eq "hbp_core") {
-        $specifications += [ordered]@{ platform = "Android"; names = @("hbp_core-android-arm64-$RunId") }
+    if (($Platforms -and "Android" -in $Platforms) -or (!$Platforms -and $LibraryName -in @("hbp_core", "hbp_math"))) {
+        $specifications += [ordered]@{ platform = "Android"; names = @("$LibraryName-android-arm64-$RunId") }
     }
 
     if ($Artifacts.Count -ne $specifications.Count)
@@ -305,6 +306,7 @@ function Save-RunArtifacts
     $selectedArtifacts = @(Select-RunArtifacts `
         -LibraryName $Library.name `
         -RunId $runId `
+        -Platforms @($Library.targets | ForEach-Object platform) `
         -Artifacts @($response.artifacts))
 
     foreach ($selected in $selectedArtifacts)
@@ -375,7 +377,7 @@ function Assert-WorkflowSupportsOrchestration
             throw "$($Library.repository)/$($Configuration.branch) does not yet contain the orchestrated workflow changes ('$requiredText')."
         }
     }
-    if ($Library.name -eq "hbp_core" -and $yaml -notmatch '(?m)^  android:') {
+    if (@($Library.targets | Where-Object platform -eq "Android").Count -and $yaml -notmatch '(?m)^  android:') {
         throw "$($Library.repository)/$($Configuration.branch) does not yet contain the Android workflow job."
     }
 }
@@ -677,14 +679,14 @@ function Test-ArtifactManifest
         throw "Unexpected architecture '$($manifest.architecture)' for $($Library.name) $($target.platform)."
     }
     if ($target.platform -eq "Android") {
-        if ($Library.name -ne 'hbp_core' -or $manifest.sourceMode -ne 'git-archive' -or
+        if ($Library.name -notin @('hbp_core', 'hbp_math') -or $manifest.sourceMode -ne 'git-archive' -or
             $manifest.sourceTree -notmatch '^[0-9a-f]{40}$' -or
             $manifest.android.ndkVersion -ne '27.2.12479018' -or
             $manifest.android.api -ne 32 -or $manifest.android.abi -ne 'arm64-v8a' -or
             $manifest.android.stl -ne 'c++_static' -or $manifest.android.pageSize -ne 16384 -or
             $manifest.publicExportCount -le 0 -or $manifest.runtimeDependencies.Count -eq 0 -or
             @($manifest.runtimeDependencies | Where-Object { $_ -notin @('libc.so', 'libdl.so', 'libm.so', 'liblog.so') }).Count) {
-            throw 'Android provenance, toolchain or runtime dependencies do not match the supported hbp_core target.'
+            throw "Android provenance, toolchain or runtime dependencies do not match the supported $($Library.name) target."
         }
     }
 
@@ -1341,18 +1343,25 @@ function Install-LocalAndroidPackage {
         Assert-UnityClosed
         $originalLock = [IO.File]::ReadAllBytes($lockFilePath)
         $lock = Get-Content $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $manifestPath = Join-Path $PackageDirectory 'artifact-manifest.json'
+        $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
+        $libraries = @($Configuration.libraries | Where-Object {
+            $_.manifestRepository -eq $manifest.repository -and $_.name -in @('hbp_core', 'hbp_math')
+        })
+        if ($libraries.Count -ne 1) { throw 'Local Android import supports only hbp_core or hbp_math manifests.' }
+        $library = $libraries[0]
+        $lockedLibraries = @($lock.libraries | Where-Object name -eq $library.name)
+        if ($lockedLibraries.Count -ne 1) { throw "Expected one installed lock entry for $($library.name)." }
         # The installed Desktop bytes, not just the source checkout, are the reference.
-        $core = @($lock.libraries | Where-Object name -eq 'hbp_core')[0]
-        foreach ($artifact in $core.artifacts) {
+        $lockedLibrary = $lockedLibraries[0]
+        foreach ($artifact in $lockedLibrary.artifacts) {
             $binary = $artifact | ConvertTo-Json -Depth 12 | ConvertFrom-Json -AsHashtable
             # Git may normalize bundle XML line endings on Windows. Scientific
             # provenance concerns the Mach-O executable, never its plist/signature.
-            if ($binary.platform -eq 'MacOS') { $binary.files = @($binary.files | Where-Object relativePath -eq 'Contents/MacOS/libhbp_core') }
+            if ($binary.platform -eq 'MacOS') { $binary.files = @($binary.files | Where-Object relativePath -eq "Contents/MacOS/lib$($library.name)") }
             Assert-InstalledPackages -Packages @($binary)
         }
-        $library = @($Configuration.libraries | Where-Object name -eq 'hbp_core')[0]
-        $manifestPath = Join-Path $PackageDirectory 'artifact-manifest.json'
-        $package = Test-ArtifactManifest -ManifestPath $manifestPath -Library $library -RepositoryState @{ sourceSha = $core.commit }
+        $package = Test-ArtifactManifest -ManifestPath $manifestPath -Library $library -RepositoryState @{ sourceSha = $lockedLibrary.commit }
         if ($package.platform -ne 'Android') { throw 'Local import accepts only the Android package.' }
         $requestId = 'android-local-' + [Guid]::NewGuid().ToString('N')
         $backupRoot = Join-Path $workingRoot "$requestId/backup"
@@ -1361,7 +1370,7 @@ function Install-LocalAndroidPackage {
         try {
             Install-Payload -Package $package -RequestId $requestId
             Assert-InstalledPackages -Packages @($package)
-            $core.artifacts = @($core.artifacts | Where-Object platform -ne 'Android') + @([ordered]@{
+            $lockedLibrary.artifacts = @($lockedLibrary.artifacts | Where-Object platform -ne 'Android') + @([ordered]@{
                 platform = 'Android'; architecture = $package.architecture; destination = $package.destination
                 files = $package.files; origin = 'local'; runId = $null; runUrl = $null; provenance = $package.provenance
             })
@@ -1372,7 +1381,7 @@ function Install-LocalAndroidPackage {
             [IO.File]::WriteAllBytes($lockFilePath, $originalLock)
             throw
         }
-        Write-Host "Installed local Android package from Desktop source $($core.commit). Desktop payloads unchanged."
+        Write-Host "Installed local Android $($library.name) package from Desktop source $($lockedLibrary.commit). Desktop payloads unchanged."
     }
     finally { Exit-InstallMutex -Mutex $mutex }
 }

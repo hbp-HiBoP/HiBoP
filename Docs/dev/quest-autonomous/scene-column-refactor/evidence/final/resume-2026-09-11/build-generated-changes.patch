@@ -1,0 +1,35 @@
+diff --git a/Assets/Resources/BuildInfo.json b/Assets/Resources/BuildInfo.json
+index 70645f3b3..5c04c66c3 100644
+--- a/Assets/Resources/BuildInfo.json
++++ b/Assets/Resources/BuildInfo.json
+@@ -1 +1 @@
+-{"Version":"6.1.0","UnityVersion":"6000.5.2f1","BuildDate":"2026-08-26T15:02:23.6280623+02:00","Commit":"15d58a70076d"}
+\ No newline at end of file
++{"Version":"6.1.0","UnityVersion":"6000.5.2f1","BuildDate":"2026-09-11T10:14:54.494818+02:00","Commit":"f9db4b56e14d"}
+\ No newline at end of file
+diff --git a/Assets/Settings/Rendering/HBP-Desktop-URP.asset b/Assets/Settings/Rendering/HBP-Desktop-URP.asset
+index 2942b4cfe..5109e41eb 100644
+--- a/Assets/Settings/Rendering/HBP-Desktop-URP.asset
++++ b/Assets/Settings/Rendering/HBP-Desktop-URP.asset
+@@ -102,7 +102,7 @@ MonoBehaviour:
+   m_PrefilteringModeMainLightShadows: 0
+   m_PrefilteringModeAdditionalLight: 0
+   m_PrefilteringModeAdditionalLightShadows: 0
+-  m_PrefilterXRKeywords: 1
++  m_PrefilterXRKeywords: 0
+   m_PrefilteringModeForwardPlus: 0
+   m_PrefilteringModeDeferredRendering: 0
+   m_PrefilteringModeScreenSpaceOcclusion: 0
+diff --git a/Assets/Settings/Rendering/HBP-Quest-URP.asset b/Assets/Settings/Rendering/HBP-Quest-URP.asset
+index a4f3d52de..cebbbe041 100644
+--- a/Assets/Settings/Rendering/HBP-Quest-URP.asset
++++ b/Assets/Settings/Rendering/HBP-Quest-URP.asset
+@@ -98,7 +98,7 @@ MonoBehaviour:
+       m_Values: []
+     obsoleteHasProbeVolumes:
+       m_Keys: []
+-      m_Values:
++      m_Values: 
+   m_PrefilteringModeMainLightShadows: 3
+   m_PrefilteringModeAdditionalLight: 4
+   m_PrefilteringModeAdditionalLightShadows: 0

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="4" result="Passed" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-11 09:46:34Z" end-time="2026-09-11 09:46:35Z" duration="0,5674589">
+  <test-suite type="TestSuite" id="1000" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="906" result="Passed" start-time="2026-09-11 09:46:34Z" end-time="2026-09-11 09:46:35Z" duration="0.567459" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="1053" name="HBP.PlatformConfiguration.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.PlatformConfiguration.Tests.dll" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.414130" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="297720" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="1054" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.413218" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="1055" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.412605" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="1056" name="PlatformConfiguration" fullname="HBP.Tests.PlatformConfiguration" runstate="Runnable" testcasecount="27" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.411939" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="1018" name="BuildProfileConfigurationTests" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="10" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.407393" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="1025" name="ActiveProfile_PassesBuildGuard" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.ActiveProfile_PassesBuildGuard" methodname="ActiveProfile_PassesBuildGuard" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1729852473" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.118966" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="1030" name="QuestBuildGuard_RejectsMissingNativeLibrary" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsMissingNativeLibrary" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.183098" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="1028" name="QuestBuildGuard_RejectsMissingNativeLibrary(&quot;hbp_core&quot;)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsMissingNativeLibrary(&quot;hbp_core&quot;)" methodname="QuestBuildGuard_RejectsMissingNativeLibrary" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="212488744" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.093701" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="1029" name="QuestBuildGuard_RejectsMissingNativeLibrary(&quot;hbp_math&quot;)" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsMissingNativeLibrary(&quot;hbp_math&quot;)" methodname="QuestBuildGuard_RejectsMissingNativeLibrary" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="2146814244" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.086252" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="1027" name="QuestBuildGuard_RejectsWrongArchitecture" fullname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.QuestBuildGuard_RejectsWrongArchitecture" methodname="QuestBuildGuard_RejectsWrongArchitecture" classname="HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests" runstate="Runnable" seed="1271749988" result="Passed" start-time="2026-09-11 09:46:35Z" end-time="2026-09-11 09:46:35Z" duration="0.086996" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+                <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Benjamin BONTEMPS/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+              </test-case>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

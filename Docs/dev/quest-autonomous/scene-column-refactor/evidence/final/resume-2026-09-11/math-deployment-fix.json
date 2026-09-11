@@ -1,0 +1,69 @@
+{
+  "status": "FINAL_APK_INSTALLED_AWAITING_PHYSICAL_DELIVERY",
+  "cause": "DllNotFoundException hbp_math in MathDLL.Mean / static column reset after archive reception",
+  "globalPairingPassedUserReport": true,
+  "failedDeliveryAttemptsUserReport": 3,
+  "apkBefore": ".artifacts/scene-009/Android/HiBoP.Quest.apk",
+  "nativeBuild": "math-android-build.json",
+  "deviceProbe": "math-device-probe.json",
+  "sourceAlgorithmsChanged": false,
+  "oldApkRejectedByNewCheck": true,
+  "independentReview": "17 C ABI signatures match; packaging gap confirmed; native updater lifecycle documented and missing pin rejected",
+  "failureLogs": [
+    {
+      "path": ".test-results/scene-009/quest-delivery-failure.log",
+      "sha256": "57d45e03cddcdb3d17a7c904041476dfb9b754fce42012a99c4905142ba972f3"
+    },
+    {
+      "path": ".test-results/scene-010/windows-delivery-failure.log",
+      "sha256": "76f0af244ba06e0c1282239fdd2b7fc144ad7e99c1b18530f2e68d3b79c712d2"
+    }
+  ],
+  "buildGuardTests": {
+    "total": 4,
+    "passed": 4,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "native-guard-tests.xml"
+  },
+  "sourceFiles": [
+    {
+      "path": "Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs",
+      "sha256": "440a1e6f90ca7db425fad1848a53caebca71c7a1eeb988d68f35c05cfc70e596"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.PlatformConfiguration.Tests/BuildProfileConfigurationTests.cs",
+      "sha256": "b467c1ac1d0aa443b1dd82f276c3459ebf383d908caf1c65cebda1040f34ac7e"
+    },
+    {
+      "path": "Tools/Build-QuestConnectionPlayers.ps1",
+      "sha256": "f974523d5483d20458207c49aebfa5f0a018cf85ead56ab2c543ffc31a39ed88"
+    },
+    {
+      "path": "Tools/Test-QuestApk.ps1",
+      "sha256": "53777ec662e4691374c94a81741d87e16e73b7093252b0400ab4cac05b019f0d"
+    },
+    {
+      "path": "Tools/Build-QuestMathPlugin.ps1",
+      "sha256": "0cc53e058775b0df91dd7d115de06c9f117f5fce319a905becfcb6588e6f4662"
+    },
+    {
+      "path": "Tools/QuestMathProbe.cpp",
+      "sha256": "4bb528d53a4df9315a15c14efd372468f154388b3dba6ae46893440fd808cfd5"
+    },
+    {
+      "path": "Tools/NativePlugins.lock.json",
+      "sha256": "339da8e8b151bbd978ae0e4f034df198538dc1557a2a5735c79a274cb7a5fb2a"
+    }
+  ],
+  "finalApk": "android-math-fix.json",
+  "packagingCheck": "Final stripped library matches lock and APK exactly; initial post-build hash mismatch resolved by reproducing Gradle strip-unneeded step before pinning.",
+  "installation": {
+    "method": "adb install -r",
+    "result": "Success",
+    "installedApkSha256": "b840bd02ed764711f0f1f4a416b4fe3644bb09a6485b7af54dc5e453fe51764e",
+    "dataPreserved": true,
+    "usbForward": "127.0.0.1:45871 -> Quest:45871",
+    "publicationVerified": false
+  }
+}

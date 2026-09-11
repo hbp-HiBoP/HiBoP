@@ -1,0 +1,98 @@
+{
+  "status": "PLAYERS_BUILT_WINDOWS_VALIDATED_QUEST_UPDATED_AWAITING_MANUAL_PAIRING",
+  "cause": "PairingContext.Fingerprint reads unavailable illustration before network connection",
+  "reproduction": {
+    "path": ".artifacts/scene-009/pairing-before/failure.txt",
+    "bytes": 7734,
+    "sha256": "ec91dbccc0988d597591b01fb76e39d6cfc49e268e78eacd7a46f091b756039a"
+  },
+  "localImagesRestored": false,
+  "globalDataFormatVersion": 2,
+  "editMode": {
+    "total": 23,
+    "passed": 23,
+    "failed": 0,
+    "xml": ".test-results/scene-009/illustrations-editmode.xml"
+  },
+  "semantics": "Protocol and icon definitions transfer without unavailable illustrations; image availability/content excluded from definition fingerprints; archive writes and received checksums remain strict.",
+  "independentReview": "No blocking defect found",
+  "beforeExitCode": 1,
+  "afterExitCode": 0,
+  "afterFiles": [
+    {
+      "path": ".artifacts/scene-009/pairing-after/pairing-capture.txt",
+      "bytes": 79,
+      "sha256": "a56c791bf19aac27455d77d2c5ae40080ffde5388b7ff8ad463db580a4c1a332"
+    },
+    {
+      "path": ".artifacts/scene-009/pairing-after/result.json",
+      "bytes": 427969,
+      "sha256": "74a612c2857ec360a1af196d6061120c71ad637910c30298f6216de0179ff995"
+    },
+    {
+      "path": ".artifacts/scene-009/pairing-after/player.log",
+      "bytes": 2982,
+      "sha256": "f3ac438b997bad6f049b2593770741c9f42c064254ae8215dcabdfd176b6639e"
+    }
+  ],
+  "scientificRegression": {
+    "platforms": "Windows before and after fix",
+    "categoricalEquivalent": true,
+    "buffersExact": true,
+    "path": ".test-results/scene-009/windows-before-after-comparison.json",
+    "sha256": "2b22cb252148729925fb907cb84e360b6aece8334b8340bbfa2aed35103b0e33"
+  },
+  "androidPackage": "android-optional-illustrations.json",
+  "installation": "quest-optional-illustrations-update.json",
+  "windowsVisibleEvidence": ".artifacts/scene-009/device-desktop",
+  "sourceFiles": [
+    {
+      "path": "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs",
+      "sha256": "3ff7924f44d5d5939318448f467df78b1ae9518c2eed7f29074d95bb6a155b6a"
+    },
+    {
+      "path": "Assets/Scripts/HBP/UI/Quest/DesktopQuestPanel.cs",
+      "sha256": "90411caa7f22ab0b027e10936dbf1a72afff90d25da5c3d7bfa4ec455ab0ed70"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Transfer/Scene/PairingContext.cs",
+      "sha256": "c908de8abd8e48b9c35f2c4c106e61c2a2564425cade42e621fc92d4b0ba5e79"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Transfer/Scene/PreparedDataJson.cs",
+      "sha256": "46916a74299583d3fdd5af3b692ba68238dc6666b9a19b5131988995244b4fa7"
+    },
+    {
+      "path": "Assets/Scripts/HBP/Transfer/Scene/SceneArchive.cs",
+      "sha256": "16bdfa96f22dd7c2dd73d691d2da0e2932d2c8683936c1f9c334136b63623311"
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.Transfer.Scene.Tests/PreparedSceneArchiveTests.cs",
+      "sha256": "04429d7f602a815c8620146c8ed6dc2dd32789c48722c41eb95d2b18f73c2762"
+    }
+  ],
+  "buildLogs": [
+    {
+      "path": ".test-results/scene-009/windows-build.log",
+      "exitCode": 0,
+      "sha256": "fe11a677835f750160aceb3a3304798e5d50b393ae6e7a7a6f85fd91e9e78fbd"
+    },
+    {
+      "path": ".test-results/scene-009/android-build.log",
+      "exitCode": 0,
+      "sha256": "50e71507b75037f0bc3facc85a787dbba7f6a57fbf2d7d8acf9d833625977d29"
+    }
+  ],
+  "windowsFiles": [
+    {
+      "path": ".artifacts/scene-009/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    {
+      "path": ".artifacts/scene-009/Windows/HiBoP.6.1.0.win64/GameAssembly.dll",
+      "bytes": 63348224,
+      "sha256": "18197489184fda430c19aacf6baa2d3d5d2d2547b699beec7b3ee8b8782e6ff3"
+    }
+  ]
+}

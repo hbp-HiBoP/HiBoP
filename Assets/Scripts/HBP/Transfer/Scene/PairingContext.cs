@@ -13,7 +13,7 @@ namespace HBP.Transfer.Scene
 {
     public sealed class GlobalDataPayload
     {
-        public const int FormatVersion = 1;
+        public const int FormatVersion = 2;
         public int Version = FormatVersion;
         public string Id = Guid.NewGuid().ToString("N");
         public UserPreferences Preferences;

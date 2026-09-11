@@ -28,6 +28,13 @@ namespace HBP.Dev
             try
             {
                 await UniTask.WaitUntil(() => Module3DMain.IsInitialized && Module3DMain.SelectedScene != null && Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded, cancellationToken: timeout.Token);
+                if (Environment.GetCommandLineArgs().Contains("-scenePairingEvidence"))
+                {
+                    using var pairing = PairingSnapshot.Capture();
+                    Directory.CreateDirectory(directory);
+                    File.WriteAllText(Path.Combine(directory, "pairing-capture.txt"), "Global pairing snapshot captured successfully. No network connection attempted.");
+                }
+
                 await SceneQualification.RunAsync(Module3DMain.SelectedScene, directory, timeout.Token);
             }
             catch (Exception exception)

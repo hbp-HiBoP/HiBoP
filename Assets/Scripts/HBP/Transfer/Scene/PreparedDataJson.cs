@@ -89,6 +89,9 @@ namespace HBP.Transfer.Scene
             // metadata only. No source project path or unrelated dataset enters the transfer.
             if (type == typeof(Patient)) properties.RemoveAll(p => p.PropertyName == "Meshes" || p.PropertyName == "MRIs");
             if (type == typeof(Dataset)) properties.RemoveAll(p => p.PropertyName == "Data");
+            // Definition identity is independent of optional illustration files and local paths.
+            // A paired session keeps its captured images even if Desktop files change later.
+            if (archive == null) properties.RemoveAll(p => p.PropertyName == "IllustrationPath" || p.PropertyName == "ImagePath");
             foreach (var property in properties)
                 if (property.PropertyName == "IllustrationPath" || property.PropertyName == "ImagePath")
                     property.Converter = new IllustrationConverter(archive);
@@ -150,7 +153,7 @@ namespace HBP.Transfer.Scene
             public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
             {
                 string path = value as string;
-                writer.WriteValue(string.IsNullOrEmpty(path) ? "" : archive == null ? StandardData.HashFile(path) : archive.AddFile(path, StandardData.HashFile(path)));
+                writer.WriteValue(string.IsNullOrEmpty(path) ? "" : archive.AddIllustration(path));
             }
 
             public override object ReadJson(JsonReader reader, Type type, object existing, JsonSerializer serializer)

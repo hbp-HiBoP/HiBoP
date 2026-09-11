@@ -1,0 +1,92 @@
+[
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL.nii.gz",
+    "sha256": "0290e8ea1e3bc11787e5026dbb7f91b97f6d26b8cccfc0c19cd5be331e2a5d4f",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/ANIMAL_mask.nii.gz",
+    "sha256": "d5e181b27fd4cb5cd5bf244526516962bda93fb846f9020377b69529d998695a",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT.nii.gz",
+    "sha256": "032db74f493fb3b61ffb4b24c5b59fab1443c286411aa656ff136222922774b4",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/CONSONANT_mask.nii.gz",
+    "sha256": "5ff122a9ce4402de78a67447f27f84e901638fc9f8bb94abf21cc12d06e102a4",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/FACE.nii.gz",
+    "sha256": "df48d9b7d09bb86811cbcc958d8e77783a54b57158b8a1d72e8a9059acf97e74",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/FACE_mask.nii.gz",
+    "sha256": "2417a4cca04e2e77faf01c8433c3ea5528e7b39b0ff0068ccb8292a7cf91a813",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/FRUIT.nii.gz",
+    "sha256": "41ac1c271673b1d0f59f01d1d884fc658ea48412c54bc617f623222719423cfa",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/FRUIT_mask.nii.gz",
+    "sha256": "aa5a909e2bef032c1f8f17e3d5c231b0780243db92835bb50fc04d28668a1d65",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/HOUSE.nii.gz",
+    "sha256": "25928978f4d499e07d4a31711e7e80dbf0c5993288d5abf414eb4cc5d1fcb299",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/HOUSE_mask.nii.gz",
+    "sha256": "74840b5269c417a677d41cbb809dc73db24f028f7fe8d95a116f71d57ef72077",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE.nii.gz",
+    "sha256": "93429768379687de45d22bbd2d6ad1f12d0c5a60d1ea0812ec85d983d65ac01d",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/LANDSCAPE_mask.nii.gz",
+    "sha256": "190680a0204a1ad5bfe77cda8a9849142f9e08ac59f36c03cd40ccdce0195cf6",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/OBJECT.nii.gz",
+    "sha256": "ca771dbf06bece47874c219040c285b602086d98c5833bff300de0c699ed8729",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/OBJECT_mask.nii.gz",
+    "sha256": "d681d2e87453ce1d3d58d5b1b47fa3d9f799f67164e88ab4a335017257fcbfaf",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD.nii.gz",
+    "sha256": "6ca831af0462e97ef7eb51d4c271d8604c772f41a79ff24389ac678d372579ef",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/PSEUDOWORD_mask.nii.gz",
+    "sha256": "7bceb94d0ce379e890e4e591f35c9125b669a9f16ddb6fc56ae082060c1d0c73",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED.nii.gz",
+    "sha256": "fb265ffd6a909ffb39999e4aee03296fc22e8790ae8049054a0b1932e99e11da",
+    "matchesPrevious": false
+  },
+  {
+    "path": "Atlases/Localizers/VISU/f50f150sm0/SCRAMBLED_mask.nii.gz",
+    "sha256": "fe59493181f37ef7fef7aac3e015977d626d1d1ba54cf90423d1f347538df308",
+    "matchesPrevious": false
+  }
+]

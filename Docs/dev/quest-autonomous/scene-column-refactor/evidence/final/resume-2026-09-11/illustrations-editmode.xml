@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<test-run id="2" testcasecount="23" result="Passed" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0" engine-version="3.5.0.0" clr-version="4.0.30319.42000" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14,6455392">
+  <test-suite type="TestSuite" id="1000" name="HiBoP" fullname="HiBoP" runstate="Runnable" testcasecount="904" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14.645539" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+    <properties>
+      <property name="platform" value="EditMode" />
+    </properties>
+    <test-suite type="Assembly" id="2095" name="HBP.Transfer.Scene.Tests.dll" fullname="C:/HBP/Software/HiBoP/Library/ScriptAssemblies/HBP.Transfer.Scene.Tests.dll" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14.631469" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+      <properties>
+        <property name="_PID" value="54400" />
+        <property name="_APPDOMAIN" value="Unity Child Domain" />
+        <property name="platform" value="EditMode" />
+        <property name="EditorOnly" value="True" />
+      </properties>
+      <test-suite type="TestSuite" id="2096" name="HBP" fullname="HBP" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14.630702" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+        <properties />
+        <test-suite type="TestSuite" id="2097" name="Tests" fullname="HBP.Tests" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14.630217" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+          <properties />
+          <test-suite type="TestSuite" id="2098" name="Transfer" fullname="HBP.Tests.Transfer" runstate="Runnable" testcasecount="23" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:49Z" duration="14.629614" total="23" passed="23" failed="0" inconclusive="0" skipped="0" asserts="0">
+            <properties />
+            <test-suite type="TestFixture" id="2061" name="PairingGlobalsHandshakeTests" fullname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests" classname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:38Z" duration="3.212471" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2064" name="PairingWaitsForGlobalInstallationAndLocksAfterFailure" fullname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests.PairingWaitsForGlobalInstallationAndLocksAfterFailure" classname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:38Z" duration="3.207770" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2062" name="PairingWaitsForGlobalInstallationAndLocksAfterFailure(False)" fullname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests.PairingWaitsForGlobalInstallationAndLocksAfterFailure(False)" methodname="PairingWaitsForGlobalInstallationAndLocksAfterFailure" classname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests" runstate="Runnable" seed="2058201105" result="Passed" start-time="2026-09-11 09:13:34Z" end-time="2026-09-11 09:13:36Z" duration="1.615427" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2063" name="PairingWaitsForGlobalInstallationAndLocksAfterFailure(True)" fullname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests.PairingWaitsForGlobalInstallationAndLocksAfterFailure(True)" methodname="PairingWaitsForGlobalInstallationAndLocksAfterFailure" classname="HBP.Tests.Transfer.PairingGlobalsHandshakeTests" runstate="Runnable" seed="1869168830" result="Passed" start-time="2026-09-11 09:13:36Z" end-time="2026-09-11 09:13:38Z" duration="1.580366" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="2065" name="PairingLifetimeTests" fullname="HBP.Tests.Transfer.PairingLifetimeTests" classname="HBP.Tests.Transfer.PairingLifetimeTests" runstate="Runnable" testcasecount="1" result="Passed" start-time="2026-09-11 09:13:38Z" end-time="2026-09-11 09:13:38Z" duration="0.005787" total="1" passed="1" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2066" name="ClearingBeforeGlobalReplacementWaitsForPreparationAndRetiredScenes" fullname="HBP.Tests.Transfer.PairingLifetimeTests.ClearingBeforeGlobalReplacementWaitsForPreparationAndRetiredScenes" methodname="ClearingBeforeGlobalReplacementWaitsForPreparationAndRetiredScenes" classname="HBP.Tests.Transfer.PairingLifetimeTests" runstate="Runnable" seed="415032983" result="Passed" start-time="2026-09-11 09:13:38Z" end-time="2026-09-11 09:13:38Z" duration="0.005094" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+            </test-suite>
+            <test-suite type="TestFixture" id="2067" name="PreparedSceneArchiveTests" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="18" result="Passed" start-time="2026-09-11 09:13:38Z" end-time="2026-09-11 09:13:49Z" duration="11.291961" total="18" passed="18" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-case id="2072" name="AllModalitiesRoundTripKeepsPatientsProtocolIdentityTrialsAndTimelines" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.AllModalitiesRoundTripKeepsPatientsProtocolIdentityTrialsAndTimelines" methodname="AllModalitiesRoundTripKeepsPatientsProtocolIdentityTrialsAndTimelines" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1282616795" result="Passed" start-time="2026-09-11 09:13:38Z" end-time="2026-09-11 09:13:38Z" duration="0.742645" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2076" name="ChangedContentAndPathTraversalAreRejected" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.ChangedContentAndPathTraversalAreRejected" methodname="ChangedContentAndPathTraversalAreRejected" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="90262517" result="Passed" start-time="2026-09-11 09:13:38Z" end-time="2026-09-11 09:13:39Z" duration="0.398856" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-case id="2077" name="EqualVoxelFilesWithDifferentHeadersKeepDistinctNativePairs" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.EqualVoxelFilesWithDifferentHeadersKeepDistinctNativePairs" methodname="EqualVoxelFilesWithDifferentHeadersKeepDistinctNativePairs" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1468175616" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:39Z" duration="0.058363" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2089" name="MissingOrChangedDefinitionRequiresPairingAgain" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingOrChangedDefinitionRequiresPairingAgain" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:39Z" duration="0.524750" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2087" name="MissingOrChangedDefinitionRequiresPairingAgain(False)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingOrChangedDefinitionRequiresPairingAgain(False)" methodname="MissingOrChangedDefinitionRequiresPairingAgain" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="2103578524" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:39Z" duration="0.392117" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2088" name="MissingOrChangedDefinitionRequiresPairingAgain(True)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingOrChangedDefinitionRequiresPairingAgain(True)" methodname="MissingOrChangedDefinitionRequiresPairingAgain" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="623924494" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:39Z" duration="0.131401" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2075" name="MissingResourceAndUnknownFormatFailBeforeRestoration" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingResourceAndUnknownFormatFailBeforeRestoration" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:41Z" duration="1.172093" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2073" name="MissingResourceAndUnknownFormatFailBeforeRestoration(False)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingResourceAndUnknownFormatFailBeforeRestoration(False)" methodname="MissingResourceAndUnknownFormatFailBeforeRestoration" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="2026599939" result="Passed" start-time="2026-09-11 09:13:39Z" end-time="2026-09-11 09:13:40Z" duration="0.582282" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2074" name="MissingResourceAndUnknownFormatFailBeforeRestoration(True)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.MissingResourceAndUnknownFormatFailBeforeRestoration(True)" methodname="MissingResourceAndUnknownFormatFailBeforeRestoration" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1295111460" result="Passed" start-time="2026-09-11 09:13:40Z" end-time="2026-09-11 09:13:41Z" duration="0.588850" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="2086" name="OptionalIllustrationsDoNotHideArchiveWriteFailures" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.OptionalIllustrationsDoNotHideArchiveWriteFailures" methodname="OptionalIllustrationsDoNotHideArchiveWriteFailures" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="98919247" result="Passed" start-time="2026-09-11 09:13:41Z" end-time="2026-09-11 09:13:41Z" duration="0.005304" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2080" name="PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:41Z" end-time="2026-09-11 09:13:43Z" duration="2.180517" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2078" name="PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages(False)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages(False)" methodname="PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1366190662" result="Passed" start-time="2026-09-11 09:13:41Z" end-time="2026-09-11 09:13:42Z" duration="1.080121" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2079" name="PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages(True)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages(True)" methodname="PairingGlobalsRestoreCanonicalProtocolsTagsFiltersAndImages" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="268869216" result="Passed" start-time="2026-09-11 09:13:42Z" end-time="2026-09-11 09:13:43Z" duration="1.099337" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-case id="2090" name="PreviousPairingDeliveryIsRejectedEvenWithIdenticalDefinitions" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.PreviousPairingDeliveryIsRejectedEvenWithIdenticalDefinitions" methodname="PreviousPairingDeliveryIsRejectedEvenWithIdenticalDefinitions" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="510836638" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:43Z" duration="0.734643" asserts="0">
+                <properties>
+                  <property name="retryIteration" value="0" />
+                  <property name="repeatIteration" value="0" />
+                </properties>
+              </test-case>
+              <test-suite type="ParameterizedMethod" id="2071" name="ReferencePackagingPreservesCompressedScientificBytes" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.ReferencePackagingPreservesCompressedScientificBytes" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="3" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:43Z" duration="0.002463" total="3" passed="3" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2068" name="ReferencePackagingPreservesCompressedScientificBytes(&quot;Atlases/atlas.nii.gz&quot;,&quot;Atlases/atlas.nii.gz.bytes&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.ReferencePackagingPreservesCompressedScientificBytes(&quot;Atlases/atlas.nii.gz&quot;,&quot;Atlases/atlas.nii.gz.bytes&quot;)" methodname="ReferencePackagingPreservesCompressedScientificBytes" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1232401335" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:43Z" duration="0.000698" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2069" name="ReferencePackagingPreservesCompressedScientificBytes(&quot;Atlases/atlas.NII.GZ&quot;,&quot;Atlases/atlas.NII.GZ.bytes&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.ReferencePackagingPreservesCompressedScientificBytes(&quot;Atlases/atlas.NII.GZ&quot;,&quot;Atlases/atlas.NII.GZ.bytes&quot;)" methodname="ReferencePackagingPreservesCompressedScientificBytes" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1635407138" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:43Z" duration="0.000353" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2070" name="ReferencePackagingPreservesCompressedScientificBytes(&quot;IRM/MNI.nii&quot;,&quot;IRM/MNI.nii&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.ReferencePackagingPreservesCompressedScientificBytes(&quot;IRM/MNI.nii&quot;,&quot;IRM/MNI.nii&quot;)" methodname="ReferencePackagingPreservesCompressedScientificBytes" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="860490599" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:43Z" duration="0.000302" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+              <test-suite type="ParameterizedMethod" id="2085" name="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" testcasecount="4" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:49Z" duration="5.467944" total="4" passed="4" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2081" name="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;missing&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;missing&quot;)" methodname="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1332293813" result="Passed" start-time="2026-09-11 09:13:43Z" end-time="2026-09-11 09:13:45Z" duration="1.249305" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2082" name="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;unresolved-alias&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;unresolved-alias&quot;)" methodname="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1256683128" result="Passed" start-time="2026-09-11 09:13:45Z" end-time="2026-09-11 09:13:46Z" duration="1.300127" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2083" name="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;locked&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;locked&quot;)" methodname="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1718763810" result="Passed" start-time="2026-09-11 09:13:46Z" end-time="2026-09-11 09:13:47Z" duration="1.407386" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2084" name="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;unsupported-extension&quot;)" fullname="HBP.Tests.Transfer.PreparedSceneArchiveTests.UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer(&quot;unsupported-extension&quot;)" methodname="UnavailableIllustrationsDoNotBlockProtocolOrSceneTransfer" classname="HBP.Tests.Transfer.PreparedSceneArchiveTests" runstate="Runnable" seed="1798649869" result="Passed" start-time="2026-09-11 09:13:47Z" end-time="2026-09-11 09:13:49Z" duration="1.509063" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+              </test-suite>
+            </test-suite>
+            <test-suite type="TestFixture" id="2091" name="SceneFileTransportTests" fullname="HBP.Tests.Transfer.SceneFileTransportTests" classname="HBP.Tests.Transfer.SceneFileTransportTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:49Z" end-time="2026-09-11 09:13:49Z" duration="0.117746" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+              <properties />
+              <test-suite type="ParameterizedMethod" id="2094" name="FileChunksAreVerifiedBeforePublicationAndAcknowledgment" fullname="HBP.Tests.Transfer.SceneFileTransportTests.FileChunksAreVerifiedBeforePublicationAndAcknowledgment" classname="HBP.Tests.Transfer.SceneFileTransportTests" runstate="Runnable" testcasecount="2" result="Passed" start-time="2026-09-11 09:13:49Z" end-time="2026-09-11 09:13:49Z" duration="0.116906" total="2" passed="2" failed="0" inconclusive="0" skipped="0" asserts="0">
+                <properties />
+                <test-case id="2092" name="FileChunksAreVerifiedBeforePublicationAndAcknowledgment(False)" fullname="HBP.Tests.Transfer.SceneFileTransportTests.FileChunksAreVerifiedBeforePublicationAndAcknowledgment(False)" methodname="FileChunksAreVerifiedBeforePublicationAndAcknowledgment" classname="HBP.Tests.Transfer.SceneFileTransportTests" runstate="Runnable" seed="2019134908" result="Passed" start-time="2026-09-11 09:13:49Z" end-time="2026-09-11 09:13:49Z" duration="0.100107" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                </test-case>
+                <test-case id="2093" name="FileChunksAreVerifiedBeforePublicationAndAcknowledgment(True)" fullname="HBP.Tests.Transfer.SceneFileTransportTests.FileChunksAreVerifiedBeforePublicationAndAcknowledgment(True)" methodname="FileChunksAreVerifiedBeforePublicationAndAcknowledgment" classname="HBP.Tests.Transfer.SceneFileTransportTests" runstate="Runnable" seed="1998311116" result="Passed" start-time="2026-09-11 09:13:49Z" end-time="2026-09-11 09:13:49Z" duration="0.015838" asserts="0">
+                  <properties>
+                    <property name="retryIteration" value="0" />
+                    <property name="repeatIteration" value="0" />
+                  </properties>
+                  <output><![CDATA[<b><color=#2EA3FF>MCP-FOR-UNITY</color></b>: [TestRunnerNoThrottle] Restored Interaction Mode after test run.
+Saving results to: C:/Users/Benjamin BONTEMPS/AppData/LocalLow/CRNL/HiBoP\TestResults.xml
+]]></output>
+                </test-case>
+              </test-suite>
+            </test-suite>
+          </test-suite>
+        </test-suite>
+      </test-suite>
+    </test-suite>
+  </test-suite>
+</test-run>

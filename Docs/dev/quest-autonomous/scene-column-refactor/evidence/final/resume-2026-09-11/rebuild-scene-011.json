@@ -1,0 +1,20 @@
+{
+  "apk": ".artifacts\\scene-011\\Android\\HiBoP.Quest.apk",
+  "bytes": 394447911,
+  "sha256": "6f782773e4793970200753a7982a4481fb5574f8c4685bb64946b5e87f56e1a0",
+  "certificateSha256": "0cf833382569e08b3fb6353a26913195519fd8990da94b8dcd228b8c69378190",
+  "standardReferencesVerified": 31,
+  "localizers": 0,
+  "windowsDiagnosticPassed": true,
+  "windowsBuffersExactVsScene009": true,
+  "installed": true,
+  "installedHashVerified": true,
+  "installMethod": "adb install -r",
+  "usbForwardRestored": true,
+  "questLaunchRequested": true,
+  "scenePublicationVerified": false,
+  "windowsPlayer": ".artifacts/scene-011/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+  "windowsPlayerPid": 215944,
+  "recordedUtc": "2026-09-11T10:31:44.635327+00:00",
+  "windowsPlayerSha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+}

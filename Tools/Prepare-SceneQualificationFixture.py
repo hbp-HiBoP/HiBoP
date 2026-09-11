@@ -45,6 +45,8 @@ for template in templates['Columns']:
     column.update(ID='scene-008-' + kind, Name=kind)
     column['BaseConfiguration'] = copy.deepcopy(signal['BaseConfiguration'])
     column['BaseConfiguration']['ID'] = column['ID'] + '-base'
+    for site_id, configuration in column['BaseConfiguration'].get('ConfigurationBySite', {}).items():
+        configuration['ID'] = column['ID'] + '-site-' + site_id
     if 'Dataset' in column:
         column['Dataset'] = dataset['ID']
     if 'Bloc' in column:

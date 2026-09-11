@@ -111,5 +111,24 @@ namespace HBP.Tests.PlatformConfiguration
                 PlayerSettings.Android.targetArchitectures = architecture;
             }
         }
+
+        [TestCase("hbp_core")]
+        [TestCase("hbp_math")]
+        public void QuestBuildGuard_RejectsMissingNativeLibrary(string name)
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android) Assert.Ignore("Android profile only.");
+            var plugin = AssetImporter.GetAtPath($"Assets/Plugins/Native/Android/arm64-v8a/lib{name}.so") as PluginImporter;
+            Assert.That(plugin, Is.Not.Null);
+            bool included = plugin.GetCompatibleWithPlatform(BuildTarget.Android);
+            try
+            {
+                plugin.SetCompatibleWithPlatform(BuildTarget.Android, false);
+                Assert.Throws<BuildFailedException>(() => HBPBuildProfiles.Validate(BuildTarget.Android));
+            }
+            finally
+            {
+                plugin.SetCompatibleWithPlatform(BuildTarget.Android, included);
+            }
+        }
     }
 }

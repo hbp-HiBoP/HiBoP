@@ -1,0 +1,237 @@
+{
+  "recordedUtc": "2026-09-11T08:29:26.633017+00:00",
+  "scope": "SCENE-008 / Lot C continuation on laboratory workstation",
+  "status": "IMPLEMENTEE / PARTIELLE / EN_ATTENTE",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "commit": "f9db4b56e14d0a7d1a3f9f94f7c3b0b7ac6236a1",
+    "runtimeSourcesUnchanged": false,
+    "fixtureGeneratorChange": "Unique SiteConfiguration IDs per column",
+    "fixtureGenerator": {
+      "path": "Tools/Prepare-SceneQualificationFixture.py",
+      "bytes": 6735,
+      "sha256": "34d63df4d035cac82b98a77741fd7573b9cc1109b49875ece2939ece78b71256"
+    },
+    "editorPackagingChange": "Exclude separately distributed localizers from Android; HBPBuilder unchanged",
+    "toolChanges": [
+      {
+        "path": "Tools/Prepare-SceneQualificationFixture.py",
+        "bytes": 6735,
+        "sha256": "34d63df4d035cac82b98a77741fd7573b9cc1109b49875ece2939ece78b71256"
+      },
+      {
+        "path": "Tools/Build-QuestConnectionPlayers.ps1",
+        "bytes": 1881,
+        "sha256": "5be5aeb0c7f7ce8d89e7b16ecfa10a08a37877a374847aa664a9c54608c8f960"
+      },
+      {
+        "path": "Tools/Initialize-QuestSigning.ps1",
+        "bytes": 3263,
+        "sha256": "9c5ccf7cd5d2493e796c669581112616e2ee47cf150f87e11c0f67cd2c7321cf"
+      },
+      {
+        "path": "Tools/Sign-QuestApk.ps1",
+        "bytes": 4761,
+        "sha256": "b06231cd60abbddf748c8a1affa2f588b5ef4a22e779a2d05b2c4cfa0384c910"
+      },
+      {
+        "path": "Tools/QuestSigning.json",
+        "bytes": 162,
+        "sha256": "f3818c5e126bfb4565c7bdb1feb0e1aad493657f0a8b58f3580d9eee3200f334"
+      },
+      {
+        "path": "Assets/Scripts/HBP/Quest/Editor/QuestStandardDataBuild.cs",
+        "bytes": 1833,
+        "sha256": "48d93f0c0ac83eccc8b75119a08d44914309d3056d70ecef7ae885b6aab69bf5"
+      }
+    ],
+    "runtimeCorrection": "optional-illustrations-fix.json"
+  },
+  "builds": [
+    {
+      "platform": "Windows",
+      "status": "REUSSI",
+      "exitCode": 0,
+      "log": {
+        "path": ".test-results/scene-008/windows-build.log",
+        "bytes": 1187322,
+        "sha256": "9f5eef5651a59fdafd8f38f08913966776092f1bbda96187c86aabb1c687482f"
+      }
+    },
+    {
+      "platform": "Android",
+      "status": "REUSSI",
+      "exitCode": 0,
+      "log": {
+        "path": ".test-results/scene-008/android-build.log",
+        "bytes": 661995,
+        "sha256": "678cb8ff0efd7297cf744118621c867d93523a0487964d8c68f030476ad7b6b4"
+      },
+      "signature": "Pinned shared development identity verified by apksigner"
+    }
+  ],
+  "playerFiles": "windows-files.json",
+  "androidPackage": "android-package-final.json",
+  "fixtureFiles": [
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_3d-mni.nii",
+      "bytes": 852,
+      "sha256": "3824d50d4998f18e9ed55261c514b5a56cbe9242c156a911983318adef3b769a"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/fmri_4d-mni.nii",
+      "bytes": 1852,
+      "sha256": "c7e3d4672e01ce3cddf67387aea45d820a17d9abdf1c8d7f23aa3fc0601604c9"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/mask_binary-mni.nii",
+      "bytes": 477,
+      "sha256": "7166333714619d395fc54e1056ea82d467fcf303cf43288da42df8e287dac57b"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/megv_mask-mni.nii",
+      "bytes": 477,
+      "sha256": "c1f96a342b2c5a7ed66d1b9ba61f4016b7e3be3bdccaf8579b331f02637b6e7e"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008-patient.hibop",
+      "bytes": 19926,
+      "sha256": "500b8be15f20faffb435e5450ade1e9c6a10175de7dcb95ec0d7234ebed171a9"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008.hibop",
+      "bytes": 19947,
+      "sha256": "deeebf00900f1d7b510775add729488ee8daca977af00685d71205cd3954f34e"
+    },
+    {
+      "path": ".artifacts/scene-008/fixture/scene-008.prov",
+      "bytes": 861,
+      "sha256": "3ed1315533e48d727de3d9abaf0ef1d7b3208380896fb9769b6cf36fc8eab256"
+    }
+  ],
+  "checks": [
+    {
+      "name": "windows-mni",
+      "status": "REUSSI",
+      "success": true,
+      "elapsedMs": 12010.3433,
+      "peakUnityAllocatedBytesSampledPerFrame": 344503654,
+      "states": 12,
+      "columns": 6,
+      "result": {
+        "path": ".artifacts/scene-008/resume-20260911/device-desktop-fixed-fixture/result.json",
+        "bytes": 427969,
+        "sha256": "2d0bf51361a4bc14d584c066aade535a0b82df4493d96a60a15b6aa09e2f401b"
+      },
+      "portableResult": {
+        "path": "Docs/dev/quest-autonomous/scene-column-refactor/evidence/final/resume-2026-09-11/windows-mni-result.json",
+        "bytes": 427969,
+        "sha256": "2d0bf51361a4bc14d584c066aade535a0b82df4493d96a60a15b6aa09e2f401b"
+      },
+      "log": {
+        "path": ".artifacts/scene-008/resume-20260911/device-desktop-fixed-fixture/player.log",
+        "bytes": 2262,
+        "sha256": "0ef772ddab7b4f557c4d870957f7946677e0a98a97467dc7bf7e6063f3fa25fc"
+      },
+      "command": {
+        "path": ".artifacts/scene-008/resume-20260911/device-desktop-fixed-fixture/command.json",
+        "bytes": 533,
+        "sha256": "260aad2dc2b3cc82a8cbeb570816cad1618e679195d624af1d70fa8db94361c5"
+      }
+    },
+    {
+      "name": "windows-patient",
+      "status": "REUSSI",
+      "success": true,
+      "elapsedMs": 15462.6573,
+      "peakUnityAllocatedBytesSampledPerFrame": 289622702,
+      "states": 13,
+      "columns": 6,
+      "result": {
+        "path": ".artifacts/scene-008/resume-20260911/windows-patient-fixed-fixture/result.json",
+        "bytes": 258904,
+        "sha256": "927ca79cd7a799f9711f61fbca98e55b9d2df7e53f8c1025898bb22d4aac1772"
+      },
+      "portableResult": {
+        "path": "Docs/dev/quest-autonomous/scene-column-refactor/evidence/final/resume-2026-09-11/windows-patient-result.json",
+        "bytes": 258904,
+        "sha256": "927ca79cd7a799f9711f61fbca98e55b9d2df7e53f8c1025898bb22d4aac1772"
+      },
+      "log": {
+        "path": ".artifacts/scene-008/resume-20260911/windows-patient-fixed-fixture/player.log",
+        "bytes": 2987,
+        "sha256": "6161559001b3838ab48625ad50963a557f0d3b7b2af0e541ebfb88f11d9da2b7"
+      },
+      "command": {
+        "path": ".artifacts/scene-008/resume-20260911/windows-patient-fixed-fixture/command.json",
+        "bytes": 585,
+        "sha256": "32f8c056d2403c8e2acc6a98901164b43fed69a2db562bb73c3f6a8ca193ed0f"
+      }
+    }
+  ],
+  "installation": {
+    "status": "REUSSI",
+    "migration": "Explicit user approval; old application uninstalled once, new shared-key APK installed",
+    "installedApkSha256": "817cf0381afd81576ee3ce2d9fbc6a164c7a8aa433cb2dad859027271a7dabbb",
+    "restoration": "device-restoration.json",
+    "backupPreserved": true,
+    "initialFailureEvidence": "android-install.txt"
+  },
+  "physicalQualification": {
+    "status": "PAIRED_DELIVERY_RECEIVED_NATIVE_DEPENDENCY_FIX_UNDER_VALIDATION",
+    "transport": "ADB USB forward tcp:45871 -> tcp:45871; 127.0.0.1 on Desktop",
+    "manualStatus": "EN_ATTENTE"
+  },
+  "historicalEvidence": {
+    "manifest": "../manifest.json",
+    "pause": "../pause-2026-09-10/resume-state.json",
+    "testsNotRerun": true
+  },
+  "limitations": [
+    "Common signing key migration completed with all private and non-cache external files restored and SHA-256 verified",
+    "Localizers distributed separately; their installation/functional qualification is pending",
+    "No physical pairing, delivery, rendering, manipulation, offline recalculation, result on new APK; only pre-pairing PSS sample collected",
+    "USB qualification does not qualify Wi-Fi throughput or reconnection",
+    "Original patient diagnostic expired before scene loading; duplicate-ID dialog observed later in visible Player and fixed in generator",
+    "Scientific binary buffers and complete build logs are stored under ignored local artifact directories"
+  ],
+  "backup": {
+    "status": "REUSSI",
+    "hashesVerified": 159,
+    "manifest": "device-backup-manifest.json",
+    "path": ".test-results/scene-008/resume-20260911/device-backup"
+  },
+  "localizers": {
+    "status": "DISTRIBUTED_SEPARATELY",
+    "files": 18,
+    "evidence": "localizers-restored.json",
+    "artifact": ".artifacts/scene-008/optional-localizers",
+    "inWindowsPlayer": false,
+    "inApk": false
+  },
+  "signingChecks": {
+    "realApkResignedAndVerified": true,
+    "missingConfigurationRejected": true,
+    "regenerationOfPinnedIdentityRejected": true,
+    "independentReview": "No blocking defect found",
+    "credentialsOutsideGit": true
+  },
+  "startup": {
+    "status": "RUNNING_XR_COMPOSITION_READY",
+    "evidence": "quest-startup.json",
+    "visualStatus": "Awaiting user observations",
+    "warnings": "Meta boundary visibility requests returned XR_ERROR_RUNTIME_FAILURE"
+  },
+  "pairingFailureAndFix": "optional-illustrations-fix.json",
+  "currentPlayerEvidence": "optional-illustrations-fix.json",
+  "earlierPlayerEvidenceNote": "Top-level builds, playerFiles, androidPackage and startup refer to first migration builds; currentPlayerEvidence identifies the subsequent optional-illustration fix and installed APK.",
+  "mathDeploymentFailureAndFix": "math-deployment-fix.json",
+  "latestNativeCorrection": {
+    "evidence": "math-deployment-fix.json",
+    "status": "FINAL_APK_INSTALLED_AWAITING_PHYSICAL_DELIVERY",
+    "updatedUtc": "2026-09-11T09:57:04.335297+00:00"
+  },
+  "latestBuildEvidence": "rebuild-scene-011.json",
+  "firstPublishedScene": "first-published-scene.json",
+  "latestPhysicalStatus": "PUBLISHED_AND_COLUMNS_LABELS_CONFIRMED_BY_USER"
+}

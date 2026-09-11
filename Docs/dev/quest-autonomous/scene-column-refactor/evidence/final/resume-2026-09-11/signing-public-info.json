@@ -1,0 +1,15 @@
+{
+  "subject": "CN=HiBoP Quest Development",
+  "notBeforeUtc": "2026-09-11T08:36:08.0000000Z",
+  "notAfterUtc": "2126-08-18T08:36:08.0000000Z",
+  "directory": "C:\\Users\\Benjamin BONTEMPS\\AppData\\Local\\HiBoP\\Signing\\QuestDevelopment",
+  "acl": [
+    {
+      "IdentityReference": {
+        "Value": "DESKTOP-PI8L5S9\\Benjamin BONTEMPS"
+      },
+      "FileSystemRights": 2032127,
+      "IsInherited": false
+    }
+  ]
+}
