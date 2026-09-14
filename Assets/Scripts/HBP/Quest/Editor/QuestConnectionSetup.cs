@@ -109,12 +109,26 @@ namespace HBP.Quest.Editor
                 Label(panel, "Title", "Quest connection", 20, -15, 560, 32, 24);
                 var close = Button(panel, "Close", 565, -15, 85);
                 UnityEventTools.AddPersistentListener(close.onClick, controller.TogglePanel);
-                Label(panel, "Instructions", "1. Open HiBoP on Quest. Enter the address shown in the headset.", 20, -60, 630, 30);
-                var address = Input(panel, "Quest address", "192.168.1.x", 20, -100, 300);
-                var inspect = Button(panel, "Inspect Quest", 335, -100, 180);
-                Label(panel, "Compare", "2. Compare EVERY fingerprint group with the headset.", 20, -150, 630, 30);
-                var fingerprint = Label(panel, "Fingerprint", "Fingerprint appears after Inspect Quest.", 20, -185, 630, 52, 18);
-                var toggleRect = Rect(panel, "Confirm fingerprint", 20, -245, 630, 30);
+                Label(panel, "Instructions", "1. Open HiBoP on Quest, using USB or the same Wi-Fi network.", 20, -60, 630, 30);
+                var dropdownObject = DefaultControls.CreateDropdown(new DefaultControls.Resources());
+                dropdownObject.name = "Detected Quests";
+                dropdownObject.transform.SetParent(panel, false);
+                var dropdownRect = (RectTransform)dropdownObject.transform;
+                dropdownRect.anchorMin = dropdownRect.anchorMax = new Vector2(0, 1);
+                dropdownRect.pivot = new Vector2(0, 1);
+                dropdownRect.anchoredPosition = new Vector2(20, -100);
+                dropdownRect.sizeDelta = new Vector2(630, 34);
+                var devices = dropdownObject.GetComponent<Dropdown>();
+                foreach (var text in dropdownObject.GetComponentsInChildren<Text>(true))
+                {
+                    text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                    text.fontSize = 17;
+                }
+
+                devices.ClearOptions();
+                devices.AddOptions(new System.Collections.Generic.List<string> { "Searching for Quest..." });
+                var discoveryStatus = Label(panel, "Discovery status", "Searching USB and Wi-Fi...", 20, -143, 630, 46, 15);
+                var toggleRect = Rect(panel, "Manual IP", 20, -195, 320, 30);
                 var toggle = toggleRect.gameObject.AddComponent<Toggle>();
                 var box = Rect(toggleRect, "Box", 0, 0, 25, 25).gameObject.AddComponent<Image>();
                 box.color = new Color(0.3f, 0.35f, 0.4f);
@@ -123,7 +137,10 @@ namespace HBP.Quest.Editor
                 toggle.targetGraphic = box;
                 toggle.graphic = mark;
                 toggle.isOn = false;
-                Label(toggleRect, "Label", "All groups match the fingerprint displayed in my Quest", 35, 0, 590, 30);
+                Label(toggleRect, "Label", "Enter an IP address manually", 35, 0, 290, 30);
+                var address = Input(panel, "Quest address", "Quest IPv4 address", 350, -195, 300);
+                address.gameObject.SetActive(false);
+                Label(panel, "Pairing instructions", "2. Enter the headset code for the first association only.", 20, -245, 630, 30);
                 var code = Input(panel, "Pairing code", "6-digit headset code", 20, -285, 300);
                 code.characterLimit = 6;
                 code.contentType = InputField.ContentType.IntegerNumber;
@@ -137,11 +154,11 @@ namespace HBP.Quest.Editor
                 Set(serialized, "panel", panel.gameObject);
                 Set(serialized, "address", address);
                 Set(serialized, "code", code);
-                Set(serialized, "fingerprint", fingerprint);
-                Set(serialized, "confirmed", toggle);
+                Set(serialized, "devices", devices);
+                Set(serialized, "discoveryStatus", discoveryStatus);
+                Set(serialized, "manual", toggle);
                 Set(serialized, "status", status);
                 Set(serialized, "selection", selection);
-                Set(serialized, "inspect", inspect);
                 Set(serialized, "pair", pair);
                 Set(serialized, "send", send);
                 Set(serialized, "retry", retry);

@@ -3,7 +3,19 @@
 Position : après les jalons J0–J7. Type : implémentation ciblée / qualification sécurité et UX.
 Dépendances : [QUEST-011](QUEST-011.md), [QUEST-026](QUEST-026.md),
 [QUEST-027](QUEST-027.md) ; [QUEST-029](QUEST-029.md) si Linux est retenu.
+**Mise à jour propriétaire du 2026-09-14 (D32)** : exécution autorisée maintenant
+sur Windows/Quest, découverte USB et Wi-Fi, saisie IP toujours disponible,
+mémorisation de confiance et reconnexion automatique incluses. Le premier test
+physique utilisera USB lorsque le propriétaire annoncera que le casque est chargé.
+Ces décisions remplacent les exclusions et prérequis historiques contradictoires
+ci-dessous ; la qualification Mac/Linux n'est pas déduite de celle de Windows.
+
 Statut et preuves : [registre](../TASK-STATUS.md#quest-030).
+
+**Exigence finale D33 (2026-09-14)** : installation et appairage sans ADB,
+mode développeur ni autorisation du débogage USB. Les tests USB actuels
+continuent, sans valider cette dépendance pour la distribution finale.
+Voir la [note distribution, plateformes et CI](../reports/QUEST-030-distribution-and-adb.md).
 
 ## Instructions de reprise
 

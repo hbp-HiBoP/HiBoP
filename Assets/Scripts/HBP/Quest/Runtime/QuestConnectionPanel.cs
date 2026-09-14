@@ -23,8 +23,22 @@ namespace HBP.Quest
         private QuestPairing pairing;
         private string address, status = "Starting connection...";
         private bool restarting;
+        private string identityPath, deviceName;
         private bool details = true;
         private float nextRefresh;
+
+        private void Awake()
+        {
+            string root = Application.persistentDataPath;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+            using var directory = activity.Call<AndroidJavaObject>("getNoBackupFilesDir");
+            root = directory.Call<string>("getAbsolutePath");
+#endif
+            identityPath = System.IO.Path.Combine(root, "QuestPairing", "identity.pair");
+            deviceName = SystemInfo.deviceName;
+        }
 
         private void OnEnable()
         {
@@ -35,7 +49,7 @@ namespace HBP.Quest
             _ = RestartAsync(); // All failures observed by RestartAsync/RunAsync.
         }
 
-        public async Task RestartAsync()
+        public async Task RestartAsync(bool renew = false)
         {
             if (restarting || !isActiveAndEnabled) return;
             restarting = true;
@@ -47,7 +61,7 @@ namespace HBP.Quest
                 if (!this || !isActiveAndEnabled) return;
                 lifetime = new CancellationTokenSource();
                 details = true;
-                running = RunAsync(lifetime.Token);
+                running = RunAsync(lifetime.Token, renew);
             }
             catch (Exception)
             {
@@ -59,23 +73,47 @@ namespace HBP.Quest
             }
         }
 
-        private async Task RunAsync(CancellationToken stop)
+        private async Task RunAsync(CancellationToken stop, bool renew)
         {
             try
             {
                 status = "Preparing secure pairing...";
-                using var nextPairing = await Task.Run(() => new QuestPairing(), stop);
+                using var nextPairing = await Task.Run(() => new QuestPairing(identityPath, deviceName, renew), stop);
                 stop.ThrowIfCancellationRequested();
                 pairing = nextPairing;
                 address = string.Join(" / ", NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up).SelectMany(n => n.GetIPProperties().UnicastAddresses).Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)).Select(a => a.Address.ToString()).Distinct());
-                status = "Open Quest in Desktop, enter this address.";
-                var listener = new TcpListener(IPAddress.Any, QuestPairing.Port);
-                listener.Start(4);
-                var context = SynchronizationContext.Current;
-                await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
+                status = "Select this Quest on Desktop, then click Pair.";
+                while (!stop.IsCancellationRequested)
                 {
-                    if (!stop.IsCancellationRequested) status = message;
-                }, null), session.ReceiveGlobalsAsync);
+                    try
+                    {
+                        var listener = new TcpListener(IPAddress.Any, QuestPairing.Port);
+                        listener.Start(4);
+                        var context = SynchronizationContext.Current;
+                        using var advertising = CancellationTokenSource.CreateLinkedTokenSource(stop);
+                        Task discovery = AdvertiseAsync(nextPairing, advertising.Token);
+                        try
+                        {
+                            await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
+                            {
+                                if (!stop.IsCancellationRequested) status = message;
+                            }, null), session.ReceiveGlobalsAsync);
+                        }
+                        finally
+                        {
+                            advertising.Cancel();
+                            await discovery;
+                        }
+                    }
+                    catch (Exception exception) when (!stop.IsCancellationRequested)
+                    {
+                        // Keep the same pairing owner, attempt budget and globals if the
+                        // network listener must be recreated after an interface failure.
+                        status = "Connection interrupted. Reconnecting automatically...";
+                        Debug.LogWarning("Quest listener will retry: " + exception.GetType().Name);
+                        await Task.Delay(5000, stop);
+                    }
+                }
             }
             catch (Exception) when (stop.IsCancellationRequested)
             {
@@ -91,9 +129,21 @@ namespace HBP.Quest
             }
         }
 
+        private static async Task AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
+        {
+            try
+            {
+                await QuestDiscovery.AdvertiseAsync(() => receiver.Announcement, stop);
+            }
+            catch (Exception exception) when (!stop.IsCancellationRequested)
+            {
+                Debug.LogWarning("Quest Wi-Fi discovery unavailable: " + exception.GetType().Name);
+            }
+        }
+
         private void Update()
         {
-            if (restart.WasPressedThisFrame()) _ = RestartAsync();
+            if (restart.WasPressedThisFrame()) _ = RestartAsync(true);
             if (toggle.WasPressedThisFrame()) details = !details;
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
@@ -112,7 +162,7 @@ namespace HBP.Quest
                 return;
             }
 
-            string credentials = pairing == null ? "" : pairing.IsPaired ? "Paired with Desktop" : pairing.IsPreparing ? "Installing preferences and shared data..." : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nCompare ALL fingerprint groups on Desktop:\n{pairing.Fingerprint}";
+            string credentials = pairing == null ? "" : pairing.IsPaired ? (pairing.IsConnected ? "Paired · Desktop connected" : "Paired · waiting for Desktop to reconnect") : pairing.IsPreparing ? "Installing preferences and shared data..." : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nEnter once on Desktop; this Quest will be remembered.";
             statusText.text = Wrap($"HiBoP | Quest connection\n{address}\n{credentials}\n\n{progress}\n{content}\nY: restart pairing | B: hide/show panel\nIndex triggers: move / rotate / scale\nX: recenter | {surface}");
         }
 
@@ -148,8 +198,8 @@ namespace HBP.Quest
 
         private void OnApplicationPause(bool paused)
         {
-            if (paused) lifetime?.Cancel();
-            else if (isActiveAndEnabled) _ = RestartAsync();
+            // Keep the identity, code attempt budget and globals across normal headset sleep.
+            if (!paused && isActiveAndEnabled && running.IsCompleted) _ = RestartAsync();
         }
 
         private void OnDisable()

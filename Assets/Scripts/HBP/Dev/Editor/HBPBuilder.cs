@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System;
@@ -191,6 +191,20 @@ namespace HBP.Dev
                 arm64PluginsDirectory.Delete(true);
             }
 #endif
+
+            if (target == BuildTarget.StandaloneWindows64)
+            {
+                string sdk = Environment.GetEnvironmentVariable("ANDROID_HOME") ?? @"C:\Android\Sdk";
+                string source = Path.Combine(sdk, "platform-tools");
+                string usb = Path.Combine(buildDirectory, Application.productName + "_Data", "StreamingAssets", "QuestUsb");
+                Directory.CreateDirectory(usb);
+                foreach (string file in new[] { "adb.exe", "AdbWinApi.dll", "AdbWinUsbApi.dll", "NOTICE.txt" })
+                {
+                    string input = Path.Combine(source, file);
+                    if (!File.Exists(input)) throw new BuildFailedException("Quest USB discovery requires Android platform-tools: " + input);
+                    File.Copy(input, Path.Combine(usb, file), true);
+                }
+            }
 
             FileInfo readme = new(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name, true);

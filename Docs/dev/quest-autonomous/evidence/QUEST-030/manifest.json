@@ -1,0 +1,310 @@
+{
+  "task": "QUEST-030",
+  "updatedUtc": "2026-09-14T14:54:14.228523+00:00",
+  "source": {
+    "branch": "feature/xr-autonomous",
+    "head": "27178be3b444e78cb8b7c185b77fb6ab26c40948",
+    "uncommitted": true,
+    "files": [
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Prefabs\\General\\Main menu.prefab",
+        "bytes": 443821,
+        "sha256": "d34e63657d26bce666069a92dd569bdadff0290a512101bbc1f917723831b3dc"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Prefabs\\General\\Quest Connection.prefab",
+        "bytes": 114678,
+        "sha256": "f8e6939724eb8f4c73aa2aba4cff2f639a451f5391c39097236ac30bf7bf84e0"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Dev\\Editor\\HBPBuilder.cs",
+        "bytes": 25559,
+        "sha256": "7a0dd4c8f6eb804bc40a432e580fd98be78eba6e65255427f41f7fdb8f080139"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Editor\\QuestConnectionSetup.cs",
+        "bytes": 12663,
+        "sha256": "ba7b918fc974599eb09605ddce44eb085261b3d0a9a26d5f362dd6784d649859"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestConnectionPanel.cs",
+        "bytes": 9184,
+        "sha256": "aa3413aa55bd9a31958e18bcc158f9ac0885a834801c024a9103f8ce7bded3aa"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\PairingPake.cs",
+        "bytes": 7459,
+        "sha256": "fdd13ed1e413da0435e8d85076c963b074cec334981d5cf37715ae505f64d3bd"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\PairingPake.cs.meta",
+        "bytes": 62,
+        "sha256": "27cbdc0b25e05e983afe471054a44eeb04d24b8f9819f5b8cafb90138e147741"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\PairingStorage.cs",
+        "bytes": 3298,
+        "sha256": "6b22ba53ae446ef2ed04a5f41c5d8a9e7c56f2dd6383d3459ae8aba9acbb12e7"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\PairingStorage.cs.meta",
+        "bytes": 62,
+        "sha256": "41c3a13f9d18324aab7b823b47575e6f5cb4fe97b3df5fee4226c1f55aede712"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\QuestDiscovery.cs",
+        "bytes": 5202,
+        "sha256": "1a745394bc919874e7b21ca4d0aebc348a1f36bf874139e0d623c4e4b4132ac0"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\QuestDiscovery.cs.meta",
+        "bytes": 62,
+        "sha256": "7d7fe64ef209d3c95bb7ae3d1e43e33fffabefe2840c30faae9666d87121dc12"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\QuestPairing.cs",
+        "bytes": 22922,
+        "sha256": "25a45154aa48b3c9060fb4a034acab41fe3fe154b4644e1ae6c2a2eb9a34db41"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Transport\\TransportIdentity.cs",
+        "bytes": 4112,
+        "sha256": "fefe89fd4a3652e1689ede247d382a1f81db613296434d0f7ead7df2f957768a"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\DesktopQuestPanel.cs",
+        "bytes": 17765,
+        "sha256": "e7c07995c71419517ae2a9aae57813aedfb10c2501efacf5c4fc7e266e552c08"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestAdbProcess.cs",
+        "bytes": 8211,
+        "sha256": "2dbab1d097c795274b35964db5fdbf6ffa9ca733acea85493d51f93e520f9069"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestAdbProcess.cs.meta",
+        "bytes": 60,
+        "sha256": "4302edeca3484fd9e9dcc2ae379637f0463d86fb835586eec4792cd173150f38"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestPairingDiagnostic.cs",
+        "bytes": 8578,
+        "sha256": "0b406b0e4700c5777d62165010ac92167a62e27eecccc282d4e44e2b8c5f21f3"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestPairingDiagnostic.cs.meta",
+        "bytes": 61,
+        "sha256": "857b9de465dd01436b436226adaf63f3924098fa6cdcb5b5fd73b41a39740e65"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestUsbDiscovery.cs",
+        "bytes": 3023,
+        "sha256": "9244fc052b0ca520e8fc9ed491b6c98d7113474b257c09766654fd79e7ffa01e"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Quest\\QuestUsbDiscovery.cs.meta",
+        "bytes": 62,
+        "sha256": "40f6dd80c26ab166088b2b72ab6c16e6de80b8c3a7df0559a3c5b80e139298b4"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\UI\\Tools\\ApplicationManager.cs",
+        "bytes": 3739,
+        "sha256": "d0ecb88efdfc1a49872e85daaff9dd543e92d9eb1fc29b54e09506aa2f37c7c1"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\EditMode\\HBP.Transfer.Scene.Tests\\QuestSimplePairingTests.cs",
+        "bytes": 12486,
+        "sha256": "0d79d6a03b0d3ef969b389b11bae4eb9034dc8a97ae355c3f67a6ee2e648f3d1"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\EditMode\\HBP.Transfer.Scene.Tests\\QuestSimplePairingTests.cs.meta",
+        "bytes": 61,
+        "sha256": "52e3b83a7ef6bc2584e7eecdf3975089842c861e9735aa613fa16221c2272417"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\PlayMode\\HBP.Quest.PlayModeTests\\QuestPairingTests.cs",
+        "bytes": 14764,
+        "sha256": "4aba25a9fb8196df2a1953aad73898f14bf1f9f840c728ba71913801f62597d7"
+      }
+    ]
+  },
+  "scope": {
+    "decision": "D32",
+    "platforms": [
+      "Windows IL2CPP",
+      "Quest Android ARM64 IL2CPP"
+    ],
+    "wifi": "IMPLEMENTED_NOT_PHYSICALLY_TESTED",
+    "deployment": "DEPLOYED_QUEST_STOPPED_AFTER_OWNER_VALIDATION",
+    "manualValidation": "VALIDE_USB_AVEC_DEFAUT_ACTIVITE_DIFFERE"
+  },
+  "dependencies": {
+    "unity": "6000.5.2f1",
+    "bouncyCastle": "2.7.0",
+    "bouncyCastleDll": {
+      "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Plugins\\Managed\\BouncyCastle\\BouncyCastle.Cryptography.dll",
+      "bytes": 4885904,
+      "sha256": "d61c1f2ba929a230a58e101ccd850e21f2675fa6b9814ec279633e8a089c3495"
+    },
+    "nativeLock": {
+      "path": "C:\\HBP\\Software\\HiBoP\\Tools\\NativePlugins.lock.json",
+      "bytes": 9458,
+      "sha256": "339da8e8b151bbd978ae0e4f034df198538dc1557a2a5735c79a274cb7a5fb2a"
+    }
+  },
+  "verification": {
+    "editMode": {
+      "file": {
+        "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\editmode-final.xml",
+        "bytes": 77660,
+        "sha256": "c71a3abf616d460966bde78231e1c2e1c5cba45e2674b648e8073421d40c5709"
+      },
+      "result": "Skipped:Ignored",
+      "total": "63",
+      "passed": "60",
+      "failed": "0",
+      "skipped": "3",
+      "start-time": "2026-09-14 11:52:06Z",
+      "end-time": "2026-09-14 11:52:57Z"
+    },
+    "playModeInitial": {
+      "file": {
+        "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\playmode.xml",
+        "bytes": 12920,
+        "sha256": "79d44f137a3082967c7fa7cb79bdba3505fcd083cbde6a644d66f3d1f0b5218b"
+      },
+      "result": "Failed(Child)",
+      "total": "12",
+      "passed": "11",
+      "failed": "1",
+      "skipped": "0",
+      "start-time": "2026-09-14 11:53:56Z",
+      "end-time": "2026-09-14 11:54:13Z"
+    },
+    "playModeCorrectedPrefab": {
+      "file": {
+        "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\playmode-prefab.xml",
+        "bytes": 3790,
+        "sha256": "2cf7649668b386f162240c7e9597868ec205ac5063a20bc7ac1fb874fece5c42"
+      },
+      "result": "Passed",
+      "total": "1",
+      "passed": "1",
+      "failed": "0",
+      "skipped": "0",
+      "start-time": "2026-09-14 11:57:12Z",
+      "end-time": "2026-09-14 11:57:14Z"
+    },
+    "listenerRecovery": {
+      "file": {
+        "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\listener-retry.xml",
+        "bytes": 3799,
+        "sha256": "696cd1808e4dce903f695b7f745581be4071661cb6a70caf2bbfd279f003b098"
+      },
+      "result": "Passed",
+      "total": "1",
+      "passed": "1",
+      "failed": "0",
+      "skipped": "0",
+      "start-time": "2026-09-14 12:06:52Z",
+      "end-time": "2026-09-14 12:06:53Z"
+    },
+    "distinctPassingNUnitTests": 73,
+    "windowsPlayerSmoke": {
+      "utc": "2026-09-14T12:24:24.0786889Z",
+      "platform": "WindowsPlayer",
+      "error": "",
+      "passed": true,
+      "checks": 8
+    },
+    "windowsPlayerSmokeExit": "0",
+    "notQualified": [
+      "Physical Wi-Fi discovery/reconnect",
+      "Multiple physical headsets",
+      "Real-time code expiration",
+      "Complete recorded-transcript replay corpus",
+      "Separate official test vectors",
+      "Endurance",
+      "macOS",
+      "Linux"
+    ],
+    "windowsPairingSmokeBuild": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Windows\\HiBoP.6.1.0.win64\\GameAssembly.dll",
+      "bytes": 66631680,
+      "sha256": "0901f396a23b25abee241b1a7db9703daa35013cd02203cce04e00395fc5064c"
+    },
+    "windowsUsbSmoke": {
+      "utc": "2026-09-14T14:33:15.8321899Z",
+      "platform": "WindowsPlayer",
+      "error": "",
+      "passed": true,
+      "checks": 5
+    },
+    "windowsUsbSmokeExit": "0",
+    "windowsUsbSmokeFile": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\windows-usb-smoke\\result.json",
+      "bytes": 132,
+      "sha256": "153f4fec349717966569b504c68af92d2ffd682a7500140becbde468da602190"
+    }
+  },
+  "builds": {
+    "windowsReport": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Windows\\DesktopWindows.build-report.json",
+      "bytes": 831562,
+      "sha256": "052853ad87aa1dacda5472a2450ef2910f5b8b7b887cf236a23b242e4e7e9657"
+    },
+    "windowsExecutable": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Windows\\HiBoP.6.1.0.win64\\HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+    },
+    "windowsGameAssembly": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Windows\\HiBoP.6.1.0.win64\\GameAssembly.dll",
+      "bytes": 66581504,
+      "sha256": "f2b114c245facf93a6aae404475d417acce4078cc0f7d4b4cc6fce3e026a7156"
+    },
+    "androidReport": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Android\\Quest.build-report.json",
+      "bytes": 786781,
+      "sha256": "2537a74c4c7d48f9b76174fe9c3c61de31e678882137dd64c0d554b441df2d95"
+    },
+    "apk": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Android\\HiBoP.Quest.apk",
+      "bytes": 394447911,
+      "sha256": "40aae101eb963842b6c651b7c91df655ffd7e37c5441de838449e58eb9d34247"
+    },
+    "apkContent": {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-030\\apk-content.json",
+      "bytes": 11735,
+      "sha256": "3375f0814240d073342a378c3b2b5c75cb26a11c8de864b776d480e916664600"
+    }
+  },
+  "commands": [
+    "Tools/format-code.cmd",
+    "Unity.exe -batchmode -nographics -runTests -testPlatform EditMode -assemblyNames HBP.Transfer.Scene.Tests;HBP.PlatformConfiguration.Tests",
+    "Unity.exe -batchmode -runTests -testPlatform PlayMode -testFilter HBP.Tests.Quest.QuestPairingTests",
+    "Tools/Build-QuestConnectionPlayers.ps1 -Target Windows -EvidenceId quest-030",
+    "Tools/Build-QuestConnectionPlayers.ps1 -Target Android -EvidenceId quest-030",
+    "HiBoP.exe -batchmode -nographics -questPairingSmoke .test-results/quest-030/windows-smoke-final",
+    "HiBoP.exe -batchmode -nographics -questUsbSmoke .test-results/quest-030/windows-usb-smoke"
+  ],
+  "review": {
+    "independent": true,
+    "reviewerTask": "pairing_security_review",
+    "outcome": "No blocking finding remaining in bounded static review",
+    "fixedFindings": [
+      "Preserve trusted pin on manual resume",
+      "Bound PAKE participant string decoding",
+      "Schedule discovery after scan completion",
+      "Reset test installation counter",
+      "Catch InvalidDataException per connection",
+      "Keep pairing owner and globals across listener restart",
+      "Replace unsupported IL2CPP Process.Start with bounded native Windows ADB client launch; independent handle/ABI review and physical Player smoke passed"
+    ],
+    "scopeLimit": "Static review plus listed execution evidence, not a security certification"
+  },
+  "report": "Docs/dev/quest-autonomous/reports/QUEST-030.md",
+  "deploymentEvidence": "Docs/dev/quest-autonomous/evidence/QUEST-030/deployment.json",
+  "manualValidationEvidence": "Docs/dev/quest-autonomous/evidence/QUEST-030/manual-validation.json",
+  "deferredActivityIssue": "Docs/dev/quest-autonomous/reports/QUEST-030-activity-visibility.md"
+}

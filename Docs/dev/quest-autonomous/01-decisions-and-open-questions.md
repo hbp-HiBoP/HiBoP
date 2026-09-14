@@ -81,6 +81,43 @@ Elle n’étend pas ces seuils à une timeline, d’autres données ou d’autre
 La preuve brute reste sans tolérance ; l’[évaluation D31](evidence/QUEST-023/numerical-acceptance.json)
 est séparée. La validation manuelle sur casque reste distincte.
 
+## D32 — Parcours QUEST-030 et mémorisation (2026-09-14)
+
+Le propriétaire demande explicitement de réaliser QUEST-030 maintenant, puis
+valide le plan dans cette conversation. Cette instruction remplace l'ordre
+historique après J7 pour ce travail et étend son périmètre à la mémorisation
+durable du Quest et à la reconnexion automatique. Cible présente : Windows +
+Quest ; USB pour le test manuel, Wi-Fi à prévoir sans le déclarer qualifié.
+
+Parcours : HiBoP ouvert sur les deux appareils, onglet Quest, sélection dans
+une liste USB/Wi-Fi, saisie IP de secours toujours accessible, code au premier
+appairage si nécessaire, bouton Pair puis Envoyer au Quest. La liaison doit se
+rétablir après une interruption ; les scènes déjà reçues restent utilisables.
+L'agent implémente, compile les deux Players, déploie le Quest et lance les deux
+applications avant de rendre la main pour la recette manuelle.
+
+Le casque recharge actuellement. Le propriétaire demande de continuer
+l'implémentation et annoncera quand le déploiement et les tests physiques
+pourront commencer. Ne pas confondre ce délai matériel avec une validation.
+
+## D33 — Distribution sans ADB ni mode développeur (2026-09-14)
+
+Le propriétaire exige pour le produit final : installer HiBoP Desktop,
+installer HiBoP Quest, puis appairer via les applications, sans utilisation
+d'ADB, activation du mode développeur ou autorisation du débogage USB.
+Le transport USB actuel via ADB est une limite de l'implémentation de test,
+même si ADB est embarqué et ses commandes automatisées.
+
+Les essais manuels actuels continuent ; ils ne valident pas cette dépendance
+pour la distribution finale. À ce stade, consigner uniquement les limites et
+les points ouverts, sans modifier le code ou la CI pour les résoudre.
+L'USB sans ADB reste à étudier ; ni son abandon, ni un transport final uniquement
+réseau, ni une publication Store ne sont décidés.
+
+La [note ADB, distribution et plateformes](reports/QUEST-030-distribution-and-adb.md)
+détaille Windows, macOS/Linux, l'APK Quest et la dépendance non préparée
+explicitement dans la CI GitHub Actions.
+
 ## Orientations ultérieures, non figées
 
 - Permettre de modifier des données ou paramètres scientifiques (coupes,

@@ -46,7 +46,7 @@ contiennent les preuves. Ne pas recopier des cases « terminé » dans plusieurs
 | <a id="quest-027"></a>[QUEST-027](tasks/QUEST-027.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-028"></a>[QUEST-028](tasks/QUEST-028.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
 | <a id="quest-029"></a>[QUEST-029](tasks/QUEST-029.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | — |
-| <a id="quest-030"></a>[QUEST-030](tasks/QUEST-030.md) | A_FAIRE | NON_EXECUTE | NON_DEMANDE | D28 ; fiche rédigée, exécution après les jalons J0–J7. |
+| <a id="quest-030"></a>[QUEST-030](tasks/QUEST-030.md) | IMPLEMENTEE | PARTIEL | VALIDE | [Rapport](reports/QUEST-030.md) · [Preuves](evidence/QUEST-030/manifest.json) · [Validation manuelle](evidence/QUEST-030/manual-validation.json) ; le 2026-09-14, le propriétaire valide connexion/appairage, envoi et visualisation sur Quest, puis reconnexion après coupure USB. Défaut de projection d’activité [QUEST-030-OBS-01](reports/QUEST-030-activity-visibility.md) explicitement différé. 73 tests Unity, 8 contrôles Windows sur le build initial et 5 contrôles USB sur le Player corrigé réussis. HiBoP Quest arrêté après validation (D23), ADB conservé. Qualification technique partielle : Wi-Fi/Mac/Linux non qualifiés ; D33 et limites de distribution/CI dans la [note dédiée](reports/QUEST-030-distribution-and-adb.md). |
 
 ## Décisions bloquantes et retour utilisateur
 

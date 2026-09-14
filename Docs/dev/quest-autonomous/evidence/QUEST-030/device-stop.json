@@ -1,0 +1,12 @@
+{
+  "utc": "2026-09-14T14:51:18.7089991Z",
+  "serial": "2G0YC5ZHB20370",
+  "package": "fr.crnl.hibop.quest",
+  "reason": "D23 after owner manual validation",
+  "verified": true,
+  "adbPreserved": true,
+  "pidBefore": "6537",
+  "forceStopExitCode": 0,
+  "pidAfter": null,
+  "pidofExitCode": 1
+}

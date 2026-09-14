@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-14",
+  "recordedUtc": "2026-09-14T14:54:14.228523+00:00",
+  "status": "VALIDE",
+  "scope": "Parcours global Windows/Quest USB : connexion, ouverture projet et visualisation, envoi, visualisation Quest, reconnexion après débranchement/rebranchement.",
+  "source": "Retour explicite du propriétaire dans la discussion QUEST-030.",
+  "ownerFeedback": "Ok je valide le process global : j'ai connecté le quest, puis ouvert un projet et une visualisation, puis je l'ai envoyée sur le quest et j'ai pu visualiser sur le quest. Je note juste une erreur : l'activité était projetée sur le quest alors qu'elle ne l'était pas dans la visualisation que j'ai envoyé, mais c'est un problème à régler plus tard. Tu peux consigner ce problème également et valider le reste. J'ai également débranché puis rebranché le quest, et la reconnexion s'est bien effectuée.",
+  "checks": {
+    "connectionAndPairing": "VALIDE_PARCOURS_GLOBAL",
+    "projectAndVisualizationOpened": "VALIDE",
+    "sceneSendAndQuestDisplay": "VALIDE_AVEC_DEFAUT_DIFFERE",
+    "usbUnplugReplugReconnection": "VALIDE"
+  },
+  "deferredIssue": {
+    "id": "QUEST-030-OBS-01",
+    "status": "OUVERT_CORRECTION_DIFFEREE",
+    "report": "Docs/dev/quest-autonomous/reports/QUEST-030-activity-visibility.md",
+    "symptom": "Activité projetée sur Quest alors que non projetée dans la visualisation Desktop envoyée.",
+    "cause": "NON_DIAGNOSTIQUEE"
+  },
+  "notSeparatelyConfirmed": [
+    "Saisie du code au premier appairage",
+    "Conservation détaillée de la scène et des poses après coupure",
+    "Réouverture des applications et appairage mémorisé sans code",
+    "Saisie IP manuelle en présence du Quest détecté"
+  ],
+  "notQualified": [
+    "Wi-Fi physique",
+    "macOS et Linux",
+    "Plusieurs casques physiques",
+    "Distribution finale sans ADB ni mode développeur (D33)"
+  ],
+  "windowsGameAssembly": {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Windows\\HiBoP.6.1.0.win64\\GameAssembly.dll",
+    "bytes": 66581504,
+    "sha256": "f2b114c245facf93a6aae404475d417acce4078cc0f7d4b4cc6fce3e026a7156"
+  },
+  "questApk": {
+    "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-030\\Android\\HiBoP.Quest.apk",
+    "bytes": 394447911,
+    "sha256": "40aae101eb963842b6c651b7c91df655ffd7e37c5441de838449e58eb9d34247"
+  },
+  "transport": {
+    "kind": "ADB USB",
+    "serial": "2G0YC5ZHB20370",
+    "model": "Quest 3"
+  },
+  "deviceStop": {
+    "utc": "2026-09-14T14:51:18.7089991Z",
+    "serial": "2G0YC5ZHB20370",
+    "package": "fr.crnl.hibop.quest",
+    "reason": "D23 after owner manual validation",
+    "verified": true,
+    "adbPreserved": true,
+    "pidBefore": "6537",
+    "forceStopExitCode": 0,
+    "pidAfter": null,
+    "pidofExitCode": 1
+  }
+}

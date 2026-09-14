@@ -15,7 +15,7 @@ using X509Certificate = System.Security.Cryptography.X509Certificates.X509Certif
 
 namespace HBP.Transfer.Transport
 {
-    /// <summary>Per-run TLS identity. No key is persisted or exported.</summary>
+    /// <summary>Creates exportable TLS identities. QuestPairing owns their optional protected persistence.</summary>
     public static class TransportIdentity
     {
         public static X509Certificate2 Create()
@@ -30,7 +30,7 @@ namespace HBP.Transfer.Transport
             certificate.SetIssuerDN(name);
             certificate.SetSubjectDN(name);
             certificate.SetNotBefore(DateTime.UtcNow.AddMinutes(-1));
-            certificate.SetNotAfter(DateTime.UtcNow.AddHours(1));
+            certificate.SetNotAfter(DateTime.UtcNow.AddYears(10));
             certificate.SetPublicKey(keyPair.Public);
             certificate.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(false));
             certificate.AddExtension(X509Extensions.KeyUsage, true, new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyEncipherment));
@@ -41,7 +41,7 @@ namespace HBP.Transfer.Transport
             var store = new Pkcs12StoreBuilder().SetCertAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc).SetKeyAlgorithm(PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc).SetUseDerEncoding(true).Build();
             store.SetKeyEntry("identity", new AsymmetricKeyEntry(keyPair.Private), new[] { new X509CertificateEntry(signed) });
             // In-memory PKCS#12 bridges the standard library to Unity's TLS provider.
-            // Neither the certificate's private key nor this temporary password is saved.
+            // This temporary password is not persisted; QuestPairing separately owns protected storage.
             byte[] passwordBytes = new byte[32];
             random.NextBytes(passwordBytes);
             string password = Convert.ToBase64String(passwordBytes);
@@ -50,7 +50,7 @@ namespace HBP.Transfer.Transport
             byte[] pfx = buffer.ToArray();
             try
             {
-                return new X509Certificate2(pfx, password, X509KeyStorageFlags.EphemeralKeySet);
+                return new X509Certificate2(pfx, password, X509KeyStorageFlags.EphemeralKeySet | X509KeyStorageFlags.Exportable);
             }
             finally
             {

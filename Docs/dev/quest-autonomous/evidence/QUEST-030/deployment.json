@@ -1,0 +1,58 @@
+{
+  "updatedUtc": "2026-09-14T14:54:14.228523+00:00",
+  "device": "2G0YC5ZHB20370",
+  "model": "Quest 3",
+  "transport": "USB",
+  "package": "fr.crnl.hibop.quest",
+  "activity": "com.unity3d.player.UnityPlayerActivity",
+  "apkSha256": "40aae101eb963842b6c651b7c91df655ffd7e37c5441de838449e58eb9d34247",
+  "install": {
+    "output": "Success",
+    "exitCode": 0,
+    "command": "adb -s 2G0YC5ZHB20370 install -r .artifacts/quest-030/Android/HiBoP.Quest.apk"
+  },
+  "questLaunch": {
+    "exitCode": 0,
+    "observedActivity": "fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity",
+    "state": "STOPPED_AFTER_OWNER_VALIDATION_D23",
+    "command": "adb -s 2G0YC5ZHB20370 shell am start -n fr.crnl.hibop.quest/com.unity3d.player.UnityPlayerActivity",
+    "processId": 6537
+  },
+  "keepAwake": {
+    "proximityBroadcastResult": 0,
+    "pluggedIn": 15
+  },
+  "windows": {
+    "processId": 28944,
+    "log": ".test-results/quest-030/windows-manual-usb-fix.log",
+    "state": "CORRECTED_BUILD_MANUALLY_VALIDATED_BY_OWNER",
+    "executable": ".artifacts/quest-030/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+    "executableVerified": true,
+    "ownerObservation": "Interface visible, no project loaded.",
+    "gameAssemblySha256": "f2b114c245facf93a6aae404475d417acce4078cc0f7d4b4cc6fce3e026a7156"
+  },
+  "manualValidation": "VALIDE_USB_AVEC_DEFAUT_ACTIVITE_DIFFERE",
+  "startupNotes": [
+    "Owner cleared controller-required system dialog.",
+    "Startup logs include missing AssetPackManager and Meta optional XR camera/space messages; OpenXR composition reaches READY. Manual functionality not validated."
+  ],
+  "usbFix": {
+    "playerSmokeChecks": 5,
+    "passed": true,
+    "exitCode": 0,
+    "diagnosticForwardRemovedBeforeInteractiveLaunch": true,
+    "questApkUnchanged": true
+  },
+  "deviceStop": {
+    "utc": "2026-09-14T14:51:18.7089991Z",
+    "serial": "2G0YC5ZHB20370",
+    "package": "fr.crnl.hibop.quest",
+    "reason": "D23 after owner manual validation",
+    "verified": true,
+    "adbPreserved": true,
+    "pidBefore": "6537",
+    "forceStopExitCode": 0,
+    "pidAfter": null,
+    "pidofExitCode": 1
+  }
+}
