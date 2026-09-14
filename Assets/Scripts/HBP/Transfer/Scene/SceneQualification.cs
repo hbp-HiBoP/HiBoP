@@ -19,7 +19,7 @@ namespace HBP.Transfer.Scene
         {
             using var lease = scene.RetainForPreparation();
             Directory.CreateDirectory(directory);
-            var report = new JObject { ["success"] = false, ["unity"] = Application.unityVersion, ["platform"] = Application.platform.ToString(), ["graphics"] = SystemInfo.graphicsDeviceName };
+            var report = new JObject { ["schemaVersion"] = 2, ["success"] = false, ["unity"] = Application.unityVersion, ["platform"] = Application.platform.ToString(), ["graphics"] = SystemInfo.graphicsDeviceName };
             var states = new JArray();
             report["states"] = states;
             var clock = System.Diagnostics.Stopwatch.StartNew();
@@ -146,17 +146,21 @@ namespace HBP.Transfer.Scene
                 {
                     if (!scene.IsClosing)
                     {
+                        using var restoration = CancellationTokenSource.CreateLinkedTokenSource(Application.exitCancellationToken);
+                        restoration.CancelAfter(TimeSpan.FromMinutes(1));
                         scene.MeshManager.Select(originalMesh);
                         scene.MRIManager.Select(originalMRI);
                         // Resolve topology before restoring the user's erasure.
-                        await scene.PrepareRenderingAsync(token);
+                        await scene.PrepareRenderingAsync(restoration.Token);
                         scene.TriangleEraser.CurrentMasks = originalMasks;
                         for (int i = 0; i < timelines.Length; i++) timelines[i].CurrentIndex = saved[i].CurrentIndex;
                         scene.InvalidateActivityField();
-                        await scene.PrepareRenderingAsync(token);
+                        await scene.PrepareRenderingAsync(restoration.Token);
                     }
                 }
 
+                if (scene.TriangleEraser.CurrentMasks.Count != originalMasks.Count || scene.TriangleEraser.CurrentMasks.Where((mask, i) => !mask.SequenceEqual(originalMasks[i])).Any())
+                    throw new InvalidOperationException("Geometry restoration changed the user's erasure masks.");
                 states.Add(WriteState(scene, directory, "geometry-restored"));
                 report["success"] = true;
             }
@@ -177,8 +181,21 @@ namespace HBP.Transfer.Scene
 
                 sampling = false;
                 await sampler;
+                // Allow deferred Unity destruction to finish before measuring retained resources.
+                await UniTask.NextFrame();
                 report["elapsedMs"] = clock.Elapsed.TotalMilliseconds;
-                report["peakUnityAllocatedBytesSampledPerFrame"] = peak;
+                report["peakUnityAllocatedBytesSampledPerFrame"] = Math.Max(peak, Profiler.GetTotalAllocatedMemoryLong());
+                report["unityAllocatedBytesAtEnd"] = Profiler.GetTotalAllocatedMemoryLong();
+                report["meshesAtEnd"] = Resources.FindObjectsOfTypeAll<Mesh>().Length;
+                report["meshInventoryAtEnd"] = new JArray(Resources.FindObjectsOfTypeAll<Mesh>().Select(mesh => new JObject
+                {
+                    ["id"] = mesh.GetEntityId().ToString(),
+                    ["name"] = mesh.name,
+                    ["vertices"] = mesh.vertexCount,
+                    ["bytes"] = Profiler.GetRuntimeMemorySizeLong(mesh)
+                }));
+                report["texturesAtEnd"] = Resources.FindObjectsOfTypeAll<Texture>().Length;
+                report["materialsAtEnd"] = Resources.FindObjectsOfTypeAll<Material>().Length;
                 report["managedBytesAtEnd"] = GC.GetTotalMemory(false);
                 File.WriteAllText(Path.Combine(directory, "result.json"), report.ToString());
             }
@@ -236,8 +253,37 @@ namespace HBP.Transfer.Scene
                     ["material"] = site.GetComponent<Renderer>().sharedMaterial.name,
                     ["materialColor"] = ColorValues(site.GetComponent<Renderer>().sharedMaterial)
                 }));
+                var cutTextures = new JArray();
+                for (int cutIndex = 0; cutIndex < scene.Cuts.Count; cutIndex++)
+                {
+                    var rendered = column.BrainCutMeshes[cutIndex].GetComponent<Renderer>();
+                    var properties = new MaterialPropertyBlock();
+                    rendered.GetPropertyBlock(properties);
+                    if (properties.GetTexture("_MainTex") != column.CutTextures.BrainCutTextures[cutIndex])
+                        throw new InvalidOperationException("The rendered cut does not use its column's texture.");
+                    foreach (var entry in new[] { ("base", column.CutTextures.BaseBrainCutTextures[cutIndex]), ("functional", column.CutTextures.BrainCutTextures[cutIndex]) })
+                    {
+                        string textureFile = name + "-column" + i + "-cut" + cutIndex + "-" + entry.Item1 + ".rgba";
+                        using (var writer = new BinaryWriter(File.Create(Path.Combine(directory, textureFile))))
+                            foreach (Color32 pixel in entry.Item2.GetPixels32())
+                            {
+                                writer.Write(pixel.r);
+                                writer.Write(pixel.g);
+                                writer.Write(pixel.b);
+                                writer.Write(pixel.a);
+                            }
+
+                        cutTextures.Add(new JObject
+                        {
+                            ["cutIndex"] = cutIndex, ["kind"] = entry.Item1, ["width"] = entry.Item2.width, ["height"] = entry.Item2.height,
+                            ["file"] = textureFile, ["sha256"] = StandardData.HashFile(Path.Combine(directory, textureFile))
+                        });
+                    }
+                }
+
                 columns.Add(new JObject
                 {
+                    ["cutTextures"] = cutTextures,
                     ["id"] = column.ColumnData.ID, ["type"] = column.ColumnData.GetType().Name,
                     ["timeIndex"] = column.NavigationTimeline?.CurrentIndex, ["timeLength"] = column.NavigationTimeline?.Length,
                     ["vertices"] = mesh.vertexCount, ["activityCount"] = activity.Length, ["alphaCount"] = alpha.Length,

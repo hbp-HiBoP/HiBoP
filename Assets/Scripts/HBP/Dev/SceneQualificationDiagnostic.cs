@@ -23,10 +23,15 @@ namespace HBP.Dev
         private static async UniTask RunAsync(string directory, bool quit)
         {
             int code = 0;
+            string[] args = Environment.GetCommandLineArgs();
+            int passes = 1;
+            int passesOption = Array.IndexOf(args, "-sceneEvidencePasses");
             using var timeout = CancellationTokenSource.CreateLinkedTokenSource(Application.exitCancellationToken);
             timeout.CancelAfter(TimeSpan.FromMinutes(5));
             try
             {
+                if (passesOption >= 0 && (passesOption + 1 >= args.Length || !int.TryParse(args[passesOption + 1], out passes) || passes < 1 || passes > 3))
+                    throw new ArgumentException("-sceneEvidencePasses requires a value from 1 to 3.");
                 await UniTask.WaitUntil(() => Module3DMain.IsInitialized && Module3DMain.SelectedScene != null && Module3DMain.SelectedScene.SceneInformation.CompletelyLoaded, cancellationToken: timeout.Token);
                 if (Environment.GetCommandLineArgs().Contains("-scenePairingEvidence"))
                 {
@@ -35,7 +40,8 @@ namespace HBP.Dev
                     File.WriteAllText(Path.Combine(directory, "pairing-capture.txt"), "Global pairing snapshot captured successfully. No network connection attempted.");
                 }
 
-                await SceneQualification.RunAsync(Module3DMain.SelectedScene, directory, timeout.Token);
+                for (int pass = 1; pass <= passes; pass++)
+                    await SceneQualification.RunAsync(Module3DMain.SelectedScene, passes == 1 ? directory : Path.Combine(directory, "pass-" + pass), timeout.Token);
             }
             catch (Exception exception)
             {

@@ -1,0 +1,554 @@
+{
+  "scope": "Windows revision 2, three diagnostics in one process per fixture; no forced GC or asset unloading",
+  "runs": {
+    "windows-mni-revision-2": [
+      {
+        "success": true,
+        "elapsedMs": 12996.8757,
+        "unityAllocatedBytesAtEnd": 228964848,
+        "peakUnityAllocatedBytesSampledPerFrame": 228964848,
+        "managedBytesAtEnd": 479506432,
+        "meshesAtEnd": 32,
+        "texturesAtEnd": 306,
+        "materialsAtEnd": 80,
+        "states": 12,
+        "evidence": ".test-results/quest-024/windows-mni-revision-2/pass-1/result.json"
+      },
+      {
+        "success": true,
+        "elapsedMs": 14752.3593,
+        "unityAllocatedBytesAtEnd": 228987168,
+        "peakUnityAllocatedBytesSampledPerFrame": 231716183,
+        "managedBytesAtEnd": 446869504,
+        "meshesAtEnd": 36,
+        "texturesAtEnd": 306,
+        "materialsAtEnd": 80,
+        "states": 12,
+        "evidence": ".test-results/quest-024/windows-mni-revision-2/pass-2/result.json",
+        "newMeshes": [
+          {
+            "id": "568105589213728202",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728204",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728206",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728208",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728210",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728212",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728226",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213728842",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213728854",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213729972",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213729984",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ],
+        "removedMeshes": [
+          {
+            "id": "568105589213732696",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732698",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732700",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732702",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732704",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732706",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213732720",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ]
+      },
+      {
+        "success": true,
+        "elapsedMs": 14651.149800000001,
+        "unityAllocatedBytesAtEnd": 229006712,
+        "peakUnityAllocatedBytesSampledPerFrame": 231738711,
+        "managedBytesAtEnd": 418099200,
+        "meshesAtEnd": 40,
+        "texturesAtEnd": 306,
+        "materialsAtEnd": 80,
+        "states": 12,
+        "evidence": ".test-results/quest-024/windows-mni-revision-2/pass-3/result.json",
+        "newMeshes": [
+          {
+            "id": "568105589213723708",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723710",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723712",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723714",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723716",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723718",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213723732",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213724348",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213724360",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213725478",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213725490",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ],
+        "removedMeshes": [
+          {
+            "id": "568105589213728202",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728204",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728206",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728208",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728210",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728212",
+            "name": "Cube Instance(Clone)",
+            "vertices": 69104,
+            "bytes": 13822088
+          },
+          {
+            "id": "568105589213728226",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ]
+      }
+    ],
+    "windows-patient-revision-2": [
+      {
+        "success": true,
+        "elapsedMs": 15545.149000000001,
+        "unityAllocatedBytesAtEnd": 178795080,
+        "peakUnityAllocatedBytesSampledPerFrame": 221152087,
+        "managedBytesAtEnd": 418226176,
+        "meshesAtEnd": 34,
+        "texturesAtEnd": 308,
+        "materialsAtEnd": 80,
+        "states": 13,
+        "evidence": ".test-results/quest-024/windows-patient-revision-2/pass-1/result.json"
+      },
+      {
+        "success": true,
+        "elapsedMs": 15855.2554,
+        "unityAllocatedBytesAtEnd": 178832888,
+        "peakUnityAllocatedBytesSampledPerFrame": 221192775,
+        "managedBytesAtEnd": 389136384,
+        "meshesAtEnd": 40,
+        "texturesAtEnd": 308,
+        "materialsAtEnd": 80,
+        "states": 13,
+        "evidence": ".test-results/quest-024/windows-patient-revision-2/pass-2/result.json",
+        "newMeshes": [
+          {
+            "id": "568105589213730574",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730576",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730578",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730580",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730582",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730584",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730598",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213731248",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213731260",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213732378",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213732390",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213732402",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213732414",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ],
+        "removedMeshes": [
+          {
+            "id": "568105589213735218",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735220",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735222",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735224",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735226",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735228",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213735242",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ]
+      },
+      {
+        "success": true,
+        "elapsedMs": 24768.6293,
+        "unityAllocatedBytesAtEnd": 178847152,
+        "peakUnityAllocatedBytesSampledPerFrame": 221203023,
+        "managedBytesAtEnd": 416768000,
+        "meshesAtEnd": 46,
+        "texturesAtEnd": 308,
+        "materialsAtEnd": 80,
+        "states": 13,
+        "evidence": ".test-results/quest-024/windows-patient-revision-2/pass-3/result.json",
+        "newMeshes": [
+          {
+            "id": "568105589213725930",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725932",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725934",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725936",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725938",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725940",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213725954",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213726604",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213726616",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213727734",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213727746",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213727758",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          },
+          {
+            "id": "568105589213727770",
+            "name": "",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ],
+        "removedMeshes": [
+          {
+            "id": "568105589213730574",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730576",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730578",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730580",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730582",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730584",
+            "name": "Cube Instance(Clone)",
+            "vertices": 8,
+            "bytes": 2504
+          },
+          {
+            "id": "568105589213730598",
+            "name": "Invisible brain(Clone)",
+            "vertices": 0,
+            "bytes": 1080
+          }
+        ]
+      }
+    ]
+  },
+  "remainingObservation": "Small growth of unnamed empty meshes on Windows; compatible with uGUI InputField meshes but ownership not proven. Scientific meshes replaced and released; textures and materials constant."
+}

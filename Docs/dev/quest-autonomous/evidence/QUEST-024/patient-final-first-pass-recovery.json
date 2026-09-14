@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "runWrapperStatus": "Failed while interpreting successful adb pull stderr as terminating PowerShell error",
+  "diagnostic": ".test-results/quest-024/quest-patient-final/pass-1/result.json",
+  "validatedStates": 13,
+  "validatedModalities": [
+    "AnatomicColumn",
+    "CCEPColumn",
+    "FMRIColumn",
+    "IEEGColumn",
+    "MEGColumn",
+    "StaticColumn"
+  ],
+  "buffersAndTexturesValidatedBy": "patient-final-parity.json",
+  "note": "Original failed run.json preserved; two subsequent warm passes completed with fixed wrapper."
+}

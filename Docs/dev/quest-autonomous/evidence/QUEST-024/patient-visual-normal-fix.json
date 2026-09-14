@@ -1,0 +1,50 @@
+{
+  "method": "Compare triangle winding and signed volumes against the MNI reference after its actual MNI.trm transform. Both runtime loaders then perform the same FlipTriangles and ComputeNormals operations.",
+  "checks": [
+    {
+      "side": "L",
+      "vertices": 34733,
+      "triangles": 69470,
+      "referenceSignedVolume": -586273.1763019249,
+      "actualSignedVolume": -517796.4699922486,
+      "orientationMatchesMNI": true,
+      "boundsMm": [
+        [
+          -61.40502166748047,
+          7.363200664520264
+        ],
+        [
+          -101.17871856689453,
+          68.26910400390625
+        ],
+        [
+          -45.50485610961914,
+          81.82977294921875
+        ]
+      ]
+    },
+    {
+      "side": "R",
+      "vertices": 34371,
+      "triangles": 68746,
+      "referenceSignedVolume": -587375.818013464,
+      "actualSignedVolume": -518770.3224949659,
+      "orientationMatchesMNI": true,
+      "boundsMm": [
+        [
+          1.6524819135665894,
+          69.31526184082031
+        ],
+        [
+          -99.71295166015625,
+          69.16384887695312
+        ],
+        [
+          -50.065677642822266,
+          83.34009552001953
+        ]
+      ]
+    }
+  ],
+  "applicationReloaded": false
+}

@@ -1,0 +1,42 @@
+{
+  "externalTransformation": "none",
+  "originalTrmLinearMatrix": [
+    [
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      1,
+      0
+    ]
+  ],
+  "originalTrmDeterminant": 0,
+  "visualFixtureGeometries": [
+    {
+      "hemisphere": "LeftHemisphere",
+      "vertices": 34733,
+      "axisSpansMm": [
+        68.8370590209961,
+        169.61743593215942,
+        127.46209526062012
+      ]
+    },
+    {
+      "hemisphere": "RightHemisphere",
+      "vertices": 34371,
+      "axisSpansMm": [
+        67.73051071166992,
+        169.0458493232727,
+        133.53930711746216
+      ]
+    }
+  ],
+  "applicationReloaded": false
+}

@@ -52,6 +52,11 @@ namespace HBP.Data.Module3D
         /// </summary>
         public List<GameObject> BrainCutMeshes { get; private set; } = new List<GameObject>();
 
+        private readonly List<Mesh> m_OwnedCutMeshes = new();
+        private Mesh m_OwnedBrainMesh;
+        private Mesh m_OwnedSimplifiedMesh;
+        private Mesh m_OwnedInvisibleMesh;
+
         /// <summary>
         /// Mesh of the invisible surface
         /// </summary>
@@ -107,6 +112,21 @@ namespace HBP.Data.Module3D
             m_BrainPrefab.GetComponent<MeshFilter>().sharedMesh.MarkDynamic();
         }
 
+        private void OnDestroy()
+        {
+            DestroyOwnedMesh(m_OwnedBrainMesh);
+            DestroyOwnedMesh(m_OwnedSimplifiedMesh);
+            DestroyOwnedMesh(m_OwnedInvisibleMesh);
+            foreach (var mesh in m_OwnedCutMeshes) DestroyOwnedMesh(mesh);
+            m_OwnedCutMeshes.Clear();
+        }
+
+        private static void DestroyOwnedMesh(Mesh mesh)
+        {
+            if (Application.isPlaying) Destroy(mesh);
+            else DestroyImmediate(mesh);
+        }
+
         #endregion
 
         #region Public Methods
@@ -117,10 +137,12 @@ namespace HBP.Data.Module3D
         /// <param name="visible">Is the mesh corresponding to the invisible brain visible at instantiation ?</param>
         public void InstantiateInvisibleMesh(bool visible)
         {
+            DestroyOwnedMesh(m_OwnedInvisibleMesh);
             if (InvisibleBrain != null)
                 Destroy(InvisibleBrain);
 
             InvisibleBrain = Instantiate(m_InvisibleBrainPrefab, BrainSurfaceMeshesParent);
+            m_OwnedInvisibleMesh = InvisibleBrain.GetComponent<MeshFilter>().mesh;
             InvisibleBrain.layer = LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
             InvisibleBrain.transform.localScale = Vector3.one;
             InvisibleBrain.transform.localPosition = new Vector3(0, 0, 0);
@@ -201,10 +223,12 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void InstantiateBrain()
         {
+            DestroyOwnedMesh(m_OwnedBrainMesh);
             if (Brain != null)
                 Destroy(Brain);
 
             Brain = Instantiate(m_BrainPrefab, BrainSurfaceMeshesParent);
+            m_OwnedBrainMesh = Brain.GetComponent<MeshFilter>().mesh;
             Brain.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.BrainMaterial;
             Brain.GetComponent<MeshFilter>().mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
             Brain.transform.localPosition = Vector3.zero;
@@ -217,10 +241,12 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void InstantiateSimplifiedBrain()
         {
+            DestroyOwnedMesh(m_OwnedSimplifiedMesh);
             if (SimplifiedBrain != null)
                 Destroy(SimplifiedBrain);
 
             SimplifiedBrain = Instantiate(m_SimplifiedBrainPrefab, BrainSurfaceMeshesParent);
+            m_OwnedSimplifiedMesh = SimplifiedBrain.GetComponent<MeshFilter>().mesh;
             SimplifiedBrain.transform.localPosition = Vector3.zero;
             SimplifiedBrain.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             SimplifiedBrain.SetActive(true);
@@ -232,10 +258,19 @@ namespace HBP.Data.Module3D
         public void InstantiateCut()
         {
             GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
+            m_OwnedCutMeshes.Add(cut.GetComponent<MeshFilter>().mesh);
             cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
             cut.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             cut.transform.localPosition = Vector3.zero;
             BrainCutMeshes.Add(cut);
+        }
+
+        public void RemoveCut(int index)
+        {
+            DestroyOwnedMesh(m_OwnedCutMeshes[index]);
+            m_OwnedCutMeshes.RemoveAt(index);
+            Destroy(BrainCutMeshes[index]);
+            BrainCutMeshes.RemoveAt(index);
         }
 
         /// <summary>

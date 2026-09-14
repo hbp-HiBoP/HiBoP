@@ -1,0 +1,11 @@
+{
+  "recordedUtc": "2026-09-14T10:47:28.200733+00:00",
+  "formatCode": "Passed for13 C# files; initial sandbox NuGet restoration failed, exact formatter rerun outside sandbox succeeded.",
+  "csharpAndToolsMatchFinalCheckpoint": true,
+  "csharpCount": 13,
+  "comparatorTests": "6/6 passed",
+  "questLauncherParser": "Passed",
+  "questLauncherOperational": "Two warm passes and USB outage completed after stderr handling fix.",
+  "diffCheck": "Passed",
+  "scientificAcceptance": "Owner accepted for this recipe only."
+}

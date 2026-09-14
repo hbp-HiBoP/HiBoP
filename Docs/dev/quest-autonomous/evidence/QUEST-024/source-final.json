@@ -1,0 +1,111 @@
+{
+  "recordedUtc": "2026-09-14T10:43:42.926439+00:00",
+  "baseCommit": "03cd45220b2082902a33b59682086f43ab03cb93",
+  "compiledSourceCheckpoint": "source-revision-2.json",
+  "csharp": [
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs",
+      "sha256": "9616de37e72c00dc1a0e11a0a7b4bc9fbbd7c890cb0d868ac9462ac2d0d29a8c",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Column3D.cs",
+      "sha256": "70e149d04607b2645a3fe17d0747ebbe62352383d33c3e8fcc12a0d9327f90de",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/AtlasManager.cs",
+      "sha256": "ffeb6519c2ba0ceb05dd3c9f41c2641f4f01f5e7275c3eb65a8cdc07a7c535c6",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/CutTexturesUtility.cs",
+      "sha256": "7d9477aecfd4e0dd2b857f9702ff7af21c4cd4b5cd5d8cbe9f9a8f0611a1664d",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/DisplayedObjects.cs",
+      "sha256": "076e22e9e59e0765394a4d464f4492f5ffb97e9325241ce1bb046521d0d67769",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/FMRIManager.cs",
+      "sha256": "082331fee7b5773910b970020cffa0cf31060037f7d39f62edb46e775f14bb73",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/MeshManager.cs",
+      "sha256": "d5fd2b9cfd48e9639e75d9074b54c9755a7c742347817830212e6956cc99c1fc",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Data/Module3D/Modules/TriangleEraser.cs",
+      "sha256": "4eca70a3db29e1ee8b3583a1215daf02b706635d896c16e0410c5ac975d5d8a4",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs",
+      "sha256": "7326769c35edae00a93e2297f8dfd939983d857e468344d7dc1d13cdf5eaf646",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+      "sha256": "1f199110135291774c6080d593c81ba295454df59373cc6ceee314c424f8a26e",
+      "matchesCompiledSource": false,
+      "verifiedFormattingOnly": true
+    },
+    {
+      "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DensityProjectionTests.cs",
+      "sha256": "a705340296eabe1610faf45299f84130704d5be9349c7a03bd6d2fdd74464ee1",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/CutsTriangleErasingPlayModeTests.cs",
+      "sha256": "16ef1c8f0646ea4d8a1de6c8041e72617cee560e5e4ce34ed27099d4f6962611",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    },
+    {
+      "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs",
+      "sha256": "fde68bc6b9ceff38aecd12633b5019f01abf72e5f493f6ad816805a1e06470bf",
+      "matchesCompiledSource": true,
+      "verifiedFormattingOnly": false
+    }
+  ],
+  "tools": [
+    {
+      "path": "Tools/Compare-SceneQualification.py",
+      "sha256": "351a029d50da0f891ade1ef9ed776e8fd0a47de73a0ec9e0cd36f4e33e551e71"
+    },
+    {
+      "path": "Tools/Test-SceneQualificationComparator.py",
+      "sha256": "1f19128a62cb3a0445578e41e6663260816498a1d5587f1a0261a7e06c5ed571"
+    },
+    {
+      "path": "Tools/Prepare-QuestPrototypePatientFixture.py",
+      "sha256": "8daf3cc9bb4e43c02dcec750ec636f4949abe784162455c4905d0cdcd2c5f3d4"
+    },
+    {
+      "path": "Tools/Run-SceneQualification.ps1",
+      "sha256": "6070264675a01e2937db5873a0dbe08cf1dfe2830550e0b995bfc86a0ef22b3d"
+    },
+    {
+      "path": "Tools/Run-QuestSceneQualification.ps1",
+      "sha256": "fc5e40a75fd0cc4f8569971d6d237b56eb839f2c0a106ae5acf140c32767039c"
+    },
+    {
+      "path": "Tools/Run-QuestPrototypePatientValidation.cmd",
+      "sha256": "b8837aa96cae854bb16e5a2f36d34232893ffc419017cd46442255ddc21342ab"
+    }
+  ]
+}

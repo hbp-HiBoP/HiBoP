@@ -1,0 +1,9 @@
+{
+  "sourceCheckpoint": ".test-results/quest-024/source-revision-2.json",
+  "changedFile": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+  "change": "Final formatter normalized one LF line ending to CRLF only; all other bytes match the build checkpoint.",
+  "line": 192,
+  "currentSha256": "1f199110135291774c6080d593c81ba295454df59373cc6ceee314c424f8a26e",
+  "buildSha256": "155cb3dc18734382ea21198e1fc8e321bf8ab141b17ef19b4b8437f58622bfd5",
+  "matchesBuildExceptSingleLineEnding": true
+}

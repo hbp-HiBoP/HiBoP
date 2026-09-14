@@ -1,0 +1,120 @@
+{
+  "scope": "QUEST-024 revision-2 Windows/Quest, MNI and corrected synthetic patient fixture, USB",
+  "accepted": true,
+  "fixtures": {
+    "mni-parity-revision-2": {
+      "comparison": "mni-parity-revision-2.json",
+      "checks": 72,
+      "categoricalEquivalent": true,
+      "cutTextures": 12,
+      "cutTexturesExact": true,
+      "quantities": {
+        "activity": {
+          "maximumAbsoluteDelta": 3.5762786865234375e-07,
+          "maximumRmsDelta": 3.1857805100623954e-08,
+          "maximumState": "resource-2",
+          "maximumColumn": "scene-008-FMRI",
+          "maximumAt": {
+            "floatIndex": 12296,
+            "desktop": 0.6354164481163025,
+            "quest": 0.6354168057441711,
+            "elementIndex": 6148,
+            "componentIndex": 0
+          }
+        },
+        "alpha": {
+          "maximumAbsoluteDelta": 1.1920928955078125e-07,
+          "maximumRmsDelta": 4.750435857807445e-09,
+          "maximumState": "resource-2",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": {
+            "floatIndex": 3254,
+            "desktop": 0.8135561943054199,
+            "quest": 0.8135563135147095,
+            "elementIndex": 1627,
+            "componentIndex": 0
+          }
+        },
+        "grid": {
+          "maximumAbsoluteDelta": 0.0,
+          "maximumRmsDelta": 0.0,
+          "maximumState": "initial",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": null
+        },
+        "colors": {
+          "maximumAbsoluteDelta": 0.0,
+          "maximumRmsDelta": 0.0,
+          "maximumState": "initial",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": null
+        }
+      },
+      "passesAcceptedCriteria": true
+    },
+    "patient-final-parity": {
+      "comparison": "patient-final-parity.json",
+      "checks": 78,
+      "categoricalEquivalent": true,
+      "cutTextures": 12,
+      "cutTexturesExact": true,
+      "quantities": {
+        "activity": {
+          "maximumAbsoluteDelta": 3.5762786865234375e-07,
+          "maximumRmsDelta": 3.302780971460987e-08,
+          "maximumState": "resource-2",
+          "maximumColumn": "scene-008-FMRI",
+          "maximumAt": {
+            "floatIndex": 36436,
+            "desktop": 0.6354163885116577,
+            "quest": 0.6354167461395264,
+            "elementIndex": 18218,
+            "componentIndex": 0
+          }
+        },
+        "alpha": {
+          "maximumAbsoluteDelta": 1.1920928955078125e-07,
+          "maximumRmsDelta": 5.183075519465238e-09,
+          "maximumState": "resource-2",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": {
+            "floatIndex": 4374,
+            "desktop": 0.5773940086364746,
+            "quest": 0.5773941278457642,
+            "elementIndex": 2187,
+            "componentIndex": 0
+          }
+        },
+        "grid": {
+          "maximumAbsoluteDelta": 0.0,
+          "maximumRmsDelta": 0.0,
+          "maximumState": "initial",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": null
+        },
+        "colors": {
+          "maximumAbsoluteDelta": 0.0,
+          "maximumRmsDelta": 0.0,
+          "maximumState": "initial",
+          "maximumColumn": "scene-008-Anatomic",
+          "maximumAt": null
+        }
+      },
+      "passesAcceptedCriteria": true
+    }
+  },
+  "ownerFeedback": "Oui, pour cette recette uniquement",
+  "recordedUtc": "2026-09-14T10:45:26.134064+00:00",
+  "activityAbsoluteTolerance": 5e-07,
+  "alphaAbsoluteTolerance": 2e-07,
+  "scopeExcludes": [
+    "Future datasets",
+    "Real patient qualification",
+    "Other binaries",
+    "Other platforms or transport qualification"
+  ],
+  "playersEvidence": "players-revision-2.json",
+  "patientFixtureEvidence": "prototype-patient-provenance.json",
+  "rawComparisonsUnmodified": true,
+  "qualifiedForStatedScope": true
+}

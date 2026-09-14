@@ -472,7 +472,7 @@ namespace HBP.Data.Module3D
                 colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRIMask, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_LocalizersColorSchemePixels);
             }
 
-            m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+            m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh.colors = colors;
             foreach (Column3D column in m_Scene.Columns)
             {
                 column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;

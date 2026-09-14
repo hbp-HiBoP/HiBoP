@@ -879,13 +879,15 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.EndSample();
         }
 
+        private MaterialPropertyBlock m_CutTextureProperties;
+
         /// <summary>
         /// Compute the textures for the MRI (3D) with the iEEG activity
         /// </summary>
-        /// <param name="column">Specific column to update. If null, every columns will be updated.</param>
         private void ComputeFunctionalCutTextures()
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
+            m_CutTextureProperties ??= new MaterialPropertyBlock();
             foreach (Column3D column in Columns)
             {
                 if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
@@ -893,7 +895,10 @@ namespace HBP.Data.Module3D
                 else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
                 for (int i = 0; i < Cuts.Count; ++i)
                 {
-                    column.BrainCutMeshes[i].GetComponent<Renderer>().material.mainTexture = column.CutTextures.BrainCutTextures[i];
+                    var renderer = column.BrainCutMeshes[i].GetComponent<Renderer>();
+                    renderer.GetPropertyBlock(m_CutTextureProperties);
+                    m_CutTextureProperties.SetTexture("_MainTex", column.CutTextures.BrainCutTextures[i]);
+                    renderer.SetPropertyBlock(m_CutTextureProperties);
                 }
             }
 
@@ -939,13 +944,13 @@ namespace HBP.Data.Module3D
                 {
                     if (!canProjectActivity)
                     {
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.SurfaceGenerator.NullUV;
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.SurfaceGenerator.NullUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().sharedMesh.uv2 = col.SurfaceGenerator.NullUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().sharedMesh.uv3 = col.SurfaceGenerator.NullUV;
                     }
                     else
                     {
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv2 = col.SurfaceGenerator.AlphaUV;
-                        col.BrainMesh.GetComponent<MeshFilter>().mesh.uv3 = col.SurfaceGenerator.ActivityUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().sharedMesh.uv2 = col.SurfaceGenerator.AlphaUV;
+                        col.BrainMesh.GetComponent<MeshFilter>().sharedMesh.uv3 = col.SurfaceGenerator.ActivityUV;
                     }
                 }
 
@@ -1092,7 +1097,7 @@ namespace HBP.Data.Module3D
             {
                 CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], -1);
                 CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
-                generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().mesh);
+                generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().sharedMesh);
             }
 
             foreach (var column in Columns)
@@ -1582,20 +1587,28 @@ namespace HBP.Data.Module3D
         /// <param name="cut">Cut to be removed</param>
         public void RemoveCutPlane(Core.Object3D.Cut cut)
         {
-            Cuts.Remove(cut);
+            int index = Cuts.IndexOf(cut);
+            if (index < 0) return;
+            Cuts.RemoveAt(index);
             for (int i = 0; i < Cuts.Count; i++)
             {
                 Cuts[i].ID = i;
             }
 
-            Destroy(m_DisplayedObjects.BrainCutMeshes[cut.ID]);
-            m_DisplayedObjects.BrainCutMeshes.RemoveAt(cut.ID);
+            m_DisplayedObjects.RemoveCut(index);
 
             UpdateCutNumber(m_DisplayedObjects.BrainCutMeshes.Count);
 
             SceneInformation.CutsNeedUpdate = true;
 
-            cut.OnRemoveCut.Invoke();
+            try
+            {
+                cut.OnRemoveCut.Invoke();
+            }
+            finally
+            {
+                cut.Dispose();
+            }
         }
 
         /// <summary>
@@ -2864,7 +2877,7 @@ namespace HBP.Data.Module3D
                 else cuts.Add((Core.DLL.Surface)source.Clone());
                 await UniTask.SwitchToMainThread();
                 if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate) return;
-                cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().mesh);
+                cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh);
                 var filter = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>();
                 var collider = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>();
                 collider.sharedMesh = null;
@@ -2872,7 +2885,7 @@ namespace HBP.Data.Module3D
                 foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
                 {
                     var cutCollider = cut.GetComponent<MeshCollider>();
-                    var mesh = cut.GetComponent<MeshFilter>().mesh;
+                    var mesh = cut.GetComponent<MeshFilter>().sharedMesh;
                     cutCollider.sharedMesh = null;
                     if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
                 }

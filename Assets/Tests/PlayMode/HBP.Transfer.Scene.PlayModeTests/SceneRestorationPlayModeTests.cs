@@ -29,7 +29,13 @@ namespace HBP.Tests.SceneTransfer
     {
         [TestCase("scene-008")]
         [TestCase("scene-008-patient")]
+        [Timeout(900000)]
         public async Task DesktopProject_LoadsSavesAndTransfersAllSixModalities(string fixtureName)
+        {
+            await FailOnUnexpectedCancellation(() => DesktopProjectScenarioAsync(fixtureName));
+        }
+
+        private static async Task DesktopProjectScenarioAsync(string fixtureName)
         {
             string fixture = Path.GetFullPath(".artifacts/scene-008/fixture/" + fixtureName + ".hibop");
             Assert.That(File.Exists(fixture), Is.True, "Run Tools/Prepare-SceneQualificationFixture.py.");
@@ -38,7 +44,11 @@ namespace HBP.Tests.SceneTransfer
             typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Public | BindingFlags.Static).SetValue(null, Path.GetFullPath("Assets/Data"));
             using var settings = new PlayModePersistentDataScope(temp.Path);
             using var scope = new PlayModeSceneScope("FullDesktopScene");
-            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+            await PrepareReferencesAsync();
+            // Two complete buffer exports plus installed-reference hashing exceed four
+            // minutes on the Editor's Mono runtime; Players are measured separately.
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+            var clock = System.Diagnostics.Stopwatch.StartNew();
             var token = timeout.Token;
             var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.GetFullPath(".artifacts/scene-008/fixture/scene-008.prov"));
             Core.Database.DatabaseManager.Database.SetProtocols(new[] { protocol });
@@ -52,7 +62,7 @@ namespace HBP.Tests.SceneTransfer
             var model = project.Visualizations.Single();
             Assert.That(model.IsVisualizable, Is.True, "Incompatible columns: " + string.Join(", ", model.Columns.Where(c => !c.IsCompatible(model.Patients)).Select(c => c.Name)));
             await model.LoadAsync((_, _, _) => { }, token);
-            await Base3DScene.PrepareStandardResourcesAsync();
+            Debug.Log($"Scene qualification {fixtureName}: project/model loaded in {clock.Elapsed.TotalSeconds:F1}s.");
             await UniTask.SwitchToMainThread();
             var desktop = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
             var quest = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
@@ -64,6 +74,7 @@ namespace HBP.Tests.SceneTransfer
                 desktop.LoadConfiguration();
                 await desktop.RestoreConfiguredSurfaceRepresentationAsync(null, token, animate: false);
                 await desktop.PrepareRenderingAsync(token);
+                Debug.Log($"Scene qualification {fixtureName}: Desktop prepared at {clock.Elapsed.TotalSeconds:F1}s.");
                 Assert.That(desktop.Columns.Count, Is.EqualTo(6));
                 Assert.That(desktop.Columns.All(c => c.Views.Count == 1), Is.True);
                 var ccep = desktop.Columns.OfType<Column3DCCEP>().Single();
@@ -71,13 +82,16 @@ namespace HBP.Tests.SceneTransfer
                 await desktop.PrepareRenderingAsync(token);
                 Assert.That(ccep.ActivityValues.Any(v => v != 0), Is.True);
                 await SceneQualification.RunAsync(desktop, Path.GetFullPath(".artifacts/scene-008/editor-desktop-" + fixtureName), token);
+                Debug.Log($"Scene qualification {fixtureName}: Desktop diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
                 var globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = PersistentDataManager.Tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
                 using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop, "desktop", "qualification", 1, globals, token);
                 string file = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
                 var archive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, globals);
                 await quest.ApplyAsync(archive.Read(file), archive, token);
+                Debug.Log($"Scene qualification {fixtureName}: Quest scene restored at {clock.Elapsed.TotalSeconds:F1}s.");
                 Assert.That(quest.Scene.Columns.Count, Is.EqualTo(6));
                 await SceneQualification.RunAsync(quest.Scene, Path.GetFullPath(".artifacts/scene-008/editor-restored-" + fixtureName), token);
+                Debug.Log($"Scene qualification {fixtureName}: restored diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
                 // Save a test-owned project, then resolve it afresh through the normal project loader.
                 await project.SaveAsync(temp.Path, (_, _, _) => { }, token);
                 var savedInfo = new ProjectInfo(Path.Combine(temp.Path, project.FileName));
@@ -87,6 +101,7 @@ namespace HBP.Tests.SceneTransfer
                 await reloaded.CurrentLoadingOperation.EnsureValidatedAsync(token);
                 Assert.That(reloaded.StructuralRecoveryReport.HasIssues, Is.False);
                 Assert.That(reloaded.Visualizations.Single().Columns.Select(c => c.GetType()), Is.EqualTo(model.Columns.Select(c => c.GetType())));
+                Debug.Log($"Scene qualification {fixtureName}: save/reload verified at {clock.Elapsed.TotalSeconds:F1}s.");
             }
             finally
             {
@@ -98,18 +113,24 @@ namespace HBP.Tests.SceneTransfer
         }
 
         [Test]
+        [Timeout(900000)]
         public async Task CompleteScene_RestoresNativeModalitiesAndIndependentColumns_ThenRecaptures()
+        {
+            await FailOnUnexpectedCancellation(CompleteSceneScenarioAsync);
+        }
+
+        private static async Task CompleteSceneScenarioAsync()
         {
             string root = Path.Combine(Path.GetTempPath(), "hibop-scene-runtime-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
             using var settings = new PlayModePersistentDataScope(root);
             using var scope = new PlayModeSceneScope("SceneTransfer");
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(120));
+            await PrepareReferencesAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
             var token = timeout.Token;
             var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
-                await Base3DScene.PrepareStandardResourcesAsync();
                 await UniTask.SwitchToMainThread();
                 using var source = new SceneArchive(Path.Combine(root, "source"));
                 ScenePayload payload = CreateFixture(source);
@@ -221,7 +242,7 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(view.Scene, Is.SameAs(scene));
                 await scene.PrepareRenderingAsync(token);
                 Assert.That(scene.Columns.All(c => c.BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertexCount > 0), Is.True);
-                TestContext.Out.WriteLine($"Native common scene: six modalities, {scene.Columns.Sum(c => c.Sites.Count)} rendered sites, recapture {delivery.EncodedBytes} bytes.");
+                Debug.Log($"Native common scene completed: six modalities, {scene.Columns.Sum(c => c.Sites.Count)} rendered sites, recapture {delivery.EncodedBytes} bytes.");
             }
             finally
             {
@@ -230,6 +251,47 @@ namespace HBP.Tests.SceneTransfer
                 await UniTask.NextFrame();
                 Directory.Delete(root, true);
             }
+        }
+
+        [Test]
+        public async Task UnexpectedCancellation_IsReportedAsFailure()
+        {
+            Exception failure = null;
+            try
+            {
+                await FailOnUnexpectedCancellation(() => Task.FromCanceled(new CancellationToken(true)));
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+
+            Assert.That(failure, Is.TypeOf<AssertionException>());
+        }
+
+        private static async Task FailOnUnexpectedCancellation(Func<Task> scenario)
+        {
+            // Unity Test Framework's Task wrapper only checks IsFaulted, not IsCanceled.
+            // Turn unexpected cancellation into a fault so an incomplete scenario cannot pass.
+            try
+            {
+                await scenario();
+            }
+            catch (OperationCanceledException exception)
+            {
+                throw new AssertionException("Qualification cancelled before completion: " + exception);
+            }
+        }
+
+        private static async UniTask PrepareReferencesAsync()
+        {
+            // Shared native preparation cannot be cancelled. Await it before starting the
+            // scenario timeout; the NUnit guard leaves room for cold preparation and cleanup.
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            Debug.Log("Scene qualification: preparing standard references.");
+            await Base3DScene.PrepareStandardResourcesAsync();
+            await UniTask.SwitchToMainThread();
+            Debug.Log($"Scene qualification: standard references prepared in {clock.Elapsed.TotalSeconds:F1}s.");
         }
 
         private static ScenePayload CreateFixture(SceneArchive archive)

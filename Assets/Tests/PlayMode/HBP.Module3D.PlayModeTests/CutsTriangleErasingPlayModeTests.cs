@@ -149,6 +149,81 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
+        public async Task SceneMeshAndCutResources_AreReleasedAcrossRepeatedUpdates()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("CutsTriangleErasingResourceLifetime");
+            Base3DScene scene = CreateIsolatedCutsTriangleErasingScene(scope, temp);
+            var displayed = GetPrivateField<DisplayedObjects>(scene, "m_DisplayedObjects");
+            CreateSelectedColumn(scope, scene, "resources", displayed.Brain, includeView: false);
+            var column = scene.Columns.Single();
+            var brainFilter = column.BrainMesh.GetComponent<MeshFilter>();
+            var sourceBrain = displayed.Brain.GetComponent<MeshFilter>().mesh;
+            await UniTask.NextFrame();
+            int warmedMeshCount = 0;
+
+            for (int iteration = 0; iteration < 3; iteration++)
+            {
+                Mesh oldBrain = brainFilter.mesh;
+                column.UpdateColumnBrainMesh(displayed.Brain);
+                Assert.That(oldBrain == null, Is.True, "The previous column mesh must be released.");
+                Assert.That(brainFilter.mesh, Is.SameAs(GetPrivateField<Mesh>(column, "m_OwnedBrainMesh")));
+                Assert.That(brainFilter.sharedMesh, Is.Not.SameAs(sourceBrain));
+
+                var cut = scene.AddCutPlane();
+                Mesh sourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
+                var cutFilter = column.BrainCutMeshes.Single().GetComponent<MeshFilter>();
+                Mesh oldCut = cutFilter.mesh;
+                column.UpdateColumnCutMeshes(displayed.BrainCutMeshes);
+                Assert.That(oldCut == null, Is.True);
+                Mesh columnCut = cutFilter.mesh;
+                Assert.That(columnCut, Is.SameAs(GetPrivateField<List<Mesh>>(column, "m_OwnedCutMeshes").Single()));
+                Assert.That(columnCut, Is.Not.SameAs(sourceCut));
+
+                var renderer = cutFilter.GetComponent<Renderer>();
+                Material material = renderer.sharedMaterial;
+                typeof(Base3DScene).GetMethod("ComputeFunctionalCutTextures", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scene, null);
+                var properties = new MaterialPropertyBlock();
+                renderer.GetPropertyBlock(properties);
+                Assert.That(properties.GetTexture("_MainTex"), Is.SameAs(column.CutTextures.BrainCutTextures.Single()));
+                Assert.That(renderer.sharedMaterial, Is.SameAs(material), "Updating a cut must preserve its shared material.");
+                var textures = column.CutTextures.BaseBrainCutTextures.Concat(column.CutTextures.BrainCutTextures).Concat(column.CutTextures.GUIBrainCutTextures).ToArray();
+
+                scene.RemoveCutPlane(cut);
+                await UniTask.NextFrame();
+                await UniTask.NextFrame();
+                Assert.That(sourceCut == null && columnCut == null, Is.True, "Removing a cut must release both mesh instances.");
+                Assert.That(textures.All(texture => texture == null), Is.True);
+                Assert.That(material != null && sourceBrain != null, Is.True, "Shared resources must survive cut removal.");
+                Assert.That(displayed.Brain.GetComponent<MeshFilter>().sharedMesh, Is.SameAs(GetPrivateField<Mesh>(displayed, "m_OwnedBrainMesh")), "The source mesh must retain its owner after column cloning.");
+                int meshCount = Resources.FindObjectsOfTypeAll<Mesh>().Length;
+                if (iteration == 0) warmedMeshCount = meshCount;
+                else Assert.That(meshCount, Is.EqualTo(warmedMeshCount), "A complete update/cut cycle must not leave additional meshes.");
+            }
+
+            scene.AddCutPlane();
+            Mesh lastBrain = brainFilter.mesh;
+            Mesh lastCut = column.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
+            var lastTextures = column.CutTextures.BaseBrainCutTextures.Concat(column.CutTextures.BrainCutTextures).Concat(column.CutTextures.GUIBrainCutTextures).ToArray();
+            Object.Destroy(column.gameObject);
+            await UniTask.NextFrame();
+            await UniTask.NextFrame();
+            Assert.That(lastBrain == null && lastCut == null, Is.True);
+            Assert.That(lastTextures.All(texture => texture == null), Is.True, "Closing with an active cut must release its textures.");
+            Mesh lastSourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
+            Mesh simplified = displayed.SimplifiedBrain.GetComponent<MeshFilter>().mesh;
+            displayed.InstantiateInvisibleMesh(false);
+            Mesh invisible = displayed.InvisibleBrain.GetComponent<MeshFilter>().mesh;
+            Object.Destroy(displayed.gameObject);
+            await UniTask.NextFrame();
+            await UniTask.NextFrame();
+            Assert.That(sourceBrain == null && simplified == null && invisible == null && lastSourceCut == null, Is.True, "Closing the display must release every owned source mesh, including an active cut.");
+        }
+
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void CutToolbarTools_WriteModeColorAndSiteCutStateBackToScene()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -602,7 +677,7 @@ namespace HBP.Tests.PlayMode.Module3D
             return baseScene;
         }
 
-        private static void CreateSelectedColumn(PlayModeSceneScope scene, Base3DScene baseScene, string suffix, GameObject brainMesh)
+        private static void CreateSelectedColumn(PlayModeSceneScope scene, Base3DScene baseScene, string suffix, GameObject brainMesh, bool includeView = true)
         {
             GameObject columnObject = new($"CutsTriangleErasing Column {suffix}");
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
@@ -624,14 +699,15 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(column, "m_CutMeshesParent", cuts);
             SetPrivateField(column, "m_SitesMeshesParent", sites);
 
-            GameObject columnBrain = Object.Instantiate(brainMesh, brains);
-            columnBrain.name = $"CutsTriangleErasing Column Brain {suffix}";
-            columnBrain.SetActive(true);
-            SetAutoProperty(column, "BrainMesh", columnBrain);
+            column.InitializeColumnMeshes(brainMesh);
+            column.BrainMesh.name = $"CutsTriangleErasing Column Brain {suffix}";
 
-            View3D view = CreateSelectedRuntimeView(views);
-            SetAutoProperty(column, "Views", new List<View3D> { view });
-            view.IsSelected = true;
+            if (includeView)
+            {
+                View3D view = CreateSelectedRuntimeView(views);
+                SetAutoProperty(column, "Views", new List<View3D> { view });
+                view.IsSelected = true;
+            }
 
             HBP.Core.Object3D.Site site = CreateSelectedRuntimeSite(sites, suffix);
             SetAutoProperty(column, "Sites", new List<HBP.Core.Object3D.Site> { site });

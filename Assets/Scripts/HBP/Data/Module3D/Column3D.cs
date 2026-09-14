@@ -94,6 +94,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public GameObject BrainMesh { get; protected set; }
 
+        private Mesh m_OwnedBrainMesh;
+        private readonly List<Mesh> m_OwnedCutMeshes = new();
+
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
@@ -294,7 +297,17 @@ namespace HBP.Data.Module3D
             RawElectrodes?.Dispose();
             SurfaceGenerator?.Dispose();
             ActivityGenerator?.Dispose();
+            await UniTask.SwitchToMainThread();
             CutTextures.Clean();
+            DestroyOwnedMesh(m_OwnedBrainMesh);
+            foreach (var mesh in m_OwnedCutMeshes) DestroyOwnedMesh(mesh);
+            m_OwnedCutMeshes.Clear();
+        }
+
+        private static void DestroyOwnedMesh(Mesh mesh)
+        {
+            if (Application.isPlaying) Destroy(mesh);
+            else DestroyImmediate(mesh);
         }
 
         #endregion
@@ -410,7 +423,8 @@ namespace HBP.Data.Module3D
         {
             BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
             BrainMesh.layer = LayerMask.NameToLayer(Layer);
-            BrainMesh.GetComponent<MeshFilter>().mesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
             BrainMesh.SetActive(true);
         }
 
@@ -420,8 +434,9 @@ namespace HBP.Data.Module3D
         /// <param name="brainMesh">Mesh of the base scene</param>
         public void UpdateColumnBrainMesh(GameObject brainMesh)
         {
-            DestroyImmediate(BrainMesh.GetComponent<MeshFilter>().sharedMesh);
-            BrainMesh.GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            DestroyImmediate(m_OwnedBrainMesh);
+            m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
         }
 
         /// <summary>
@@ -436,13 +451,17 @@ namespace HBP.Data.Module3D
                 GameObject cut = cutMeshes[BrainCutMeshes.Count];
                 GameObject columnCut = Instantiate(cut, m_CutMeshesParent);
                 columnCut.layer = LayerMask.NameToLayer(Layer);
-                columnCut.GetComponent<MeshFilter>().mesh = Instantiate(cut.GetComponent<MeshFilter>().mesh);
+                var mesh = Instantiate(cut.GetComponent<MeshFilter>().sharedMesh);
+                m_OwnedCutMeshes.Add(mesh);
+                columnCut.GetComponent<MeshFilter>().mesh = mesh;
                 columnCut.SetActive(true);
                 BrainCutMeshes.Add(columnCut);
             }
 
             while (BrainCutMeshes.Count > nbCuts)
             {
+                DestroyOwnedMesh(m_OwnedCutMeshes[m_OwnedCutMeshes.Count - 1]);
+                m_OwnedCutMeshes.RemoveAt(m_OwnedCutMeshes.Count - 1);
                 Destroy(BrainCutMeshes[BrainCutMeshes.Count - 1]);
                 BrainCutMeshes.RemoveAt(BrainCutMeshes.Count - 1);
             }
@@ -452,8 +471,9 @@ namespace HBP.Data.Module3D
         {
             for (int i = 0; i < BrainCutMeshes.Count; ++i)
             {
-                DestroyImmediate(BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().mesh);
+                DestroyImmediate(m_OwnedCutMeshes[i]);
+                m_OwnedCutMeshes[i] = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                BrainCutMeshes[i].GetComponent<MeshFilter>().mesh = m_OwnedCutMeshes[i];
             }
         }
 

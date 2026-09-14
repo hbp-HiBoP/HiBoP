@@ -1,0 +1,36 @@
+{
+  "description": "Synthetic visual recipe: MNI-derived surfaces loaded as patient data; no real patient.",
+  "coordinateTransform": "Bake MNI.trm into the source points, then x = 0.92*x + 5 mm; y = 0.96*y; z unchanged",
+  "files": [
+    {
+      "source": "C:\\HBP\\Software\\HiBoP\\Assets\\Data\\Meshes\\MNI.trm",
+      "sourceSha256": "1a99d0241b7809d1e3d0410687f001e84f2dc19e60381f1547da1e2fc464c3ee"
+    },
+    {
+      "source": "C:\\HBP\\Software\\HiBoP\\Assets\\Data\\Meshes\\MNI_Lhemi.gii",
+      "sourceSha256": "1e5c67969dbea35e1316c9b0a16e098179be4629a91c6cd60e4852892554a348",
+      "output": "C:\\HBP\\Software\\HiBoP\\.artifacts\\scene-008\\fixture\\prototype-patient-L.gii",
+      "sha256": "24aabdeb134c782cb33632829796dc3efcefef7c063bdf72737b22c888aa5eeb",
+      "vertices": 34733
+    },
+    {
+      "source": "C:\\HBP\\Software\\HiBoP\\Assets\\Data\\Meshes\\MNI_Rhemi.gii",
+      "sourceSha256": "3aab5ac60f7c179a5b67d8d09e47c5f38c76b4a8e9e1560d0a5cee98c73a9fd6",
+      "output": "C:\\HBP\\Software\\HiBoP\\.artifacts\\scene-008\\fixture\\prototype-patient-R.gii",
+      "sha256": "4c04c0a896c555f402f346a365dcb2706ffa73b6d2b8f9b4fdacd3106ea0fb1d",
+      "vertices": 34371
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\Fixtures\\Native\\Nifti\\mri_t1.nii",
+      "sha256": "d233b2ec8a02b8aa3331149b6f90eb8c9f4ada7580e98091fc768c8c3441c8f8"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\scene-008\\fixture\\prototype-patient-t1.nii",
+      "sha256": "5ffd9858999888dc0a054778d26addd1e7409e7417d8e71c02816ce9f96acc5e"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\scene-008\\fixture\\scene-008-patient-visual.hibop",
+      "sha256": "7d02dacbe5c27eae12b4dfb350dbc05ac0021cd308e21f1a2cec6e4bd7157e6f"
+    }
+  ]
+}

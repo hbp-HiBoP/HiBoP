@@ -192,7 +192,7 @@ namespace HBP.Tests.Transfer.Anatomy.Desktop
                     finished.TrySetResult(true);
                 }
             });
-            var completion = finished.Task.AsUniTask().ToAsyncLazy().Task;
+            var completion = ((Task)finished.Task).AsUniTask().ToAsyncLazy().Task;
             typeof(Column3D).GetProperty("GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(column, completion);
             typeof(Base3DScene).GetField("m_GeneratorWork", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, completion);
             typeof(Base3DScene).GetField("m_ActivityProjectionGrid", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, grid);

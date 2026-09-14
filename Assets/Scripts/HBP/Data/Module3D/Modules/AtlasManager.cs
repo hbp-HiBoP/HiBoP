@@ -153,7 +153,7 @@ namespace HBP.Data.Module3D
                 if (indices != null)
                 {
                     Color[] colors = SelectedAtlas.ConvertIndicesToColors(indices, HoveredArea);
-                    m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+                    m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh.colors = colors;
                     foreach (Column3D column in m_Scene.Columns)
                         column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
                 }

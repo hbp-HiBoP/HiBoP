@@ -225,7 +225,7 @@ namespace HBP.Data.Module3D
 
             // Apply erasing
             Core.DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees);
-            invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().mesh);
+            invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().sharedMesh);
             invisibleSurface.Dispose();
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(rayDirection, hitPoint, CurrentMode, Degrees).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;
@@ -243,7 +243,7 @@ namespace HBP.Data.Module3D
         public void CancelLastAction()
         {
             Core.DLL.Surface invisibleSurface = m_Scene.MeshManager.BrainSurface.UpdateVisibilityMask(m_MasksStack.Pop());
-            invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().mesh);
+            invisibleSurface.UpdateMeshFromDLL(m_DisplayedObjects.InvisibleBrain.GetComponent<MeshFilter>().sharedMesh);
             invisibleSurface.Dispose();
             m_Scene.MeshManager.SimplifiedMeshToUse.UpdateVisibilityMask(m_SimplifiedMasksStack.Pop()).Dispose();
             MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.ToList().FindIndex((m) => m != 1) != -1;

@@ -1,0 +1,11 @@
+{
+  "utc": "2026-09-14T10:31:25.4929719Z",
+  "transfer": "60968411e86244bbb5087728a949468d",
+  "hash": "4fe82e4884f4d4924b3062efb26b8df639614bd30274d7b68a3b0486888dca35",
+  "status": "Published",
+  "retry": false,
+  "bytes": 5653993,
+  "captureAndEncodeMs": 1317.0035,
+  "connectSendAndReceiptMs": 16357.345899999998,
+  "totalMs": 17674.349700000002
+}

@@ -1,0 +1,737 @@
+{
+  "schemaVersion": 2,
+  "task": "QUEST-024",
+  "recordedUtc": "2026-09-14T10:47:28.284125+00:00",
+  "status": "REUSSI",
+  "sourceBase": "03cd45220b2082902a33b59682086f43ab03cb93",
+  "manual": "manual-validation.json",
+  "initialPlayers": "SCENE-011",
+  "currentSourceCheckpoint": ".test-results/quest-024/source-final.json",
+  "evidence": [
+    {
+      "path": ".test-results/quest-024/apk-code-provenance.json",
+      "bytes": 902,
+      "sha256": "24da4ed5e324e96bf15cafddc0ffd18b5f2fde640b429b5cb92e07d3c135dae2"
+    },
+    {
+      "path": ".test-results/quest-024/apk-content-revision-2.json",
+      "bytes": 11747,
+      "sha256": "18ea89526ab5c2359edc88c4c44c57cecb21acbf25ec9dd29c248081edf6e95b"
+    },
+    {
+      "path": ".test-results/quest-024/apk-content-scene-011.json",
+      "bytes": 11735,
+      "sha256": "0e3de9ac111d7f2ef160542e579e57846d0c33abfc748880287de24d90de94a5"
+    },
+    {
+      "path": ".test-results/quest-024/apk-content.json",
+      "bytes": 11735,
+      "sha256": "b99b8bd12211b77baebc339cc8ef85a4f0a0ff3738b60d29cea965e9fadeec2d"
+    },
+    {
+      "path": ".test-results/quest-024/device-apk-verification-revision-2.json",
+      "bytes": 229,
+      "sha256": "ea45b6cb56a24ca1bb985e3fa048a285a4d02b4989e47c91c3fe03a382bb9380"
+    },
+    {
+      "path": ".test-results/quest-024/device-install-revision-2.json",
+      "bytes": 451,
+      "sha256": "f0c05747d4ce041a06f5296ce89f7d166dc4c16b9da699e6fbc78ee8d2c6b312"
+    },
+    {
+      "path": ".test-results/quest-024/editor-mni-incomplete-result.json",
+      "bytes": 326296,
+      "sha256": "174a850a08e26ea47b90cc65fbcf5b841549184f7d4e5716b80a06d5ceb93635"
+    },
+    {
+      "path": ".test-results/quest-024/editor-mni-parity.json",
+      "bytes": 142198,
+      "sha256": "6be538c39f90ca22a6d638644da6fa21f9f701574ac230bd589fde1b9e62ec02"
+    },
+    {
+      "path": ".test-results/quest-024/editor-patient-parity.json",
+      "bytes": 135739,
+      "sha256": "c9bbd2db9bdd65fcd1e6c37b331c4204741d4c79b6fa916d431bedff7d395807"
+    },
+    {
+      "path": ".test-results/quest-024/manual-m3-20260914-075748/device-stop.json",
+      "bytes": 160,
+      "sha256": "aa571e7d4a09fe4a099fb4f103b38bf05e9523fee6d5af552ea48522a3870119"
+    },
+    {
+      "path": ".test-results/quest-024/manual-m3-20260914-075748/result.json",
+      "bytes": 359,
+      "sha256": "b51d1d245908e7fc60f43f524001bcd5748a7ac7639ba3c8d65d94bdd26682b8"
+    },
+    {
+      "path": ".test-results/quest-024/mni-offline-repeat.json",
+      "bytes": 112830,
+      "sha256": "9898ee9ac0f5ef2292dde7edab86b49c2fa4a564bdc5e2192f78f28d5a7162d7"
+    },
+    {
+      "path": ".test-results/quest-024/mni-outage-revision-2-repeat.json",
+      "bytes": 120006,
+      "sha256": "5cdc16f1ffa118c705a6d778ae028d3d45146e9b9c1484117bbe1566f9c52b0c"
+    },
+    {
+      "path": ".test-results/quest-024/mni-parity-first.json",
+      "bytes": 115710,
+      "sha256": "37424cc3a3291d542b858b793afd7209059c08bcc000cff35a111e1fa5c7c470"
+    },
+    {
+      "path": ".test-results/quest-024/mni-parity-revision-2.json",
+      "bytes": 122898,
+      "sha256": "3059b417538b410bdf2959e37085270389f8afc101ff92c9dc3b6a86bc1d8c34"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-13994-7835/command.json",
+      "bytes": 575,
+      "sha256": "59a9da91ea23fcf7ba399315d4878ee05cb8fdb96468b7c0ce896ed10169af47"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-13994-7835/pass-1/result.json",
+      "bytes": 270455,
+      "sha256": "4acf764970bd77901e7e3d25e32f5b51759d1241d20524a618b479c969398c98"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-13994-7835/pass-2/result.json",
+      "bytes": 271114,
+      "sha256": "02760289d790ef8b1a21965d9ad1cc42e2e57a6a0a40b14193b70ba540183a3a"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-13994-7835/pass-3/result.json",
+      "bytes": 271778,
+      "sha256": "f693439e628172730011757e587e32d3b3da4d239384f1509dc7ae6ff450cbde"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-delivery.json",
+      "bytes": 363,
+      "sha256": "e3512012c634a3f8a60c1837ec3d8a9d43a2eb691e722d47d80a9f58c0b9deb0"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-first-pass-recovery.json",
+      "bytes": 569,
+      "sha256": "0b1f2b28cddf6ddf517db8a5821525c1fd6cf1b2ccf6ac18c7cdc0dd19f5db43"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-outage-repeat.json",
+      "bytes": 129548,
+      "sha256": "a6eb189a3862756b09de178e1a9dc6e4ecbfbda5e859716dd2b12e5dc790d7b2"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-parity.json",
+      "bytes": 132431,
+      "sha256": "4a021152f7d719df6fc843cc999b9bf24e36210967759e3e8955169a2d1547a1"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-quest-repeat.json",
+      "bytes": 129546,
+      "sha256": "40a4193426fba9ea228054ce7058f1c57e04e9c1ac2388d0bf808ca5e79dc01a"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-runtime-memory.json",
+      "bytes": 1845,
+      "sha256": "d18fdeaccec646cdf76fc15f3800120055fcb02b7c2f2deaef9d73179dbaa94d"
+    },
+    {
+      "path": ".test-results/quest-024/patient-final-windows-repeat.json",
+      "bytes": 129546,
+      "sha256": "074df7006c2435852a54173ada2400012d93bbf160edf1929fa5ceae8522d206"
+    },
+    {
+      "path": ".test-results/quest-024/patient-loader-parity-revision-2.json",
+      "bytes": 128648,
+      "sha256": "7ef7ad64b5b730fdbd9f4d773a55c77569e146cbdef0a03cce21d4074ba14bd8"
+    },
+    {
+      "path": ".test-results/quest-024/patient-visual-normal-fix.json",
+      "bytes": 1279,
+      "sha256": "aa139eaa6fbd02429d31eefa7c9d9fbba6bd14c82bc214d3e03e54dbcfcd24e6"
+    },
+    {
+      "path": ".test-results/quest-024/patient-visual-transform-fix.json",
+      "bytes": 708,
+      "sha256": "6c75633644b925681764e196881d0d003b51ae3035c323b16883ff5d283766dd"
+    },
+    {
+      "path": ".test-results/quest-024/players-revision-2.json",
+      "bytes": 2028,
+      "sha256": "df6e1d7822a387afe97532cdd6f16d47f90dea74ef076b3d41bfb5653e647524"
+    },
+    {
+      "path": ".test-results/quest-024/previous-player-stop.json",
+      "bytes": 136,
+      "sha256": "d2c3b9afc48c7e26ee3564640b5aa1f435c6484403287832394e51abcbf0401a"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-awake/commands.json",
+      "bytes": 4170,
+      "sha256": "a84f1b9bb7320228bf6028c5748c4359cd06f19cb749404c820ede57b53a04dd"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-awake/pass-1/result.json",
+      "bytes": 411936,
+      "sha256": "3f073ed4a287f4e66503097dae6a7f19d20cc1f4c8bfcbdec5199b908a2c4193"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-awake/run.json",
+      "bytes": 426,
+      "sha256": "b8021478ab36a796c84e74bed3dbc917eb3a52fab3c99cec99ed43c48d2c732b"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-connected/commands.json",
+      "bytes": 1373,
+      "sha256": "931880df4dc6f53172407fc5e1a181366430fb921eef5b4e288c024ab168af3f"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-connected/run.json",
+      "bytes": 308,
+      "sha256": "e682401fb274819cd57b444f566e35124eaceb097a7ee56c7b6b26baf3034803"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-first/result.json",
+      "bytes": 411696,
+      "sha256": "be8a720304381623586b9605a1cecee03e883525e77d9b9f71d744b9c121cac7"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2-outage/commands.json",
+      "bytes": 4929,
+      "sha256": "bdddc03b2ac3c295841d1f4f46b33f28a005ebb9cdf8bc60b92e760336a41b04"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2-outage/device-stop.json",
+      "bytes": 166,
+      "sha256": "74cafbe1ffc8368c943eb9dc7ef2f09b670b6f6a3e62d31c330886c3c12bcc22"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2-outage/pass-1/result.json",
+      "bytes": 420242,
+      "sha256": "45c8de33113d6bd7a467ead3d6026713b080203154358fb3a82842cec159a0d7"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2-outage/run.json",
+      "bytes": 598,
+      "sha256": "43180abe2518ba3d2c290bbd6351bc28fe689cb7b3e1ac2a87bfcfb8630138d7"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2-repeat.json",
+      "bytes": 119999,
+      "sha256": "41eb60e6bdcbacbae5bd5a4ce0b7a3df0d64f60daf85e270ebe29380f3b25ce5"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2/commands.json",
+      "bytes": 9670,
+      "sha256": "53fe790f704461bf576f2eb2c096bedc733f53591cfbf4b75597e938852b9380"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2/pass-1/result.json",
+      "bytes": 420002,
+      "sha256": "f32ef86f55b10ab796b3ba3fae62b033553c3e9779915d48e8d005e466b903ff"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2/pass-2/result.json",
+      "bytes": 420250,
+      "sha256": "544a0f7d3290622d11c991ea12cf05a65307651b2265905d7f3f6769be7de87b"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2/pass-3/result.json",
+      "bytes": 420242,
+      "sha256": "2c18f27a8ac942f9db377847d664fcdcca7adbd51ebff855bb48f3c9e0f89d2e"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-revision-2/run.json",
+      "bytes": 1012,
+      "sha256": "d33a64c04f4bbf55c1bc7fda14369f9d9a60a460237b55659d1ffb34dadd301c"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-usb-outage/commands.json",
+      "bytes": 4922,
+      "sha256": "efda8de214868b9204a6dc86fa9cf3bfbd721425a178b7fa0be32c32c96ae9e6"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-usb-outage/pass-1/result.json",
+      "bytes": 411936,
+      "sha256": "aa737d2f6ac9265b6401f664a62375f89d61dfd9716f60a90c9ce2e34c510bd7"
+    },
+    {
+      "path": ".test-results/quest-024/quest-mni-usb-outage/run.json",
+      "bytes": 540,
+      "sha256": "aaa885fc2fb221c00feb36869c5d377ac44788a78365f725e7c10a0b16f9aeff"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-outage/commands.json",
+      "bytes": 8763,
+      "sha256": "512cb0f44c2b61cef555ae348ae497f903c9daf1160885ef3863b888534574be"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-outage/pass-1/result.json",
+      "bytes": 259061,
+      "sha256": "86cdba332f6065b0eac20bae92cd335f04cc12a454dd0671df66edcdc3febb88"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-outage/run.json",
+      "bytes": 785,
+      "sha256": "729bff0133026d5419c99e26b4970e94370ff0ad80415c8be2944b3a05f6ee7e"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-warm/commands.json",
+      "bytes": 12679,
+      "sha256": "e9644bdb7af9f763fcfc9b4865896431de7a51c5ac023588d4d647c561ceb72f"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-warm/pass-1/result.json",
+      "bytes": 259061,
+      "sha256": "899c589afff386e385716789ee3ef126e4eb2531617143c879b33fb5c97cdae2"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-warm/pass-2/result.json",
+      "bytes": 259061,
+      "sha256": "a1c5423072d4d5d0e2621f2927d73b84b4a975c81dd72a79d53488c184bef514"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final-warm/run.json",
+      "bytes": 1066,
+      "sha256": "bf9cb57e97ad2f3b8336d2683a14c3241e46adb1637f6c20f74e25f5c58e13a9"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final/commands.json",
+      "bytes": 6325,
+      "sha256": "d4eddd73ad08dab6f8286563bfaa20351ad342cd4370fd46d284d24ea2663194"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final/pass-1/result.json",
+      "bytes": 258813,
+      "sha256": "615cc469eca74e75069b7a6294208bfc0a57afca390350bfc2ab4b85878f40ee"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-final/run.json",
+      "bytes": 422,
+      "sha256": "88556030c55bd9984006eaee8aee0cc112caf89dc4bfb05a16e883c05312da3c"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/commands.json",
+      "bytes": 10470,
+      "sha256": "1a25c9ba34abcd8a2189223396320505e1d943298e0966ae8fa6a8aee9b229ca"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/device-stop.json",
+      "bytes": 313,
+      "sha256": "25051005902e86076ee0a681cadcb22f164a913a41634d4dfeecbfe85ba2ae1b"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/pass-1/result.json",
+      "bytes": 257454,
+      "sha256": "88dfbd977c11999d7e4765fe14d723fb40ea697903dc9ed0cf07f8cc8ebf9efe"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/pass-2/result.json",
+      "bytes": 257462,
+      "sha256": "aab8aa7001eee45ef027b7dd174f690018365990057c86e399c906d8c8326348"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/pass-3/result.json",
+      "bytes": 257454,
+      "sha256": "9a69d0d9e669ecfadff8efe99efed16ba95cb5bdc9545873938ed7893c5f544b"
+    },
+    {
+      "path": ".test-results/quest-024/quest-patient-revision-2/run.json",
+      "bytes": 1012,
+      "sha256": "cffb9b2d3b6e8e6212234477681f2b4ef4c0cb5e1c015f9373d38b810bb044ad"
+    },
+    {
+      "path": ".test-results/quest-024/runtime-memory-revision-2.json",
+      "bytes": 15930,
+      "sha256": "9d12ff304a7fa13a822f33fd5a1b2c8fe28e7a34e879bc93b1b3de89246f6d3d"
+    },
+    {
+      "path": ".test-results/quest-024/source-final-format-verification.json",
+      "bytes": 512,
+      "sha256": "6df81e7ee55ca95dac1d36c990a098a2995bba04e0b9fd5680511883893f88b1"
+    },
+    {
+      "path": ".test-results/quest-024/source-final.json",
+      "bytes": 4507,
+      "sha256": "71b8309368de669c7665003d29efa562a224f274b2d93aa9ec62cf0f8b1499b7"
+    },
+    {
+      "path": ".test-results/quest-024/source-revision-2.json",
+      "bytes": 3489,
+      "sha256": "baa632d9c6d9a884ecb4d44a7871fd4981660ad7510c76b6c7e1062c591e9c7e"
+    },
+    {
+      "path": ".test-results/quest-024/source.json",
+      "bytes": 2702,
+      "sha256": "2363af9a4e6962cd299d15d92a085a863482592d7d23531d49c219568098ca8f"
+    },
+    {
+      "path": ".test-results/quest-024/source.patch",
+      "bytes": 66640,
+      "sha256": "1e309fa50e5ebe491b94a953fe726a199e40e39a9d4255e3f454f9d0edc6ea3b"
+    },
+    {
+      "path": ".test-results/quest-024/transfer-mni-revision-2.json",
+      "bytes": 477,
+      "sha256": "8a3899ac9eb3267b03fa1cf93e607f79dfd98680525ff9924397ae14726569a1"
+    },
+    {
+      "path": ".test-results/quest-024/unity/complete-scene.xml",
+      "bytes": 4161,
+      "sha256": "fb816f7902396db227f8d7d912775c77fb002b4efab470106db8e3900e9c5264"
+    },
+    {
+      "path": ".test-results/quest-024/unity/cuts-playmode-fixed.xml",
+      "bytes": 12374,
+      "sha256": "f5117ed1300f7207fa5b9d6444d69331e902df39be3f4e3fe94810761c55aaba"
+    },
+    {
+      "path": ".test-results/quest-024/unity/cuts-playmode.xml",
+      "bytes": 17025,
+      "sha256": "107af48586d614ee986b62d5fbebdd6a25e101e502c8a3e53ecad53f592ff53f"
+    },
+    {
+      "path": ".test-results/quest-024/unity/desktop-mni.xml",
+      "bytes": 16381,
+      "sha256": "e8541232ea505cf75b19a8ab77b50174c502b8b4b27b7b3b7cb43d7745dbfee3"
+    },
+    {
+      "path": ".test-results/quest-024/unity/editmode.xml",
+      "bytes": 168525,
+      "sha256": "cf1629f23937a77c5c23a0d5a00ec898544dad9cf810864c3c8841247da2a20b"
+    },
+    {
+      "path": ".test-results/quest-024/unity/lifetime-editmode.xml",
+      "bytes": 6112,
+      "sha256": "9457598176995235dae8ebdca101a6518f32b148db8a8d0c98f19efff44aa8a4"
+    },
+    {
+      "path": ".test-results/quest-024/unity/playmode-command.json",
+      "bytes": 479,
+      "sha256": "7dfc0c7b3e267f25f2e325cca277d396474c4696022ad8503b3fc42250f8095a"
+    },
+    {
+      "path": ".test-results/quest-024/unity/playmode.xml",
+      "bytes": 9388,
+      "sha256": "f1fc99d04ec92eb1b043c4ee805928ee780a0f22b23c1d25b57b53ad6dedfcec"
+    },
+    {
+      "path": ".test-results/quest-024/unity/resource-count-before.xml",
+      "bytes": 713,
+      "sha256": "d95bb239957b51cf8fa0595ea708338e8d141187a9661f6d5c5bc3959c5941d2"
+    },
+    {
+      "path": ".test-results/quest-024/unity/resource-count-repro.xml",
+      "bytes": 6308,
+      "sha256": "fde08083b6e62cc862bba869fa6429f6b1609b5aae24b96e3324b5c25a966a6f"
+    },
+    {
+      "path": ".test-results/quest-024/unity/resource-sharedmesh-fixed.xml",
+      "bytes": 12378,
+      "sha256": "2ff28829911ec4195725e962593f60f74363647ffe80c761c85cc189858881a7"
+    },
+    {
+      "path": ".test-results/quest-024/unity/scene-final.xml",
+      "bytes": 8272,
+      "sha256": "f62b7a51116157c158e6e9a69d2eef26cceeb84f04de77dc586c773b63b03a58"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed-regression.json",
+      "bytes": 114461,
+      "sha256": "a89d31b32c6e7586e8d7cdec898f3d57409251b510e2ee7f93e4c6c9f639db31"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed-repeat.json",
+      "bytes": 119993,
+      "sha256": "805a72bd367954d645b5b62d8fd4654a0fa9c0f765f011d9eaa6c673c297ac8e"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed/command.json",
+      "bytes": 560,
+      "sha256": "26b060188b2e3233815839ccc5d08c9e4d3e1c7759dd32ef09dc6566a4d010ee"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed/pass-1/result.json",
+      "bytes": 433956,
+      "sha256": "d4c2e77216a978c42ce857c0257c54d45d017f534a64e2039de71a4df859e3a9"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed/pass-2/result.json",
+      "bytes": 434204,
+      "sha256": "38d83ebbd4d6db5d7d489bdc8b66ad8f2b00d63c2fe6aac5099e79dfcd2eb4fb"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-fixed/pass-3/result.json",
+      "bytes": 434205,
+      "sha256": "8bdb932fc297075a7856d15c20e3020029d2df2adde73ecbf6408395c0d4f693"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-initial/command.json",
+      "bytes": 529,
+      "sha256": "94b9b9bae20c8bef57cf66fb93a901bbbac177fafe601832d8460235056b4173"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2-regression.json",
+      "bytes": 119698,
+      "sha256": "93851738288170594ab49792157d88f2b4a5c8212f23420bdbf830b828cb424b"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2-repeat.json",
+      "bytes": 120003,
+      "sha256": "914d6d60580c2ef146cc271f7b6838d54ccdbcc4f4fedc3cbda00f7d78c45800"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2-visible/command.json",
+      "bytes": 509,
+      "sha256": "2d72d15de8031b31b4b3f5e189bf4a45549a62f979f1c146bb16d1c664659936"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2-visible/result.json",
+      "bytes": 437601,
+      "sha256": "9e0f30263fba057ad156a7c4e4f44497b4c1ad8b0a5a8ef18ddc26ad5408d1e0"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2/command.json",
+      "bytes": 570,
+      "sha256": "1eadfea3bf7a5e61944afa5a4ee29a2c3f7cf9dbc5e22b534d5677924c22bd2f"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2/pass-1/result.json",
+      "bytes": 437859,
+      "sha256": "4a9c54ce1b4890a8191299e46f7e33ef8f0f78db683fb6d621413048a1b0fd30"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2/pass-2/result.json",
+      "bytes": 438547,
+      "sha256": "b0ee0a43237db85215b8eb419bf1116846f8bc22ce779e23e1f70dfa2d591506"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-revision-2/pass-3/result.json",
+      "bytes": 439003,
+      "sha256": "d6843fd1fd5a077a5dee790c7a537acf5865727e659344cc3bd09fb0ef1af541"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-visible/command.json",
+      "bytes": 487,
+      "sha256": "547b00069acd3784b5d515817f07022a5107dc2e28a754400f371a50b784da49"
+    },
+    {
+      "path": ".test-results/quest-024/windows-mni-visible/result.json",
+      "bytes": 427977,
+      "sha256": "6902cce581d2bf8d4b0d722e8c5700f7738d1b79b407550d5eb6df6fac88a290"
+    },
+    {
+      "path": ".test-results/quest-024/windows-native-pins.json",
+      "bytes": 928,
+      "sha256": "b85121d79f9e804f9579fe1bab4cbcd0ffbcd78e721da80fff37134b61590426"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2-regression.json",
+      "bytes": 123453,
+      "sha256": "4bc5281e5f2e1a8d1f46453b682e2f228c0a4f9118628e812e6896c3066914dd"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2-repeat.json",
+      "bytes": 128710,
+      "sha256": "38f1a33798332064973ef364dd93b32d0d801bd53d78b172d7f99440f2ca8e75"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2-visible/command.json",
+      "bytes": 525,
+      "sha256": "5305d34a110a36bd524f82438551c7892010fd42ac75ca693a63d0ff67caf421"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2-visible/result.json",
+      "bytes": 269095,
+      "sha256": "fbda3040ac8748f295867ac4c7e071126e0b2c0628404873efec3d6af09e87c0"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2/command.json",
+      "bytes": 586,
+      "sha256": "3603e94d713c557a9bcdd39af1a38c1aa79ba5c043a8d5b2ae84130d515f2ec1"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2/pass-1/result.json",
+      "bytes": 269103,
+      "sha256": "85d8e849664bcdd1070c8d1501e5b35fc9457a4f099d52e95e9abbe1c7f8e29b"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2/pass-2/result.json",
+      "bytes": 269767,
+      "sha256": "44764349376b393a656b2cfffb1f1de3768f182c0410d69d18ae82634194fa50"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-revision-2/pass-3/result.json",
+      "bytes": 270439,
+      "sha256": "2898aae6cfc9065084358720a74feacf2d84d1dad38cafb564d7fc0649625ee1"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-visual-ready/command.json",
+      "bytes": 520,
+      "sha256": "af097f9a6b4337298f3d5565e2afac545297fbb9a966be24fcafc72d59711c19"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-visual-ready/result.json",
+      "bytes": 270456,
+      "sha256": "d33aa926e221ea4415154a73324a9cf96a846e45e7637c1defa4ee3cbdf0bad7"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient-visual-revision-2/command.json",
+      "bytes": 530,
+      "sha256": "2217a54bbc4277514f5fd7a53b0cbbb7b0e15c8dc22e4821443b90302775295f"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient/command.json",
+      "bytes": 529,
+      "sha256": "1870476795e9ba8c8985ee88e9d7f168058df086df8e56db7415f7f099e2af18"
+    },
+    {
+      "path": ".test-results/quest-024/windows-patient/result.json",
+      "bytes": 258904,
+      "sha256": "e1e01dbc77ef141655017bdf88b5c5f1d1944a66e412b9e98e3be503586af702"
+    },
+    {
+      "path": ".test-results/quest-024/windows-regression.json",
+      "bytes": 112508,
+      "sha256": "6c0abd04154ab6c96a9d1863a204a65a6e126cfe4a0cec1092636f275fbcb1fe"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/editor-mni-parity.json",
+      "bytes": 142198,
+      "sha256": "6be538c39f90ca22a6d638644da6fa21f9f701574ac230bd589fde1b9e62ec02"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/editor-patient-parity.json",
+      "bytes": 135739,
+      "sha256": "c9bbd2db9bdd65fcd1e6c37b331c4204741d4c79b6fa916d431bedff7d395807"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/final-verification.json",
+      "bytes": 529,
+      "sha256": "f9b599c8091c9ffc26d045257e08b6c1160666002a1dfb69e8b352cdacb27527"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/manual-validation.json",
+      "bytes": 4014,
+      "sha256": "3727c28666a883e9d8acc23b8d2c6b7e67c71983962ba1d3c96f7c53b1d7c8b8"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/mni-outage-revision-2-repeat.json",
+      "bytes": 120006,
+      "sha256": "5cdc16f1ffa118c705a6d778ae028d3d45146e9b9c1484117bbe1566f9c52b0c"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/mni-parity-revision-2.json",
+      "bytes": 122898,
+      "sha256": "3059b417538b410bdf2959e37085270389f8afc101ff92c9dc3b6a86bc1d8c34"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-delivery.json",
+      "bytes": 363,
+      "sha256": "e3512012c634a3f8a60c1837ec3d8a9d43a2eb691e722d47d80a9f58c0b9deb0"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-first-pass-recovery.json",
+      "bytes": 569,
+      "sha256": "0b1f2b28cddf6ddf517db8a5821525c1fd6cf1b2ccf6ac18c7cdc0dd19f5db43"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-outage-repeat.json",
+      "bytes": 129548,
+      "sha256": "a6eb189a3862756b09de178e1a9dc6e4ecbfbda5e859716dd2b12e5dc790d7b2"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-parity.json",
+      "bytes": 132431,
+      "sha256": "4a021152f7d719df6fc843cc999b9bf24e36210967759e3e8955169a2d1547a1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-quest-repeat.json",
+      "bytes": 129546,
+      "sha256": "40a4193426fba9ea228054ce7058f1c57e04e9c1ac2388d0bf808ca5e79dc01a"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-runtime-memory.json",
+      "bytes": 1845,
+      "sha256": "d18fdeaccec646cdf76fc15f3800120055fcb02b7c2f2deaef9d73179dbaa94d"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-windows-repeat.json",
+      "bytes": 129546,
+      "sha256": "074df7006c2435852a54173ada2400012d93bbf160edf1929fa5ceae8522d206"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-visual-normal-fix.json",
+      "bytes": 1279,
+      "sha256": "aa139eaa6fbd02429d31eefa7c9d9fbba6bd14c82bc214d3e03e54dbcfcd24e6"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-visual-transform-fix.json",
+      "bytes": 708,
+      "sha256": "6c75633644b925681764e196881d0d003b51ae3035c323b16883ff5d283766dd"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/players-revision-2.json",
+      "bytes": 2028,
+      "sha256": "df6e1d7822a387afe97532cdd6f16d47f90dea74ef076b3d41bfb5653e647524"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/prototype-patient-provenance.json",
+      "bytes": 1827,
+      "sha256": "c4a01de6c49ae78fc1eed09700c7f846f1153f0f5942a3f05a03acfd4c7d1a5e"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/quest-mni-revision-2-repeat.json",
+      "bytes": 119999,
+      "sha256": "41eb60e6bdcbacbae5bd5a4ce0b7a3df0d64f60daf85e270ebe29380f3b25ce5"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/runtime-memory-revision-2.json",
+      "bytes": 15930,
+      "sha256": "9d12ff304a7fa13a822f33fd5a1b2c8fe28e7a34e879bc93b1b3de89246f6d3d"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/scientific-acceptance.json",
+      "bytes": 3981,
+      "sha256": "d5d9f2f4b8705fa72de4cd6ec8470e8540fb95312b93e4e78506cc75e708fee4"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/source-final-format-verification.json",
+      "bytes": 512,
+      "sha256": "6df81e7ee55ca95dac1d36c990a098a2995bba04e0b9fd5680511883893f88b1"
+    },
+    {
+      "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/source-final.json",
+      "bytes": 4507,
+      "sha256": "71b8309368de669c7665003d29efa562a224f274b2d93aa9ec62cf0f8b1499b7"
+    }
+  ],
+  "invalidUnityVerdicts": {
+    "unity/complete-scene.xml": "Canceled Task reported Passed by Unity; no final marker.",
+    "unity/desktop-mni.xml": "Ten cuts tests valid; desktop/restored integration incomplete despite Passed.",
+    "unity/resource-count-before.xml": "Incorrect test filter selected zero tests; no validation."
+  },
+  "currentConclusions": {
+    "integrationFinal": "4/4 tests plus complete exports and final markers, scene-final.xml",
+    "editorParity": "MNI:72 buffers+12 cut textures exact; patient:78 buffers+12 cut textures exact",
+    "revision1Windows": "Three successful MNI passes, exact scientific repeat/regression; FAILED memory stability: +22 meshes and approximately116MB each pass",
+    "revision2Cuts": "10/10 tests passed including warmed mesh count stability, resource-sharedmesh-fixed.xml",
+    "revision2Players": "Windows and Android built; installed APK hash verified, players-revision-2.json",
+    "revision2MNI": "3 Quest passes with stable meshes/textures/materials and memory; exact warm and outage repeats; owner validated gestures during60.292s outage",
+    "patientFixture": "Corrected synthetic MNI-derived patient recipe visually validated on Desktop and Quest; three Quest passes stable at21 meshes/48 textures/56 materials, warm and outage repeats exact; owner validated60.163s outage.",
+    "firstPatientFinalCollection": "ADB pull completed but stderr progress triggered PowerShell Stop; original wrapper failure preserved, all diagnostic files verified independently; wrapper fixed and subsequent runs successful.",
+    "scientificAcceptance": "Owner explicitly accepted absolute activity5e-7/alpha2e-7 for MNI and corrected synthetic patient fixtures on revision2 binaries only; both pass, raw comparisons remain strict."
+  },
+  "remaining": [],
+  "transportScope": "USB only; Wi-Fi not qualified.",
+  "userControlConstraint": "No general PC UI automation or application launch/stop. Explicit exceptions: final Windows launcher, Quest launch, and three Quest diagnostic passes plus60s USB-forward outage. Final application closure left to owner; not verified.",
+  "knownLimits": [
+    "USB transport only; Wi-Fi untested.",
+    "Small retained empty mesh growth on Desktop; absent from three Quest passes on both final fixtures.",
+    "Patient fixture is synthetic and MNI-derived, not real patient data.",
+    "Three recalculation passes per fixture; long endurance and exhaustive frame-time qualification not performed.",
+    "Mac/Linux and future features/UI outside this prototype qualification."
+  ],
+  "implementation": "IMPLEMENTEE",
+  "manualStatus": "VALIDE",
+  "scientificAcceptance": "scientific-acceptance.json",
+  "qualifiedScope": "Windows and Quest3 prototype, MNI and corrected synthetic patient fixtures, revision2 binaries, USB transfer and60s disconnect, three repeated diagnostic passes and owner visual/gesture validation."
+}

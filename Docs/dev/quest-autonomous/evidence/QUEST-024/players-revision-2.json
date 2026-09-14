@@ -1,0 +1,62 @@
+{
+  "recordedUtc": "2026-09-14T09:59:50.821249+00:00",
+  "sourceCheckpoint": ".test-results/quest-024/source-revision-2.json",
+  "players": [
+    {
+      "target": "Windows",
+      "path": ".artifacts/quest-024/revision-2/Windows/HiBoP.6.1.0.win64/HiBoP.exe",
+      "bytes": 667648,
+      "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1",
+      "build": {
+        "result": "Succeeded",
+        "bytes": 2186451293,
+        "seconds": 239.9572854,
+        "errors": 0,
+        "warnings": 65,
+        "unity": "6000.5.2f1",
+        "scenes": [
+          "Assets/_Scenes/HiBoP.unity"
+        ]
+      }
+    },
+    {
+      "target": "Android",
+      "path": ".artifacts/quest-024/revision-2/Android/HiBoP.Quest.apk",
+      "bytes": 394447911,
+      "sha256": "7da5d0a50f3ca52fab755005978e56de07e9dcb438c891865a8f9304139b79ce",
+      "build": {
+        "result": "Succeeded",
+        "bytes": 2224958339,
+        "seconds": 301.36830399999997,
+        "errors": 0,
+        "warnings": 66,
+        "unity": "6000.5.2f1",
+        "scenes": [
+          "Assets/_Scenes/QuestBootstrap.unity"
+        ]
+      }
+    }
+  ],
+  "windowsNativePins": [
+    {
+      "library": "EEGFormat",
+      "commit": "99b54e9faf607973451233c069315978d3c6bffd",
+      "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec",
+      "matchesPin": true
+    },
+    {
+      "library": "hbp_core",
+      "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+      "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278",
+      "matchesPin": true
+    },
+    {
+      "library": "hbp_math",
+      "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
+      "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa",
+      "matchesPin": true
+    }
+  ],
+  "androidContents": ".test-results/quest-024/apk-content-revision-2.json",
+  "installedApk": ".test-results/quest-024/device-apk-verification-revision-2.json"
+}

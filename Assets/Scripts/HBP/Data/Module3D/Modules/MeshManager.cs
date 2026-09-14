@@ -351,7 +351,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateMeshesFromDLL(bool preserveScientificData = false)
         {
-            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh;
             if (preserveScientificData)
             {
                 BrainSurface.UpdateMeshFromDLL(brainMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
@@ -382,7 +382,7 @@ namespace HBP.Data.Module3D
             MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
             Core.DLL.Surface anatomical = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
             Core.DLL.Surface inflated = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Inflated, selectedPart);
-            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh;
             Mesh inflatedMesh = new();
             try
             {

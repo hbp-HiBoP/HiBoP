@@ -71,11 +71,11 @@ namespace HBP.Data.Module3D
 
             while (Size > size)
             {
-                UnityEngine.Object.Destroy(BaseBrainCutTextures[BaseBrainCutTextures.Count - 1]);
+                DestroyTexture(BaseBrainCutTextures[BaseBrainCutTextures.Count - 1]);
                 BaseBrainCutTextures.RemoveAt(BaseBrainCutTextures.Count - 1);
-                UnityEngine.Object.Destroy(BrainCutTextures[BrainCutTextures.Count - 1]);
+                DestroyTexture(BrainCutTextures[BrainCutTextures.Count - 1]);
                 BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
-                UnityEngine.Object.Destroy(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
+                DestroyTexture(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
                 CutGenerators[CutGenerators.Count - 1].Dispose();
                 CutGenerators.RemoveAt(CutGenerators.Count - 1);
@@ -285,11 +285,25 @@ namespace HBP.Data.Module3D
         public void Clean()
         {
             foreach (var dllMRITextureCutGenerator in CutGenerators) dllMRITextureCutGenerator?.Dispose();
+            CutGenerators.Clear();
+            foreach (var texture in BaseBrainCutTextures) DestroyTexture(texture);
+            foreach (var texture in BrainCutTextures) DestroyTexture(texture);
+            foreach (var texture in GUIBrainCutTextures) DestroyTexture(texture);
+            BaseBrainCutTextures.Clear();
+            BrainCutTextures.Clear();
+            GUIBrainCutTextures.Clear();
+            Size = 0;
         }
 
         #endregion
 
         #region Private Methods
+
+        private static void DestroyTexture(Texture2D texture)
+        {
+            if (Application.isPlaying) UnityEngine.Object.Destroy(texture);
+            else UnityEngine.Object.DestroyImmediate(texture);
+        }
 
         private static bool IsSiteOnCut(Vector3 unitySitePosition, Core.Object3D.Cut cut, float precisionSquared)
         {

@@ -1,0 +1,84 @@
+{
+  "date": "2026-09-14",
+  "scope": "Fixture MNI SCENE-008, six colonnes, Players SCENE-011, transfert USB",
+  "M1": {
+    "status": "VALIDE",
+    "criterion": "Lisibilité des six colonnes, surfaces et sites",
+    "ownerFeedback": "M1 OK"
+  },
+  "M2": {
+    "status": "VALIDE",
+    "criterion": "Translation, rotation et échelle indépendantes des autres colonnes et des vues Windows",
+    "ownerFeedback": "M2 OK"
+  },
+  "M3": {
+    "status": "VALIDE",
+    "criterion": "Manipulation pendant la coupure, stabilité au relâchement, positions et tailles conservées après reconnexion",
+    "initialFeedback": "M3 OK je pense, mais je n'ai pas exactement testé le déplacement des colonnes pendant la coupure",
+    "initialStatus": "PARTIEL",
+    "repeatRequestedByOwner": "Prêt pour M3",
+    "finalOwnerFeedback": "Oui tout est bon",
+    "outageStartedUtc": "2026-09-14T07:57:48.9220530Z",
+    "outageSeconds": 60.7233326,
+    "processIdBefore": "24182",
+    "processIdAfter": "24182",
+    "forwardRestored": true,
+    "localEvidence": ".test-results/quest-024/manual-m3-20260914-075748/result.json"
+  },
+  "transport": {
+    "kind": "ADB USB forward tcp:45871",
+    "serial": "2G0YC5ZHB20370",
+    "windowsAddress": "127.0.0.1",
+    "wifiQualified": false
+  },
+  "deviceStop": {
+    "verified": true,
+    "package": "fr.crnl.hibop.quest",
+    "pidofExitCode": 1,
+    "adbPreserved": true,
+    "localEvidence": ".test-results/quest-024/manual-m3-20260914-075748/device-stop.json"
+  },
+  "scientificToleranceAccepted": true,
+  "patientFixturePhysicallyQualified": true,
+  "revision2MNI": {
+    "status": "VALIDE",
+    "scope": "QUEST-024 revision-2, MNI, six modalities, USB",
+    "receiptFeedback": "Les 6 colonnes sont visibles",
+    "gestureQuestion": "Pendant la coupure : déplacement, rotation, échelle indépendante, stabilité après relâchement et lisibilité.",
+    "gestureFeedback": "Oui",
+    "localEvidence": ".test-results/quest-024/quest-mni-revision-2-outage/run.json",
+    "apkSha256": "7da5d0a50f3ca52fab755005978e56de07e9dcb438c891865a8f9304139b79ce"
+  },
+  "patientVisual": {
+    "status": "VALIDE_DESKTOP_ET_QUEST_VISUEL",
+    "previousRecipeStatus": "REFUSE",
+    "ownerFeedback": [
+      "Aucun mesh n'est visible, ni sur le desktop ni sur le casque.",
+      "La surface MNI apparait correctement, lorsque je sélectionne l'autre il n'y a plus rien",
+      "La surface est un plan, donc en tournant la caméra on peut la voir mais l'angle initial ne permet pas de distinguer une forme 3D",
+      "ça a l'air ok, il y a un problème de normale mais à part ça c'est ok",
+      "C'est bon",
+      "Je vois les 6 colonnes dans le casque, je fais quoi maintenant ?",
+      "Petient ok"
+    ],
+    "cause": "Singular transformation inherited from a 4x4 identity file interpreted using the .trm layout",
+    "correction": "MNI.trm baked into source coordinates before synthetic deformation; external transformation empty; triangle winding and signed volumes verified against MNI",
+    "reloaded": true,
+    "evidence": ".test-results/quest-024/patient-visual-normal-fix.json",
+    "volumeAfterFirstCorrection": "VALIDE",
+    "normalsAfterFirstCorrection": "REFUSE",
+    "normalsAfterSecondCorrection": "VALIDE",
+    "questFinalFixtureStatus": "VALIDE",
+    "questFinalFixtureCriterion": "Six surfaces en volume, normales et sites lisibles; translation, rotation et echelle independantes; stabilite au relachement et nouvelle manipulation. Retour patient OK du proprietaire.",
+    "questFinalFixtureOutageStatus": "VALIDE",
+    "numericalFinalFixtureStatus": "VALIDE_DANS_LES_TOLERANCES_ACCEPTEES",
+    "outage": {
+      "ownerFeedback": "M3 patient OK",
+      "seconds": 60.1625691,
+      "processId": "16121",
+      "forwardRestored": true,
+      "localEvidence": ".test-results/quest-024/quest-patient-final-outage/run.json"
+    }
+  },
+  "scientificAcceptanceEvidence": "scientific-acceptance.json"
+}

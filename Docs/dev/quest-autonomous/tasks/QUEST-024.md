@@ -1,7 +1,7 @@
-# QUEST-024 — Qualifier le prototype Windows complet
+# QUEST-024 — Qualifier le prototype Windows + Quest intégré
 
 Jalon : [J5](../milestones/J5.md). Type : intégration / qualification.
-Dépendances : [QUEST-023](QUEST-023.md)
+Dépendances : [QUEST-023](QUEST-023.md) et [SCENE-008](../scene-column-refactor/tasks/SCENE-008.md).
 Statut et preuves : [registre](../TASK-STATUS.md#quest-024).
 
 ## Instructions de reprise
@@ -10,6 +10,13 @@ Lire le [contrat d'exécution](../TASK-WORKFLOW.md), les [décisions](../01-deci
 et [la référence thématique](../07-validation-and-measurement-plan.md) avant d'agir.
 Relever l'état réel ; les noms de nouveaux types/menus restent à confirmer dans le code.
 Une demande « implémente QUEST-024 » autorise cette tâche, pas le jalon entier.
+
+Précision propriétaire du 14 septembre 2026 : finaliser un premier prototype
+Windows + Quest intégrant QUEST-001 à 023 et SCENE-001 à 008. Le refactor a
+priorité sur les documents antérieurs en cas d'ambiguïté. Les fonctionnalités
+et la finition de l'UI seront complétées dans d'autres tâches. Réutiliser les
+preuves SCENE encore applicables ; qualifier les scènes communes et leurs six
+modalités, sans réintroduire le parcours spécialisé historique à un seul instant.
 
 ## Points d'entrée à inspecter
 
@@ -20,7 +27,7 @@ selon le contrat commun ; ne pas considérer les restes non suivis comme référ
 
 ## À implémenter
 
-- Assembler une recette unique anatomie/sites/densité/iEEG avec binaires et fixtures identifiés.
+- Assembler une recette unique anatomie/sites/densité/iEEG et des modalités CCEP, fMRI, MEG, statique du refactor, avec binaires et fixtures identifiés.
 - Exécuter la campagne utile de bout en bout, mesures froid/chaud, déconnexion et libération.
 - Corriger seulement les défauts bloquant cette preuve ; consigner l'acceptation avant qualification Mac.
 
