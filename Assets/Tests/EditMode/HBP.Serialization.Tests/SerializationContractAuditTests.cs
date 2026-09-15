@@ -13,10 +13,12 @@ namespace HBP.Tests.Serialization
 {
     public class SerializationContractAuditTests
     {
-        private const string ExpectedSerializedMembersSha256 = "fb875adf388c4aa7e9168e84182d1793f91a268755ae7d6eaa3583fa22f15160";
-        private const int ExpectedSerializedMembersCount = 540;
-        private const string ExpectedLifecycleContractsSha256 = "b75727661fe988bbd817d7b86e9dd8e018aeccd2426a98c9cc03ad45430f26f3";
-        private const int ExpectedLifecycleContractsCount = 376;
+        // QUEST-030: approved Atlas/CCEP configurations and persistent scene fields.
+        // Historical member names now belong to the generated alias registry, not the model.
+        private const string ExpectedSerializedMembersSha256 = "954f960684c9a51f77086adc6de81c73f5c623cb18d3162eb00da0a530aece79";
+        private const int ExpectedSerializedMembersCount = 573;
+        private const string ExpectedLifecycleContractsSha256 = "34b9c961b4b734c42c0010d5812b98fb057e5934a33bcae6e61df77d21f154f7";
+        private const int ExpectedLifecycleContractsCount = 384;
 
         [Test]
         public void SerializedMemberManifest_MatchesApprovedContractSurface()

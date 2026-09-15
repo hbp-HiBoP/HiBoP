@@ -152,6 +152,7 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedMEGIndex = ColumnMEGData.MEGConfiguration.SelectedResourceIndex;
             MEGParameters.SetSpanValues(ColumnMEGData.MEGConfiguration.NegativeMin, ColumnMEGData.MEGConfiguration.NegativeMax, ColumnMEGData.MEGConfiguration.PositiveMin, ColumnMEGData.MEGConfiguration.PositiveMax);
             MEGParameters.SetHideValues(ColumnMEGData.MEGConfiguration.HideLowerValues, ColumnMEGData.MEGConfiguration.HideMiddleValues, ColumnMEGData.MEGConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
@@ -164,6 +165,7 @@ namespace HBP.Data.Module3D
 
         public override void CaptureConfiguration(Core.Data.Column target)
         {
+            ((MEGColumn)target).MEGConfiguration.SelectedResourceIndex = SelectedMEGIndex;
             ((MEGColumn)target).MEGConfiguration.NegativeMin = MEGParameters.FMRINegativeCalMinFactor;
             ((MEGColumn)target).MEGConfiguration.NegativeMax = MEGParameters.FMRINegativeCalMaxFactor;
             ((MEGColumn)target).MEGConfiguration.PositiveMin = MEGParameters.FMRIPositiveCalMinFactor;

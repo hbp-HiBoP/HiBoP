@@ -29,6 +29,9 @@ namespace HBP.Data.Module3D
     {
         #region Properties
 
+        private Exception m_PreparationError;
+        private bool AutomaticActivityComputationEnabled => Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible();
+
         /// <summary>
         /// Name of the scene
         /// </summary>
@@ -845,6 +848,7 @@ namespace HBP.Data.Module3D
             if (m_UpdatingGenerators) return;
             if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
             else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
+            ApplyConfiguredGeometry();
             if (SceneInformation.CutsNeedUpdate) UpdateCuts();
             if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
             if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
@@ -855,7 +859,7 @@ namespace HBP.Data.Module3D
             {
                 if (SceneInformation.GeneratorUpdateRequested)
                     UpdateGenerator();
-                else if (PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible())
+                else if (AutomaticActivityComputationEnabled)
                     UpdateGenerator();
             }
         }
@@ -1768,270 +1772,6 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Load the visualization configuration from the loaded visualization
-        /// </summary>
-        /// <param name="firstCall">Has this method not been called by another load method ?</param>
-        public void LoadConfiguration(bool firstCall = true)
-        {
-            SurfaceRepresentation configuredRepresentation = Visualization.Configuration.SurfaceRepresentation;
-            if (firstCall) ResetConfiguration();
-            BrainColor = Visualization.Configuration.BrainColor;
-            CutColor = Visualization.Configuration.BrainCutColor;
-            Colormap = Visualization.Configuration.Colormap;
-            m_MeshManager.SelectMeshPart(Visualization.Configuration.MeshPart);
-            EdgeMode = Visualization.Configuration.ShowEdges;
-            IsBrainTransparent = Visualization.Configuration.TransparentBrain;
-            BrainMaterials.SetAlpha(Visualization.Configuration.BrainAlpha);
-            StrongCuts = Visualization.Configuration.StrongCuts;
-            HideBlacklistedSites = Visualization.Configuration.HideBlacklistedSites;
-            ShowAllSites = Visualization.Configuration.ShowAllSites;
-            AutomaticCutAroundSelectedSite = Visualization.Configuration.AutomaticCutAroundSelectedSite;
-            SiteGain = Visualization.Configuration.SiteGain;
-            m_MRIManager.SetCalValues(Visualization.Configuration.MRICalMinFactor, Visualization.Configuration.MRICalMaxFactor);
-            CameraType = Visualization.Configuration.CameraType;
-
-            if (Type == SceneType.SinglePatient)
-            {
-                m_MeshManager.SelectInitialMeshForScene(Visualization.Configuration.MeshName, PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, !string.IsNullOrEmpty(Visualization.Configuration.MRIName) ? Visualization.Configuration.MRIName : PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
-            }
-            else if (!string.IsNullOrEmpty(Visualization.Configuration.MeshName))
-            {
-                m_MeshManager.Select(Visualization.Configuration.MeshName);
-            }
-
-            if (!string.IsNullOrEmpty(Visualization.Configuration.MRIName)) m_MRIManager.Select(Visualization.Configuration.MRIName);
-            if (!string.IsNullOrEmpty(Visualization.Configuration.ImplantationName)) m_ImplantationManager.Select(Visualization.Configuration.ImplantationName);
-
-            if (configuredRepresentation == SurfaceRepresentation.Inflated && m_MeshManager.SelectedMesh.HasInflatedRepresentation)
-            {
-                m_MeshManager.SelectRepresentation(configuredRepresentation);
-            }
-
-            foreach (Core.Data.Cut cut in Visualization.Configuration.Cuts)
-            {
-                Core.Object3D.Cut newCut = AddCutPlane();
-                newCut.Normal = cut.Normal.ToVector3();
-                newCut.Orientation = cut.Orientation;
-                newCut.Flip = cut.Flip;
-                newCut.Position = cut.Position;
-                UpdateCutPlane(newCut);
-            }
-
-            if (m_DesktopPresentation) m_DesktopPresentation.LoadConfiguration();
-
-            m_ROIManager.LoadROIsFromConfiguration(Visualization.Configuration.RegionsOfInterest);
-
-            foreach (Column3D column in Columns)
-            {
-                column.LoadConfiguration(false);
-            }
-
-            LogRuntimePreviewSiteDistanceDiagnostic();
-
-            SceneInformation.SitesNeedUpdate = true;
-
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
-        }
-
-        /// <summary>
-        /// Logs a non-blocking warning when the runtime preview is farther from many sites than
-        /// the smallest active projection distance. The configured distance is never modified.
-        /// </summary>
-        private void LogRuntimePreviewSiteDistanceDiagnostic()
-        {
-            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D preview) return;
-            Implantation3D implantation = m_ImplantationManager.SelectedImplantation;
-            if (implantation?.SiteInfos == null || implantation.SiteInfos.Count == 0) return;
-
-            float influenceDistance = Columns.Select(GetInfluenceDistance).Where(distance => !float.IsNaN(distance) && !float.IsInfinity(distance) && distance >= 0f).DefaultIfEmpty(15f).Min();
-
-            Mesh vertexBuffer = new();
-            RuntimePreviewDistanceReport report;
-            try
-            {
-                preview.Both.UpdateMeshFromDLL(vertexBuffer, all: false, vertices: true, normals: false, uv: false, triangles: false, colors: false);
-                report = RuntimePreviewDistanceDiagnostic.Evaluate(vertexBuffer.vertices, implantation.SiteInfos.Select(site => site.UnityPosition).ToArray(), influenceDistance);
-            }
-            finally
-            {
-                Destroy(vertexBuffer);
-            }
-
-            if (report.ShouldWarn)
-            {
-                Debug.LogWarning($"MRI preview site-distance diagnostic for '{preview.SourceMRIName}': " + $"P50={report.Percentile50:0.0} mm, P90={report.Percentile90:0.0} mm, P95={report.Percentile95:0.0} mm; " + $"{report.FractionBeyondInfluence:P0} of sites exceed the minimum active influence distance of {report.InfluenceDistance:0.0} mm. " + $"A non-persistent value of at least {report.SuggestedInfluenceDistance:0.0} mm may be more appropriate for this scene.");
-            }
-        }
-
-        private static float GetInfluenceDistance(Column3D column)
-        {
-            return column switch
-            {
-                Column3DAnatomy anatomy => anatomy.AnatomyParameters.InfluenceDistance,
-                Column3DDynamic dynamicColumn => dynamicColumn.DynamicParameters.InfluenceDistance,
-                Column3DStatic staticColumn => staticColumn.StaticParameters.InfluenceDistance,
-                _ => float.NaN
-            };
-        }
-
-        /// <summary>
-        /// Save the current settings of this scene to the configuration of the linked visualization
-        /// </summary>
-        public void SaveConfiguration()
-        {
-            Visualization.Configuration.BrainColor = BrainColor;
-            Visualization.Configuration.BrainCutColor = CutColor;
-            Visualization.Configuration.Colormap = Colormap;
-            Visualization.Configuration.MeshPart = MeshManager.MeshPartToDisplay;
-            Visualization.Configuration.SurfaceRepresentation = MeshManager.SelectedMesh.Representation;
-            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D)
-            {
-                Visualization.Configuration.MeshName = m_MeshManager.SelectedMesh.Name;
-            }
-
-            Visualization.Configuration.MRIName = m_MRIManager.SelectedMRI.Name;
-            Visualization.Configuration.ImplantationName = m_ImplantationManager.SelectedImplantation != null ? m_ImplantationManager.SelectedImplantation.Name : "";
-            Visualization.Configuration.ShowEdges = EdgeMode;
-            Visualization.Configuration.TransparentBrain = IsBrainTransparent;
-            Visualization.Configuration.BrainAlpha = BrainMaterials.Alpha;
-            Visualization.Configuration.StrongCuts = StrongCuts;
-            Visualization.Configuration.HideBlacklistedSites = m_HideBlacklistedSites;
-            Visualization.Configuration.ShowAllSites = ShowAllSites;
-            Visualization.Configuration.AutomaticCutAroundSelectedSite = AutomaticCutAroundSelectedSite;
-            Visualization.Configuration.SiteGain = SiteGain;
-            Visualization.Configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
-            Visualization.Configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
-            Visualization.Configuration.CameraType = CameraType;
-
-            List<Core.Data.Cut> cuts = new();
-            foreach (Core.Object3D.Cut cut in Cuts)
-            {
-                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
-            }
-
-            Visualization.Configuration.Cuts = cuts;
-
-            if (m_DesktopPresentation) m_DesktopPresentation.SaveConfiguration();
-
-            List<RegionOfInterest> rois = new();
-            foreach (ROI roi in ROIManager.ROIs)
-            {
-                rois.Add(new RegionOfInterest(roi.name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList()));
-            }
-
-            Visualization.Configuration.RegionsOfInterest = rois;
-
-            foreach (Column3D column in Columns)
-            {
-                column.SaveConfiguration();
-            }
-        }
-
-        public VisualizationConfiguration CaptureConfiguration()
-        {
-            var configuration = (VisualizationConfiguration)Visualization.Configuration.Clone();
-            configuration.BrainColor = BrainColor;
-            configuration.BrainCutColor = CutColor;
-            configuration.Colormap = Colormap;
-            configuration.MeshPart = MeshManager.MeshPartToDisplay;
-            configuration.SurfaceRepresentation = MeshManager.SelectedMesh.Representation;
-            if (m_MeshManager.SelectedMesh is not RuntimeSingleMesh3D)
-            {
-                configuration.MeshName = m_MeshManager.SelectedMesh.Name;
-            }
-
-            configuration.MRIName = m_MRIManager.SelectedMRI.Name;
-            configuration.ImplantationName = m_ImplantationManager.SelectedImplantation != null ? m_ImplantationManager.SelectedImplantation.Name : "";
-            configuration.ShowEdges = EdgeMode;
-            configuration.TransparentBrain = IsBrainTransparent;
-            configuration.BrainAlpha = BrainMaterials.Alpha;
-            configuration.StrongCuts = StrongCuts;
-            configuration.HideBlacklistedSites = m_HideBlacklistedSites;
-            configuration.ShowAllSites = ShowAllSites;
-            configuration.AutomaticCutAroundSelectedSite = AutomaticCutAroundSelectedSite;
-            configuration.SiteGain = SiteGain;
-            configuration.MRICalMinFactor = m_MRIManager.MRICalMinFactor;
-            configuration.MRICalMaxFactor = m_MRIManager.MRICalMaxFactor;
-            configuration.CameraType = CameraType;
-
-            List<Core.Data.Cut> cuts = new();
-            foreach (Core.Object3D.Cut cut in Cuts)
-            {
-                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
-            }
-
-            configuration.Cuts = cuts;
-
-            List<RegionOfInterest> rois = new();
-            foreach (ROI roi in ROIManager.ROIs)
-            {
-                rois.Add(new RegionOfInterest(roi.name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.Radius)).ToList()));
-            }
-
-            configuration.RegionsOfInterest = rois;
-
-            return configuration;
-        }
-
-        /// <summary>
-        /// Reset the settings of the loaded scene
-        /// </summary>
-        public void ResetConfiguration()
-        {
-            BrainColor = ColorType.BrainColor;
-            CutColor = ColorType.Default;
-            Colormap = ColorType.MatLab;
-            m_MeshManager.SelectMeshPart(MeshPart.Both);
-            if (m_MeshManager.Meshes.Count > 0 && m_MeshManager.SelectedMesh.Representation != SurfaceRepresentation.Anatomical)
-            {
-                m_MeshManager.SelectRepresentation(SurfaceRepresentation.Anatomical);
-            }
-
-            EdgeMode = false;
-            IsBrainTransparent = false;
-            BrainMaterials.SetAlpha(0.2f);
-            StrongCuts = false;
-            HideBlacklistedSites = false;
-            ShowAllSites = false;
-            AutomaticCutAroundSelectedSite = false;
-            SiteGain = 1.0f;
-            m_MRIManager.SetCalValues(0, 1);
-            CameraType = CameraControl.Trackball;
-
-            switch (Type)
-            {
-                case SceneType.SinglePatient:
-                    m_MeshManager.SelectInitialMeshForScene(null, PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization, PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization);
-                    m_MRIManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization, true);
-                    m_ImplantationManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization);
-                    break;
-                case SceneType.MultiPatients:
-                    m_MeshManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInMultiPatientsVisualization);
-                    m_MRIManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInMultiPatientsVisualization);
-                    m_ImplantationManager.Select(PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInMultiPatientsVisualization);
-                    break;
-                default:
-                    break;
-            }
-
-            while (Cuts.Count > 0)
-            {
-                RemoveCutPlane(Cuts.Last());
-            }
-
-            if (m_DesktopPresentation) m_DesktopPresentation.ResetConfiguration();
-
-            m_ROIManager.Clear();
-
-            foreach (Column3D column in Columns)
-            {
-                column.ResetConfiguration();
-            }
-
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
-        }
-
-        /// <summary>
         /// Create all required folders and return the path to the folder used for export
         /// </summary>
         /// <returns>Folder that will contain exported files</returns>
@@ -2327,6 +2067,50 @@ namespace HBP.Data.Module3D
 
         #region Coroutines
 
+        public static UniTask PrepareStandardResourcesAsync()
+        {
+            UniTask work = Core.Object3D.Object3DManager.MNI.Load();
+            TrackStandardPreparation(work);
+            return work;
+        }
+
+        /// <summary>Complete both scene openings in the same order; the callback attaches Desktop UI.</summary>
+        public UniTask CompleteInitializationAsync(Action onInitialized, IProgress<float> progress, CancellationToken token)
+        {
+            UniTask initialized = m_InitializationWork;
+            m_InitializationWork = CompleteInitializationCoreAsync(initialized, onInitialized, progress, token).ToAsyncLazy().Task;
+            return m_InitializationWork;
+        }
+
+        private async UniTask CompleteInitializationCoreAsync(UniTask initialized, Action onInitialized, IProgress<float> progress, CancellationToken cancellationToken)
+        {
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
+            var token = lifetime.Token;
+            await initialized;
+            await UniTask.SwitchToMainThread();
+            token.ThrowIfCancellationRequested();
+            FinalizeInitialization();
+            onInitialized?.Invoke();
+            LoadConfiguration();
+            // Configuration depends on the selected topology, before any activity is requested.
+            UpdateGeometry();
+            ApplyConfiguredGeometry();
+            await RestoreConfiguredSurfaceRepresentationAsync(progress, token, animate: false);
+        }
+
+        public async UniTask PrepareRenderingAsync(CancellationToken token)
+        {
+            while (true)
+            {
+                token.ThrowIfCancellationRequested();
+                if (IsClosing) throw new ObjectDisposedException(Name);
+                if (m_PreparationError != null) throw new InvalidOperationException("Common scene preparation failed.", m_PreparationError);
+                bool geometryReady = SceneInformation.CompletelyLoaded && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.ProjectionGridNeedsUpdate && !SceneInformation.SurfaceProjectionNeedsUpdate;
+                if (geometryReady && (IsGeneratorUpToDate || !CanComputeFunctionalValues || (!SceneInformation.GeneratorUpdateRequested && !AutomaticActivityComputationEnabled)) && !m_UpdatingGenerators && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
+                await UniTask.Yield();
+            }
+        }
+
         /// <summary>
         /// Initialize the scene
         /// </summary>
@@ -2341,187 +2125,190 @@ namespace HBP.Data.Module3D
             return m_InitializationWork;
         }
 
-        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken)
+        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken, Func<CancellationToken, UniTask> loadPreparedResources = null)
         {
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             CancellationToken token = lifetime.Token;
-            // Compute progress variables
-            float progress = 0f;
-            float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingPreviewMeshProgress = 0, loadingPreviewMeshTime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
-            bool reusePreloadedPatientData = PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization;
-            bool reusePreloadedMeshes = reusePreloadedPatientData && Visualization.Configuration.PreloadedMeshes.Count > 0;
-            bool reusePreloadedMRIs = reusePreloadedPatientData && Visualization.Configuration.PreloadedMRIs.Count > 0;
-            bool isSinglePatient = Type == SceneType.SinglePatient;
-            bool persistentPatientMeshPlanned = isSinglePatient && (reusePreloadedMeshes ? Visualization.Configuration.PreloadedMeshes.Any(mesh => mesh != null && mesh.Type == MeshType.Patient && mesh is not RuntimeSingleMesh3D && mesh.IsLoaded) : Visualization.Patients[0].Meshes.Any(mesh => mesh.IsUsable));
-            int patientMRICountPlanned = isSinglePatient ? (reusePreloadedMRIs ? Visualization.Configuration.PreloadedMRIs.Count(mri => mri != null && !mri.HasBeenLoadedOutside && mri.IsLoaded) : Visualization.Patients[0].MRIs.Count(mri => mri.IsUsable)) : 0;
-            int previewMeshCountPlanned = isSinglePatient && !persistentPatientMeshPlanned ? patientMRICountPlanned : 0;
-            if (isSinglePatient)
+            if (loadPreparedResources != null)
             {
-                totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT + previewMeshCountPlanned * LOADING_PREVIEW_MESH_WEIGHT;
-                loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
-                loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
-                loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
-                loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
-                if (previewMeshCountPlanned > 0)
-                {
-                    loadingPreviewMeshProgress = LOADING_PREVIEW_MESH_WEIGHT / totalProgress;
-                    loadingPreviewMeshTime = LOADING_PREVIEW_MESH_WEIGHT / 1000.0f;
-                }
-
-                loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalProgress;
-                loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
-                loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
-                loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
-                loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalProgress;
-                loadingIEEGTime = LOADING_IEEG_WEIGHT / 1000.0f;
+                await loadPreparedResources(token);
             }
             else
             {
-                totalProgress = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
-                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+                // Compute progress variables
+                float progress = 0f;
+                float totalProgress = 0, loadingMeshProgress = 0, loadingMeshTime = 0, loadingMRIProgress = 0, loadingMRITime = 0, loadingPreviewMeshProgress = 0, loadingPreviewMeshTime = 0, loadingImplantationsProgress = 0, loadingImplantationsTime = 0, loadingMNIProgress = 0, loadingMNITime = 0, loadingIEEGProgress = 0, loadingIEEGTime = 0;
+                bool reusePreloadedPatientData = PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization;
+                bool reusePreloadedMeshes = reusePreloadedPatientData && Visualization.Configuration.PreloadedMeshes.Count > 0;
+                bool reusePreloadedMRIs = reusePreloadedPatientData && Visualization.Configuration.PreloadedMRIs.Count > 0;
+                bool isSinglePatient = Type == SceneType.SinglePatient;
+                bool persistentPatientMeshPlanned = isSinglePatient && (reusePreloadedMeshes ? Visualization.Configuration.PreloadedMeshes.Any(mesh => mesh != null && mesh.Type == MeshType.Patient && mesh is not RuntimeSingleMesh3D && mesh.IsLoaded) : Visualization.Patients[0].Meshes.Any(mesh => mesh.IsUsable));
+                int patientMRICountPlanned = isSinglePatient ? (reusePreloadedMRIs ? Visualization.Configuration.PreloadedMRIs.Count(mri => mri != null && !mri.HasBeenLoadedOutside && mri.IsLoaded) : Visualization.Patients[0].MRIs.Count(mri => mri.IsUsable)) : 0;
+                int previewMeshCountPlanned = isSinglePatient && !persistentPatientMeshPlanned ? patientMRICountPlanned : 0;
+                if (isSinglePatient)
                 {
-                    totalProgress += Visualization.Patients.Sum(p => p.Meshes.Count) * LOADING_MESH_WEIGHT + Visualization.Patients.Sum(p => p.MRIs.Count) * LOADING_MRI_WEIGHT;
+                    totalProgress = Visualization.Patients[0].Meshes.Count * LOADING_MESH_WEIGHT + Visualization.Patients[0].MRIs.Count * LOADING_MRI_WEIGHT + LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + LOADING_IEEG_WEIGHT + previewMeshCountPlanned * LOADING_PREVIEW_MESH_WEIGHT;
                     loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
                     loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
                     loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
                     loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
-                }
-
-                loadingImplantationsProgress = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalProgress;
-                loadingImplantationsTime = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
-                loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
-                loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
-                loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalProgress;
-                loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
-            }
-
-            await UniTask.SwitchToMainThread();
-            onChangeProgress(progress, 0.0f, new LoadingText());
-
-            // Checking MNI
-            token.ThrowIfCancellationRequested();
-            onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
-            System.Diagnostics.Stopwatch watch = new();
-            watch.Start();
-            await new WaitUntil(() => Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000);
-            watch.Stop();
-            if (watch.ElapsedMilliseconds > 5000)
-            {
-                throw new CanNotLoadMNI();
-            }
-
-            // Loading MNI
-            token.ThrowIfCancellationRequested();
-            progress += loadingMNIProgress;
-            onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
-            await LoadMNIObjectsAsync();
-
-            // Loading Meshes
-            token.ThrowIfCancellationRequested();
-            if (Type == SceneType.SinglePatient)
-            {
-                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
-                {
-                    foreach (var mesh in Visualization.Configuration.PreloadedMeshes)
+                    if (previewMeshCountPlanned > 0)
                     {
-                        m_MeshManager.Meshes.Add(mesh);
-                        progress += loadingMeshProgress;
-                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Adding Preloaded Meshes"));
+                        loadingPreviewMeshProgress = LOADING_PREVIEW_MESH_WEIGHT / totalProgress;
+                        loadingPreviewMeshTime = LOADING_PREVIEW_MESH_WEIGHT / 1000.0f;
                     }
+
+                    loadingImplantationsProgress = LOADING_IMPLANTATIONS_WEIGHT / totalProgress;
+                    loadingImplantationsTime = LOADING_IMPLANTATIONS_WEIGHT / 1000.0f;
+                    loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
+                    loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+                    loadingIEEGProgress = LOADING_IEEG_WEIGHT / totalProgress;
+                    loadingIEEGTime = LOADING_IEEG_WEIGHT / 1000.0f;
                 }
                 else
                 {
-                    for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
+                    totalProgress = LOADING_IMPLANTATIONS_WEIGHT + LOADING_MNI_WEIGHT + Visualization.Patients.Count * LOADING_IEEG_WEIGHT;
+                    if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
                     {
-                        BaseMesh mesh = Visualization.Patients[0].Meshes[i];
-                        progress += loadingMeshProgress;
-                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
-                        await LoadBrainSurfaceAsync(mesh);
+                        totalProgress += Visualization.Patients.Sum(p => p.Meshes.Count) * LOADING_MESH_WEIGHT + Visualization.Patients.Sum(p => p.MRIs.Count) * LOADING_MRI_WEIGHT;
+                        loadingMeshProgress = LOADING_MESH_WEIGHT / totalProgress;
+                        loadingMeshTime = LOADING_MESH_WEIGHT / 1000.0f;
+                        loadingMRIProgress = LOADING_MRI_WEIGHT / totalProgress;
+                        loadingMRITime = LOADING_MRI_WEIGHT / 1000.0f;
+                    }
+
+                    loadingImplantationsProgress = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / totalProgress;
+                    loadingImplantationsTime = (Visualization.Patients.Count * LOADING_IMPLANTATIONS_WEIGHT) / 1000.0f;
+                    loadingMNIProgress = LOADING_MNI_WEIGHT / totalProgress;
+                    loadingMNITime = LOADING_MNI_WEIGHT / 1000.0f;
+                    loadingIEEGProgress = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / totalProgress;
+                    loadingIEEGTime = (Visualization.Patients.Count * LOADING_IEEG_WEIGHT) / 1000.0f;
+                }
+
+                await UniTask.SwitchToMainThread();
+                onChangeProgress(progress, 0.0f, new LoadingText());
+
+                // Checking MNI
+                token.ThrowIfCancellationRequested();
+                onChangeProgress(progress, 0.0f, new LoadingText("Loading MNI"));
+                System.Diagnostics.Stopwatch watch = new();
+                watch.Start();
+                await new WaitUntil(() => Object3DManager.MNI.IsLoaded || watch.ElapsedMilliseconds > 5000);
+                watch.Stop();
+                if (watch.ElapsedMilliseconds > 5000)
+                {
+                    throw new CanNotLoadMNI();
+                }
+
+                // Loading MNI
+                token.ThrowIfCancellationRequested();
+                progress += loadingMNIProgress;
+                onChangeProgress.Invoke(progress, loadingMNITime, new LoadingText("Loading MNI objects"));
+                await LoadMNIObjectsAsync();
+
+                // Loading Meshes
+                token.ThrowIfCancellationRequested();
+                if (Type == SceneType.SinglePatient)
+                {
+                    if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMeshes.Count > 0)
+                    {
+                        foreach (var mesh in Visualization.Configuration.PreloadedMeshes)
+                        {
+                            m_MeshManager.Meshes.Add(mesh);
+                            progress += loadingMeshProgress;
+                            onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Adding Preloaded Meshes"));
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Visualization.Patients[0].Meshes.Count; ++i)
+                        {
+                            BaseMesh mesh = Visualization.Patients[0].Meshes[i];
+                            progress += loadingMeshProgress;
+                            onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", mesh.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].Meshes.Count + "]"));
+                            await LoadBrainSurfaceAsync(mesh);
+                        }
                     }
                 }
-            }
-            else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
-            {
-                foreach (var patient in Visualization.Patients)
+                else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
                 {
-                    for (int i = 0; i < patient.Meshes.Count; ++i)
+                    foreach (var patient in Visualization.Patients)
                     {
-                        BaseMesh mesh = patient.Meshes[i];
-                        progress += loadingMeshProgress;
-                        onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
-                        await UniTask.SwitchToThreadPool();
-                        m_MeshManager.AddPreloaded(mesh, patient);
-                        await UniTask.SwitchToMainThread();
+                        for (int i = 0; i < patient.Meshes.Count; ++i)
+                        {
+                            BaseMesh mesh = patient.Meshes[i];
+                            progress += loadingMeshProgress;
+                            onChangeProgress.Invoke(progress, loadingMeshTime, new LoadingText("Loading Mesh ", string.Format("{0} ({1})", mesh.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.Meshes.Count + "]"));
+                            await UniTask.SwitchToThreadPool();
+                            m_MeshManager.AddPreloaded(mesh, patient);
+                            await UniTask.SwitchToMainThread();
+                        }
                     }
+                }
+
+                await UniTask.SwitchToMainThread();
+                await UniTask.SwitchToThreadPool();
+
+                // Loading MRIs
+                token.ThrowIfCancellationRequested();
+                if (Type == SceneType.SinglePatient)
+                {
+                    if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
+                    {
+                        foreach (var mri in Visualization.Configuration.PreloadedMRIs)
+                        {
+                            m_MRIManager.MRIs.Add(mri);
+                            progress += loadingMRIProgress;
+                            onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Adding Preloaded MRIs"));
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
+                        {
+                            MRI mri = Visualization.Patients[0].MRIs[i];
+                            progress += loadingMRIProgress;
+                            onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
+                            await LoadBrainVolumeAsync(mri);
+                        }
+                    }
+                }
+                else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
+                {
+                    foreach (var patient in Visualization.Patients)
+                    {
+                        for (int i = 0; i < patient.MRIs.Count; ++i)
+                        {
+                            MRI mri = patient.MRIs[i];
+                            progress += loadingMeshProgress;
+                            onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
+                            await UniTask.SwitchToThreadPool();
+                            m_MRIManager.AddPreloaded(mri, patient);
+                            await UniTask.SwitchToMainThread();
+                        }
+                    }
+                }
+
+                // Generate one approximate patient surface per MRI after MRI loading and before sites.
+                List<Core.Object3D.MRI3D> previewSources = Type == SceneType.SinglePatient && !m_MeshManager.HasPersistentPatientMesh ? m_MRIManager.PatientMRIs : new List<Core.Object3D.MRI3D>();
+                for (int i = 0; i < previewSources.Count; ++i)
+                {
+                    Core.Object3D.MRI3D previewSource = previewSources[i];
+                    token.ThrowIfCancellationRequested();
+                    progress += loadingPreviewMeshProgress;
+                    await UniTask.SwitchToMainThread();
+                    onChangeProgress.Invoke(progress, loadingPreviewMeshTime, new LoadingText("Generating MRI preview ", previewSource.Name, $" [{i + 1}/{previewSources.Count}]"));
+                    await EnsureRuntimePatientMeshAsync(previewSource, token);
                 }
             }
 
+            await Visualization.CompletePreparedDataAsync(token);
+            await LoadConfiguredResourcesAsync(token);
+            token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
             m_MeshManager.InitializeMeshes();
-            await UniTask.SwitchToThreadPool();
-
-            // Loading MRIs
+            await LoadSitesAsync(visualization.Patients);
             token.ThrowIfCancellationRequested();
-            if (Type == SceneType.SinglePatient)
-            {
-                if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization && Visualization.Configuration.PreloadedMRIs.Count > 0)
-                {
-                    foreach (var mri in Visualization.Configuration.PreloadedMRIs)
-                    {
-                        m_MRIManager.MRIs.Add(mri);
-                        progress += loadingMRIProgress;
-                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Adding Preloaded MRIs"));
-                    }
-                }
-                else
-                {
-                    for (int i = 0; i < Visualization.Patients[0].MRIs.Count; ++i)
-                    {
-                        MRI mri = Visualization.Patients[0].MRIs[i];
-                        progress += loadingMRIProgress;
-                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", mri.Name, " [" + (i + 1).ToString() + "/" + Visualization.Patients[0].MRIs.Count + "]"));
-                        await LoadBrainVolumeAsync(mri);
-                    }
-                }
-            }
-            else if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
-            {
-                foreach (var patient in Visualization.Patients)
-                {
-                    for (int i = 0; i < patient.MRIs.Count; ++i)
-                    {
-                        MRI mri = patient.MRIs[i];
-                        progress += loadingMeshProgress;
-                        onChangeProgress.Invoke(progress, loadingMRITime, new LoadingText("Loading MRI ", string.Format("{0} ({1})", mri.Name, patient.Name), " [" + (i + 1).ToString() + "/" + patient.MRIs.Count + "]"));
-                        await UniTask.SwitchToThreadPool();
-                        m_MRIManager.AddPreloaded(mri, patient);
-                        await UniTask.SwitchToMainThread();
-                    }
-                }
-            }
-
-            // Generate one approximate patient surface per MRI after MRI loading and before sites.
-            List<Core.Object3D.MRI3D> previewSources = Type == SceneType.SinglePatient && !m_MeshManager.HasPersistentPatientMesh ? m_MRIManager.PatientMRIs : new List<Core.Object3D.MRI3D>();
-            for (int i = 0; i < previewSources.Count; ++i)
-            {
-                Core.Object3D.MRI3D previewSource = previewSources[i];
-                token.ThrowIfCancellationRequested();
-                progress += loadingPreviewMeshProgress;
-                await UniTask.SwitchToMainThread();
-                onChangeProgress.Invoke(progress, loadingPreviewMeshTime, new LoadingText("Generating MRI preview ", previewSource.Name, $" [{i + 1}/{previewSources.Count}]"));
-                await EnsureRuntimePatientMeshAsync(previewSource, token);
-            }
-
-            // Loading Sites
-            token.ThrowIfCancellationRequested();
-            progress += loadingImplantationsProgress;
-            onChangeProgress.Invoke(progress, loadingImplantationsTime, new LoadingText("Loading implantations"));
-            await LoadSitesAsync(visualization.Patients.ToArray());
-
-            // Loading Columns
-            token.ThrowIfCancellationRequested();
-            progress += loadingIEEGProgress;
-            onChangeProgress.Invoke(progress, loadingIEEGTime, new LoadingText("Loading columns"));
             await LoadColumnsAsync();
 
             // Finalization

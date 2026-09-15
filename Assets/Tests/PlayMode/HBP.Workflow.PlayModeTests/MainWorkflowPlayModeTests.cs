@@ -227,7 +227,7 @@ namespace HBP.Tests.PlayMode.Workflow
             {
                 new AnatomicColumn("main-workflow-anatomic", new BaseConfiguration(), new AnatomicConfiguration()),
                 new IEEGColumn("main-workflow-ieeg", new BaseConfiguration(), dataset, "playmode-signal-alpha", bloc, new DynamicConfiguration()),
-                new CCEPColumn("main-workflow-ccep", new BaseConfiguration(), dataset, "playmode-response-alpha", bloc, new DynamicConfiguration()),
+                new CCEPColumn("main-workflow-ccep", new BaseConfiguration(), dataset, "playmode-response-alpha", bloc, new CCEPConfiguration()),
                 new FMRIColumn("main-workflow-fmri", new BaseConfiguration(), dataset, new FMRIConfiguration()),
                 new MEGColumn("main-workflow-meg", new BaseConfiguration(), dataset, new MEGConfiguration()),
                 new StaticColumn("main-workflow-static", new BaseConfiguration(), dataset, "playmode-static-alpha", new StaticConfiguration())

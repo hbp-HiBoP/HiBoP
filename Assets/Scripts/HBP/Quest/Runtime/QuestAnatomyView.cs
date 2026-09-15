@@ -68,9 +68,6 @@ namespace HBP.Quest
                 foreach (var old in previousColumns) old.Hide();
                 if (previous != null) TrackRelease(previous, previousColumns);
                 foreach (var column in columns) column.Show();
-                for (int i = 0; i < current.Scene.Columns.Count; i++)
-                    if (current.Scene.Columns[i].NavigationTimeline != null)
-                        current.Scene.Columns[i].NavigationTimeline.IsPlaying = payload.Columns[i].Playing;
             }
             finally
             {

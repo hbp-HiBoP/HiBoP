@@ -116,6 +116,8 @@ namespace HBP.Data.Module3D
         /// </summary>
         public UnityEvent OnChangeRadius = new();
 
+        public UnityEvent OnChangeInfluenceRadius = new();
+
         #endregion
 
         #region Private Methods
@@ -181,6 +183,7 @@ namespace HBP.Data.Module3D
             m_InfluenceRadius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
             m_TargetRadius = m_InfluenceRadius;
             Radius = m_InfluenceRadius;
+            OnChangeInfluenceRadius.Invoke();
         }
 
         /// <summary>

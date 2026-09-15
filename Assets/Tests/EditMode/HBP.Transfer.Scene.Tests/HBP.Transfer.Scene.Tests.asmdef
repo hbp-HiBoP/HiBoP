@@ -2,6 +2,7 @@
     "name": "HBP.Transfer.Scene.Tests",
     "references": ["HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Transfer.Transport", "HBP.Quest.Runtime"],
     "includePlatforms": ["Editor"],
+    "precompiledReferences": ["Newtonsoft.Json.dll"],
     "optionalUnityReferences": ["TestAssemblies"],
     "defineConstraints": ["UNITY_INCLUDE_TESTS"]
 }

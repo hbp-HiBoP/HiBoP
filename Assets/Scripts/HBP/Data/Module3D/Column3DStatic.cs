@@ -314,6 +314,7 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedLabelIndex = ColumnStaticData.StaticConfiguration.SelectedResourceIndex;
             StaticParameters.InfluenceDistance = ColumnStaticData.StaticConfiguration.MaximumInfluence;
             StaticParameters.SetSpanValues(ColumnStaticData.StaticConfiguration.SpanMin, ColumnStaticData.StaticConfiguration.Middle, ColumnStaticData.StaticConfiguration.SpanMax);
             base.LoadConfiguration(false);
@@ -326,6 +327,7 @@ namespace HBP.Data.Module3D
 
         public override void CaptureConfiguration(Core.Data.Column target)
         {
+            ((StaticColumn)target).StaticConfiguration.SelectedResourceIndex = SelectedLabelIndex;
             ((StaticColumn)target).StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
             ((StaticColumn)target).StaticConfiguration.SpanMin = StaticParameters.SpanMin;
             ((StaticColumn)target).StaticConfiguration.Middle = StaticParameters.Middle;

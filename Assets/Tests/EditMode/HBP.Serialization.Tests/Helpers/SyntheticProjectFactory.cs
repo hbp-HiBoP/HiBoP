@@ -89,7 +89,7 @@ namespace HBP.Tests.Serialization.Helpers
             {
                 new AnatomicColumn("anatomic-alpha", CreateBaseConfiguration("anatomic"), new AnatomicConfiguration("synthetic-anatomic-config-001"), "synthetic-column-anatomic-001"),
                 new IEEGColumn("ieeg-alpha", CreateBaseConfiguration("ieeg"), dataset, "signal-alpha", bloc, new DynamicConfiguration(12, -1, 0, 1, "synthetic-dynamic-config-001"), "synthetic-column-ieeg-001"),
-                new CCEPColumn("ccep-alpha", CreateBaseConfiguration("ccep"), dataset, "response-alpha", bloc, new DynamicConfiguration(10, -2, 0, 2, "synthetic-ccep-config-001"), "synthetic-column-ccep-001"),
+                new CCEPColumn("ccep-alpha", CreateBaseConfiguration("ccep"), dataset, "response-alpha", bloc, new CCEPConfiguration(10, -2, 0, 2, false, null, -1, "synthetic-ccep-config-001"), "synthetic-column-ccep-001"),
                 new FMRIColumn("fmri-alpha", CreateBaseConfiguration("fmri"), dataset, new FMRIConfiguration(0.1f, 0.5f, 0.1f, 0.5f, false, true, false, "synthetic-fmri-config-001"), "synthetic-column-fmri-001"),
                 new MEGColumn("meg-alpha", CreateBaseConfiguration("meg"), dataset, new MEGConfiguration(0.1f, 0.5f, 0.1f, 0.5f, true, false, false, "synthetic-meg-config-001"), "synthetic-column-meg-001"),
                 new StaticColumn("static-alpha", CreateBaseConfiguration("static"), dataset, "static-alpha", new StaticConfiguration(9, -1, 0, 1, "synthetic-static-config-001"), "synthetic-column-static-001")

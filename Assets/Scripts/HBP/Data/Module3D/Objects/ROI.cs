@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -227,7 +227,7 @@ namespace HBP.Data.Module3D
             m_Layer = LayerMask.NameToLayer(layer);
             Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
-            sphere.OnChangeRadius.AddListener(() => { OnChangeSphereParameters.Invoke(); });
+            sphere.OnChangeInfluenceRadius.AddListener(() => { OnChangeSphereParameters.Invoke(); });
             Spheres.Add(sphere);
 
             OnChangeNumberOfSpheres.Invoke();

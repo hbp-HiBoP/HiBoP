@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using HBP.Core.Data;
@@ -88,6 +89,10 @@ namespace HBP.Transfer.Scene
         {
             private readonly PairingContext context;
 
+            // This converter belongs to one serializer/capture, never to the paired session.
+            // BaseData equality is ID-based; separate objects sharing an ID must each be checked.
+            private readonly HashSet<BaseData> validated = new(ReferenceComparer.Instance);
+
             public GlobalReferenceConverter(PairingContext context)
             {
                 this.context = context;
@@ -104,8 +109,9 @@ namespace HBP.Transfer.Scene
                 }
 
                 string key = Key((BaseData)value);
-                if (!context.hashes.TryGetValue(key, out string hash) || hash != Fingerprint((BaseData)value))
+                if (!context.hashes.TryGetValue(key, out string hash) || (!validated.Contains((BaseData)value) && hash != Fingerprint((BaseData)value)))
                     throw new InvalidOperationException("A protocol or tag definition is absent or changed since pairing. Pair again before sending this visualization: " + key);
+                validated.Add((BaseData)value);
                 writer.WriteStartObject();
                 writer.WritePropertyName("global");
                 writer.WriteValue(key);
@@ -123,6 +129,13 @@ namespace HBP.Transfer.Scene
                     throw new InvalidDataException("Unknown or incompatible global definition. Pair again before sending this visualization.");
                 return value;
             }
+        }
+
+        private sealed class ReferenceComparer : IEqualityComparer<BaseData>
+        {
+            public static readonly ReferenceComparer Instance = new();
+            public bool Equals(BaseData x, BaseData y) => ReferenceEquals(x, y);
+            public int GetHashCode(BaseData value) => RuntimeHelpers.GetHashCode(value);
         }
     }
 }

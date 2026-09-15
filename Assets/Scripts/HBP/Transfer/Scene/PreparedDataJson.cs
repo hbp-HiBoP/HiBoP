@@ -17,7 +17,7 @@ using StaticData = HBP.Core.Data.Processed.StaticData;
 namespace HBP.Transfer.Scene
 {
     /// <summary>A transfer-only contract: project JSON settings and on-disk schemas are untouched.</summary>
-    internal sealed class PreparedDataJson : DefaultContractResolver, ISerializationBinder
+    internal sealed class PreparedDataJson : SerializationAliasContractResolver, ISerializationBinder
     {
         private readonly SceneArchive archive;
 

@@ -27,6 +27,89 @@ namespace HBP.Tests.SceneTransfer
 {
     public class SceneRestorationPlayModeTests
     {
+        [TestCase(false)]
+        [TestCase(true)]
+        [Timeout(900000)]
+        public async Task SnapshotConfiguration_OpensWithCommonPreferencesAndCalibrations(bool automatic)
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("SnapshotConfigurationParity");
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = automatic;
+            var preferences = PersistentDataManager.UserPreferences;
+            await PrepareReferencesAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+            var token = timeout.Token;
+            using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
+            var payload = CreateFixture(source);
+            var ccepModel = (CCEPColumn)payload.Visualization.Columns[2];
+            ccepModel.CCEPConfiguration.SpanMin = -11;
+            ccepModel.CCEPConfiguration.Middle = 3;
+            ccepModel.CCEPConfiguration.SpanMax = 17;
+            ((AnatomicColumn)payload.Visualization.Columns[0]).AnatomicConfiguration.MaximumInfluence = 23;
+            ((StaticColumn)payload.Visualization.Columns[3]).StaticConfiguration.SelectedResourceIndex = 1;
+            ((MEGColumn)payload.Visualization.Columns[5]).MEGConfiguration.SelectedResourceIndex = 1;
+            payload.Visualization.Configuration.AtlasConfiguration = new AtlasConfiguration { MarsAtlas = true, AtlasAlpha = .37f, IBCIndex = 4, NegativeMin = .1f, NegativeMax = .8f, PositiveMin = .2f, PositiveMax = .9f, FMRIAlpha = .6f, LocalizerMin = 70, LocalizerMiddle = 90, LocalizerMax = 130 };
+            payload.Visualization.Configuration.RegionsOfInterest.Add(new RegionOfInterest("Scientific ROI", new List<Core.Data.Sphere> { new Core.Data.Sphere(Vector3.zero, 12f) }));
+            string file = Path.Combine(temp.Path, "snapshot.hbscene");
+            source.Write(payload, file);
+            RestoredScene desktop = null, quest = null;
+            try
+            {
+                var desktopArchive = new SceneArchive(Path.Combine(temp.Path, "desktop"), true, source.Globals);
+                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                var questArchive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, source.Globals);
+                quest = await SceneRestoration.PrepareAsync(questArchive.Read(file), questArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D Content.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                foreach (var restored in new[] { desktop, quest })
+                {
+                    var scene = restored.Scene;
+                    Assert.That(PersistentDataManager.UserPreferences, Is.SameAs(preferences));
+                    Assert.That(scene.IsGeneratorUpToDate, Is.EqualTo(automatic));
+                    var ccep = (Column3DCCEP)scene.Columns[2];
+                    Assert.That(ccep.SelectedSourceSite.Information.FullID, Is.EqualTo("patient_A1"));
+                    Assert.That(ccep.DynamicParameters.SpanMin, Is.EqualTo(-11));
+                    Assert.That(ccep.DynamicParameters.Middle, Is.EqualTo(3));
+                    Assert.That(ccep.DynamicParameters.SpanMax, Is.EqualTo(17));
+                    Assert.That(((Column3DAnatomy)scene.Columns[0]).AnatomyParameters.InfluenceDistance, Is.EqualTo(23));
+                    Assert.That(((Column3DStatic)scene.Columns[3]).SelectedLabelIndex, Is.EqualTo(1));
+                    Assert.That(((Column3DMEG)scene.Columns[5]).SelectedMEGIndex, Is.EqualTo(1));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                    Assert.That(scene.FMRIManager.DisplayIBCContrasts, Is.False);
+                    Assert.That(scene.FMRIManager.SelectedIBCContrastID, Is.EqualTo(4));
+                    Assert.That(scene.AtlasManager.AtlasAlpha, Is.EqualTo(.37f));
+                    Assert.That(scene.AtlasManager.DisplayMarsAtlas, Is.True);
+                    var expectedAtlasColors = Object3DManager.MarsAtlas.ConvertIndicesToColors(Object3DManager.MarsAtlas.GetSurfaceAreaLabels(scene.MeshManager.ReferenceSurface), -1);
+                    foreach (var column in scene.Columns)
+                    {
+                        var mesh = column.BrainMesh.GetComponent<MeshFilter>().sharedMesh;
+                        Assert.That(mesh.colors, Has.Length.EqualTo(mesh.vertexCount));
+                        Assert.That(mesh.colors, Is.EqualTo(expectedAtlasColors));
+                    }
+
+                    var configuration = scene.CaptureConfiguration();
+                    Assert.That(configuration.AtlasConfiguration.ID, Is.EqualTo(scene.Visualization.Configuration.AtlasConfiguration.ID));
+                    Assert.That(configuration.RegionsOfInterest[0].Name, Is.EqualTo("Scientific ROI"));
+                    Assert.That(configuration.RegionsOfInterest[0].Spheres[0].Radius, Is.EqualTo(12f));
+                    Assert.That(configuration.AtlasConfiguration.IBCIndex, Is.EqualTo(4));
+                    Assert.That(scene.Columns.All(column => column.NavigationTimeline == null || !column.NavigationTimeline.IsPlaying), Is.True);
+                }
+
+                if (!automatic)
+                {
+                    quest.Scene.UpdateGenerator();
+                    await quest.Scene.PrepareRenderingAsync(token);
+                    Assert.That(quest.Scene.IsGeneratorUpToDate, Is.True, "Manual calculation remains available with automatic calculation disabled.");
+                    Assert.That(desktop.Scene.IsGeneratorUpToDate, Is.False);
+                }
+            }
+            finally
+            {
+                if (quest != null) await quest.CloseAsync();
+                if (desktop != null) await desktop.CloseAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
         [TestCase("scene-008")]
         [TestCase("scene-008-patient")]
         [Timeout(900000)]
@@ -44,6 +127,7 @@ namespace HBP.Tests.SceneTransfer
             typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Public | BindingFlags.Static).SetValue(null, Path.GetFullPath("Assets/Data"));
             using var settings = new PlayModePersistentDataScope(temp.Path);
             using var scope = new PlayModeSceneScope("FullDesktopScene");
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
             await PrepareReferencesAsync();
             // Two complete buffer exports plus installed-reference hashing exceed four
             // minutes on the Editor's Mono runtime; Players are measured separately.
@@ -70,9 +154,7 @@ namespace HBP.Tests.SceneTransfer
             {
                 desktop.Initialize(model);
                 await desktop.InitializeAsync(model, (_, _, _) => { }, token);
-                desktop.FinalizeInitialization();
-                desktop.LoadConfiguration();
-                await desktop.RestoreConfiguredSurfaceRepresentationAsync(null, token, animate: false);
+                await desktop.CompleteInitializationAsync(null, null, token);
                 await desktop.PrepareRenderingAsync(token);
                 Debug.Log($"Scene qualification {fixtureName}: Desktop prepared at {clock.Elapsed.TotalSeconds:F1}s.");
                 Assert.That(desktop.Columns.Count, Is.EqualTo(6));
@@ -125,6 +207,7 @@ namespace HBP.Tests.SceneTransfer
             Directory.CreateDirectory(root);
             using var settings = new PlayModePersistentDataScope(root);
             using var scope = new PlayModeSceneScope("SceneTransfer");
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
             await PrepareReferencesAsync();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
             var token = timeout.Token;
@@ -149,7 +232,7 @@ namespace HBP.Tests.SceneTransfer
                 {
                     Assert.That(column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThan(0), column.Name);
                     Assert.That(column.Sites.Count, Is.EqualTo(2), column.Name);
-                    if (column.NavigationTimeline != null) Assert.That(column.NavigationTimeline.IsLooping, Is.True, column.Name);
+                    if (column.NavigationTimeline != null) Assert.That(column.NavigationTimeline.IsPlaying, Is.False, column.Name);
                 }
 
                 var ieeg = scene.Columns.OfType<Column3DIEEG>().Single();
@@ -191,9 +274,8 @@ namespace HBP.Tests.SceneTransfer
                 using var capturedArchive = new SceneArchive(Path.Combine(root, "recaptured"), true, source.Globals);
                 var captured = capturedArchive.Read(capturedFile);
                 Assert.That(captured.Columns.Count, Is.EqualTo(6));
-                Assert.That(captured.Columns[1].TimeIndex, Is.EqualTo(2));
-                Assert.That(captured.Columns[3].ResourceIndex, Is.EqualTo(1));
-                Assert.That(captured.Columns[5].ResourceIndex, Is.EqualTo(1));
+                Assert.That(((StaticColumn)captured.Visualization.Columns[3]).StaticConfiguration.SelectedResourceIndex, Is.EqualTo(1));
+                Assert.That(((MEGColumn)captured.Visualization.Columns[5]).MEGConfiguration.SelectedResourceIndex, Is.EqualTo(1));
                 Assert.That(((IEEGColumn)captured.Visualization.Columns[1]).Data.ProcessedValuesByChannel["patient_A1"], Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
                 Assert.That(captured.Visualization.Configuration.Cuts.Count, Is.EqualTo(1));
 
@@ -218,6 +300,22 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(failure, Is.TypeOf<InvalidDataException>());
                 Assert.That(view.Scene, Is.SameAs(scene));
                 Assert.That(view.Columns[1].transform.localScale, Is.EqualTo(Vector3.one * 2));
+                using var incompatibleArchive = new SceneArchive(Path.Combine(root, "incompatible-topology"), true, source.Globals);
+                var incompatible = incompatibleArchive.Read(file);
+                incompatible.Visualization.Configuration.ErasedTriangles = new[] { 1 };
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("InvalidDataException: Configured erasure does not match"));
+                Exception topologyFailure = null;
+                try
+                {
+                    await view.ApplyAsync(incompatible, incompatibleArchive, token);
+                }
+                catch (Exception exception)
+                {
+                    topologyFailure = exception;
+                }
+
+                Assert.That(topologyFailure, Is.TypeOf<InvalidDataException>());
+                Assert.That(view.Scene, Is.SameAs(scene), "An invalid configuration must not replace the published scene.");
                 // Cancel a real preparation after it has started reading its native inputs.
                 using var cancel = new CancellationTokenSource();
                 var cancelledArchive = new SceneArchive(Path.Combine(root, "cancelled"), true, source.Globals);
@@ -302,7 +400,7 @@ namespace HBP.Tests.SceneTransfer
             var protocol = new Protocol("SCENE-008 synthetic", new[] { bloc }, "scene-protocol");
             var dataset = new Dataset("synthetic", protocol, Array.Empty<DataInfo>(), "dataset");
             var ieeg = new IEEGColumn("iEEG", new BaseConfiguration(), dataset, "signal", bloc, new DynamicConfiguration(), "ieeg");
-            var ccep = new CCEPColumn("CCEP", new BaseConfiguration(), dataset, "signal", bloc, new DynamicConfiguration(), "ccep");
+            var ccep = new CCEPColumn("CCEP", new BaseConfiguration(), dataset, "signal", bloc, new CCEPConfiguration(), "ccep");
             var stats = new Dictionary<SubBloc, List<SubBlocEventsStatistics>> { [sub] = new() { new SubBlocEventsStatistics { StatisticsByEvent = new() { [ev] = new EventStatistics() } } } };
             var indices = new Dictionary<SubBloc, int> { [sub] = 0 };
             ieeg.Data.Timeline = new Timeline(bloc, stats, indices, new Frequency(200));
@@ -337,15 +435,13 @@ namespace HBP.Tests.SceneTransfer
             var mesh = Object3DManager.MNI.GreyMatter;
             payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
             payload.MRIs.Add(new VolumeResource { Name = Object3DManager.MNI.MRI.Name, Standard = "MNI" });
-            payload.State.ErasedTriangles = Enumerable.Repeat(1, mesh.Both.NumberOfTriangles).ToArray();
-            payload.State.ErasedSimplifiedTriangles = Enumerable.Repeat(1, mesh.SimplifiedBoth.NumberOfTriangles).ToArray();
-            payload.State.ErasedTriangles[0] = 0;
+            payload.Visualization.Configuration.ErasedTriangles = Enumerable.Repeat(1, mesh.Both.NumberOfTriangles).ToArray();
+            payload.Visualization.Configuration.ErasedSimplifiedTriangles = Enumerable.Repeat(1, mesh.SimplifiedBoth.NumberOfTriangles).ToArray();
+            payload.Visualization.Configuration.ErasedTriangles[0] = 0;
             foreach (var column in columns)
             {
-                var state = new ColumnState { Id = column.ID, TimeStep = 1, Looping = true, SourceLabel = -1, AnatomyInfluence = 15, Correlations = new(), CorrelationMeans = new() };
-                if (column == ccep) state.SourceSite = "patient_A1";
-                state.Sites["patient_A1"] = new SiteDisplayState { Position = new[] { 31.25f, -18.5f, 26.75f }, Filtered = true };
-                state.Sites["patient_A2"] = new SiteDisplayState { Position = new[] { 27.5f, -15.25f, 29f }, Masked = true, Filtered = true };
+                var state = new ColumnState { Id = column.ID };
+                if (column == ccep) ccep.CCEPConfiguration = new CCEPConfiguration { SiteID = "patient_A1" };
                 payload.Columns.Add(state);
             }
 

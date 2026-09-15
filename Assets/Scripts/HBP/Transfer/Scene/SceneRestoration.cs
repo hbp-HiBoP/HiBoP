@@ -70,68 +70,63 @@ namespace HBP.Transfer.Scene
             await Base3DScene.PrepareStandardResourcesAsync();
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
-            if (prefab == null || prefab.DesktopPresentation != null) throw new InvalidOperationException("A common content prefab without Desktop presentation is required.");
+            if (prefab == null) throw new InvalidOperationException("A scene content prefab is required.");
             Base3DScene scene = Object.Instantiate(prefab, parent, false);
             var result = new RestoredScene(scene, payload, archive);
             IDisposable preparation = scene.RetainForPreparation();
             try
             {
-                payload.Visualization.Configuration.FirstColumnToSelect = -1;
                 scene.Initialize(payload.Visualization);
-                foreach (var resource in payload.MRIs)
+                await scene.InitializePreparedAsync(async resourceToken =>
                 {
-                    token.ThrowIfCancellationRequested();
-                    MRI3D mri;
-                    if (resource.Standard == "MNI") mri = Object3DManager.MNI.MRI;
-                    else
+                    foreach (var resource in payload.MRIs)
                     {
-                        var volume = new Core.DLL.Volume();
-                        try
+                        resourceToken.ThrowIfCancellationRequested();
+                        MRI3D mri;
+                        if (resource.Standard == "MNI") mri = Object3DManager.MNI.MRI;
+                        else
                         {
-                            if (!volume.LoadNIFTIFile(archive.ResolveNativeFile(resource.File))) throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
+                            var volume = new Core.DLL.Volume();
+                            try
+                            {
+                                if (!volume.LoadNIFTIFile(archive.ResolveNativeFile(resource.File))) throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
+                            }
+                            catch
+                            {
+                                volume.Dispose();
+                                throw;
+                            }
+
+                            mri = new MRI3D(resource.Name, volume, false);
                         }
-                        catch
+
+                        if (resource.PatientId == null) scene.MRIManager.MRIs.Add(mri);
+                        else
                         {
-                            volume.Dispose();
-                            throw;
+                            Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
+                            if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris)) scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
+                            mris.Add(mri);
                         }
-
-                        mri = new MRI3D(resource.Name, volume, false);
                     }
 
-                    if (resource.PatientId == null) scene.MRIManager.MRIs.Add(mri);
-                    else
+                    foreach (var resource in payload.Meshes)
                     {
-                        Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                        if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris)) scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
-                        mris.Add(mri);
+                        resourceToken.ThrowIfCancellationRequested();
+                        Mesh3D mesh = RestoreMesh(resource, archive, scene);
+                        if (resource.PatientId == null) scene.MeshManager.Meshes.Add(mesh);
+                        else
+                        {
+                            Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
+                            if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes)) scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
+                            meshes.Add(mesh);
+                        }
                     }
-                }
 
-                foreach (var resource in payload.Meshes)
-                {
-                    token.ThrowIfCancellationRequested();
-                    Mesh3D mesh = RestoreMesh(resource, archive, scene);
-                    if (resource.PatientId == null) scene.MeshManager.Meshes.Add(mesh);
-                    else
-                    {
-                        Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                        if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes)) scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
-                        meshes.Add(mesh);
-                    }
-                }
-
-                for (int i = 0; i < payload.Columns.Count; i++) await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, token);
-                await LoadStandardFeaturesAsync(payload.State);
-                await scene.InitializePreparedAsync(null, token);
-                ApplyState(scene, payload);
+                    for (int i = 0; i < payload.Columns.Count; i++) await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
+                }, null, token);
+                await scene.CompleteInitializationAsync(null, null, token);
                 await scene.PrepareRenderingAsync(token);
                 token.ThrowIfCancellationRequested();
-                // Preparing the generators stops navigation, including its loop flag.
-                // Restore the requested mode after the last invalidation; playback starts at publication.
-                for (int i = 0; i < scene.Columns.Count; i++)
-                    if (scene.Columns[i].NavigationTimeline != null)
-                        scene.Columns[i].NavigationTimeline.IsLooping = payload.Columns[i].Looping;
                 return result;
             }
             catch
@@ -211,150 +206,7 @@ namespace HBP.Transfer.Scene
                 if (resource.File != null) await fmri.LoadAsync();
             }
 
-            if (column is IEEGColumn ieeg) ieeg.Data.IconicScenario = new IconicScenario(ieeg.Bloc, ieeg.Data.Timeline.Frequency, ieeg.Data.Timeline);
-            if (column is CCEPColumn ccep) ccep.Data.IconicScenario = new IconicScenario(ccep.Bloc, ccep.Data.Timeline.Frequency, ccep.Data.Timeline);
             await UniTask.SwitchToMainThread();
-        }
-
-        private static async UniTask LoadStandardFeaturesAsync(SceneState state)
-        {
-            await UniTask.SwitchToThreadPool();
-            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
-            if (state.JuBrain && !Object3DManager.JuBrain.Loaded) Object3DManager.JuBrain.Load();
-            if (state.IBC)
-            {
-                if (Object3DManager.IBC.FMRI == null) Object3DManager.IBC.Load();
-                await Object3DManager.IBC.FMRI.LoadAsync();
-                await Object3DManager.IBC.Information.LoadCompletion;
-            }
-
-            if (state.DiFuMo)
-            {
-                if (!Object3DManager.DiFuMo.FMRIs.ContainsKey(state.DiFuMoAtlas)) Object3DManager.DiFuMo.Load(state.DiFuMoAtlas);
-                await Object3DManager.DiFuMo.FMRIs[state.DiFuMoAtlas].LoadAsync();
-                await Object3DManager.DiFuMo.Information[state.DiFuMoAtlas].LoadCompletion;
-            }
-
-            if (state.Localizers)
-            {
-                if (!Object3DManager.Localizers.Protocols.Any(p => p.Name == state.LocalizerProtocol) && !Object3DManager.Localizers.TryLoad(state.LocalizerProtocol)) throw new InvalidDataException("Localizer protocol is unavailable.");
-                var fmri = Object3DManager.Localizers.GetCurrentFMRI(state.LocalizerProtocol, state.LocalizerData, state.LocalizerBloc);
-                if (fmri == null) throw new InvalidDataException("Localizer resource is unavailable.");
-                await fmri.LoadAsync();
-            }
-
-            await UniTask.SwitchToMainThread();
-        }
-
-        private static void ApplyState(Base3DScene scene, ScenePayload payload)
-        {
-            var state = payload.State;
-            scene.ROIManager.SelectedROIID = state.SelectedROI;
-            scene.DisplayCorrelations = state.DisplayCorrelations;
-            scene.ROIManager.ROICreationMode = state.ROICreationMode;
-            scene.ROIManager.SelectedROI?.SelectSphere(state.SelectedSphere);
-            for (int i = 0; i < scene.Columns.Count; i++)
-            {
-                var column = scene.Columns[i];
-                var current = payload.Columns[i];
-                if (column is Column3DAnatomy anatomy) anatomy.AnatomyParameters.InfluenceDistance = current.AnatomyInfluence;
-                if (column is Column3DIEEG ieeg)
-                {
-                    var sites = column.Sites.ToDictionary(site => site.Information.FullID);
-                    ieeg.CorrelationBySitePair = current.Correlations.ToDictionary(p => sites[p.Key], p => p.Value.ToDictionary(q => sites[q.Key], q => q.Value));
-                    ieeg.CorrelationMeanBySitePair = current.CorrelationMeans.ToDictionary(p => sites[p.Key], p => p.Value.ToDictionary(q => sites[q.Key], q => q.Value));
-                }
-
-                if (column is Column3DFMRI fmri) fmri.SelectedFMRIIndex = current.ResourceIndex;
-                if (column is Column3DMEG meg) meg.SelectedMEGIndex = current.ResourceIndex;
-                if (column is Column3DStatic stat) stat.SelectedLabelIndex = current.ResourceIndex;
-                if (column is Column3DCCEP ccep)
-                {
-                    ccep.Mode = (Column3DCCEP.CCEPMode)current.SourceMode;
-                    if (current.SourceSite != null) ccep.SelectedSourceSite = ccep.Sources.Single(s => s.Information.FullID == current.SourceSite);
-                    ccep.SelectedSourceMarsAtlasLabel = current.SourceLabel;
-                }
-
-                foreach (var saved in current.Sites)
-                {
-                    if (!column.SiteStateBySiteID.TryGetValue(saved.Key, out var siteState))
-                    {
-                        siteState = new SiteState();
-                        if (column.ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(saved.Key, out var configuration))
-                        {
-                            siteState.IsBlackListed = configuration.IsBlacklisted;
-                            siteState.IsHighlighted = configuration.IsHighlighted;
-                            siteState.Color = configuration.Color;
-                            siteState.Labels = configuration.Labels.ToList();
-                        }
-
-                        column.SiteStateBySiteID.Add(saved.Key, siteState);
-                    }
-
-                    siteState.IsMasked = saved.Value.Masked;
-                    siteState.IsFiltered = saved.Value.Filtered;
-                }
-
-                foreach (var site in column.Sites)
-                {
-                    if (!current.Sites.TryGetValue(site.Information.FullID, out var saved) || saved.Position == null) throw new InvalidDataException("Missing prepared implantation position.");
-                    site.transform.localPosition = new Vector3(saved.Position[0], saved.Position[1], saved.Position[2]);
-                    site.State.IsMasked = saved.Masked;
-                    site.State.IsFiltered = saved.Filtered;
-                    site.IsSelected = site.Information.FullID == current.SelectedSite;
-                }
-
-                if (column.NavigationTimeline != null)
-                {
-                    var timeline = column.NavigationTimeline;
-                    if (current.TimeIndex < 0 || current.TimeIndex >= timeline.Length) throw new InvalidDataException("Navigation index outside the restored timeline.");
-                    timeline.IsPlaying = false;
-                    timeline.IsLooping = current.Looping;
-                    timeline.Step = current.TimeStep;
-                    timeline.CurrentIndex = current.TimeIndex;
-                }
-
-                column.IsSelected = i == state.SelectedColumn;
-            }
-
-            scene.ROIManager.UpdateROIMasks();
-            if (state.ErasedTriangles.Length != scene.MeshManager.BrainSurface.NumberOfTriangles || state.ErasedSimplifiedTriangles.Length != scene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles) throw new InvalidDataException("Erasure masks do not match the prepared topology.");
-            scene.TriangleEraser.CurrentMasks = new List<int[]> { state.ErasedTriangles, state.ErasedSimplifiedTriangles };
-            scene.AtlasManager.AtlasAlpha = state.AtlasAlpha;
-            scene.AtlasManager.DisplayMarsAtlas = state.MarsAtlas;
-            scene.AtlasManager.DisplayJuBrainAtlas = state.JuBrain;
-            var manager = scene.FMRIManager;
-            if (state.IBC)
-            {
-                manager.SelectedIBCContrastID = state.IBCIndex;
-                manager.DisplayIBCContrasts = true;
-            }
-
-            if (state.DiFuMo)
-            {
-                manager.SelectedDiFuMoAtlas = state.DiFuMoAtlas;
-                manager.SelectedDiFuMoArea = state.DiFuMoArea;
-                manager.DisplayDiFuMo = true;
-            }
-
-            if (state.Localizers)
-            {
-                manager.SelectedLocalizersProtocol = state.LocalizerProtocol;
-                manager.SelectedLocalizersData = state.LocalizerData;
-                manager.SelectedLocalizersBloc = state.LocalizerBloc;
-                manager.SelectedLocalizersTimelineIndex = state.LocalizerTime;
-                manager.DisplayLocalizers = true;
-            }
-
-            manager.FMRIAlpha = state.FMRIAlpha;
-            manager.FMRINegativeCalMinFactor = state.NegativeMin;
-            manager.FMRINegativeCalMaxFactor = state.NegativeMax;
-            manager.FMRIPositiveCalMinFactor = state.PositiveMin;
-            manager.FMRIPositiveCalMaxFactor = state.PositiveMax;
-            manager.LocalizersMin = state.LocalizerMin;
-            manager.LocalizersMiddle = state.LocalizerMiddle;
-            manager.LocalizersMax = state.LocalizerMax;
-            scene.InvalidateActivityField();
         }
     }
 }

@@ -31,6 +31,23 @@ Unity Build Profiles build must be passed through `Tools/Sign-QuestApk.ps1 -Apk
 <path>` before installation. The adjacent `.apk.signing.json` identifies a final
 signed artifact by APK hash and public certificate fingerprint.
 
+## APK packaging and size checks
+
+`HBPAndroidPackaging` configures Gradle's APK packaging tasks for a full archive
+assembly on every build, in both Debug and Release. This Unity build callback
+also runs for Build Profiles, command-line/CI builds, and exported Gradle projects.
+Compilation and resource processing remain incremental. Only the final APK is
+recreated, so Zipflinger cannot retain large unused regions from earlier builds
+or a restored CI Library cache. Gradle still performs alignment and signing.
+
+`Tools/Test-QuestApk.ps1` checks the difference between the APK file size and the
+sum of its compressed entries, allowing 1 MiB plus 64 KiB per entry for ZIP
+metadata, alignment and signatures. Both the local build script and the GitHub
+Quest workflow run this check before handing off the APK. The JSON report records
+the content size, overhead and allowed overhead; there is no fixed limit on
+scientific data size. Run this validator as well after manually signing a Build
+Profiles APK.
+
 For a headset containing an APK signed by another key, `adb install -r` is
 insufficient. Recover the original signing key, or explicitly approve a one-time
 reinstall after backing up the installed APK and accessible app data/evidence.

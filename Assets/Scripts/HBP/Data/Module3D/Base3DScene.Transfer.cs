@@ -10,14 +10,6 @@ namespace HBP.Data.Module3D
     public partial class Base3DScene
     {
         private UniTask m_ExternalPreparationWork = UniTask.CompletedTask;
-        private Exception m_PreparationError;
-
-        public static UniTask PrepareStandardResourcesAsync()
-        {
-            UniTask work = Core.Object3D.Object3DManager.MNI.Load();
-            TrackStandardPreparation(work);
-            return work;
-        }
 
         public IDisposable RetainForPreparation()
         {
@@ -75,44 +67,11 @@ namespace HBP.Data.Module3D
             }
         }
 
-        /// <summary>Consumes already prepared data and scene-owned resources, without project loading or Desktop views.</summary>
-        public UniTask InitializePreparedAsync(Action<float, float, LoadingText> progress, CancellationToken token)
+        /// <summary>Resource decoding feeds the same initializer as project loading.</summary>
+        public UniTask InitializePreparedAsync(Func<CancellationToken, UniTask> loadResources, Action<float, float, LoadingText> progress, CancellationToken token)
         {
-            m_InitializationWork = InitializePreparedContentAsync(progress, token).ToAsyncLazy().Task;
+            m_InitializationWork = InitializeContentAsync(Visualization, progress, token, loadResources).ToAsyncLazy().Task;
             return m_InitializationWork;
-        }
-
-        private async UniTask InitializePreparedContentAsync(Action<float, float, LoadingText> progress, CancellationToken token)
-        {
-            token.ThrowIfCancellationRequested();
-            await UniTask.SwitchToMainThread();
-            m_MeshManager.InitializeMeshes();
-            await LoadSitesAsync(Visualization.Patients);
-            await LoadColumnsAsync();
-            await UniTask.SwitchToMainThread();
-            token.ThrowIfCancellationRequested();
-            if (IsClosing) throw new ObjectDisposedException(Name);
-            foreach (var column in Columns) column.InitializeColumnMeshes(m_DisplayedObjects.Brain);
-            FinalizeInitialization();
-            LoadConfiguration();
-            // Resolve selected topology and reset its eraser before the transfer applies
-            // current masks. Waiting until Update would discard those restored masks.
-            UpdateGeometry();
-            progress?.Invoke(1, 0, new LoadingText("Prepared visualization restored"));
-        }
-
-        public async UniTask PrepareRenderingAsync(CancellationToken token)
-        {
-            while (true)
-            {
-                token.ThrowIfCancellationRequested();
-                if (IsClosing) throw new ObjectDisposedException(Name);
-                if (m_PreparationError != null) throw new InvalidOperationException("Common scene preparation failed.", m_PreparationError);
-                bool geometryReady = SceneInformation.CompletelyLoaded && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.ProjectionGridNeedsUpdate && !SceneInformation.SurfaceProjectionNeedsUpdate;
-                if (geometryReady && !IsGeneratorUpToDate && CanComputeFunctionalValues && !m_UpdatingGenerators) UpdateGenerator();
-                if (geometryReady && (IsGeneratorUpToDate || !CanComputeFunctionalValues) && !m_UpdatingGenerators && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
-                await UniTask.Yield();
-            }
         }
     }
 }

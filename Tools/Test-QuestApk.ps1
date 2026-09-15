@@ -11,6 +11,16 @@ try {
     $entries = @($archive.Entries | ForEach-Object {
         [ordered]@{ path = $_.FullName; bytes = $_.Length; compressedBytes = $_.CompressedLength }
     })
+    $apkBytes = (Get-Item -LiteralPath $Apk).Length
+    $compressedBytes = [long](($archive.Entries | Measure-Object -Property CompressedLength -Sum).Sum)
+    $overheadBytes = $apkBytes - $compressedBytes
+    # Allow ZIP headers, alignment and signing blocks, but reject the large virtual
+    # entries left by incremental APK packaging. This scales with entry count,
+    # independently of the size of the actual scientific data.
+    $maximumOverheadBytes = 1MB + [long]$entries.Count * 64KB
+    if ($overheadBytes -gt $maximumOverheadBytes) {
+        throw "APK contains excessive unused space: $overheadBytes bytes of overhead for $compressedBytes bytes of content (limit $maximumOverheadBytes). Rebuild with HBPAndroidPackaging enabled; do not publish this APK."
+    }
     $libraries = @($archive.Entries | Where-Object { $_.FullName -match '\.(so|dll|dylib)$' })
     foreach ($entry in $libraries) {
         if ($entry.FullName -notmatch '^lib/arm64-v8a/[^/]+\.so$') {
@@ -64,7 +74,10 @@ try {
     $report = [ordered]@{
         apk = [IO.Path]::GetFullPath($Apk)
         sha256 = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
-        bytes = (Get-Item -LiteralPath $Apk).Length
+        bytes = $apkBytes
+        compressedContentBytes = $compressedBytes
+        overheadBytes = $overheadBytes
+        maximumOverheadBytes = $maximumOverheadBytes
         nativeLibraries = @($libraries | Where-Object { $_.Name -ne 'libil2cpp.usym.so' } | ForEach-Object FullName)
         symbolTables = @($libraries | Where-Object { $_.Name -eq 'libil2cpp.usym.so' } | ForEach-Object FullName)
         result = 'Passed'

@@ -147,6 +147,7 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedFMRIIndex = ColumnFMRIData.FMRIConfiguration.SelectedResourceIndex;
             FMRIParameters.SetSpanValues(ColumnFMRIData.FMRIConfiguration.NegativeMin, ColumnFMRIData.FMRIConfiguration.NegativeMax, ColumnFMRIData.FMRIConfiguration.PositiveMin, ColumnFMRIData.FMRIConfiguration.PositiveMax);
             FMRIParameters.SetHideValues(ColumnFMRIData.FMRIConfiguration.HideLowerValues, ColumnFMRIData.FMRIConfiguration.HideMiddleValues, ColumnFMRIData.FMRIConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
@@ -159,6 +160,7 @@ namespace HBP.Data.Module3D
 
         public override void CaptureConfiguration(Core.Data.Column target)
         {
+            ((FMRIColumn)target).FMRIConfiguration.SelectedResourceIndex = SelectedFMRIIndex;
             ((FMRIColumn)target).FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
             ((FMRIColumn)target).FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
             ((FMRIColumn)target).FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;

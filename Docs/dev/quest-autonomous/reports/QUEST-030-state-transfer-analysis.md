@@ -1,6 +1,6 @@
 # QUEST-030 — Parité du chargement Desktop / Quest
 
-Date : 2026-09-15. Statut : **analyse et proposition, implémentation non engagée**.
+Date : 2026-09-15. Statut : **implémentation réalisée, tests et builds validés ; révision des configurations validée, builds prêtes ; recette appareil en cours**.
 
 Ce document remplace la proposition de correction précédente, retirée à la
 demande du propriétaire. Le [signalement initial](QUEST-030-activity-visibility.md)
@@ -9,6 +9,9 @@ intervention. Elle comprend une revue indépendante en lecture seule du cycle
 d'initialisation et du contexte global. Le plan est révisé selon la précision
 ultérieure du propriétaire : snapshot fondé sur les configurations existantes,
 préférences envoyées uniquement à l'appairage, synchronisation différée.
+
+Les sections 1 à 8 conservent l’analyse préalable et le plan approuvé. La section 9
+décrit l’implémentation et sa validation.
 
 ## 1. Conclusion
 
@@ -429,12 +432,54 @@ par MCP si l'éditeur est ouvert, CLI officielle sinon, conformément à
 `AGENTS.md`. Formatage C# avant revue et recette sur appareil avant de déclarer
 le défaut corrigé.
 
-## 9. État de cette passe
+## 9. Implémentation du plan approuvé
 
-Le retrait de l'implémentation précédente reste acquis. Cette révision modifie
-uniquement le plan et le rapport du signalement. Aucune correction de code,
-modification de prefab, compilation ou installation sur casque n'a été réalisée.
+### Chargement commun
 
-La synchronisation des préférences est explicitement différée. Le travail à
-implémenter porte sur les configurations du snapshot et le comportement commun
-de leur chargement.
+`Base3DScene.InitializeContentAsync` reçoit les ressources soit du chargement
+Desktop, soit du décodage de l’archive. Il poursuit ensuite le même parcours :
+compléments des données préparées (icônes, budget global du cache), ressources
+configurées, maillages, sites et colonnes. `CompleteInitializationAsync` finalise
+les deux ouvertures, applique la configuration et restaure la représentation.
+Le callback Desktop conserve l’attachement de son interface au même stade.
+
+`PrepareRenderingAsync` attend le travail demandé par le cycle commun. Il ne
+déclenche plus `UpdateGenerator`. Avec auto compute désactivé, une scène sans
+résultat calculé devient disponible ; le calcul manuel reste possible.
+
+Les overlays sont appliqués après la géométrie. Les couleurs d’un atlas actif
+ne sont plus effacées par la mise à jour d’un overlay FMRI désactivé. Le choix
+d’hémisphère est appliqué après celui de la surface, pour éviter qu’une surface
+aperçue par défaut ne restreigne prématurément le choix sauvegardé.
+
+### Configurations enrichies
+
+- Configuration de visualisation : overlays et leurs sélections/calibrations,
+  IRM à l’origine de la surface de prévisualisation, masques d’effacement.
+- Colonnes : source CCEP, indices de ressource Static/FMRI/MEG et influence
+  anatomique. La source CCEP précède la calibration pour éviter son écrasement.
+- ROI : nom et rayon scientifique ; l’animation du rayon visuel ne modifie plus
+  le paramètre scientifique ni son événement de changement.
+- Sérialisation, clone et copie couvrent ces champs. Les anciennes
+  configurations sans ces champs conservent leurs défauts de chargement.
+
+L’état parallèle `SceneState` et les compléments runtime des colonnes sont
+retirés du transfert. Le format d’archive passe à **3** : les deux applications
+doivent être mises à jour ensemble ; les archives de transfert version 2 sont
+refusées. Ce changement ne supprime pas la lecture des anciennes configurations
+de projet.
+
+Les préférences restent exclusivement dans `PersistentDataManager.UserPreferences`.
+L’appairage, son contexte, les identités de livraison, le protocole réseau et les
+mécanismes de publication/fermeture n’ont pas été remplacés. Aucun changement
+n’est apporté à `hbp_core`, aux binaires natifs ou aux prefabs.
+
+### Validation
+
+Les preuves locales sont dans `.test-results/quest-parity/`. La validation
+couvre la sérialisation, les ouvertures avec les deux présentations sous auto
+compute false/true, les six modalités, la recapture, le remplacement refusé et
+l’annulation. Les résultats définitifs des tests, builds et de la recette sur
+appareil sont consignés dans le [rapport d’implémentation](QUEST-030-state-transfer-implementation.md).
+
+Le signalement reste ouvert tant que sa recette sur appareil n’est pas validée.

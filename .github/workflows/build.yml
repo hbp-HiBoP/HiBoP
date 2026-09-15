@@ -341,7 +341,7 @@ jobs:
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -buildCommit "$GITHUB_SHA" \
             -logFile "$GITHUB_WORKSPACE/quest-build.log"
-      - name: Validate APK contents
+      - name: Validate APK contents and packaging overhead
         shell: pwsh
         run: ./Tools/Test-QuestApk.ps1 -Apk build/HiBoP.Quest.apk -ReportPath build/quest-apk-content.json
       - name: Upload Quest build and reports

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -115,7 +115,7 @@ namespace HBP.Data.Module3D
             newROI.Name = roi.Name;
             foreach (Sphere sphere in roi.Spheres)
             {
-                newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
+                newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.InfluenceRadius);
             }
         }
 

@@ -6,6 +6,14 @@ inchangé ; la transition et le tutoriel sont différés dans
 [QUEST-031](../tasks/QUEST-031.md). Les mentions D33 ci-dessous décrivent les
 exigences à la date des essais ; consulter la [note actualisée](QUEST-030-distribution-and-adb.md).
 
+**Clôture complémentaire du 2026-09-15 :** le propriétaire accepte les fonctionnalités
+du chantier de parité Desktop/Quest et demande sa clôture. Le
+[signalement d’activité](QUEST-030-activity-visibility.md) est clos. La lenteur
+après réception sur Quest reste un point de performance à traiter ; voir le
+[bilan de clôture](QUEST-030-state-transfer-implementation.md#clôture-fonctionnelle-et-point-de-performance-restant).
+Les réserves historiques de qualification des autres plateformes et de distribution
+ci-dessous ne sont pas levées par cette acceptation.
+
 ## Résultat et périmètre
 
 Décision D32 du 2026-09-14 : Windows/Quest maintenant, USB pour la recette physique,

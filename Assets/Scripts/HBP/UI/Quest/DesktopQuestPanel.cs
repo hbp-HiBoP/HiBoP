@@ -184,7 +184,20 @@ namespace HBP.UI.Quest
                         offer?.Dispose();
                         offer = null;
                         status.text = "Preparing all visualization resources...";
-                        offer = await DesktopSceneCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, globals.Context, token);
+                        bool capturing = true;
+                        var progress = new Progress<string>(message =>
+                        {
+                            if (capturing && this && !token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = message;
+                        });
+                        try
+                        {
+                            offer = await DesktopSceneCapture.CaptureDeliverySelectedAsync(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, globals.Context, token, progress);
+                        }
+                        finally
+                        {
+                            capturing = false;
+                        }
+
                         captureMs = elapsed.Elapsed.TotalMilliseconds;
                     }
 

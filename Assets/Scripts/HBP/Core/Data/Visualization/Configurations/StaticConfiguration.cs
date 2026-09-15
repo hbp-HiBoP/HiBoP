@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -7,6 +7,8 @@ namespace HBP.Core.Data
     public class StaticConfiguration : BaseData
     {
         #region Properties
+
+        [JsonProperty] public int SelectedResourceIndex { get; set; }
 
         /// <summary>
         /// Maximum site influence
@@ -32,16 +34,18 @@ namespace HBP.Core.Data
 
         #region Constructor
 
-        public StaticConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax) : base()
+        public StaticConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax, int selectedResourceIndex = 0) : base()
         {
+            SelectedResourceIndex = selectedResourceIndex;
             MaximumInfluence = maximumInfluence;
             SpanMin = spanMin;
             Middle = middle;
             SpanMax = spanMax;
         }
 
-        public StaticConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax, string ID) : base(ID)
+        public StaticConfiguration(float maximumInfluence, float spanMin, float middle, float spanMax, string ID, int selectedResourceIndex = 0) : base(ID)
         {
+            SelectedResourceIndex = selectedResourceIndex;
             MaximumInfluence = maximumInfluence;
             SpanMin = spanMin;
             Middle = middle;
@@ -58,7 +62,7 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new StaticConfiguration(MaximumInfluence, SpanMin, Middle, SpanMax, ID);
+            return new StaticConfiguration(MaximumInfluence, SpanMin, Middle, SpanMax, ID, SelectedResourceIndex);
         }
 
         public override void Copy(object copy)
@@ -66,6 +70,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if (copy is StaticConfiguration staticConfiguration)
             {
+                SelectedResourceIndex = staticConfiguration.SelectedResourceIndex;
                 MaximumInfluence = staticConfiguration.MaximumInfluence;
                 SpanMin = staticConfiguration.SpanMin;
                 Middle = staticConfiguration.Middle;

@@ -17,37 +17,77 @@ namespace HBP.Transfer.Scene
     {
         public static string GetSelectionError() => !Module3DMain.IsInitialized || Module3DMain.SelectedScene == null ? "Open a visualization to send it to Quest." : Module3DMain.SelectedScene.IsClosing ? "The visualization is closing." : null;
 
-        public static Task<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default)
+        public static Task<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null)
         {
             if (!PlayerLoopHelper.IsMainThread) throw new InvalidOperationException("Capture must start on Unity's thread.");
             string error = GetSelectionError();
             if (error != null) throw new InvalidOperationException(error);
-            return CaptureDeliveryAsync(Module3DMain.SelectedScene, transferId, sessionId, revision, globals, token);
+            return CaptureDeliveryAsync(Module3DMain.SelectedScene, transferId, sessionId, revision, globals, token, progress);
         }
 
-        public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default)
+        public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null)
         {
             if (!PlayerLoopHelper.IsMainThread) throw new InvalidOperationException("Capture must start on Unity's thread.");
             if (scene == null || scene.IsClosing) throw new InvalidOperationException("The visualization is unavailable or closing.");
             string folder = Path.Combine(Application.temporaryCachePath, "SceneCapture", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(folder);
             string output = Path.Combine(folder, "visualization.hbscene");
+            var archive = new SceneArchive(Path.Combine(folder, "resources"), globals: globals, deferResourceWrites: true, cancellationToken: token);
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            bool logPhases = Debug.isDebugBuild;
+
+            void Report(string phase, string message)
+            {
+                progress?.Report(message);
+                if (logPhases) Debug.Log($"QUEST_CAPTURE phase={phase}; elapsedMs={clock.Elapsed.TotalMilliseconds:F1}");
+            }
+
             try
             {
-                using var archive = new SceneArchive(Path.Combine(folder, "resources"), globals: globals);
-                string summary = await scene.CapturePreparedAsync(() =>
+                Report("prepare", "Preparing visualization resources...");
+                await UniTask.NextFrame(cancellationToken: token);
+                var snapshot = await scene.CapturePreparedAsync(() =>
                 {
+                    Report("snapshot", "Capturing visualization...");
                     var payload = Capture(scene, archive, transferId, sessionId, revision);
-                    // No await between state capture and serialization: Unity mutations cannot mix revisions.
-                    archive.Write(payload, output);
-                    return $"{payload.Visualization.Name} | {payload.Columns.Count} columns";
+                    // No await across the live graph: metadata and numeric bytes are now owned.
+                    return (Metadata: archive.CaptureMetadata(payload), Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
                 }, token);
                 token.ThrowIfCancellationRequested();
-                return new SceneDelivery(output, transferId, sessionId, summary);
+                Report("encode", "Preparing visualization for transfer...");
+                var delivery = await Task.Run(() =>
+                {
+                    SceneDelivery result = null;
+                    try
+                    {
+                        archive.WriteCaptured(snapshot.Metadata, output);
+                        token.ThrowIfCancellationRequested();
+                        Report("verify", "Verifying prepared visualization...");
+                        result = new SceneDelivery(output, transferId, sessionId, snapshot.Summary);
+                        token.ThrowIfCancellationRequested();
+                        return result;
+                    }
+                    catch
+                    {
+                        result?.Dispose();
+                        throw;
+                    }
+                    finally
+                    {
+                        archive.Dispose();
+                    }
+                });
+                Report("complete", "Visualization prepared.");
+                return delivery;
             }
             catch
             {
-                if (Directory.Exists(folder)) Directory.Delete(folder, true);
+                // Await worker termination before cleanup; large archive cleanup must not block UI.
+                await Task.Run(() =>
+                {
+                    archive.Dispose();
+                    if (Directory.Exists(folder)) Directory.Delete(folder, true);
+                });
                 throw;
             }
         }
@@ -67,7 +107,6 @@ namespace HBP.Transfer.Scene
 
             var model = (Visualization)scene.Visualization.Clone();
             model.Configuration = scene.CaptureConfiguration();
-            model.Configuration.FirstColumnToSelect = -1;
             var payload = new ScenePayload { TransferId = transferId, SessionId = sessionId, Revision = revision, GlobalContextId = archive.Globals.Id, Visualization = model };
             if (Object3DManager.MNI.ResourceHashes == null) throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
             payload.StandardFiles = new System.Collections.Generic.Dictionary<string, string>(Object3DManager.MNI.ResourceHashes);
@@ -84,47 +123,23 @@ namespace HBP.Transfer.Scene
                 Column3D column = scene.Columns[i];
                 Column target = model.Columns[i];
                 column.CaptureConfiguration(target);
-                var state = new ColumnState { Id = target.ID, SelectedSite = column.SelectedSite?.Information.FullID };
-                foreach (var site in column.SiteStateBySiteID) state.Sites[site.Key] = new SiteDisplayState { Masked = site.Value.IsMasked, Filtered = site.Value.IsFiltered };
-                foreach (var site in column.Sites)
-                {
-                    var position = site.transform.localPosition;
-                    state.Sites[site.Information.FullID] = new SiteDisplayState { Position = new[] { position.x, position.y, position.z }, Masked = site.State.IsMasked, Filtered = site.State.IsFiltered };
-                }
-
-                if (column.NavigationTimeline != null)
-                {
-                    var timeline = column.NavigationTimeline;
-                    state.TimeIndex = timeline.CurrentIndex;
-                    state.TimeStep = timeline.Step;
-                    state.Playing = timeline.IsPlaying;
-                    state.Looping = timeline.IsLooping;
-                }
-
+                var state = new ColumnState { Id = target.ID };
                 switch (column)
                 {
-                    case Column3DAnatomy anatomy: state.AnatomyInfluence = anatomy.AnatomyParameters.InfluenceDistance; break;
+                    case Column3DAnatomy: break;
                     case Column3DIEEG ieeg:
                         ((IEEGColumn)target).Data = ieeg.ColumnIEEGData.Data;
-                        state.Correlations = ieeg.CorrelationBySitePair.ToDictionary(p => p.Key.Information.FullID, p => p.Value.ToDictionary(q => q.Key.Information.FullID, q => q.Value));
-                        state.CorrelationMeans = ieeg.CorrelationMeanBySitePair.ToDictionary(p => p.Key.Information.FullID, p => p.Value.ToDictionary(q => q.Key.Information.FullID, q => q.Value));
                         break;
                     case Column3DCCEP ccep:
                         ((CCEPColumn)target).Data = ccep.ColumnCCEPData.Data;
-                        state.SourceMode = (int)ccep.Mode;
-                        state.SourceSite = ccep.SelectedSourceSite?.Information.FullID;
-                        state.SourceLabel = ccep.SelectedSourceMarsAtlasLabel;
                         break;
                     case Column3DStatic staticColumn:
                         ((StaticColumn)target).Data = staticColumn.ColumnStaticData.Data;
-                        state.ResourceIndex = staticColumn.SelectedLabelIndex;
                         break;
                     case Column3DFMRI fmri:
-                        state.ResourceIndex = fmri.SelectedFMRIIndex;
                         foreach (var item in fmri.ColumnFMRIData.Data.FMRIs) state.Functional.Add(CaptureFunctional(item.Item1, item.Item2?.ID, archive));
                         break;
                     case Column3DMEG meg:
-                        state.ResourceIndex = meg.SelectedMEGIndex;
                         foreach (var item in meg.ColumnMEGData.Data.MEGItems)
                         {
                             var functional = CaptureFunctional(item.FMRI, item.Patient?.ID, archive);
@@ -142,19 +157,6 @@ namespace HBP.Transfer.Scene
                 payload.Columns.Add(state);
             }
 
-            var atlas = scene.AtlasManager;
-            var fmriManager = scene.FMRIManager;
-            payload.State = new SceneState
-            {
-                SelectedColumn = scene.Columns.IndexOf(scene.SelectedColumn), SelectedROI = scene.ROIManager.SelectedROIID, ROICreationMode = scene.ROIManager.ROICreationMode, DisplayCorrelations = scene.DisplayCorrelations, SelectedSphere = scene.ROIManager.SelectedROI?.SelectedSphereID ?? -1,
-                MarsAtlas = atlas.DisplayMarsAtlas, JuBrain = atlas.DisplayJuBrainAtlas, AtlasAlpha = atlas.AtlasAlpha,
-                IBC = fmriManager.DisplayIBCContrasts, IBCIndex = fmriManager.SelectedIBCContrastID,
-                DiFuMo = fmriManager.DisplayDiFuMo, DiFuMoAtlas = fmriManager.SelectedDiFuMoAtlas, DiFuMoArea = fmriManager.SelectedDiFuMoArea,
-                Localizers = fmriManager.DisplayLocalizers, LocalizerProtocol = fmriManager.SelectedLocalizersProtocol, LocalizerData = fmriManager.SelectedLocalizersData, LocalizerBloc = fmriManager.SelectedLocalizersBloc, LocalizerTime = fmriManager.SelectedLocalizersTimelineIndex,
-                FMRIAlpha = fmriManager.FMRIAlpha, NegativeMin = fmriManager.FMRINegativeCalMinFactor, NegativeMax = fmriManager.FMRINegativeCalMaxFactor, PositiveMin = fmriManager.FMRIPositiveCalMinFactor, PositiveMax = fmriManager.FMRIPositiveCalMaxFactor,
-                LocalizerMin = fmriManager.LocalizersMin, LocalizerMiddle = fmriManager.LocalizersMiddle, LocalizerMax = fmriManager.LocalizersMax,
-                ErasedTriangles = scene.TriangleEraser.CurrentMasks[0], ErasedSimplifiedTriangles = scene.TriangleEraser.CurrentMasks[1],
-            };
             return payload;
         }
 

@@ -34,6 +34,25 @@ namespace HBP.Data.Module3D
             ActivityGenerator = new Core.DLL.DensityGenerator();
         }
 
+        public override void LoadConfiguration(bool firstCall = true)
+        {
+            if (firstCall) ResetConfiguration();
+            AnatomyParameters.InfluenceDistance = ((Core.Data.AnatomicColumn)ColumnData).AnatomicConfiguration.MaximumInfluence;
+            base.LoadConfiguration(false);
+        }
+
+        public override void CaptureConfiguration(Core.Data.Column target)
+        {
+            ((Core.Data.AnatomicColumn)target).AnatomicConfiguration.MaximumInfluence = AnatomyParameters.InfluenceDistance;
+            base.CaptureConfiguration(target);
+        }
+
+        public override void ResetConfiguration()
+        {
+            AnatomyParameters.InfluenceDistance = 15f;
+            base.ResetConfiguration();
+        }
+
         public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, Core.Enums.SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
         {
             var updateMasks = PrepareSitesMaskUpdate(roiActive);

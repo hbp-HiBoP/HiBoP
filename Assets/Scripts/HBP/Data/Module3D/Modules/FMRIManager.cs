@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using HBP.Core.DLL;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
@@ -12,6 +12,41 @@ namespace HBP.Data.Module3D
     /// </summary>
     public class FMRIManager : MonoBehaviour
     {
+        public AtlasConfiguration CaptureConfiguration()
+        {
+            return new AtlasConfiguration(m_Scene.AtlasManager.DisplayMarsAtlas, m_Scene.AtlasManager.DisplayJuBrainAtlas, m_Scene.AtlasManager.AtlasAlpha, m_DisplayIBCContrasts, m_SelectedIBCContrastID, m_DisplayDiFuMo, m_SelectedDiFuMoAtlas, m_SelectedDiFuMoArea, m_DisplayLocalizers, m_SelectedLocalizersProtocol, m_SelectedLocalizersData, m_SelectedLocalizersBloc, m_SelectedLocalizersTimelineIndex, m_FMRIAlpha, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_Scene.Visualization.Configuration.AtlasConfiguration?.ID);
+        }
+
+        public void LoadConfiguration(AtlasConfiguration configuration)
+        {
+            if (configuration == null) return; // Legacy visualizations retain their normal defaults.
+            m_Scene.AtlasManager.AtlasAlpha = configuration.AtlasAlpha;
+            m_Scene.AtlasManager.DisplayMarsAtlas = configuration.MarsAtlas;
+            m_Scene.AtlasManager.DisplayJuBrainAtlas = configuration.JuBrain;
+            // Assign the complete resource selection before notifying dependent renderers.
+            m_SelectedIBCContrastID = configuration.IBCIndex;
+            m_SelectedDiFuMoAtlas = configuration.DiFuMoAtlas;
+            m_SelectedDiFuMoArea = configuration.DiFuMoArea;
+            m_SelectedLocalizersProtocol = configuration.LocalizerProtocol;
+            m_SelectedLocalizersData = configuration.LocalizerData;
+            m_SelectedLocalizersBloc = configuration.LocalizerBloc;
+            m_SelectedLocalizersTimelineIndex = configuration.LocalizerTime;
+            m_FMRIAlpha = configuration.FMRIAlpha;
+            m_FMRINegativeCalMinFactor = configuration.NegativeMin;
+            m_FMRINegativeCalMaxFactor = configuration.NegativeMax;
+            m_FMRIPositiveCalMinFactor = configuration.PositiveMin;
+            m_FMRIPositiveCalMaxFactor = configuration.PositiveMax;
+            m_LocalizersMin = configuration.LocalizerMin;
+            m_LocalizersMiddle = configuration.LocalizerMiddle;
+            m_LocalizersMax = configuration.LocalizerMax;
+            bool supportsMNI = m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
+            m_DisplayIBCContrasts = configuration.IBC && supportsMNI;
+            m_DisplayDiFuMo = configuration.DiFuMo && supportsMNI;
+            m_DisplayLocalizers = configuration.Localizers && supportsMNI;
+            UpdateSurfaceFMRIValues();
+            UpdateSurfaceFMRIColors();
+        }
+
         #region Properties
 
         /// <summary>
@@ -458,6 +493,12 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateSurfaceFMRIColors()
         {
+            if (!DisplayFMRI && m_Scene.AtlasManager.DisplayAtlas)
+            {
+                m_Scene.AtlasManager.UpdateAtlasColors();
+                return;
+            }
+
             Color[] colors = new Color[0];
             if (m_DisplayIBCContrasts)
             {

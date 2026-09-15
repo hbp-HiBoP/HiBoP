@@ -90,47 +90,41 @@ namespace HBP.Transfer.Scene
                 if (mri.Standard == null) NativeReference(mri.File);
             }
 
-            var state = payload.State;
-            if (state == null || state.SelectedColumn < -1 || state.SelectedColumn >= payload.Columns.Count || state.SelectedROI < -1 || state.SelectedROI >= visualization.Configuration.RegionsOfInterest.Count || state.ErasedTriangles == null || state.ErasedSimplifiedTriangles == null) Fail("Invalid scene state.");
-            Mask(state.ErasedTriangles);
-            Mask(state.ErasedSimplifiedTriangles);
-            if (!Enum.IsDefined(typeof(MeshPart), visualization.Configuration.MeshPart) || !Enum.IsDefined(typeof(HBP.Core.Object3D.SurfaceRepresentation), visualization.Configuration.SurfaceRepresentation)) Fail("Invalid selected mesh state.");
-            if (!payload.Meshes.Any(m => m.PatientId == null && m.Name == visualization.Configuration.MeshName) || !payload.MRIs.Any(m => m.PatientId == null && m.Name == visualization.Configuration.MRIName)) Fail("Selected anatomy is unavailable.");
-            if (state.SelectedSphere < -1 || (state.SelectedROI < 0 && state.SelectedSphere != -1)) Fail("Invalid ROI sphere selection.");
+            var configuration = visualization.Configuration;
+            if (configuration.ErasedTriangles != null) Mask(configuration.ErasedTriangles);
+            if (configuration.ErasedSimplifiedTriangles != null) Mask(configuration.ErasedSimplifiedTriangles);
+            if ((configuration.ErasedTriangles == null) != (configuration.ErasedSimplifiedTriangles == null)) Fail("Incomplete configured erasure.");
+            if (!Enum.IsDefined(typeof(MeshPart), configuration.MeshPart) || !Enum.IsDefined(typeof(HBP.Core.Object3D.SurfaceRepresentation), configuration.SurfaceRepresentation)) Fail("Invalid selected mesh configuration.");
+            bool selectedMeshAvailable = configuration.PreviewMRIName == null ? payload.Meshes.Any(m => m.PatientId == null && m.Name == configuration.MeshName) : payload.Meshes.Any(m => m.PatientId == null && m.SourceMRI == configuration.PreviewMRIName);
+            if (!selectedMeshAvailable || !payload.MRIs.Any(m => m.PatientId == null && m.Name == configuration.MRIName)) Fail("Selected anatomy is unavailable.");
             for (int i = 0; i < payload.Columns.Count; i++)
             {
                 var column = visualization.Columns[i];
                 var current = payload.Columns[i];
-                if (current == null || current.Id != column.ID || current.Sites == null || current.Functional == null || column.BaseConfiguration == null) Fail("Invalid column identity/configuration.");
-                foreach (var site in current.Sites.Values)
-                    if (site == null || (site.Position != null && (site.Position.Length != 3 || site.Position.Any(v => float.IsNaN(v) || float.IsInfinity(v)))))
-                        Fail("Invalid site position.");
-                if (current.SelectedSite != null && !current.Sites.ContainsKey(current.SelectedSite)) Fail("Unknown selected site.");
+                if (current == null || current.Id != column.ID || current.Functional == null || column.BaseConfiguration == null) Fail("Invalid column identity/configuration.");
                 if (column is IEEGColumn ieeg)
                 {
-                    if (ieeg.Data?.ProcessedValuesByChannel == null || current.Correlations == null || current.CorrelationMeans == null) Fail("Missing iEEG data.");
-                    ValidateDynamic(ieeg.Data, ieeg.Bloc, current, ieeg.Data.ProcessedValuesByChannel.Values);
+                    if (ieeg.Data?.ProcessedValuesByChannel == null || ieeg.DynamicConfiguration == null) Fail("Missing iEEG data.");
+                    ValidateDynamic(ieeg.Data, ieeg.Bloc, ieeg.Data.ProcessedValuesByChannel.Values);
                     ValidateTrials(ieeg.Data.DataByChannelID.Values, ieeg.Bloc);
-                    foreach (var correlations in new[] { current.Correlations, current.CorrelationMeans })
-                    foreach (var entry in correlations)
-                        if (!current.Sites.ContainsKey(entry.Key) || entry.Value == null || entry.Value.Keys.Any(id => !current.Sites.ContainsKey(id)))
-                            Fail("Invalid correlation reference.");
                 }
                 else if (column is CCEPColumn ccep)
                 {
-                    if (ccep.Data?.ProcessedValuesByChannelIDByStimulatedChannelID == null) Fail("Missing CCEP data.");
-                    ValidateDynamic(ccep.Data, ccep.Bloc, current, ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Values.SelectMany(d => d.Values));
+                    if (ccep.Data?.ProcessedValuesByChannelIDByStimulatedChannelID == null || ccep.CCEPConfiguration == null) Fail("Missing CCEP data.");
+                    ValidateDynamic(ccep.Data, ccep.Bloc, ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Values.SelectMany(d => d.Values));
                     ValidateTrials(ccep.Data.DataByChannelIDByStimulatedChannelID.Values.SelectMany(d => d.Values), ccep.Bloc);
-                    if (!Enum.IsDefined(typeof(HBP.Data.Module3D.Column3DCCEP.CCEPMode), current.SourceMode)) Fail("Invalid CCEP mode.");
-                    if (current.SourceSite != null && !ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(current.SourceSite)) Fail("Unknown stimulation source.");
+                    var source = ccep.CCEPConfiguration;
+                    if (source?.SiteID != null && !ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(source.SiteID)) Fail("Unknown stimulation source.");
+                    if (source != null && source.MarsAtlasLabel < -1) Fail("Invalid stimulation area.");
                 }
                 else if (column is StaticColumn stat)
                 {
-                    if (stat.Data?.ValueByChannelIDByLabel == null || current.ResourceIndex < 0 || current.ResourceIndex >= stat.Data.ValueByChannelIDByLabel.Count) Fail("Invalid static column.");
+                    if (stat.Data?.ValueByChannelIDByLabel == null || stat.StaticConfiguration == null || stat.StaticConfiguration.SelectedResourceIndex < 0 || stat.StaticConfiguration.SelectedResourceIndex >= stat.Data.ValueByChannelIDByLabel.Count) Fail("Invalid static column.");
                 }
                 else if (column is FMRIColumn || column is MEGColumn)
                 {
-                    if (current.ResourceIndex < 0 || current.ResourceIndex >= current.Functional.Count || current.TimeIndex < 0 || current.TimeStep < 1) Fail("Invalid functional column.");
+                    int index = column is FMRIColumn fmri ? fmri.FMRIConfiguration?.SelectedResourceIndex ?? -1 : ((MEGColumn)column).MEGConfiguration?.SelectedResourceIndex ?? -1;
+                    if (index < 0 || index >= current.Functional.Count) Fail("Invalid functional column.");
                     foreach (var functional in current.Functional)
                     {
                         if (functional == null || (functional.PatientId != null && !patients.Contains(functional.PatientId))) Fail("Invalid functional patient.");
@@ -144,7 +138,7 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        private static void ValidateDynamic(DynamicData data, Bloc bloc, ColumnState state, IEnumerable<float[]> signals)
+        private static void ValidateDynamic(DynamicData data, Bloc bloc, IEnumerable<float[]> signals)
         {
             if (data?.Timeline == null || data.ProjectionTimeline == null || bloc == null) Fail("Missing dynamic data.");
             foreach (var timeline in new[] { data.Timeline, data.ProjectionTimeline })
@@ -156,7 +150,6 @@ namespace HBP.Transfer.Scene
                 }
             }
 
-            if (state.TimeIndex < 0 || state.TimeIndex >= data.Timeline.Length || state.TimeStep < 1) Fail("Invalid navigation state.");
             if (signals.Any(values => values == null || (values.Length != 0 && values.Length != data.ProjectionTimeline.Length))) Fail("Signal dimensions do not match the projection timeline.");
         }
 

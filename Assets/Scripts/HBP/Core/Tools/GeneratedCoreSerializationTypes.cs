@@ -14,6 +14,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.AnatomicColumn), "HBP.Core.Data.AnatomicColumn");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.AnatomicConfiguration), "HBP.Core.Data.AnatomicConfiguration");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.AnyFilterCondition), "HBP.Core.Data.AnyFilterCondition");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.AtlasConfiguration), "HBP.Core.Data.AtlasConfiguration");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.AttributesFilterCondition), "HBP.Core.Data.AttributesFilterCondition");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.BaseConfiguration), "HBP.Core.Data.BaseConfiguration");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.BaseFilterCondition), "HBP.Core.Data.BaseFilterCondition");
@@ -26,6 +27,8 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.BoolTagValue), "HBP.Core.Data.BoolTagValue");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.BuildInfo), "HBP.Core.Data.BuildInfo");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.CCEPColumn), "HBP.Core.Data.CCEPColumn");
+            SerializationTypeRegistry.RegisterGeneratedPropertyAlias(typeof(global::HBP.Core.Data.CCEPColumn), "DynamicConfiguration", "CCEPConfiguration", "CCEPConfiguration");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.CCEPConfiguration), "HBP.Core.Data.CCEPConfiguration");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.CCEPDataInfo), "HBP.Core.Data.CCEPDataInfo");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.ClampTreatment), "HBP.Core.Data.ClampTreatment");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Data.Container.BrainVision), "HBP.Core.Data.Container.BrainVision");

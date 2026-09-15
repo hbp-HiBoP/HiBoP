@@ -397,11 +397,8 @@ namespace HBP.Data.Module3D
                 });
                 // Add the scene to the list
                 m_Instance.m_Scenes.Add(scene);
-                scene.FinalizeInitialization();
-                OnAddScene.Invoke(scene);
-                scene.LoadConfiguration();
                 IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
-                await scene.RestoreConfiguredSurfaceRepresentationAsync(inflationProgress, token, animate: false);
+                await scene.CompleteInitializationAsync(() => OnAddScene.Invoke(scene), inflationProgress, token);
             }
             catch
             {

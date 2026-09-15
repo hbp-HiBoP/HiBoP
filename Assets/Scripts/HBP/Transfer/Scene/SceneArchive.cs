@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -17,14 +20,21 @@ namespace HBP.Transfer.Scene
         public const long MaximumExpandedBytes = 4L * 1024 * 1024 * 1024;
         public const int MaximumMetadataBytes = 128 * 1024 * 1024;
         private readonly string directory;
+        private readonly bool deferResourceWrites;
+        private readonly CancellationToken cancellationToken;
+        private readonly Dictionary<string, byte[]> capturedBuffers = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> capturedFiles = new(StringComparer.Ordinal);
+        private long capturedBufferBytes;
         private long numericBytesRead;
         public string DirectoryPath => directory;
         public PairingContext Globals { get; set; }
 
-        public SceneArchive(string directory, bool reading = false, PairingContext globals = null)
+        public SceneArchive(string directory, bool reading = false, PairingContext globals = null, bool deferResourceWrites = false, CancellationToken cancellationToken = default)
         {
             this.directory = Path.GetFullPath(directory);
             Globals = globals;
+            this.deferResourceWrites = deferResourceWrites;
+            this.cancellationToken = cancellationToken;
 
             Directory.CreateDirectory(directory);
         }
@@ -34,20 +44,13 @@ namespace HBP.Transfer.Scene
             if (string.IsNullOrEmpty(expectedHash)) throw new InvalidOperationException($"Missing loaded resource provenance: {path}");
             string extension = path.EndsWith(".nii.gz", StringComparison.OrdinalIgnoreCase) ? ".nii.gz" : Path.GetExtension(path).ToLowerInvariant();
             string name = expectedHash.Replace("-", "").ToLowerInvariant() + extension;
-            string target = Resolve(name);
-            if (!File.Exists(target))
-            {
-                File.Copy(path, target);
-                if (StandardData.HashFile(target) != name.Substring(0, 64)) throw new IOException("A source resource changed since it was loaded: " + path);
-            }
+            AddResourceFile(path, name);
 
             if (StandardData.CompanionFile(path) is string companion)
             {
                 if (companionHash == null) throw new InvalidOperationException("Missing NIfTI companion provenance.");
                 string otherName = companionHash.Replace("-", "").ToLowerInvariant() + Path.GetExtension(companion).ToLowerInvariant();
-                string otherPath = Resolve(otherName);
-                if (!File.Exists(otherPath)) File.Copy(companion, otherPath);
-                if (StandardData.HashFile(otherPath) != otherName.Substring(0, 64)) throw new IOException("NIfTI companion changed since loading.");
+                AddResourceFile(companion, otherName);
                 // The pair, not either member alone, identifies a native image. Equal voxel
                 // bytes can have different headers (and equal headers different voxel bytes).
                 return AddBuffer(writer => writer.Write(Encoding.UTF8.GetBytes(name + "\n" + otherName)), ".pair");
@@ -58,13 +61,108 @@ namespace HBP.Transfer.Scene
 
         public string AddBuffer(Action<BinaryWriter> write, string extension = ".bin")
         {
-            string temporary = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
-            using (var writer = new BinaryWriter(File.Create(temporary))) write(writer);
-            string name = StandardData.HashFile(temporary) + extension;
+            cancellationToken.ThrowIfCancellationRequested();
+            using var memory = new MemoryStream();
+            using (var writer = new BinaryWriter(memory, Encoding.UTF8, true)) write(writer);
+            return AddOwnedBuffer(memory.ToArray(), extension);
+        }
+
+        private string AddOwnedBuffer(byte[] bytes, string extension = ".bin")
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            using var sha = SHA256.Create();
+            string name = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() + extension;
             string target = Resolve(name);
-            if (File.Exists(target)) File.Delete(temporary);
-            else File.Move(temporary, target);
+            if (deferResourceWrites)
+            {
+                if (!capturedBuffers.ContainsKey(name))
+                {
+                    capturedBufferBytes = checked(capturedBufferBytes + bytes.LongLength);
+                    if (capturedBufferBytes > MaximumExpandedBytes) throw new InvalidDataException("Visualization exceeds the expanded content budget.");
+                    capturedBuffers.Add(name, bytes);
+                }
+            }
+            else if (!File.Exists(target)) File.WriteAllBytes(target, bytes);
+
             return name;
+        }
+
+        private void AddResourceFile(string path, string name)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            string target = Resolve(name);
+            if (deferResourceWrites)
+            {
+                capturedFiles.TryAdd(name, path);
+                return;
+            }
+
+            if (!File.Exists(target)) File.Copy(path, target);
+            if (StandardData.HashFile(target) != name.Substring(0, 64)) throw new IOException("A source resource changed since it was loaded: " + path);
+        }
+
+        /// <summary>Freeze the live managed graph and numeric arrays before leaving Unity's thread.</summary>
+        public byte[] CaptureMetadata(ScenePayload payload)
+        {
+            if (!deferResourceWrites) throw new InvalidOperationException("Deferred resource capture is required.");
+            if (Globals == null || payload.GlobalContextId != Globals.Id) throw new InvalidOperationException("Pair with Quest before capturing a visualization.");
+            cancellationToken.ThrowIfCancellationRequested();
+            using var memory = new MemoryStream();
+            using (var writer = new JsonTextWriter(new StreamWriter(memory, new UTF8Encoding(false), 8192, true))) Serializer().Serialize(writer, payload);
+            if (memory.Length > MaximumMetadataBytes) throw new InvalidDataException("Visualization metadata exceeds the transfer budget.");
+            return memory.ToArray();
+        }
+
+        /// <summary>Encode only owned buffers and provenance-checked source files; no live Unity/model access.</summary>
+        public void WriteCaptured(byte[] metadata, string output)
+        {
+            if (!deferResourceWrites) throw new InvalidOperationException("Deferred resource capture is required.");
+            cancellationToken.ThrowIfCancellationRequested();
+            // Optional illustrations may already have been copied while traversing metadata.
+            foreach (string path in Directory.EnumerateFiles(directory)) capturedFiles.TryAdd(Path.GetFileName(path), path);
+            long expandedBytes = checked(metadata.LongLength + capturedBufferBytes + capturedFiles.Sum(item => new FileInfo(item.Value).Length));
+            if (metadata.LongLength > MaximumMetadataBytes || expandedBytes > MaximumExpandedBytes) throw new InvalidDataException("Visualization exceeds the expanded content budget.");
+            if (capturedFiles.Count + capturedBuffers.Count + 1 > 100000) throw new InvalidDataException("Too many content resources.");
+            using var zip = ZipFile.Open(output, ZipArchiveMode.Create);
+            byte[] buffer = new byte[65536];
+            using (var source = new MemoryStream(metadata, false)) WriteCapturedEntry(zip, "visualization.json", source, false, buffer);
+            foreach (var item in capturedBuffers.OrderBy(item => item.Key, StringComparer.Ordinal))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                using var source = new MemoryStream(item.Value, false);
+                WriteCapturedEntry(zip, item.Key, source, false, buffer);
+            }
+
+            foreach (var item in capturedFiles.OrderBy(item => item.Key, StringComparer.Ordinal))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (capturedBuffers.ContainsKey(item.Key)) continue;
+                using var source = File.OpenRead(item.Value);
+                WriteCapturedEntry(zip, item.Key, source, true, buffer);
+            }
+        }
+
+        private void WriteCapturedEntry(ZipArchive zip, string name, Stream source, bool verifyHash, byte[] buffer)
+        {
+            using var target = zip.CreateEntry(name, CompressionLevel.Fastest).Open();
+            using var sha = verifyHash ? SHA256.Create() : null;
+            long remaining = source.Length;
+            while (remaining > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                int read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining));
+                if (read == 0) throw new IOException("A source resource changed during capture: " + name);
+                sha?.TransformBlock(buffer, 0, read, buffer, 0);
+                target.Write(buffer, 0, read);
+                remaining -= read;
+            }
+
+            if (source.ReadByte() != -1) throw new IOException("A source resource changed during capture: " + name);
+            if (sha != null)
+            {
+                sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                if (BitConverter.ToString(sha.Hash).Replace("-", "").ToLowerInvariant() != name.Substring(0, 64)) throw new IOException("A source resource changed since it was loaded: " + name);
+            }
         }
 
         /// <summary>Illustrations are optional; unavailable source files must not block their definitions.</summary>
@@ -263,46 +361,36 @@ namespace HBP.Transfer.Scene
                 {
                     writer.Write(vertices.Length);
                     writer.Write(triangles.Length);
-                    foreach (var v in vertices)
-                    {
-                        writer.Write(v.x);
-                        writer.Write(v.y);
-                        writer.Write(v.z);
-                    }
-
-                    foreach (int index in triangles) writer.Write(index);
+                    WriteComponents(writer, vertices);
+                    WriteComponents(writer, triangles);
                     writer.Write(normals.Length);
-                    foreach (var n in normals)
-                    {
-                        writer.Write(n.x);
-                        writer.Write(n.y);
-                        writer.Write(n.z);
-                    }
-
+                    WriteComponents(writer, normals);
                     writer.Write(uv.Length);
-                    foreach (var u in uv)
-                    {
-                        writer.Write(u.x);
-                        writer.Write(u.y);
-                    }
-
+                    WriteComponents(writer, uv);
                     writer.Write(colors.Length);
-                    foreach (var c in colors)
-                    {
-                        writer.Write(c.r);
-                        writer.Write(c.g);
-                        writer.Write(c.b);
-                        writer.Write(c.a);
-                    }
+                    WriteComponents(writer, colors);
 
                     writer.Write(surface.IsMarsAtlasLoaded);
                     writer.Write(mask.Length);
-                    foreach (int visible in mask) writer.Write(visible);
+                    WriteComponents(writer, mask);
                 });
             }
             finally
             {
                 UnityEngine.Object.Destroy(mesh);
+            }
+        }
+
+        // Unity mesh structs contain packed 32-bit components, as used by the native mesh copier.
+        private static void WriteComponents<T>(BinaryWriter writer, T[] values) where T : struct
+        {
+            var bytes = MemoryMarshal.AsBytes(values.AsSpan());
+            if (BitConverter.IsLittleEndian) writer.Write(bytes);
+            else
+            {
+                byte[] copy = bytes.ToArray();
+                for (int i = 0; i < copy.Length; i += 4) Array.Reverse(copy, i, 4);
+                writer.Write(copy);
             }
         }
 
@@ -374,6 +462,8 @@ namespace HBP.Transfer.Scene
 
         public void Dispose()
         {
+            capturedBuffers.Clear();
+            capturedFiles.Clear();
             // This directory is a uniquely created archive workspace, never a source project directory.
             if (Directory.Exists(directory)) Directory.Delete(directory, true);
         }
@@ -397,15 +487,15 @@ namespace HBP.Transfer.Scene
                     return;
                 }
 
-                writer.WriteValue(archive.AddBuffer(binary =>
-                {
-                    if (value is float[] floats)
-                        foreach (float number in floats)
-                            binary.Write(number);
-                    else
-                        foreach (int number in (int[])value)
-                            binary.Write(number);
-                }));
+                // Own the bytes before asynchronous encoding; a source scene may change or close.
+                archive.cancellationToken.ThrowIfCancellationRequested();
+                var values = (Array)value;
+                byte[] bytes = new byte[checked(values.Length * 4)];
+                Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
+                if (!BitConverter.IsLittleEndian)
+                    for (int i = 0; i < bytes.Length; i += 4)
+                        Array.Reverse(bytes, i, 4);
+                writer.WriteValue(archive.AddOwnedBuffer(bytes));
             }
 
             public override object ReadJson(JsonReader reader, Type type, object existing, JsonSerializer serializer)

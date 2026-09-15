@@ -59,7 +59,8 @@ Les règles de rétrocompatibilité sont stockées dans
 `Assets/SerializationTypeAliases.json`. Le fichier versionné contient :
 
 - des migrations de préfixes de namespaces ;
-- des alias de types individuels lorsque cela sera nécessaire.
+- des alias de types individuels lorsque cela sera nécessaire ;
+- des alias de propriétés, limités au type propriétaire (`propertyAliases`).
 
 Les deux migrations existantes sont conservées :
 
@@ -80,6 +81,38 @@ Le générateur rejette :
 - un préfixe qui ne correspond à aucun type courant ;
 - deux alias identiques pointant vers des types différents ;
 - un alias en conflit avec un nom actuel.
+
+## Alias de propriétés (2026-09-15)
+
+Les noms ci-dessous sont les noms **JSON**, qui peuvent différer des noms C# :
+
+```json
+{
+  "ownerType": "HBP.Core.Data.CCEPColumn",
+  "serializedProperty": "DynamicConfiguration",
+  "currentProperty": "CCEPConfiguration",
+  "migration": "CCEPConfiguration"
+}
+```
+
+Une règle sans `migration` accepte simplement l'ancien nom pour un membre
+courant lisible et modifiable. Les règles sont enregistrées dans les mêmes
+fragments générés que les types ; le Player ne charge pas le fichier d'alias.
+Le générateur vérifie le propriétaire, les noms, la cible et la conversion.
+
+`SerializationAliasContractResolver` applique ces règles aux lectures de projets
+(`ClassLoaderSaver`) et aux contrats de transfert (`PreparedDataJson`). Les alias
+ne sont jamais écrits. Un document contenant plusieurs noms pour le même membre
+est refusé, indépendamment de leur ordre ; les contrats partagés isolent cette
+vérification par objet désérialisé. Le type propriétaire est exact : l'alias CCEP
+ne renomme pas les configurations dynamiques des colonnes iEEG.
+
+Les transformations de valeurs sont explicites dans `SerializationPropertyMigrations`.
+La conversion CCEP lit une `DynamicConfiguration` (avec ou sans `$type`), crée une
+`CCEPConfiguration` puis utilise `Copy` pour conserver son ID et ses paramètres.
+Une ancienne valeur nulle conserve la configuration par défaut. Aucun membre de
+compatibilité n'est nécessaire dans `CCEPColumn`, et aucun alias global du type
+`DynamicConfiguration` n'est introduit.
 
 ## Validation Editor
 

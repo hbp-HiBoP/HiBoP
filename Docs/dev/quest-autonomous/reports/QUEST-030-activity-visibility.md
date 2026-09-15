@@ -1,7 +1,7 @@
 # QUEST-030-OBS-01 — Activité projetée sur Quest alors que désactivée sur Desktop
 
 Date du signalement : 2026-09-14.
-Statut : **OUVERT — analyse reprise le 2026-09-15, plan proposé, correction non engagée**.
+Statut : **CLOS — fonctionnalités acceptées par le propriétaire le 2026-09-15 ; lenteur de préparation Quest consignée séparément ci-dessous**.
 
 ## Observation et résultat attendu
 
@@ -49,7 +49,8 @@ configurations existantes, enrichies pour les paramètres que l'on veut persista
 Il n'est pas demandé de conserver exhaustivement l'état temporaire de la scène,
 notamment le site sélectionné. Les préférences restent accessibles via
 `PersistentDataManager.UserPreferences` et sont envoyées uniquement à l'appairage.
-Leur synchronisation est différée. Le plan n'est pas implémenté dans cette passe.
+Leur synchronisation est différée. Le plan révisé a ensuite été approuvé et
+implémenté ; voir la section 9 de l’analyse pour les changements réalisés.
 
 La parité comportementale se vérifie avec les mêmes configurations et les mêmes
 préférences. Une préférence modifiée sur Desktop après appairage peut différer
@@ -65,3 +66,15 @@ Desktop après appairage doit laisser les préférences Quest inchangées, selon
 matrice du plan.
 
 Voir le [rapport QUEST-030](QUEST-030.md) et le [registre](../TASK-STATUS.md#quest-030).
+
+
+## Clôture du 2026-09-15
+
+Le propriétaire confirme que les fonctionnalités développées dans cette discussion
+sont correctes et demande la clôture. Cette acceptation couvre le résultat
+fonctionnel du chantier ; elle ne constitue pas un relevé détaillé supplémentaire
+de chaque cas de la matrice de recette.
+
+Il signale néanmoins une préparation trop longue sur Quest après réception des
+données. Ce point de performance reste à diagnostiquer et optimiser, hors de la
+clôture fonctionnelle. Voir le [bilan et le point restant](QUEST-030-state-transfer-implementation.md#clôture-fonctionnelle-et-point-de-performance-restant).

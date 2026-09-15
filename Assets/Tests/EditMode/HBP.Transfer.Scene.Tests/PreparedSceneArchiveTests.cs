@@ -35,6 +35,34 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public void BulkSurfaceComponentsKeepScalarLittleEndianFormat()
+        {
+            // Golden scalar encoding checks Unity struct layout and component order on the wire.
+            object[] arrays =
+            {
+                new[] { new UnityEngine.Vector3(1.25f, -2.5f, 3.75f) },
+                new[] { new UnityEngine.Vector2(-4.5f, 5.25f) },
+                new[] { new UnityEngine.Color(.1f, .2f, .3f, .4f) },
+                new[] { 0, 1234567, -1 }, Array.Empty<UnityEngine.Vector3>()
+            };
+            using var expected = new MemoryStream();
+            using (var writer = new BinaryWriter(expected, System.Text.Encoding.UTF8, true))
+            {
+                foreach (float value in new[] { 1.25f, -2.5f, 3.75f, -4.5f, 5.25f, .1f, .2f, .3f, .4f }) writer.Write(value);
+                foreach (int value in new[] { 0, 1234567, -1 }) writer.Write(value);
+            }
+
+            using var actual = new MemoryStream();
+            using (var writer = new BinaryWriter(actual, System.Text.Encoding.UTF8, true))
+            {
+                var method = typeof(SceneArchive).GetMethod("WriteComponents", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                foreach (object values in arrays) method.MakeGenericMethod(values.GetType().GetElementType()).Invoke(null, new[] { writer, values });
+            }
+
+            Assert.That(actual.ToArray(), Is.EqualTo(expected.ToArray()));
+        }
+
+        [Test]
         public void AllModalitiesRoundTripKeepsPatientsProtocolIdentityTrialsAndTimelines()
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"));
@@ -62,6 +90,37 @@ namespace HBP.Tests.Transfer
             Assert.That(trials[0].ChannelSubTrialBySubBloc.Values.Single().Values, Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
             Assert.That(ieeg.Data.Timeline.OnUpdateCurrentIndex, Is.Not.Null);
             Assert.That(restored.Columns[5].Functional.Single().Values["patient_A1"], Is.EqualTo(new[] { 4f, 5f, 6f }));
+        }
+
+        [Test]
+        public void TransferReaderUsesTheSameLegacyCCEPPropertyMigration()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"));
+            var payload = Fixture(source);
+            ((CCEPColumn)payload.Visualization.Columns[2]).CCEPConfiguration = new CCEPConfiguration(23, -7, 2, 19, false, null, -1, "legacy-ccep");
+            string file = Path.Combine(directory, "legacy.hbscene");
+            source.Write(payload, file);
+            using (var zip = ZipFile.Open(file, ZipArchiveMode.Update))
+            {
+                var entry = zip.GetEntry("visualization.json");
+                Newtonsoft.Json.Linq.JObject metadata;
+                using (var reader = new StreamReader(entry.Open())) metadata = Newtonsoft.Json.Linq.JObject.Parse(reader.ReadToEnd());
+                var property = metadata.Descendants().OfType<Newtonsoft.Json.Linq.JProperty>().Single(item => item.Name == "CCEPConfiguration");
+                var configuration = (Newtonsoft.Json.Linq.JObject)property.Value;
+                configuration.AddFirst(new Newtonsoft.Json.Linq.JProperty("$type", "HBP.Core.Data.DynamicConfiguration"));
+                property.Replace(new Newtonsoft.Json.Linq.JProperty("DynamicConfiguration", configuration));
+                entry.Delete();
+                using var writer = new StreamWriter(zip.CreateEntry("visualization.json").Open());
+                writer.Write(metadata.ToString());
+            }
+
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true, source.Globals);
+            var restored = target.Read(file);
+            var ccep = (CCEPColumn)restored.Visualization.Columns[2];
+            Assert.That(ccep.CCEPConfiguration.ID, Is.EqualTo("legacy-ccep"));
+            Assert.That(ccep.CCEPConfiguration.SpanMin, Is.EqualTo(-7));
+            Assert.That(ccep.CCEPConfiguration.MaximumInfluence, Is.EqualTo(23));
+            Assert.That(ccep.Data.Timeline, Is.SameAs(((IEEGColumn)restored.Visualization.Columns[1]).Data.Timeline));
         }
 
         [TestCase(false)]
@@ -244,6 +303,80 @@ namespace HBP.Tests.Transfer
             Assert.Throws<InvalidDataException>(() => target.Read(file));
         }
 
+        [Test]
+        public void CapturedArchiveOwnsArraysAndMetadataAfterSourceMutation()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            var payload = Fixture(source);
+            byte[] metadata = source.CaptureMetadata(payload);
+            Assert.That(Directory.GetFiles(source.DirectoryPath), Is.Empty, "Numeric snapshots must not create per-array temporary files.");
+            var ieeg = (IEEGColumn)payload.Visualization.Columns[1];
+            ieeg.Data.ProcessedValuesByChannel["patient_A1"][0] = 999;
+            ieeg.Data.DataByChannelID.Clear();
+            ieeg.Data.Timeline.CurrentIndex = 3;
+            payload.Columns[5].Functional[0].Values["patient_A1"][0] = 999;
+            payload.Visualization.Configuration.ErasedTriangles[0] = 0;
+            payload.Visualization.Name = "changed";
+            string file = Path.Combine(directory, "captured.hbscene");
+            source.WriteCaptured(metadata, file);
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true, source.Globals);
+            var restored = target.Read(file);
+            var restoredIEEG = (IEEGColumn)restored.Visualization.Columns[1];
+            Assert.That(restored.Visualization.Name, Is.EqualTo("fixture"));
+            Assert.That(restoredIEEG.Data.ProcessedValuesByChannel["patient_A1"], Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
+            Assert.That(restoredIEEG.Data.DataByChannelID["patient_A1"].Trials.Length, Is.EqualTo(2));
+            Assert.That(restoredIEEG.Data.Timeline.CurrentIndex, Is.Zero);
+            Assert.That(restored.Columns[5].Functional[0].Values["patient_A1"], Is.EqualTo(new[] { 4f, 5f, 6f }));
+            Assert.That(restored.Visualization.Configuration.ErasedTriangles, Is.EqualTo(new[] { 1 }));
+        }
+
+        [Test]
+        public void RepeatedGlobalValidationStillRejectsDifferentObjectWithSameIdentity()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            var payload = Fixture(source);
+            var ccep = (CCEPColumn)payload.Visualization.Columns[2];
+            ccep.Bloc = (Bloc)ccep.Bloc.Clone();
+            ccep.Bloc.Name = "changed definition";
+            Assert.Throws<InvalidOperationException>(() => source.CaptureMetadata(payload));
+        }
+
+        [Test]
+        public void GlobalValidationIsRenewedForEveryCapture()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            var payload = Fixture(source);
+            source.CaptureMetadata(payload);
+            ((IEEGColumn)payload.Visualization.Columns[1]).Bloc.Name = "changed after first capture";
+            Assert.Throws<InvalidOperationException>(() => source.CaptureMetadata(payload));
+        }
+
+        [Test]
+        public void DeferredResourceProvenanceIsCheckedWhenEncoding()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            var payload = Fixture(source);
+            string path = Path.Combine(directory, "source.nii");
+            File.WriteAllBytes(path, new byte[] { 1, 2, 3 });
+            source.AddFile(path, StandardData.HashFile(path));
+            byte[] metadata = source.CaptureMetadata(payload);
+            File.WriteAllBytes(path, new byte[] { 4, 5, 6 });
+            Assert.Throws<IOException>(() => source.WriteCaptured(metadata, Path.Combine(directory, "changed.hbscene")));
+        }
+
+        [Test]
+        public void CancelledEncodingDoesNotCreateAnArchive()
+        {
+            using var cancellation = new System.Threading.CancellationTokenSource();
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true, cancellationToken: cancellation.Token);
+            var payload = Fixture(source);
+            byte[] metadata = source.CaptureMetadata(payload);
+            cancellation.Cancel();
+            string output = Path.Combine(directory, "cancelled.hbscene");
+            Assert.Throws<OperationCanceledException>(() => source.WriteCaptured(metadata, output));
+            Assert.That(File.Exists(output), Is.False);
+        }
+
         private static ScenePayload Fixture(SceneArchive archive)
         {
             var ev = new Event("event", new[] { 1 }, MainSecondaryEnum.Main, "event");
@@ -252,7 +385,7 @@ namespace HBP.Tests.Transfer
             var protocol = new Protocol("protocol", new[] { bloc }, "protocol");
             var dataset = new Dataset("dataset", protocol, Array.Empty<DataInfo>(), "dataset");
             var ieeg = new IEEGColumn("iEEG", new BaseConfiguration(), dataset, "signal", bloc, new DynamicConfiguration(), "ieeg");
-            var ccep = new CCEPColumn("CCEP", new BaseConfiguration(), dataset, "signal", bloc, new DynamicConfiguration(), "ccep");
+            var ccep = new CCEPColumn("CCEP", new BaseConfiguration(), dataset, "signal", bloc, new CCEPConfiguration(), "ccep");
             var stat = new StaticColumn { ID = "static" };
             stat.Data.ValueByChannelIDByLabel.Add("label", new Dictionary<string, float> { ["patient_A1"] = 7 });
             var statistics = new Dictionary<SubBloc, List<SubBlocEventsStatistics>> { [sub] = new() { new SubBlocEventsStatistics { StatisticsByEvent = new() { [ev] = new EventStatistics() } } } };
@@ -283,9 +416,9 @@ namespace HBP.Tests.Transfer
                 Protocols = new List<Protocol> { protocol }, Aliases = new AliasCollection(), Grid = 32
             });
             payload.GlobalContextId = archive.Globals.Id;
-            payload.State.ErasedTriangles = new[] { 1 };
-            payload.State.ErasedSimplifiedTriangles = new[] { 1 };
-            foreach (var column in columns) payload.Columns.Add(new ColumnState { Id = column.ID, TimeStep = 1, Correlations = new(), CorrelationMeans = new() });
+            payload.Visualization.Configuration.ErasedTriangles = new[] { 1 };
+            payload.Visualization.Configuration.ErasedSimplifiedTriangles = new[] { 1 };
+            foreach (var column in columns) payload.Columns.Add(new ColumnState { Id = column.ID });
             payload.Columns[4].Functional.Add(new FunctionalResource { Name = "fmri", File = buffer });
             payload.Columns[5].Functional.Add(new FunctionalResource { Name = "meg", Frequency = 100, Values = new() { ["patient_A1"] = new[] { 4f, 5f, 6f } }, Units = new() { ["patient_A1"] = "fT" } });
             return payload;
