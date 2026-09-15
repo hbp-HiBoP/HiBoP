@@ -16,7 +16,7 @@ La forme courte « Implémente QUEST-001 » donne aussi l'ID exact du fichier à
 rechercher dans le dépôt. Les consignes de ce chantier restent dans ce dossier,
 sans bloc spécifique dans AGENTS.md global ni nettoyage différé en fin de roadmap.
 
-Le [catalogue de 29 tâches](tasks/README.md) fournit des unités de review plus
+Le [catalogue des tâches](tasks/README.md) fournit des unités de review plus
 petites. Les [8 jalons](milestones/README.md) gardent les démonstrations produit.
 Chaque fiche précise périmètre, décisions à poser, tests à faire par l'agent,
 recette de validation manuelle et explication attendue. Les rapports suivent

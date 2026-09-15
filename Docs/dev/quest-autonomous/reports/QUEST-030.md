@@ -1,5 +1,11 @@
 # QUEST-030 — Découverte, appairage mémorisé et reconnexion
 
+**Mise à jour distribution du 2026-09-15 — D34 :** réseau principal sans ADB,
+USB avancé optionnel avec ADB externe. Le build Windows décrit ici reste
+inchangé ; la transition et le tutoriel sont différés dans
+[QUEST-031](../tasks/QUEST-031.md). Les mentions D33 ci-dessous décrivent les
+exigences à la date des essais ; consulter la [note actualisée](QUEST-030-distribution-and-adb.md).
+
 ## Résultat et périmètre
 
 Décision D32 du 2026-09-14 : Windows/Quest maintenant, USB pour la recette physique,

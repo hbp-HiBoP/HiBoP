@@ -20,6 +20,23 @@ selon le contrat commun ; ne pas considérer les restes non suivis comme référ
 
 ## À implémenter
 
+### Prérequis de connexion (D34, 2026-09-15)
+
+Le réseau local reste utilisable sans ADB. Pour une recette **USB sur Mac**,
+prévoir les Platform-Tools contenant `adb`, installés séparément, et un Quest
+avec mode développeur et débogage USB autorisé pour ce Mac. Relever version,
+architecture, chemin et droits d'exécution du binaire ; Android Studio n'est
+pas nécessaire. Utiliser les [distributions officielles Android](https://developer.android.com/tools/releases/platform-tools).
+
+Le code actuel cherche `adb.exe` et `QuestAdbProcess` ne lance ADB que sous
+Windows : installer ADB ne suffit pas à activer l'USB dans le Player Mac.
+Si l'USB fait partie de la recette, adapter cette frontière et vérifier son
+exécution dans le Player ARM64 réel. Distinguer un essai avec redirection ADB
+manuelle du parcours intégré HiBoP. Le tutoriel et la distribution définitifs
+relèvent de [QUEST-031](QUEST-031.md) ; le build Windows actuel reste inchangé.
+
+### Préparation du Player
+
 - Ajouter ou adapter le profil DesktopMac et packaging ARM64 à partir du même code.
 - Vérifier chemins Data/plugins, version minimale effective et démarrage du transport embarqué sur le Mac cible.
 - Produire le Player et sa recette d'installation/lancement sans créer de variante métier Mac.
@@ -36,6 +53,8 @@ Demander tôt l'accès ou les informations de la machine si indisponibles ; ne p
 
 - Construire/inspecter le bundle ARM64, provenance native et contenu.
 - Relever OS réel, erreurs de lancement et dépendances du transport ; distinguer cross-build et exécution.
+- Relever le chemin et les permissions du stockage d'appairage ; préparer les
+  contrôles de mémorisation et de protection au repos de [QUEST-026](QUEST-026.md#mémoire-dappairage-et-protection-du-secret).
 
 ## Validation manuelle du propriétaire
 

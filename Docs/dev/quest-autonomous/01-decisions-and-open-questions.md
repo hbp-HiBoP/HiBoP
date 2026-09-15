@@ -102,6 +102,10 @@ pourront commencer. Ne pas confondre ce délai matériel avec une validation.
 
 ## D33 — Distribution sans ADB ni mode développeur (2026-09-14)
 
+**Évolution du 2026-09-15 :** D34 ci-dessous conserve cette exigence pour le
+parcours réseau principal et autorise une option USB avancée avec ADB.
+Les paragraphes suivants conservent la décision initiale.
+
 Le propriétaire exige pour le produit final : installer HiBoP Desktop,
 installer HiBoP Quest, puis appairer via les applications, sans utilisation
 d'ADB, activation du mode développeur ou autorisation du débogage USB.
@@ -117,6 +121,28 @@ réseau, ni une publication Store ne sont décidés.
 La [note ADB, distribution et plateformes](reports/QUEST-030-distribution-and-adb.md)
 détaille Windows, macOS/Linux, l'APK Quest et la dépendance non préparée
 explicitement dans la CI GitHub Actions.
+
+## D34 — Réseau principal et USB optionnel avec ADB externe (2026-09-15)
+
+Le propriétaire accepte le parcours réseau local comme parcours principal,
+sans ADB ni mode développeur pour l'utilisateur. L'USB devient une option
+avancée nécessitant ADB installé séparément sur le Desktop, le mode développeur
+du Quest et l'autorisation du débogage USB. Ce choix vaut pour Windows, macOS
+et Linux lorsqu'ils sont qualifiés ; il ne déclare pas leur support acquis.
+
+Le propriétaire demande explicitement de **ne pas modifier le build Windows
+actuel** : ADB y reste embarqué pour l'instant. La transition du packaging,
+la détection d'ADB externe et le tutoriel final d'installation/configuration
+relèvent de [QUEST-031](tasks/QUEST-031.md), créée mais non exécutée.
+Documenter dès maintenant le prérequis ADB pour les recettes USB Mac/Linux ;
+le Wi-Fi applicatif n'en dépend pas. Une installation d'ADB seule ne porte pas
+le lanceur Windows actuel sur ces plateformes.
+
+D34 remplace l'interdiction générale d'ADB de D33 par cette distinction entre
+parcours principal et option avancée. Elle n'impose pas AOA et ne supprime pas
+l'USB. L'installation de HiBoP Quest sans mode développeur pour le parcours
+principal reste à organiser ; aucune publication Store n'est autorisée par
+cette décision. La qualification Linux reste conditionnée à QUEST-027.
 
 ## Orientations ultérieures, non figées
 

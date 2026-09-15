@@ -1,7 +1,7 @@
 # Roadmap des jalons
 
 Les jalons décrivent des démonstrations produit. Pour implémenter une unité
-reviewable, utiliser les [29 tâches QUEST](tasks/README.md) et leur
+reviewable, utiliser les [tâches QUEST](tasks/README.md) et leur
 [contrat d'exécution](TASK-WORKFLOW.md). Chaque jalon possède sa
 [fiche de démonstration](milestones/README.md). Le registre de statut est
 [TASK-STATUS.md](TASK-STATUS.md) ; cette roadmap n'est pas une liste de tâches à
@@ -158,6 +158,11 @@ Aucun jalon ne demande un portage global préalable.
 - Charge : à estimer avec la machine cible.
 
 ## Après qualification du socle
+
+La préparation de la distribution est suivie dans [QUEST-031](tasks/QUEST-031.md)
+(D34) : réseau principal sans ADB, USB optionnel avec ADB installé séparément,
+tutoriel Platform-Tools/mode développeur et transition future du packaging.
+Le build Windows actuel reste inchangé tant que cette tâche n'est pas exécutée.
 
 Les responsabilités d'extension, dépendances, décisions et preuves futures sont
 détaillées dans le [catalogue des extensions](10-extension-points-and-future-features.md).

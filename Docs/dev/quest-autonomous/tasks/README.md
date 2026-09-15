@@ -43,13 +43,17 @@ Une tâche peut encore être divisée si un obstacle concret l'exige, selon le c
 | QUEST-028 | [Préparer le Player Linux retenu](QUEST-028.md) | J7 | QUEST-027 |
 | QUEST-029 | [Qualifier Linux vers Quest](QUEST-029.md) | J7 | QUEST-028 |
 | QUEST-030 | [Simplifier la découverte et l'appairage sécurisé](QUEST-030.md) | Après J0–J7 | QUEST-011, QUEST-026, QUEST-027 ; QUEST-029 si Linux retenu |
+| QUEST-031 | [Finaliser la distribution et le parcours USB optionnel avec ADB](QUEST-031.md) | Distribution finale | QUEST-030 ; preuves Mac/Linux selon plateformes retenues |
 
 QUEST-015/016 peuvent être préparées dès les profils prêts pour lever tôt le
 risque natif ; cela ne change pas l'ordre des démonstrations au propriétaire.
 QUEST-027 est une décision, pas une commande d'installer Linux.
 QUEST-028/029 sont conditionnelles à une décision de tester.
-QUEST-030 intervient après la clôture des jalons ; un report explicite de Linux
-dans QUEST-027 permet de poursuivre sans exécuter QUEST-028/029.
+QUEST-030 était placée après les jalons ; D32 a autorisé son exécution anticipée
+sur Windows/Quest. Un report explicite de Linux dans QUEST-027 permet de
+poursuivre sans exécuter QUEST-028/029.
+QUEST-031 prépare le parcours final décidé par D34 ; sa création ne lance
+aucune implémentation et ne modifie pas le build Windows actuel.
 
 Les anciennes entrées B01–B19 de la roadmap sont remplacées par ces IDs :
 elles regroupaient plusieurs responsabilités et ne doivent plus servir de tâches.

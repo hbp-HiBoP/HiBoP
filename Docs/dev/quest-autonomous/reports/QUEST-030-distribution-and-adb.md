@@ -1,9 +1,23 @@
 # QUEST-030 — Distribution finale, ADB et plateformes
 
-Date : 2026-09-14. État : exigences consignées ; adaptations non implémentées.
-Référence : D33 dans les [décisions](../01-decisions-and-open-questions.md).
+Date initiale : 2026-09-14. Mise à jour : 2026-09-15.
+État : décision D34 consignée ; adaptations non implémentées.
+Références : D33/D34 dans les [décisions](../01-decisions-and-open-questions.md).
 
-## Exigence du propriétaire
+## Décision actuelle du propriétaire — D34
+
+Le réseau local est le parcours principal, sans ADB ni mode développeur.
+L'USB est une option avancée nécessitant ADB installé séparément sur le Desktop,
+le mode développeur du Quest et l'autorisation du débogage USB. Cette exigence
+USB s'applique aussi à Mac/Linux ; le Wi-Fi applicatif ne dépend pas d'ADB.
+
+Le propriétaire demande de **conserver le build Windows actuel et son ADB
+embarqué pour l'instant**. La transition vers ADB externe, les adaptations de
+packaging/CI et le tutoriel d'installation des Platform-Tools et de configuration
+du casque sont suivis dans [QUEST-031](../tasks/QUEST-031.md), non exécutée.
+Le choix ne prouve pas le support Mac/Linux et n'autorise aucune publication.
+
+## Exigence initiale — D33, amendée par D34
 
 Le parcours final doit se limiter à installer HiBoP Desktop, installer HiBoP
 Quest, puis utiliser le parcours d'appairage dans les deux applications.
@@ -20,8 +34,8 @@ est documenté sans modification de code ni de CI à ce stade.
 | Cible | État actuel |
 | --- | --- |
 | Windows | Le builder embarque `adb.exe`, `AdbWinApi.dll`, `AdbWinUsbApi.dll` et `NOTICE.txt` dans `HiBoP_Data/StreamingAssets/QuestUsb`. Cette copie concerne aussi les builds de release. La découverte USB utilise ADB et exige le débogage autorisé sur le Quest. |
-| macOS | Aucun ADB embarqué ; transport USB non implémenté. Le transport réseau est prévu, sans qualification physique sur Mac. |
-| Linux | Aucun ADB embarqué ; transport USB non implémenté. Le transport réseau est prévu, sans qualification physique sur Linux. |
+| macOS | Aucun ADB embarqué ; transport USB non implémenté. L'option USB exige un ADB externe et le portage du lanceur Windows ; l'installation des outils seule ne suffit pas. Le transport réseau est prévu, sans qualification physique sur Mac. |
+| Linux | Aucun ADB embarqué ; transport USB non implémenté. L'option USB exige un ADB externe, les permissions USB adaptées et le portage du lanceur Windows. Le transport réseau est prévu, sans qualification physique sur Linux. |
 | Quest | L'APK n'embarque pas ADB. Son installation locale actuelle utilise ADB depuis le PC. |
 
 Le transport Wi-Fi de HiBoP utilise directement le réseau local et ne repose
@@ -48,22 +62,21 @@ Desktop Windows ; cela ne prépare pas la dépendance de ce dernier.
 
 ## Points à résoudre avant distribution finale
 
-- Choisir le rôle de l'USB : une connexion sans ADB ni mode développeur exige
-  un autre transport dont la faisabilité sur Quest reste à établir. Aucune
-  promesse de compatibilité USB grand public n'est faite.
+- Mettre en place l'option USB avec ADB externe et son tutoriel selon D34 dans
+  QUEST-031. AOA n'est pas retenu par cette décision ; aucune compatibilité
+  USB sans mode développeur n'est promise.
 - Qualifier le parcours réseau sans ADB : découverte, appairage mémorisé,
   transfert et reconnexion, notamment sous macOS et sur les réseaux cibles.
 - Choisir une distribution Quest permettant l'installation sans mode
   développeur, par exemple le Meta Horizon Store. Fournir simplement l'APK
   installé actuellement par ADB ne satisfait pas le parcours demandé.
-- Adapter ensuite le packaging et la CI à la décision retenue : ne pas conserver
-  implicitement une dépendance aux outils Android dans tous les builds Windows.
-  Si ADB reste un outil de développement, définir explicitement sa portée.
+- Adapter ultérieurement le packaging et la CI dans QUEST-031 pour retirer
+  l'ADB embarqué du Desktop Windows ; ne pas modifier le build actuel pendant
+  cette consignation. Garder distinct le SDK de compilation de l'APK Quest.
 
-Le choix du réseau comme unique transport final, l'abandon de l'USB et une
-publication sur le Store ne sont pas encore des décisions du propriétaire.
-Une réussite des tests USB actuels validera le parcours testé, pas ces points
-de distribution finale.
+Le réseau principal et l'USB optionnel sont décidés ; le canal de distribution
+Quest reste à choisir. Les essais USB actuels ne qualifient pas la procédure
+finale d'installation et de distribution suivie dans QUEST-031.
 
 ## Sources examinées
 

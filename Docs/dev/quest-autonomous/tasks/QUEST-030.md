@@ -12,9 +12,10 @@ ci-dessous ; la qualification Mac/Linux n'est pas déduite de celle de Windows.
 
 Statut et preuves : [registre](../TASK-STATUS.md#quest-030).
 
-**Exigence finale D33 (2026-09-14)** : installation et appairage sans ADB,
-mode développeur ni autorisation du débogage USB. Les tests USB actuels
-continuent, sans valider cette dépendance pour la distribution finale.
+**Distribution D33, amendée par D34 (2026-09-15)** : parcours réseau principal
+sans ADB ni mode développeur ; USB avancé optionnel avec ADB installé séparément
+et débogage autorisé. Le build Windows conserve son ADB embarqué pour l'instant.
+La transition et le tutoriel final relèvent de [QUEST-031](QUEST-031.md), non exécutée.
 Voir la [note distribution, plateformes et CI](../reports/QUEST-030-distribution-and-adb.md).
 
 ## Instructions de reprise

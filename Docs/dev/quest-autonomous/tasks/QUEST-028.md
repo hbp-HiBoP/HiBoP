@@ -20,6 +20,25 @@ selon le contrat commun ; ne pas considérer les restes non suivis comme référ
 
 ## À implémenter
 
+### Prérequis de connexion (D34, 2026-09-15)
+
+Le réseau local reste utilisable sans ADB. Pour une recette **USB sur Linux**,
+prévoir ADB installé séparément (Platform-Tools officiels ou paquet adapté à
+la distribution retenue), et un Quest avec mode développeur et débogage USB
+autorisé pour ce poste. Relever version, architecture, chemin et permissions ;
+vérifier les règles `udev` et groupes nécessaires sur cette distribution afin
+d'exécuter HiBoP sous un compte normal. Android Studio n'est pas nécessaire.
+Voir les [prérequis Android par système](https://developer.android.com/studio/run/device).
+
+Le code actuel cherche `adb.exe` et `QuestAdbProcess` ne lance ADB que sous
+Windows : installer ADB ne suffit pas à activer l'USB dans le Player Linux.
+Si l'USB fait partie de la recette, adapter cette frontière et vérifier le
+Player réel. Distinguer une redirection ADB manuelle du parcours intégré HiBoP.
+Le tutoriel et la distribution définitifs relèvent de [QUEST-031](QUEST-031.md) ;
+le build Windows actuel reste inchangé. QUEST-027 reste un prérequis à Linux.
+
+### Préparation du Player
+
 - Après décision de tester, adapter profil/packaging et chemins pour la distribution retenue.
 - Construire/inspecter puis lancer le Player et le transport sur cette machine.
 - Fournir la recette d'ouverture de fixture et les dépendances réellement nécessaires.
@@ -36,6 +55,8 @@ Exiger la décision tester de QUEST-027 ; une clôture différer ne satisfait pa
 
 - Contrôler architecture, dépendances natives et provenance ; ouvrir la fixture.
 - Consigner erreurs de transport/permissions et corrections ciblées.
+- Relever le chemin et les permissions du stockage d'appairage ; préparer les
+  contrôles de mémorisation et de protection au repos de [QUEST-029](QUEST-029.md#mémoire-dappairage-et-protection-du-secret).
 
 ## Validation manuelle du propriétaire
 
