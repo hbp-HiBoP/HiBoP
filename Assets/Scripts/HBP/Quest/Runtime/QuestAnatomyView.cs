@@ -38,7 +38,8 @@ namespace HBP.Quest
 
         public async Task ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop)
         {
-            if (preparation != null) throw new InvalidOperationException("A visualization is already being prepared.");
+            if (preparation != null)
+                throw new InvalidOperationException("A visualization is already being prepared.");
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(stop, this.GetCancellationTokenOnDestroy());
             preparation = lifetime;
             var completed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -57,6 +58,7 @@ namespace HBP.Quest
                 }
 
                 lifetime.Token.ThrowIfCancellationRequested();
+
                 RestoredScene previous = current;
                 var previousColumns = columns.ToArray();
                 current = candidate;
@@ -65,15 +67,20 @@ namespace HBP.Quest
                 columns.AddRange(presentations);
                 presentations.Clear();
                 SurfaceHidden = false;
-                foreach (var old in previousColumns) old.Hide();
-                if (previous != null) TrackRelease(previous, previousColumns);
-                foreach (var column in columns) column.Show();
+                foreach (var old in previousColumns)
+                    old.Hide();
+                if (previous != null)
+                    TrackRelease(previous, previousColumns);
+                foreach (var column in columns)
+                    column.Show();
+                Debug.Log($"QUEST_TRANSFER_PUBLISHED transfer={payload.TransferId}");
             }
             finally
             {
                 try
                 {
-                    if (candidate != null) await candidate.CloseAsync();
+                    if (candidate != null)
+                        await candidate.CloseAsync();
                     foreach (var item in presentations)
                         if (item != null)
                             Destroy(item.gameObject);

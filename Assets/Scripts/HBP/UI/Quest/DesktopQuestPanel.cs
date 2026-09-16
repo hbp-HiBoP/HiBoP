@@ -164,6 +164,8 @@ namespace HBP.UI.Quest
             status.text = "Connecting to remembered Quest...";
             globals ??= PairingSnapshot.Capture();
             await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, (stream, stop) => globals.Delivery.SendAsync(stream, stop));
+            status.text = "Paired. Preparing the selected visualization for transfer...";
+            await DesktopSceneCapture.PrepareSelectedResourcesAsync(token);
             token.ThrowIfCancellationRequested();
             connected = true;
             nextHeartbeat = Time.unscaledTime + 5;
@@ -173,10 +175,12 @@ namespace HBP.UI.Quest
         public Task SendAsync(bool repeat) =>
             RunAsync(async token =>
             {
-                if (credential == null || !connected) throw new InvalidOperationException("Pair with the Quest first.");
+                if (credential == null || !connected)
+                    throw new InvalidOperationException("Pair with the Quest first.");
+
                 failedDelivery = false;
                 var elapsed = System.Diagnostics.Stopwatch.StartNew();
-                double captureMs = 0;
+
                 try
                 {
                     if (!repeat)
@@ -187,7 +191,8 @@ namespace HBP.UI.Quest
                         bool capturing = true;
                         var progress = new Progress<string>(message =>
                         {
-                            if (capturing && this && !token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = message;
+                            if (capturing && this && !token.IsCancellationRequested && operation != null && operation.Token == token && busy)
+                                status.text = message;
                         });
                         try
                         {
@@ -197,29 +202,36 @@ namespace HBP.UI.Quest
                         {
                             capturing = false;
                         }
-
-                        captureMs = elapsed.Elapsed.TotalMilliseconds;
                     }
 
-                    if (offer == null) throw new InvalidOperationException("No captured delivery to retry. Use Envoyer au Quest.");
+                    if (offer == null)
+                        throw new InvalidOperationException("No captured delivery to retry. Use Envoyer au Quest.");
                     token.ThrowIfCancellationRequested();
                     status.text = "Connecting to paired Quest...";
                     var delivery = offer;
                     var context = SynchronizationContext.Current;
                     DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop, count => context.Post(_ =>
                     {
-                        if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy) status.text = count < delivery.EncodedBytes ? $"Sending: {100L * count / delivery.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
+                        if (!token.IsCancellationRequested && operation != null && operation.Token == token && busy)
+                            status.text = delivery.EncodedBytes == 0 ? $"Sending: {count / 1048576.0:F1} MiB" : count < delivery.EncodedBytes ? $"Sending: {100L * count / delivery.EncodedBytes}%" : "Transfer complete. Waiting for Quest preparation...";
                     }, null)));
+
                     token.ThrowIfCancellationRequested();
                     status.text = receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Visualization ready on Quest. Columns are independent; the headset can work offline." : "This delivery was closed or replaced on Quest. Use Envoyer au Quest for a new snapshot.";
-                    if (offer.Summary != null && (receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished)) status.text = offer.Summary + "\nVisualization ready on Quest.";
-                    Debug.Log($"QUEST-011 delivery={receipt.Status}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}");
-                    if (Debug.isDebugBuild)
-                        Debug.Log("QUEST012_SEND " + JsonUtility.ToJson(new DeliveryMeasurement { utc = DateTime.UtcNow.ToString("O"), retry = repeat, transfer = offer.TransferId, hash = receipt.ContentHash, bytes = offer.EncodedBytes, captureAndEncodeMs = captureMs, connectSendAndReceiptMs = elapsed.Elapsed.TotalMilliseconds - captureMs, totalMs = elapsed.Elapsed.TotalMilliseconds, status = receipt.Status.ToString() }));
+                    if (offer.Summary != null && (receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished))
+                        status.text = offer.Summary + "\nVisualization ready on Quest.";
+                    Debug.Log($"QUEST_TRANSFER delivery={receipt.Status}; transfer={offer.TransferId}; hash={receipt.ContentHash}; bytes={offer.EncodedBytes}; retry={repeat}; route={(endpoint != null && endpoint.StartsWith("127.") ? "usb-forward" : "lan")}; totalMs={elapsed.Elapsed.TotalMilliseconds:F1}");
                 }
-                catch
+                catch (Exception exception)
                 {
-                    failedDelivery = offer != null;
+                    failedDelivery = offer?.CanRetry == true;
+                    if (offer != null && !failedDelivery)
+                    {
+                        var incomplete = offer;
+                        offer = null;
+                        await incomplete.DisposeAsync();
+                    }
+
                     connected = false;
                     throw;
                 }
@@ -365,15 +377,6 @@ namespace HBP.UI.Quest
             send.interactable = !busy && connected && credential != null && selectionError == null;
             retry.interactable = !busy && connected && credential != null && failedDelivery && offer != null;
             cancel.interactable = busy;
-        }
-
-        [Serializable]
-        private sealed class DeliveryMeasurement
-        {
-            public string utc, transfer, hash, status;
-            public bool retry;
-            public long bytes;
-            public double captureAndEncodeMs, connectSendAndReceiptMs, totalMs;
         }
 
         private void OnDisable() => operation?.Cancel();

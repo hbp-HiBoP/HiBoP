@@ -61,8 +61,7 @@ namespace HBP.Transfer.Scene
             foreach (var entry in payload.StandardFiles)
             {
                 token.ThrowIfCancellationRequested();
-                string path = StandardData.Resolve(ApplicationState.DataPath, entry.Key);
-                if (!File.Exists(path) || StandardData.HashFile(path) != entry.Value) throw new InvalidDataException("Installed scientific reference missing or incompatible: " + entry.Key);
+                StandardData.ValidateExpectedFile(entry.Key, entry.Value);
             }
 
             await UniTask.SwitchToMainThread();
@@ -70,8 +69,10 @@ namespace HBP.Transfer.Scene
             await Base3DScene.PrepareStandardResourcesAsync();
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
-            if (prefab == null) throw new InvalidOperationException("A scene content prefab is required.");
-            Base3DScene scene = Object.Instantiate(prefab, parent, false);
+            if (prefab == null)
+                throw new InvalidOperationException("A scene content prefab is required.");
+            Base3DScene scene;
+            scene = Object.Instantiate(prefab, parent, false);
             var result = new RestoredScene(scene, payload, archive);
             IDisposable preparation = scene.RetainForPreparation();
             try
@@ -79,32 +80,40 @@ namespace HBP.Transfer.Scene
                 scene.Initialize(payload.Visualization);
                 await scene.InitializePreparedAsync(async resourceToken =>
                 {
+                    await UniTask.SwitchToMainThread();
                     foreach (var resource in payload.MRIs)
                     {
                         resourceToken.ThrowIfCancellationRequested();
                         MRI3D mri;
-                        if (resource.Standard == "MNI") mri = Object3DManager.MNI.MRI;
+                        if (resource.Standard == "MNI")
+                            mri = Object3DManager.MNI.MRI;
                         else
                         {
-                            var volume = new Core.DLL.Volume();
-                            try
+                            mri = await NativePreparation.RunAsync(() =>
                             {
-                                if (!volume.LoadNIFTIFile(archive.ResolveNativeFile(resource.File))) throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
-                            }
-                            catch
-                            {
-                                volume.Dispose();
-                                throw;
-                            }
-
-                            mri = new MRI3D(resource.Name, volume, false);
+                                var volume = new Core.DLL.Volume();
+                                try
+                                {
+                                    using var verified = archive.AcquireNativeResource(resource.File);
+                                    if (!volume.LoadVerifiedNIFTIFile(verified))
+                                        throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
+                                    return new MRI3D(resource.Name, volume, false);
+                                }
+                                catch
+                                {
+                                    volume.Dispose();
+                                    throw;
+                                }
+                            }, item => item.Clean(), resourceToken);
                         }
 
-                        if (resource.PatientId == null) scene.MRIManager.MRIs.Add(mri);
+                        if (resource.PatientId == null)
+                            scene.MRIManager.MRIs.Add(mri);
                         else
                         {
                             Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                            if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris)) scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
+                            if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris))
+                                scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
                             mris.Add(mri);
                         }
                     }
@@ -112,17 +121,29 @@ namespace HBP.Transfer.Scene
                     foreach (var resource in payload.Meshes)
                     {
                         resourceToken.ThrowIfCancellationRequested();
-                        Mesh3D mesh = RestoreMesh(resource, archive, scene);
-                        if (resource.PatientId == null) scene.MeshManager.Meshes.Add(mesh);
+                        // Resolve live scene references on Unity before giving private work to the worker.
+                        var standard = resource.Standard == null ? null : resource.Standard == "grey" ? Object3DManager.MNI.GreyMatter : Object3DManager.MNI.WhiteMatter;
+                        MRI3D sourceMRI = null;
+                        if (resource.SourceMRI != null)
+                        {
+                            var candidates = resource.PatientId == null ? scene.MRIManager.MRIs : scene.MRIManager.PreloadedMRIs.Single(p => p.Key.ID == resource.PatientId).Value;
+                            sourceMRI = candidates.Single(mri => mri.Name == resource.SourceMRI);
+                        }
+
+                        Mesh3D mesh = await NativePreparation.RunAsync(() => RestoreMesh(resource, archive, standard, sourceMRI), item => item.Clean(), resourceToken);
+                        if (resource.PatientId == null)
+                            scene.MeshManager.Meshes.Add(mesh);
                         else
                         {
                             Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                            if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes)) scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
+                            if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes))
+                                scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
                             meshes.Add(mesh);
                         }
                     }
 
-                    for (int i = 0; i < payload.Columns.Count; i++) await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
+                    for (int i = 0; i < payload.Columns.Count; i++)
+                        await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
                 }, null, token);
                 await scene.CompleteInitializationAsync(null, null, token);
                 await scene.PrepareRenderingAsync(token);
@@ -141,13 +162,14 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        private static Mesh3D RestoreMesh(MeshResource resource, SceneArchive archive, Base3DScene scene)
+        private static Mesh3D RestoreMesh(MeshResource resource, SceneArchive archive, LeftRightMesh3D standard, MRI3D sourceMRI)
         {
             var owned = new List<Core.DLL.Surface>();
 
             Core.DLL.Surface Read(string name)
             {
-                if (name == null) return null;
+                if (name == null)
+                    return null;
                 var surface = archive.ReadSurface(name);
                 owned.Add(surface);
                 return surface;
@@ -163,14 +185,6 @@ namespace HBP.Transfer.Scene
 
             try
             {
-                var standard = resource.Standard == null ? null : resource.Standard == "grey" ? Object3DManager.MNI.GreyMatter : Object3DManager.MNI.WhiteMatter;
-                MRI3D sourceMRI = null;
-                if (resource.SourceMRI != null)
-                {
-                    var candidates = resource.PatientId == null ? scene.MRIManager.MRIs : scene.MRIManager.PreloadedMRIs.Single(p => p.Key.ID == resource.PatientId).Value;
-                    sourceMRI = candidates.Single(mri => mri.Name == resource.SourceMRI);
-                }
-
                 var mesh = Mesh3D.FromPrepared(resource.Name, resource.Type, standard != null ? Clone(standard.Both, resource.StandardBothMask) : Read(resource.Both), Read(resource.SimplifiedBoth), standard != null ? Clone(standard.Left, resource.StandardLeftMask) : Read(resource.Left), standard != null ? Clone(standard.Right, resource.StandardRightMask) : Read(resource.Right), Read(resource.SimplifiedLeft), Read(resource.SimplifiedRight), Read(resource.InflatedBoth), Read(resource.InflatedSimplifiedBoth), Read(resource.InflatedLeft), Read(resource.InflatedRight), Read(resource.InflatedSimplifiedLeft), Read(resource.InflatedSimplifiedRight), sourceMRI, resource.GenerationReport, new Mesh3DInflationSettings(resource.InflationPreset, resource.InflationOptions), resource.InflatedCoordinates);
                 mesh.SelectRepresentation(resource.Representation);
                 owned.Clear();
@@ -178,7 +192,8 @@ namespace HBP.Transfer.Scene
             }
             finally
             {
-                foreach (var surface in owned) surface.Dispose();
+                foreach (var surface in owned)
+                    surface.Dispose();
             }
         }
 

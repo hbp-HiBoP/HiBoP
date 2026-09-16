@@ -23,7 +23,7 @@ namespace HBP.Data.Module3D
     /// This class manages everything concerning the scene.
     /// It manages directly the cuts, the coloring of the meshes and the different parameters.
     /// It also uses other classes to manage meshes, MRIs, implantations, triangle erasing, atlases, fMRIs and displayed gameObjects.
-    /// <seealso cref="MeshManager"/> <seealso cref="MRIManager"/> <seealso cref="ImplantationManager"/> <seealso cref="TriangleEraser"/> <seealso cref="AtlasManager"/> <seealso cref="FMRIManager"/> <seealso cref="DisplayedObjects"/>
+    /// <seealso cref = "MeshManager"/> <seealso cref = "MRIManager"/> <seealso cref = "ImplantationManager"/> <seealso cref = "TriangleEraser"/> <seealso cref = "AtlasManager"/> <seealso cref = "FMRIManager"/> <seealso cref = "DisplayedObjects"/>
     /// </remarks>
     public partial class Base3DScene : MonoBehaviour, IConfigurable
     {
@@ -2007,10 +2007,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Manage the clicks on the scene
         /// </summary>
-        /// <param name="ray">Ray of the raycast</param>
+        /// <param name = "ray">Ray of the raycast</param>
         public void ClickOnScene(Ray ray)
         {
-            if (SelectedColumn) ClickOnScene(ray, SelectedColumn);
+            if (SelectedColumn)
+                ClickOnScene(ray, SelectedColumn);
         }
 
         public void ClickOnScene(Ray ray, Column3D column)
@@ -2500,22 +2501,108 @@ namespace HBP.Data.Module3D
         /// <returns>Coroutine return</returns>
         private async UniTask LoadMissingAnatomyAsync(bool includeAllPatients = false)
         {
-            await UniTask.SwitchToThreadPool();
+            await UniTask.SwitchToMainThread();
+            // Snapshot metadata and collection membership before leaving Unity. Pending
+            // native objects remain private until every load has completed successfully.
+            var meshRequests = new List<(Patient patient, BaseMesh data)>();
+            var mriRequests = new List<(Patient patient, MRI data)>();
             if (includeAllPatients && Type != SceneType.SinglePatient)
             {
                 foreach (var patient in Visualization.Patients)
                 {
+                    var meshNames = new HashSet<string>(m_MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes) ? meshes.Select(item => item.Name) : Enumerable.Empty<string>());
+                    var mriNames = new HashSet<string>(m_MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris) ? mris.Select(item => item.Name) : Enumerable.Empty<string>());
                     foreach (var mesh in patient.Meshes.Where(mesh => mesh.IsUsable))
-                        if (!m_MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes) || !meshes.Any(item => item.Name == mesh.Name))
-                            m_MeshManager.AddPreloaded(mesh, patient);
+                        if (meshNames.Add(mesh.Name))
+                            meshRequests.Add((patient, (BaseMesh)mesh.Clone()));
                     foreach (var mri in patient.MRIs.Where(mri => mri.IsUsable))
-                        if (!m_MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris) || !mris.Any(item => item.Name == mri.Name))
-                            m_MRIManager.AddPreloaded(mri, patient);
+                        if (mriNames.Add(mri.Name))
+                            mriRequests.Add((patient, (MRI)mri.Clone()));
                 }
             }
 
-            m_MeshManager.LoadMissing();
-            m_MRIManager.LoadMissing();
+            var existingMeshes = m_MeshManager.Meshes.Distinct().ToArray();
+            var existingMRIs = m_MRIManager.MRIs.Distinct().ToArray();
+            var preparedMeshes = new List<(Patient patient, Mesh3D mesh)>();
+            var preparedMRIs = new List<(Patient patient, MRI3D mri)>();
+            bool published = false;
+            try
+            {
+                // One sequential worker: the native GIFTI parser is not reentrant.
+                // m_AnatomyWork retains the scene until this call actually returns.
+                await System.Threading.Tasks.Task.Run(() =>
+                {
+                    foreach (var request in meshRequests)
+                    {
+                        Mesh3D mesh = request.data switch
+                        {
+                            LeftRightMesh pair => new LeftRightMesh3D(pair, MeshType.Patient, false),
+                            SingleMesh single => new SingleMesh3D(single, MeshType.Patient, false),
+                            _ => throw new NotSupportedException("Unsupported patient mesh: " + request.data.GetType().Name)
+                        };
+                        preparedMeshes.Add((request.patient, mesh));
+                        mesh.Load();
+                        if (!mesh.IsLoaded)
+                            throw new IOException($"Unable to prepare mesh '{mesh.Name}'.");
+                    }
+
+                    foreach (var request in mriRequests)
+                    {
+                        var mri = new MRI3D(request.data, false);
+                        preparedMRIs.Add((request.patient, mri));
+                        mri.Load();
+                        if (!mri.IsLoaded)
+                            throw new IOException($"Unable to prepare MRI '{mri.Name}'.");
+                    }
+
+                    foreach (var mesh in existingMeshes)
+                    {
+                        if (!mesh.IsLoaded)
+                            mesh.Load();
+                        if (!mesh.IsLoaded)
+                            throw new IOException($"Unable to prepare mesh '{mesh.Name}'.");
+                    }
+
+                    foreach (var mri in existingMRIs)
+                    {
+                        if (!mri.IsLoaded)
+                            mri.Load();
+                        if (!mri.IsLoaded)
+                            throw new IOException($"Unable to prepare MRI '{mri.Name}'.");
+                    }
+                });
+                await UniTask.SwitchToMainThread();
+                if (IsClosing)
+                    return;
+                {
+                    foreach (var prepared in preparedMeshes)
+                    {
+                        if (!m_MeshManager.PreloadedMeshes.TryGetValue(prepared.patient, out var meshes))
+                            m_MeshManager.PreloadedMeshes.Add(prepared.patient, meshes = new List<Mesh3D>());
+                        meshes.Add(prepared.mesh);
+                    }
+
+                    foreach (var prepared in preparedMRIs)
+                    {
+                        if (!m_MRIManager.PreloadedMRIs.TryGetValue(prepared.patient, out var mris))
+                            m_MRIManager.PreloadedMRIs.Add(prepared.patient, mris = new List<MRI3D>());
+                        mris.Add(prepared.mri);
+                    }
+
+                    published = true;
+                }
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                if (!published)
+                {
+                    foreach (var prepared in preparedMeshes)
+                        prepared.mesh.Clean();
+                    foreach (var prepared in preparedMRIs)
+                        prepared.mri.Clean();
+                }
+            }
         }
 
         /// <summary>

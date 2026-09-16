@@ -14,7 +14,7 @@ namespace HBP.Transfer.Scene
     {
         public static void Validate(ScenePayload payload, SceneArchive archive)
         {
-            if (payload == null || payload.Version != ScenePayload.FormatVersion) Fail("Unknown visualization format.");
+            if (payload == null || payload.Version != archive.ContentVersion) Fail("Unknown visualization format.");
             if (archive.Globals == null || payload.GlobalContextId != archive.Globals.Id) Fail("Visualization global context does not match pairing.");
             if (string.IsNullOrWhiteSpace(payload.TransferId) || payload.TransferId.Length > 128 || string.IsNullOrWhiteSpace(payload.SessionId) || payload.SessionId.Length > 128) Fail("Invalid delivery identity.");
             var visualization = payload.Visualization;
@@ -33,7 +33,7 @@ namespace HBP.Transfer.Scene
 
             void FileReference(string name)
             {
-                if (name == null || !File.Exists(archive.Resolve(name))) Fail("Missing content resource.");
+                if (name == null || !archive.ContainsResource(name)) Fail("Missing content resource.");
             }
 
             void NativeReference(string name)

@@ -83,19 +83,29 @@ namespace HBP.Transfer.Scene
             if (FilterPresets == null) throw new InvalidDataException("Invalid global filter presets.");
         }
 
-        internal JsonConverter ReferenceConverter() => new GlobalReferenceConverter(this);
+        internal BaseData ResolveReference(string key, string hash, Type type)
+        {
+            if (key == null || !objects.TryGetValue(key, out var value) || !type.IsInstanceOfType(value) || hash != hashes[key])
+                throw new InvalidDataException("Unknown or incompatible global definition. Pair again before sending this visualization.");
+            return value;
+        }
+
+        internal JsonConverter ReferenceConverter(SceneGlobalReferences references = null) => new GlobalReferenceConverter(this, references);
 
         private sealed class GlobalReferenceConverter : JsonConverter
         {
             private readonly PairingContext context;
 
+            private readonly SceneGlobalReferences references;
+
             // This converter belongs to one serializer/capture, never to the paired session.
             // BaseData equality is ID-based; separate objects sharing an ID must each be checked.
             private readonly HashSet<BaseData> validated = new(ReferenceComparer.Instance);
 
-            public GlobalReferenceConverter(PairingContext context)
+            public GlobalReferenceConverter(PairingContext context, SceneGlobalReferences references)
             {
                 this.context = context;
+                this.references = references;
             }
 
             public override bool CanConvert(Type type) => IsGlobal(type);
@@ -109,9 +119,15 @@ namespace HBP.Transfer.Scene
                 }
 
                 string key = Key((BaseData)value);
-                if (!context.hashes.TryGetValue(key, out string hash) || (!validated.Contains((BaseData)value) && hash != Fingerprint((BaseData)value)))
+                if (!context.hashes.TryGetValue(key, out string hash) || (!validated.Contains((BaseData)value) && hash != MeasuredFingerprint((BaseData)value)))
                     throw new InvalidOperationException("A protocol or tag definition is absent or changed since pairing. Pair again before sending this visualization: " + key);
                 validated.Add((BaseData)value);
+                if (references != null)
+                {
+                    writer.WriteValue(references.Add(key, hash));
+                    return;
+                }
+
                 writer.WriteStartObject();
                 writer.WritePropertyName("global");
                 writer.WriteValue(key);
@@ -120,9 +136,22 @@ namespace HBP.Transfer.Scene
                 writer.WriteEndObject();
             }
 
+            private string MeasuredFingerprint(BaseData value)
+            {
+                return Fingerprint(value);
+            }
+
             public override object ReadJson(JsonReader reader, Type type, object existing, JsonSerializer serializer)
             {
-                if (reader.TokenType == JsonToken.Null) return null;
+                if (reader.TokenType == JsonToken.Null)
+                    return null;
+                if (references != null)
+                {
+                    if (reader.TokenType != JsonToken.Integer || reader.Value is not long index)
+                        throw new InvalidDataException("Expected a global reference index.");
+                    return references.Resolve(index, type);
+                }
+
                 var reference = JObject.Load(reader);
                 string key = (string)reference["global"];
                 if (reference.Count != 2 || key == null || !context.objects.TryGetValue(key, out var value) || !type.IsInstanceOfType(value) || (string)reference["hash"] != context.hashes[key])

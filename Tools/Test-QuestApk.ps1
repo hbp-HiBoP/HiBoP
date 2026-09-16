@@ -71,6 +71,7 @@ try {
         if ($nativeHash -ne $android.files[0].sha256) { throw "APK $name does not match the Android pin." }
         $nativePins[$name] = [ordered]@{ commit = $library.commit; sha256 = $nativeHash; matchesLock = $true; runtimeTested = $false }
     }
+    if ($archive.GetEntry('lib/arm64-v8a/libhbp_transfer.so')) { throw 'Obsolete standalone transfer codec in APK.' }
     $report = [ordered]@{
         apk = [IO.Path]::GetFullPath($Apk)
         sha256 = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
@@ -83,6 +84,7 @@ try {
         result = 'Passed'
         hbpCore = $nativePins['hbp_core']
         hbpMath = $nativePins['hbp_math']
+        transferCodec = [ordered]@{ library='hbp_core'; abi=1 }
         entries = $entries
     }
     $parent = Split-Path -Parent ([IO.Path]::GetFullPath($ReportPath))

@@ -1,6 +1,6 @@
 {
     "name": "HBP.Transfer.Transport",
-    "references": [],
+    "references": ["HBP.Transfer.Codecs"],
     "overrideReferences": true,
     "precompiledReferences": ["BouncyCastle.Cryptography.dll"],
     "autoReferenced": false,

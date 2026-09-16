@@ -338,15 +338,19 @@ namespace HBP.Transfer.Transport
         private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null)
         {
             RequirePin(pin);
-            if (credential == null || credential.Length != 32) throw new ArgumentException("Pair with the headset first.");
+            if (credential == null || credential.Length != 32)
+                throw new ArgumentException("Pair with the headset first.");
             credential = (byte[])credential.Clone();
             try
             {
                 await ConnectAsync(host, pin, stop, async (tls, token) =>
                 {
-                    await tls.WriteAsync(new[] { command }, 0, 1, token).ConfigureAwait(false);
-                    await tls.WriteAsync(credential, 0, credential.Length, token).ConfigureAwait(false);
-                    await AcceptedAsync(tls, token).ConfigureAwait(false);
+                    {
+                        await tls.WriteAsync(new[] { command }, 0, 1, token).ConfigureAwait(false);
+                        await tls.WriteAsync(credential, 0, credential.Length, token).ConfigureAwait(false);
+                        await AcceptedAsync(tls, token).ConfigureAwait(false);
+                    }
+
                     await action(tls, token).ConfigureAwait(false);
                 }, timeout ?? TimeSpan.FromMinutes(30)).ConfigureAwait(false);
             }

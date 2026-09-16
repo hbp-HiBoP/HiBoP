@@ -22,7 +22,9 @@ rollback-capable transaction.
 param(
     [string]$Resume,
     [switch]$ValidateOnly,
-    [string]$AndroidPackage
+    [string]$AndroidPackage,
+    # Local, reviewed hbp_core packages from one source snapshot. No GitHub dispatch.
+    [string[]]$LocalCorePackages
 )
 
 Set-StrictMode -Version Latest
@@ -1386,6 +1388,64 @@ function Install-LocalAndroidPackage {
     finally { Exit-InstallMutex -Mutex $mutex }
 }
 
+function Install-LocalCorePackages {
+    param([string[]]$Directories, [hashtable]$Configuration)
+    $mutex = Enter-InstallMutex
+    try {
+        Assert-UnityClosed
+        $library = @($Configuration.libraries | Where-Object name -eq 'hbp_core')[0]
+        $originalLock = [IO.File]::ReadAllBytes($lockFilePath)
+        $lock = Get-Content $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $lockedLibrary = @($lock.libraries | Where-Object name -eq 'hbp_core')[0]
+        $packages = @()
+        $sourceCommit = $null
+        foreach ($directory in $Directories) {
+            $manifestPath = Join-Path ([IO.Path]::GetFullPath($directory)) 'artifact-manifest.json'
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
+            if ($manifest.commit -notmatch '^[0-9a-f]{40}$') { throw 'A full source snapshot commit is required.' }
+            if ($sourceCommit -and $sourceCommit -ne $manifest.commit) { throw 'Local packages must share one source snapshot.' }
+            $sourceCommit = $manifest.commit
+            $package = Test-ArtifactManifest -ManifestPath $manifestPath -Library $library -RepositoryState @{ sourceSha = $sourceCommit }
+            $package.sourceCommit = $sourceCommit
+            if (!$package.Contains('provenance')) { $package.provenance = @{} }
+            $package.provenance.artifactManifestSha256 = (Get-FileHash $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $packages += $package
+        }
+        if ($packages.Count -ne 2 -or @($packages.platform | Sort-Object -Unique).Count -ne 2 -or
+            'Windows' -notin $packages.platform -or 'Android' -notin $packages.platform) {
+            throw 'Local hbp_core installation requires exactly Windows and Android packages.'
+        }
+        $requestId = 'core-local-' + [Guid]::NewGuid().ToString('N')
+        $backupRoot = Join-Path $workingRoot "$requestId/backup"
+        $installConfiguration = @{ libraries = @(@{ targets = @($library.targets | Where-Object { $_.platform -in $packages.platform }) }) }
+        Backup-CurrentInstall -Configuration $installConfiguration -BackupRoot $backupRoot
+        try {
+            foreach ($package in $packages) { Install-Payload -Package $package -RequestId $requestId }
+            Assert-InstalledPackages -Packages $packages
+            # Unchanged platforms retain their own source identity; never attribute old bytes to the new snapshot.
+            foreach ($artifact in $lockedLibrary.artifacts) {
+                if (!$artifact.ContainsKey('sourceCommit')) { $artifact.sourceCommit = $lockedLibrary.commit }
+            }
+            $lockedLibrary.artifacts = @($lockedLibrary.artifacts | Where-Object { $_.platform -notin $packages.platform }) +
+                @($packages | ForEach-Object { $copy = @{}; foreach ($key in $_.Keys) { if ($key -ne 'sourcePath') { $copy[$key] = $_[$key] } }; $copy })
+            $lockedLibrary.commit = $sourceCommit
+            $lockedLibrary.runId = $null
+            $lockedLibrary.runUrl = $null
+            $lockedLibrary.localRequestId = $requestId
+            $lock.generatedAt = [DateTime]::UtcNow.ToString('O')
+            $lock | ConvertTo-Json -Depth 20 | Set-Content $lockFilePath -Encoding utf8
+            Write-Host "Installed local Windows and Android hbp_core packages from $sourceCommit. Other platforms retain their previous pins."
+        }
+        catch {
+            Restore-InstallBackup -Configuration $installConfiguration -BackupRoot $backupRoot
+            [IO.File]::WriteAllBytes($lockFilePath, $originalLock)
+            throw
+        }
+    }
+    finally { Exit-InstallMutex -Mutex $mutex }
+}
+
+if ($LocalCorePackages -and ($AndroidPackage -or $Resume -or $ValidateOnly)) { throw 'LocalCorePackages cannot be combined with another mode.' }
 if ($AndroidPackage -and ($Resume -or $ValidateOnly)) { throw 'AndroidPackage cannot be combined with Resume or ValidateOnly.' }
 $resumeConfiguration = $null
 if ($Resume)
@@ -1414,6 +1474,10 @@ if ($ValidateOnly)
     return
 }
 
+if ($LocalCorePackages) {
+    Install-LocalCorePackages -Directories $LocalCorePackages -Configuration $configuration
+    return
+}
 if ($AndroidPackage) {
     Install-LocalAndroidPackage -PackageDirectory ([IO.Path]::GetFullPath($AndroidPackage)) -Configuration $configuration
     return

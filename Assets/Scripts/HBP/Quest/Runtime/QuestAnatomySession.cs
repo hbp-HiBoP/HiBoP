@@ -21,6 +21,7 @@ namespace HBP.Quest
     public sealed class QuestAnatomySession : MonoBehaviour
     {
         public const int MaximumDeliveryHistory = 256;
+        private readonly ReceivedSurfaceCache surfaceCache = new();
         [SerializeField] private QuestAnatomyView view;
         private readonly Dictionary<string, Entry> deliveries = new Dictionary<string, Entry>(StringComparer.Ordinal);
         private SynchronizationContext unityContext;
@@ -59,7 +60,7 @@ namespace HBP.Quest
             Task<DeliveryReceipt> receptionTask = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
             {
                 using var closeStream = token.Register(stream.Dispose);
-                return await ReceiveFileAsync(stream, token, publish, progress).ConfigureAwait(false);
+                return await ReceiveFileAsync(stream, token, publish, progress, true).ConfigureAwait(false);
             }, stop), stop).ConfigureAwait(false);
             return await receptionTask.ConfigureAwait(false);
         }
@@ -92,8 +93,10 @@ namespace HBP.Quest
                     if (!HBP.Core.Preferences.PersistentDataManager.IsInitialized || !HBP.Core.Database.DatabaseManager.IsInitialized)
                         throw new InvalidOperationException("The Quest common services must be initialized before pairing.");
                     await view.ClearAsync();
+                    surfaceCache.Clear();
                     stop.ThrowIfCancellationRequested();
-                    if (destroyed) throw new ObjectDisposedException(nameof(QuestAnatomySession));
+                    if (destroyed)
+                        throw new ObjectDisposedException(nameof(QuestAnatomySession));
                     HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
                     HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;
@@ -105,40 +108,54 @@ namespace HBP.Quest
                     current = null;
                     deliveries.Clear();
                     previous?.Dispose();
+                    // Warm standard resources once when pairing, before sending a visualization.
+                    stop.ThrowIfCancellationRequested();
+                    await HBP.Core.Tools.StandardData.EnsureInstalledAsync();
+                    await HBP.Data.Module3D.Base3DScene.PrepareStandardResourcesAsync();
+                    stop.ThrowIfCancellationRequested();
                 }, stop).ConfigureAwait(false);
                 await installation.ConfigureAwait(false);
                 return DeliveryStatus.Published;
             }
             finally
             {
-                if (!consumed) archive.Dispose();
+                if (!consumed)
+                    archive.Dispose();
             }
         }
 
         private async Task<DeliveryReceipt> ReceiveCoreAsync(Func<CancellationToken, Func<string, string, CancellationToken, Task<DeliveryStatus>>, Action<long>, Task<DeliveryReceipt>> receive, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> prepare = null)
         {
             RequireMainThread();
-            if (destroyed || !isActiveAndEnabled) throw new InvalidOperationException("The session receiver is unavailable.");
-            if (view == null || unityContext == null) throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
-            if (reception != null) throw new InvalidOperationException("A delivery is already in progress.");
+            if (destroyed || !isActiveAndEnabled)
+                throw new InvalidOperationException("The session receiver is unavailable.");
+            if (view == null || unityContext == null)
+                throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
+            if (reception != null)
+                throw new InvalidOperationException("A delivery is already in progress.");
             using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stop);
             reception = attempt;
             LastError = null;
             ReceivedBytes = 0;
             ReceptionState = AnatomyReceptionState.Connecting;
+
             try
             {
-                return await receive(attempt.Token, prepare ?? PrepareAsync, count => unityContext.Post(_ =>
+                var receipt = await receive(attempt.Token, prepare ?? ((file, hash, token) => PrepareAsync(file, hash, token)), count => unityContext.Post(_ =>
                 {
-                    if (destroyed || reception != attempt || attempt.IsCancellationRequested) return;
+                    if (destroyed || reception != attempt || attempt.IsCancellationRequested)
+                        return;
                     IsConnected = true;
                     ReceptionState = AnatomyReceptionState.Receiving;
                     ReceivedBytes = count;
                 }, null));
+
+                return receipt;
             }
             catch (Exception exception)
             {
                 // No resource release here: ACK loss can follow a successful publication.
+
                 LastError = exception.Message;
                 throw;
             }
@@ -150,16 +167,52 @@ namespace HBP.Quest
             }
         }
 
-        private async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress)
+        private async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress, bool allowBlocks = false)
         {
             string file = Path.Combine(Application.temporaryCachePath, "scene-" + Guid.NewGuid().ToString("N") + ".hbscene");
             try
             {
-                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress).ConfigureAwait(false);
+                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress, allowBlocks ? (input, token) => ReceiveBlocksAsync(input, token, progress) : null).ConfigureAwait(false);
             }
             finally
             {
-                if (File.Exists(file)) File.Delete(file);
+                if (File.Exists(file))
+                    File.Delete(file);
+            }
+        }
+
+        private async Task<DeliveryReceipt> ReceiveBlocksAsync(Stream stream, CancellationToken stop, Action<long> progress)
+        {
+            string directory = await OnUnityThreadAsync(() => Path.Combine(Application.temporaryCachePath, "SceneRestoration", Guid.NewGuid().ToString("N")), stop).ConfigureAwait(false);
+            var archive = new SceneArchive(directory, true, globals)
+            {
+                SurfaceCache = surfaceCache
+            };
+            bool consumed = false;
+            try
+            {
+                byte[] digest = await BlockContainer.ReceiveAsync(stream, archive, stop, progress).ConfigureAwait(false);
+                string hash = new DeliveryReceipt(digest, DeliveryStatus.Published).ContentHash;
+                await OnUnityThreadAsync(() =>
+                {
+                    ReceptionState = AnatomyReceptionState.Preparing;
+                    return 0;
+                }, stop).ConfigureAwait(false);
+                ScenePayload payload = await Task.Run(() => { return archive.ReadPrepared(); }, stop).ConfigureAwait(false);
+                Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
+                DeliveryStatus result = await publication.ConfigureAwait(false);
+                consumed = result == DeliveryStatus.Published;
+                // Publication owns the archive even if writing the receipt fails.
+                var receipt = new byte[33];
+                receipt[0] = (byte)result;
+                Buffer.BlockCopy(digest, 0, receipt, 1, 32);
+                await stream.WriteAsync(receipt, 0, receipt.Length, stop).ConfigureAwait(false);
+                return new DeliveryReceipt(digest, result);
+            }
+            finally
+            {
+                if (!consumed)
+                    archive.Dispose();
             }
         }
 
@@ -170,11 +223,14 @@ namespace HBP.Quest
                 ReceptionState = AnatomyReceptionState.Preparing;
                 return Path.Combine(Application.temporaryCachePath, "SceneRestoration", Guid.NewGuid().ToString("N"));
             }, stop).ConfigureAwait(false);
-            var archive = new SceneArchive(directory, true, globals);
+            var archive = new SceneArchive(directory, true, globals)
+            {
+                SurfaceCache = surfaceCache
+            };
             bool consumed = false;
             try
             {
-                ScenePayload payload = await Task.Run(() => archive.Read(file, stop), stop).ConfigureAwait(false);
+                ScenePayload payload = await Task.Run(() => { return archive.Read(file, stop); }, stop).ConfigureAwait(false);
                 Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
                 DeliveryStatus result = await publication.ConfigureAwait(false);
                 consumed = result == DeliveryStatus.Published;
@@ -182,7 +238,8 @@ namespace HBP.Quest
             }
             finally
             {
-                if (!consumed) archive.Dispose();
+                if (!consumed)
+                    archive.Dispose();
             }
         }
 
@@ -254,10 +311,13 @@ namespace HBP.Quest
         public void CloseSession()
         {
             RequireMainThread();
+            surfaceCache.Clear();
             Disconnect(); // Cancels queued publication before freeing resources.
-            if (current != null) current.Status = DeliveryStatus.Closed;
+            if (current != null)
+                current.Status = DeliveryStatus.Closed;
             current = null;
-            if (view != null) view.Clear();
+            if (view != null)
+                view.Clear();
         }
 
         private void RequireMainThread()

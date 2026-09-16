@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
@@ -49,8 +49,7 @@ namespace HBP.Core.DLL
         /// </summary>
         [SerializeField] private bool m_GetInformationAboutDLLObjects = true;
 
-        [Header("Activity Projection")] [SerializeField, Min(2)]
-        private int m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
+        [Header("Activity Projection")] [SerializeField, Min(2)] private int m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
 
         [SerializeField] private VolumeInterpolation m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
 
@@ -67,7 +66,15 @@ namespace HBP.Core.DLL
         /// <summary>
         /// List of all DLL objects created during this instance of the program
         /// </summary>
-        public List<DLLObject> DLLObjects { get; private set; } = new List<DLLObject>();
+        private readonly List<DLLObject> dllObjects = new();
+
+        public List<DLLObject> DLLObjects
+        {
+            get
+            {
+                lock (dllObjects) return new List<DLLObject>(dllObjects);
+            }
+        }
 
         public static string CurrentLogFilePath { get; private set; } = string.Empty;
         public int ActivityProjectionVolumeGridDimension => m_VolumeGridDimension;
@@ -145,18 +152,20 @@ namespace HBP.Core.DLL
         /// <param name="id">ID of the object</param>
         public static void AddDLLObject(string typeString, Guid id)
         {
-            if (m_Instance == null) return;
+            var instance = m_Instance;
+            if (ReferenceEquals(instance, null)) return;
 
-            if (m_Instance.m_GetInformationAboutDLLObjects)
+            if (instance.m_GetInformationAboutDLLObjects)
             {
                 if (typeString == "Tools.CSharp.EEG.Trigger") return;
-                m_Instance.DLLObjects.Add(new DLLObject()
+                var entry = new DLLObject()
                 {
                     Type = typeString,
                     StackTrace = Environment.StackTrace,
                     ID = id,
                     CleanedBy = CleanedBy.NotCleaned
-                });
+                };
+                lock (instance.dllObjects) instance.dllObjects.Add(entry);
             }
         }
 
@@ -168,12 +177,16 @@ namespace HBP.Core.DLL
         /// <param name="cleanedBy">How do we remove this object ?</param>
         public static void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
         {
-            if (m_Instance == null) return;
+            var instance = m_Instance;
+            if (ReferenceEquals(instance, null)) return;
 
-            if (m_Instance.m_GetInformationAboutDLLObjects)
+            if (instance.m_GetInformationAboutDLLObjects)
             {
-                var objectToRemove = m_Instance.DLLObjects.Find(d => d.Type == typeString && d.ID == id);
-                if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
+                lock (instance.dllObjects)
+                {
+                    var objectToRemove = instance.dllObjects.Find(d => d.Type == typeString && d.ID == id);
+                    if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
+                }
             }
         }
 

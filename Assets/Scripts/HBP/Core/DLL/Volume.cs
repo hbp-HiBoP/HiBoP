@@ -149,12 +149,15 @@ namespace HBP.Core.DLL
                 {
                     using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
                     using var sha = SHA256.Create();
-                    string hash = BitConverter.ToString(sha.ComputeHash(source));
+                    string hash;
+                    hash = BitConverter.ToString(sha.ComputeHash(source));
                     string companion = Core.Tools.StandardData.CompanionFile(path);
                     string companionHash = companion == null ? null : Core.Tools.StandardData.HashFile(companion);
                     IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
                     source.Position = 0;
-                    if (IsLoaded && hash == BitConverter.ToString(sha.ComputeHash(source)) && (companion == null || companionHash == Core.Tools.StandardData.HashFile(companion)))
+                    string after;
+                    after = IsLoaded ? BitConverter.ToString(sha.ComputeHash(source)) : null;
+                    if (IsLoaded && hash == after && (companion == null || companionHash == Core.Tools.StandardData.HashFile(companion)))
                     {
                         SourceFilePath = Path.GetFullPath(path);
                         SourceFileSha256 = hash;
@@ -176,6 +179,22 @@ namespace HBP.Core.DLL
             }
 
             IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
+            return IsLoaded;
+        }
+
+        internal bool LoadVerifiedNIFTIFile(Core.Tools.VerifiedResourceScope.Lease resource)
+        {
+            resource.RequireAlive();
+            SourceFilePath = SourceFileSha256 = SourceCompanionSha256 = null;
+            IsLoaded = false;
+            IsLoaded = hbp_volume_load_nifti(_handle.Handle, resource.Path) == HbpCoreStatus.Ok;
+            if (IsLoaded)
+            {
+                SourceFilePath = resource.Path;
+                SourceFileSha256 = resource.Hash;
+                SourceCompanionSha256 = resource.CompanionHash;
+            }
+
             return IsLoaded;
         }
 

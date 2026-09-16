@@ -34,7 +34,7 @@ namespace HBP.Transfer.Scene
             typeof(EventInformation), typeof(EventInformation.EventOccurence), typeof(EventStatistics), typeof(Frequency)
         };
 
-        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null)
+        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false)
         {
             var resolver = new PreparedDataJson(archive);
             var serializer = JsonSerializer.Create(new JsonSerializerSettings
@@ -43,7 +43,7 @@ namespace HBP.Transfer.Scene
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects, ObjectCreationHandling = ObjectCreationHandling.Replace,
                 MaxDepth = 128, Converters = { new ObjectKeyDictionaryConverter() }
             });
-            if (globals != null) serializer.Converters.Insert(0, globals.ReferenceConverter());
+            if (globals != null) serializer.Converters.Insert(0, globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null));
             return serializer;
         }
 

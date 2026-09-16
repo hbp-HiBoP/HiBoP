@@ -194,17 +194,19 @@ namespace HBP.Tests.SceneTransfer
             }
         }
 
-        [Test]
+        [TestCase(false)]
+        [TestCase(true)]
         [Timeout(900000)]
-        public async Task CompleteScene_RestoresNativeModalitiesAndIndependentColumns_ThenRecaptures()
+        public async Task CompleteScene_RestoresNativeModalitiesAndIndependentColumns_ThenRecaptures(bool blocks)
         {
-            await FailOnUnexpectedCancellation(CompleteSceneScenarioAsync);
+            await FailOnUnexpectedCancellation(() => CompleteSceneScenarioAsync(blocks));
         }
 
-        private static async Task CompleteSceneScenarioAsync()
+        private static async Task CompleteSceneScenarioAsync(bool blocks)
         {
             string root = Path.Combine(Path.GetTempPath(), "hibop-scene-runtime-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
+
             using var settings = new PlayModePersistentDataScope(root);
             using var scope = new PlayModeSceneScope("SceneTransfer");
             PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
@@ -215,12 +217,26 @@ namespace HBP.Tests.SceneTransfer
             try
             {
                 await UniTask.SwitchToMainThread();
-                using var source = new SceneArchive(Path.Combine(root, "source"));
+                using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: blocks);
                 ScenePayload payload = CreateFixture(source);
                 string file = Path.Combine(root, "fixture.hbscene");
-                source.Write(payload, file);
+                source.Write(payload, file); // Also retained for the later invalid-replacement scenarios.
                 var archive = new SceneArchive(Path.Combine(root, "received"), true, source.Globals);
-                var received = archive.Read(file);
+                ScenePayload received;
+                if (blocks)
+                {
+                    var packets = new List<byte[]>();
+                    HBP.Transfer.Transport.BlockContainer.Produce(source.CaptureBlockResources(source.CaptureMetadata(payload)), packets.Add, token);
+                    using var input = new MemoryStream(packets.SelectMany(p => p).ToArray());
+                    input.Position = 4;
+                    await HBP.Transfer.Transport.BlockContainer.ReceiveAsync(input, archive, token);
+                    received = archive.ReadPrepared();
+                }
+                else
+                {
+                    received = archive.Read(file);
+                }
+
                 await view.ApplyAsync(received, archive, token);
                 var scene = view.Scene;
                 Assert.That(scene.DesktopPresentation, Is.Null);
@@ -341,6 +357,7 @@ namespace HBP.Tests.SceneTransfer
                 await scene.PrepareRenderingAsync(token);
                 Assert.That(scene.Columns.All(c => c.BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertexCount > 0), Is.True);
                 Debug.Log($"Native common scene completed: six modalities, {scene.Columns.Sum(c => c.Sites.Count)} rendered sites, recapture {delivery.EncodedBytes} bytes.");
+                await view.ClearAsync();
             }
             finally
             {

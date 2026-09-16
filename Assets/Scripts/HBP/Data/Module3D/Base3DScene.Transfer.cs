@@ -35,16 +35,28 @@ namespace HBP.Data.Module3D
         public async UniTask<T> CapturePreparedAsync<T>(Func<T> capture, CancellationToken token)
         {
             await m_InitializationWork;
-            await m_AnatomyWork;
+            {
+                // Another capture may start preparation while this caller is awaiting
+                // Unity. Recheck on Unity before replacing the tracked lifetime task.
+                do
+                {
+                    await m_AnatomyWork;
+                    await UniTask.SwitchToMainThread();
+                } while (!m_AnatomyWork.Status.IsCompleted());
+            }
+
+            token.ThrowIfCancellationRequested();
+            if (IsClosing || !SceneInformation.Initialized)
+                throw new InvalidOperationException("The visualization is closing or has not finished initialization.");
+            {
+                m_AnatomyWork = LoadMissingAnatomyAsync(includeAllPatients: true).ToAsyncLazy().Task;
+                await m_AnatomyWork;
+            }
+
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
-            if (IsClosing || !SceneInformation.Initialized) throw new InvalidOperationException("The visualization is closing or has not finished initialization.");
-            // Export expands preload coverage; ordinary Desktop opening retains its preference.
-            m_AnatomyWork = LoadMissingAnatomyAsync(includeAllPatients: true).ToAsyncLazy().Task;
-            await m_AnatomyWork;
-            await UniTask.SwitchToMainThread();
-            token.ThrowIfCancellationRequested();
-            if (IsClosing) throw new ObjectDisposedException(Name);
+            if (IsClosing)
+                throw new ObjectDisposedException(Name);
             await m_SurfaceRepresentationGate.WaitAsync(token);
             try
             {
@@ -58,7 +70,8 @@ namespace HBP.Data.Module3D
                     token.ThrowIfCancellationRequested();
                 } while (!m_GeneratorWork.Status.IsCompleted() || !m_CorrelationWork.Status.IsCompleted() || !m_ColliderWork.Status.IsCompleted());
 
-                if (IsClosing) throw new ObjectDisposedException(Name);
+                if (IsClosing)
+                    throw new ObjectDisposedException(Name);
                 return capture();
             }
             finally

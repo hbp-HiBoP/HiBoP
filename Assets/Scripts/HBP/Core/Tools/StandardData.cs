@@ -14,6 +14,44 @@ namespace HBP.Core.Tools
     {
         public const string ManifestName = "standard-data.sha256";
         private static AsyncLazy s_Installation;
+        private static readonly object s_InstalledGate = new();
+        private static Dictionary<string, string> s_InstalledHashes;
+        private static string s_InstalledRoot;
+
+        private static VerifiedResourceScope s_InstalledResources;
+
+        // Only the installed, guarded Android workspace can reuse these identities.
+        // Returning a copy prevents consumers from changing the installation manifest.
+        internal static Dictionary<string, string> GetInstalledHashes(string root)
+        {
+            lock (s_InstalledGate)
+                return Path.GetFullPath(root) == s_InstalledRoot && s_InstalledResources != null ? new Dictionary<string, string>(s_InstalledHashes, StringComparer.Ordinal) : null;
+        }
+
+        internal static VerifiedResourceScope.Lease AcquireInstalledResource(string path)
+        {
+            lock (s_InstalledGate)
+                return Path.GetFullPath(ApplicationState.DataPath) == s_InstalledRoot && s_InstalledResources != null ? s_InstalledResources.Acquire(Path.GetFullPath(path)) : null;
+        }
+
+        internal static void ValidateExpectedFile(string relative, string expectedHash)
+        {
+            string root = Path.GetFullPath(ApplicationState.DataPath);
+            string path = Resolve(root, relative);
+            lock (s_InstalledGate)
+            {
+                if (root == s_InstalledRoot && s_InstalledHashes != null)
+                {
+                    if (!s_InstalledHashes.TryGetValue(relative, out string actual) || actual != expectedHash || !File.Exists(path))
+                        throw new InvalidDataException("Installed scientific reference missing or incompatible: " + relative);
+                    return;
+                }
+            }
+
+            // Desktop reference files are user-editable: always validate their current bytes.
+            if (!File.Exists(path) || HashFile(path) != expectedHash)
+                throw new InvalidDataException("Installed scientific reference missing or incompatible: " + relative);
+        }
 
         // Android's asset merger expands .gz files. Keep their original bytes in
         // the package; installation restores the scientific filename on disk.

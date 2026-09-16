@@ -146,7 +146,7 @@ namespace HBP.Tests.Transfer
             source.Write(payload, file);
             using (var zip = ZipFile.Open(file, ZipArchiveMode.Update))
             {
-                var entry = zip.Entries.First(e => e.Name.EndsWith(".bin", StringComparison.Ordinal));
+                var entry = zip.GetEntry(BufferPack.DataName);
                 string name = entry.Name;
                 entry.Delete();
                 using var writer = new BinaryWriter(zip.CreateEntry(name).Open());
@@ -224,7 +224,8 @@ namespace HBP.Tests.Transfer
             using var json = new StreamReader(zip.GetEntry("visualization.json").Open());
             string metadata = json.ReadToEnd();
             Assert.That(metadata, Does.Not.Contain("\"Preferences\""));
-            Assert.That(metadata, Does.Contain("\"global\""));
+            Assert.That(metadata, Does.Not.Contain("\"global\""));
+            Assert.That(zip.GetEntry(SceneGlobalReferences.FileName), Is.Not.Null);
         }
 
         [TestCase("missing")]
@@ -303,12 +304,14 @@ namespace HBP.Tests.Transfer
             Assert.Throws<InvalidDataException>(() => target.Read(file));
         }
 
-        [Test]
-        public void CapturedArchiveOwnsArraysAndMetadataAfterSourceMutation()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async System.Threading.Tasks.Task CapturedArchiveOwnsArraysAndMetadataAfterSourceMutation(bool detached)
         {
-            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true) { DetachCapture = detached };
             var payload = Fixture(source);
-            byte[] metadata = source.CaptureMetadata(payload);
+            var snapshot = detached ? source.CaptureDetachedMetadata(payload) : null;
+            byte[] metadata = detached ? null : source.CaptureMetadata(payload);
             Assert.That(Directory.GetFiles(source.DirectoryPath), Is.Empty, "Numeric snapshots must not create per-array temporary files.");
             var ieeg = (IEEGColumn)payload.Visualization.Columns[1];
             ieeg.Data.ProcessedValuesByChannel["patient_A1"][0] = 999;
@@ -318,7 +321,7 @@ namespace HBP.Tests.Transfer
             payload.Visualization.Configuration.ErasedTriangles[0] = 0;
             payload.Visualization.Name = "changed";
             string file = Path.Combine(directory, "captured.hbscene");
-            source.WriteCaptured(metadata, file);
+            await System.Threading.Tasks.Task.Run(() => source.WriteCaptured(detached ? snapshot.Encode(source) : metadata, file));
             using var target = new SceneArchive(Path.Combine(directory, "target"), true, source.Globals);
             var restored = target.Read(file);
             var restoredIEEG = (IEEGColumn)restored.Visualization.Columns[1];
@@ -328,6 +331,8 @@ namespace HBP.Tests.Transfer
             Assert.That(restoredIEEG.Data.Timeline.CurrentIndex, Is.Zero);
             Assert.That(restored.Columns[5].Functional[0].Values["patient_A1"], Is.EqualTo(new[] { 4f, 5f, 6f }));
             Assert.That(restored.Visualization.Configuration.ErasedTriangles, Is.EqualTo(new[] { 1 }));
+            Assert.That(((CCEPColumn)restored.Visualization.Columns[2]).Data.Timeline, Is.SameAs(restoredIEEG.Data.Timeline));
+            if (detached) Assert.Throws<InvalidOperationException>(() => snapshot.Encode(source));
         }
 
         [Test]
@@ -377,7 +382,7 @@ namespace HBP.Tests.Transfer
             Assert.That(File.Exists(output), Is.False);
         }
 
-        private static ScenePayload Fixture(SceneArchive archive)
+        internal static ScenePayload Fixture(SceneArchive archive)
         {
             var ev = new Event("event", new[] { 1 }, MainSecondaryEnum.Main, "event");
             var sub = new SubBloc("sub", 0, MainSecondaryEnum.Main, new TimeWindow(0, 30), new TimeWindow(0, 0), new[] { ev }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "sub");

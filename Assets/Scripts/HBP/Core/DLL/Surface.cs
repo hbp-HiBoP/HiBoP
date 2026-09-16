@@ -200,6 +200,8 @@ namespace HBP.Core.DLL
 
     public class Surface : CppDLLImportBase, ICloneable
     {
+        // Geometry and atlas labels share giftilib's process-global parser state.
+        private static readonly object GiftiReadGate = new();
         private int[] m_TriangleIndices = Array.Empty<int>();
         private Vector3[] m_Vertices = Array.Empty<Vector3>();
         private Vector3[] m_Normals = Array.Empty<Vector3>();
@@ -218,6 +220,7 @@ namespace HBP.Core.DLL
         public void SetPreparedAtlasAvailability(bool available) => IsMarsAtlasLoaded = available;
 
         public long GeometryVersion { get; private set; }
+        internal long TransferRevision { get; private set; }
 
         public Vector3 Center
         {
@@ -308,7 +311,8 @@ namespace HBP.Core.DLL
 
         public bool LoadGIIFile(string gii, string transformation = "")
         {
-            IsLoaded = hbp_surface_load_gifti(_handle.Handle, gii) == HbpCoreStatus.Ok;
+            lock (GiftiReadGate)
+                IsLoaded = hbp_surface_load_gifti(_handle.Handle, gii) == HbpCoreStatus.Ok;
             if (IsLoaded && !string.IsNullOrEmpty(transformation))
             {
                 using Transformation3 transform = Transformation3.FromFile(transformation);
@@ -380,8 +384,10 @@ namespace HBP.Core.DLL
 
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlas index, string pathMarsParcel)
         {
+            ++TransferRevision;
             if (index == null) throw new ArgumentNullException(nameof(index));
-            IsMarsAtlasLoaded = hbp_surface_apply_mars_atlas_parcels(_handle.Handle, index.getHandle().Handle, pathMarsParcel) == HbpCoreStatus.Ok;
+            lock (GiftiReadGate)
+                IsMarsAtlasLoaded = hbp_surface_apply_mars_atlas_parcels(_handle.Handle, index.getHandle().Handle, pathMarsParcel) == HbpCoreStatus.Ok;
             return IsMarsAtlasLoaded;
         }
 
@@ -394,6 +400,7 @@ namespace HBP.Core.DLL
 
         public void ComputeNormals()
         {
+            ++TransferRevision;
             ThrowIfFailed(hbp_surface_compute_normals(_handle.Handle));
         }
 
@@ -499,6 +506,8 @@ namespace HBP.Core.DLL
         public void SwapDLLHandle(Surface surface)
         {
             if (surface == null) throw new ArgumentNullException(nameof(surface));
+            ++TransferRevision;
+            ++surface.TransferRevision;
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
@@ -552,6 +561,16 @@ namespace HBP.Core.DLL
         public object Clone()
         {
             return new Surface(this) { IsLoaded = IsLoaded, IsMarsAtlasLoaded = IsMarsAtlasLoaded };
+        }
+
+        internal Surface CloneForTransfer() => new(CloneNativeSurface(this)) { IsLoaded = IsLoaded, IsMarsAtlasLoaded = IsMarsAtlasLoaded };
+
+        // Called on a private clone. Returned arrays belong to that clone and remain
+        // valid after Dispose releases its pins; no Unity Mesh or coordinate rewrite.
+        internal (Vector3[] vertices, int[] triangles, Vector3[] normals, Vector2[] uv, Color[] colors) CopyTransferBuffers()
+        {
+            CopyMeshBuffers();
+            return (m_Vertices, m_TriangleIndices, m_Normals, m_UV, m_Colors);
         }
 
         public override void Dispose()
@@ -635,7 +654,7 @@ namespace HBP.Core.DLL
             return sizes;
         }
 
-        private void UpdateMesh(Mesh mesh, bool all, bool vertices, bool normals, bool uv, bool triangles, bool colors)
+        private void CopyMeshBuffers()
         {
             SurfaceSizes sizes = GetSizes();
             EnsurePinnedArray(ref m_Vertices, ref m_VerticesHandle, sizes.vertexCount);
@@ -645,7 +664,11 @@ namespace HBP.Core.DLL
             EnsurePinnedArray(ref m_TriangleIndices, ref m_TriangleIndicesHandle, NumberOfVisibleTriangles * 3);
 
             ThrowIfFailed(hbp_surface_copy_unity_mesh(_handle.Handle, Pointer(m_VerticesHandle), m_Vertices.Length, Pointer(m_NormalsHandle), m_Normals.Length, Pointer(m_UvHandle), m_UV.Length, Pointer(m_ColorsHandle), m_Colors.Length, Pointer(m_TriangleIndicesHandle), m_TriangleIndices.Length));
+        }
 
+        private void UpdateMesh(Mesh mesh, bool all, bool vertices, bool normals, bool uv, bool triangles, bool colors)
+        {
+            CopyMeshBuffers();
             if (mesh.vertexCount != m_Vertices.Length) mesh.Clear();
             if (all || vertices) mesh.vertices = m_Vertices;
             if (all || normals) mesh.normals = m_Normals;

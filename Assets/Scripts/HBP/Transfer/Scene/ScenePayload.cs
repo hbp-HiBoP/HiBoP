@@ -6,7 +6,8 @@ namespace HBP.Transfer.Scene
 {
     public sealed class ScenePayload
     {
-        public const int FormatVersion = 3;
+        public const int FormatVersion = 4;
+        public const int LegacyFormatVersion = 3;
         public int Version = FormatVersion;
         public string TransferId;
         public string GlobalContextId;
