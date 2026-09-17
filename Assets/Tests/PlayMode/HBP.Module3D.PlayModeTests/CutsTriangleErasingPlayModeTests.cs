@@ -133,7 +133,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
             Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
             Assert.That(baseScene.CutGeometryGenerators, Has.Count.EqualTo(1));
-            Assert.That(cut.ID, Is.EqualTo(0));
+            Assert.That(cut.Index, Is.EqualTo(0));
             Assert.That(cut.Normal, Is.EqualTo(Vector3.right));
             Assert.That(baseScene.LastPlaneModifiedIndex, Is.EqualTo(0));
             Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
@@ -287,7 +287,7 @@ namespace HBP.Tests.PlayMode.Module3D
             ui.Position.onValueChanged.Invoke(0.25f);
 
             Assert.That(cut.Position, Is.EqualTo(0.25f));
-            Assert.That(baseScene.LastPlaneModifiedIndex, Is.EqualTo(cut.ID));
+            Assert.That(baseScene.LastPlaneModifiedIndex, Is.EqualTo(cut.Index));
 
             ui.Orientation.SetValueWithoutNotify((int)CutOrientation.Coronal);
             ui.Orientation.onValueChanged.Invoke((int)CutOrientation.Coronal);

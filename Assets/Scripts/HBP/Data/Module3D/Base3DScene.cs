@@ -30,7 +30,7 @@ namespace HBP.Data.Module3D
         #region Properties
 
         private Exception m_PreparationError;
-        private bool AutomaticActivityComputationEnabled => Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible();
+        private bool AutomaticActivityComputationEnabled => ProjectionEnabled && Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible();
 
         /// <summary>
         /// Name of the scene
@@ -510,6 +510,7 @@ namespace HBP.Data.Module3D
         }
 
         private bool m_AutomaticCutAroundSelectedSite = false;
+        private bool m_AutomaticCutsInitialized;
 
         /// <summary>
         /// Automatically cuts around the currently selected site
@@ -519,6 +520,7 @@ namespace HBP.Data.Module3D
             get { return m_AutomaticCutAroundSelectedSite; }
             set
             {
+                if (m_AutomaticCutAroundSelectedSite && !value) m_AutomaticCutsInitialized = false;
                 m_AutomaticCutAroundSelectedSite = value;
                 SceneInformation.CutsNeedUpdate = true;
                 OnChangeAutomaticCutAroundSelectedSite.Invoke(value);
@@ -547,6 +549,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         private bool m_UpdatingColliders = false;
 
+        private Func<UniTask> m_BeforeColliderPublish;
+        private Action m_OnColliderPublished;
+
         /// <summary>
         /// Lock when updating generator
         /// </summary>
@@ -557,47 +562,84 @@ namespace HBP.Data.Module3D
 
         private bool m_IsGeneratorUpToDate = false;
 
+        private bool? m_ProjectionIntent;
+        private bool m_PreserveSynchronizedTimelinesOnNextGenerator;
+
+        /// <summary>Whether the current scene intends to show a computed activity projection.</summary>
+        public bool ProjectionEnabled => m_ProjectionIntent ?? (m_IsGeneratorUpToDate || SceneInformation.GeneratorUpdateRequested || Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate);
+
+        public void SetProjectionEnabled(bool enabled)
+        {
+            bool wasEnabled = ProjectionEnabled;
+            m_ProjectionIntent = enabled;
+            if (enabled)
+            {
+                if (!wasEnabled || !m_IsGeneratorUpToDate)
+                {
+                    InvalidateActivityField();
+                    SceneInformation.GeneratorUpdateRequested = true;
+                }
+            }
+            else
+            {
+                m_PreserveSynchronizedTimelinesOnNextGenerator = false;
+                SceneInformation.GeneratorUpdateRequested = false;
+                if (wasEnabled || m_IsGeneratorUpToDate) InvalidateActivityField();
+            }
+        }
+
+        /// <summary>Explicit manual compute request, after any projection warning is accepted.</summary>
+        public void RequestActivityProjection()
+        {
+            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
+            m_ProjectionIntent = true;
+            InvalidateActivityField();
+            SceneInformation.GeneratorUpdateRequested = true;
+        }
+
         /// <summary>
         /// Is the iEEG generator up to date ?
         /// </summary>
         public bool IsGeneratorUpToDate
         {
             get { return m_IsGeneratorUpToDate; }
-            set
+            set => SetGeneratorUpToDate(value, false);
+        }
+
+        private void SetGeneratorUpToDate(bool value, bool preserveTimelineState)
+        {
+            m_IsGeneratorUpToDate = value;
+            BrainMaterials.SetActivity(value);
+            if (!value && !preserveTimelineState)
             {
-                m_IsGeneratorUpToDate = value;
-                BrainMaterials.SetActivity(value);
-                if (!value)
+                foreach (Column3DDynamic column in ColumnsDynamic)
                 {
-                    foreach (Column3DDynamic column in ColumnsDynamic)
-                    {
-                        column.Timeline.IsLooping = false;
-                        column.Timeline.IsPlaying = false;
-                        column.Timeline.OnUpdateCurrentIndex.Invoke();
-                    }
-
-                    foreach (Column3DFMRI column in ColumnsFMRI)
-                    {
-                        column.Timeline.IsLooping = false;
-                        column.Timeline.IsPlaying = false;
-                        column.Timeline.OnUpdateCurrentIndex.Invoke();
-                    }
-
-                    foreach (Column3DMEG column in ColumnsMEG)
-                    {
-                        column.Timeline.IsLooping = false;
-                        column.Timeline.IsPlaying = false;
-                        column.Timeline.OnUpdateCurrentIndex.Invoke();
-                    }
+                    column.Timeline.IsLooping = false;
+                    column.Timeline.IsPlaying = false;
+                    column.Timeline.OnUpdateCurrentIndex.Invoke();
                 }
 
-                SceneInformation.FunctionalSurfaceNeedsUpdate = true;
-                foreach (Column3D column in Columns)
-                    column.SurfaceNeedsUpdate = true;
+                foreach (Column3DFMRI column in ColumnsFMRI)
+                {
+                    column.Timeline.IsLooping = false;
+                    column.Timeline.IsPlaying = false;
+                    column.Timeline.OnUpdateCurrentIndex.Invoke();
+                }
 
-                OnUpdateGeneratorState.Invoke(value);
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                foreach (Column3DMEG column in ColumnsMEG)
+                {
+                    column.Timeline.IsLooping = false;
+                    column.Timeline.IsPlaying = false;
+                    column.Timeline.OnUpdateCurrentIndex.Invoke();
+                }
             }
+
+            SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+            foreach (Column3D column in Columns)
+                column.SurfaceNeedsUpdate = true;
+
+            OnUpdateGeneratorState.Invoke(value);
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         /// <summary>
@@ -855,11 +897,11 @@ namespace HBP.Data.Module3D
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-            if (!m_IsGeneratorUpToDate)
+            if (ProjectionEnabled && (!m_IsGeneratorUpToDate || SceneInformation.GeneratorNeedsUpdate))
             {
                 if (SceneInformation.GeneratorUpdateRequested)
                     UpdateGenerator();
-                else if (AutomaticActivityComputationEnabled)
+                else if (m_ProjectionIntent == true || AutomaticActivityComputationEnabled)
                     UpdateGenerator();
             }
         }
@@ -877,7 +919,7 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("ComputeBaseCutTextures");
             foreach (Column3D column in Columns)
             foreach (Core.Object3D.Cut cut in Cuts)
-                column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.ID, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor);
+                column.CutTextures.CreateMRITexture(MRIManager.SelectedMRI.Volume, cut.Index, MRIManager.MRICalMinFactor, MRIManager.MRICalMaxFactor);
 
             SceneInformation.BaseCutTexturesNeedUpdate = false;
             UnityEngine.Profiling.Profiler.EndSample();
@@ -1157,6 +1199,34 @@ namespace HBP.Data.Module3D
             SceneInformation.GeometryNeedsUpdate = false;
         }
 
+        /// <summary>Rebuild prepared topology before applying synchronized triangle masks.</summary>
+        public void RebuildPreparedGeometryForSynchronization()
+        {
+            if (m_DestroyRequested || m_UpdatingGenerators || m_ConfiguredGeometryPending)
+                throw new InvalidOperationException("The prepared geometry is not ready for synchronized application.");
+            if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
+        }
+
+        public bool CanApplyPreparedState => !m_DestroyRequested && !m_UpdatingGenerators && !m_ConfiguredGeometryPending;
+
+        private ulong m_SynchronizedStateGeneration;
+
+        /// <summary>Invalidate work started under an older synchronized scene state.</summary>
+        public void BeginSynchronizedStateApplication()
+        {
+            if (!CanApplyPreparedState) throw new InvalidOperationException("The prepared scene is busy.");
+            ++m_SynchronizedStateGeneration;
+            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
+            InvalidateActivityField(false);
+            SceneInformation.CollidersNeedUpdate = true;
+        }
+
+        /// <summary>Keep an accepted timeline while its projection is recomputed on this device.</summary>
+        public void PreserveSynchronizedTimelinesOnNextGenerator()
+        {
+            m_PreserveSynchronizedTimelinesOnNextGenerator = ProjectionEnabled;
+        }
+
         /// <summary>
         /// Update the cuts of the scene
         /// </summary>
@@ -1319,6 +1389,7 @@ namespace HBP.Data.Module3D
                     if (c != column)
                     {
                         c.IsSelected = false;
+                        c.UnselectSite();
                     }
                 }
 
@@ -1555,10 +1626,10 @@ namespace HBP.Data.Module3D
 
             Cuts.Add(cut);
 
-            // Update IDs
+            // Update runtime indices; stable cut IDs do not change.
             for (int i = 0; i < Cuts.Count; i++)
             {
-                Cuts[i].ID = i;
+                Cuts[i].Index = i;
             }
 
             // Add new cut GameObject
@@ -1596,7 +1667,7 @@ namespace HBP.Data.Module3D
             Cuts.RemoveAt(index);
             for (int i = 0; i < Cuts.Count; i++)
             {
-                Cuts[i].ID = i;
+                Cuts[i].Index = i;
             }
 
             m_DisplayedObjects.RemoveCut(index);
@@ -1636,7 +1707,7 @@ namespace HBP.Data.Module3D
                 cut.Normal = plane.Normal;
             }
 
-            if (changedByUser) LastPlaneModifiedIndex = cut.ID;
+            if (changedByUser) LastPlaneModifiedIndex = cut.Index;
 
             // Cuts base on the mesh
             Core.DLL.BBox bbox = new();
@@ -1678,21 +1749,36 @@ namespace HBP.Data.Module3D
         public void CutAroundSelectedSite()
         {
             if (!m_AutomaticCutAroundSelectedSite) return;
-
-            foreach (var cut in Cuts.ToList())
+            Core.Object3D.Site site = SelectedColumn?.SelectedSite;
+            if (!site)
             {
-                RemoveCutPlane(cut);
+                foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
+                m_AutomaticCutsInitialized = false;
+                return;
             }
 
-            Core.Object3D.Site site = SelectedColumn?.SelectedSite;
-            if (!site) return;
+            bool reuse = m_AutomaticCutsInitialized && Cuts.Count == 3;
+            if (!reuse)
+            {
+                foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
+            }
 
             Vector3 sitePosition = site.transform.localPosition;
 
             Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
             Vector3 center = bbox.Center;
 
-            Core.Object3D.Cut axialCut = AddCutPlane();
+            void SetUnflippedOrientation(Core.Object3D.Cut cut, CutOrientation orientation)
+            {
+                cut.Orientation = orientation;
+                cut.Flip = false;
+                using Core.DLL.Plane plane = new(Vector3.zero, Vector3.right);
+                m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, orientation, false);
+                cut.Normal = plane.Normal;
+            }
+
+            Core.Object3D.Cut axialCut = reuse ? Cuts[0] : AddCutPlane();
+            SetUnflippedOrientation(axialCut, CutOrientation.Axial);
             Vector3 axialPoint = center + (Vector3.Dot(sitePosition - center, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = bbox.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts);
             axialCut.Position = ((axialPoint.z - center.z) / (axialCut.Normal.z * axialOffset * axialCut.NumberOfCuts)) + 0.5f;
@@ -1704,7 +1790,8 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(axialCut);
 
-            Core.Object3D.Cut coronalCut = AddCutPlane();
+            Core.Object3D.Cut coronalCut = reuse ? Cuts[1] : AddCutPlane();
+            SetUnflippedOrientation(coronalCut, CutOrientation.Coronal);
             Vector3 coronalPoint = center + (Vector3.Dot(sitePosition - center, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = bbox.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts);
             coronalCut.Position = ((coronalPoint.y - center.y) / (coronalCut.Normal.y * coronalOffset * coronalCut.NumberOfCuts)) + 0.5f;
@@ -1716,7 +1803,8 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(coronalCut);
 
-            Core.Object3D.Cut sagittalCut = AddCutPlane();
+            Core.Object3D.Cut sagittalCut = reuse ? Cuts[2] : AddCutPlane();
+            SetUnflippedOrientation(sagittalCut, CutOrientation.Sagittal);
             Vector3 sagittalPoint = center + (Vector3.Dot(sitePosition - center, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
             float sagittalOffset = bbox.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts);
             sagittalCut.Position = ((sagittalPoint.x - center.x) / (sagittalCut.Normal.x * sagittalOffset * sagittalCut.NumberOfCuts)) + 0.5f;
@@ -1727,6 +1815,15 @@ namespace HBP.Data.Module3D
             }
 
             UpdateCutPlane(sagittalCut);
+            m_AutomaticCutsInitialized = true;
+        }
+
+        /// <summary>Accept the three ordered cuts of a prepared synchronization snapshot as automatic cuts.</summary>
+        public void MarkAutomaticCutsAsCurrent()
+        {
+            if (!AutomaticCutAroundSelectedSite || Cuts.Count != 3 || Cuts[0].Orientation != CutOrientation.Axial || Cuts[1].Orientation != CutOrientation.Coronal || Cuts[2].Orientation != CutOrientation.Sagittal)
+                throw new InvalidOperationException("Automatic cuts must be axial, coronal and sagittal.");
+            m_AutomaticCutsInitialized = true;
         }
 
         #endregion
@@ -1814,7 +1911,9 @@ namespace HBP.Data.Module3D
 
             OnIEEGOutdated.Invoke(false);
             SceneInformation.GeneratorNeedsUpdate = false;
-            IsGeneratorUpToDate = false;
+            bool preserveTimelineState = m_PreserveSynchronizedTimelinesOnNextGenerator;
+            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
+            SetGeneratorUpToDate(false, preserveTimelineState);
             SceneInformation.GeneratorUpdateRequested = false;
             ComputeGenerators().Forget();
         }
@@ -2622,6 +2721,7 @@ namespace HBP.Data.Module3D
 
         private async UniTask ComputeGeneratorsAsync()
         {
+            ulong stateGeneration = m_SynchronizedStateGeneration;
             m_PreparationError = null;
             m_UpdatingGenerators = true;
             var completion = new UniTaskCompletionSource();
@@ -2658,7 +2758,7 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            if (succeeded && !m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate) FinalizeGeneratorsComputing();
+            if (succeeded && !m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && stateGeneration == m_SynchronizedStateGeneration) FinalizeGeneratorsComputing();
         }
 
         /// <summary>
@@ -2667,6 +2767,7 @@ namespace HBP.Data.Module3D
         /// <returns>Coroutine return</returns>
         private async UniTask LoadActivityAsync()
         {
+            ulong stateGeneration = m_SynchronizedStateGeneration;
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
             int currentColumn = 0;
@@ -2702,7 +2803,7 @@ namespace HBP.Data.Module3D
                 currentMessage = "Initializing";
                 for (int i = 0; i < computations.Length; i++)
                 {
-                    if (m_DestroyRequested || SceneInformation.GeneratorNeedsUpdate) return;
+                    if (m_DestroyRequested || SceneInformation.GeneratorNeedsUpdate || stateGeneration != m_SynchronizedStateGeneration) return;
                     var computation = computations[i];
                     if (!computation.Column) continue;
                     currentColumn = i;
@@ -2718,7 +2819,7 @@ namespace HBP.Data.Module3D
                         await UniTask.SwitchToMainThread();
                     }
 
-                    if (!m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && computation.Column) computation.Work.Publish?.Invoke();
+                    if (!m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && stateGeneration == m_SynchronizedStateGeneration && computation.Column) computation.Work.Publish?.Invoke();
                 }
 
                 currentMessage = "Finalizing";
@@ -2738,6 +2839,7 @@ namespace HBP.Data.Module3D
         private async UniTask UpdateMeshesCollidersAsync()
         {
             m_UpdatingColliders = true;
+            ulong stateGeneration = m_SynchronizedStateGeneration;
             // Own a snapshot so another mesh selection cannot free the worker's input.
             var source = (Core.DLL.Surface)(MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated ? MeshManager.SimplifiedBrainSurface : MeshManager.SimplifiedMeshToUse).Clone();
             var planes = Cuts.Select(cut => new Core.Object3D.Cut(cut.Point, cut.Normal)).ToArray();
@@ -2750,7 +2852,8 @@ namespace HBP.Data.Module3D
                 if (clip) cuts.AddRange(source.Cut(planes, false, strongCuts));
                 else cuts.Add((Core.DLL.Surface)source.Clone());
                 await UniTask.SwitchToMainThread();
-                if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate) return;
+                if (m_BeforeColliderPublish != null) await m_BeforeColliderPublish();
+                if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate || stateGeneration != m_SynchronizedStateGeneration) return;
                 cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh);
                 var filter = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>();
                 var collider = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>();
@@ -2763,6 +2866,8 @@ namespace HBP.Data.Module3D
                     cutCollider.sharedMesh = null;
                     if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
                 }
+
+                m_OnColliderPublished?.Invoke();
             }
             finally
             {

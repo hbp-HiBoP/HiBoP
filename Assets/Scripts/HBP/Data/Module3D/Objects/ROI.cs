@@ -1,14 +1,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using System;
+using HBP.Core.Interfaces;
 
 namespace HBP.Data.Module3D
 {
     /// <summary>
     /// Class containing information about a Region Of Interest in the scene
     /// </summary>
-    public class ROI : MonoBehaviour
+    public class ROI : MonoBehaviour, IIdentifiable
     {
+        private string m_ID;
+
+        public string ID
+        {
+            get => m_ID ??= Guid.NewGuid().ToString();
+            set => m_ID = value;
+        }
+
+        public void GenerateID() => ID = Guid.NewGuid().ToString();
+
         #region Properties
 
         private string m_Name = "ROI";

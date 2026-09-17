@@ -124,18 +124,18 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void RemoveSelectedROI()
         {
-            Destroy(m_SelectedROI.gameObject);
-            ROIs.Remove(m_SelectedROI);
-            UpdateROIMasks();
+            RemoveROI(m_SelectedROI);
+        }
 
-            if (ROIs.Count > 0)
-            {
-                SelectedROI = ROIs.Last();
-            }
-            else
-            {
-                SelectedROI = null;
-            }
+        public void RemoveROI(ROI roi)
+        {
+            if (roi == null || !ROIs.Contains(roi)) return;
+            bool wasSelected = m_SelectedROI == roi;
+            Destroy(roi.gameObject);
+            ROIs.Remove(roi);
+            if (wasSelected) m_SelectedROI = null;
+            if (wasSelected) SelectedROI = ROIs.LastOrDefault();
+            else UpdateROIMasks();
         }
 
         /// <summary>

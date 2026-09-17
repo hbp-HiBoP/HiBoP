@@ -53,6 +53,8 @@ namespace HBP.Transfer.Scene
 
         private readonly Dictionary<string, string> nativePaths = new(StringComparer.Ordinal);
         public string DirectoryPath => directory;
+        public string VerifiedContentHash { get; private set; }
+        public PreparedSceneManifest PreparedManifest { get; private set; }
         public PairingContext Globals { get; set; }
 
         public SceneArchive(string directory, bool reading = false, PairingContext globals = null, bool deferResourceWrites = false, CancellationToken cancellationToken = default)
@@ -506,11 +508,17 @@ namespace HBP.Transfer.Scene
         {
             if (Globals == null)
                 throw new InvalidOperationException("Global pairing data is required before receiving a visualization.");
-            Extract(input, "visualization.json", token);
-            return ReadPrepared();
+            using var source = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
+            using var hash = HBP.Transfer.Codecs.TransferCodec.CreateHash();
+            string contentHash = BitConverter.ToString(hash.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
+            source.Position = 0;
+            Extract(source, "visualization.json", token);
+            ScenePayload payload = ReadPrepared();
+            VerifiedContentHash = contentHash;
+            return payload;
         }
 
-        public ScenePayload ReadPrepared()
+        public ScenePayload ReadPrepared(string verifiedContentHash = null)
         {
             if (!verifiedContent || Globals == null)
                 throw new InvalidOperationException("Verified paired content is required.");
@@ -525,12 +533,21 @@ namespace HBP.Transfer.Scene
             if (payload?.GlobalContextId != Globals.Id)
                 throw new InvalidDataException("This visualization belongs to a different pairing. Send a new snapshot.");
             SceneValidation.Validate(payload, this);
+            PreparedManifest = PreparedSceneManifest.FromMetadataFile(Path.Combine(directory, "visualization.json"));
+            if (verifiedContentHash != null)
+            {
+                if (verifiedContentHash.Length != 64 || verifiedContentHash.Any(character => character < '0' || character > '9' && character < 'a' || character > 'f'))
+                    throw new InvalidDataException("Invalid verified delivery hash.");
+                VerifiedContentHash = verifiedContentHash;
+            }
+
             return payload;
         }
 
         public GlobalDataPayload ReadGlobalData(string input, System.Threading.CancellationToken token = default)
         {
-            Extract(input, "globals.json", token);
+            using var source = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
+            Extract(source, "globals.json", token);
             return LoadGlobalData();
         }
 
@@ -540,7 +557,7 @@ namespace HBP.Transfer.Scene
             return Serializer(true).Deserialize<GlobalDataPayload>(reader);
         }
 
-        private void Extract(string input, string metadataName, System.Threading.CancellationToken token)
+        private void Extract(Stream input, string metadataName, System.Threading.CancellationToken token)
         {
             EnsureWritable();
             if (Directory.EnumerateFileSystemEntries(directory).Any())
@@ -549,7 +566,7 @@ namespace HBP.Transfer.Scene
             readToken = token;
             byte[] buffer = new byte[65536];
             using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
-            using (var zip = ZipFile.OpenRead(input))
+            using (var zip = new ZipArchive(input, ZipArchiveMode.Read, true))
             {
                 long total = 0;
                 var names = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);

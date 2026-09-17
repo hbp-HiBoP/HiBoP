@@ -40,6 +40,17 @@ namespace HBP.Data.Module3D
             if (site) site.IsSelected = true;
         }
 
+        /// <summary>Apply a prepared scientific selection while derived site masks may still reflect the previous state.</summary>
+        public void SelectSiteForSynchronization(Column3D column, Core.Object3D.Site site)
+        {
+            RequireColumn(column);
+            if (site && !column.Sites.Contains(site))
+                throw new ArgumentException("Select a site belonging to the target column.", nameof(site));
+            column.IsSelected = true;
+            column.UnselectSite();
+            if (site) site.IsSelected = true;
+        }
+
         public void SetTimelineIndex(Column3D target, int index, bool allOfSameType = false)
         {
             foreach (var timeline in GetTimelines(target, allOfSameType)) timeline.CurrentIndex = index;

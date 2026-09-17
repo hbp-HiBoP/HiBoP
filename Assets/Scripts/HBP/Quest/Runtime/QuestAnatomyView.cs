@@ -22,6 +22,7 @@ namespace HBP.Quest
         private CancellationTokenSource preparation;
         private Task preparationCompletion = Task.CompletedTask;
         public Base3DScene Scene => current?.Scene;
+        public RestoredScene PublishedScene => current;
         public IReadOnlyList<QuestColumnPresentation> Columns => columns;
         public bool SurfaceHidden { get; private set; }
         public bool IsPreparing => preparation != null;
@@ -128,9 +129,10 @@ namespace HBP.Quest
         {
             var camera = Camera.main;
             if (camera != null && camera.TryGetComponent<HBP.Rendering.HBPEdgeCameraSettings>(out var edges)) edges.EdgesEnabled = Scene != null && Scene.EdgeMode;
+            QuestColumnPresentation[] visibleColumns = columns.ToArray();
             foreach (var renderer in GetComponentsInChildren<Renderer>(true))
             {
-                var owner = columns.FirstOrDefault(column => renderer.transform.IsChildOf(column.transform));
+                var owner = visibleColumns.FirstOrDefault(column => column != null && renderer.transform.IsChildOf(column.transform));
                 renderer.forceRenderingOff = owner == null || (SurfaceHidden && owner.Column != null && renderer.gameObject == owner.Column.BrainMesh);
             }
         }

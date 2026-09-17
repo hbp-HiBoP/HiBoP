@@ -14,10 +14,12 @@ Implementation: `Assets/Scripts/HBP/Sync` (`HBP.Sync.Runtime`, no Unity referenc
 `SharedStateSchema` is the authoritative field-number registry. Field numbers are scoped to an entity kind and must never be reassigned within schema 1. Group numbers are scoped to the same entity instance. A group is compared and replaced as a unit; absent fields differ from present fields. The S1 mapping in `operation-matrix.md` links every operation row to these numbers.
 
 - Cut geometry `cut:2` contains orientation, normal, flip and position. Cut membership/order is `cut:1`.
+- `cut.position` is a float32 scalar. `scene.brainColor` and `scene.cutColor` are integer `ColorType` choices; per-site colors remain RGBA values.
 - Topology `scene:9` contains mesh, preview MRI, mesh part, representation and both erasure masks. Its resource and mask are one group. S2 validates mask bit lengths against the selected topology; a syntactically valid mask alone is insufficient.
 - Sphere geometry `sphere:2` contains position and influence radius. CCEP source `column:10` contains mode, site and atlas label. Timeline `column:14` contains actual navigation index, playing, looping, step, sampling and anchor time.
 - A configuration load, global toolbar action or site import is encoded as the resulting assignments to these same groups. The source file path, toolbar global toggle and UI action name are not transmitted.
 - Correlation result `scene:7` uses a prepared content-addressed result alongside comparison target. S2 may replace that dependency with reproducible inputs only after parity is demonstrated and a new schema version is negotiated. `scene:27` records manual activity projection intent independently from derived generator freshness.
+- The comparison target `scene:8` is a stable ID derived from the column ID and site full ID, so the same site cloned into two columns remains distinguishable. `scene:9` names canonical correlation-result bytes by SHA-256; the receiver validates the resource before applying that state.
 
 ## Canonical binary snapshot
 

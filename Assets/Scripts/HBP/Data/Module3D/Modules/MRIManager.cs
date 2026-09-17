@@ -157,6 +157,19 @@ namespace HBP.Data.Module3D
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
+        /// <summary>Select an exact resource from the prepared scene without name fallback.</summary>
+        public void SelectPrepared(Core.Object3D.MRI3D mri)
+        {
+            int index = MRIs.FindIndex(item => ReferenceEquals(item, mri));
+            if (index < 0 || !MRIs[index].IsLoaded) throw new System.InvalidOperationException("Prepared MRI is unavailable.");
+            if (SelectedMRIID == index) return;
+            SelectedMRIID = index;
+            VolumeCenter = SelectedMRI.Volume.Center;
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
+            m_Scene.InvalidateProjectionGrid();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
         /// <summary>
         /// Load every MRI that has not been loaded yet
         /// </summary>

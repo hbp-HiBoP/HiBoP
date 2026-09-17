@@ -101,6 +101,18 @@ namespace HBP.Data.Module3D
             OnUpdateSpanValues.Invoke();
         }
 
+        /// <summary>Apply an already validated canonical span, including the all-zero state.</summary>
+        public void ApplySynchronizedSpanValues(float min, float mid, float max)
+        {
+            if (min > mid || mid > max || float.IsNaN(min) || float.IsNaN(mid) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(mid) || float.IsInfinity(max))
+                throw new System.ArgumentOutOfRangeException(nameof(min), "Invalid synchronized span.");
+            if (SpanMin == min && Middle == mid && SpanMax == max) return;
+            SpanMin = min;
+            Middle = mid;
+            SpanMax = max;
+            OnUpdateSpanValues.Invoke();
+        }
+
         /// <summary>
         /// Reset span values to their default values
         /// </summary>

@@ -82,8 +82,8 @@ namespace HBP.Sync
             Add(EntityKind.Scene, 18, 11, ValueKind.Float, "mriCalibrationMin");
             Add(EntityKind.Scene, 19, 11, ValueKind.Float, "mriCalibrationMax");
             Add(EntityKind.Scene, 20, 12, ValueKind.Resource, "implantation");
-            Add(EntityKind.Scene, 21, 13, ValueKind.Color, "brainColor");
-            Add(EntityKind.Scene, 22, 14, ValueKind.Color, "cutColor");
+            Add(EntityKind.Scene, 21, 13, ValueKind.Int, "brainColor");
+            Add(EntityKind.Scene, 22, 14, ValueKind.Int, "cutColor");
             Add(EntityKind.Scene, 23, 15, ValueKind.Int, "colormap");
             Add(EntityKind.Scene, 24, 16, ValueKind.Bool, "showEdges");
             Add(EntityKind.Scene, 25, 17, ValueKind.Bool, "transparentBrain");
@@ -100,8 +100,8 @@ namespace HBP.Sync
             Add(EntityKind.Scene, 36, 25, ValueKind.Bool, "localizersEnabled");
             Add(EntityKind.Scene, 37, 25, ValueKind.Resource, "localizerProtocol");
             Add(EntityKind.Scene, 38, 25, ValueKind.Resource, "localizerData");
-            Add(EntityKind.Scene, 39, 25, ValueKind.Id, "localizerBloc");
-            Add(EntityKind.Scene, 40, 26, ValueKind.Float, "localizerTime");
+            Add(EntityKind.Scene, 39, 25, ValueKind.Resource, "localizerBloc");
+            Add(EntityKind.Scene, 40, 26, ValueKind.Int, "localizerIndex");
             Add(EntityKind.Scene, 41, 27, ValueKind.Float, "localizerMin");
             Add(EntityKind.Scene, 42, 27, ValueKind.Float, "localizerMiddle");
             Add(EntityKind.Scene, 43, 27, ValueKind.Float, "localizerMax");
@@ -157,7 +157,7 @@ namespace HBP.Sync
             Add(EntityKind.Cut, 3, 2, ValueKind.Int, "orientation");
             Add(EntityKind.Cut, 4, 2, ValueKind.Vector3, "normal");
             Add(EntityKind.Cut, 5, 2, ValueKind.Bool, "flip");
-            Add(EntityKind.Cut, 6, 2, ValueKind.Vector3, "position");
+            Add(EntityKind.Cut, 6, 2, ValueKind.Float, "position");
 
             Add(EntityKind.Roi, 1, 1, ValueKind.Bool, "exists");
             Add(EntityKind.Roi, 2, 1, ValueKind.Int, "order");

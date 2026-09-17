@@ -272,7 +272,7 @@ namespace HBP.Quest
                     loadingProgress?.Invoke(0.85f, "Preparing visualization");
                     return 0;
                 }, stop).ConfigureAwait(false);
-                ScenePayload payload = await Task.Run(() => { return archive.ReadPrepared(); }, stop).ConfigureAwait(false);
+                ScenePayload payload = await Task.Run(() => { return archive.ReadPrepared(hash); }, stop).ConfigureAwait(false);
                 Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
                 DeliveryStatus result = await publication.ConfigureAwait(false);
                 consumed = result == DeliveryStatus.Published;

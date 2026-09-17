@@ -242,6 +242,18 @@ namespace HBP.Core.Object3D
             OnChangeState.Invoke();
         }
 
+        /// <summary>Apply one synchronized site assignment with a single change event.</summary>
+        public void ApplySynchronizedState(bool filtered, bool blacklisted, bool highlighted, Color color, IReadOnlyList<string> labels)
+        {
+            if (m_IsFiltered == filtered && m_IsBlackListed == blacklisted && m_IsHighlighted == highlighted && m_Color == color && Labels.SequenceEqual(labels)) return;
+            m_IsFiltered = filtered;
+            m_IsBlackListed = blacklisted;
+            m_IsHighlighted = highlighted;
+            m_Color = color;
+            Labels = labels.ToList();
+            OnChangeState.Invoke();
+        }
+
         public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
         {
             if (importHighlighted && m_IsHighlighted != isHighlighted)

@@ -224,7 +224,7 @@ namespace HBP.UI.Module3D
             Cut.OnUpdateGUITextures.AddListener(() =>
             {
                 Destroy(m_Image.sprite);
-                Texture2D texture = m_Scene.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.ID];
+                Texture2D texture = m_Scene.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.Index];
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
                 m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
                 m_Image.sprite.texture.anisoLevel = 9;
@@ -496,7 +496,7 @@ namespace HBP.UI.Module3D
 
             foreach (var site in sites)
             {
-                Vector2 ratio = m_Scene.CutGeometryGenerators[Cut.ID].GetPositionRatioOnTexture(site.transform.localPosition);
+                Vector2 ratio = m_Scene.CutGeometryGenerators[Cut.Index].GetPositionRatioOnTexture(site.transform.localPosition);
                 float horizontalRatio = 0, verticalRatio = 0;
                 switch (Cut.Orientation)
                 {
@@ -530,7 +530,7 @@ namespace HBP.UI.Module3D
             foreach (Transform child in m_CutLinesRectTransform) Destroy(child.gameObject);
             if (Cut.Orientation == CutOrientation.Custom || !PersistentDataManager.UserPreferences.Visualization.Cut.ShowCutLines) return;
 
-            Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.ID].BoundingBox;
+            Core.DLL.BBox boundingBox = m_Scene.CutGeometryGenerators[Cut.Index].BoundingBox;
             if (boundingBox != null)
             {
                 Vector3 min = boundingBox.Min;
@@ -561,7 +561,7 @@ namespace HBP.UI.Module3D
                     {
                         void addRatioOfPoint(Vector3 point)
                         {
-                            Core.DLL.CutGeometryGenerator geometryGenerator = m_Scene.CutGeometryGenerators[Cut.ID];
+                            Core.DLL.CutGeometryGenerator geometryGenerator = m_Scene.CutGeometryGenerators[Cut.Index];
                             Vector2 ratio = geometryGenerator.GetPositionRatioOnTexture(point);
                             float horizontalRatio = 0, verticalRatio = 0;
                             switch (Cut.Orientation)

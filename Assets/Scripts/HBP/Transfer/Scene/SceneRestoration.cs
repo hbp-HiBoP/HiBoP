@@ -21,6 +21,8 @@ namespace HBP.Transfer.Scene
     {
         public Base3DScene Scene { get; }
         public ScenePayload Payload { get; }
+        public string VerifiedContentHash => archive.VerifiedContentHash;
+        public PreparedSceneManifest PreparedManifest => archive.PreparedManifest;
         private readonly SceneArchive archive;
         private AsyncLazy close;
 

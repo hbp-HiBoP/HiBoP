@@ -435,7 +435,8 @@ namespace HBP.Data.Module3D
             {
                 float[] areaActivity = activityByMarsAtlasArea[kv.Key];
                 float amplitude = 0, latency = 0;
-                for (int i = mainEventIndex + 2; i < subTimelineLength; i++)
+                int searchEnd = System.Math.Min(subTimelineLength, areaActivity.Length) - 2;
+                for (int i = System.Math.Max(2, mainEventIndex + 2); i < searchEnd; i++)
                 {
                     if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                     {

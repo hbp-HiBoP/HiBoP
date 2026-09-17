@@ -215,7 +215,7 @@ namespace HBP.Sync
             if (field.Value == ValueKind.Int)
             {
                 int number = BitConverter.ToInt32(value, 0);
-                if ((field.Name == "order" || field.Name == "timelineIndex") && number < 0 || field.Name == "timelineStep" && number <= 0 || (field.Name == "modality" || field.Name == "orientation" || field.Name == "meshPart" || field.Name == "representation" || field.Name == "colormap" || field.Name == "ccepSourceMode") && (number < 0 || number > 255))
+                if ((field.Name == "order" || field.Name == "timelineIndex" || field.Name == "localizerIndex") && number < 0 || field.Name == "timelineStep" && number <= 0 || (field.Name == "modality" || field.Name == "orientation" || field.Name == "meshPart" || field.Name == "representation" || field.Name == "colormap" || field.Name == "ccepSourceMode") && (number < 0 || number > 255))
                     throw new InvalidDataException($"Invalid {field.Name}");
             }
 

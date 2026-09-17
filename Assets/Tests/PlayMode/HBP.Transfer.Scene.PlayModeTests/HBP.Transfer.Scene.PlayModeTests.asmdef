@@ -1,6 +1,6 @@
 {
     "name": "HBP.Transfer.Scene.PlayModeTests",
-    "references": ["HBP.Transfer.Transport", "HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Quest.Runtime", "HBP.PlayModeTestUtilities", "UniTask"],
+    "references": ["HBP.Transfer.Transport", "HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Quest.Runtime", "HBP.Sync.Runtime", "HBP.Sync.Scene", "HBP.PlayModeTestUtilities", "UniTask"],
     "includePlatforms": [],
     "precompiledReferences": ["Newtonsoft.Json.dll"],
     "defineConstraints": ["UNITY_INCLUDE_TESTS"],

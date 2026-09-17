@@ -93,12 +93,16 @@ namespace HBP.Transfer.Scene
                 Report("Preparing visualization for transfer");
                 if (streaming)
                 {
-                    return new SceneDelivery(output, transferId, sessionId, snapshot.Summary, () =>
+                    SceneDelivery streamingDelivery = null;
+                    streamingDelivery = new SceneDelivery(output, transferId, sessionId, snapshot.Summary, () =>
                     {
                         byte[] metadata;
                         metadata = snapshot.Metadata.Encode(archive);
-                        return archive.CaptureBlockResources(metadata);
+                        var resources = archive.CaptureBlockResources(metadata);
+                        streamingDelivery.SetPreparedManifest(PreparedSceneManifest.FromMetadata(snapshot.Metadata.Token));
+                        return resources;
                     }, archive.Dispose, token);
+                    return streamingDelivery;
                 }
 
                 var delivery = await Task.Run(() =>

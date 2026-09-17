@@ -17,6 +17,8 @@ using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Rendering;
+using HBP.Sync;
+using HBP.Sync.Scene;
 using HBP.Tests.PlayMode.Utilities;
 using NUnit.Framework;
 using UnityEngine.Events;
@@ -1239,18 +1241,428 @@ namespace HBP.Tests.PlayMode.Module3D
 
             Assert.That(addCutEvents, Is.EqualTo(1));
             Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Cuts[0].ID, Is.EqualTo(0));
+            Assert.That(baseScene.Cuts[0].Index, Is.EqualTo(0));
             Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
             Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(1));
             Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
 
+            Core.Object3D.Cut secondCut = baseScene.AddCutPlane();
+            string secondId = secondCut.ID;
             baseScene.RemoveCutPlane(cut);
+
+            Assert.That(secondCut.ID, Is.EqualTo(secondId));
+            Assert.That(secondCut.Index, Is.EqualTo(0));
+            baseScene.RemoveCutPlane(secondCut);
 
             Assert.That(removeCutEvents, Is.EqualTo(1));
             Assert.That(baseScene.Cuts, Is.Empty);
             Assert.That(displayedObjects.BrainCutMeshes, Is.Empty);
             Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(0));
             Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        public async Task Base3DScene_AutomaticCutsRetainIdsAcrossRecalculation()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneAutomaticCutIdentity");
+            MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-automatic-cut-mri");
+            SingleMesh patientMesh = new("Grey matter", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "runtime-automatic-cut-mesh");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            Base3DScene baseScene = initialized.BaseScene;
+            await UniTask.NextFrame();
+            Assert.That(baseScene.MRIManager.SelectedMRI?.Volume, Is.Not.Null, "Automatic cuts require a selected MRI volume.");
+            Assert.That(baseScene.MeshManager.ReferenceSurface, Is.Not.Null, "Automatic cuts require a reference surface.");
+            baseScene.SelectSite(baseScene.Columns[0], baseScene.Columns[0].Sites[0]);
+            baseScene.AutomaticCutAroundSelectedSite = true;
+            baseScene.CutAroundSelectedSite();
+            string[] automaticIds = baseScene.Cuts.Select(cut => cut.ID).ToArray();
+            baseScene.CutAroundSelectedSite();
+            Assert.That(baseScene.Cuts.Select(cut => cut.ID), Is.EqualTo(automaticIds));
+            await CleanSceneOwnedAnatomy(baseScene);
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public void CorrelationResultResource_ReplaysExactSitePairValuesAndRejectsTampering()
+        {
+            using PlayModeSceneScope sourceScope = new("CorrelationResourceSource");
+            using PlayModeSceneScope targetScope = new("CorrelationResourceTarget");
+            Base3DScene source = CreateBaseScene(sourceScope, "Source");
+            Base3DScene target = CreateBaseScene(targetScope, "Target");
+            Patient patient = new("Patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "correlation-patient");
+
+            Column3DIEEG CreatePreparedColumn(PlayModeSceneScope scope, Base3DScene scene)
+            {
+                Column3DIEEG column = CreateColumn<Column3DIEEG>(scope, "IEEG");
+                SetAutoProperty(column, "ColumnData", new IEEGColumn("IEEG", new BaseConfiguration(), null, "", null, new DynamicConfiguration(), "correlation-column"));
+                var siteObject = new GameObject("A1");
+                SceneManager.MoveGameObjectToScene(siteObject, scope.Scene);
+                HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                site.Information = new SiteInformation { Patient = patient, Name = "A1" };
+                SetAutoProperty(column, "Sites", new List<HBP.Core.Object3D.Site> { site });
+                scene.Columns.Add(column);
+                return column;
+            }
+
+            Column3DIEEG sourceColumn = CreatePreparedColumn(sourceScope, source);
+            Column3DIEEG targetColumn = CreatePreparedColumn(targetScope, target);
+            HBP.Core.Object3D.Site sourceSite = sourceColumn.Sites.Single();
+            HBP.Core.Object3D.Site targetSite = targetColumn.Sites.Single();
+            sourceColumn.CorrelationBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.25f };
+            sourceColumn.CorrelationMeanBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.75f };
+
+            CorrelationResultResource captured = CorrelationResultResource.Capture(source);
+            byte[] bytes = captured.Encode();
+            string reference = CorrelationResultResource.Reference(bytes);
+            CorrelationResultResource decoded = CorrelationResultResource.Decode(bytes);
+            decoded.ValidateFor(target, new[] { targetSite.Information.FullID });
+            decoded.Apply(target);
+            Assert.That(targetColumn.CorrelationBySitePair[targetSite][targetSite], Is.EqualTo(0.25f));
+            Assert.That(targetColumn.CorrelationMeanBySitePair[targetSite][targetSite], Is.EqualTo(0.75f));
+            Assert.That(CorrelationResultResource.Capture(target).Encode(), Is.EqualTo(bytes));
+            Assert.That(CorrelationResultResource.Reference(bytes), Is.EqualTo(reference));
+            byte[] tampered = (byte[])bytes.Clone();
+            tampered[^1] ^= 1;
+            Assert.That(CorrelationResultResource.Reference(tampered), Is.Not.EqualTo(reference));
+            tampered[0] ^= 1;
+            Assert.Throws<InvalidDataException>(() => CorrelationResultResource.Decode(tampered));
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public async Task LiveGeometryStateAdapter_ReplaysCutCreateMoveAndDeleteBetweenPreparedScenes()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope desktopScope = new("SyncDesktopScene");
+            using PlayModeSceneScope questScope = new("SyncQuestScene");
+            MRI cutMRI = new("Cut MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "sync-cut-mri");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, desktopScope, patientMRIs: new[] { cutMRI }, configuredMRIName: cutMRI.Name);
+            Base3DScene desktop = initialized.BaseScene;
+            Base3DScene quest = CreateRuntimeBase3DScene(questScope);
+            quest.Initialize(initialized.Visualization);
+            await quest.InitializeAsync(initialized.Visualization, (_, _, _) => { }, CancellationToken.None);
+            quest.FinalizeInitialization();
+            WireRuntimeCameraGraph(quest);
+            EnsureRuntimeSiteConfigurations(quest);
+            EnsureRuntimeCutColorSchemes(quest);
+            for (int frame = 0; frame < 20 && (desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate); frame++)
+                await UniTask.NextFrame();
+            Assert.That(desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate, Is.False);
+
+            Patient patient = initialized.Visualization.Patients.Single();
+            HBP.Core.Data.Site alternateSite = new("B1", new[] { new Coordinate("MNI", new Vector3(4, 5, 6), "sync-alternate-coordinate") }, Array.Empty<BaseTagValue>(), "sync-alternate-site");
+            var alternateSites = new List<HBP.Core.Object3D.Implantation3D.SiteInfo>
+            {
+                new() { Name = "B1", Electrode = "B", NativePosition = new Vector3(4, 5, 6), Patient = patient, PatientIndex = 0, Index = 0, SiteData = alternateSite }
+            };
+            desktop.ImplantationManager.Add("Synchronized alternate implantation", alternateSites, initialized.Visualization.Patients);
+            quest.ImplantationManager.Add("Synchronized alternate implantation", alternateSites, initialized.Visualization.Patients);
+
+            Guid epoch = Guid.NewGuid();
+            string manifest = new string('a', 64);
+            LiveGeometryStateAdapter source = new(desktop, epoch, manifest);
+            LiveGeometryStateAdapter destination = new(quest, epoch, manifest);
+            StateSnapshot initial = source.Capture(0);
+            destination.BindInitialState(initial);
+
+            ((Column3DAnatomy)desktop.Columns[0]).AnatomyParameters.InfluenceDistance = 22.5f;
+            HBP.Core.Object3D.Cut cut = desktop.AddCutPlane();
+            cut.Position = 0.37f;
+            desktop.UpdateCutPlane(cut);
+            StateSnapshot created = source.Capture(1);
+            destination.Apply(created);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            Assert.That(quest.Cuts.Single().ID, Is.EqualTo(cut.ID));
+            await WaitForConditionAsync(() => desktop.Columns[0].CutTextures.BaseBrainCutTextures.Count == 1 && quest.Columns[0].CutTextures.BaseBrainCutTextures.Count == 1 && !desktop.SceneInformation.CutsNeedUpdate && !quest.SceneInformation.CutsNeedUpdate && !desktop.SceneInformation.BaseCutTexturesNeedUpdate && !quest.SceneInformation.BaseCutTexturesNeedUpdate, "synchronized cut texture output", maxFrames: 240);
+            Assert.That(quest.Columns[0].CutTextures.BaseBrainCutTextures[0].GetPixels32(), Is.EqualTo(desktop.Columns[0].CutTextures.BaseBrainCutTextures[0].GetPixels32()));
+
+            var incompleteFields = created.Fields;
+            incompleteFields.Remove(new StateKey(EntityKind.Cut, "", cut.ID, 6));
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(incompleteFields, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var invalidOrientation = created.Fields;
+            invalidOrientation[new StateKey(EntityKind.Cut, "", cut.ID, 3)] = StateValue.Int(99);
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(invalidOrientation, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var invalidPosition = created.Fields;
+            invalidPosition[new StateKey(EntityKind.Cut, "", cut.ID, 6)] = StateValue.Float(1.1f);
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(invalidPosition, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownResource = created.Fields;
+            unknownResource[new StateKey(EntityKind.Scene, "", "", 11)] = StateValue.Text("mesh:" + new string('b', 64) + ":1");
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownResource, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownComparison = created.Fields;
+            unknownComparison[new StateKey(EntityKind.Scene, "", "", 8)] = StateValue.Text("site:" + new string('b', 64));
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownComparison, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownCorrelation = created.Fields;
+            unknownCorrelation[new StateKey(EntityKind.Scene, "", "", 9)] = StateValue.Text("correlation:" + new string('b', 64) + ":1");
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownCorrelation, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownAtlas = created.Fields;
+            unknownAtlas[new StateKey(EntityKind.Scene, "", "", 34)] = StateValue.Text("difumo:" + new string('b', 64) + ":1");
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownAtlas, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownLocalizer = created.Fields;
+            unknownLocalizer[new StateKey(EntityKind.Scene, "", "", 37)] = StateValue.Text("localizer-protocol:" + new string('b', 64) + ":1");
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownLocalizer, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var unknownLocalizerBloc = created.Fields;
+            unknownLocalizerBloc[new StateKey(EntityKind.Scene, "", "", 39)] = StateValue.Text("localizer-bloc:" + new string('b', 64) + ":1");
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownLocalizerBloc, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+            var invalidLocalizerThreshold = created.Fields;
+            invalidLocalizerThreshold[new StateKey(EntityKind.Scene, "", "", 41)] = StateValue.Float(130f);
+            Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(invalidLocalizerThreshold, 2)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
+
+            await WaitForConditionAsync(() => quest.CanApplyPreparedState, "previous native activity computation to finish", maxFrames: 600);
+            await WaitForConditionAsync(() => !GetPrivateField<bool>(quest, "m_UpdatingColliders"), "previous collider computation to finish", maxFrames: 600);
+            MethodInfo refreshColliders = typeof(Base3DScene).GetMethod("RefreshColliders", BindingFlags.NonPublic | BindingFlags.Instance);
+            Assert.That(refreshColliders, Is.Not.Null);
+            UniTaskCompletionSource releaseStaleCollider = new();
+            bool staleColliderReadyToPublish = false;
+            int colliderPublications = 0;
+            SetPrivateField(quest, "m_BeforeColliderPublish", (Func<UniTask>)(() =>
+            {
+                staleColliderReadyToPublish = true;
+                return releaseStaleCollider.Task;
+            }));
+            SetPrivateField(quest, "m_OnColliderPublished", (Action)(() => colliderPublications++));
+            try
+            {
+                quest.SceneInformation.CollidersNeedUpdate = true;
+                refreshColliders.Invoke(quest, null);
+                await WaitForConditionAsync(() => staleColliderReadyToPublish, "stale native collider result to reach publication", maxFrames: 240);
+
+                cut.Position = 0.61f;
+                desktop.UpdateCutPlane(cut);
+                StateSnapshot moved = source.Capture(2);
+                destination.Apply(moved);
+                Assert.That(SharedStateCodec.Encode(destination.Capture(2)), Is.EqualTo(SharedStateCodec.Encode(moved)));
+
+                SetPrivateField(quest, "m_BeforeColliderPublish", null);
+                releaseStaleCollider.TrySetResult();
+                await WaitForConditionAsync(() => !GetPrivateField<bool>(quest, "m_UpdatingColliders"), "stale native collider result to be discarded", maxFrames: 240);
+                Assert.That(colliderPublications, Is.Zero);
+                await WaitForConditionAsync(() => !quest.SceneInformation.GeometryNeedsUpdate && !quest.SceneInformation.CutsNeedUpdate && !quest.SceneInformation.BaseCutTexturesNeedUpdate, "new cut geometry to settle before collider publication", maxFrames: 600);
+                refreshColliders.Invoke(quest, null);
+                await WaitForConditionAsync(() => colliderPublications == 1 && !GetPrivateField<bool>(quest, "m_UpdatingColliders") && !quest.SceneInformation.CollidersNeedUpdate, "only the latest native collider result to publish", () => $"publications={colliderPublications}, updating={GetPrivateField<bool>(quest, "m_UpdatingColliders")}, pending={quest.SceneInformation.CollidersNeedUpdate}", maxFrames: 1800);
+            }
+            finally
+            {
+                SetPrivateField(quest, "m_BeforeColliderPublish", null);
+                SetPrivateField(quest, "m_OnColliderPublished", null);
+                releaseStaleCollider.TrySetResult();
+            }
+
+            desktop.RemoveCutPlane(cut);
+            StateSnapshot removed = source.Capture(3);
+            destination.Apply(removed);
+            Assert.That(quest.Cuts, Is.Empty);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(3)), Is.EqualTo(SharedStateCodec.Encode(removed)));
+
+            ROI roi = desktop.ROIManager.AddROI();
+            roi.Name = "Synchronized ROI";
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", new Vector3(2, 3, 4), 8);
+            StateSnapshot addedRoi = source.Capture(4);
+            destination.Apply(addedRoi);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(4)), Is.EqualTo(SharedStateCodec.Encode(addedRoi)));
+
+            desktop.ROIManager.RemoveROI(roi);
+            StateSnapshot removedRoi = source.Capture(5);
+            destination.Apply(removedRoi);
+            Assert.That(quest.ROIManager.ROIs, Is.Empty);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(5)), Is.EqualTo(SharedStateCodec.Encode(removedRoi)));
+
+            int[] fullMask = desktop.MeshManager.BrainSurface.VisibilityMask;
+            int[] simplifiedMask = desktop.MeshManager.SimplifiedMeshToUse.VisibilityMask;
+            Assert.That(fullMask.Length, Is.GreaterThan(0));
+            fullMask[0] = 0;
+            desktop.TriangleEraser.CurrentMasks = new List<int[]> { fullMask, simplifiedMask };
+            StateSnapshot erased = source.Capture(6);
+            destination.Apply(erased);
+            Assert.That(quest.MeshManager.BrainSurface.VisibilityMask[0], Is.Zero);
+            Assert.That(quest.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(desktop.MeshManager.BrainSurface.VisibilityMask));
+            Assert.That(quest.MeshManager.SimplifiedMeshToUse.VisibilityMask, Is.EqualTo(desktop.MeshManager.SimplifiedMeshToUse.VisibilityMask));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(6)), Is.EqualTo(SharedStateCodec.Encode(erased)));
+
+            var wrongTopology = erased.Fields;
+            wrongTopology[new StateKey(EntityKind.Scene, "", "", 15)] = Array.Empty<byte>();
+            Assert.Throws<InvalidDataException>(() => destination.Apply(erased.WithFields(wrongTopology, 7)));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(6)), Is.EqualTo(SharedStateCodec.Encode(erased)));
+
+            desktop.AtlasManager.AtlasAlpha = 0.65f;
+            desktop.FMRIManager.FMRIAlpha = 0.4f;
+            desktop.FMRIManager.FMRINegativeCalMinFactor = 0.1f;
+            StateSnapshot atlasAppearance = source.Capture(7);
+            destination.Apply(atlasAppearance);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(7)), Is.EqualTo(SharedStateCodec.Encode(atlasAppearance)));
+
+            var desktopSite = desktop.Columns[0].Sites.First();
+            Assert.That(desktopSite.State.IsMasked, Is.False);
+            desktop.SelectSite(desktop.Columns[0], desktopSite);
+            var questSite = quest.Columns[0].Sites.Single(site => site.Information.FullID == desktopSite.Information.FullID);
+            questSite.State.IsMasked = true; // Old derived mask must not veto the incoming prepared selection.
+            StateSnapshot selectedSite = source.Capture(8);
+            destination.Apply(selectedSite);
+            Assert.That(quest.Columns[0].SelectedSite, Is.SameAs(questSite));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(8)), Is.EqualTo(SharedStateCodec.Encode(selectedSite)));
+
+            desktop.ImplantationManager.SelectPrepared(desktop.ImplantationManager.Implantations[1]);
+            StateSnapshot alternateImplantation = source.Capture(9);
+            destination.Apply(alternateImplantation);
+            Assert.That(quest.Columns[0].Sites.Single().Information.FullID, Is.EqualTo(patient.ID + "_B1"));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(9)), Is.EqualTo(SharedStateCodec.Encode(alternateImplantation)));
+
+            desktop.ImplantationManager.SelectPrepared(desktop.ImplantationManager.Implantations[0]);
+            StateSnapshot restoredImplantation = source.Capture(10);
+            destination.Apply(restoredImplantation);
+            Assert.That(quest.Columns[0].Sites.Single().Information.FullID, Is.EqualTo(desktopSite.Information.FullID));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(10)), Is.EqualTo(SharedStateCodec.Encode(restoredImplantation)));
+
+            desktop.SetProjectionEnabled(false);
+            StateSnapshot projectionRemoved = source.Capture(11);
+            destination.Apply(projectionRemoved);
+            Assert.That(quest.ProjectionEnabled, Is.False);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(11)), Is.EqualTo(SharedStateCodec.Encode(projectionRemoved)));
+
+            desktop.RequestActivityProjection();
+            StateSnapshot projectionRequested = source.Capture(12);
+            destination.Apply(projectionRequested);
+            Assert.That(quest.ProjectionEnabled, Is.True);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(12)), Is.EqualTo(SharedStateCodec.Encode(projectionRequested)));
+
+            desktop.SelectSite(desktop.Columns[0], desktop.Columns[0].Sites.First());
+            desktop.ImplantationManager.ComparingSites = true;
+            StateSnapshot comparison = source.Capture(13);
+            destination.Apply(comparison);
+            Assert.That(quest.ImplantationManager.SiteToCompare.Information.FullID, Is.EqualTo(desktop.ImplantationManager.SiteToCompare.Information.FullID));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(13)), Is.EqualTo(SharedStateCodec.Encode(comparison)));
+            desktop.ImplantationManager.ComparingSites = false;
+            StateSnapshot comparisonRemoved = source.Capture(14);
+            destination.Apply(comparisonRemoved);
+            Assert.That(quest.ImplantationManager.SiteToCompare, Is.Null);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(14)), Is.EqualTo(SharedStateCodec.Encode(comparisonRemoved)));
+
+            ROI editedRoi = desktop.ROIManager.AddROI("ROI before rename");
+            editedRoi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", desktop.Columns[0].Sites.First().transform.localPosition, 8f);
+            StateSnapshot selectedRoi = source.Capture(15);
+            destination.Apply(selectedRoi);
+            Assert.That(quest.ROIManager.SelectedROI.ID, Is.EqualTo(editedRoi.ID));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(15)), Is.EqualTo(SharedStateCodec.Encode(selectedRoi)));
+
+            editedRoi.Name = "ROI after rename";
+            editedRoi.Spheres[0].Position += new Vector3(1, 2, 3);
+            editedRoi.Spheres[0].SetInfluenceRadius(5f);
+            StateSnapshot editedSphere = source.Capture(16);
+            destination.Apply(editedSphere);
+            Assert.That(quest.ROIManager.SelectedROI.Name, Is.EqualTo("ROI after rename"));
+            Assert.That(quest.ROIManager.SelectedROI.Spheres[0].InfluenceRadius, Is.EqualTo(5f));
+            Assert.That(SharedStateCodec.Encode(destination.Capture(16)), Is.EqualTo(SharedStateCodec.Encode(editedSphere)));
+
+            desktop.ROIManager.SelectedROI = null;
+            StateSnapshot clearedRoi = source.Capture(17);
+            destination.Apply(clearedRoi);
+            Assert.That(quest.ROIManager.SelectedROI, Is.Null);
+            Assert.That(SharedStateCodec.Encode(destination.Capture(17)), Is.EqualTo(SharedStateCodec.Encode(clearedRoi)));
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        public async Task LiveGeometryStateAdapter_SwitchesExactPreparedMeshAndMri()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope desktopScope = new("SyncResourceDesktopScene");
+            using PlayModeSceneScope questScope = new("SyncResourceQuestScene");
+            MRI patientMRI = new("Patient MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "sync-resource-mri");
+            SingleMesh patientMesh = new("Patient mesh", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "sync-resource-mesh");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, desktopScope, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            Base3DScene desktop = initialized.BaseScene;
+            Base3DScene quest = CreateRuntimeBase3DScene(questScope);
+            try
+            {
+                quest.Initialize(initialized.Visualization);
+                await quest.InitializeAsync(initialized.Visualization, (_, _, _) => { }, CancellationToken.None);
+                quest.FinalizeInitialization();
+                WireRuntimeCameraGraph(quest);
+                EnsureRuntimeSiteConfigurations(quest);
+                EnsureRuntimeCutColorSchemes(quest);
+                for (int frame = 0; frame < 100 && (desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate || !quest.CanApplyPreparedState); frame++)
+                    await UniTask.NextFrame();
+                Assert.That(desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate, Is.False);
+                Assert.That(quest.CanApplyPreparedState, Is.True);
+
+                Guid epoch = Guid.NewGuid();
+                string manifest = new string('c', 64);
+                LiveGeometryStateAdapter source = new(desktop, epoch, manifest);
+                LiveGeometryStateAdapter destination = new(quest, epoch, manifest);
+                StateSnapshot initial = source.Capture(0);
+                destination.BindInitialState(initial);
+
+                var otherMesh = desktop.MeshManager.Meshes.First(mesh => mesh != desktop.MeshManager.SelectedMesh && mesh.IsLoaded);
+                var otherMri = desktop.MRIManager.MRIs.First(mriResource => mriResource != desktop.MRIManager.SelectedMRI && mriResource.IsLoaded);
+                desktop.MeshManager.SelectPrepared(otherMesh);
+                desktop.MRIManager.SelectPrepared(otherMri);
+                desktop.RebuildPreparedGeometryForSynchronization();
+                StateSnapshot switched = source.Capture(1);
+                destination.Apply(switched);
+
+                Assert.That(quest.MeshManager.SelectedMesh.Name, Is.EqualTo(otherMesh.Name));
+                Assert.That(quest.MRIManager.SelectedMRI.Name, Is.EqualTo(otherMri.Name));
+                Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(switched)));
+                Assert.That(quest.MeshManager.ReferenceSurface.NumberOfTriangles, Is.EqualTo(desktop.MeshManager.ReferenceSurface.NumberOfTriangles));
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(quest);
+                await CleanSceneOwnedAnatomy(desktop);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public void BasicTimeline_RestoresSynchronizedPlaybackAnchor()
+        {
+            HBP.Core.Object3D.FMRI resource = new();
+            try
+            {
+                resource.Volumes.Add(new HBP.Core.DLL.Volume());
+                FMRITimeline source = new();
+                FMRITimeline destination = new();
+                source.Update(resource);
+                destination.Update(resource);
+                source.Step = 2;
+                source.IsPlaying = true;
+                source.CurrentIndex = 1;
+                float anchor = source.CurrentIndexAnchorTime;
+                destination.Step = source.Step;
+                destination.CurrentIndex = source.CurrentIndex;
+                destination.IsPlaying = true;
+                destination.ApplySynchronizedClockAnchor(anchor);
+                Assert.That(destination.CurrentIndex, Is.EqualTo(source.CurrentIndex));
+                Assert.That(destination.CurrentIndexAnchorTime, Is.EqualTo(anchor));
+            }
+            finally
+            {
+                resource.Clean();
+            }
         }
 
         [Test]

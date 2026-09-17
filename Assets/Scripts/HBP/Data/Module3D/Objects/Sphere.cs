@@ -1,14 +1,26 @@
 using HBP.Core.Object3D;
 using UnityEngine;
 using UnityEngine.Events;
+using System;
+using HBP.Core.Interfaces;
 
 namespace HBP.Data.Module3D
 {
     /// <summary>
     /// This class defines a Sphere of a <see cref="ROI"/>
     /// </summary>
-    public class Sphere : MonoBehaviour
+    public class Sphere : MonoBehaviour, IIdentifiable
     {
+        private string m_ID;
+
+        public string ID
+        {
+            get => m_ID ??= Guid.NewGuid().ToString();
+            set => m_ID = value;
+        }
+
+        public void GenerateID() => ID = Guid.NewGuid().ToString();
+
         #region Properties
 
         [SerializeField] private SharedMaterials m_SharedMaterials;

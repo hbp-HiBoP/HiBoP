@@ -29,6 +29,10 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         public Tools.Frequency Frequency { get; protected set; }
 
         protected int m_CurrentIndex;
+        private float m_CurrentIndexAnchorTime;
+
+        /// <summary>Local monotonic time when the playing timeline reached its current index.</summary>
+        public float CurrentIndexAnchorTime => IsPlaying ? m_CurrentIndexAnchorTime : 0f;
 
         /// <summary>
         /// Current index of the timeline
@@ -46,6 +50,8 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 {
                     m_CurrentIndex = Mathf.Clamp(value, 0, Length - 1);
                 }
+
+                if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
 
                 OnUpdateCurrentIndex.Invoke();
             }
@@ -68,7 +74,24 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             {
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
+                m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
             }
+        }
+
+        /// <summary>Restore a received clock phase after index and playback flags are set.</summary>
+        public void ApplySynchronizedClockAnchor(float anchorTime)
+        {
+            if (!IsPlaying)
+            {
+                if (anchorTime != 0f) throw new System.ArgumentOutOfRangeException(nameof(anchorTime));
+                m_CurrentIndexAnchorTime = 0f;
+                return;
+            }
+
+            if (float.IsNaN(anchorTime) || float.IsInfinity(anchorTime) || anchorTime < 0f)
+                throw new System.ArgumentOutOfRangeException(nameof(anchorTime));
+            m_CurrentIndexAnchorTime = anchorTime;
+            m_TimeSinceLastUpdate = Mathf.Clamp(Time.realtimeSinceStartup - anchorTime, 0f, UpdateInterval);
         }
 
         /// <summary>

@@ -215,6 +215,14 @@ namespace HBP.Data.Module3D
             SelectAtIndex(meshID);
         }
 
+        /// <summary>Select an exact resource from the prepared scene without name fallback.</summary>
+        public void SelectPrepared(Core.Object3D.Mesh3D mesh)
+        {
+            int index = Meshes.FindIndex(item => ReferenceEquals(item, mesh));
+            if (index < 0 || !Meshes[index].IsLoaded) throw new InvalidOperationException("Prepared mesh is unavailable.");
+            if (SelectedMeshID != index) SelectAtIndex(index);
+        }
+
         /// <summary>
         /// Applies the initial single-patient selection policy without ever treating a transient
         /// preview name as persistent configuration.

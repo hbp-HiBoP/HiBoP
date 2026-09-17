@@ -58,7 +58,7 @@ namespace HBP.Tests.Serialization
             utility.GUIBrainCutTextures.Add(guiTexture);
             ObjectCut cut = new()
             {
-                ID = 0,
+                Index = 0,
                 Orientation = CutOrientation.Sagittal,
                 Flip = false
             };
@@ -92,7 +92,7 @@ namespace HBP.Tests.Serialization
             utility.GUIBrainCutTextures.Add(guiTexture);
             ObjectCut cut = new()
             {
-                ID = 0,
+                Index = 0,
                 Orientation = CutOrientation.Axial
             };
 
@@ -123,7 +123,7 @@ namespace HBP.Tests.Serialization
             utility.CutGenerators.Add(new HBP.Core.DLL.CutGenerator());
             ObjectCut cut = new()
             {
-                ID = 0,
+                Index = 0,
                 Orientation = CutOrientation.Axial,
                 Flip = true
             };

@@ -916,7 +916,7 @@ namespace HBP.Tests.Serialization
                 Vector3 unityCenter = volume.Center;
                 using HBP.Core.Object3D.Cut cut = new(unityCenter, Vector3.right)
                 {
-                    ID = 0,
+                    Index = 0,
                     Orientation = CutOrientation.Sagittal
                 };
                 using CutGeometryGenerator geometryGenerator = ExecuteNativeOrIgnore(() => new CutGeometryGenerator(), "hbp_core CutGeometryGenerator wrapper");

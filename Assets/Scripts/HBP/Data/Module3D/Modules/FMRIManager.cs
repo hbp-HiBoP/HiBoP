@@ -47,6 +47,35 @@ namespace HBP.Data.Module3D
             UpdateSurfaceFMRIColors();
         }
 
+        /// <summary>Apply prepared IBC and DiFuMo selections before recomputing their surface output.</summary>
+        public void ApplySynchronizedAtlasSources(bool ibc, int ibcContrast, bool difumo, string difumoAtlas, int difumoArea)
+        {
+            if (m_DisplayIBCContrasts == ibc && m_SelectedIBCContrastID == ibcContrast && m_DisplayDiFuMo == difumo && m_SelectedDiFuMoAtlas == difumoAtlas && m_SelectedDiFuMoArea == difumoArea) return;
+            m_SelectedIBCContrastID = ibcContrast;
+            m_SelectedDiFuMoAtlas = difumoAtlas;
+            m_SelectedDiFuMoArea = difumoArea;
+            m_DisplayIBCContrasts = ibc;
+            m_DisplayDiFuMo = difumo;
+            UpdateSurfaceFMRIValues();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
+        /// <summary>Apply the prepared localizer selection and thresholds with one surface update.</summary>
+        public void ApplySynchronizedLocalizer(bool enabled, string protocol, string data, string bloc, int timelineIndex, float min, float middle, float max)
+        {
+            if (m_DisplayLocalizers == enabled && m_SelectedLocalizersProtocol == protocol && m_SelectedLocalizersData == data && m_SelectedLocalizersBloc == bloc && m_SelectedLocalizersTimelineIndex == timelineIndex && m_LocalizersMin == min && m_LocalizersMiddle == middle && m_LocalizersMax == max) return;
+            m_DisplayLocalizers = enabled;
+            m_SelectedLocalizersProtocol = protocol;
+            m_SelectedLocalizersData = data;
+            m_SelectedLocalizersBloc = bloc;
+            m_SelectedLocalizersTimelineIndex = timelineIndex;
+            m_LocalizersMin = min;
+            m_LocalizersMiddle = middle;
+            m_LocalizersMax = max;
+            UpdateSurfaceFMRIValues();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
         #region Properties
 
         /// <summary>
@@ -398,6 +427,19 @@ namespace HBP.Data.Module3D
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
+        }
+
+        /// <summary>Apply synchronized atlas display calibration with one color rebuild.</summary>
+        public void ApplySynchronizedAtlasCalibration(float alpha, float negativeMin, float negativeMax, float positiveMin, float positiveMax)
+        {
+            if (m_FMRIAlpha == alpha && m_FMRINegativeCalMinFactor == negativeMin && m_FMRINegativeCalMaxFactor == negativeMax && m_FMRIPositiveCalMinFactor == positiveMin && m_FMRIPositiveCalMaxFactor == positiveMax) return;
+            m_FMRIAlpha = alpha;
+            m_FMRINegativeCalMinFactor = negativeMin;
+            m_FMRINegativeCalMaxFactor = negativeMax;
+            m_FMRIPositiveCalMinFactor = positiveMin;
+            m_FMRIPositiveCalMaxFactor = positiveMax;
+            UpdateSurfaceFMRIColors();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         private const float m_DiFuMoNegativeMin = 0;

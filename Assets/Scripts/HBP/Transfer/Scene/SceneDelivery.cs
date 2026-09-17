@@ -22,6 +22,7 @@ namespace HBP.Transfer.Scene
         public string TransferId { get; }
         public string SessionId { get; }
         public string Summary { get; }
+        public PreparedSceneManifest PreparedManifest { get; private set; }
 
         private readonly string contentHash;
         private readonly long encodedBytes;
@@ -59,6 +60,19 @@ namespace HBP.Transfer.Scene
                 source.Dispose();
                 throw;
             }
+        }
+
+        internal void SetPreparedManifest(PreparedSceneManifest manifest)
+        {
+            if (manifest == null || PreparedManifest != null) throw new InvalidOperationException("The delivery manifest is unavailable or already set.");
+            PreparedManifest = manifest;
+        }
+
+        public PreparedSceneManifest RequirePreparedManifest()
+        {
+            if (PreparedManifest != null) return PreparedManifest;
+            if (blocks != null) throw new InvalidOperationException("The block delivery is not prepared.");
+            return PreparedManifest = PreparedSceneManifest.FromArchiveFile(file);
         }
 
         public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null, Action<long, long> detailedProgress = null)

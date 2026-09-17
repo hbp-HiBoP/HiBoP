@@ -49,6 +49,13 @@ namespace HBP.Data.Module3D
         /// </summary>
         public Core.Object3D.Site SiteToCompare { get; private set; }
 
+        /// <summary>Restore the comparison target from an already validated prepared scene.</summary>
+        public void SetComparisonSiteForSynchronization(Core.Object3D.Site site)
+        {
+            SiteToCompare = site;
+            m_ComparingSites = site != null;
+        }
+
         private bool m_ComparingSites;
 
         /// <summary>
@@ -108,6 +115,8 @@ namespace HBP.Data.Module3D
             int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
             SelectedImplantationID = implantationID > 0 ? implantationID : 0;
             m_DisplayedObjects.InstantiateImplantation(SelectedImplantation);
+            SetComparisonSiteForSynchronization(null);
+            if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
 
             // reset selected site
             for (int ii = 0; ii < m_Scene.Columns.Count; ++ii)
@@ -115,6 +124,20 @@ namespace HBP.Data.Module3D
                 m_Scene.Columns[ii].UnselectSite();
             }
 
+            m_Scene.InvalidateActivityField();
+        }
+
+        /// <summary>Select the exact implantation bound to a prepared scene delivery.</summary>
+        public void SelectPrepared(Core.Object3D.Implantation3D implantation)
+        {
+            int index = Implantations.FindIndex(item => ReferenceEquals(item, implantation));
+            if (index < 0) throw new System.ArgumentException("Implantation is outside the prepared scene.", nameof(implantation));
+            if (SelectedImplantationID == index) return;
+            SelectedImplantationID = index;
+            m_DisplayedObjects.InstantiateImplantation(implantation);
+            SetComparisonSiteForSynchronization(null);
+            if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
+            foreach (Column3D column in m_Scene.Columns) column.UnselectSite();
             m_Scene.InvalidateActivityField();
         }
 

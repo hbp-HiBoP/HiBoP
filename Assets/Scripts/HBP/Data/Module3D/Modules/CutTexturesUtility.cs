@@ -114,9 +114,9 @@ namespace HBP.Data.Module3D
         {
             foreach (Core.Object3D.Cut cut in cuts)
             {
-                if (cut.ID >= 0 && cut.ID < BrainCutTextures.Count && cut.ID < GUIBrainCutTextures.Count && BrainCutTextures[cut.ID].width > 1 && BrainCutTextures[cut.ID].height > 1)
+                if (cut.Index >= 0 && cut.Index < BrainCutTextures.Count && cut.Index < GUIBrainCutTextures.Count && BrainCutTextures[cut.Index].width > 1 && BrainCutTextures[cut.Index].height > 1)
                 {
-                    UnityTextureFactory.CopyAndRotateCutTexture(BrainCutTextures[cut.ID], GUIBrainCutTextures[cut.ID], cut.Orientation, cut.Flip);
+                    UnityTextureFactory.CopyAndRotateCutTexture(BrainCutTextures[cut.Index], GUIBrainCutTextures[cut.Index], cut.Orientation, cut.Flip);
                 }
             }
         }
@@ -132,7 +132,7 @@ namespace HBP.Data.Module3D
             {
                 if (cut.Orientation != CutOrientation.Custom)
                 {
-                    int textureMax = Mathf.Max(GUIBrainCutTextures[cut.ID].width, GUIBrainCutTextures[cut.ID].height);
+                    int textureMax = Mathf.Max(GUIBrainCutTextures[cut.Index].width, GUIBrainCutTextures[cut.Index].height);
                     if (textureMax > max)
                     {
                         max = textureMax;
@@ -168,13 +168,13 @@ namespace HBP.Data.Module3D
             List<Vector2> projectedSites = new();
             foreach (Core.Object3D.Cut cut in cuts)
             {
-                if (cut.ID < 0 || cut.ID >= BaseBrainCutTextures.Count || cut.ID >= CutGenerators.Count)
+                if (cut.Index < 0 || cut.Index >= BaseBrainCutTextures.Count || cut.Index >= CutGenerators.Count)
                 {
                     continue;
                 }
 
-                Texture2D texture = BaseBrainCutTextures[cut.ID];
-                Core.DLL.CutGeometryGenerator geometryGenerator = CutGenerators[cut.ID].CutGeometryGenerator;
+                Texture2D texture = BaseBrainCutTextures[cut.Index];
+                Core.DLL.CutGeometryGenerator geometryGenerator = CutGenerators[cut.Index].CutGeometryGenerator;
                 if (texture == null || texture.width <= 0 || texture.height <= 0 || geometryGenerator == null)
                 {
                     continue;

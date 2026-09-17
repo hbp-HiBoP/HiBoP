@@ -28,6 +28,8 @@ S0 inventory: [open-visualization operation matrix and schema checklist](operati
 
 S1 contract: [canonical schema, codec and merge rules](08-s1-state-codec.md).
 
+S2 work in progress: [live adapter coverage and remaining gates](09-s2-live-adapter.md).
+
 These documents supersede the future-sync assumptions in `../05-state-command-and-sync-model.md` for this new work. They do not alter the completed QUEST-001–031 task records or retrospectively claim those tasks tested synchronization. The historical `feature/xr` contracts are references for revision and idempotence invariants, not a codebase or command catalogue to merge wholesale.
 
 ## Current baseline
