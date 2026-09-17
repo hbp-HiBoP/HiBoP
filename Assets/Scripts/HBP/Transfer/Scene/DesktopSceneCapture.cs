@@ -15,6 +15,24 @@ namespace HBP.Transfer.Scene
 {
     public static class DesktopSceneCapture
     {
+        /// <summary>Entry point for LoadingManager, whose delegate begins on a worker thread.</summary>
+        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update)
+        {
+            await UniTask.SwitchToMainThread(token);
+            string error = GetSelectionError();
+            if (error != null) throw new InvalidOperationException(error);
+            Base3DScene scene = Module3DMain.SelectedScene;
+            update(0.05f, 0, new LoadingText("Preparing visualization resources"));
+            var progress = new Progress<string>(message => update(0.10f, 0, new LoadingText(message)));
+            bool streaming = false;
+#if UNITY_EDITOR_WIN || (UNITY_STANDALONE_WIN && !UNITY_EDITOR)
+            streaming = true;
+#endif
+            SceneDelivery delivery = await CaptureDeliveryAsync(scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming);
+            update(0.20f, 0, new LoadingText("Visualization prepared"));
+            return delivery;
+        }
+
         public static string GetSelectionError() => !Module3DMain.IsInitialized || Module3DMain.SelectedScene == null ? "Open a visualization to send it to Quest." : Module3DMain.SelectedScene.IsClosing ? "The visualization is closing." : null;
 
         public static async Task PrepareSelectedResourcesAsync(CancellationToken token)
@@ -61,18 +79,18 @@ namespace HBP.Transfer.Scene
 
             try
             {
-                Report("Preparing visualization resources...");
+                Report("Preparing visualization resources");
                 await UniTask.NextFrame(cancellationToken: token);
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
-                    Report("Capturing visualization...");
+                    Report("Capturing visualization");
                     ScenePayload payload;
                     payload = Capture(scene, archive, transferId, sessionId, revision);
                     // No await across the live graph: metadata and numeric bytes are now owned.
                     return (Metadata: archive.CaptureDetachedMetadata(payload), Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
                 }, token);
                 token.ThrowIfCancellationRequested();
-                Report("Preparing visualization for transfer...");
+                Report("Preparing visualization for transfer");
                 if (streaming)
                 {
                     return new SceneDelivery(output, transferId, sessionId, snapshot.Summary, () =>
@@ -92,7 +110,7 @@ namespace HBP.Transfer.Scene
                         metadata = snapshot.Metadata.Encode(archive);
                         archive.WriteCaptured(metadata, output);
                         token.ThrowIfCancellationRequested();
-                        Report("Verifying prepared visualization...");
+                        Report("Verifying prepared visualization");
                         result = new SceneDelivery(output, transferId, sessionId, snapshot.Summary);
                         token.ThrowIfCancellationRequested();
                         return result;
@@ -107,7 +125,7 @@ namespace HBP.Transfer.Scene
                         archive.Dispose();
                     }
                 });
-                Report("Visualization prepared.");
+                Report("Visualization prepared");
                 return delivery;
             }
             catch
@@ -148,7 +166,7 @@ namespace HBP.Transfer.Scene
             };
             if (Object3DManager.MNI.ResourceHashes == null)
                 throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
-            payload.StandardFiles = new System.Collections.Generic.Dictionary<string, string>(Object3DManager.MNI.ResourceHashes);
+            payload.StandardFiles = Object3DManager.MNI.ResourceHashes.Where(entry => StandardData.IsPackagedForQuest(entry.Key)).ToDictionary(entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
             foreach (var mesh in scene.MeshManager.Meshes)
                 payload.Meshes.Add(CaptureMesh(mesh, null, archive));
             foreach (var group in scene.MeshManager.PreloadedMeshes)

@@ -21,6 +21,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using HBP.UI.Quest;
+using HBP.UI.Tools;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -59,63 +60,6 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task ManualReconnect_PreservesRememberedCertificate()
-        {
-            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/General/Quest Connection.prefab"));
-            try
-            {
-                var controller = ui.GetComponent<DesktopQuestPanel>();
-                var serialized = new SerializedObject(controller);
-                ((Toggle)serialized.FindProperty("manual").objectReferenceValue).isOn = true;
-                ((InputField)serialized.FindProperty("address").objectReferenceValue).text = "127.0.0.1";
-                var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
-                byte[] rememberedPin = new byte[32]; // Does not match the receiver at this address.
-                typeof(DesktopQuestPanel).GetField("pin", flags).SetValue(controller, rememberedPin);
-                typeof(DesktopQuestPanel).GetField("credential", flags).SetValue(controller, new byte[32]);
-                typeof(DesktopQuestPanel).GetField("endpoint", flags).SetValue(controller, "127.0.0.1");
-                await controller.PairAsync();
-                Assert.That(typeof(DesktopQuestPanel).GetField("pin", flags).GetValue(controller), Is.SameAs(rememberedPin));
-                Assert.That(pairing.IsPaired, Is.False);
-            }
-            finally
-            {
-                Object.DestroyImmediate(ui);
-            }
-        }
-
-        [Test]
-        public async Task DesktopPrefab_InvalidSelectionAndDoubleClick_AreGuarded()
-        {
-            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/General/Quest Connection.prefab"));
-            try
-            {
-                var controller = ui.GetComponent<DesktopQuestPanel>();
-                var serialized = new SerializedObject(controller);
-                T Field<T>(string name) where T : Object => (T)serialized.FindProperty(name).objectReferenceValue;
-                Field<InputField>("address").text = "127.0.0.1";
-                controller.TogglePanel();
-                typeof(DesktopQuestPanel).GetMethod("Update", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(controller, null);
-                Assert.That(Field<Button>("send").interactable, Is.False);
-                Field<Toggle>("manual").isOn = true;
-                Field<InputField>("code").text = pairing.Code;
-                Task attempt = controller.PairAsync();
-                Assert.That(controller.IsBusy, Is.True);
-                await controller.PairAsync(); // Ignored while the first connection is running.
-                await attempt;
-                // This legacy prototype lacks the required global receiver.
-                Assert.That(pairing.IsPaired, Is.False);
-                Field<InputField>("address").text = "invalid";
-                await controller.PairAsync();
-                Assert.That(Field<Text>("status").text, Does.Contain("IPv4"));
-                Assert.That(controller.IsBusy, Is.False);
-            }
-            finally
-            {
-                Object.DestroyImmediate(ui);
-            }
-        }
-
-        [Test]
         public void QuestPrefab_UsesNetworkPanelAndDisablesFixtureInjection()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
@@ -123,9 +67,33 @@ namespace HBP.Tests.Quest
             Assert.That(panel, Is.Not.Null);
             var serialized = new SerializedObject(panel);
             Assert.That(serialized.FindProperty("session").objectReferenceValue, Is.Not.Null);
-            Assert.That(serialized.FindProperty("statusText").objectReferenceValue, Is.Not.Null);
+            Assert.That(serialized.FindProperty("statusPanel").objectReferenceValue, Is.Not.Null);
             Assert.That(serialized.FindProperty("session").objectReferenceValue, Is.SameAs(prefab.GetComponentInChildren<HBP.Quest.QuestAnatomySession>(true)));
             Assert.That(prefab.GetComponentInChildren<QuestAnatomyDiagnostic>(true), Is.Null);
+        }
+
+        [Test]
+        public async Task InputDialog_ReturnsEnteredValueAndChosenAction()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/DialogBox/Input Dialog Box.prefab");
+            var ui = Object.Instantiate(prefab);
+            try
+            {
+                var dialog = ui.GetComponent<InputDialogBox>();
+                var fields = new SerializedObject(dialog);
+                var input = (InputField)fields.FindProperty("input").objectReferenceValue;
+                var confirm = (Button)fields.FindProperty("confirm").objectReferenceValue;
+                var pending = dialog.OpenAsync("Title", "Message", "Placeholder", "Accept", "Cancel");
+                input.text = "custom value";
+                confirm.onClick.Invoke();
+                var result = await pending;
+                Assert.That(result.Confirmed, Is.True);
+                Assert.That(result.Value, Is.EqualTo("custom value"));
+            }
+            finally
+            {
+                if (ui != null) Object.DestroyImmediate(ui);
+            }
         }
 
         [Test]

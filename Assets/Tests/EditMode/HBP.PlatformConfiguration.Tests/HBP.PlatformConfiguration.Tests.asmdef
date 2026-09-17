@@ -3,6 +3,7 @@
     "references": [
         "HBP.Dev.Editor",
         "HBP.Quest.Runtime",
+        "HBP.Core.Runtime",
         "HBP.Quest.Editor",
         "Unity.XR.CoreUtils",
         "Unity.XR.ARFoundation",

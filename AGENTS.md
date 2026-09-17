@@ -20,6 +20,7 @@ appropriate prefab and serialize the required references there. Runtime
 object is inherently dynamic and a prefab is not appropriate. Do not use
 runtime object creation to compensate for a missing element or reference in a
 prefab.
+Edit prefabs directly in Unity; do not generate or rebuild them with editor scripts.
 
 ## Unity MCP Workflow
 

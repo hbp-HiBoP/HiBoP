@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using HBP.UI.Tools;
 
 namespace HBP.Quest
 {
@@ -39,6 +42,20 @@ namespace HBP.Quest
         public string SessionId => current?.SessionId;
         public string LastError { get; private set; }
         public long ReceivedBytes { get; private set; }
+        public long TotalBytes { get; private set; }
+        private Action<float, string> loadingProgress;
+
+        private readonly struct ReceiveResult
+        {
+            public readonly DeliveryReceipt Receipt;
+            public readonly Exception Error;
+
+            public ReceiveResult(DeliveryReceipt receipt, Exception error)
+            {
+                Receipt = receipt;
+                Error = error;
+            }
+        }
 
         private sealed class Entry
         {
@@ -57,26 +74,67 @@ namespace HBP.Quest
         /// <summary>Accept an authenticated incoming stream using the same publication and cancellation owner.</summary>
         public async Task<DeliveryReceipt> ReceiveStreamAsync(Stream stream, CancellationToken stop)
         {
-            Task<DeliveryReceipt> receptionTask = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
-            {
-                using var closeStream = token.Register(stream.Dispose);
-                return await ReceiveFileAsync(stream, token, publish, progress, true).ConfigureAwait(false);
-            }, stop), stop).ConfigureAwait(false);
+            Task<DeliveryReceipt> receptionTask = await OnUnityThreadAsync(() => ReceiveWithLoadingAsync(stream, stop, false), stop).ConfigureAwait(false);
             return await receptionTask.ConfigureAwait(false);
+        }
+
+        private async Task<DeliveryReceipt> ReceiveWithLoadingAsync(Stream stream, CancellationToken stop, bool globalsTransfer)
+        {
+            ReceiveResult result = await LoadingManager.LoadAsync<ReceiveResult>(async update =>
+            {
+                try
+                {
+                    Task<DeliveryReceipt> work = await OnUnityThreadAsync(() =>
+                    {
+                        loadingProgress = (value, message) => update(value, 0, new LoadingText(message));
+                        loadingProgress(0.02f, globalsTransfer ? "Receiving pairing data" : "Connecting to Desktop");
+                        if (globalsTransfer)
+                            return ReceiveCoreAsync(async (token, publish, progress) =>
+                            {
+                                using var close = token.Register(stream.Dispose);
+                                return await ReceiveFileAsync(stream, token, publish, progress).ConfigureAwait(false);
+                            }, stop, InstallGlobalsAsync);
+                        return ReceiveCoreAsync(async (token, publish, progress) =>
+                        {
+                            using var closeStream = token.Register(stream.Dispose);
+                            return await ReceiveFileAsync(stream, token, publish, progress, true).ConfigureAwait(false);
+                        }, stop);
+                    }, stop).ConfigureAwait(false);
+                    DeliveryReceipt receipt = await work.ConfigureAwait(false);
+                    await UniTask.SwitchToMainThread();
+                    loadingProgress?.Invoke(1, globalsTransfer ? "Quest paired" : "Visualization ready");
+                    return new ReceiveResult(receipt, null);
+                }
+                catch (Exception error)
+                {
+                    if (error is not OperationCanceledException && !stop.IsCancellationRequested)
+                        Debug.LogError($"Quest {(globalsTransfer ? "pairing data" : "visualization")} reception failed: {error}");
+                    return new ReceiveResult(null, error);
+                }
+                finally
+                {
+                    await UniTask.SwitchToMainThread();
+                    loadingProgress = null;
+                }
+            });
+            if (result.Error != null) throw result.Error;
+            return result.Receipt;
         }
 
         public async Task<DeliveryReceipt> ReceiveGlobalsAsync(Stream stream, CancellationToken stop)
         {
-            Task<DeliveryReceipt> work = await OnUnityThreadAsync(() => ReceiveCoreAsync(async (token, publish, progress) =>
-            {
-                using var close = token.Register(stream.Dispose);
-                return await ReceiveFileAsync(stream, token, publish, progress).ConfigureAwait(false);
-            }, stop, InstallGlobalsAsync), stop).ConfigureAwait(false);
+            Task<DeliveryReceipt> work = await OnUnityThreadAsync(() => ReceiveWithLoadingAsync(stream, stop, true), stop).ConfigureAwait(false);
             return await work.ConfigureAwait(false);
         }
 
         private async Task<DeliveryStatus> InstallGlobalsAsync(string file, string hash, CancellationToken stop)
         {
+            await OnUnityThreadAsync(() =>
+            {
+                ReceptionState = AnatomyReceptionState.Preparing;
+                loadingProgress?.Invoke(0.85f, "Preparing Quest data");
+                return 0;
+            }, stop).ConfigureAwait(false);
             string directory = await OnUnityThreadAsync(() => Path.Combine(Application.temporaryCachePath, "PairingData", Guid.NewGuid().ToString("N")), stop).ConfigureAwait(false);
             var archive = new SceneArchive(directory, true);
             bool consumed = false;
@@ -137,7 +195,9 @@ namespace HBP.Quest
             reception = attempt;
             LastError = null;
             ReceivedBytes = 0;
+            TotalBytes = 0;
             ReceptionState = AnatomyReceptionState.Connecting;
+            loadingProgress?.Invoke(0.02f, "Connecting to Desktop");
 
             try
             {
@@ -147,7 +207,7 @@ namespace HBP.Quest
                         return;
                     IsConnected = true;
                     ReceptionState = AnatomyReceptionState.Receiving;
-                    ReceivedBytes = count;
+                    if (TotalBytes == 0) ReceivedBytes = count;
                 }, null));
 
                 return receipt;
@@ -167,12 +227,25 @@ namespace HBP.Quest
             }
         }
 
+        private void ReportTransferProgress(long received, long total)
+        {
+            unityContext.Post(_ =>
+            {
+                if (destroyed || reception == null || reception.IsCancellationRequested || ReceptionState == AnatomyReceptionState.Preparing) return;
+                ReceivedBytes = received;
+                TotalBytes = total;
+                ReceptionState = AnatomyReceptionState.Receiving;
+                if (total > 0)
+                    loadingProgress?.Invoke(0.10f + 0.70f * Mathf.Clamp01((float)received / total), $"Receiving: {100L * Math.Min(received, total) / total}%");
+            }, null);
+        }
+
         private async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress, bool allowBlocks = false)
         {
             string file = Path.Combine(Application.temporaryCachePath, "scene-" + Guid.NewGuid().ToString("N") + ".hbscene");
             try
             {
-                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress, allowBlocks ? (input, token) => ReceiveBlocksAsync(input, token, progress) : null).ConfigureAwait(false);
+                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress, allowBlocks ? (input, token) => ReceiveBlocksAsync(input, token, progress) : null, (received, total) => ReportTransferProgress(received, total)).ConfigureAwait(false);
             }
             finally
             {
@@ -191,11 +264,12 @@ namespace HBP.Quest
             bool consumed = false;
             try
             {
-                byte[] digest = await BlockContainer.ReceiveAsync(stream, archive, stop, progress).ConfigureAwait(false);
+                byte[] digest = await BlockContainer.ReceiveAsync(stream, archive, stop, progress, (received, total) => ReportTransferProgress(received, total)).ConfigureAwait(false);
                 string hash = new DeliveryReceipt(digest, DeliveryStatus.Published).ContentHash;
                 await OnUnityThreadAsync(() =>
                 {
                     ReceptionState = AnatomyReceptionState.Preparing;
+                    loadingProgress?.Invoke(0.85f, "Preparing visualization");
                     return 0;
                 }, stop).ConfigureAwait(false);
                 ScenePayload payload = await Task.Run(() => { return archive.ReadPrepared(); }, stop).ConfigureAwait(false);
@@ -221,6 +295,7 @@ namespace HBP.Quest
             string directory = await OnUnityThreadAsync(() =>
             {
                 ReceptionState = AnatomyReceptionState.Preparing;
+                loadingProgress?.Invoke(0.85f, "Preparing visualization");
                 return Path.Combine(Application.temporaryCachePath, "SceneRestoration", Guid.NewGuid().ToString("N"));
             }, stop).ConfigureAwait(false);
             var archive = new SceneArchive(directory, true, globals)

@@ -2,6 +2,7 @@
     "name": "HBP.Quest.PlayModeTests",
     "references": [
         "HBP.UI.Runtime",
+        "UniTask",
         "HBP.Transfer.Anatomy.Contracts",
         "HBP.Transfer.Transport",
         "HBP.Transfer.Anatomy.Delivery",

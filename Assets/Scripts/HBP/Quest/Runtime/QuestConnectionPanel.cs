@@ -5,7 +5,6 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Text;
 using HBP.Transfer.Transport;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -16,15 +15,14 @@ namespace HBP.Quest
     {
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private QuestAnatomyView view;
-        [SerializeField] private TextMesh statusText;
-        private InputAction restart, toggle;
+        [SerializeField] private QuestStatusPanel statusPanel;
+        private InputAction restart;
         private CancellationTokenSource lifetime;
         private Task running = Task.CompletedTask;
         private QuestPairing pairing;
         private string address, status = "Starting connection...";
         private bool restarting;
         private string identityPath, deviceName;
-        private bool details = true;
         private float nextRefresh;
 
         private void Awake()
@@ -43,9 +41,7 @@ namespace HBP.Quest
         private void OnEnable()
         {
             restart = new InputAction("Restart pairing (Y)", binding: "<XRController>{LeftHand}/secondaryButton");
-            toggle = new InputAction("Connection panel (B)", binding: "<XRController>{RightHand}/secondaryButton");
             restart.Enable();
-            toggle.Enable();
             _ = RestartAsync(); // All failures observed by RestartAsync/RunAsync.
         }
 
@@ -60,7 +56,6 @@ namespace HBP.Quest
                 lifetime?.Dispose();
                 if (!this || !isActiveAndEnabled) return;
                 lifetime = new CancellationTokenSource();
-                details = true;
                 running = RunAsync(lifetime.Token, renew);
             }
             catch (Exception)
@@ -144,56 +139,18 @@ namespace HBP.Quest
         private void Update()
         {
             if (restart.WasPressedThisFrame()) _ = RestartAsync(true);
-            if (toggle.WasPressedThisFrame()) details = !details;
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
-            string progress = session.ReceptionState switch
-            {
-                AnatomyReceptionState.Connecting => "Connecting...",
-                AnatomyReceptionState.Receiving => $"Receiving: {session.ReceivedBytes / 1024} KiB",
-                AnatomyReceptionState.Preparing => "Preparing all visualization columns...",
-                _ => status
-            };
-            string content = view.Summary;
-            string surface = view.SurfaceHidden ? "A: show brain" : "A: hide brain";
-            if (!details && session.IsReady)
-            {
-                statusText.text = $"B: connection panel | X: recenter\n{surface}";
-                return;
-            }
-
-            string credentials = pairing == null ? "" : pairing.IsPaired ? (pairing.IsConnected ? "Paired · Desktop connected" : "Paired · waiting for Desktop to reconnect") : pairing.IsPreparing ? "Installing preferences and shared data..." : pairing.IsLocked ? "Pairing expired/locked. Y: new code" : $"Code: {pairing.Code}\nEnter once on Desktop; this Quest will be remembered.";
-            statusText.text = Wrap($"HiBoP | Quest connection\n{address}\n{credentials}\n\n{progress}\n{content}\nY: restart pairing | B: hide/show panel\nIndex triggers: move / rotate / scale\nX: recenter | {surface}");
-        }
-
-        private static string Wrap(string value)
-        {
-            var result = new StringBuilder();
-            foreach (string paragraph in value.Split('\n'))
-            {
-                int width = 0;
-                foreach (string word in paragraph.Split(' '))
-                {
-                    if (width > 0 && width + word.Length + 1 > 38)
-                    {
-                        result.Append('\n');
-                        width = 0;
-                    }
-
-                    if (width > 0)
-                    {
-                        result.Append(' ');
-                        width++;
-                    }
-
-                    result.Append(word);
-                    width += word.Length;
-                }
-
-                result.Append('\n');
-            }
-
-            return result.ToString().TrimEnd('\n');
+            if (session.ReceptionState != AnatomyReceptionState.Idle || pairing?.IsPreparing == true)
+                statusPanel.Hide();
+            else if (pairing == null)
+                statusPanel.ShowUnavailable(status);
+            else if (!pairing.IsPaired)
+                statusPanel.ShowPairing(pairing.Code, address, pairing.IsLocked);
+            else if (!session.IsReady)
+                statusPanel.ShowWaiting();
+            else
+                statusPanel.Hide();
         }
 
         private void OnApplicationPause(bool paused)
@@ -205,7 +162,6 @@ namespace HBP.Quest
         private void OnDisable()
         {
             restart?.Dispose();
-            toggle?.Dispose();
             lifetime?.Cancel();
         }
     }

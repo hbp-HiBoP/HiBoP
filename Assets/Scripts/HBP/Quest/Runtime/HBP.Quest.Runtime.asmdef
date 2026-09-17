@@ -14,7 +14,8 @@
         "Unity.RenderPipelines.Universal.Runtime",
         "HBP.Data.Runtime",
         "HBP.Transfer.Scene",
-        "HBP.Rendering.Runtime"
+        "HBP.Rendering.Runtime",
+        "HBP.UI.Runtime"
     ],
     "includePlatforms": [
         "Android",

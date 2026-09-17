@@ -79,9 +79,15 @@ namespace HBP.Tests.Transfer
             var sink = new MemorySink();
             Exception error = null;
             byte[] hash = null;
+            long receivedRaw = 0, expectedRaw = 0;
             try
             {
-                hash = await BlockContainer.ReceiveAsync(input, sink, CancellationToken.None);
+                hash = await BlockContainer.ReceiveAsync(input, sink, CancellationToken.None, null, (received, total) =>
+                {
+                    Assert.That(received, Is.GreaterThanOrEqualTo(receivedRaw));
+                    receivedRaw = received;
+                    expectedRaw = total;
+                });
             }
             catch (Exception exception)
             {
@@ -94,12 +100,36 @@ namespace HBP.Tests.Transfer
                 Assert.That(hash, Is.EqualTo(expected));
                 Assert.That(sink.Files[0].ToArray(), Is.EqualTo(data));
                 Assert.That(sink.Completed, Is.True);
+                Assert.That(receivedRaw, Is.EqualTo(data.Length));
+                Assert.That(expectedRaw, Is.EqualTo(data.Length));
             }
             else
             {
                 Assert.That(error, Is.Not.Null);
                 Assert.That(sink.Completed, Is.False);
             }
+        }
+
+        [Test]
+        [Timeout(10000)]
+        public async Task ReceiverReportsSinkFailureInsteadOfSecondaryEndOfStream()
+        {
+            var packets = new List<byte[]>();
+            BlockContainer.Produce(new[] { new BlockResource("data.bin", 1, (stream, token) => stream.WriteByte(1)) }, packets.Add, CancellationToken.None);
+            using var input = new MemoryStream(packets[0]);
+            input.Position = 4;
+            Exception failure = null;
+            try
+            {
+                await BlockContainer.ReceiveAsync(input, new RejectingSink(), CancellationToken.None);
+            }
+            catch (Exception error)
+            {
+                failure = error;
+            }
+
+            Assert.That(failure, Is.TypeOf<InvalidDataException>());
+            Assert.That(failure.Message, Is.EqualTo("Sink rejected the manifest."));
         }
 
         [TestCase(false)]
@@ -141,6 +171,32 @@ namespace HBP.Tests.Transfer
                 var ieeg = (HBP.Core.Data.IEEGColumn)restored.Visualization.Columns[1];
                 Assert.That(ieeg.Data.ProcessedValuesByChannel["patient_A1"], Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
                 Assert.That(ieeg.Bloc, Is.SameAs(source.Globals.Data.Protocols.Single().Blocs.Single()));
+            }
+            finally
+            {
+                if (Directory.Exists(root)) Directory.Delete(root, true);
+            }
+        }
+
+        [Test]
+        [Timeout(10000)]
+        public async Task DetachedSceneSnapshotTransfersThroughBlocks()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-detached-blocks-" + Guid.NewGuid().ToString("N"));
+            try
+            {
+                using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: true) { DetachCapture = true };
+                var payload = PreparedSceneArchiveTests.Fixture(source);
+                byte[] metadata = source.CaptureDetachedMetadata(payload).Encode(source);
+                var packets = new List<byte[]>();
+                BlockContainer.Produce(source.CaptureBlockResources(metadata), packets.Add, CancellationToken.None);
+                using var input = new MemoryStream(packets.SelectMany(packet => packet).ToArray());
+                input.Position = 4;
+                using var target = new SceneArchive(Path.Combine(root, "target"), true, source.Globals);
+                await BlockContainer.ReceiveAsync(input, target, CancellationToken.None);
+                ScenePayload restored = target.ReadPrepared();
+                Assert.That(restored.Visualization.Name, Is.EqualTo(payload.Visualization.Name));
+                Assert.That(restored.Columns.Count, Is.EqualTo(payload.Columns.Count));
             }
             finally
             {
@@ -304,6 +360,13 @@ namespace HBP.Tests.Transfer
             }
 
             public void Complete() => Completed = true;
+        }
+
+        private sealed class RejectingSink : IBlockSink
+        {
+            public void Begin(IReadOnlyList<BlockResource> resources, CancellationToken token) => throw new InvalidDataException("Sink rejected the manifest.");
+            public Stream Open(int index) => throw new NotSupportedException();
+            public void Complete() => throw new NotSupportedException();
         }
 
         private sealed class FailingStream : MemoryStream

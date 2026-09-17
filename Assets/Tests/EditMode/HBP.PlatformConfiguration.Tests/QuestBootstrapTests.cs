@@ -17,6 +17,9 @@ namespace HBP.Tests.PlatformConfiguration
 {
     public class QuestBootstrapTests
     {
+        private const string RigPath = "Assets/Prefabs/Quest/QuestRig.prefab";
+        private const string BootstrapPath = "Assets/Prefabs/Quest/QuestBootstrap.prefab";
+
         [Test]
         public void QuestConfiguration_PassesGuard() => QuestBuildValidation.Validate();
 
@@ -27,7 +30,7 @@ namespace HBP.Tests.PlatformConfiguration
             var feature = settings.GetFeature<BoundaryVisibilityFeature>();
             Assert.That(feature.enabled, Is.True);
             Assert.That(new SerializedObject(feature).FindProperty("m_SuppressVisibility").boolValue, Is.False);
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.RigPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
             var boundary = new SerializedObject(prefab.GetComponent<QuestBoundaryVisibility>());
             Assert.That(boundary.FindProperty("passthrough").objectReferenceValue, Is.EqualTo(prefab.GetComponent<QuestPassthroughStatus>()));
             Assert.That(boundary.FindProperty("freeMovementInPassthrough").boolValue, Is.True);
@@ -59,7 +62,7 @@ namespace HBP.Tests.PlatformConfiguration
         [TestCase("OnApplicationPause", false)]
         public void BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(string callback, bool value)
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.RigPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
             var instance = Object.Instantiate(prefab);
             try
             {
@@ -82,7 +85,7 @@ namespace HBP.Tests.PlatformConfiguration
         [Test]
         public void OpaqueCamera_IsRejectedBeforeBuild()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.PrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BootstrapPath);
             var camera = prefab.GetComponentInChildren<Camera>(true);
             var color = camera.backgroundColor;
             try
@@ -117,7 +120,7 @@ namespace HBP.Tests.PlatformConfiguration
         [Test]
         public void Rig_SerializesFloorOriginAndIndependentControllerPoses()
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.RigPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
             Assert.That(prefab.GetComponentInChildren<ARSession>(true), Is.Not.Null);
             var text = prefab.GetComponentInChildren<TextMesh>(true);
             Assert.That(text.font, Is.Not.Null);

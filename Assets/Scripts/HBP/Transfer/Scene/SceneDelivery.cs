@@ -61,7 +61,7 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null)
+        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null, Action<long, long> detailedProgress = null)
         {
             lock (lifetime)
             {
@@ -76,8 +76,12 @@ namespace HBP.Transfer.Scene
                 await sendGate.WaitAsync(stop).ConfigureAwait(false);
                 entered = true;
                 if (blocks != null)
-                    return await blocks.SendAsync(stream, stop, progress).ConfigureAwait(false);
-                return await PinnedTlsTransfer.SendPreparedFileAsync(stream, source, digest, stop, progress).ConfigureAwait(false);
+                    return await blocks.SendAsync(stream, stop, progress, detailedProgress).ConfigureAwait(false);
+                return await PinnedTlsTransfer.SendPreparedFileAsync(stream, source, digest, stop, count =>
+                {
+                    progress?.Invoke(count);
+                    detailedProgress?.Invoke(count, encodedBytes);
+                }).ConfigureAwait(false);
             }
             finally
             {

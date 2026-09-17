@@ -17,6 +17,10 @@ namespace HBP.Quest.Editor
 {
     public sealed class QuestBuildValidation : IPreprocessBuildWithReport
     {
+        private const string PipelinePath = "Assets/Settings/Rendering/HBP-Quest-URP.asset";
+        private const string RendererPath = "Assets/Settings/Rendering/HBP-Quest-Renderer.asset";
+        private const string BootstrapPath = "Assets/Prefabs/Quest/QuestBootstrap.prefab";
+
         public int callbackOrder => 1100;
 
         public void OnPreprocessBuild(BuildReport report)
@@ -39,8 +43,8 @@ namespace HBP.Quest.Editor
             RequireFeature<OpenXRCompositionLayersFeature>(settings);
             RequireFeature<OculusTouchControllerProfile>(settings);
             RequireFeature<MetaQuestTouchPlusControllerProfile>(settings);
-            var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(QuestBootstrapSetup.PipelinePath);
-            var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(QuestBootstrapSetup.RendererPath);
+            var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
+            var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath);
             Require(pipeline != null && !pipeline.supportsHDR && pipeline.msaaSampleCount == 4, "Quest URP, no HDR, MSAA 4x");
             Require(renderer != null && renderer.intermediateTextureMode == IntermediateTextureMode.Auto && renderer.rendererFeatures.Count == 1 && renderer.rendererFeatures[0] is HBP.Rendering.HBPEdgeRendererFeature, "Quest renderer with shared scientific rendering");
             Require(new SerializedObject(pipeline).FindProperty("m_RendererDataList").GetArrayElementAtIndex(0).objectReferenceValue == renderer, "Quest renderer reference");
@@ -54,7 +58,7 @@ namespace HBP.Quest.Editor
             Require(index >= 0 && index < levels.arraySize && levels.GetArrayElementAtIndex(index).FindPropertyRelative("customRenderPipeline").objectReferenceValue == pipeline, "Android default uses Quest URP");
             if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
                 Require(PlayerSettings.GetGraphicsAPIs(BuildTarget.Android).SequenceEqual(new[] { GraphicsDeviceType.Vulkan }), "Vulkan only");
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(QuestBootstrapSetup.PrefabPath);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BootstrapPath);
             Require(prefab != null && prefab.GetComponent<QuestBootstrap>() != null, "Quest bootstrap prefab");
             var boundary = prefab.GetComponentInChildren<QuestBoundaryVisibility>(true);
             Require(boundary != null && new SerializedObject(boundary).FindProperty("passthrough").objectReferenceValue != null, "serialized passthrough boundary controller");

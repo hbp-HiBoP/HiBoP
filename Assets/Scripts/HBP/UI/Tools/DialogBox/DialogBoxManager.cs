@@ -2,6 +2,7 @@
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using UnityEngine;
+using System.Threading;
 
 namespace HBP.UI.Tools
 {
@@ -11,6 +12,7 @@ namespace HBP.UI.Tools
 
         [SerializeField] private GameObject m_DialogBoxPrefab;
         [SerializeField] private GameObject m_ScrollableDialogBoxPrefab;
+        [SerializeField] private GameObject m_InputDialogBoxPrefab;
         [SerializeField] private Canvas m_Canvas;
 
         #endregion
@@ -35,6 +37,14 @@ namespace HBP.UI.Tools
         public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, params string[] buttons)
         {
             return await OpenAsync(m_Instance.m_ScrollableDialogBoxPrefab, type, title, message, buttons);
+        }
+
+        public static async UniTask<InputDialogResult> OpenInputAsync(string title, string message, string placeholder, string confirmLabel, string cancelLabel, CancellationToken token = default)
+        {
+            await UniTask.SwitchToMainThread();
+            GameObject dialog = Instantiate(m_Instance.m_InputDialogBoxPrefab, m_Instance.m_Canvas.transform);
+            dialog.transform.SetAsLastSibling();
+            return await dialog.GetComponent<InputDialogBox>().OpenAsync(title, message, placeholder, confirmLabel, cancelLabel, token);
         }
 
         #endregion

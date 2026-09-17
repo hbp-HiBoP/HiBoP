@@ -121,7 +121,7 @@ namespace HBP.Transfer.Transport
         }
 
         // Caller has consumed and validated the four-byte magic. One worker owns sink/native decoding.
-        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null)
+        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null, Action<long, long> logicalProgress = null)
         {
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(token);
             using var queue = new System.Collections.Concurrent.BlockingCollection<byte[]>(QueueCapacity);
@@ -155,6 +155,8 @@ namespace HBP.Transfer.Transport
             }
 
             Validate(resources);
+            long expectedRaw = resources.Sum(resource => resource.Length);
+            logicalProgress?.Invoke(0, expectedRaw);
             // Closing a failed connection unblocks pending TLS reads even on runtimes which ignore read cancellation.
             using var close = linked.Token.Register(stream.Dispose);
             Task<byte[]> consumer = Task.Run(() =>
@@ -190,6 +192,7 @@ namespace HBP.Transfer.Transport
                             offset += raw;
                             total += raw;
                             encoded += size;
+                            logicalProgress?.Invoke(total, expectedRaw);
                         }
                     }
 
@@ -236,7 +239,7 @@ namespace HBP.Transfer.Transport
                 {
                     await consumer.ConfigureAwait(false);
                 }
-                catch
+                catch when (!consumer.IsFaulted || token.IsCancellationRequested)
                 {
                 }
 

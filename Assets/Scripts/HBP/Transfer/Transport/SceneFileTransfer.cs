@@ -64,7 +64,7 @@ namespace HBP.Transfer.Transport
             return new DeliveryReceipt(digest, (DeliveryStatus)receipt[0]);
         }
 
-        public static async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, string file, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress = null, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveBlocks = null)
+        public static async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, string file, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress = null, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveBlocks = null, Action<long, long> detailedProgress = null)
         {
             var header = new byte[44];
             await ReadExactAsync(stream, header, 0, 4, stop).ConfigureAwait(false);
@@ -76,6 +76,7 @@ namespace HBP.Transfer.Transport
             long total = GetLong(header, 4);
             if (total < 1 || total > MaximumSceneFileBytes)
                 throw new InvalidDataException("Visualization exceeds the transfer file budget.");
+            detailedProgress?.Invoke(0, total);
             var expected = new byte[32];
             Buffer.BlockCopy(header, 12, expected, 0, 32);
             var chunk = new byte[ChunkBytes];
@@ -103,6 +104,7 @@ namespace HBP.Transfer.Transport
                     await target.WriteAsync(chunk, 0, count, stop).ConfigureAwait(false);
                     offset += count;
                     progress?.Invoke(offset);
+                    detailedProgress?.Invoke(offset, total);
                 }
 
                 whole.TransformFinalBlock(Array.Empty<byte>(), 0, 0);

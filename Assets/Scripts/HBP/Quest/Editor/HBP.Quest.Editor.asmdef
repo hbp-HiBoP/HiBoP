@@ -16,7 +16,8 @@
         "Unity.RenderPipelines.Universal.Runtime",
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
-        "HBP.Rendering.Runtime"
+        "HBP.Rendering.Runtime",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [
         "Editor"

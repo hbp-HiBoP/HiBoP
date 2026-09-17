@@ -57,6 +57,8 @@ namespace HBP.Core.Tools
         // the package; installation restores the scientific filename on disk.
         public static string PackagedPath(string relative) => relative.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? relative + ".bytes" : relative;
 
+        public static bool IsPackagedForQuest(string relative) => relative != null && !relative.StartsWith("Atlases/Localizers/", StringComparison.Ordinal);
+
         public static IEnumerable<string> EnumerateFiles(string root)
         {
             yield return "IRM/MNI.nii";

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace HBP.Transfer.Transport
 {
@@ -16,6 +17,7 @@ namespace HBP.Transfer.Transport
         private readonly Task producer;
         private byte[] digest;
         private long bytes;
+        private long rawBytes;
         private bool drained;
         public bool IsPrepared => producer.Status == TaskStatus.RanToCompletion;
         public long EncodedBytes => IsPrepared ? bytes : 0;
@@ -30,6 +32,7 @@ namespace HBP.Transfer.Transport
                 try
                 {
                     var resources = prepare();
+                    Interlocked.Exchange(ref rawBytes, resources.Sum(resource => resource.Length));
                     digest = BlockContainer.Produce(resources, packet =>
                     {
                         cancellation.Token.ThrowIfCancellationRequested();
@@ -53,11 +56,12 @@ namespace HBP.Transfer.Transport
             });
         }
 
-        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress)
+        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress, Action<long, long> logicalProgress = null)
         {
             try
             {
                 long sent = 0;
+                long rawSent = 0;
                 if (!drained)
                 {
                     while (true)
@@ -68,6 +72,12 @@ namespace HBP.Transfer.Transport
                         await stream.WriteAsync(packet, 0, packet.Length, stop).ConfigureAwait(false);
                         sent += packet.Length;
                         progress?.Invoke(sent);
+                        if (packet.Length >= 64 && packet[0] == 1)
+                        {
+                            rawSent += packet[20] | packet[21] << 8 | packet[22] << 16 | packet[23] << 24;
+                            long totalRaw = Interlocked.Read(ref rawBytes);
+                            if (totalRaw > 0) logicalProgress?.Invoke(rawSent, totalRaw);
+                        }
                     }
 
                     await producer.ConfigureAwait(false);
@@ -86,6 +96,7 @@ namespace HBP.Transfer.Transport
                         await stream.WriteAsync(buffer, 0, read, stop).ConfigureAwait(false);
                         sent += read;
                         progress?.Invoke(sent);
+                        logicalProgress?.Invoke(sent, bytes);
                     }
                 }
 

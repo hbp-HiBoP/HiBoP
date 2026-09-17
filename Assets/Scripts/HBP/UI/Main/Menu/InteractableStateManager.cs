@@ -1,6 +1,7 @@
 using UnityEngine;
 using HBP.Core.Tools;
 using HBP.Core.Database;
+using HBP.Quest.Desktop;
 
 namespace HBP.UI.Main
 {
@@ -78,6 +79,11 @@ namespace HBP.UI.Main
                 {
                     interactable = false;
                 }
+            }
+
+            if (interactableConditions.NeedPairedQuest && (QuestManager.Instance == null || !QuestManager.Instance.IsPaired))
+            {
+                interactable = false;
             }
 
             interactableConditions.interactable = interactable;
