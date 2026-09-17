@@ -24,6 +24,8 @@ This plan applies after the user opens a visualization on Desktop and sends it t
 6. [Implementation stages](06-implementation-stages.md)
 7. [Verification and release gate](07-verification.md)
 
+S0 inventory: [open-visualization operation matrix and schema checklist](operation-matrix.md). Its D/Q/O checks are planned validation cases, not completed tests.
+
 These documents supersede the future-sync assumptions in `../05-state-command-and-sync-model.md` for this new work. They do not alter the completed QUEST-001–031 task records or retrospectively claim those tasks tested synchronization. The historical `feature/xr` contracts are references for revision and idempotence invariants, not a codebase or command catalogue to merge wholesale.
 
 ## Current baseline
