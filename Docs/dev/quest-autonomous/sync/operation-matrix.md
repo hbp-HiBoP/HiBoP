@@ -48,6 +48,51 @@ Source audit of `feature/xr-autonomous`, 2026-09-17. This is an inventory and a 
 
 ## Schema-version-1 field checklist
 
+The S1 registry below gives the concrete schema-1 field IDs and atomic groups for every row. Syntax is `entity:field IDs / entity:group IDs`; the IDs resolve to names and value types in `SharedStateSchema.cs`. `site` keys include column ID, and `sphere` keys include ROI ID. The original table's **gap** labels describe S0 live capture/apply gaps; they are S2 work, not missing S1 fields.
+
+| Matrix row | Schema-1 fields / atomic groups |
+| --- | --- |
+| D1 | scene:1 / scene:1 |
+| D2 | column:4 / column:2 |
+| D3 | cut:1-2 / cut:1 |
+| D4 | cut:3-6 / cut:2 |
+| D5 | scene:3 / scene:3 |
+| D6 | scene:4, cut:1-6 / scene:30, cut:1-2 |
+| D7 | roi:1-3 / roi:1-2 |
+| D8 | scene:2 / scene:2 |
+| D9 | sphere:1-4 / sphere:1-2 |
+| D10 | site:2 / site:2 |
+| D11 | site:3-4 / site:3-4 |
+| D12 | site:5-6 / site:5-6 |
+| D13 | scene:5-7 / scene:4-6 |
+| D14 | site:7 / site:7 |
+| D15 | scene:8-10 / scene:7-8 |
+| D16 | scene:11-16 / scene:9 |
+| D17 | scene:17-19 / scene:10-11 |
+| D18 | scene:20 plus changed site membership / scene:12, site:1 |
+| D19 | scene:21-26 / scene:13-18 |
+| D20 | scene:11-16 / scene:9 |
+| D21 | column:5 / column:3 |
+| D22 | column:6 / column:4 |
+| D23 | column:7-11 / column:5-7 |
+| D24 | column:12-15 / column:8-9 |
+| D25 | column:16-18 / column:10 |
+| D26 | column:19-26 / column:11-13 |
+| D27 | column:27-32 / column:14 |
+| D28 | scene:28-30 / scene:20-22 |
+| D29 | scene:31-35 / scene:23-24 |
+| D30 | scene:36-43 / scene:25-27 |
+| D31 | scene:44-48 / scene:28-29 |
+| D32 | scene:27 plus input groups / scene:19 plus input groups |
+| D33 | every affected field; capture resulting state / original groups, preserving each group atomically |
+| D34 | site:2-7 for affected sites / site:2-7 groups |
+| D35-D37 | local presentation only; no schema field |
+| D38 | outside open-visualization state; no schema field |
+| D39 | header epoch, visualization, manifest, revision; explicit lifecycle barrier outside field map |
+
+Column, site, cut, ROI and sphere `field 1` are membership/tombstone fields. Column, cut, ROI and sphere `field 2` represent order where applicable. This mapping is a contract definition; it does not claim S2 capture/apply or parity tests have passed.
+
+
 The checklist maps directly to the matrix rows. It is a design input for S1, not a claim that `VisualizationConfiguration` already stores these values.
 
 - [ ] **Identity and ordering:** schema version, epoch/visualization/manifest identity, accepted revision; stable column ID, site `FullID` scoped by column, session-stable cut/ROI/sphere IDs, collection order and tombstones. A cut's current `ID` is reassigned after removal (`Base3DScene.cs:1558-1562,1596-1600`).
