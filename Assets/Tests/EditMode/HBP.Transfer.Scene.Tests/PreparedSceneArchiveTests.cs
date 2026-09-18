@@ -25,6 +25,39 @@ namespace HBP.Tests.Transfer
             Assert.That(StandardData.PackagedPath(scientificPath), Is.EqualTo(packagedPath));
         }
 
+        [Test]
+        public void TransferHashesKeepMniAndPackagedAtlasContentWithoutLocalizers()
+        {
+            string root = Path.Combine(directory, "standard");
+            var mniHashes = new Dictionary<string, string>();
+            foreach (string relative in StandardData.EnumerateMniFiles())
+            {
+                string path = Path.Combine(root, relative);
+                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                File.WriteAllText(path, relative);
+                mniHashes.Add(relative, StandardData.HashFile(path));
+            }
+
+            string atlas = Path.Combine(root, "Atlases", "IBC", "atlas.nii.gz");
+            string localizer = Path.Combine(root, "Atlases", "Localizers", "protocol", "bloc.nii.gz");
+            Directory.CreateDirectory(Path.GetDirectoryName(atlas));
+            Directory.CreateDirectory(Path.GetDirectoryName(localizer));
+            File.WriteAllText(atlas, "first atlas");
+            File.WriteAllText(localizer, "first localizer");
+
+            var first = StandardData.CaptureTransferHashes(root, mniHashes);
+            Assert.That(first.Keys, Is.EquivalentTo(mniHashes.Keys.Append("Atlases/IBC/atlas.nii.gz")));
+            Assert.That(first["Atlases/IBC/atlas.nii.gz"], Is.EqualTo(StandardData.HashFile(atlas)));
+
+            File.WriteAllText(atlas, "second atlas");
+            var second = StandardData.CaptureTransferHashes(root, mniHashes);
+            Assert.That(second["Atlases/IBC/atlas.nii.gz"], Is.Not.EqualTo(first["Atlases/IBC/atlas.nii.gz"]));
+            File.WriteAllText(localizer, "second localizer");
+            var afterLocalizerChange = StandardData.CaptureTransferHashes(root, mniHashes);
+            Assert.That(afterLocalizerChange.Keys, Is.EquivalentTo(second.Keys));
+            Assert.That(afterLocalizerChange["Atlases/IBC/atlas.nii.gz"], Is.EqualTo(second["Atlases/IBC/atlas.nii.gz"]));
+        }
+
         [SetUp]
         public void SetUp() => directory = Path.Combine(Path.GetTempPath(), "hibop-scene-test-" + Guid.NewGuid().ToString("N"));
 

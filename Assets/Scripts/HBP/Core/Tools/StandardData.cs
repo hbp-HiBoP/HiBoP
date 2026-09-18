@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -59,13 +60,39 @@ namespace HBP.Core.Tools
 
         public static bool IsPackagedForQuest(string relative) => relative != null && !relative.StartsWith("Atlases/Localizers/", StringComparison.Ordinal);
 
-        public static IEnumerable<string> EnumerateFiles(string root)
+        public static IEnumerable<string> EnumerateMniFiles()
         {
             yield return "IRM/MNI.nii";
             foreach (string name in new[] { "MNI.trm", "MNI_Lhemi.gii", "MNI_Rhemi.gii", "MNI_Lwhite.gii", "MNI_Rwhite.gii" }) yield return "Meshes/" + name;
+        }
+
+        public static IEnumerable<string> EnumerateFiles(string root)
+        {
+            foreach (string file in EnumerateMniFiles()) yield return file;
             foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "Atlases"), "*", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal))
                 if (!file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
                     yield return file.Substring(root.Length + 1).Replace('\\', '/');
+        }
+
+        /// <summary>Build delivery identities when a transfer is requested, without scanning separate localizers.</summary>
+        public static Dictionary<string, string> CaptureTransferHashes(string root, IReadOnlyDictionary<string, string> mniHashes, CancellationToken token = default)
+        {
+            if (mniHashes == null) throw new ArgumentNullException(nameof(mniHashes));
+            var result = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (string relative in EnumerateMniFiles())
+            {
+                if (!mniHashes.TryGetValue(relative, out string hash)) throw new InvalidDataException("Missing MNI resource provenance: " + relative);
+                result.Add(relative, hash);
+            }
+
+            foreach (string relative in EnumerateFiles(root))
+            {
+                token.ThrowIfCancellationRequested();
+                if (result.ContainsKey(relative) || !IsPackagedForQuest(relative)) continue;
+                result.Add(relative, HashFile(Resolve(root, relative)));
+            }
+
+            return result;
         }
 
         public static string HashFile(string path)

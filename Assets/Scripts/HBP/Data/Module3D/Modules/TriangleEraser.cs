@@ -155,6 +155,7 @@ namespace HBP.Data.Module3D
                     MeshHasInvisibleTriangles = m_Scene.MeshManager.BrainSurface.VisibilityMask.Contains(0);
                     m_Scene.MeshManager.UpdateMeshesFromDLL();
                     m_Scene.InvalidateSurfaceMesh();
+                    m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 }
             }

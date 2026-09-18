@@ -22,7 +22,7 @@ namespace HBP.Transfer.Scene
 
     public sealed class MeshResource
     {
-        public string Name, PatientId, Standard, SourceMRI;
+        public string Name, PatientId, Standard, SourceMRI, GeometryHash;
         public HBP.Core.DLL.PreviewSurfaceReport GenerationReport;
         public SurfaceInflationPreset InflationPreset;
         public HBP.Core.DLL.SurfaceInflationOptions InflationOptions;
@@ -41,7 +41,7 @@ namespace HBP.Transfer.Scene
 
     public sealed class FunctionalResource
     {
-        public string Name, PatientId, File, Mask;
+        public string Name, PatientId, File, Mask, MegContentHash;
         public Dictionary<string, float[]> Values;
         public Dictionary<string, string> Units;
         public float Frequency;

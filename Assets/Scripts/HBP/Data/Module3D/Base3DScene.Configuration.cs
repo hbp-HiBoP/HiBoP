@@ -287,6 +287,9 @@ namespace HBP.Data.Module3D
                 column.ResetConfiguration();
             }
 
+            // A reset can leave the selected mesh unchanged while its presentation
+            // buffers still need the atlas/fMRI colors and masks rebuilt.
+            SceneInformation.GeometryNeedsUpdate = true;
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 

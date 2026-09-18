@@ -1,4 +1,4 @@
-# S2 live adapter progress
+# S2 live adapter validation
 
 The live adapter is in `Assets/Scripts/HBP/Sync/Scene`, an assembly depending on
 the pure S1 runtime and the existing scene runtime. It does not change the Quest
@@ -98,30 +98,116 @@ applying later snapshots. Tombstones remain in subsequent captures.
   the cut test compare the generated base cut texture pixels after both scenes
   settle; full and simplified triangle visibility masks also match.
 
-## Required before S2 can be called complete
+## S2 traceability, 2026-09-18
 
-- Bind every catalog entry to an exact prepared resource. The immutable
-  manifest now comes from the final encoded scene metadata on Desktop and the
-  verified metadata on Quest. `FromSent` checks the receipt against the sent
-  delivery without restoring a second Desktop scene; `FromPublished` compares
-  the receipt with the restored archive hash. File hash and ZIP extraction use
-  the same read-only handle. Mesh, MRI and functional descriptors are included
-  in references. Implantation, static and loaded atlas references now include
-  content fingerprints, but individual mesh bytes and MEG channel values are
-  not yet checked against the live Desktop object at binding. Atlas resources
-  added after scene capture are not part of the initial manifest and cannot
-  yet be claimed as delivered resources.
-- Complete scientific-output comparisons after stabilization for all matrix
-  rows, especially functional projection and atlas output.
-- CCEP Mars-area, IBC, DiFuMo and localizer replay have positive two-scene
-  output tests with prepared fixtures. The current Quest standard-data
-  packaging excludes `Atlases/Localizers/`, so localizer readiness on a Quest
-  build is not yet established.
-  Timeline anchors currently use Unity's local monotonic clock; transport will
-  need a clock-offset conversion before cross-device playback can be claimed.
-- Expand the two-scene tests to every shared operation-matrix row and all
-  modalities. Check Quest wrapper preservation and exact scientific output, in
-  addition to canonical snapshot equality.
+`S` is `SceneRestorationPlayModeTests.S2_ReplaysCorrelationsAcrossDeliveredSixModalityScenesWithoutReplacingQuestPresentation`:
+after each replay it compares canonical bytes, all column activity/alpha UVs,
+surface colors, ROI site masks, and Quest wrapper pose. `G` is
+`Module3DScenePlayModeTests.LiveGeometryStateAdapter_ReplaysCutCreateMoveAndDeleteBetweenPreparedScenes`;
+`R` is its exact mesh/MRI switch companion. UI paths in one family are represented
+by their resulting state assignment, not by a separate test for each gesture.
+The short `S2_PreparedMeshManifestBindsAfterTwoSceneOpening` test checks prepared
+mesh identity, D20 mask coloring, and D33 reset/load in one two-scene setup.
+`S2_LiveDesktopCaptureBindsDeliveredQuestScene` reuses that setup and additionally
+captures the live Desktop scene through the production capture path.
 
-`LiveGeometryStateAdapter` deliberately rejects unsupported incoming fields. It
-must not be connected to the session transport as a complete S2 applier yet.
+| Row | Effect | S2 evidence and remaining boundary |
+| --- | --- | --- |
+| D1 | shared selection | S visits all six columns. |
+| D2 | shared site selection | S selects and clears a site, including automatic-cut consequence. |
+| D3 | shared cut membership | G creates and removes a stable-ID cut; texture appears/disappears. |
+| D4 | shared cut geometry | G moves a cut and compares resulting cut pixels; orientation/flip/normal are one atomic group. |
+| D5 | shared cut policy | S toggles strong cuts. |
+| D6 | shared automatic-cut policy | S compares generated cut IDs and every field after recomputation. |
+| D7 | shared ROI membership/name | S creates, renames and deletes; G also checks membership. |
+| D8 | shared active ROI | S selects and clears; ROI site masks are compared. |
+| D9 | shared sphere membership/geometry | S creates, moves and resizes; G checks deletion. |
+| D10 | shared site inclusion | S changes inclusion; canonical and scientific site masks are compared. |
+| D11 | shared site flags | S changes highlight and blacklist. |
+| D12 | shared site color/labels | S changes color and ordered labels. |
+| D13 | shared display policy | S changes blacklisted visibility, all-sites mode and gain. |
+| D14 | shared scientific position | S moves a site and compares resulting activity UVs. |
+| D15 | shared correlation result/display | S stages verified result bytes, checks pair and mean values, then resets; loading the same bytes has the same state effect. |
+| D16 | shared mesh/topology | R switches exact prepared mesh and compares vertices; surface masks remain topology-checked. |
+| D17 | shared MRI/calibration | R switches exact MRI; S changes contrast; G compares native cut pixels. |
+| D18 | shared implantation/site topology | G switches and returns, checking site identities and tombstones. |
+| D19 | shared scene appearance | S changes scene colors, edge mode and transparency. |
+| D20 | shared triangle mask | G compares full/simplified masks and rejects wrong topology; S compares surface output. |
+| D21 | shared column opacity | S checks static-column opacity and every column alpha UV. |
+| D22 | shared anatomy projection | S changes influence distance and compares activity UVs. |
+| D23 | shared static source/span | S changes label, span and influence, comparing activity UVs. |
+| D24 | shared dynamic span | S changes iEEG and CCEP spans/influence, comparing activity UVs. |
+| D25 | shared CCEP source | S replays site and Mars-area sources and compares output. |
+| D26 | shared fMRI/MEG source and calibration | S changes MEG source and both calibrations, comparing output. |
+| D27 | shared timeline state | S replays seek, step and loop; focused clock-anchor test covers playback restoration. Transport clock conversion is S3. |
+| D28 | shared brain atlas display | S toggles Mars and alpha and compares surface colors; JuBrain uses the same display/indices path. |
+| D29 | shared IBC/DiFuMo display | S selects each prepared fixture and compares native volume and surface colors. |
+| D30 | shared localizer display | S selects protocol/data/bloc/time/span and compares volume, mask and colors. |
+| D31 | shared fMRI atlas calibration | S changes range/alpha and compares colors. |
+| D32 | shared projection intent | S removes/recomputes activity; G rejects stale native publication. |
+| D33 | shared config assignment | S resets and reloads configuration, comparing canonical and scientific output after each; both passed with the localizer selected. The short two-scene test also checks reset/load after a masked MarsAtlas surface. |
+| D34 | shared resulting site attributes | S applies a bulk change; imported file/dialog is local. |
+| D35 | local Desktop presentation | No schema field or adapter mutation; camera/views/layout stay local. |
+| D36 | local Quest presentation | S verifies wrapper position, rotation and scale after every shared replay. |
+| D37 | local interaction state | No schema field; hover, handle, panel and tool mode are excluded. |
+| D38 | local/outside session | Export and source editing produce no open-scene state field or S2 revision. Changed source dependencies need a later session barrier. |
+| D39 | lifecycle boundary | Adapter rejects wrong epoch/manifest/visualization. Close, replacement and link loss belong to the S3 session owner. |
+
+The delivery manifest now carries a fingerprint of each prepared mesh's vertex,
+triangle, normal and atlas-capability buffers across all variants. Projection UVs,
+display colors and live visibility masks can change after scene opening; masks
+are checked by the separate canonical field. MEG channel
+values, units and frequency are compared with the immutable delivered metadata.
+Negative tests substitute different mesh vertices and MEG values under the same
+name. Implantation, static and loaded atlas content retain their fingerprints.
+
+S2 can validate locally prepared IBC, DiFuMo and localizer resources after they
+are loaded on both scenes. The fixture adds them after archive capture, so it
+does **not** demonstrate their distribution to Quest. The Quest build currently
+excludes `Atlases/Localizers/`; packaging and readiness on device are S3 gates.
+An atlas added after capture cannot be claimed as part of the initial delivery.
+
+MNI preparation now hashes only its six MRI/mesh reference files. A Desktop
+delivery hashes the Quest-packaged atlas files when capture is requested, on a
+worker thread; separately distributed localizers are excluded. The EditMode
+`TransferHashesKeepMniAndPackagedAtlasContentWithoutLocalizers` check passed
+(1/1 on 2026-09-18), including different atlas bytes under one filename.
+On the final code, the short D20/D33 PlayMode scenario passed (1/1, 16.7 s of
+test execution), and the six-modality scenario passed (1/1, 132.3 s), including
+the localizer D33 reset and load. Changing a triangle mask now recomputes
+surface colors on both Desktop and Quest. Unity startup and compilation add to
+these test durations. During development, use the short scenario for resource
+binding, masks and configuration, and reserve the six-modality replay for a
+final coverage check.
+
+After formatting, the transfer EditMode assembly passed 104/104, including the
+MNI/packaged-atlas hash scope and prepared-surface round trip. One filtered
+PlayMode launch passed 3/3: the short delivered-scene test (15.5 s), the
+cut create/move/delete test (0.8 s), and the prepared mesh/MRI switch test
+(0.1 s). This lets routine geometry changes use the subsecond synthetic tests,
+while delivered-resource or configuration changes use the short scenario.
+The focused live-capture scenario invokes `DesktopSceneCapture.CaptureDeliveryAsync`
+on the Desktop scene, opens that exact delivery on Quest, then binds and applies
+the initial state. This initial application is necessary: scene restoration
+selects a default anatomical site, while the live Desktop scene can have no
+site selected. After application, every canonical field, surface colors and
+Quest wrapper pose match. The capture scenario passed 1/1 through the open-editor
+MCP on 2026-09-18 in about 57 s of test execution. The two full project
+load/save/capture fixtures were not repeated: their earlier runs took 251 s
+and 600 s. They are broader project qualification, while the targeted live
+capture closes the S2 delivery-binding check.
+After separating the fast and live-capture cases, the final formatted-code MCP
+run passed both tests (2/2, 61.0 s combined). The production capture and apply
+code is unchanged since the passing 104/104 EditMode, 3/3 focused PlayMode and
+1/1 six-modality runs above.
+
+All D1–D34 shared effects in the matrix have an in-process capture/apply proof
+with canonical state and scientific output checks. D35–D38 are explicitly
+local or outside the open-scene state, and D39 is the session lifecycle boundary.
+The representative cut create/move/delete proof passes. S2 is validated for
+locally available prepared resources; device distribution and active-session
+transport remain S3 work.
+
+`LiveGeometryStateAdapter` is an in-process S2 adapter. S3 must attach it to a
+live session, deliver later resources, convert timeline clock anchors between
+devices, and own explicit close/replacement/link-loss transitions.

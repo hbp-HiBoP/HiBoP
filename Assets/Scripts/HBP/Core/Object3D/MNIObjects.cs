@@ -111,11 +111,10 @@ namespace HBP.Core.Object3D
 
         private async UniTask LoadCoreAsync()
         {
-            await StandardData.EnsureInstalledAsync();
             await UniTask.SwitchToThreadPool();
-            var hashes = StandardData.GetInstalledHashes(ApplicationState.DataPath);
-            ReusedInstalledHashes = hashes != null;
-            hashes ??= StandardData.EnumerateFiles(ApplicationState.DataPath).ToDictionary(path => path, path => StandardData.HashFile(StandardData.Resolve(ApplicationState.DataPath, path)));
+            var installedHashes = StandardData.GetInstalledHashes(ApplicationState.DataPath);
+            ReusedInstalledHashes = installedHashes != null;
+            var hashes = StandardData.EnumerateMniFiles().ToDictionary(path => path, path => installedHashes != null ? installedHashes[path] : StandardData.HashFile(StandardData.Resolve(ApplicationState.DataPath, path)));
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
             try
             {

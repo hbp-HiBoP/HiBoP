@@ -21,6 +21,7 @@ namespace HBP.Transfer.Scene
             public string Standard { get; }
             public string DescriptorHash { get; }
             public int Type { get; }
+            public string GeometryHash { get; }
 
             internal MeshEntry(JToken token)
             {
@@ -30,6 +31,7 @@ namespace HBP.Transfer.Scene
                 Standard = (string)token["Standard"];
                 Type = RequiredInt(token, "Type");
                 DescriptorHash = Hash(token);
+                GeometryHash = (string)token["GeometryHash"];
             }
         }
 
@@ -58,6 +60,7 @@ namespace HBP.Transfer.Scene
             public string File { get; }
             public string Mask { get; }
             public string DescriptorHash { get; }
+            public string MegContentHash { get; }
 
             internal FunctionalEntry(JToken token)
             {
@@ -66,6 +69,12 @@ namespace HBP.Transfer.Scene
                 File = (string)token["File"];
                 Mask = (string)token["Mask"];
                 DescriptorHash = Hash(token);
+                MegContentHash = (string)token["MegContentHash"];
+            }
+
+            public bool MatchesMegContent(IReadOnlyDictionary<string, float[]> values, IReadOnlyDictionary<string, string> units, float frequency)
+            {
+                return !string.IsNullOrEmpty(MegContentHash) && MegContentHash == SceneArchive.MegContentFingerprint(values, units, frequency);
             }
         }
 

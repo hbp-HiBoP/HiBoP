@@ -3,7 +3,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.DLL;
+using HBP.Core.Object3D;
 using HBP.Transfer.Scene;
 using NUnit.Framework;
 using UnityEngine;
@@ -12,6 +15,47 @@ namespace HBP.Tests.Transfer
 {
     public sealed class TransferSnapshotTests
     {
+        [Test]
+        public async Task PreparedMniMeshGeometrySurvivesSurfaceArchiveRestoration()
+        {
+            await Object3DManager.MNI.Load();
+            await UniTask.SwitchToMainThread();
+            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
+            var source = Object3DManager.MNI.GreyMatter;
+            string expectedHash = SceneArchive.MeshGeometryFingerprint(source);
+            using var archive = new SceneArchive(Path.Combine(Path.GetTempPath(), "hibop-mni-geometry-" + Guid.NewGuid().ToString("N")));
+
+            Surface Restore(Surface surface) => archive.ReadSurface(archive.AddSurface(surface));
+            var restored = Mesh3D.FromPrepared(source.Name, source.Type, (Surface)source.Both.Clone(), Restore(source.SimplifiedBoth), (Surface)source.Left.Clone(), (Surface)source.Right.Clone(), Restore(source.SimplifiedLeft), Restore(source.SimplifiedRight), null, null, null, null, null, null);
+            try
+            {
+                AssertSameGeometry(source.Both, restored.Both, "both");
+                AssertSameGeometry(source.SimplifiedBoth, restored.SimplifiedBoth, "simplified both");
+                var halves = (LeftRightMesh3D)restored;
+                AssertSameGeometry(source.Left, halves.Left, "left");
+                AssertSameGeometry(source.Right, halves.Right, "right");
+                AssertSameGeometry(source.SimplifiedLeft, halves.SimplifiedLeft, "simplified left");
+                AssertSameGeometry(source.SimplifiedRight, halves.SimplifiedRight, "simplified right");
+                Assert.That(SceneArchive.MeshGeometryFingerprint(restored), Is.EqualTo(expectedHash));
+            }
+            finally
+            {
+                restored.Clean();
+            }
+        }
+
+        private static void AssertSameGeometry(Surface expected, Surface actual, string variant)
+        {
+            var left = new SurfaceCapture(expected);
+            var right = new SurfaceCapture(actual);
+            Assert.That(right.Data.Vertices, Is.EqualTo(left.Data.Vertices), variant + " vertices");
+            Assert.That(right.Data.Triangles, Is.EqualTo(left.Data.Triangles), variant + " triangles");
+            Assert.That(right.Data.Normals, Is.EqualTo(left.Data.Normals), variant + " normals");
+            Assert.That(right.Data.UV, Is.EqualTo(left.Data.UV), variant + " UV");
+            Assert.That(right.Data.Colors, Is.EqualTo(left.Data.Colors), variant + " colors");
+            Assert.That(right.Atlas, Is.EqualTo(left.Atlas), variant + " atlas capability");
+        }
+
         private static Surface Triangle()
         {
             var surface = new Surface();

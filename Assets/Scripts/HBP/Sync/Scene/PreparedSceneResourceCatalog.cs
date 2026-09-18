@@ -30,6 +30,7 @@ namespace HBP.Sync.Scene
         private readonly (LocalizerProtocol Protocol, LocalizerData Resource, string Reference)[] m_LocalizerDatas;
         private readonly (LocalizerProtocol Protocol, LocalizerData Data, LocalizerBloc Resource, string Reference)[] m_LocalizerBlocs;
         private readonly Dictionary<string, (Column3D Column, object[] Resources, string[] References)> m_ColumnResources = new();
+        private PreparedSceneManifest m_DeliveryManifest;
 
         public PreparedSceneResourceCatalog(Base3DScene scene, string manifestHash)
         {
@@ -99,6 +100,12 @@ namespace HBP.Sync.Scene
                 if (entry.Column is Column3DStatic staticColumn && !staticColumn.Labels.Select(label => ContentReference("static", entry.Column.ColumnData.ID, label, StaticLabelFingerprint(staticColumn, label))).SequenceEqual(entry.References))
                     throw new InvalidDataException("Prepared static values changed.");
             }
+
+            if (m_DeliveryManifest != null)
+                foreach (var state in m_DeliveryManifest.Columns)
+                    if (m_ColumnResources[state.Id].Column is Column3DMEG meg)
+                        for (int i = 0; i < state.Functional.Count; i++)
+                            AssertMegContent(meg.ColumnMEGData.Data.MEGItems[i], state.Functional[i]);
         }
 
         public void AssertDeliveryManifest(PreparedSceneManifest manifest)
@@ -115,6 +122,7 @@ namespace HBP.Sync.Scene
                 Mesh3D mesh = m_Meshes[i];
                 if (resource.Name != mesh.Name || resource.Type != (int)mesh.Type || (mesh is RuntimeSingleMesh3D preview ? preview.SourceMRIName : null) != resource.SourceMRI)
                     throw new InvalidDataException("Prepared mesh differs from the published delivery.");
+                AssertMeshContent(mesh, resource);
             }
 
             for (int i = 0; i < mris.Length; i++)
@@ -142,7 +150,10 @@ namespace HBP.Sync.Scene
                         AssertFunctionalResource(functionalColumn.ColumnFMRIData.Data.FMRIs[resourceIndex].Item1, state.Functional[resourceIndex]);
                 if (column is Column3DMEG megColumn)
                     for (int resourceIndex = 0; resourceIndex < state.Functional.Count; resourceIndex++)
+                    {
                         AssertFunctionalResource(megColumn.ColumnMEGData.Data.MEGItems[resourceIndex].FMRI, state.Functional[resourceIndex]);
+                        AssertMegContent(megColumn.ColumnMEGData.Data.MEGItems[resourceIndex], state.Functional[resourceIndex]);
+                    }
             }
 
             // Both endpoints hash the same final metadata descriptors, including resolved
@@ -156,6 +167,20 @@ namespace HBP.Sync.Scene
                     for (int resourceIndex = 0; resourceIndex < entry.References.Length; resourceIndex++)
                         entry.References[resourceIndex] = DescriptorReference("functional", manifest.Columns[i].Id, resourceIndex, manifest.Columns[i].Functional[resourceIndex].DescriptorHash);
             }
+
+            m_DeliveryManifest = manifest;
+        }
+
+        private static void AssertMegContent(HBP.Core.Data.Processed.MEGItem item, PreparedSceneManifest.FunctionalEntry resource)
+        {
+            if (!resource.MatchesMegContent(item.ValuesByChannel, item.UnitByChannel, item.Frequency.RawValue))
+                throw new InvalidDataException("Prepared MEG channel values differ from the published delivery.");
+        }
+
+        private static void AssertMeshContent(Mesh3D mesh, PreparedSceneManifest.MeshEntry resource)
+        {
+            if (string.IsNullOrEmpty(resource.GeometryHash) || SceneArchive.MeshGeometryFingerprint(mesh) != resource.GeometryHash)
+                throw new InvalidDataException("Prepared mesh geometry differs from the published delivery.");
         }
 
         private string DescriptorReference(string kind, string owner, int index, string descriptorHash)

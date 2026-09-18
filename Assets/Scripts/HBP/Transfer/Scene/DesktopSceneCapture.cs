@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -81,11 +82,18 @@ namespace HBP.Transfer.Scene
             {
                 Report("Preparing visualization resources");
                 await UniTask.NextFrame(cancellationToken: token);
+                if (Object3DManager.MNI.ResourceHashes == null)
+                    throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
+                var mniHashes = new Dictionary<string, string>(Object3DManager.MNI.ResourceHashes, StringComparer.Ordinal);
+                string dataRoot = ApplicationState.DataPath;
+                Report("Identifying standard atlas resources");
+                var standardFiles = await Task.Run(() => StandardData.CaptureTransferHashes(dataRoot, mniHashes, token), token);
+                await UniTask.SwitchToMainThread(token);
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
                     Report("Capturing visualization");
                     ScenePayload payload;
-                    payload = Capture(scene, archive, transferId, sessionId, revision);
+                    payload = Capture(scene, archive, transferId, sessionId, revision, standardFiles);
                     // No await across the live graph: metadata and numeric bytes are now owned.
                     return (Metadata: archive.CaptureDetachedMetadata(payload), Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
                 }, token);
@@ -145,7 +153,7 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        private static ScenePayload Capture(Base3DScene scene, SceneArchive archive, string transferId, string sessionId, ulong revision)
+        private static ScenePayload Capture(Base3DScene scene, SceneArchive archive, string transferId, string sessionId, ulong revision, Dictionary<string, string> standardFiles)
         {
             // Preload caches must already be ready. Check before accessing resource getters,
             // which can otherwise trigger an implicit load during capture.
@@ -168,9 +176,7 @@ namespace HBP.Transfer.Scene
                 GlobalContextId = archive.Globals.Id,
                 Visualization = model
             };
-            if (Object3DManager.MNI.ResourceHashes == null)
-                throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
-            payload.StandardFiles = Object3DManager.MNI.ResourceHashes.Where(entry => StandardData.IsPackagedForQuest(entry.Key)).ToDictionary(entry => entry.Key, entry => entry.Value, StringComparer.Ordinal);
+            payload.StandardFiles = standardFiles;
             foreach (var mesh in scene.MeshManager.Meshes)
                 payload.Meshes.Add(CaptureMesh(mesh, null, archive));
             foreach (var group in scene.MeshManager.PreloadedMeshes)
@@ -215,6 +221,7 @@ namespace HBP.Transfer.Scene
                             functional.Values = item.ValuesByChannel;
                             functional.Units = item.UnitByChannel;
                             functional.Frequency = item.Frequency.RawValue;
+                            functional.MegContentHash = SceneArchive.MegContentFingerprint(functional.Values, functional.Units, functional.Frequency);
                             state.Functional.Add(functional);
                         }
 
@@ -233,7 +240,7 @@ namespace HBP.Transfer.Scene
         {
             if (!mesh.IsLoaded || mesh.IsInflationInProgress) throw new InvalidOperationException($"Mesh '{mesh.Name}' is not prepared.");
             string standard = ReferenceEquals(mesh.Both, Object3DManager.MNI.GreyMatter.Both) ? "grey" : ReferenceEquals(mesh.Both, Object3DManager.MNI.WhiteMatter.Both) ? "white" : null;
-            var resource = new MeshResource { Name = mesh.Name, PatientId = patient, Type = mesh.Type, Standard = standard, Representation = mesh.Representation };
+            var resource = new MeshResource { Name = mesh.Name, PatientId = patient, Type = mesh.Type, Standard = standard, Representation = mesh.Representation, GeometryHash = SceneArchive.MeshGeometryFingerprint(mesh) };
             if (mesh is RuntimeSingleMesh3D preview)
             {
                 resource.SourceMRI = preview.SourceMRIName;

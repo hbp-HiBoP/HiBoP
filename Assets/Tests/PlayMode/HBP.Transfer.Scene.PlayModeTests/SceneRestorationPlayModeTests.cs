@@ -30,6 +30,159 @@ namespace HBP.Tests.SceneTransfer
     public class SceneRestorationPlayModeTests
     {
         [Test]
+        [Timeout(180000)]
+        public Task S2_PreparedMeshManifestBindsAfterTwoSceneOpening() => VerifyPreparedMeshAndConfigurationAsync(false);
+
+        [Test]
+        [Timeout(180000)]
+        public Task S2_LiveDesktopCaptureBindsDeliveredQuestScene() => VerifyPreparedMeshAndConfigurationAsync(true);
+
+        private async Task VerifyPreparedMeshAndConfigurationAsync(bool captureLiveDelivery)
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-s2-mesh-binding-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            using var settings = new PlayModePersistentDataScope(root);
+            using var scope = new PlayModeSceneScope("S2MeshBinding");
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            await PrepareReferencesAsync();
+            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
+            Debug.Log($"S2 mesh binding: references {clock.Elapsed.TotalSeconds:F1}s");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var token = timeout.Token;
+            RestoredScene desktop = null;
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            try
+            {
+                using var source = new SceneArchive(Path.Combine(root, "source"));
+                ScenePayload payload = CreateFixture(source, marsTags: true);
+                string file = Path.Combine(root, "fixture.hbscene");
+                source.Write(payload, file);
+                using var delivery = new SceneDelivery(file, payload.TransferId, payload.SessionId, "S2 mesh binding");
+                Debug.Log($"S2 mesh binding: archive {clock.Elapsed.TotalSeconds:F1}s");
+                var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
+                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                Debug.Log($"S2 mesh binding: Desktop scene {clock.Elapsed.TotalSeconds:F1}s");
+                Assert.That(SceneArchive.MeshGeometryFingerprint(Object3DManager.MNI.GreyMatter), Is.EqualTo(payload.Meshes[0].GeometryHash), "Shared MNI after Desktop opening");
+                var original = Object3DManager.MNI.GreyMatter;
+                var prepared = (LeftRightMesh3D)desktop.Scene.MeshManager.Meshes[0];
+                AssertPreparedSurface(original.Both, prepared.Both, "both");
+                AssertPreparedSurface(original.SimplifiedBoth, prepared.SimplifiedBoth, "simplified both");
+                AssertPreparedSurface(original.Left, prepared.Left, "left");
+                AssertPreparedSurface(original.Right, prepared.Right, "right");
+                AssertPreparedSurface(original.SimplifiedLeft, prepared.SimplifiedLeft, "simplified left");
+                AssertPreparedSurface(original.SimplifiedRight, prepared.SimplifiedRight, "simplified right");
+                Assert.That(new SurfaceCapture(original.Both).Data.UV, Is.Empty, "The prepared MNI source has no projection UVs.");
+                Assert.That(new SurfaceCapture(prepared.Both).Data.UV, Is.Not.Empty, "Scene initialization adds projection UVs without changing resource identity.");
+                Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop prepared mesh");
+
+                var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
+                await view.ApplyAsync(questArchive.Read(file), questArchive, token);
+                Debug.Log($"S2 mesh binding: Quest scene {clock.Elapsed.TotalSeconds:F1}s");
+                Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop mesh after Quest opening");
+                Assert.That(SceneArchive.MeshGeometryFingerprint(view.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Quest prepared mesh");
+
+                byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
+                var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
+                Guid epoch = Guid.NewGuid();
+                LiveGeometryStateAdapter sender = new(desktop.Scene, epoch, PreparedSceneDeliveryBinding.FromSent(delivery, receipt));
+                LiveGeometryStateAdapter receiver = new(view.Scene, epoch, PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene));
+                await desktop.Scene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                receiver.BindInitialState(sender.Capture(0));
+
+                desktop.Scene.AtlasManager.DisplayMarsAtlas = true;
+                await desktop.Scene.PrepareRenderingAsync(token);
+                receiver.Apply(sender.Capture(1));
+                await view.Scene.PrepareRenderingAsync(token);
+                int[] fullMask = desktop.Scene.MeshManager.BrainSurface.VisibilityMask;
+                int[] simplifiedMask = desktop.Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask;
+                fullMask[1] = 0;
+                simplifiedMask[1] = 0;
+                desktop.Scene.TriangleEraser.CurrentMasks = new List<int[]> { fullMask, simplifiedMask };
+                await desktop.Scene.PrepareRenderingAsync(token);
+                receiver.Apply(sender.Capture(2));
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D20 mask colors");
+                desktop.Scene.SaveConfiguration();
+                desktop.Scene.ResetConfiguration();
+                await desktop.Scene.PrepareRenderingAsync(token);
+                StateSnapshot reset = sender.Capture(3);
+                receiver.Apply(reset);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(SharedStateCodec.Encode(receiver.Capture(3)), Is.EqualTo(SharedStateCodec.Encode(reset)), "D33 reset state");
+                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D33 reset colors");
+
+                desktop.Scene.LoadConfiguration();
+                await desktop.Scene.PrepareRenderingAsync(token);
+                StateSnapshot loaded = sender.Capture(4);
+                receiver.Apply(loaded);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(SharedStateCodec.Encode(receiver.Capture(4)), Is.EqualTo(SharedStateCodec.Encode(loaded)), "D33 load state");
+                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D33 load colors");
+
+                if (captureLiveDelivery)
+                {
+                    using var liveDelivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop.Scene, "s2-live", "s2-local", 1, source.Globals, token);
+                    string liveFile = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(liveDelivery);
+                    await view.ClearAsync();
+                    var liveQuestArchive = new SceneArchive(Path.Combine(root, "live-quest"), true, source.Globals);
+                    await view.ApplyAsync(liveQuestArchive.Read(liveFile), liveQuestArchive, token);
+                    byte[] liveDigest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(liveDelivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
+                    var liveReceipt = new HBP.Transfer.Transport.DeliveryReceipt(liveDigest, HBP.Transfer.Transport.DeliveryStatus.Published);
+                    Guid liveEpoch = Guid.NewGuid();
+                    LiveGeometryStateAdapter liveSender = new(desktop.Scene, liveEpoch, PreparedSceneDeliveryBinding.FromSent(liveDelivery, liveReceipt));
+                    LiveGeometryStateAdapter liveReceiver = new(view.Scene, liveEpoch, PreparedSceneDeliveryBinding.FromPublished(liveReceipt, view.PublishedScene));
+                    await view.Scene.PrepareRenderingAsync(token);
+                    StateSnapshot liveInitial = liveSender.Capture(0);
+                    liveReceiver.BindInitialState(liveInitial);
+                    Transform liveWrapper = view.Columns[0].transform;
+                    liveWrapper.SetPositionAndRotation(new Vector3(2, 3, 4), Quaternion.Euler(5, 15, 25));
+                    liveWrapper.localScale = Vector3.one * 1.5f;
+                    liveReceiver.Apply(liveInitial);
+                    await view.Scene.PrepareRenderingAsync(token);
+                    StateSnapshot liveActual = liveReceiver.Capture(0);
+                    var expectedFields = liveInitial.Fields;
+                    var actualFields = liveActual.Fields;
+                    Assert.That(actualFields.Keys, Is.EqualTo(expectedFields.Keys), "Live Desktop capture field topology");
+                    foreach (var field in expectedFields)
+                    {
+                        byte[] actualValue = actualFields[field.Key];
+                        if (actualValue.SequenceEqual(field.Value)) continue;
+                        int firstDifference = Enumerable.Range(0, Math.Min(field.Value.Length, actualValue.Length)).Where(index => field.Value[index] != actualValue[index]).DefaultIfEmpty(-1).First();
+                        Assert.Fail($"Live Desktop capture differs at {field.Key}: expected {field.Value.Length} bytes, actual {actualValue.Length} bytes, first difference {firstDifference}; expected {BitConverter.ToString(field.Value.Take(32).ToArray())}; actual {BitConverter.ToString(actualValue.Take(32).ToArray())}");
+                    }
+
+                    Assert.That(SharedStateCodec.Encode(liveActual), Is.EqualTo(SharedStateCodec.Encode(liveInitial)), "Live Desktop capture binds to its delivered Quest scene");
+                    Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "Live Desktop capture surface colors");
+                    Assert.That(liveWrapper.position, Is.EqualTo(new Vector3(2, 3, 4)), "Live Desktop capture wrapper position");
+                    Assert.That(Quaternion.Angle(liveWrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f), "Live Desktop capture wrapper rotation");
+                    Assert.That(liveWrapper.localScale, Is.EqualTo(Vector3.one * 1.5f), "Live Desktop capture wrapper scale");
+                }
+
+                Debug.Log($"S2 mesh binding: bound {clock.Elapsed.TotalSeconds:F1}s");
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                await view.ClearAsync();
+                if (desktop != null) await desktop.CloseAsync();
+                Object.Destroy(view.gameObject);
+                await UniTask.NextFrame();
+                if (!Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
+            }
+        }
+
+        private static void AssertPreparedSurface(HBP.Core.DLL.Surface expected, HBP.Core.DLL.Surface actual, string variant)
+        {
+            var left = new SurfaceCapture(expected);
+            var right = new SurfaceCapture(actual);
+            Assert.That(right.Data.Vertices, Is.EqualTo(left.Data.Vertices), variant + " vertices");
+            Assert.That(right.Data.Triangles, Is.EqualTo(left.Data.Triangles), variant + " triangles");
+            Assert.That(right.Data.Normals, Is.EqualTo(left.Data.Normals), variant + " normals");
+            Assert.That(right.Atlas, Is.EqualTo(left.Atlas), variant + " atlas capability");
+        }
+
+        [Test]
         [Timeout(900000)]
         public async Task S2_ReplaysCorrelationsAcrossDeliveredSixModalityScenesWithoutReplacingQuestPresentation()
         {
@@ -119,6 +272,41 @@ namespace HBP.Tests.SceneTransfer
                 finally
                 {
                     desktopScene.MeshManager.Meshes[0].Name = originalLiveMeshName;
+                }
+
+                Mesh3D originalMesh = desktopScene.MeshManager.Meshes[0];
+                var changedSurface = (HBP.Core.DLL.Surface)originalMesh.SimplifiedBoth.Clone();
+                var surfaceBuffer = new Mesh();
+                try
+                {
+                    changedSurface.UpdateMeshFromDLL(surfaceBuffer);
+                    Vector3[] changedVertices = surfaceBuffer.vertices;
+                    changedVertices[0].x += 1f;
+                    var normals = surfaceBuffer.normals;
+                    var uv = surfaceBuffer.uv;
+                    var colors = surfaceBuffer.colors;
+                    changedSurface.SetBuffers(changedVertices, surfaceBuffer.triangles, normals.Length == 0 ? null : normals, uv.Length == 0 ? null : uv, colors.Length == 0 ? null : colors);
+                    var hemispheres = (LeftRightMesh3D)originalMesh;
+                    desktopScene.MeshManager.Meshes[0] = Mesh3D.FromPrepared(originalMesh.Name, originalMesh.Type, originalMesh.Both, changedSurface, hemispheres.Left, hemispheres.Right, hemispheres.SimplifiedLeft, hemispheres.SimplifiedRight, null, null, null, null, null, null);
+                    Assert.Throws<InvalidDataException>(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "Different mesh vertices under the same name must not bind.");
+                }
+                finally
+                {
+                    desktopScene.MeshManager.Meshes[0] = originalMesh;
+                    changedSurface.Dispose();
+                    Object.Destroy(surfaceBuffer);
+                }
+
+                var megItem = desktopScene.Columns.OfType<Column3DMEG>().Single().ColumnMEGData.Data.MEGItems[0];
+                float originalMegValue = megItem.ValuesByChannel["A1"][0];
+                megItem.ValuesByChannel["A1"][0] = originalMegValue + 1f;
+                try
+                {
+                    Assert.Throws<InvalidDataException>(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "A different MEG channel value under the same label must not bind.");
+                }
+                finally
+                {
+                    megItem.ValuesByChannel["A1"][0] = originalMegValue;
                 }
 
                 string originalFunctionalFile = desktop.Payload.Columns[4].Functional[0].File;
@@ -273,6 +461,13 @@ namespace HBP.Tests.SceneTransfer
                 });
                 Assert.That(questIEEG.DynamicParameters.SpanMax, Is.EqualTo(3f));
                 Assert.That(questIEEG.DynamicParameters.InfluenceDistance, Is.EqualTo(18f));
+
+                await Replay("D24 CCEP span and influence", () =>
+                {
+                    var column = desktopScene.Columns.OfType<Column3DCCEP>().Single();
+                    column.DynamicParameters.SetSpanValues(-4f, 0f, 4f);
+                    column.DynamicParameters.InfluenceDistance = 19f;
+                });
 
                 await Replay("D26 MEG source", () => desktopScene.Columns.OfType<Column3DMEG>().Single().SelectedMEGIndex = 1);
                 Assert.That(questScene.Columns.OfType<Column3DMEG>().Single().SelectedMEGIndex, Is.EqualTo(1));
@@ -507,7 +702,9 @@ namespace HBP.Tests.SceneTransfer
 
                 Object.Destroy(view.gameObject);
                 await UniTask.NextFrame();
-                Directory.Delete(root, true);
+                // SceneArchive retires its pack after the final reader closes.
+                // Only remove the parent once its owned archive folders are gone.
+                if (!Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
             }
         }
 
@@ -956,7 +1153,7 @@ namespace HBP.Tests.SceneTransfer
             archive.Globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
             var payload = new ScenePayload { TransferId = "fixture", SessionId = "runtime", Revision = 1, GlobalContextId = archive.Globals.Id, Visualization = model, StandardFiles = new(Object3DManager.MNI.ResourceHashes) };
             var mesh = Object3DManager.MNI.GreyMatter;
-            payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
+            payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, GeometryHash = SceneArchive.MeshGeometryFingerprint(mesh), StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
             payload.MRIs.Add(new VolumeResource { Name = Object3DManager.MNI.MRI.Name, Standard = "MNI" });
             payload.Visualization.Configuration.ErasedTriangles = Enumerable.Repeat(1, mesh.Both.NumberOfTriangles).ToArray();
             payload.Visualization.Configuration.ErasedSimplifiedTriangles = Enumerable.Repeat(1, mesh.SimplifiedBoth.NumberOfTriangles).ToArray();
@@ -971,8 +1168,12 @@ namespace HBP.Tests.SceneTransfer
             string fmri = Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz");
             string image = archive.AddFile(fmri, StandardData.HashFile(fmri));
             payload.Columns[4].Functional.Add(new FunctionalResource { Name = "fMRI", File = image });
-            payload.Columns[5].Functional.Add(new FunctionalResource { Name = "channels", Values = new() { ["A1"] = new[] { 1f, 2f, 3f } }, Units = new() { ["A1"] = "fT" }, Frequency = 100 });
-            payload.Columns[5].Functional.Add(new FunctionalResource { Name = "volume", File = image, Values = new(), Units = new() });
+            var channels = new FunctionalResource { Name = "channels", Values = new() { ["A1"] = new[] { 1f, 2f, 3f } }, Units = new() { ["A1"] = "fT" }, Frequency = 100 };
+            channels.MegContentHash = SceneArchive.MegContentFingerprint(channels.Values, channels.Units, channels.Frequency);
+            payload.Columns[5].Functional.Add(channels);
+            var volume = new FunctionalResource { Name = "volume", File = image, Values = new(), Units = new() };
+            volume.MegContentHash = SceneArchive.MegContentFingerprint(volume.Values, volume.Units, volume.Frequency);
+            payload.Columns[5].Functional.Add(volume);
             return payload;
         }
     }

@@ -1457,6 +1457,8 @@ namespace HBP.Tests.PlayMode.Module3D
                 await WaitForConditionAsync(() => !GetPrivateField<bool>(quest, "m_UpdatingColliders"), "stale native collider result to be discarded", maxFrames: 240);
                 Assert.That(colliderPublications, Is.Zero);
                 await WaitForConditionAsync(() => !quest.SceneInformation.GeometryNeedsUpdate && !quest.SceneInformation.CutsNeedUpdate && !quest.SceneInformation.BaseCutTexturesNeedUpdate, "new cut geometry to settle before collider publication", maxFrames: 600);
+                await WaitForConditionAsync(() => !desktop.SceneInformation.CutsNeedUpdate && !desktop.SceneInformation.BaseCutTexturesNeedUpdate, "Desktop moved cut texture to settle", maxFrames: 600);
+                Assert.That(quest.Columns[0].CutTextures.BaseBrainCutTextures[0].GetPixels32(), Is.EqualTo(desktop.Columns[0].CutTextures.BaseBrainCutTextures[0].GetPixels32()), "Moved cut texture");
                 refreshColliders.Invoke(quest, null);
                 await WaitForConditionAsync(() => colliderPublications == 1 && !GetPrivateField<bool>(quest, "m_UpdatingColliders") && !quest.SceneInformation.CollidersNeedUpdate, "only the latest native collider result to publish", () => $"publications={colliderPublications}, updating={GetPrivateField<bool>(quest, "m_UpdatingColliders")}, pending={quest.SceneInformation.CollidersNeedUpdate}", maxFrames: 1800);
             }
@@ -1472,6 +1474,7 @@ namespace HBP.Tests.PlayMode.Module3D
             destination.Apply(removed);
             Assert.That(quest.Cuts, Is.Empty);
             Assert.That(SharedStateCodec.Encode(destination.Capture(3)), Is.EqualTo(SharedStateCodec.Encode(removed)));
+            await WaitForConditionAsync(() => desktop.Columns[0].CutTextures.BaseBrainCutTextures.Count == 0 && quest.Columns[0].CutTextures.BaseBrainCutTextures.Count == 0, "deleted cut texture to disappear", maxFrames: 240);
 
             ROI roi = desktop.ROIManager.AddROI();
             roi.Name = "Synchronized ROI";
@@ -1628,6 +1631,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 Assert.That(quest.MRIManager.SelectedMRI.Name, Is.EqualTo(otherMri.Name));
                 Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(switched)));
                 Assert.That(quest.MeshManager.ReferenceSurface.NumberOfTriangles, Is.EqualTo(desktop.MeshManager.ReferenceSurface.NumberOfTriangles));
+                Assert.That(quest.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices, Is.EqualTo(desktop.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices));
             }
             finally
             {

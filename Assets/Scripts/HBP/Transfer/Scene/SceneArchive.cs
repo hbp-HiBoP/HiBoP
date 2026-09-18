@@ -756,23 +756,108 @@ namespace HBP.Transfer.Scene
 
         private string WriteSurface(SurfaceCapture snapshot)
         {
-            var geometry = snapshot.Data;
-            return AddBuffer(writer =>
+            return AddBuffer(writer => WriteSurfaceData(writer, snapshot));
+        }
+
+        /// <summary>Fingerprint prepared topology, excluding live masks and projection UV/colors.</summary>
+        public static string MeshGeometryFingerprint(HBP.Core.Object3D.Mesh3D mesh)
+        {
+            using var hash = HBP.Transfer.Codecs.TransferCodec.CreateHash();
+            using var stream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
-                writer.Write(geometry.Vertices.Length);
-                writer.Write(geometry.Triangles.Length);
-                WriteComponents(writer, geometry.Vertices);
-                WriteComponents(writer, geometry.Triangles);
-                writer.Write(geometry.Normals.Length);
-                WriteComponents(writer, geometry.Normals);
-                writer.Write(geometry.UV.Length);
-                WriteComponents(writer, geometry.UV);
-                writer.Write(geometry.Colors.Length);
-                WriteComponents(writer, geometry.Colors);
-                writer.Write(snapshot.Atlas);
-                writer.Write(snapshot.Mask.Length);
-                WriteComponents(writer, snapshot.Mask);
-            });
+                WriteSurfaceGeometry(writer, mesh.Both);
+                WriteSurfaceGeometry(writer, mesh.SimplifiedBoth);
+                var hemispheres = mesh as HBP.Core.Object3D.LeftRightMesh3D;
+                WriteSurfaceGeometry(writer, hemispheres?.Left);
+                WriteSurfaceGeometry(writer, hemispheres?.Right);
+                WriteSurfaceGeometry(writer, hemispheres?.SimplifiedLeft);
+                WriteSurfaceGeometry(writer, hemispheres?.SimplifiedRight);
+                var inflated = mesh.ActiveInflatedRepresentation;
+                WriteSurfaceGeometry(writer, inflated?.Both);
+                WriteSurfaceGeometry(writer, inflated?.SimplifiedBoth);
+                WriteSurfaceGeometry(writer, inflated?.Left);
+                WriteSurfaceGeometry(writer, inflated?.Right);
+                WriteSurfaceGeometry(writer, inflated?.SimplifiedLeft);
+                WriteSurfaceGeometry(writer, inflated?.SimplifiedRight);
+            }
+
+            stream.FlushFinalBlock();
+            return BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant();
+        }
+
+        /// <summary>Fingerprint the live MEG samples and their interpretation independently of buffer-pack indices.</summary>
+        public static string MegContentFingerprint(IReadOnlyDictionary<string, float[]> values, IReadOnlyDictionary<string, string> units, float frequency)
+        {
+            if (values == null || units == null)
+                throw new InvalidDataException("Missing MEG channel data.");
+
+            using var hash = HBP.Transfer.Codecs.TransferCodec.CreateHash();
+            using var stream = new CryptoStream(Stream.Null, hash, CryptoStreamMode.Write);
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                writer.Write(frequency);
+                writer.Write(values.Count);
+                foreach (var item in values.OrderBy(item => item.Key, StringComparer.Ordinal))
+                {
+                    if (item.Key == null || item.Value == null)
+                        throw new InvalidDataException("Invalid MEG channel data.");
+                    writer.Write(item.Key);
+                    writer.Write(item.Value.Length);
+                    foreach (float sample in item.Value)
+                        writer.Write(sample);
+                }
+
+                writer.Write(units.Count);
+                foreach (var item in units.OrderBy(item => item.Key, StringComparer.Ordinal))
+                {
+                    if (item.Key == null || item.Value == null)
+                        throw new InvalidDataException("Invalid MEG channel unit.");
+                    writer.Write(item.Key);
+                    writer.Write(item.Value);
+                }
+            }
+
+            stream.FlushFinalBlock();
+            return BitConverter.ToString(hash.Hash).Replace("-", "").ToLowerInvariant();
+        }
+
+        private static void WriteSurfaceGeometry(BinaryWriter writer, HBP.Core.DLL.Surface surface)
+        {
+            writer.Write(surface != null);
+            if (surface == null) return;
+            var snapshot = new SurfaceCapture(surface);
+            var geometry = snapshot.Data;
+            writer.Write(geometry.Vertices.Length);
+            writer.Write(geometry.Triangles.Length);
+            WriteComponents(writer, geometry.Vertices);
+            WriteComponents(writer, geometry.Triangles);
+            writer.Write(geometry.Normals.Length);
+            WriteComponents(writer, geometry.Normals);
+            writer.Write(snapshot.Atlas);
+        }
+
+        private static void WriteGeometryData(BinaryWriter writer, SurfaceCapture snapshot)
+        {
+            var geometry = snapshot.Data;
+            writer.Write(geometry.Vertices.Length);
+            writer.Write(geometry.Triangles.Length);
+            WriteComponents(writer, geometry.Vertices);
+            WriteComponents(writer, geometry.Triangles);
+            writer.Write(geometry.Normals.Length);
+            WriteComponents(writer, geometry.Normals);
+            writer.Write(geometry.UV.Length);
+            WriteComponents(writer, geometry.UV);
+            writer.Write(geometry.Colors.Length);
+            WriteComponents(writer, geometry.Colors);
+        }
+
+        private static void WriteSurfaceData(BinaryWriter writer, SurfaceCapture snapshot)
+        {
+            WriteGeometryData(writer, snapshot);
+            writer.Write(snapshot.Atlas);
+            writer.Write(snapshot.Mask.Length);
+            WriteComponents(writer, snapshot.Mask);
         }
 
         // Unity mesh structs contain packed 32-bit components, as used by the native mesh copier.
