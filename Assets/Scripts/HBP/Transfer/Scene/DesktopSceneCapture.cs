@@ -17,12 +17,17 @@ namespace HBP.Transfer.Scene
     public static class DesktopSceneCapture
     {
         /// <summary>Entry point for LoadingManager, whose delegate begins on a worker thread.</summary>
-        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update)
+        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null)
         {
             await UniTask.SwitchToMainThread(token);
-            string error = GetSelectionError();
-            if (error != null) throw new InvalidOperationException(error);
-            Base3DScene scene = Module3DMain.SelectedScene;
+            if (ReferenceEquals(sourceScene, null))
+            {
+                string error = GetSelectionError();
+                if (error != null) throw new InvalidOperationException(error);
+            }
+
+            Base3DScene scene = ReferenceEquals(sourceScene, null) ? Module3DMain.SelectedScene : sourceScene;
+            if (scene == null || scene.IsClosing) throw new InvalidOperationException("The visualization is unavailable or closing.");
             update(0.05f, 0, new LoadingText("Preparing visualization resources"));
             var progress = new Progress<string>(message => update(0.10f, 0, new LoadingText(message)));
             bool streaming = false;
@@ -85,10 +90,9 @@ namespace HBP.Transfer.Scene
                 if (Object3DManager.MNI.ResourceHashes == null)
                     throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
                 var mniHashes = new Dictionary<string, string>(Object3DManager.MNI.ResourceHashes, StringComparer.Ordinal);
-                string dataRoot = ApplicationState.DataPath;
-                Report("Identifying standard atlas resources");
-                var standardFiles = await Task.Run(() => StandardData.CaptureTransferHashes(dataRoot, mniHashes, token), token);
-                await UniTask.SwitchToMainThread(token);
+                // MNI provenance was recorded when the scene opened. Atlas files are local
+                // to each device; a selected atlas is checked when that operation is applied.
+                var standardFiles = mniHashes;
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
                     Report("Capturing visualization");
@@ -110,6 +114,7 @@ namespace HBP.Transfer.Scene
                         streamingDelivery.SetPreparedManifest(PreparedSceneManifest.FromMetadata(snapshot.Metadata.Token));
                         return resources;
                     }, archive.Dispose, token);
+                    streamingDelivery.SourceScene = scene;
                     return streamingDelivery;
                 }
 
@@ -138,6 +143,7 @@ namespace HBP.Transfer.Scene
                     }
                 });
                 Report("Visualization prepared");
+                delivery.SourceScene = scene;
                 return delivery;
             }
             catch

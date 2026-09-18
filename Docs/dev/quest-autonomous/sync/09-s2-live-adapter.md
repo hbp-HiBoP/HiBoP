@@ -163,8 +163,9 @@ name. Implantation, static and loaded atlas content retain their fingerprints.
 
 S2 can validate locally prepared IBC, DiFuMo and localizer resources after they
 are loaded on both scenes. The fixture adds them after archive capture, so it
-does **not** demonstrate their distribution to Quest. The Quest build currently
-excludes `Atlases/Localizers/`; packaging and readiness on device are S3 gates.
+does **not** demonstrate their distribution to Quest. The Quest build
+excludes `Atlases/Localizers/`; those files are installed separately and never
+travel with the scene. Their readiness on device is an S3 gate.
 An atlas added after capture cannot be claimed as part of the initial delivery.
 
 MNI preparation now hashes only its six MRI/mesh reference files. A Desktop

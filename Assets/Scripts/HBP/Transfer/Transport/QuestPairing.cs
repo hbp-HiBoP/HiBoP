@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
@@ -22,6 +23,7 @@ namespace HBP.Transfer.Transport
         private readonly string storagePath;
         private readonly string deviceName;
         private readonly Stopwatch age = Stopwatch.StartNew();
+        private readonly SemaphoreSlim pairingGate = new(1, 1);
         private long lastContact;
         private int attempts, paired, ownerClaimed, preparing, receiving;
         private string globalsId;
@@ -111,9 +113,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
+            using var slots = new SemaphoreSlim(4, 4);
+            var handlers = new List<Task>();
             try
             {
                 while (!stop.IsCancellationRequested)
@@ -128,121 +132,165 @@ namespace HBP.Transfer.Transport
                         break;
                     }
 
-                    using (peer)
-                    using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
-                    using (deadline.Token.Register(peer.Close))
+                    try
                     {
-                        deadline.CancelAfter(TimeSpan.FromSeconds(15));
-                        try
-                        {
-                            using var tls = new SslStream(peer.GetStream(), false);
-                            await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
-                            int command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
-                            if (command == 0) continue;
-                            if (command == 20)
-                            {
-                                byte[] info = Encoding.UTF8.GetBytes(Announcement);
-                                await tls.WriteAsync(info, 0, info.Length, deadline.Token).ConfigureAwait(false);
-                                continue;
-                            }
-
-                            // Versions that send a raw code are deliberately rejected.
-                            if (command == 1 || command == 3)
-                            {
-                                await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
-                                continue;
-                            }
-
-                            if (command == 10 || command == 11)
-                            {
-                                bool allowed = !IsLocked && !IsPaired && ((command == 11) == (receiveGlobals != null));
-                                if (allowed) Interlocked.Increment(ref attempts); // Includes abandoned/malformed exchanges.
-                                await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
-                                if (!allowed) continue;
-                                await Task.Run(() => PairingPake.AuthenticateAsync(tls, Code, Pin, true, deadline.Token), deadline.Token).ConfigureAwait(false);
-                                if (age.Elapsed >= TimeSpan.FromMinutes(5)) throw new AuthenticationException("Pairing code expired.");
-                                Interlocked.Exchange(ref ownerClaimed, 1);
-                                Array.Clear(secret, 0, secret.Length);
-                                secret = RandomBytes(32);
-                                Save(); // Durable ownership before acknowledging authentication.
-                                await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
-                                if (receiveGlobals == null) Interlocked.Exchange(ref paired, 1);
-                                Touch();
-                                state(receiveGlobals == null ? "Paired. Ready to receive." : "Desktop recognized. Waiting for shared data...");
-                            }
-                            else if (command == 2 || command == 12 || command == 13)
-                            {
-                                byte[] offered = new byte[32];
-                                await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
-                                bool allowed = TransportIdentity.Equal(offered, secret) && (command != 2 || IsPaired);
-                                Array.Clear(offered, 0, offered.Length);
-                                await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
-                                if (!allowed) continue;
-                                Touch();
-                                if (command == 12)
-                                {
-                                    await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
-                                    continue;
-                                }
-
-                                deadline.CancelAfter(TimeSpan.FromMinutes(30));
-                                if (command == 13)
-                                {
-                                    byte[] id = new byte[32];
-                                    await PinnedTlsTransfer.ReadExactAsync(tls, id, 0, id.Length, deadline.Token).ConfigureAwait(false);
-                                    string nextId = Encoding.ASCII.GetString(id);
-                                    if (!Guid.TryParseExact(nextId, "N", out _)) throw new InvalidDataException("Invalid global snapshot identity.");
-                                    bool needsGlobals = !IsPaired || globalsId != nextId;
-                                    await ReplyAsync(tls, needsGlobals, deadline.Token).ConfigureAwait(false);
-                                    if (needsGlobals)
-                                    {
-                                        if (receiveGlobals == null) throw new InvalidOperationException("Shared data receiver unavailable.");
-                                        Interlocked.Exchange(ref preparing, 1);
-                                        try
-                                        {
-                                            await receiveGlobals(tls, deadline.Token).ConfigureAwait(false);
-                                        }
-                                        finally
-                                        {
-                                            Interlocked.Exchange(ref preparing, 0);
-                                        }
-
-                                        globalsId = nextId;
-                                        Interlocked.Exchange(ref paired, 1);
-                                    }
-
-                                    Touch();
-                                    state("Paired. Ready to receive.");
-                                }
-                                else
-                                {
-                                    DeliveryReceipt receipt;
-                                    Interlocked.Exchange(ref receiving, 1);
-                                    try
-                                    {
-                                        receipt = await receive(tls, deadline.Token).ConfigureAwait(false);
-                                    }
-                                    finally
-                                    {
-                                        Interlocked.Exchange(ref receiving, 0);
-                                    }
-
-                                    Touch();
-                                    state(receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Visualization ready. Desktop connected." : "Old delivery closed/replaced. Send a new snapshot from Desktop.");
-                                }
-                            }
-                            else throw new InvalidDataException("Unsupported pairing version. Update both applications.");
-                        }
-                        catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException || exception is ArgumentException)
-                        {
-                            if (!stop.IsCancellationRequested) state("Connection interrupted. Desktop will reconnect; check the code if pairing was refused.");
-                        }
+                        await slots.WaitAsync(stop).ConfigureAwait(false);
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, stop, receive, state, receiveGlobals, receiveReplica));
+                        handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
+                    }
+                    catch
+                    {
+                        peer.Dispose();
+                        throw;
                     }
                 }
             }
             finally
             {
                 listener.Stop();
+                await Task.WhenAll(handlers).ConfigureAwait(false);
+            }
+        }
+
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica)
+        {
+            try
+            {
+                await HandlePeerAsync(peer, stop, receive, state, receiveGlobals, receiveReplica).ConfigureAwait(false);
+            }
+            finally
+            {
+                slots.Release();
+            }
+        }
+
+        private async Task HandlePeerAsync(TcpClient peer, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica)
+        {
+            using (peer)
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
+            using (deadline.Token.Register(peer.Close))
+            {
+                deadline.CancelAfter(TimeSpan.FromSeconds(15));
+                try
+                {
+                    using var tls = new SslStream(peer.GetStream(), false);
+                    await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
+                    int command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
+                    if (command == 0) return;
+                    if (command == 20)
+                    {
+                        byte[] info = Encoding.UTF8.GetBytes(Announcement);
+                        await tls.WriteAsync(info, 0, info.Length, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    // Versions that send a raw code are deliberately rejected.
+                    if (command == 1 || command == 3)
+                    {
+                        await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    if (command == 10 || command == 11)
+                    {
+                        await pairingGate.WaitAsync(deadline.Token).ConfigureAwait(false);
+                        try
+                        {
+                            bool allowed = !IsLocked && !IsPaired && ((command == 11) == (receiveGlobals != null));
+                            if (allowed) Interlocked.Increment(ref attempts); // Includes abandoned/malformed exchanges.
+                            await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
+                            if (!allowed) return;
+                            await Task.Run(() => PairingPake.AuthenticateAsync(tls, Code, Pin, true, deadline.Token), deadline.Token).ConfigureAwait(false);
+                            if (age.Elapsed >= TimeSpan.FromMinutes(5)) throw new AuthenticationException("Pairing code expired.");
+                            Interlocked.Exchange(ref ownerClaimed, 1);
+                            Array.Clear(secret, 0, secret.Length);
+                            secret = RandomBytes(32);
+                            Save(); // Durable ownership before acknowledging authentication.
+                            await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
+                            if (receiveGlobals == null) Interlocked.Exchange(ref paired, 1);
+                            Touch();
+                            state(receiveGlobals == null ? "Paired. Ready to receive." : "Desktop recognized. Waiting for shared data...");
+                        }
+                        finally
+                        {
+                            pairingGate.Release();
+                        }
+                    }
+                    else if (command == 2 || command == 12 || command == 13 || command == 14)
+                    {
+                        byte[] offered = new byte[32];
+                        await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
+                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null);
+                        Array.Clear(offered, 0, offered.Length);
+                        await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
+                        if (!allowed) return;
+                        Touch();
+                        if (command == 12)
+                        {
+                            await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
+                        if (command == 14)
+                        {
+                            deadline.CancelAfter(Timeout.InfiniteTimeSpan);
+                            await receiveReplica(tls, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
+                        deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                        if (command == 13)
+                        {
+                            byte[] id = new byte[32];
+                            await PinnedTlsTransfer.ReadExactAsync(tls, id, 0, id.Length, deadline.Token).ConfigureAwait(false);
+                            string nextId = Encoding.ASCII.GetString(id);
+                            if (!Guid.TryParseExact(nextId, "N", out _)) throw new InvalidDataException("Invalid global snapshot identity.");
+                            bool needsGlobals = !IsPaired || globalsId != nextId;
+                            await ReplyAsync(tls, needsGlobals, deadline.Token).ConfigureAwait(false);
+                            if (needsGlobals)
+                            {
+                                if (receiveGlobals == null) throw new InvalidOperationException("Shared data receiver unavailable.");
+                                Interlocked.Exchange(ref preparing, 1);
+                                try
+                                {
+                                    await receiveGlobals(tls, deadline.Token).ConfigureAwait(false);
+                                }
+                                finally
+                                {
+                                    Interlocked.Exchange(ref preparing, 0);
+                                }
+
+                                globalsId = nextId;
+                                Interlocked.Exchange(ref paired, 1);
+                            }
+
+                            Touch();
+                            state("Paired. Ready to receive.");
+                            await ReplyAsync(tls, true, deadline.Token).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            DeliveryReceipt receipt;
+                            Interlocked.Exchange(ref receiving, 1);
+                            try
+                            {
+                                receipt = await receive(tls, deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                Interlocked.Exchange(ref receiving, 0);
+                            }
+
+                            Touch();
+                            state(receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Visualization ready. Desktop connected." : "Old delivery closed/replaced. Send a new snapshot from Desktop.");
+                        }
+                    }
+                    else throw new InvalidDataException("Unsupported pairing version. Update both applications.");
+                }
+                catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException || exception is ArgumentException)
+                {
+                    if (!stop.IsCancellationRequested) state("Connection interrupted. Desktop will reconnect; check the code if pairing was refused.");
+                }
             }
         }
 
@@ -325,6 +373,7 @@ namespace HBP.Transfer.Transport
                 byte[] id = Encoding.ASCII.GetBytes(contextId);
                 await tls.WriteAsync(id, 0, id.Length, token).ConfigureAwait(false);
                 if (await ReadByteAsync(tls, token).ConfigureAwait(false) == 1) await sendGlobals(tls, token).ConfigureAwait(false);
+                await AcceptedAsync(tls, token).ConfigureAwait(false);
             });
         }
 
@@ -334,6 +383,8 @@ namespace HBP.Transfer.Transport
             await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false)).ConfigureAwait(false);
             return receipt;
         }
+
+        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, 14, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);
 
         private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null)
         {

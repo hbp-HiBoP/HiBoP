@@ -64,16 +64,19 @@ namespace HBP.Data.Module3D
         public void SetTimelinePlaying(Column3D target, bool playing, bool allOfSameType = false)
         {
             foreach (var timeline in GetTimelines(target, allOfSameType)) timeline.IsPlaying = playing;
+            OnSharedStateChanged.Invoke();
         }
 
         public void SetTimelineLooping(Column3D target, bool looping, bool allOfSameType = false)
         {
             foreach (var timeline in GetTimelines(target, allOfSameType)) timeline.IsLooping = looping;
+            OnSharedStateChanged.Invoke();
         }
 
         public void SetTimelineStep(Column3D target, int step, bool allOfSameType = false)
         {
             foreach (var timeline in GetTimelines(target, allOfSameType)) timeline.Step = Math.Max(1, step);
+            OnSharedStateChanged.Invoke();
         }
 
         private IEnumerable<BasicTimeline> GetTimelines(Column3D target, bool allOfSameType)
@@ -87,11 +90,13 @@ namespace HBP.Data.Module3D
             Vector3 normal = MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, right);
             Vector3 center = MeshManager.MeshCenter;
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
+            OnSharedStateChanged.Invoke();
         }
 
         public void ResetSitesPositions()
         {
             foreach (var column in Columns) column.ResetSitesPositions();
+            OnSharedStateChanged.Invoke();
         }
 
         public void ResetSiteFilters(bool included = true)

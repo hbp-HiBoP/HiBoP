@@ -4,6 +4,7 @@ using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Data.Module3D;
 using HBP.Transfer.Transport;
 
 namespace HBP.Transfer.Scene
@@ -22,6 +23,7 @@ namespace HBP.Transfer.Scene
         public string TransferId { get; }
         public string SessionId { get; }
         public string Summary { get; }
+        public Base3DScene SourceScene { get; internal set; }
         public PreparedSceneManifest PreparedManifest { get; private set; }
 
         private readonly string contentHash;

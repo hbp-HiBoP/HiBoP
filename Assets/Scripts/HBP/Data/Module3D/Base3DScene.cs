@@ -295,6 +295,7 @@ namespace HBP.Data.Module3D
                 BrainColorTexture = UnityTextureFactory.Generate1DColorTexture(value);
 
                 BrainMaterials.SetBrainColorTexture(BrainColorTexture);
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -311,6 +312,7 @@ namespace HBP.Data.Module3D
                 m_CutColor = value;
                 ResetColors();
                 SceneInformation.CutsNeedUpdate = true;
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -332,6 +334,7 @@ namespace HBP.Data.Module3D
                 BrainMaterials.SetBrainColormapTexture(BrainColorMapTexture);
                 SceneInformation.FunctionalCutTexturesNeedUpdate = true;
                 OnChangeColormap.Invoke(value);
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -381,6 +384,7 @@ namespace HBP.Data.Module3D
             {
                 m_HideBlacklistedSites = value;
                 SceneInformation.SitesNeedUpdate = true;
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -414,6 +418,7 @@ namespace HBP.Data.Module3D
                 {
                     m_SiteGain = value;
                     SceneInformation.SitesNeedUpdate = true;
+                    OnSharedStateChanged.Invoke();
                 }
             }
         }
@@ -430,6 +435,7 @@ namespace HBP.Data.Module3D
             {
                 m_EdgeMode = value;
                 if (m_DesktopPresentation) m_DesktopPresentation.UpdateViews(view => view.ShowEdges = m_EdgeMode);
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -446,6 +452,7 @@ namespace HBP.Data.Module3D
                 m_StrongCuts = value;
                 BrainMaterials.SetStrongCuts(m_StrongCuts);
                 SceneInformation.CutsNeedUpdate = true;
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -752,6 +759,8 @@ namespace HBP.Data.Module3D
         /// Event for updating the planes cuts display in the cameras
         /// </summary>
         [HideInInspector] public UnityEvent OnModifyPlanesCuts = new();
+
+        [HideInInspector] public UnityEvent OnSharedStateChanged = new();
 
         /// <summary>
         /// Event called when adding a cut to the scene
@@ -1684,6 +1693,8 @@ namespace HBP.Data.Module3D
             {
                 cut.Dispose();
             }
+
+            OnModifyPlanesCuts.Invoke();
         }
 
         /// <summary>

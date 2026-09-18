@@ -7,8 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Data.Module3D;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
+using HBP.Sync.Scene;
 using HBP.UI.Quest;
 using HBP.UI.Tools;
 using UnityEngine;
@@ -33,6 +35,7 @@ namespace HBP.Quest.Desktop
         private byte[] pin, credential;
         private string endpoint, store;
         private SceneDelivery offer;
+        private DesktopReplicaSession replica;
         private PairingSnapshot globals;
         private CancellationTokenSource operation;
         private readonly CancellationTokenSource lifetime = new();
@@ -57,6 +60,13 @@ namespace HBP.Quest.Desktop
 
         private void Update()
         {
+            if (replica != null)
+            {
+                if (replica.IsClosed) replica = null;
+                else replica.Tick(Time.unscaledTime);
+                if (replica?.RejectionReason is { } rejection && Status != rejection) SetStatus(rejection);
+            }
+
             if (!busy && !scanning && (discoveryActive || reconnect) && Time.unscaledTime >= nextDiscovery)
             {
                 nextDiscovery = Time.unscaledTime + 5;
@@ -168,7 +178,7 @@ namespace HBP.Quest.Desktop
             SetStatus("Quest paired and ready for a visualization.");
         }
 
-        public async Task<bool> SendAsync(bool retry)
+        public async Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
         {
             bool sent = false;
             await RunAsync(async token =>
@@ -192,7 +202,7 @@ namespace HBP.Quest.Desktop
                                 offer?.Dispose();
                                 offer = null;
                                 Report(0.02f, "Preparing visualization");
-                                offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update);
+                                offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene);
                                 Report(0.20f, "Connecting to Quest");
                             }
 
@@ -215,10 +225,18 @@ namespace HBP.Quest.Desktop
                     await UniTask.SwitchToMainThread(token);
                     if (result.Error != null) throw result.Error;
                     sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
+                    if (sent)
+                    {
+                        var binding = PreparedSceneDeliveryBinding.FromSent(offer, result.Receipt);
+                        replica?.Dispose();
+                        replica = new DesktopReplicaSession(offer.SourceScene, binding, endpoint, pin, credential);
+                    }
+
                     SetStatus(sent ? "Visualization ready on Quest." : "The visualization was closed or replaced on Quest. Send a new snapshot.");
                 }
                 catch
                 {
+                    sent = false;
                     await UniTask.SwitchToMainThread();
                     failedDelivery = offer?.CanRetry == true;
                     if (offer != null && !failedDelivery)
@@ -351,6 +369,8 @@ namespace HBP.Quest.Desktop
 
         private void ClearPairing()
         {
+            replica?.Dispose();
+            replica = null;
             if (credential != null) Array.Clear(credential, 0, credential.Length);
             credential = pin = null;
             globals?.Dispose();
@@ -370,6 +390,7 @@ namespace HBP.Quest.Desktop
 
         private async void OnDestroy()
         {
+            replica?.Dispose();
             lifetime.Cancel();
             operation?.Cancel();
             try

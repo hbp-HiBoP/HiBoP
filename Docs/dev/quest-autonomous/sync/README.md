@@ -1,6 +1,6 @@
 # Desktop–Quest visualization synchronization
 
-Status: S0–S2 implemented and locally validated; S3–S6 remain planned. The first user-facing synchronization release is not yet available.
+Status: S0–S2 implemented. S3 transport and the real-scene cut creation/movement path passed local and physical Quest validation; full D1–D34 operation coverage remains a release gate. Per-operation rollback for an atlas unavailable on Quest is tracked for S4–S5. The on-device localizer check awaits separately installed files. S4–S6 and the first user-facing synchronization release remain pending.
 
 This plan applies after the user opens a visualization on Desktop and sends it to Quest. Both applications then use the same scientific scene implementation and may eventually edit that scene. The initial delivery remains the existing prepared-scene transfer. Synchronization concerns the open visualization, not edits to the source project, patients, protocols, or imports.
 
@@ -29,6 +29,8 @@ S0 inventory: [open-visualization operation matrix and schema checklist](operati
 S1 contract: [canonical schema, codec and merge rules](08-s1-state-codec.md).
 
 S2 local validation: [live adapter coverage, results and S3 boundaries](09-s2-live-adapter.md).
+
+S3 validation: [active session, device result and localizer boundary](10-s3-active-session.md).
 
 These documents supersede the future-sync assumptions in `../05-state-command-and-sync-model.md` for this new work. They do not alter the completed QUEST-001–031 task records or retrospectively claim those tasks tested synchronization. The historical `feature/xr` contracts are references for revision and idempotence invariants, not a codebase or command catalogue to merge wholesale.
 

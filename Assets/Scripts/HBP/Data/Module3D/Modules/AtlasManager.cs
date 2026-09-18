@@ -36,6 +36,7 @@ namespace HBP.Data.Module3D
                 m_DisplayMarsAtlas = value && Object3DManager.MarsAtlas.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
+                m_Scene.OnSharedStateChanged.Invoke();
             }
         }
 
@@ -52,6 +53,7 @@ namespace HBP.Data.Module3D
                 m_DisplayJuBrainAtlas = value && Object3DManager.JuBrain.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
+                m_Scene.OnSharedStateChanged.Invoke();
             }
         }
 
@@ -98,7 +100,18 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Transparency of the atlas on the brain and on the cuts
         /// </summary>
-        public float AtlasAlpha { get; set; } = 1.0f;
+        private float m_AtlasAlpha = 1.0f;
+
+        public float AtlasAlpha
+        {
+            get => m_AtlasAlpha;
+            set
+            {
+                if (m_AtlasAlpha == value) return;
+                m_AtlasAlpha = value;
+                m_Scene.OnSharedStateChanged.Invoke();
+            }
+        }
 
         private int m_HoveredArea = -1;
 

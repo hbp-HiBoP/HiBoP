@@ -18,11 +18,14 @@ namespace HBP.Tests.Transfer
         private Task serving;
         private string folder, statePath;
         private int installations;
+        private TaskCompletionSource<bool> replicaEntered, releaseReplica;
 
         [SetUp]
         public void SetUp()
         {
             installations = 0;
+            replicaEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            releaseReplica = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             folder = Path.Combine(Path.GetTempPath(), "hibop-quest030-" + Guid.NewGuid().ToString("N"));
             statePath = Path.Combine(folder, "identity.pair");
             Start();
@@ -47,6 +50,11 @@ namespace HBP.Tests.Transfer
                 Interlocked.Increment(ref installations);
                 await stream.WriteAsync(new byte[] { 1 }, 0, 1, token);
                 return null;
+            }, async (_, token) =>
+            {
+                replicaEntered.TrySetResult(true);
+                using var cancelled = token.Register(() => releaseReplica.TrySetCanceled());
+                await releaseReplica.Task;
             });
         }
 
@@ -85,6 +93,18 @@ namespace HBP.Tests.Transfer
             Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
             Assert.That(installations, Is.EqualTo(1));
             Assert.That(receiver.IsConnected, Is.True);
+        }
+
+        [Test]
+        public async Task PersistentReplicaDoesNotBlockAuthenticatedHeartbeat()
+        {
+            byte[] credential = await Pair();
+            await Resume(credential, Guid.NewGuid().ToString("N"));
+            Task control = QuestPairing.OpenReplicaAsync("127.0.0.1", receiver.Pin, credential, stop.Token, (_, __) => releaseReplica.Task);
+            await replicaEntered.Task;
+            Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
+            releaseReplica.TrySetResult(true);
+            await control;
         }
 
         [Test]

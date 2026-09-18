@@ -307,19 +307,27 @@ namespace HBP.Data.Module3D
                     }
                 }
 
+                if (m_PlanesCutsCirclesVertices.Count == 0)
+                {
+                    DisplayCutsCircles = false;
+                    return;
+                }
+
+                int displayedCutIndex = Mathf.Clamp(m_AssociatedScene.LastPlaneModifiedIndex, 0, m_PlanesCutsCirclesVertices.Count - 1);
+                Vector3[] displayedCut = m_PlanesCutsCirclesVertices[displayedCutIndex];
                 m_CutCircle.material = m_PlaneMaterial;
-                m_CutCircle.positionCount = m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex].Length;
-                m_CutCircle.SetPositions(m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex].Select(p => p - m_AssociatedView.transform.position).ToArray());
+                m_CutCircle.positionCount = displayedCut.Length;
+                m_CutCircle.SetPositions(displayedCut.Select(p => p - m_AssociatedView.transform.position).ToArray());
                 m_CutCircle.startWidth = 1f;
 
                 m_CutCross1.material = m_PlaneMaterial;
                 m_CutCross1.positionCount = 2;
-                m_CutCross1.SetPositions(new Vector3[] { m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position, m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][5 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position });
+                m_CutCross1.SetPositions(new Vector3[] { displayedCut[m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position, displayedCut[5 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position });
                 m_CutCross1.startWidth = 1f;
 
                 m_CutCross2.material = m_PlaneMaterial;
                 m_CutCross2.positionCount = 2;
-                m_CutCross2.SetPositions(new Vector3[] { m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][3 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position, m_PlanesCutsCirclesVertices[m_AssociatedScene.LastPlaneModifiedIndex][7 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position });
+                m_CutCross2.SetPositions(new Vector3[] { displayedCut[3 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position, displayedCut[7 * m_CutCircle.positionCount / 8] - m_AssociatedView.transform.position });
                 m_CutCross2.startWidth = 1f;
 
                 m_DisplayPlanesTimer = 0;

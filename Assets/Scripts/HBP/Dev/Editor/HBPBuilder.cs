@@ -149,7 +149,7 @@ namespace HBP.Dev
 
             string dataBuildDirectory = target == BuildTarget.StandaloneOSX ? Path.Combine(dataDirectory, "Contents", "Resources", m_DataBuild) : Path.Combine(dataDirectory, m_DataBuild);
             DirectoryInfo dataDirectoryInfo = new(dataBuildDirectory);
-            new DirectoryInfo(projectPath + m_Data).CopyFilesRecursively(dataDirectoryInfo);
+            CopyBuildData(new DirectoryInfo(projectPath + m_Data), dataDirectoryInfo);
             foreach (var file in dataDirectoryInfo.GetFiles("*.meta", SearchOption.AllDirectories))
             {
                 file.Delete();
@@ -174,7 +174,7 @@ namespace HBP.Dev
                 }
             }
 
-            // Remove Localizer atlas if it exists (we do not ship it with the build)
+            // Remove localizers left by an older build in a reused output directory.
             DirectoryInfo localizerDirectory = new(Path.Combine(dataBuildDirectory, "Atlases", "Localizers"));
             if (localizerDirectory.Exists)
             {
@@ -211,6 +211,20 @@ namespace HBP.Dev
 
             FileInfo documentation = new(projectPath + "Docs/LaTeX/HiBoP_user_manual.pdf");
             documentation.CopyTo(buildDirectory + documentation.Name, true);
+        }
+
+        private static void CopyBuildData(DirectoryInfo source, DirectoryInfo target, string relative = "")
+        {
+            if (!target.Exists) target.Create();
+            foreach (DirectoryInfo directory in source.GetDirectories())
+            {
+                string child = string.IsNullOrEmpty(relative) ? directory.Name : relative + "/" + directory.Name;
+                if (child == "Atlases/Localizers") continue;
+                CopyBuildData(directory, target.CreateSubdirectory(directory.Name), child);
+            }
+
+            foreach (FileInfo file in source.GetFiles())
+                file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
 
         public static void BuildQuest(string buildsDirectory, bool development = false)

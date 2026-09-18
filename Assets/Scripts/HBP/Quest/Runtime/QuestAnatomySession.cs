@@ -9,6 +9,10 @@ using UnityEngine;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
+using HBP.Sync;
+using HBP.Sync.Scene;
+using System.Text;
+using System.Linq;
 
 namespace HBP.Quest
 {
@@ -34,6 +38,13 @@ namespace HBP.Quest
         private bool destroyed;
         private PairingContext globals;
         private SceneArchive globalArchive;
+        private readonly SemaphoreSlim publicationGate = new(1, 1);
+        private LiveGeometryStateAdapter replica;
+        private StateSnapshot acceptedReplica;
+        private int replicaGeneration;
+        public ulong ReceivedRevision { get; private set; }
+        public ulong AppliedRevision { get; private set; }
+        public ulong VisibleRevision { get; private set; }
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
         public bool IsReady => current != null && view != null && view.Scene != null;
@@ -123,6 +134,8 @@ namespace HBP.Quest
 
         public async Task<DeliveryReceipt> ReceiveGlobalsAsync(Stream stream, CancellationToken stop)
         {
+            if (await OnUnityThreadAsync(() => IsReady, stop).ConfigureAwait(false))
+                throw new InvalidOperationException("Close the active visualization before replacing shared dependencies.");
             Task<DeliveryReceipt> work = await OnUnityThreadAsync(() => ReceiveWithLoadingAsync(stream, stop, true), stop).ConfigureAwait(false);
             return await work.ConfigureAwait(false);
         }
@@ -320,29 +333,148 @@ namespace HBP.Quest
 
         private async Task<DeliveryStatus> PublishAsync(ScenePayload snapshot, SceneArchive archive, string hash, CancellationToken stop)
         {
-            if (deliveries.TryGetValue(snapshot.TransferId, out Entry existing))
-            {
-                if (existing.ContentHash != hash) throw new InvalidDataException("Transfer identity reused with different content.");
-                return existing == current ? DeliveryStatus.AlreadyPublished : existing.Status;
-            }
-
-            // Never evict tombstones: that would allow a delayed retry to resurrect old content.
-            if (deliveries.Count >= MaximumDeliveryHistory) throw new InvalidOperationException("Delivery history is full; reopen the receiver before sending new identities.");
-            var next = new Entry { TransferId = snapshot.TransferId, SessionId = snapshot.SessionId, ContentHash = hash, Status = DeliveryStatus.Published };
-            deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
+            await publicationGate.WaitAsync(stop);
             try
             {
-                await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
-            }
-            catch
-            {
-                deliveries.Remove(next.TransferId);
-                throw;
-            }
+                if (deliveries.TryGetValue(snapshot.TransferId, out Entry existing))
+                {
+                    if (existing.ContentHash != hash) throw new InvalidDataException("Transfer identity reused with different content.");
+                    return existing == current ? DeliveryStatus.AlreadyPublished : existing.Status;
+                }
 
-            if (current != null) current.Status = DeliveryStatus.Superseded;
-            current = next;
-            return DeliveryStatus.Published;
+                // Never evict tombstones: that would allow a delayed retry to resurrect old content.
+                if (deliveries.Count >= MaximumDeliveryHistory) throw new InvalidOperationException("Delivery history is full; reopen the receiver before sending new identities.");
+                var next = new Entry { TransferId = snapshot.TransferId, SessionId = snapshot.SessionId, ContentHash = hash, Status = DeliveryStatus.Published };
+                deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
+                try
+                {
+                    await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
+                }
+                catch
+                {
+                    deliveries.Remove(next.TransferId);
+                    throw;
+                }
+
+                if (current != null) current.Status = DeliveryStatus.Superseded;
+                current = next;
+                replica = null;
+                acceptedReplica = null;
+                ReceivedRevision = AppliedRevision = VisibleRevision = 0;
+                ++replicaGeneration;
+                return DeliveryStatus.Published;
+            }
+            finally
+            {
+                publicationGate.Release();
+            }
+        }
+
+        /// <summary>Receive ordered scientific state on a separate authenticated control stream.</summary>
+        public async Task ReceiveReplicaAsync(Stream stream, CancellationToken stop)
+        {
+            var resources = new Dictionary<string, byte[]>(StringComparer.Ordinal);
+            StateSnapshot checkpoint = await OnUnityThreadAsync(() => acceptedReplica, stop).ConfigureAwait(false);
+            await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Checkpoint, ReplicaWire.Checkpoint(checkpoint?.CommonRevision ?? 0, checkpoint == null ? new byte[32] : ReplicaWire.Hash(checkpoint)), stop).ConfigureAwait(false);
+            while (!stop.IsCancellationRequested)
+            {
+                var frame = await ReplicaWire.ReadAsync(stream, stop).ConfigureAwait(false);
+                if (frame.Kind == ReplicaFrameKind.Resource)
+                {
+                    var resource = ReplicaWire.ReadResource(frame.Body);
+                    if (resources.Count >= 8 && !resources.ContainsKey(resource.Reference)) throw new InvalidDataException("Too many pending replica resources.");
+                    resources[resource.Reference] = resource.Data;
+                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Applied, ReplicaWire.Revision(0), stop).ConfigureAwait(false);
+                    continue;
+                }
+
+                if (frame.Body.Length < 5) throw new InvalidDataException("Truncated replica clock and state.");
+                float senderClock = BitConverter.ToSingle(frame.Body, 0);
+                byte[] stateBytes = new byte[frame.Body.Length - 4];
+                Buffer.BlockCopy(frame.Body, 4, stateBytes, 0, stateBytes.Length);
+                StateSnapshot snapshot = frame.Kind == ReplicaFrameKind.Snapshot ? SharedStateCodec.Decode(stateBytes) : null;
+                ReplicaDelta delta = frame.Kind == ReplicaFrameKind.Delta ? ReplicaDelta.Decode(stateBytes) : null;
+                if (snapshot == null && delta == null) throw new InvalidDataException("Unexpected Desktop replica message.");
+                ulong revision = snapshot?.CommonRevision ?? delta.Revision;
+                await OnUnityThreadAsync(() => ReceivedRevision = revision, stop).ConfigureAwait(false);
+                await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Received, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
+                try
+                {
+                    Task application = await OnUnityThreadAsync(() => ApplyReplicaAsync(snapshot, delta, senderClock, resources, stop), stop).ConfigureAwait(false);
+                    await application.ConfigureAwait(false);
+                    resources.Clear();
+                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Applied, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
+                    Task visible = await OnUnityThreadAsync(() => WaitReplicaVisibleAsync(revision, stop), stop).ConfigureAwait(false);
+                    await visible.ConfigureAwait(false);
+                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Visible, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (exception is InvalidDataException || exception is InvalidOperationException || exception is ArgumentException)
+                {
+                    byte[] message = Encoding.UTF8.GetBytes(exception.Message);
+                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Rejected, message, stop).ConfigureAwait(false);
+                    throw;
+                }
+            }
+        }
+
+        private async Task ApplyReplicaAsync(StateSnapshot snapshot, ReplicaDelta delta, float senderClock, Dictionary<string, byte[]> resources, CancellationToken stop)
+        {
+            await publicationGate.WaitAsync(stop);
+            try
+            {
+                if (!IsReady) throw new InvalidOperationException("No published scene for replica state.");
+                if (delta != null)
+                {
+                    if (acceptedReplica == null) throw new InvalidDataException("A full replica checkpoint is required.");
+                    snapshot = delta.Apply(acceptedReplica);
+                }
+
+                if (acceptedReplica != null && snapshot.CommonRevision <= acceptedReplica.CommonRevision)
+                {
+                    if (snapshot.CommonRevision == acceptedReplica.CommonRevision && SharedStateCodec.Encode(snapshot).AsSpan().SequenceEqual(SharedStateCodec.Encode(acceptedReplica))) return;
+                    throw new InvalidDataException("Stale or divergent replica revision.");
+                }
+
+                LiveGeometryStateAdapter applying = replica;
+                if (applying == null)
+                {
+                    if (snapshot.CommonRevision < 1) throw new InvalidDataException("Invalid initial replica revision.");
+                    byte[] hash = new byte[32];
+                    for (int i = 0; i < hash.Length; i++) hash[i] = Convert.ToByte(current.ContentHash.Substring(i * 2, 2), 16);
+                    var binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(hash, DeliveryStatus.Published), view.PublishedScene);
+                    var candidate = new LiveGeometryStateAdapter(view.Scene, snapshot.EpochId, binding);
+                    foreach (var resource in resources) candidate.PrepareCorrelationResource(resource.Key, resource.Value);
+                    candidate.BindInitialState(snapshot);
+                    applying = candidate;
+                }
+                else
+                    foreach (var resource in resources)
+                        applying.PrepareCorrelationResource(resource.Key, resource.Value);
+
+                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
+                deadline.CancelAfter(TimeSpan.FromSeconds(30));
+                await UniTask.WaitUntil(() => view.Scene != null && view.Scene.CanApplyPreparedState, cancellationToken: deadline.Token);
+                applying.Apply(ReplicaClock.ToLocalClock(snapshot, senderClock, Time.realtimeSinceStartup), delta);
+                replica = applying;
+                acceptedReplica = snapshot;
+                AppliedRevision = snapshot.CommonRevision;
+            }
+            finally
+            {
+                publicationGate.Release();
+            }
+        }
+
+        private async Task WaitReplicaVisibleAsync(ulong revision, CancellationToken stop)
+        {
+            int generation = replicaGeneration;
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
+            deadline.CancelAfter(TimeSpan.FromSeconds(30));
+            if (view.Scene == null) throw new InvalidOperationException("The published scene is unavailable.");
+            await view.Scene.PrepareRenderingAsync(deadline.Token);
+            await UniTask.NextFrame(cancellationToken: deadline.Token);
+            if (generation != replicaGeneration || acceptedReplica?.CommonRevision != revision) throw new InvalidDataException("Replica scene was replaced before visibility.");
+            VisibleRevision = revision;
         }
 
         private async Task<T> OnUnityThreadAsync<T>(Func<T> action, CancellationToken stop)
@@ -386,6 +518,10 @@ namespace HBP.Quest
         public void CloseSession()
         {
             RequireMainThread();
+            replica = null;
+            acceptedReplica = null;
+            ReceivedRevision = AppliedRevision = VisibleRevision = 0;
+            ++replicaGeneration;
             surfaceCache.Clear();
             Disconnect(); // Cancels queued publication before freeing resources.
             if (current != null)

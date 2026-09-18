@@ -47,7 +47,6 @@ namespace HBP.Sync.Scene
 
         public StateSnapshot Capture(ulong revision)
         {
-            m_Resources.AssertPreparedRoster();
             if (m_Scene.SceneInformation.GeometryNeedsUpdate || m_Scene.IsSurfaceRepresentationTransitioning || m_Scene.MeshManager.BrainSurface == null || m_Scene.MeshManager.SimplifiedMeshToUse == null)
                 throw new InvalidOperationException("Prepared geometry must stabilize before capture.");
             var fields = new SortedDictionary<StateKey, byte[]>();
@@ -267,6 +266,49 @@ namespace HBP.Sync.Scene
             return snapshot;
         }
 
+        /// <summary>Capture a cut operation without visiting masks, sites or scientific results.</summary>
+        public StateSnapshot CaptureCuts(StateSnapshot baseline)
+        {
+            var fields = baseline.Fields;
+            foreach (StateKey key in fields.Keys.Where(key => key.Entity == EntityKind.Cut).ToArray()) fields.Remove(key);
+            foreach (var id in m_KnownCuts.Except(m_Scene.Cuts.Select(cut => cut.ID))) m_RemovedCuts.Add(id);
+            foreach (string id in m_RemovedCuts)
+                fields[new StateKey(EntityKind.Cut, "", id, 1)] = StateValue.Bool(false);
+            for (int i = 0; i < m_Scene.Cuts.Count; i++)
+            {
+                var cut = m_Scene.Cuts[i];
+                m_KnownCuts.Add(cut.ID);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 1)] = StateValue.Bool(true);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 2)] = StateValue.Int(i);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 3)] = StateValue.Int((int)cut.Orientation);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 4)] = StateValue.Vector3(cut.Normal.x, cut.Normal.y, cut.Normal.z);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 5)] = StateValue.Bool(cut.Flip);
+                fields[new StateKey(EntityKind.Cut, "", cut.ID, 6)] = StateValue.Float(cut.Position);
+            }
+
+            return baseline.WithFields(fields, baseline.CommonRevision);
+        }
+
+        /// <summary>Capture timeline ticks without sampling geometry, masks or sites.</summary>
+        public StateSnapshot CaptureTimelines(StateSnapshot baseline)
+        {
+            var fields = baseline.Fields;
+            foreach (var column in m_Scene.Columns)
+            {
+                var timeline = column.NavigationTimeline;
+                if (timeline is not { Length: > 0 }) continue;
+                string id = column.ColumnData.ID;
+                fields[new StateKey(EntityKind.Column, "", id, 27)] = StateValue.Int(timeline.CurrentIndex);
+                fields[new StateKey(EntityKind.Column, "", id, 28)] = StateValue.Bool(timeline.IsPlaying);
+                fields[new StateKey(EntityKind.Column, "", id, 29)] = StateValue.Bool(timeline.IsLooping);
+                fields[new StateKey(EntityKind.Column, "", id, 30)] = StateValue.Int(timeline.Step);
+                fields[new StateKey(EntityKind.Column, "", id, 31)] = StateValue.Float(timeline.Frequency.RawValue);
+                fields[new StateKey(EntityKind.Column, "", id, 32)] = StateValue.Float(timeline.CurrentIndexAnchorTime);
+            }
+
+            return baseline.WithFields(fields, baseline.CommonRevision);
+        }
+
         /// <summary>Bind the prepared scene to the exact state shipped with its initial delivery.</summary>
         public void BindInitialState(StateSnapshot initial)
         {
@@ -297,32 +339,77 @@ namespace HBP.Sync.Scene
             m_CorrelationResources[reference] = ((byte[])bytes.Clone(), result);
         }
 
-        public void Apply(StateSnapshot state)
+        public void Apply(StateSnapshot state, ReplicaDelta delta = null)
         {
             if (!m_Bound) throw new InvalidOperationException("Bind the initial delivered state before applying revisions.");
-            var fields = ValidateAndPrepare(state);
+            bool cutsOnly = delta != null && delta.Removals.All(key => key.Entity == EntityKind.Cut) && delta.Assignments.Keys.All(key => key.Entity == EntityKind.Cut);
+            bool timelinesOnly = delta != null && delta.Removals.Count == 0 && delta.Assignments.Keys.All(key => key.Entity == EntityKind.Column && key.FieldId is >= 27 and <= 32);
+            var fields = cutsOnly || timelinesOnly ? state.Fields : ValidateAndPrepare(state);
+            if (cutsOnly || timelinesOnly)
+            {
+                if (state.EpochId != m_EpochId || state.ManifestHash != m_ManifestHash || state.VisualizationId != m_Scene.Visualization.ID)
+                    throw new InvalidDataException("Operation does not belong to the prepared scene.");
+                StateValidator.Validate(state);
+            }
+
+            if (cutsOnly)
+            {
+                foreach (var member in Members(fields, EntityKind.Cut, ""))
+                {
+                    for (ushort field = 1; field <= 6; field++) Require(fields, EntityKind.Cut, "", member.Id, field);
+                    if (!Enum.IsDefined(typeof(CutOrientation), Int(fields, EntityKind.Cut, "", member.Id, 3)) || Float(fields, EntityKind.Cut, "", member.Id, 6) is < 0 or > 1)
+                        throw new InvalidDataException("Invalid cut orientation or position.");
+                }
+            }
+
             ValidateCutOrder(fields);
             if (!m_Scene.CanApplyPreparedState) throw new InvalidOperationException("Prepared scene is busy with native or geometry work.");
 
             m_Scene.BeginSynchronizedStateApplication();
-            m_Scene.SetProjectionEnabled(Bool(fields, EntityKind.Scene, "", "", 27));
-            ApplyResources(fields);
-            m_Scene.RebuildPreparedGeometryForSynchronization();
-            ApplyMasks(fields);
-            ApplyCuts(fields);
-            ApplyRois(fields);
-            ApplySites(fields);
-            ApplyScene(fields);
-            m_Scene.PreserveSynchronizedTimelinesOnNextGenerator();
+            if (cutsOnly)
+            {
+                ApplyCuts(fields, delta.Assignments.Keys.Concat(delta.Removals).Select(key => key.Id).ToHashSet());
+                RememberMembership(fields);
+                m_Scene.SceneInformation.CutsNeedUpdate = true;
+                return;
+            }
+
+            if (timelinesOnly)
+            {
+                ApplyTimelines(fields, delta.Assignments.Keys.Select(key => key.Id).ToHashSet());
+                m_Scene.PreserveSynchronizedTimelinesOnNextGenerator();
+                return;
+            }
+
+            var changed = delta == null ? null : delta.Assignments.Keys.Concat(delta.Removals).ToArray();
+            bool Has(EntityKind kind) => changed == null || changed.Any(key => key.Entity == kind);
+            bool SceneField(params ushort[] ids) => changed == null || changed.Any(key => key.Entity == EntityKind.Scene && ids.Contains(key.FieldId));
+            bool geometry = SceneField(11, 12, 13, 14, 17, 18, 19, 20);
+            if (SceneField(27)) m_Scene.SetProjectionEnabled(Bool(fields, EntityKind.Scene, "", "", 27));
+            if (geometry)
+            {
+                ApplyResources(fields);
+                m_Scene.RebuildPreparedGeometryForSynchronization();
+            }
+
+            if (geometry || SceneField(15, 16)) ApplyMasks(fields);
+            if (geometry || Has(EntityKind.Cut)) ApplyCuts(fields);
+            if (geometry || Has(EntityKind.Roi) || Has(EntityKind.Sphere)) ApplyRois(fields);
+            if (geometry || Has(EntityKind.Column) || Has(EntityKind.Site))
+            {
+                ApplySites(fields, geometry ? null : changed.ToHashSet());
+                m_Scene.PreserveSynchronizedTimelinesOnNextGenerator();
+                m_Scene.SceneInformation.SitesNeedUpdate = true;
+            }
+
+            if (Has(EntityKind.Scene)) ApplyScene(fields, changed == null ? null : changed.Where(key => key.Entity == EntityKind.Scene).Select(key => key.FieldId).ToHashSet());
             RememberMembership(fields);
-            m_Scene.SceneInformation.SitesNeedUpdate = true;
-            m_Scene.SceneInformation.CutsNeedUpdate = true;
+            if (geometry || Has(EntityKind.Cut)) m_Scene.SceneInformation.CutsNeedUpdate = true;
         }
 
         private SortedDictionary<StateKey, byte[]> ValidateAndPrepare(StateSnapshot state)
         {
             StateValidator.Validate(state);
-            m_Resources.AssertPreparedRoster();
             if (state.EpochId != m_EpochId || state.ManifestHash != m_ManifestHash || state.VisualizationId != m_Scene.Visualization.ID)
                 throw new InvalidDataException("Snapshot does not belong to this prepared scene and epoch.");
             var fields = state.Fields;
@@ -593,7 +680,7 @@ namespace HBP.Sync.Scene
             m_Scene.TriangleEraser.CurrentMasks = new List<int[]> { full, simplified };
         }
 
-        private void ApplyCuts(SortedDictionary<StateKey, byte[]> fields)
+        private void ApplyCuts(SortedDictionary<StateKey, byte[]> fields, HashSet<string> changed = null)
         {
             var wanted = Members(fields, EntityKind.Cut, "");
             foreach (var cut in m_Scene.Cuts.ToArray())
@@ -601,6 +688,7 @@ namespace HBP.Sync.Scene
                     m_Scene.RemoveCutPlane(cut);
             foreach (var member in wanted)
             {
+                if (changed != null && !changed.Contains(member.Id)) continue;
                 var cut = m_Scene.Cuts.FirstOrDefault(item => item.ID == member.Id);
                 if (cut == null) (cut = m_Scene.AddCutPlane()).ID = member.Id;
                 cut.Orientation = (CutOrientation)Int(fields, EntityKind.Cut, "", member.Id, 3);
@@ -612,6 +700,28 @@ namespace HBP.Sync.Scene
 
             if (!m_Scene.Cuts.Select(cut => cut.ID).SequenceEqual(wanted.Select(member => member.Id)))
                 throw new InvalidDataException("Cut order cannot be applied in place");
+        }
+
+        private void ApplyTimelines(SortedDictionary<StateKey, byte[]> fields, HashSet<string> changed)
+        {
+            foreach (string id in changed)
+            {
+                var column = m_Scene.Columns.SingleOrDefault(item => item.ColumnData.ID == id);
+                var timeline = column?.NavigationTimeline;
+                if (timeline is not { Length: > 0 }) throw new InvalidDataException("Unknown prepared timeline.");
+                for (ushort field = 27; field <= 32; field++) Require(fields, EntityKind.Column, "", id, field);
+                int index = Int(fields, EntityKind.Column, "", id, 27);
+                bool playing = Bool(fields, EntityKind.Column, "", id, 28);
+                int step = Int(fields, EntityKind.Column, "", id, 30);
+                float anchor = Float(fields, EntityKind.Column, "", id, 32);
+                if (index < 0 || index >= timeline.Length || step < 1 || Float(fields, EntityKind.Column, "", id, 31) != timeline.Frequency.RawValue || (!playing && anchor != 0f) || anchor < 0f)
+                    throw new InvalidDataException("Invalid prepared timeline state.");
+                timeline.IsLooping = Bool(fields, EntityKind.Column, "", id, 29);
+                timeline.Step = step;
+                if (timeline.CurrentIndex != index) timeline.CurrentIndex = index;
+                if (timeline.IsPlaying != playing) timeline.IsPlaying = playing;
+                timeline.ApplySynchronizedClockAnchor(anchor);
+            }
         }
 
         private void ApplyRois(SortedDictionary<StateKey, byte[]> fields)
@@ -655,74 +765,81 @@ namespace HBP.Sync.Scene
             m_Scene.ROIManager.UpdateROIMasks();
         }
 
-        private void ApplySites(SortedDictionary<StateKey, byte[]> fields)
+        private void ApplySites(SortedDictionary<StateKey, byte[]> fields, HashSet<StateKey> changed = null)
         {
             Column3D selectedColumn = null;
             HBP.Core.Object3D.Site selectedSite = null;
             foreach (Column3D column in m_Scene.Columns)
             {
                 string id = column.ColumnData.ID;
-                column.ActivityAlpha = Float(fields, EntityKind.Column, "", id, 5);
-                if (column is Column3DAnatomy anatomy)
-                    anatomy.AnatomyParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 6);
-                if (column is Column3DStatic staticColumn)
+                bool columnChanged = changed == null || changed.Any(key => key.Entity == EntityKind.Column && key.Id == id);
+                bool siteChanged = changed == null || changed.Any(key => key.Entity == EntityKind.Site && key.ParentId == id);
+                if (!columnChanged && !siteChanged) continue;
+                if (columnChanged)
                 {
-                    int labelIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 7));
-                    if (labelIndex >= 0 && staticColumn.SelectedLabelIndex != labelIndex) staticColumn.SelectedLabelIndex = labelIndex;
-                    staticColumn.StaticParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 11);
-                    staticColumn.StaticParameters.ApplySynchronizedSpanValues(Float(fields, EntityKind.Column, "", id, 8), Float(fields, EntityKind.Column, "", id, 9), Float(fields, EntityKind.Column, "", id, 10));
-                }
+                    column.ActivityAlpha = Float(fields, EntityKind.Column, "", id, 5);
+                    if (column is Column3DAnatomy anatomy)
+                        anatomy.AnatomyParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 6);
+                    if (column is Column3DStatic staticColumn)
+                    {
+                        int labelIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 7));
+                        if (labelIndex >= 0 && staticColumn.SelectedLabelIndex != labelIndex) staticColumn.SelectedLabelIndex = labelIndex;
+                        staticColumn.StaticParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 11);
+                        staticColumn.StaticParameters.ApplySynchronizedSpanValues(Float(fields, EntityKind.Column, "", id, 8), Float(fields, EntityKind.Column, "", id, 9), Float(fields, EntityKind.Column, "", id, 10));
+                    }
 
-                if (column is Column3DDynamic dynamicColumn)
-                {
-                    dynamicColumn.DynamicParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 15);
-                    dynamicColumn.DynamicParameters.ApplySynchronizedSpanValues(Float(fields, EntityKind.Column, "", id, 12), Float(fields, EntityKind.Column, "", id, 13), Float(fields, EntityKind.Column, "", id, 14));
-                }
+                    if (column is Column3DDynamic dynamicColumn)
+                    {
+                        dynamicColumn.DynamicParameters.InfluenceDistance = Float(fields, EntityKind.Column, "", id, 15);
+                        dynamicColumn.DynamicParameters.ApplySynchronizedSpanValues(Float(fields, EntityKind.Column, "", id, 12), Float(fields, EntityKind.Column, "", id, 13), Float(fields, EntityKind.Column, "", id, 14));
+                    }
 
-                if (column is Column3DCCEP ccep)
-                {
-                    var mode = (Column3DCCEP.CCEPMode)Int(fields, EntityKind.Column, "", id, 16);
-                    if (ccep.Mode != mode) ccep.Mode = mode;
-                    string sourceId = Text(fields, EntityKind.Column, "", id, 17);
-                    ccep.SelectedSourceSite = sourceId.Length == 0 ? null : ccep.Sources.Single(site => site.Information.FullID == sourceId);
-                    string area = Text(fields, EntityKind.Column, "", id, 18);
-                    ccep.SelectedSourceMarsAtlasLabel = area.Length == 0 ? -1 : int.Parse(area, System.Globalization.CultureInfo.InvariantCulture);
-                }
+                    if (column is Column3DCCEP ccep)
+                    {
+                        var mode = (Column3DCCEP.CCEPMode)Int(fields, EntityKind.Column, "", id, 16);
+                        if (ccep.Mode != mode) ccep.Mode = mode;
+                        string sourceId = Text(fields, EntityKind.Column, "", id, 17);
+                        ccep.SelectedSourceSite = sourceId.Length == 0 ? null : ccep.Sources.Single(site => site.Information.FullID == sourceId);
+                        string area = Text(fields, EntityKind.Column, "", id, 18);
+                        ccep.SelectedSourceMarsAtlasLabel = area.Length == 0 ? -1 : int.Parse(area, System.Globalization.CultureInfo.InvariantCulture);
+                    }
 
-                if (column is Column3DFMRI fmri)
-                {
-                    int resourceIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 19));
-                    if (resourceIndex >= 0 && fmri.SelectedFMRIIndex != resourceIndex) fmri.SelectedFMRIIndex = resourceIndex;
-                    fmri.FMRIParameters.ApplySynchronizedCalibration(Float(fields, EntityKind.Column, "", id, 20), Float(fields, EntityKind.Column, "", id, 21), Float(fields, EntityKind.Column, "", id, 22), Float(fields, EntityKind.Column, "", id, 23));
-                    bool lower = Bool(fields, EntityKind.Column, "", id, 24), middle = Bool(fields, EntityKind.Column, "", id, 25), higher = Bool(fields, EntityKind.Column, "", id, 26);
-                    if (fmri.FMRIParameters.HideLowerValues != lower || fmri.FMRIParameters.HideMiddleValues != middle || fmri.FMRIParameters.HideHigherValues != higher)
-                        fmri.FMRIParameters.SetHideValues(lower, middle, higher);
-                }
+                    if (column is Column3DFMRI fmri)
+                    {
+                        int resourceIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 19));
+                        if (resourceIndex >= 0 && fmri.SelectedFMRIIndex != resourceIndex) fmri.SelectedFMRIIndex = resourceIndex;
+                        fmri.FMRIParameters.ApplySynchronizedCalibration(Float(fields, EntityKind.Column, "", id, 20), Float(fields, EntityKind.Column, "", id, 21), Float(fields, EntityKind.Column, "", id, 22), Float(fields, EntityKind.Column, "", id, 23));
+                        bool lower = Bool(fields, EntityKind.Column, "", id, 24), middle = Bool(fields, EntityKind.Column, "", id, 25), higher = Bool(fields, EntityKind.Column, "", id, 26);
+                        if (fmri.FMRIParameters.HideLowerValues != lower || fmri.FMRIParameters.HideMiddleValues != middle || fmri.FMRIParameters.HideHigherValues != higher)
+                            fmri.FMRIParameters.SetHideValues(lower, middle, higher);
+                    }
 
-                if (column is Column3DMEG meg)
-                {
-                    int resourceIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 19));
-                    if (resourceIndex >= 0 && meg.SelectedMEGIndex != resourceIndex) meg.SelectedMEGIndex = resourceIndex;
-                    meg.MEGParameters.ApplySynchronizedCalibration(Float(fields, EntityKind.Column, "", id, 20), Float(fields, EntityKind.Column, "", id, 21), Float(fields, EntityKind.Column, "", id, 22), Float(fields, EntityKind.Column, "", id, 23));
-                    bool lower = Bool(fields, EntityKind.Column, "", id, 24), middle = Bool(fields, EntityKind.Column, "", id, 25), higher = Bool(fields, EntityKind.Column, "", id, 26);
-                    if (meg.MEGParameters.HideLowerValues != lower || meg.MEGParameters.HideMiddleValues != middle || meg.MEGParameters.HideHigherValues != higher)
-                        meg.MEGParameters.SetHideValues(lower, middle, higher);
-                }
+                    if (column is Column3DMEG meg)
+                    {
+                        int resourceIndex = m_Resources.ResolveColumnIndex(column, Text(fields, EntityKind.Column, "", id, 19));
+                        if (resourceIndex >= 0 && meg.SelectedMEGIndex != resourceIndex) meg.SelectedMEGIndex = resourceIndex;
+                        meg.MEGParameters.ApplySynchronizedCalibration(Float(fields, EntityKind.Column, "", id, 20), Float(fields, EntityKind.Column, "", id, 21), Float(fields, EntityKind.Column, "", id, 22), Float(fields, EntityKind.Column, "", id, 23));
+                        bool lower = Bool(fields, EntityKind.Column, "", id, 24), middle = Bool(fields, EntityKind.Column, "", id, 25), higher = Bool(fields, EntityKind.Column, "", id, 26);
+                        if (meg.MEGParameters.HideLowerValues != lower || meg.MEGParameters.HideMiddleValues != middle || meg.MEGParameters.HideHigherValues != higher)
+                            meg.MEGParameters.SetHideValues(lower, middle, higher);
+                    }
 
-                if (column.NavigationTimeline is { Length: > 0 } timeline)
-                {
-                    timeline.IsLooping = Bool(fields, EntityKind.Column, "", id, 29);
-                    timeline.Step = Int(fields, EntityKind.Column, "", id, 30);
-                    int targetIndex = Int(fields, EntityKind.Column, "", id, 27);
-                    if (timeline.CurrentIndex != targetIndex) timeline.CurrentIndex = targetIndex;
-                    bool playing = Bool(fields, EntityKind.Column, "", id, 28);
-                    if (timeline.IsPlaying != playing) timeline.IsPlaying = playing;
-                    timeline.ApplySynchronizedClockAnchor(Float(fields, EntityKind.Column, "", id, 32));
+                    if (column.NavigationTimeline is { Length: > 0 } timeline)
+                    {
+                        timeline.IsLooping = Bool(fields, EntityKind.Column, "", id, 29);
+                        timeline.Step = Int(fields, EntityKind.Column, "", id, 30);
+                        int targetIndex = Int(fields, EntityKind.Column, "", id, 27);
+                        if (timeline.CurrentIndex != targetIndex) timeline.CurrentIndex = targetIndex;
+                        bool playing = Bool(fields, EntityKind.Column, "", id, 28);
+                        if (timeline.IsPlaying != playing) timeline.IsPlaying = playing;
+                        timeline.ApplySynchronizedClockAnchor(Float(fields, EntityKind.Column, "", id, 32));
+                    }
                 }
 
                 foreach (var site in column.Sites)
                 {
                     string siteId = site.Information.FullID;
+                    if (changed != null && !changed.Any(key => key.Entity == EntityKind.Site && key.ParentId == id && key.Id == siteId)) continue;
                     if (!Bool(fields, EntityKind.Site, id, siteId, 1)) throw new InvalidDataException("Site topology changed");
                     Color color = ReadColor(fields[new StateKey(EntityKind.Site, id, siteId, 5)]);
                     site.State.ApplySynchronizedState(Bool(fields, EntityKind.Site, id, siteId, 2), Bool(fields, EntityKind.Site, id, siteId, 3), Bool(fields, EntityKind.Site, id, siteId, 4), color, ReadList(fields[new StateKey(EntityKind.Site, id, siteId, 6)]));
@@ -730,61 +847,93 @@ namespace HBP.Sync.Scene
                     if (site.transform.localPosition != position) site.transform.localPosition = position;
                 }
 
-                string selectedId = Text(fields, EntityKind.Column, "", id, 4);
-                var selected = selectedId.Length == 0 ? null : column.Sites.FirstOrDefault(site => site.Information.FullID == selectedId);
-                if (column.SelectedSite && column.SelectedSite != selected) column.UnselectSite();
-                if (selected)
+                if (columnChanged)
                 {
-                    selectedColumn = column;
-                    selectedSite = selected;
+                    string selectedId = Text(fields, EntityKind.Column, "", id, 4);
+                    var selected = selectedId.Length == 0 ? null : column.Sites.FirstOrDefault(site => site.Information.FullID == selectedId);
+                    if (column.SelectedSite && column.SelectedSite != selected) column.UnselectSite();
+                    if (selected)
+                    {
+                        selectedColumn = column;
+                        selectedSite = selected;
+                    }
                 }
             }
 
             if (selectedSite && selectedColumn.SelectedSite != selectedSite) m_Scene.SelectSiteForSynchronization(selectedColumn, selectedSite);
         }
 
-        private void ApplyScene(SortedDictionary<StateKey, byte[]> fields)
+        private void ApplyScene(SortedDictionary<StateKey, byte[]> fields, HashSet<ushort> changed = null)
         {
-            m_Scene.StrongCuts = Bool(fields, EntityKind.Scene, "", "", 3);
-            m_Scene.AutomaticCutAroundSelectedSite = Bool(fields, EntityKind.Scene, "", "", 4);
-            m_Scene.HideBlacklistedSites = Bool(fields, EntityKind.Scene, "", "", 5);
-            m_Scene.ShowAllSites = Bool(fields, EntityKind.Scene, "", "", 6);
-            m_Scene.SiteGain = Float(fields, EntityKind.Scene, "", "", 7);
-            string comparisonId = Text(fields, EntityKind.Scene, "", "", 8);
-            var comparisonSite = comparisonId.Length == 0 ? null : m_Scene.Columns.SelectMany(column => column.Sites.Select(site => (column, site))).Single(pair => ComparisonSiteId(pair.column.ColumnData.ID, pair.site.Information.FullID) == comparisonId).site;
-            m_Scene.ImplantationManager.SetComparisonSiteForSynchronization(comparisonSite);
-            string correlationReference = Text(fields, EntityKind.Scene, "", "", 9);
-            if (correlationReference.Length == 0)
+            bool Has(params ushort[] ids) => changed == null || ids.Any(changed.Contains);
+            if (Has(3)) m_Scene.StrongCuts = Bool(fields, EntityKind.Scene, "", "", 3);
+            if (Has(4)) m_Scene.AutomaticCutAroundSelectedSite = Bool(fields, EntityKind.Scene, "", "", 4);
+            if (Has(5)) m_Scene.HideBlacklistedSites = Bool(fields, EntityKind.Scene, "", "", 5);
+            if (Has(6)) m_Scene.ShowAllSites = Bool(fields, EntityKind.Scene, "", "", 6);
+            if (Has(7)) m_Scene.SiteGain = Float(fields, EntityKind.Scene, "", "", 7);
+            if (Has(8))
             {
-                if (m_Scene.ColumnsIEEG.Any(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
+                string comparisonId = Text(fields, EntityKind.Scene, "", "", 8);
+                var comparisonSite = comparisonId.Length == 0 ? null : m_Scene.Columns.SelectMany(column => column.Sites.Select(site => (column, site))).Single(pair => ComparisonSiteId(pair.column.ColumnData.ID, pair.site.Information.FullID) == comparisonId).site;
+                m_Scene.ImplantationManager.SetComparisonSiteForSynchronization(comparisonSite);
             }
-            else m_CorrelationResources[correlationReference].Result.Apply(m_Scene);
 
-            m_Scene.DisplayCorrelations = Bool(fields, EntityKind.Scene, "", "", 10);
-            m_Scene.BrainColor = (ColorType)Int(fields, EntityKind.Scene, "", "", 21);
-            m_Scene.CutColor = (ColorType)Int(fields, EntityKind.Scene, "", "", 22);
-            m_Scene.Colormap = (ColorType)Int(fields, EntityKind.Scene, "", "", 23);
-            m_Scene.EdgeMode = Bool(fields, EntityKind.Scene, "", "", 24);
-            m_Scene.IsBrainTransparent = Bool(fields, EntityKind.Scene, "", "", 25);
-            m_Scene.BrainMaterials.SetAlpha(Float(fields, EntityKind.Scene, "", "", 26));
-            bool mars = Bool(fields, EntityKind.Scene, "", "", 28);
-            bool juBrain = Bool(fields, EntityKind.Scene, "", "", 29);
-            if (m_Scene.AtlasManager.DisplayMarsAtlas != mars) m_Scene.AtlasManager.DisplayMarsAtlas = mars;
-            if (m_Scene.AtlasManager.DisplayJuBrainAtlas != juBrain) m_Scene.AtlasManager.DisplayJuBrainAtlas = juBrain;
-            m_Scene.AtlasManager.AtlasAlpha = Float(fields, EntityKind.Scene, "", "", 30);
+            if (Has(9))
+            {
+                string correlationReference = Text(fields, EntityKind.Scene, "", "", 9);
+                if (correlationReference.Length == 0)
+                {
+                    if (m_Scene.ColumnsIEEG.Any(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
+                }
+                else m_CorrelationResources[correlationReference].Result.Apply(m_Scene);
+            }
+
+            if (Has(10)) m_Scene.DisplayCorrelations = Bool(fields, EntityKind.Scene, "", "", 10);
+            if (Has(21)) m_Scene.BrainColor = (ColorType)Int(fields, EntityKind.Scene, "", "", 21);
+            if (Has(22)) m_Scene.CutColor = (ColorType)Int(fields, EntityKind.Scene, "", "", 22);
+            if (Has(23)) m_Scene.Colormap = (ColorType)Int(fields, EntityKind.Scene, "", "", 23);
+            if (Has(24)) m_Scene.EdgeMode = Bool(fields, EntityKind.Scene, "", "", 24);
+            if (Has(25)) m_Scene.IsBrainTransparent = Bool(fields, EntityKind.Scene, "", "", 25);
+            if (Has(26)) m_Scene.BrainMaterials.SetAlpha(Float(fields, EntityKind.Scene, "", "", 26));
+            if (Has(28))
+            {
+                bool mars = Bool(fields, EntityKind.Scene, "", "", 28);
+                if (m_Scene.AtlasManager.DisplayMarsAtlas != mars) m_Scene.AtlasManager.DisplayMarsAtlas = mars;
+            }
+
+            if (Has(29))
+            {
+                bool juBrain = Bool(fields, EntityKind.Scene, "", "", 29);
+                if (m_Scene.AtlasManager.DisplayJuBrainAtlas != juBrain) m_Scene.AtlasManager.DisplayJuBrainAtlas = juBrain;
+            }
+
+            if (Has(30)) m_Scene.AtlasManager.AtlasAlpha = Float(fields, EntityKind.Scene, "", "", 30);
             var fmri = m_Scene.FMRIManager;
-            fmri.ApplySynchronizedAtlasSources(Bool(fields, EntityKind.Scene, "", "", 31), Math.Max(0, m_Resources.ResolveIbcContrast(Text(fields, EntityKind.Scene, "", "", 32))), Bool(fields, EntityKind.Scene, "", "", 33), m_Resources.ResolveDifumo(Text(fields, EntityKind.Scene, "", "", 34)), int.Parse(Text(fields, EntityKind.Scene, "", "", 35), System.Globalization.CultureInfo.InvariantCulture));
-            var localizerNames = m_Resources.ResolveLocalizerNames(Text(fields, EntityKind.Scene, "", "", 37), Text(fields, EntityKind.Scene, "", "", 38));
-            fmri.ApplySynchronizedLocalizer(Bool(fields, EntityKind.Scene, "", "", 36), localizerNames.Protocol, localizerNames.Data, m_Resources.ResolveLocalizerBlocName(Text(fields, EntityKind.Scene, "", "", 37), Text(fields, EntityKind.Scene, "", "", 38), Text(fields, EntityKind.Scene, "", "", 39)), Int(fields, EntityKind.Scene, "", "", 40), Float(fields, EntityKind.Scene, "", "", 41), Float(fields, EntityKind.Scene, "", "", 42), Float(fields, EntityKind.Scene, "", "", 43));
-            fmri.ApplySynchronizedAtlasCalibration(Float(fields, EntityKind.Scene, "", "", 44), Float(fields, EntityKind.Scene, "", "", 45), Float(fields, EntityKind.Scene, "", "", 46), Float(fields, EntityKind.Scene, "", "", 47), Float(fields, EntityKind.Scene, "", "", 48));
-            string selectedColumnId = Text(fields, EntityKind.Scene, "", "", 1);
-            if (selectedColumnId.Length != 0) m_Scene.SelectColumn(m_Scene.Columns.Single(column => column.ColumnData.ID == selectedColumnId));
-            else
-                foreach (var column in m_Scene.Columns)
-                    column.IsSelected = false;
-            string activeRoiId = Text(fields, EntityKind.Scene, "", "", 2);
-            m_Scene.ROIManager.SelectedROI = activeRoiId.Length == 0 ? null : m_Scene.ROIManager.ROIs.Single(roi => roi.ID == activeRoiId);
-            if (m_Scene.AutomaticCutAroundSelectedSite && m_Scene.Cuts.Count == 3) m_Scene.MarkAutomaticCutsAsCurrent();
+            if (Has(31, 32, 33, 34, 35))
+                fmri.ApplySynchronizedAtlasSources(Bool(fields, EntityKind.Scene, "", "", 31), Math.Max(0, m_Resources.ResolveIbcContrast(Text(fields, EntityKind.Scene, "", "", 32))), Bool(fields, EntityKind.Scene, "", "", 33), m_Resources.ResolveDifumo(Text(fields, EntityKind.Scene, "", "", 34)), int.Parse(Text(fields, EntityKind.Scene, "", "", 35), System.Globalization.CultureInfo.InvariantCulture));
+            if (Has(36, 37, 38, 39, 40, 41, 42, 43))
+            {
+                var localizerNames = m_Resources.ResolveLocalizerNames(Text(fields, EntityKind.Scene, "", "", 37), Text(fields, EntityKind.Scene, "", "", 38));
+                fmri.ApplySynchronizedLocalizer(Bool(fields, EntityKind.Scene, "", "", 36), localizerNames.Protocol, localizerNames.Data, m_Resources.ResolveLocalizerBlocName(Text(fields, EntityKind.Scene, "", "", 37), Text(fields, EntityKind.Scene, "", "", 38), Text(fields, EntityKind.Scene, "", "", 39)), Int(fields, EntityKind.Scene, "", "", 40), Float(fields, EntityKind.Scene, "", "", 41), Float(fields, EntityKind.Scene, "", "", 42), Float(fields, EntityKind.Scene, "", "", 43));
+            }
+
+            if (Has(44, 45, 46, 47, 48)) fmri.ApplySynchronizedAtlasCalibration(Float(fields, EntityKind.Scene, "", "", 44), Float(fields, EntityKind.Scene, "", "", 45), Float(fields, EntityKind.Scene, "", "", 46), Float(fields, EntityKind.Scene, "", "", 47), Float(fields, EntityKind.Scene, "", "", 48));
+            if (Has(1))
+            {
+                string selectedColumnId = Text(fields, EntityKind.Scene, "", "", 1);
+                if (selectedColumnId.Length != 0) m_Scene.SelectColumn(m_Scene.Columns.Single(column => column.ColumnData.ID == selectedColumnId));
+                else
+                    foreach (var column in m_Scene.Columns)
+                        column.IsSelected = false;
+            }
+
+            if (Has(2))
+            {
+                string activeRoiId = Text(fields, EntityKind.Scene, "", "", 2);
+                m_Scene.ROIManager.SelectedROI = activeRoiId.Length == 0 ? null : m_Scene.ROIManager.ROIs.Single(roi => roi.ID == activeRoiId);
+            }
+
+            if (Has(4) && m_Scene.AutomaticCutAroundSelectedSite && m_Scene.Cuts.Count == 3) m_Scene.MarkAutomaticCutsAsCurrent();
         }
 
         private static List<(string Id, int Order)> Members(SortedDictionary<StateKey, byte[]> fields, EntityKind kind, string parent) => fields.Where(field => field.Key.Entity == kind && field.Key.ParentId == parent && field.Key.FieldId == 1 && field.Value[0] == 1).Select(field => (field.Key.Id, Int(fields, kind, parent, field.Key.Id, 2))).OrderBy(member => member.Item2).ToList();

@@ -50,12 +50,24 @@ namespace HBP.Quest
             try
             {
                 candidate = await SceneRestoration.PrepareAsync(payload, archive, contentPrefab, transform, lifetime.Token);
+                bool sameVisualization = current != null && current.Scene.Visualization.ID == candidate.Scene.Visualization.ID;
+                var previousPoses = new Dictionary<string, (Vector3 Position, Quaternion Rotation, Vector3 Scale)>(StringComparer.Ordinal);
+                if (sameVisualization)
+                    foreach (var column in columns)
+                        if (column != null && column.Column != null)
+                            previousPoses[column.Column.ColumnData.ID] = (column.transform.localPosition, column.transform.localRotation, column.transform.localScale);
                 foreach (Column3D column in candidate.Scene.Columns)
                 {
                     var presentation = Instantiate(columnPrefab, transform, false);
                     presentations.Add(presentation);
                     presentation.Bind(candidate.Scene, column);
                     presentation.transform.localPosition = new Vector3((presentations.Count - 1) * 0.35f, 0, 0);
+                    if (previousPoses.TryGetValue(column.ColumnData.ID, out var pose))
+                    {
+                        presentation.transform.localPosition = pose.Position;
+                        presentation.transform.localRotation = pose.Rotation;
+                        presentation.transform.localScale = pose.Scale;
+                    }
                 }
 
                 lifetime.Token.ThrowIfCancellationRequested();
@@ -67,7 +79,7 @@ namespace HBP.Quest
                 columns.Clear();
                 columns.AddRange(presentations);
                 presentations.Clear();
-                SurfaceHidden = false;
+                if (!sameVisualization) SurfaceHidden = false;
                 foreach (var old in previousColumns)
                     old.Hide();
                 if (previous != null)

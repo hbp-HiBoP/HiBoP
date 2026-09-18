@@ -1,6 +1,6 @@
 {
     "name": "HBP.Transfer.Transport",
-    "references": ["HBP.Transfer.Codecs"],
+    "references": ["HBP.Transfer.Codecs", "HBP.Sync.Runtime"],
     "overrideReferences": true,
     "precompiledReferences": ["BouncyCastle.Cryptography.dll"],
     "autoReferenced": false,

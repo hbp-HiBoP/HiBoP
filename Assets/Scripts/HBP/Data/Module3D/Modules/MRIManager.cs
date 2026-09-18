@@ -138,6 +138,7 @@ namespace HBP.Data.Module3D
                 MRICalMinFactor = min;
                 MRICalMaxFactor = max;
                 m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
+                m_Scene.OnSharedStateChanged.Invoke();
             }
         }
 

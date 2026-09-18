@@ -2,7 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +21,7 @@ using HBP.Sync;
 using HBP.Sync.Scene;
 using HBP.Tests.PlayMode.Utilities;
 using HBP.Transfer.Scene;
+using HBP.Transfer.Transport;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -37,7 +41,99 @@ namespace HBP.Tests.SceneTransfer
         [Timeout(180000)]
         public Task S2_LiveDesktopCaptureBindsDeliveredQuestScene() => VerifyPreparedMeshAndConfigurationAsync(true);
 
-        private async Task VerifyPreparedMeshAndConfigurationAsync(bool captureLiveDelivery)
+        [Test]
+        [Timeout(180000)]
+        public Task S3_ReplicaStreamAppliesDesktopStateWithoutReplacingQuestPresentation() => VerifyPreparedMeshAndConfigurationAsync(false, true);
+
+        [Test, Explicit("Requires a paired Quest running HiBoP and USB forwarding on port 45871.")]
+        [Timeout(240000)]
+        public async Task S3_PhysicalQuestReceivesVisibleRevisions()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-s3-device-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            using var settings = new PlayModePersistentDataScope(root);
+            using var scope = new PlayModeSceneScope("S3PhysicalQuest");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+            CancellationToken token = timeout.Token;
+            RestoredScene desktop = null;
+            byte[] credential = null;
+            try
+            {
+                await PrepareReferencesAsync();
+                using var source = new SceneArchive(Path.Combine(root, "source"));
+                ScenePayload fixture = CreateFixture(source);
+                fixture.TransferId = Guid.NewGuid().ToString("N");
+                fixture.SessionId = Guid.NewGuid().ToString("N");
+                string fixtureFile = Path.Combine(root, "fixture.hbscene");
+                source.Write(fixture, fixtureFile);
+                var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
+                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(fixtureFile), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+
+                await desktop.Scene.PrepareRenderingAsync(token);
+
+                using var globalArchive = new SceneArchive(Path.Combine(root, "globals"), globals: source.Globals);
+                source.Globals.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, globalArchive);
+                string globalsFile = Path.Combine(root, "globals.hbglobal");
+                globalArchive.WriteGlobalData(source.Globals.Data, globalsFile);
+                using var globalsDelivery = new SceneDelivery(globalsFile, source.Globals.Id, source.Globals.Id, "S3 device globals");
+                using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop.Scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, source.Globals, token);
+
+                const string host = "127.0.0.1";
+                QuestDevice device = await QuestPairing.DescribeAsync(host, token);
+                string pairingPath = Path.Combine(Application.persistentDataPath, "QuestPairings", BitConverter.ToString(device.Pin).Replace("-", "") + ".pair");
+                credential = PairingStorage.Read(pairingPath);
+                Assert.That(credential, Has.Length.EqualTo(32), "The existing Quest pairing must be available to this Editor.");
+                await QuestPairing.ResumeAsync(host, device.Pin, credential, source.Globals.Id, token, (stream, stop) => globalsDelivery.SendAsync(stream, stop));
+                DeliveryReceipt receipt = await QuestPairing.SendAsync(host, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
+                Assert.That(receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+
+                var adapter = new LiveGeometryStateAdapter(desktop.Scene, Guid.NewGuid(), PreparedSceneDeliveryBinding.FromSent(delivery, receipt));
+                StateSnapshot initial = adapter.Capture(1);
+                adapter.BindInitialState(initial);
+                float firstClock = Time.realtimeSinceStartup;
+                ((Column3DAnatomy)desktop.Scene.Columns[0]).AnatomyParameters.InfluenceDistance = 22.5f;
+                await desktop.Scene.PrepareRenderingAsync(token);
+                StateSnapshot next = adapter.Capture(2);
+                float secondClock = Time.realtimeSinceStartup;
+                await QuestPairing.OpenReplicaAsync(host, device.Pin, credential, token, async (stream, stop) =>
+                {
+                    var checkpoint = await ReplicaWire.ReadAsync(stream, stop);
+                    Assert.That(checkpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
+                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.Zero);
+                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(initial), 1, firstClock, stop);
+                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Delta, ReplicaDelta.Between(initial, next).Encode(), 2, secondClock, stop);
+                });
+                await QuestPairing.OpenReplicaAsync(host, device.Pin, credential, token, async (stream, stop) =>
+                {
+                    var checkpoint = await ReplicaWire.ReadAsync(stream, stop);
+                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.EqualTo(2));
+                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Hash, Is.EqualTo(ReplicaWire.Hash(next)));
+                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(next), 2, secondClock, stop);
+                });
+            }
+            finally
+            {
+                if (credential != null) Array.Clear(credential, 0, credential.Length);
+                await UniTask.SwitchToMainThread();
+                if (desktop != null) await desktop.CloseAsync();
+            }
+        }
+
+        private static async Task SendDeviceReplicaStateAsync(Stream stream, ReplicaFrameKind kind, byte[] state, ulong revision, float clock, CancellationToken token)
+        {
+            byte[] body = new byte[4 + state.Length];
+            Buffer.BlockCopy(BitConverter.GetBytes(clock), 0, body, 0, 4);
+            Buffer.BlockCopy(state, 0, body, 4, state.Length);
+            await ReplicaWire.WriteAsync(stream, kind, body, token);
+            foreach (ReplicaFrameKind expected in new[] { ReplicaFrameKind.Received, ReplicaFrameKind.Applied, ReplicaFrameKind.Visible })
+            {
+                var reply = await ReplicaWire.ReadAsync(stream, token);
+                Assert.That(reply.Kind, Is.EqualTo(expected), reply.Kind == ReplicaFrameKind.Rejected ? System.Text.Encoding.UTF8.GetString(reply.Body) : "Quest acknowledgement");
+                Assert.That(ReplicaWire.ReadRevision(reply.Body), Is.EqualTo(revision));
+            }
+        }
+
+        private async Task VerifyPreparedMeshAndConfigurationAsync(bool captureLiveDelivery, bool exerciseReplica = false)
         {
             string root = Path.Combine(Path.GetTempPath(), "hibop-s2-mesh-binding-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
@@ -50,6 +146,8 @@ namespace HBP.Tests.SceneTransfer
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
             var token = timeout.Token;
             RestoredScene desktop = null;
+            QuestAnatomySession replicaSession = null;
+            LocalizerProtocol transferredLocalizer = null;
             var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
@@ -76,7 +174,17 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop prepared mesh");
 
                 var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
-                await view.ApplyAsync(questArchive.Read(file), questArchive, token);
+                if (exerciseReplica)
+                {
+                    var receiverObject = new GameObject("S3 Replica Receiver");
+                    replicaSession = receiverObject.AddComponent<QuestAnatomySession>();
+                    typeof(QuestAnatomySession).GetField("view", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(replicaSession, view);
+                    var publish = typeof(QuestAnatomySession).GetMethod("PublishAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                    var publication = (Task<DeliveryStatus>)publish.Invoke(replicaSession, new object[] { questArchive.Read(file), questArchive, delivery.ContentHash, token });
+                    Assert.That(await publication, Is.EqualTo(DeliveryStatus.Published));
+                }
+                else await view.ApplyAsync(questArchive.Read(file), questArchive, token);
+
                 Debug.Log($"S2 mesh binding: Quest scene {clock.Elapsed.TotalSeconds:F1}s");
                 Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop mesh after Quest opening");
                 Assert.That(SceneArchive.MeshGeometryFingerprint(view.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Quest prepared mesh");
@@ -88,6 +196,12 @@ namespace HBP.Tests.SceneTransfer
                 LiveGeometryStateAdapter receiver = new(view.Scene, epoch, PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene));
                 await desktop.Scene.PrepareRenderingAsync(token);
                 await view.Scene.PrepareRenderingAsync(token);
+                if (exerciseReplica)
+                {
+                    await ExerciseReplicaControlAsync(desktop.Scene, view, replicaSession, sender, token);
+                    return;
+                }
+
                 receiver.BindInitialState(sender.Capture(0));
 
                 desktop.Scene.AtlasManager.DisplayMarsAtlas = true;
@@ -122,11 +236,28 @@ namespace HBP.Tests.SceneTransfer
 
                 if (captureLiveDelivery)
                 {
+                    string localizerRoot = Path.GetFullPath("Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha");
+                    transferredLocalizer = new LocalizerProtocol("protocol-alpha", localizerRoot, false);
+                    var transferredData = new LocalizerData("signal-alpha", localizerRoot, false);
+                    var transferredBloc = new LocalizerBloc("bloc-alpha", Path.Combine(localizerRoot, "bloc-alpha.nii"), Path.Combine(localizerRoot, "bloc-alpha_MASK.nii"));
+                    transferredData.Blocs.Add(transferredBloc);
+                    transferredLocalizer.Datas.Add(transferredData);
+                    await transferredBloc.FMRI.LoadAsync();
+                    string expectedLocalizerHash = transferredBloc.FMRI.SourceHash;
+                    await UniTask.SwitchToMainThread();
+                    Object3DManager.Localizers.Protocols.Add(transferredLocalizer);
                     using var liveDelivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop.Scene, "s2-live", "s2-local", 1, source.Globals, token);
                     string liveFile = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(liveDelivery);
+                    using (var package = ZipFile.OpenRead(liveFile))
+                        Assert.That(package.Entries.Select(entry => entry.FullName), Does.Not.Contain(expectedLocalizerHash.Replace("-", "").ToLowerInvariant() + ".nii"), "Localizer bytes stay outside scene delivery");
                     await view.ClearAsync();
                     var liveQuestArchive = new SceneArchive(Path.Combine(root, "live-quest"), true, source.Globals);
-                    await view.ApplyAsync(liveQuestArchive.Read(liveFile), liveQuestArchive, token);
+                    ScenePayload livePayload = liveQuestArchive.Read(liveFile);
+                    await view.ApplyAsync(livePayload, liveQuestArchive, token);
+                    var installedBloc = Object3DManager.Localizers.Protocols.Single(protocol => protocol.Name == "protocol-alpha").Datas.Single(data => data.Name == "signal-alpha").Blocs.Single(bloc => bloc.Name == "bloc-alpha");
+                    Assert.That(installedBloc.Loaded, Is.True, "Localizer remains available independently of scene delivery");
+                    Assert.That(installedBloc.FMRI.SourceHash, Is.EqualTo(expectedLocalizerHash));
+                    Assert.That(installedBloc.FMRI.MaskVolume, Is.Not.Null);
                     byte[] liveDigest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(liveDelivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                     var liveReceipt = new HBP.Transfer.Transport.DeliveryReceipt(liveDigest, HBP.Transfer.Transport.DeliveryStatus.Published);
                     Guid liveEpoch = Guid.NewGuid();
@@ -157,6 +288,16 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(liveWrapper.position, Is.EqualTo(new Vector3(2, 3, 4)), "Live Desktop capture wrapper position");
                     Assert.That(Quaternion.Angle(liveWrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f), "Live Desktop capture wrapper rotation");
                     Assert.That(liveWrapper.localScale, Is.EqualTo(Vector3.one * 1.5f), "Live Desktop capture wrapper scale");
+
+                    view.ToggleSurface();
+                    using var refreshArchive = new SceneArchive(Path.Combine(root, "refresh-quest"), true, source.Globals);
+                    await view.ApplyAsync(refreshArchive.Read(liveFile), refreshArchive, token);
+                    Transform refreshedWrapper = view.Columns[0].transform;
+                    Assert.That(refreshedWrapper, Is.Not.SameAs(liveWrapper), "Resource epoch publishes a new prepared scene");
+                    Assert.That(refreshedWrapper.position, Is.EqualTo(new Vector3(2, 3, 4)), "Resource transition keeps Quest position");
+                    Assert.That(Quaternion.Angle(refreshedWrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f), "Resource transition keeps Quest rotation");
+                    Assert.That(refreshedWrapper.localScale, Is.EqualTo(Vector3.one * 1.5f), "Resource transition keeps Quest scale");
+                    Assert.That(view.SurfaceHidden, Is.True, "Resource transition keeps local surface visibility");
                 }
 
                 Debug.Log($"S2 mesh binding: bound {clock.Elapsed.TotalSeconds:F1}s");
@@ -164,11 +305,141 @@ namespace HBP.Tests.SceneTransfer
             finally
             {
                 await UniTask.SwitchToMainThread();
+                if (transferredLocalizer != null)
+                {
+                    Object3DManager.Localizers.Protocols.Remove(transferredLocalizer);
+                    transferredLocalizer.Clean();
+                }
+
+                Object3DManager.Localizers.Unload("protocol-alpha");
                 await view.ClearAsync();
                 if (desktop != null) await desktop.CloseAsync();
+                if (replicaSession != null) Object.Destroy(replicaSession.gameObject);
                 Object.Destroy(view.gameObject);
                 await UniTask.NextFrame();
                 if (!Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
+            }
+        }
+
+        private static async Task ExerciseReplicaControlAsync(Base3DScene desktop, QuestAnatomyView view, QuestAnatomySession session, LiveGeometryStateAdapter sender, CancellationToken token)
+        {
+            Base3DScene questScene = view.Scene;
+            Transform wrapper = view.Columns[0].transform;
+            wrapper.SetPositionAndRotation(new Vector3(2, 3, 4), Quaternion.Euler(5, 15, 25));
+            wrapper.localScale = Vector3.one * 1.5f;
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            using var client = new TcpClient();
+            Task connect = client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+            using var peer = await listener.AcceptTcpClientAsync();
+            await connect;
+            using var stop = CancellationTokenSource.CreateLinkedTokenSource(token);
+            Task receiving = session.ReceiveReplicaAsync(peer.GetStream(), stop.Token);
+            try
+            {
+                var emptyCheckpoint = await ReplicaWire.ReadAsync(client.GetStream(), token);
+                Assert.That(emptyCheckpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
+                Assert.That(ReplicaWire.ReadCheckpoint(emptyCheckpoint.Body).Revision, Is.Zero);
+                StateSnapshot initial = sender.Capture(1);
+                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(initial), 1, token);
+                Assert.That(session.ReceivedRevision, Is.EqualTo(1));
+                Assert.That(session.AppliedRevision, Is.EqualTo(1));
+                Assert.That(session.VisibleRevision, Is.EqualTo(1));
+                await view.Scene.PrepareRenderingAsync(token);
+                var questAdapter = (LiveGeometryStateAdapter)typeof(QuestAnatomySession).GetField("replica", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
+                Assert.That(SharedStateCodec.Encode(questAdapter.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(initial)));
+
+                ((Column3DAnatomy)desktop.Columns[0]).AnatomyParameters.InfluenceDistance = 22.5f;
+                await desktop.PrepareRenderingAsync(token);
+                StateSnapshot next = sender.Capture(2);
+                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(initial, next).Encode(), 2, token);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(view.Scene, Is.SameAs(questScene));
+                Assert.That(((Column3DAnatomy)view.Scene.Columns[0]).AnatomyParameters.InfluenceDistance, Is.EqualTo(22.5f));
+                Assert.That(SharedStateCodec.Encode(questAdapter.Capture(2)), Is.EqualTo(SharedStateCodec.Encode(next)));
+                Assert.That(wrapper.position, Is.EqualTo(new Vector3(2, 3, 4)));
+                Assert.That(Quaternion.Angle(wrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f));
+                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 1.5f));
+                Assert.That(session.VisibleRevision, Is.EqualTo(2));
+
+                var cut = desktop.AddCutPlane();
+                await desktop.PrepareRenderingAsync(token);
+                StateSnapshot createdCuts = sender.CaptureCuts(next);
+                StateSnapshot created = createdCuts.WithFields(createdCuts.Fields, 3);
+                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(next, created).Encode(), 3, token);
+                Assert.That(view.Scene.Cuts.Select(item => item.ID), Does.Contain(cut.ID));
+                cut.Position = 0.72f;
+                desktop.UpdateCutPlane(cut, true);
+                await desktop.PrepareRenderingAsync(token);
+                StateSnapshot movedCuts = sender.CaptureCuts(created);
+                next = movedCuts.WithFields(movedCuts.Fields, 4);
+                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(created, next).Encode(), 4, token);
+                Assert.That(view.Scene.Cuts.Single(item => item.ID == cut.ID).Position, Is.EqualTo(0.72f));
+
+                client.Close();
+                peer.Close();
+                try
+                {
+                    await receiving;
+                }
+                catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
+                {
+                }
+
+                using var retryClient = new TcpClient();
+                Task retryConnect = retryClient.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+                using var retryPeer = await listener.AcceptTcpClientAsync();
+                await retryConnect;
+                Task retryReceiving = session.ReceiveReplicaAsync(retryPeer.GetStream(), stop.Token);
+                try
+                {
+                    var checkpoint = await ReplicaWire.ReadAsync(retryClient.GetStream(), token);
+                    Assert.That(checkpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
+                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.EqualTo(4));
+                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Hash, Is.EqualTo(ReplicaWire.Hash(next)));
+                    await SendReplicaStateAsync(retryClient.GetStream(), ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(next), 4, token);
+                    Assert.That(view.Scene, Is.SameAs(questScene));
+                    Assert.That(wrapper.position, Is.EqualTo(new Vector3(2, 3, 4)));
+                }
+                finally
+                {
+                    retryClient.Close();
+                    retryPeer.Close();
+                    try
+                    {
+                        await retryReceiving;
+                    }
+                    catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
+                    {
+                    }
+                }
+            }
+            finally
+            {
+                stop.Cancel();
+                peer.Close();
+                listener.Stop();
+                try
+                {
+                    await receiving;
+                }
+                catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
+                {
+                }
+            }
+        }
+
+        private static async Task SendReplicaStateAsync(Stream stream, ReplicaFrameKind kind, byte[] state, ulong revision, CancellationToken token)
+        {
+            byte[] body = new byte[4 + state.Length];
+            Buffer.BlockCopy(BitConverter.GetBytes(Time.realtimeSinceStartup), 0, body, 0, 4);
+            Buffer.BlockCopy(state, 0, body, 4, state.Length);
+            await ReplicaWire.WriteAsync(stream, kind, body, token);
+            foreach (ReplicaFrameKind expected in new[] { ReplicaFrameKind.Received, ReplicaFrameKind.Applied, ReplicaFrameKind.Visible })
+            {
+                var reply = await ReplicaWire.ReadAsync(stream, token);
+                Assert.That(reply.Kind, Is.EqualTo(expected), reply.Kind == ReplicaFrameKind.Rejected ? System.Text.Encoding.UTF8.GetString(reply.Body) : "Replica ACK");
+                Assert.That(ReplicaWire.ReadRevision(reply.Body), Is.EqualTo(revision));
             }
         }
 

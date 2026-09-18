@@ -122,7 +122,6 @@ namespace HBP.Sync.Scene
                 Mesh3D mesh = m_Meshes[i];
                 if (resource.Name != mesh.Name || resource.Type != (int)mesh.Type || (mesh is RuntimeSingleMesh3D preview ? preview.SourceMRIName : null) != resource.SourceMRI)
                     throw new InvalidDataException("Prepared mesh differs from the published delivery.");
-                AssertMeshContent(mesh, resource);
             }
 
             for (int i = 0; i < mris.Length; i++)
@@ -145,15 +144,6 @@ namespace HBP.Sync.Scene
                     throw new InvalidDataException("Prepared MEG resources differ from the published delivery.");
                 if (column is not (Column3DFMRI or Column3DMEG) && state.Functional?.Count > 0)
                     throw new InvalidDataException("Unexpected functional resource in the published delivery.");
-                if (column is Column3DFMRI functionalColumn)
-                    for (int resourceIndex = 0; resourceIndex < state.Functional.Count; resourceIndex++)
-                        AssertFunctionalResource(functionalColumn.ColumnFMRIData.Data.FMRIs[resourceIndex].Item1, state.Functional[resourceIndex]);
-                if (column is Column3DMEG megColumn)
-                    for (int resourceIndex = 0; resourceIndex < state.Functional.Count; resourceIndex++)
-                    {
-                        AssertFunctionalResource(megColumn.ColumnMEGData.Data.MEGItems[resourceIndex].FMRI, state.Functional[resourceIndex]);
-                        AssertMegContent(megColumn.ColumnMEGData.Data.MEGItems[resourceIndex], state.Functional[resourceIndex]);
-                    }
             }
 
             // Both endpoints hash the same final metadata descriptors, including resolved

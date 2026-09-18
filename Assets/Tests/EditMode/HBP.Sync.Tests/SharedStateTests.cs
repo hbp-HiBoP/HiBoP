@@ -102,6 +102,18 @@ namespace HBP.Tests.Sync
         }
 
         [Test]
+        public void ReplicaDeltaRoundTripsAssignmentsRemovalsAndRejectsStaleBase()
+        {
+            StateKey changed = new StateKey(EntityKind.Scene, "", "", 3);
+            StateKey removed = new StateKey(EntityKind.Scene, "", "", 5);
+            StateSnapshot before = Snapshot(7, (changed, StateValue.Bool(false)), (removed, StateValue.Bool(true)));
+            StateSnapshot after = Snapshot(8, (changed, StateValue.Bool(true)));
+            ReplicaDelta delta = ReplicaDelta.Decode(ReplicaDelta.Between(before, after).Encode());
+            Assert.That(SharedStateCodec.Encode(delta.Apply(before)), Is.EqualTo(SharedStateCodec.Encode(after)));
+            Assert.Throws<InvalidDataException>(() => delta.Apply(after));
+        }
+
+        [Test]
         public void UnknownFieldAndNonFiniteFloatAreRejected()
         {
             Assert.Throws<InvalidDataException>(() => SharedStateCodec.Encode(Snapshot(7, (Cut("c1", 500), StateValue.Int(1)))));
