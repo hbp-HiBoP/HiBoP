@@ -11,6 +11,9 @@ namespace HBP.Core.Object3D
     /// </summary>
     public class Cut : HBP.Core.DLL.Plane, IIdentifiable
     {
+        /// <summary>Raised synchronously before a cut definition changes.</summary>
+        public static event Action<Cut> DefinitionChanging;
+
         #region Properties
 
         /// <summary>
@@ -26,22 +29,66 @@ namespace HBP.Core.Object3D
         /// <summary>
         /// Orientation of the cut
         /// </summary>
-        public CutOrientation Orientation { get; set; }
+        private CutOrientation m_Orientation;
+
+        public CutOrientation Orientation
+        {
+            get => m_Orientation;
+            set
+            {
+                if (m_Orientation != value) NotifyDefinitionChanging();
+                m_Orientation = value;
+            }
+        }
 
         /// <summary>
         /// Is the cut flipped ?
         /// </summary>
-        public bool Flip { get; set; }
+        private bool m_Flip;
+
+        public bool Flip
+        {
+            get => m_Flip;
+            set
+            {
+                if (m_Flip != value) NotifyDefinitionChanging();
+                m_Flip = value;
+            }
+        }
 
         /// <summary>
         /// Number of cuts (levels in the MRI)
         /// </summary>
-        public int NumberOfCuts { get; set; }
+        private int m_NumberOfCuts;
+
+        public int NumberOfCuts
+        {
+            get => m_NumberOfCuts;
+            set
+            {
+                if (m_NumberOfCuts != value) NotifyDefinitionChanging();
+                m_NumberOfCuts = value;
+            }
+        }
 
         /// <summary>
         /// Position of the cut (between 0 and 1)
         /// </summary>
-        public float Position { get; set; }
+        private float m_Position;
+
+        public float Position
+        {
+            get => m_Position;
+            set
+            {
+                if (m_Position != value) NotifyDefinitionChanging();
+                m_Position = value;
+            }
+        }
+
+        protected override void OnNormalChanging() => NotifyDefinitionChanging();
+
+        private void NotifyDefinitionChanging() => DefinitionChanging?.Invoke(this);
 
         #endregion
 

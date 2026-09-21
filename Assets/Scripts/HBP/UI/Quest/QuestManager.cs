@@ -11,6 +11,7 @@ using HBP.Data.Module3D;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using HBP.Sync.Scene;
+using HBP.Sync;
 using HBP.UI.Quest;
 using HBP.UI.Tools;
 using UnityEngine;
@@ -45,6 +46,7 @@ namespace HBP.Quest.Desktop
         private bool busy, scanning, connected, reconnect, failedDelivery, discoveryActive;
         private bool manualSelected;
         private float nextDiscovery, nextHeartbeat;
+        private long nextTransferCaptureGeneration;
 
         protected override void Initialization()
         {
@@ -180,78 +182,99 @@ namespace HBP.Quest.Desktop
 
         public async Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
         {
+            SyncTelemetryPoint requestPoint = retry ? default : SyncTelemetry.CapturePoint();
             bool sent = false;
-            await RunAsync(async token =>
+            string requestedTransferId = null;
+            long captureGeneration = 0;
+            if (!retry)
             {
-                if (!IsPaired && reconnect && credential != null) await RestoreAsync(token);
-                if (!IsPaired) throw new InvalidOperationException("Pair a Quest first.");
-                if (retry && !CanRetry) throw new InvalidOperationException("No prepared visualization is available to retry.");
-                failedDelivery = false;
-                var context = SynchronizationContext.Current;
-                try
+                requestedTransferId = Guid.NewGuid().ToString("N");
+                captureGeneration = Interlocked.Increment(ref nextTransferCaptureGeneration);
+            }
+
+            try
+            {
+                await RunAsync(async token =>
                 {
-                    var result = await LoadingManager.LoadAsync<(DeliveryReceipt Receipt, Exception Error)>(async (update, loadingToken) =>
+                    if (!IsPaired && reconnect && credential != null) await RestoreAsync(token);
+                    if (!IsPaired) throw new InvalidOperationException("Pair a Quest first.");
+                    if (retry && !CanRetry) throw new InvalidOperationException("No prepared visualization is available to retry.");
+                    failedDelivery = false;
+                    var context = SynchronizationContext.Current;
+                    try
                     {
-                        try
+                        var result = await LoadingManager.LoadAsync<(DeliveryReceipt Receipt, Exception Error)>(async (update, loadingToken) =>
                         {
-                            using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, loadingToken);
-                            var stop = linked.Token;
-                            void Report(float value, string message) => context.Post(_ => update(value, 0, new LoadingText(message)), null);
-                            if (!retry)
+                            try
                             {
-                                offer?.Dispose();
-                                offer = null;
-                                Report(0.02f, "Preparing visualization");
-                                offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene);
-                                Report(0.20f, "Connecting to Quest");
+                                using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, loadingToken);
+                                var stop = linked.Token;
+                                void Report(float value, string message) => context.Post(_ => update(value, 0, new LoadingText(message)), null);
+                                if (!retry)
+                                {
+                                    offer?.Dispose();
+                                    offer = null;
+                                    Report(0.02f, "Preparing visualization");
+                                    offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene, requestedTransferId, captureGeneration);
+                                    Report(0.20f, "Connecting to Quest");
+                                }
+
+                                var delivery = offer;
+                                DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, stop, (stream, sendStop) => delivery.SendAsync(stream, sendStop, null, (count, total) =>
+                                {
+                                    float value = 0.20f + 0.65f * Mathf.Clamp01((float)count / total);
+                                    Report(value, $"Sending visualization: {100L * Math.Min(count, total) / total}%");
+                                }));
+                                await UniTask.SwitchToMainThread();
+                                update(1, 0, new LoadingText("Visualization ready on Quest"));
+                                return (receipt, null);
                             }
-
-                            var delivery = offer;
-                            DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, stop, (stream, sendStop) => delivery.SendAsync(stream, sendStop, null, (count, total) =>
+                            catch (Exception error)
                             {
-                                float value = 0.20f + 0.65f * Mathf.Clamp01((float)count / total);
-                                Report(value, $"Sending visualization: {100L * Math.Min(count, total) / total}%");
-                            }));
-                            await UniTask.SwitchToMainThread();
-                            update(1, 0, new LoadingText("Visualization ready on Quest"));
-                            return (receipt, null);
-                        }
-                        catch (Exception error)
+                                await UniTask.SwitchToMainThread();
+                                return (null, error);
+                            }
+                        }, true);
+                        await UniTask.SwitchToMainThread(token);
+                        if (result.Error != null) throw result.Error;
+                        sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
+                        if (sent)
                         {
-                            await UniTask.SwitchToMainThread();
-                            return (null, error);
+                            var binding = PreparedSceneDeliveryBinding.FromSent(offer, result.Receipt);
+                            replica?.Dispose();
+                            replica = new DesktopReplicaSession(offer.SourceScene, binding, endpoint, pin, credential);
                         }
-                    }, true);
-                    await UniTask.SwitchToMainThread(token);
-                    if (result.Error != null) throw result.Error;
-                    sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
-                    if (sent)
-                    {
-                        var binding = PreparedSceneDeliveryBinding.FromSent(offer, result.Receipt);
-                        replica?.Dispose();
-                        replica = new DesktopReplicaSession(offer.SourceScene, binding, endpoint, pin, credential);
-                    }
 
-                    SetStatus(sent ? "Visualization ready on Quest." : "The visualization was closed or replaced on Quest. Send a new snapshot.");
-                }
-                catch
+                        SetStatus(sent ? "Visualization ready on Quest." : "The visualization was closed or replaced on Quest. Send a new snapshot.");
+                    }
+                    catch
+                    {
+                        sent = false;
+                        await UniTask.SwitchToMainThread();
+                        failedDelivery = offer?.CanRetry == true;
+                        if (offer != null && !failedDelivery)
+                        {
+                            var incomplete = offer;
+                            offer = null;
+                            await incomplete.DisposeAsync();
+                        }
+
+                        await UniTask.SwitchToMainThread();
+                        connected = false;
+                        Changed?.Invoke();
+                        throw;
+                    }
+                });
+            }
+            finally
+            {
+                if (!retry)
                 {
-                    sent = false;
-                    await UniTask.SwitchToMainThread();
-                    failedDelivery = offer?.CanRetry == true;
-                    if (offer != null && !failedDelivery)
-                    {
-                        var incomplete = offer;
-                        offer = null;
-                        await incomplete.DisposeAsync();
-                    }
-
-                    await UniTask.SwitchToMainThread();
-                    connected = false;
-                    Changed?.Invoke();
-                    throw;
+                    var identity = new SyncTelemetryIdentity(requestedTransferId, 1, captureGeneration);
+                    SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.UserRequest, requestPoint);
                 }
-            });
+            }
+
             return sent;
         }
 

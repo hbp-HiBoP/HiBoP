@@ -12,6 +12,31 @@ By default, this formats only staged, unstaged, and untracked C# files. Use
 `-Base origin/develop` to include committed branch changes, or `-All` to format
 all C# files under `Assets`.
 
+## Assembly Dependency Architecture
+
+`HBP.Core.Runtime` is the foundational runtime assembly. It must not reference
+any other `HBP.*` assembly. External libraries and Unity assemblies are allowed;
+feature modules such as Sync, Transfer, UI, Data, or Quest must depend toward
+Core, never the reverse.
+
+Do not move feature-specific types, diagnostics, interfaces, or state into Core
+to bypass this rule. If a higher layer must observe a Core mutation, define only
+a feature-neutral domain event or port in Core and implement or subscribe to it
+from the higher layer. In particular, "capture at the business setter" never
+authorizes a dependency from the owning domain layer to a synchronization or
+telemetry assembly.
+
+Before adding or changing an `.asmdef` reference:
+
+1. inspect the direct and transitive dependency direction;
+2. explain why the new edge belongs in that direction;
+3. run `Tools/check-assembly-dependencies.ps1` before Unity tests;
+4. reject cycles and every new `HBP.*` edge that is not explicitly allowed by
+   the repository dependency policy.
+
+The dependency check is a fast static gate, not a Unity test. A task that changes
+assembly references is not complete until this gate passes.
+
 ## Prefab-First GameObject Workflow
 
 When adding or changing UI elements or other GameObjects, edit or create the

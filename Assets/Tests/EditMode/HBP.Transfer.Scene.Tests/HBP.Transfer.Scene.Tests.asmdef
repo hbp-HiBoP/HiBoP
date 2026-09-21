@@ -1,6 +1,6 @@
 {
     "name": "HBP.Transfer.Scene.Tests",
-    "references": ["HBP.Transfer.Codecs", "HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Transfer.Transport", "HBP.Quest.Runtime", "UniTask"],
+    "references": ["HBP.Transfer.Codecs", "HBP.Core.Runtime", "HBP.Data.Runtime", "HBP.Transfer.Scene", "HBP.Transfer.Transport", "HBP.Quest.Runtime", "HBP.Sync.Runtime", "HBP.Sync.Scene", "UniTask"],
     "includePlatforms": ["Editor"],
     "precompiledReferences": ["Newtonsoft.Json.dll"],
     "optionalUnityReferences": ["TestAssemblies"],

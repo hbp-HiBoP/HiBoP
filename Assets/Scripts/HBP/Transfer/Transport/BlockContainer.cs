@@ -121,17 +121,19 @@ namespace HBP.Transfer.Transport
         }
 
         // Caller has consumed and validated the four-byte magic. One worker owns sink/native decoding.
-        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null, Action<long, long> logicalProgress = null)
+        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null, Action<long, long> logicalProgress = null, Action<long> wireProgress = null)
         {
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(token);
             using var queue = new System.Collections.Concurrent.BlockingCollection<byte[]>(QueueCapacity);
             var length = new byte[4];
             await PinnedTlsTransfer.ReadExactAsync(stream, length, 0, 4, token).ConfigureAwait(false);
+            wireProgress?.Invoke(4);
             int manifestLength = Get32(length, 0);
             if (manifestLength < 4 || manifestLength > MaxManifest)
                 throw new InvalidDataException("Invalid block manifest size.");
             var manifest = new byte[manifestLength];
             await PinnedTlsTransfer.ReadExactAsync(stream, manifest, 0, manifest.Length, token).ConfigureAwait(false);
+            wireProgress?.Invoke(8L + manifest.Length);
             var resources = new List<BlockResource>();
             using (var input = new MemoryStream(manifest, false))
             using (var reader = new BinaryReader(input, Encoding.ASCII))
@@ -222,8 +224,9 @@ namespace HBP.Transfer.Transport
                     var packet = new byte[64 + size];
                     Buffer.BlockCopy(header, 0, packet, 0, 64);
                     await PinnedTlsTransfer.ReadExactAsync(stream, packet, 64, size, linked.Token).ConfigureAwait(false);
-                    await Task.Run(() => queue.Add(packet, linked.Token)).ConfigureAwait(false);
                     received += packet.Length;
+                    wireProgress?.Invoke(received);
+                    await Task.Run(() => queue.Add(packet, linked.Token)).ConfigureAwait(false);
                     progress?.Invoke(received);
                     if (header[0] == 2)
                         break;

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -84,6 +85,9 @@ namespace HBP.Core.Object3D
     /// </remarks>
     public class SiteState
     {
+        /// <summary>Raised synchronously before a requested site color changes.</summary>
+        public static event Action<SiteState> ColorChanging;
+
         #region Properties
 
         /// <summary>
@@ -162,6 +166,7 @@ namespace HBP.Core.Object3D
             get { return m_Color; }
             set
             {
+                if (m_Color != value) ColorChanging?.Invoke(this);
                 m_Color = value;
                 OnChangeState.Invoke();
             }

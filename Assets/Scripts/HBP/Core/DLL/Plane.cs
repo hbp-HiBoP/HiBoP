@@ -37,12 +37,18 @@ namespace HBP.Core.DLL
             get => m_Normal;
             set
             {
+                if (m_Normal != value) OnNormalChanging();
                 m_Normal = value;
                 UpdateNativePlane();
             }
         }
 
         #endregion
+
+        /// <summary>Called synchronously before the plane normal changes.</summary>
+        protected virtual void OnNormalChanging()
+        {
+        }
 
         #region Constructors
 

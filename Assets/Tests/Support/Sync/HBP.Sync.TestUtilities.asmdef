@@ -1,0 +1,8 @@
+{
+    "name": "HBP.Sync.TestUtilities",
+    "references": ["HBP.Sync.Runtime"],
+    "includePlatforms": ["Editor"],
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "noEngineReferences": true,
+    "autoReferenced": false
+}

@@ -2,6 +2,17 @@
 
 Automated-test speed is a mandatory product constraint for this refactor. A correct system with a multi-minute feedback loop for every small change is not an acceptable implementation outcome.
 
+## Static architecture gate
+
+Before starting Unity, run `Tools/check-assembly-dependencies.ps1`. This gate parses `.asmdef` files directly and must complete in a development-loop timescale. It enforces at least:
+
+- `HBP.Core.Runtime` has no reference to any other `HBP.*` assembly;
+- the `HBP.*` dependency graph is acyclic;
+- every newly introduced direct `HBP.*` edge appears in an explicit reviewed allow-list;
+- missing or ambiguous assembly names fail visibly instead of being ignored.
+
+The sync test launcher invokes this check first and stops before Unity when it fails. The same gate runs in CI. Any `.asmdef` modification must include the changed-edge rationale in the task report. Do not replace this gate with an EditMode test: its purpose is to reject an invalid architecture in milliseconds, before compilation/domain reload cost.
+
 ## Test tiers and initial budgets
 
 Budgets describe test execution after assemblies are loaded; Unity compilation/domain reload is recorded separately. T00 measures the real baseline and may tighten or adjust a budget with documented evidence.
@@ -16,6 +27,34 @@ Budgets describe test execution after assemblies are loaded; Unity compilation/d
 
 An implementation task runs the smallest tiers proving its change. It does not run a full device or six-modality scenario merely to debug a codec branch. T00 records both per-shard and aggregate runtime; adding shards may not make the aggregate invisible.
 
+## Development-loop execution policy
+
+Optimize the feedback path before removing useful tests. Report test execution time separately from Unity compilation, domain reload, editor/process startup and total wall time; a sub-second suite launched through a fresh 30-second process is a launcher problem, not a slow-test problem.
+
+Use this cadence:
+
+1. Run the static architecture gate after any `.asmdef` change and before Unity tests.
+2. During implementation, batch a coherent code change before testing. Do not restart an unchanged suite after every file edit.
+3. On a failure, rerun the smallest failing test or fixture while diagnosing it. After the fix, rerun its focused tier once.
+4. Before review, run every focused tier selected for the task and record exact pass/fail counts plus execution and wall times.
+5. Run a broader affected assembly once at task closure only when shared production integration, serialization, transport or scene behavior changed. `-AllInAssemblies` is not part of the inner loop.
+6. Run `Sync.Qualification` and `Sync.Device` only at the milestones that require them or for a concrete relevant regression.
+
+When the Unity editor is already available, use its persistent MCP test runner for iterative focused tests instead of starting another Unity process. Use `Tools/run-sync-tests.ps1` for a closed-editor run, CI-equivalent evidence or the deliberate cold-start/aggregate measurement requested by a task. Do not run concurrent Unity test processes against the same project.
+
+Select tiers from the behavior changed, not from the number of files touched:
+
+| Change | Iteration tier | Additional closure evidence when applicable |
+| --- | --- | --- |
+| Pure IDs, contracts, codecs, validation, scheduling or fake jobs | `Sync.Fast` | None unless a public integration boundary changed |
+| Framing, socket order, ACK/retry, reconnect or chunk flow | affected `Sync.Fast` tests, then `Sync.Loopback` | affected transport assembly once |
+| Business setter, real handler, invalidation or frame publication | affected `Sync.Fast` tests, then one `Sync.SceneFocused` shard | affected scene assembly once |
+| Large modality fixture, long job or full-scene behavior | fastest contract/job tests first | relevant `Sync.Qualification` shard at the designated milestone |
+| Physical latency or Desktop/Quest parity | no device run during ordinary edits | `Sync.Device` only when explicitly required |
+| Documentation-only change | no Unity test by default | link/consistency review and `git diff --check` |
+
+Repeated broad green runs without an intervening relevant change add latency but no evidence. If a rerun is needed for suspected nondeterminism, state that hypothesis; never normalize flakiness by retrying until green.
+
 ## Rules for fast tests
 
 - Inject monotonic clocks; never wait 500 real milliseconds to test the grace period.
@@ -29,6 +68,18 @@ An implementation task runs the smallest tiers proving its change. It does not r
 - A new regression first receives the fastest deterministic reproduction capable of detecting its mechanism.
 
 Any change that pushes a fast tier over budget must identify the slow tests and either optimize/split them or justify a budget change in the validation report. Adding retries to hide nondeterminism is forbidden.
+
+## Observability and production-hook tests
+
+Instrumentation is production code and requires its own deterministic integrity tests:
+
+- prove that the production hook captures the declared semantic boundary, not merely that the telemetry API can store a point;
+- use separate logical trace and attempt identities, and test coalescing, replacement, retry and reconnect without cross-associating samples;
+- capture before/after points around measured work and publish them afterwards so sink locks, correlation formatting and serialization do not contaminate the interval;
+- test enable/disable or shutdown with a writer in flight so accepted samples are either drained or explicitly reported as incomplete;
+- test successful and failed preparation/encoding so completion milestones cannot be emitted from a failure `finally` path;
+- assert that disabled instrumentation introduces no allocations, scene traversal or permanent per-frame owner;
+- keep incomplete traces visible in the report rather than silently discarding or combining them.
 
 ## Contract tests
 

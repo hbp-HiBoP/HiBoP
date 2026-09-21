@@ -23,7 +23,7 @@ namespace HBP.Transfer.Transport
         public long EncodedBytes => IsPrepared ? bytes : 0;
         public string ContentHash => IsPrepared ? BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant() : null;
 
-        public BlockDelivery(string file, Func<IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token)
+        public BlockDelivery(string file, Func<IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, Action<long> prepared = null)
         {
             spool = new FileStream(file, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read, 65536, true);
             cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -41,6 +41,7 @@ namespace HBP.Transfer.Transport
                         queue.Add(packet, cancellation.Token);
                     }, cancellation.Token);
                     spool.Flush();
+                    prepared?.Invoke(bytes);
                 }
                 finally
                 {
@@ -56,12 +57,13 @@ namespace HBP.Transfer.Transport
             });
         }
 
-        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress, Action<long, long> logicalProgress = null)
+        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress, Action<long, long> logicalProgress = null, Action payloadWriteStarted = null, Action payloadSent = null)
         {
             try
             {
                 long sent = 0;
                 long rawSent = 0;
+                bool writeStarted = false;
                 if (!drained)
                 {
                     while (true)
@@ -70,6 +72,12 @@ namespace HBP.Transfer.Transport
                         if (packet == null)
                             break;
                         await stream.WriteAsync(packet, 0, packet.Length, stop).ConfigureAwait(false);
+                        if (!writeStarted)
+                        {
+                            writeStarted = true;
+                            payloadWriteStarted?.Invoke();
+                        }
+
                         sent += packet.Length;
                         progress?.Invoke(sent);
                         if (packet.Length >= 64 && packet[0] == 1)
@@ -94,12 +102,19 @@ namespace HBP.Transfer.Transport
                         if (read == 0)
                             throw new EndOfStreamException();
                         await stream.WriteAsync(buffer, 0, read, stop).ConfigureAwait(false);
+                        if (!writeStarted)
+                        {
+                            writeStarted = true;
+                            payloadWriteStarted?.Invoke();
+                        }
+
                         sent += read;
                         progress?.Invoke(sent);
                         logicalProgress?.Invoke(sent, bytes);
                     }
                 }
 
+                payloadSent?.Invoke();
                 var receipt = new byte[33];
                 await PinnedTlsTransfer.ReadExactAsync(stream, receipt, 0, 33, stop).ConfigureAwait(false);
                 int diff = 0;

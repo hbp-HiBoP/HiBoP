@@ -20,29 +20,45 @@ namespace HBP.Transfer.Transport
         Checkpoint = 8
     }
 
+    public enum ReplicaReadStage : byte
+    {
+        FirstBytes,
+        Complete
+    }
+
+    public enum ReplicaWriteStage : byte
+    {
+        FirstBytes,
+        Complete
+    }
+
     /// <summary>Length-bounded messages carried inside the existing authenticated TLS connection.</summary>
     public static class ReplicaWire
     {
         public const int MaximumFrameBytes = SharedStateSchema.MaxStateBytes + 1024;
         private static readonly UTF8Encoding Utf8 = new(false, true);
 
-        public static async Task WriteAsync(Stream stream, ReplicaFrameKind kind, byte[] body, CancellationToken stop)
+        public static async Task WriteAsync(Stream stream, ReplicaFrameKind kind, byte[] body, CancellationToken stop, Action<ReplicaWriteStage> progress = null)
         {
             if (body == null || body.Length > MaximumFrameBytes - 1) throw new InvalidDataException("Invalid replica frame length.");
             byte[] prefix = BitConverter.GetBytes(body.Length + 1);
             await stream.WriteAsync(prefix, 0, prefix.Length, stop).ConfigureAwait(false);
+            progress?.Invoke(ReplicaWriteStage.FirstBytes);
             await stream.WriteAsync(new[] { (byte)kind }, 0, 1, stop).ConfigureAwait(false);
             await stream.WriteAsync(body, 0, body.Length, stop).ConfigureAwait(false);
+            progress?.Invoke(ReplicaWriteStage.Complete);
         }
 
-        public static async Task<(ReplicaFrameKind Kind, byte[] Body)> ReadAsync(Stream stream, CancellationToken stop)
+        public static async Task<(ReplicaFrameKind Kind, byte[] Body)> ReadAsync(Stream stream, CancellationToken stop, Action<ReplicaReadStage> progress = null)
         {
             byte[] prefix = new byte[4];
             await PinnedTlsTransfer.ReadExactAsync(stream, prefix, 0, prefix.Length, stop).ConfigureAwait(false);
+            progress?.Invoke(ReplicaReadStage.FirstBytes);
             int length = BitConverter.ToInt32(prefix, 0);
             if (length < 1 || length > MaximumFrameBytes) throw new InvalidDataException("Invalid replica frame length.");
             byte[] frame = new byte[length];
             await PinnedTlsTransfer.ReadExactAsync(stream, frame, 0, length, stop).ConfigureAwait(false);
+            progress?.Invoke(ReplicaReadStage.Complete);
             if (!Enum.IsDefined(typeof(ReplicaFrameKind), frame[0])) throw new InvalidDataException("Unknown replica frame.");
             byte[] body = new byte[length - 1];
             Buffer.BlockCopy(frame, 1, body, 0, body.Length);

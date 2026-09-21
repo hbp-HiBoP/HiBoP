@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Sync;
 using HBP.Transfer.Transport;
 
 namespace HBP.Transfer.Scene
@@ -18,6 +19,15 @@ namespace HBP.Transfer.Scene
         private readonly SemaphoreSlim sendGate = new(1, 1);
         private readonly object lifetime = new();
         private readonly TaskCompletionSource<bool> released = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly SyncTelemetryIdentity telemetryIdentity;
+        private long nextAttemptId;
+        private SyncTelemetryPoint encodedTelemetryPoint;
+        private long encodedTelemetryBytes;
+        private int encodedTelemetryPublished;
+        private SyncTelemetryPoint captureStartTelemetryPoint;
+        private SyncTelemetryPoint captureEndTelemetryPoint;
+        private SyncTelemetryPoint queuedTelemetryPoint;
+        private int captureTelemetryPublished;
         private int sends;
         private bool disposed;
         public string TransferId { get; }
@@ -32,21 +42,28 @@ namespace HBP.Transfer.Scene
         public long EncodedBytes => blocks == null ? encodedBytes : blocks.EncodedBytes;
         public bool CanRetry => blocks == null || blocks.IsPrepared;
 
-        internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token)
+        internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, SyncTelemetryIdentity telemetryIdentity = default)
         {
             this.file = file;
             TransferId = transferId;
             SessionId = sessionId;
             Summary = summary;
-            blocks = new BlockDelivery(file, prepare, release, token);
+            this.telemetryIdentity = telemetryIdentity;
+            blocks = new BlockDelivery(file, prepare, release, token, bytes =>
+            {
+                if (!telemetryIdentity.IsValid) return;
+                encodedTelemetryPoint = SyncTelemetry.CapturePoint();
+                encodedTelemetryBytes = bytes;
+            });
         }
 
-        public SceneDelivery(string file, string transferId, string sessionId, string summary)
+        public SceneDelivery(string file, string transferId, string sessionId, string summary, SyncTelemetryIdentity telemetryIdentity = default)
         {
             this.file = file;
             TransferId = transferId;
             SessionId = sessionId;
             Summary = summary;
+            this.telemetryIdentity = telemetryIdentity;
             source = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, PinnedTlsTransfer.ChunkBytes, true);
             try
             {
@@ -56,6 +73,11 @@ namespace HBP.Transfer.Scene
                 using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
                 digest = sha.ComputeHash(source);
                 contentHash = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
+                if (telemetryIdentity.IsValid)
+                {
+                    encodedTelemetryPoint = SyncTelemetry.CapturePoint();
+                    encodedTelemetryBytes = encodedBytes;
+                }
             }
             catch
             {
@@ -68,6 +90,13 @@ namespace HBP.Transfer.Scene
         {
             if (manifest == null || PreparedManifest != null) throw new InvalidOperationException("The delivery manifest is unavailable or already set.");
             PreparedManifest = manifest;
+        }
+
+        internal void SetCaptureTelemetry(SyncTelemetryPoint captureStart, SyncTelemetryPoint captureEnd, SyncTelemetryPoint queued)
+        {
+            captureStartTelemetryPoint = captureStart;
+            captureEndTelemetryPoint = captureEnd;
+            queuedTelemetryPoint = queued;
         }
 
         public PreparedSceneManifest RequirePreparedManifest()
@@ -91,13 +120,50 @@ namespace HBP.Transfer.Scene
             {
                 await sendGate.WaitAsync(stop).ConfigureAwait(false);
                 entered = true;
+                long attemptId = Interlocked.Increment(ref nextAttemptId);
+                SyncTelemetryIdentity attemptIdentity = telemetryIdentity.WithAttempt(attemptId);
+                SyncTelemetryPoint firstWritten = default;
+                SyncTelemetryPoint lastWritten = default;
+                DeliveryReceipt receipt;
                 if (blocks != null)
-                    return await blocks.SendAsync(stream, stop, progress, detailedProgress).ConfigureAwait(false);
-                return await PinnedTlsTransfer.SendPreparedFileAsync(stream, source, digest, stop, count =>
                 {
-                    progress?.Invoke(count);
-                    detailedProgress?.Invoke(count, encodedBytes);
-                }).ConfigureAwait(false);
+                    try
+                    {
+                        receipt = await blocks.SendAsync(stream, stop, progress, detailedProgress, () => firstWritten = SyncTelemetry.CapturePoint(), () => lastWritten = SyncTelemetry.CapturePoint()).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        PublishCapture();
+                        PublishEncoded();
+                        PublishAttempt(attemptIdentity, firstWritten, lastWritten, default, blocks.EncodedBytes);
+                        throw;
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        receipt = await PinnedTlsTransfer.SendPreparedFileAsync(stream, source, digest, stop, count =>
+                        {
+                            progress?.Invoke(count);
+                            detailedProgress?.Invoke(count, encodedBytes);
+                            if (count >= encodedBytes) lastWritten = SyncTelemetry.CapturePoint();
+                        }, () => firstWritten = SyncTelemetry.CapturePoint()).ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        PublishCapture();
+                        PublishEncoded();
+                        PublishAttempt(attemptIdentity, firstWritten, lastWritten, default, encodedBytes);
+                        throw;
+                    }
+                }
+
+                SyncTelemetryPoint publicationReceipt = SyncTelemetry.CapturePoint();
+                PublishCapture();
+                PublishEncoded();
+                PublishAttempt(attemptIdentity, firstWritten, lastWritten, publicationReceipt, EncodedBytes);
+                return receipt;
             }
             finally
             {
@@ -112,8 +178,31 @@ namespace HBP.Transfer.Scene
             }
         }
 
+        private void PublishEncoded()
+        {
+            if (!encodedTelemetryPoint.IsValid || Interlocked.Exchange(ref encodedTelemetryPublished, 1) != 0) return;
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, telemetryIdentity, SyncMilestone.Encoded, encodedTelemetryPoint, encodedTelemetryBytes);
+        }
+
+        private void PublishCapture()
+        {
+            if (!telemetryIdentity.IsValid || Interlocked.Exchange(ref captureTelemetryPublished, 1) != 0) return;
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, telemetryIdentity, SyncMilestone.CaptureStart, captureStartTelemetryPoint);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, telemetryIdentity, SyncMilestone.CaptureEnd, captureEndTelemetryPoint);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, telemetryIdentity, SyncMilestone.Queued, queuedTelemetryPoint);
+        }
+
+        private static void PublishAttempt(SyncTelemetryIdentity identity, SyncTelemetryPoint firstWritten, SyncTelemetryPoint lastWritten, SyncTelemetryPoint publicationReceipt, long payloadBytes)
+        {
+            if (!identity.IsValid) return;
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.FirstByteWritten, firstWritten, payloadBytes);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.LastByteWritten, lastWritten, payloadBytes);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.PublicationReceipt, publicationReceipt, payloadBytes);
+        }
+
         public void Dispose()
         {
+            PublishCapture();
             lock (lifetime)
             {
                 if (disposed) return;

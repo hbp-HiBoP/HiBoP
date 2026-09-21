@@ -9,6 +9,7 @@ using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Sync;
 using UnityEngine;
 using FMRI = HBP.Core.Object3D.FMRI;
 
@@ -17,7 +18,7 @@ namespace HBP.Transfer.Scene
     public static class DesktopSceneCapture
     {
         /// <summary>Entry point for LoadingManager, whose delegate begins on a worker thread.</summary>
-        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null)
+        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null, string transferId = null, long captureGeneration = 0)
         {
             await UniTask.SwitchToMainThread(token);
             if (ReferenceEquals(sourceScene, null))
@@ -34,7 +35,9 @@ namespace HBP.Transfer.Scene
 #if UNITY_EDITOR_WIN || (UNITY_STANDALONE_WIN && !UNITY_EDITOR)
             streaming = true;
 #endif
-            SceneDelivery delivery = await CaptureDeliveryAsync(scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming);
+            transferId ??= Guid.NewGuid().ToString("N");
+            var telemetryIdentity = new SyncTelemetryIdentity(transferId, 1, captureGeneration == 0 ? 1 : captureGeneration);
+            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity);
             update(0.20f, 0, new LoadingText("Visualization prepared"));
             return delivery;
         }
@@ -65,10 +68,18 @@ namespace HBP.Transfer.Scene
 
         public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null, bool streaming = false)
         {
+            return await CaptureDeliveryInstrumentedAsync(scene, transferId, sessionId, revision, globals, token, progress, streaming, default);
+        }
+
+        private static async Task<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity)
+        {
             if (!PlayerLoopHelper.IsMainThread)
                 throw new InvalidOperationException("Capture must start on Unity's thread.");
             if (scene == null || scene.IsClosing)
                 throw new InvalidOperationException("The visualization is unavailable or closing.");
+            if (!telemetryIdentity.IsValid) telemetryIdentity = new SyncTelemetryIdentity(transferId, 1, 1);
+            SyncTelemetryPoint captureStart = default;
+            SyncTelemetryPoint captureEnd = default;
             string folder = Path.Combine(Application.temporaryCachePath, "SceneCapture", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(folder);
             string output = Path.Combine(folder, "visualization.hbscene");
@@ -93,6 +104,7 @@ namespace HBP.Transfer.Scene
                 // MNI provenance was recorded when the scene opened. Atlas files are local
                 // to each device; a selected atlas is checked when that operation is applied.
                 var standardFiles = mniHashes;
+                captureStart = SyncTelemetry.CapturePoint();
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
                     Report("Capturing visualization");
@@ -101,6 +113,7 @@ namespace HBP.Transfer.Scene
                     // No await across the live graph: metadata and numeric bytes are now owned.
                     return (Metadata: archive.CaptureDetachedMetadata(payload), Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
                 }, token);
+                captureEnd = SyncTelemetry.CapturePoint();
                 token.ThrowIfCancellationRequested();
                 Report("Preparing visualization for transfer");
                 if (streaming)
@@ -113,8 +126,9 @@ namespace HBP.Transfer.Scene
                         var resources = archive.CaptureBlockResources(metadata);
                         streamingDelivery.SetPreparedManifest(PreparedSceneManifest.FromMetadata(snapshot.Metadata.Token));
                         return resources;
-                    }, archive.Dispose, token);
+                    }, archive.Dispose, token, telemetryIdentity);
                     streamingDelivery.SourceScene = scene;
+                    streamingDelivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                     return streamingDelivery;
                 }
 
@@ -128,7 +142,7 @@ namespace HBP.Transfer.Scene
                         archive.WriteCaptured(metadata, output);
                         token.ThrowIfCancellationRequested();
                         Report("Verifying prepared visualization");
-                        result = new SceneDelivery(output, transferId, sessionId, snapshot.Summary);
+                        result = new SceneDelivery(output, transferId, sessionId, snapshot.Summary, telemetryIdentity);
                         token.ThrowIfCancellationRequested();
                         return result;
                     }
@@ -144,6 +158,7 @@ namespace HBP.Transfer.Scene
                 });
                 Report("Visualization prepared");
                 delivery.SourceScene = scene;
+                delivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                 return delivery;
             }
             catch
@@ -155,8 +170,16 @@ namespace HBP.Transfer.Scene
                     if (Directory.Exists(folder))
                         Directory.Delete(folder, true);
                 });
+                PublishCaptureMilestones(telemetryIdentity, captureStart, captureEnd, default);
                 throw;
             }
+        }
+
+        private static void PublishCaptureMilestones(SyncTelemetryIdentity identity, SyncTelemetryPoint captureStart, SyncTelemetryPoint captureEnd, SyncTelemetryPoint queued)
+        {
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.CaptureStart, captureStart);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.CaptureEnd, captureEnd);
+            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.Queued, queued);
         }
 
         private static ScenePayload Capture(Base3DScene scene, SceneArchive archive, string transferId, string sessionId, ulong revision, Dictionary<string, string> standardFiles)

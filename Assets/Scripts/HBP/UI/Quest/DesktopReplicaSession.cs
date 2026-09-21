@@ -32,6 +32,10 @@ namespace HBP.Quest.Desktop
         private StateSnapshot lastSent;
         private float pendingClockTime;
         private bool cutsDirty, timelinesDirty, stateDirty;
+        private readonly SyncTraceTracker telemetryTraces;
+        private readonly SyncSetterOriginObserver telemetryOrigins;
+        private readonly string telemetryScope;
+        private long nextLogicalTraceId, nextCaptureGeneration, nextAttemptId;
         private readonly BasicTimeline[] timelines;
         private bool disposed;
         public bool IsClosed => disposed;
@@ -54,9 +58,15 @@ namespace HBP.Quest.Desktop
             adapter.BindInitialState(initial);
             RememberResource(initial);
             timelines = scene.Columns.Select(column => column.NavigationTimeline).Where(timeline => timeline is { Length: > 0 }).Distinct().ToArray();
+            if (SyncTelemetry.Enabled)
+            {
+                telemetryTraces = new SyncTraceTracker();
+                telemetryOrigins = new SyncSetterOriginObserver(scene.Columns.SelectMany(column => column.Sites).Select(site => site.State), scene.Cuts, timelines);
+                telemetryScope = initial.EpochId.ToString("N");
+            }
+
             Module3DMain.OnRemoveScene.AddListener(OnSceneRemoved);
             scene.OnModifyPlanesCuts.AddListener(OnCutsChanged);
-            scene.OnUpdateCuts.AddListener(OnCutsChanged);
             scene.OnSharedStateChanged.AddListener(OnStateChanged);
             scene.OnSelect.AddListener(OnStateChanged);
             scene.OnSelectSite.AddListener(OnSiteChanged);
@@ -107,12 +117,50 @@ namespace HBP.Quest.Desktop
             _ = RunAsync(lifetime.Token);
         }
 
-        private void OnCutsChanged() => cutsDirty = true;
-        private void OnTimelineChanged() => timelinesDirty = true;
-        private void OnSiteChanged(HBP.Core.Object3D.Site site) => stateDirty = true;
+        private void OnCutsChanged()
+        {
+            cutsDirty = true;
+            if (telemetryOrigins == null)
+                return;
+            if (telemetryOrigins.TryTake(SyncProfile.CutDefinition, out SyncTelemetryPoint setter))
+                BeginTrace(SyncProfile.CutDefinition, setter);
+            telemetryOrigins.ResetCuts(scene.Cuts);
+        }
+
+        private void OnTimelineChanged()
+        {
+            timelinesDirty = true;
+            ConsumeTimelineOrigins();
+        }
+
+        private void OnSiteChanged(HBP.Core.Object3D.Site site)
+        {
+            stateDirty = true;
+            if (telemetryOrigins != null && telemetryOrigins.TryTake(SyncProfile.SiteColor, out SyncTelemetryPoint setter))
+                BeginTrace(SyncProfile.SiteColor, setter);
+        }
+
         private void OnBoolChanged(bool value) => stateDirty = true;
         private void OnRepresentationChanged(SurfaceRepresentation value) => stateDirty = true;
-        private void OnStateChanged() => stateDirty = true;
+
+        private void OnStateChanged()
+        {
+            stateDirty = true;
+            ConsumeTimelineOrigins();
+        }
+
+        private void ConsumeTimelineOrigins()
+        {
+            if (telemetryOrigins == null)
+                return;
+            if (telemetryOrigins.TryTake(SyncProfile.TimelineAnchor, out SyncTelemetryPoint setter))
+                BeginTrace(SyncProfile.TimelineAnchor, setter);
+        }
+
+        private void BeginTrace(SyncProfile profile, SyncTelemetryPoint setter)
+        {
+            telemetryTraces.Begin(profile, ++nextLogicalTraceId, setter);
+        }
 
         /// <summary>Capture only after a scene operation, coalescing changes until the next frame.</summary>
         public void Tick(float now)
@@ -125,19 +173,40 @@ namespace HBP.Quest.Desktop
             }
 
             if ((!cutsDirty && !timelinesDirty && !stateDirty) || !scene.CanApplyPreparedState || scene.SceneInformation.GeometryNeedsUpdate) return;
+            SyncTraceCapture traceCapture = default;
             try
             {
+                SyncTelemetryPoint captureStart = SyncTelemetry.CapturePoint();
                 StateSnapshot baseline = pending ?? accepted ?? initial;
                 StateSnapshot captured = stateDirty ? adapter.Capture(1) : baseline;
                 if (!stateDirty && cutsDirty) captured = adapter.CaptureCuts(captured);
                 if (!stateDirty && timelinesDirty) captured = adapter.CaptureTimelines(captured);
+                SyncTelemetryPoint captureEnd = SyncTelemetry.CapturePoint();
                 lock (gate)
                 {
                     cutsDirty = timelinesDirty = stateDirty = false;
-                    if (SameFields(pending ?? accepted, captured)) return;
+                    if (SameFields(pending ?? accepted, captured))
+                    {
+                        telemetryTraces?.DiscardDirty();
+                        return;
+                    }
+
                     RememberResource(captured);
                     pending = captured;
                     pendingClockTime = Time.realtimeSinceStartup;
+                    SyncTelemetryPoint queued = SyncTelemetry.CapturePoint();
+                    if (telemetryTraces != null)
+                    {
+                        traceCapture = telemetryTraces.Capture(++nextCaptureGeneration, captureStart, captureEnd, queued);
+                    }
+                }
+
+                SyncTelemetryPoint replaced = traceCapture.Replaced.IsEmpty ? default : SyncTelemetry.CapturePoint();
+                PublishCaptureMilestones(traceCapture.Captured);
+                for (int i = 0; i < traceCapture.Replaced.Count; i++)
+                {
+                    SyncLogicalTrace trace = traceCapture.Replaced[i];
+                    SyncTelemetry.MarkAt(trace.Profile, trace.Identity(telemetryScope), SyncMilestone.Replaced, replaced);
                 }
             }
             catch (InvalidOperationException)
@@ -148,6 +217,19 @@ namespace HBP.Quest.Desktop
             {
                 RejectionReason = "Quest sync cannot capture this operation: " + exception.Message;
                 Debug.LogError(RejectionReason);
+            }
+        }
+
+        private void PublishCaptureMilestones(SyncTraceBatch traces)
+        {
+            for (int i = 0; i < traces.Count; i++)
+            {
+                SyncLogicalTrace trace = traces[i];
+                SyncTelemetryIdentity identity = trace.Identity(telemetryScope);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.Setter, trace.Setter);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.CaptureStart, trace.CaptureStart);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.CaptureEnd, trace.CaptureEnd);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.Queued, trace.Queued);
             }
         }
 
@@ -211,12 +293,14 @@ namespace HBP.Quest.Desktop
             while (!stop.IsCancellationRequested)
             {
                 StateSnapshot baseState, candidate;
+                SyncTraceBatch traces;
                 float clock;
                 lock (gate)
                 {
                     baseState = accepted;
                     candidate = accepted == null ? initial : pending ?? accepted;
                     clock = accepted == null ? initialClockTime : pendingClockTime;
+                    traces = telemetryTraces != null && ReferenceEquals(candidate, pending) ? telemetryTraces.SnapshotPending() : default;
                 }
 
                 if (candidate == null) throw new InvalidOperationException("Replica has no checkpoint.");
@@ -242,19 +326,84 @@ namespace HBP.Quest.Desktop
                 byte[] body = new byte[4 + encoded.Length];
                 Buffer.BlockCopy(BitConverter.GetBytes(clock), 0, body, 0, 4);
                 Buffer.BlockCopy(encoded, 0, body, 4, encoded.Length);
-                await ReplicaWire.WriteAsync(stream, full ? ReplicaFrameKind.Snapshot : ReplicaFrameKind.Delta, body, stop).ConfigureAwait(false);
+                SyncTelemetryPoint encodedPoint = traces.IsEmpty ? default : SyncTelemetry.CapturePoint();
+                long attemptId = traces.IsEmpty ? 0 : Interlocked.Increment(ref nextAttemptId);
+                SyncTelemetryPoint firstWritten = default;
+                SyncTelemetryPoint lastWritten = default;
+                try
+                {
+                    await ReplicaWire.WriteAsync(stream, full ? ReplicaFrameKind.Snapshot : ReplicaFrameKind.Delta, body, stop, stage =>
+                    {
+                        if (stage == ReplicaWriteStage.FirstBytes)
+                            firstWritten = SyncTelemetry.CapturePoint();
+                        else
+                            lastWritten = SyncTelemetry.CapturePoint();
+                    }).ConfigureAwait(false);
+                }
+                catch
+                {
+                    PublishAttemptMilestones(traces, attemptId, encodedPoint, firstWritten, default, body.Length + 5L);
+                    throw;
+                }
+
                 lock (gate) lastSent = next;
-                await RequireAckAsync(stream, ReplicaFrameKind.Received, revision, stop).ConfigureAwait(false);
-                await RequireAckAsync(stream, ReplicaFrameKind.Applied, revision, stop).ConfigureAwait(false);
-                await RequireAckAsync(stream, ReplicaFrameKind.Visible, revision, stop).ConfigureAwait(false);
+                SyncTelemetryPoint receivedAck = default;
+                SyncTelemetryPoint appliedAck = default;
+                SyncTelemetryPoint visibleAck = default;
+                try
+                {
+                    await RequireAckAsync(stream, ReplicaFrameKind.Received, revision, stop).ConfigureAwait(false);
+                    receivedAck = SyncTelemetry.CapturePoint();
+                    await RequireAckAsync(stream, ReplicaFrameKind.Applied, revision, stop).ConfigureAwait(false);
+                    appliedAck = SyncTelemetry.CapturePoint();
+                    await RequireAckAsync(stream, ReplicaFrameKind.Visible, revision, stop).ConfigureAwait(false);
+                    visibleAck = SyncTelemetry.CapturePoint();
+                }
+                catch
+                {
+                    PublishAttemptMilestones(traces, attemptId, encodedPoint, firstWritten, lastWritten, body.Length + 5L);
+                    PublishAckMilestones(traces, attemptId, receivedAck, appliedAck, visibleAck);
+                    throw;
+                }
+
+                PublishAttemptMilestones(traces, attemptId, encodedPoint, firstWritten, lastWritten, body.Length + 5L);
+                PublishAckMilestones(traces, attemptId, receivedAck, appliedAck, visibleAck);
                 lock (gate)
                 {
                     accepted = next;
                     VisibleRevision = revision;
-                    if (ReferenceEquals(pending, candidate)) pending = null;
+                    if (ReferenceEquals(pending, candidate))
+                    {
+                        pending = null;
+                        if (!traces.IsEmpty) telemetryTraces.ClearPending(traces);
+                    }
                 }
 
                 first = false;
+            }
+        }
+
+        private void PublishAttemptMilestones(SyncTraceBatch traces, long attemptId, SyncTelemetryPoint encoded, SyncTelemetryPoint firstWritten, SyncTelemetryPoint lastWritten, long payloadBytes)
+        {
+            for (int i = 0; i < traces.Count; i++)
+            {
+                SyncLogicalTrace trace = traces[i];
+                SyncTelemetryIdentity identity = trace.Identity(telemetryScope, attemptId);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.Encoded, encoded, payloadBytes);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.FirstByteWritten, firstWritten, payloadBytes);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.LastByteWritten, lastWritten, payloadBytes);
+            }
+        }
+
+        private void PublishAckMilestones(SyncTraceBatch traces, long attemptId, SyncTelemetryPoint received, SyncTelemetryPoint applied, SyncTelemetryPoint visible)
+        {
+            for (int i = 0; i < traces.Count; i++)
+            {
+                SyncLogicalTrace trace = traces[i];
+                SyncTelemetryIdentity identity = trace.Identity(telemetryScope, attemptId);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.ReceivedAck, received);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.AppliedAck, applied);
+                SyncTelemetry.MarkAt(trace.Profile, identity, SyncMilestone.VisibleAck, visible);
             }
         }
 
@@ -289,7 +438,6 @@ namespace HBP.Quest.Desktop
             disposed = true;
             Module3DMain.OnRemoveScene.RemoveListener(OnSceneRemoved);
             scene.OnModifyPlanesCuts.RemoveListener(OnCutsChanged);
-            scene.OnUpdateCuts.RemoveListener(OnCutsChanged);
             scene.OnSharedStateChanged.RemoveListener(OnStateChanged);
             scene.OnSelect.RemoveListener(OnStateChanged);
             scene.OnSelectSite.RemoveListener(OnSiteChanged);
@@ -337,6 +485,7 @@ namespace HBP.Quest.Desktop
             }
 
             foreach (var timeline in timelines) timeline.OnUpdateCurrentIndex.RemoveListener(OnTimelineChanged);
+            telemetryOrigins?.Dispose();
             lifetime.Cancel();
             Array.Clear(pin, 0, pin.Length);
             Array.Clear(credential, 0, credential.Length);

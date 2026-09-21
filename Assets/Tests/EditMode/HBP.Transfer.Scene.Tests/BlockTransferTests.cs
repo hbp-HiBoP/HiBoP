@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using HBP.Transfer.Codecs;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
+using HBP.Sync;
 using NUnit.Framework;
 
 namespace HBP.Tests.Transfer
@@ -325,6 +326,130 @@ namespace HBP.Tests.Transfer
             {
                 await delivery.CloseAsync();
                 File.Delete(path);
+            }
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        [Timeout(10000)]
+        public async Task StreamingPreparation_EmitsPreparedAndWriteStagesOnlyAfterSuccess()
+        {
+            string path = Path.Combine(Path.GetTempPath(), "hibop-stream-success-" + Guid.NewGuid().ToString("N"));
+            int prepared = 0;
+            int firstWritten = 0;
+            int lastWritten = 0;
+            var bytes = new byte[TransferCodec.BlockBytes + 17];
+            var delivery = new BlockDelivery(path, () => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None, _ => ++prepared);
+            try
+            {
+                using var wire = new ReceiptStream();
+                await delivery.SendAsync(wire, CancellationToken.None, null, null, () => ++firstWritten, () => ++lastWritten);
+
+                Assert.That(prepared, Is.EqualTo(1));
+                Assert.That(firstWritten, Is.EqualTo(1));
+                Assert.That(lastWritten, Is.EqualTo(1));
+            }
+            finally
+            {
+                await delivery.CloseAsync();
+                File.Delete(path);
+            }
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        [Timeout(10000)]
+        public async Task FailedStreamingPreparation_EmitsNoSuccessStage()
+        {
+            string path = Path.Combine(Path.GetTempPath(), "hibop-stream-failure-" + Guid.NewGuid().ToString("N"));
+            int prepared = 0;
+            int firstWritten = 0;
+            int lastWritten = 0;
+            bool released = false;
+            var delivery = new BlockDelivery(path, () => throw new InvalidDataException("preparation failed"), () => released = true, CancellationToken.None, _ => ++prepared);
+            try
+            {
+                Exception failure = null;
+                try
+                {
+                    using var wire = new MemoryStream();
+                    await delivery.SendAsync(wire, CancellationToken.None, null, null, () => ++firstWritten, () => ++lastWritten);
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+
+                Assert.That(failure, Is.TypeOf<InvalidDataException>());
+                Assert.That(released, Is.True);
+                Assert.That(prepared, Is.Zero);
+                Assert.That(firstWritten, Is.Zero);
+                Assert.That(lastWritten, Is.Zero);
+            }
+            finally
+            {
+                await delivery.CloseAsync();
+                File.Delete(path);
+            }
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        [Timeout(10000)]
+        public async Task SceneDelivery_RetryUsesANewAttemptAndRecordsOnlySuccessfulPublicationReceipt()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-stream-identity-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            var sink = new TelemetrySink();
+            var identity = new SyncTelemetryIdentity("transfer", 1, 7);
+            var bytes = new byte[TransferCodec.BlockBytes + 9];
+            using (SyncTelemetry.BeginCapture(sink, new IncrementingClock()))
+            {
+                var delivery = new SceneDelivery(Path.Combine(root, "spool"), "transfer", "session", "fixture", () => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None, identity);
+                try
+                {
+                    using (var first = new ReceiptStream { LoseAck = true })
+                    {
+                        try
+                        {
+                            await delivery.SendAsync(first, CancellationToken.None);
+                        }
+                        catch (IOException)
+                        {
+                        }
+                    }
+
+                    using var second = new ReceiptStream();
+                    await delivery.SendAsync(second, CancellationToken.None);
+                }
+                finally
+                {
+                    await delivery.DisposeAsync();
+                }
+            }
+
+            SyncTelemetrySample receipt = sink.Samples.Single(sample => sample.Milestone == SyncMilestone.PublicationReceipt);
+            Assert.That(receipt.Identity.AttemptId, Is.EqualTo(2));
+            Assert.That(sink.Samples.Where(sample => sample.Milestone == SyncMilestone.FirstByteWritten).Select(sample => sample.Identity.AttemptId), Is.EqualTo(new long[] { 1, 2 }));
+            Assert.That(sink.Samples.All(sample => sample.Identity.LogicalTraceId == 1 && sample.Identity.CaptureGeneration == 7), Is.True);
+            Assert.That(Directory.Exists(root), Is.False);
+        }
+
+        private sealed class IncrementingClock : IMonotonicClock
+        {
+            private long value;
+            public long Frequency => 1000;
+            public long GetTimestamp() => Interlocked.Increment(ref value);
+        }
+
+        private sealed class TelemetrySink : ISyncTelemetrySink
+        {
+            private readonly object gate = new();
+            internal List<SyncTelemetrySample> Samples { get; } = new();
+
+            public void Record(SyncTelemetrySample sample)
+            {
+                lock (gate) Samples.Add(sample);
             }
         }
 

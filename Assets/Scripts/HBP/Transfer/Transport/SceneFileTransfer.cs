@@ -22,7 +22,7 @@ namespace HBP.Transfer.Transport
         }
 
         // Only the owning SceneDelivery may reuse a digest while keeping the source immutable.
-        internal static async Task<DeliveryReceipt> SendPreparedFileAsync(Stream stream, Stream source, byte[] digest, CancellationToken stop, Action<long> progress)
+        internal static async Task<DeliveryReceipt> SendPreparedFileAsync(Stream stream, Stream source, byte[] digest, CancellationToken stop, Action<long> progress, Action writeStarted = null)
         {
             stop.ThrowIfCancellationRequested();
             using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
@@ -35,6 +35,7 @@ namespace HBP.Transfer.Transport
             PutLong(header, 4, source.Length);
             Buffer.BlockCopy(digest, 0, header, 12, 32);
             await stream.WriteAsync(header, 0, header.Length, stop).ConfigureAwait(false);
+            writeStarted?.Invoke();
             var chunk = new byte[ChunkBytes];
             var chunkHeader = new byte[40];
             int index = 0;
@@ -64,15 +65,18 @@ namespace HBP.Transfer.Transport
             return new DeliveryReceipt(digest, (DeliveryStatus)receipt[0]);
         }
 
-        public static async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, string file, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress = null, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveBlocks = null, Action<long, long> detailedProgress = null)
+        public static async Task<DeliveryReceipt> ReceiveFileAsync(Stream stream, string file, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> publish, Action<long> progress = null, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveBlocks = null, Action<long, long> detailedProgress = null, Action<long> wireProgress = null, Action receiptSent = null)
         {
             var header = new byte[44];
             await ReadExactAsync(stream, header, 0, 4, stop).ConfigureAwait(false);
+            wireProgress?.Invoke(4);
             if (header[0] == 'H' && header[1] == 'B' && header[2] == 'T' && header[3] == 4 && receiveBlocks != null)
                 return await receiveBlocks(stream, stop).ConfigureAwait(false);
             if (header[0] != 'H' || header[1] != 'B' || header[2] != 'T' || header[3] != 3)
                 throw new InvalidDataException("Unknown visualization transport version. Rebuild Desktop and Quest together.");
             await ReadExactAsync(stream, header, 4, 40, stop).ConfigureAwait(false);
+            long wireReceived = 44;
+            wireProgress?.Invoke(wireReceived);
             long total = GetLong(header, 4);
             if (total < 1 || total > MaximumSceneFileBytes)
                 throw new InvalidDataException("Visualization exceeds the transfer file budget.");
@@ -97,6 +101,8 @@ namespace HBP.Transfer.Transport
                     if (GetInt(chunkHeader, 0) != index++ || GetInt(chunkHeader, 4) != count)
                         throw new InvalidDataException("Invalid chunk dimensions.");
                     await ReadExactAsync(stream, chunk, 0, count, stop).ConfigureAwait(false);
+                    wireReceived += chunkHeader.Length + count;
+                    wireProgress?.Invoke(wireReceived);
                     Buffer.BlockCopy(chunkHeader, 8, expectedChunk, 0, 32);
                     if (!TransportIdentity.Equal(expectedChunk, sha.ComputeHash(chunk, 0, count)))
                         throw new InvalidDataException("Chunk hash mismatch.");
@@ -125,6 +131,7 @@ namespace HBP.Transfer.Transport
             receipt[0] = (byte)status;
             Buffer.BlockCopy(digest, 0, receipt, 1, 32);
             await stream.WriteAsync(receipt, 0, receipt.Length, stop).ConfigureAwait(false);
+            receiptSent?.Invoke();
             return new DeliveryReceipt(digest, status);
         }
 

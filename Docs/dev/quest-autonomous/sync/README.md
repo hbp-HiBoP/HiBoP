@@ -1,6 +1,6 @@
 # Desktop–Quest synchronization v2
 
-Status: **specification reset approved; implementation not started**.
+Status: **specification reset approved; T00 implementation under review**.
 
 The synchronization work implemented after commit `a4ef93c` does not satisfy the product or performance requirements. Its snapshot/diff hot path, globally blocking acknowledgements, coarse invalidation and unfinished bidirectional model are not the foundation of the next implementation. The replacement is intentionally wire-incompatible and may delete the current S1–S3 runtime once the new vertical slice is active. Keeping the branch buildable between tasks remains mandatory; preserving the old sync protocol does not.
 
@@ -18,6 +18,8 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 - Local camera, Quest wrapper pose/scale, tracked poses, hover and UI layout remain local. Scientific selections and parameters are shared.
 - Future multi-scene support is designed into identifiers and envelopes now, but implemented after the online single-scene core.
 - Automated tests are a development-loop feature: the fast sync suite must stay deterministic and short. Real sockets, sleeps, full scene loads and device tests do not belong in the per-edit tier.
+- Assembly direction is a hard contract: `HBP.Core.Runtime` references no other `HBP.*` assembly. Sync, Transfer, UI and Quest depend toward Core; Core never imports their feature-specific contracts, telemetry or state.
+- Architecture is machine-checked before Unity tests. A new `.asmdef` edge must be explicitly permitted, acyclic and justified by the task; successful compilation alone is insufficient.
 
 ## Read in order
 
@@ -36,6 +38,8 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 13. [Prompt template for implementation agents](prompt.md)
 
 Operator-only aid: [recommended model for each implementation task](model-selection.md). This guide is non-normative and does not change task scope or acceptance criteria.
+
+Implementation evidence: [T00 baseline instrumentation and provisional budgets](T00-baseline-and-budgets.md).
 
 ## Authority of these documents
 

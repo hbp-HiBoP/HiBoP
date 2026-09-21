@@ -4,6 +4,8 @@
 
 The source of truth is the business operation/setter at the moment local software accepts a new value. UI callbacks and global toolbar refreshes are not the journal.
 
+"Business setter" means the domain-owned mutation boundary at the correct architectural layer. It does not mean the lowest property setter regardless of dependency direction. A lower layer must never import Sync, telemetry or another feature module so that the observer can be called there. If the existing property setter cannot expose the boundary without an inverted dependency, Core may expose a feature-neutral event or port and the higher composition layer observes it, or the mutation is routed through the existing domain operation boundary.
+
 Each shared operation should have one target-explicit entry point that:
 
 1. validates identity and value;
@@ -14,6 +16,8 @@ Each shared operation should have one target-explicit entry point that:
 An application context identifies `LocalDesktop`, `LocalQuest` or `Remote`, plus operation ID. `Remote` suppresses outbound echo but executes the same domain behavior.
 
 No active session means the publisher is absent/null. There is no polling timer, snapshot capture or allocation beyond the smallest unavoidable branch/event call.
+
+Diagnostic state is owned by the observing higher layer and exists only while capture is active. Do not embed synchronization trace points, attempt identities or diagnostic latches in long-lived Core entities such as every site, column, cut or timeline value. Disabled instrumentation must not increase the permanent size of those domain objects.
 
 ## Main-thread and worker ownership
 
@@ -120,6 +124,23 @@ Filtering and correlations are Desktop-executed while online. Activity projectio
 
 ## Assembly direction
 
-Keep the pure envelope, operation DTOs, scheduler and codecs in a low-level runtime assembly with no Unity object dependency. Domain handlers live beside common 3D runtime code. Desktop/Quest session adapters depend on both. Do not create a circular reference merely to reuse existing snapshot types.
+Assembly direction is a hard invariant, not a guideline inferred from whether Unity accepts the graph:
 
-Before creating asmdefs, inspect the actual dependency graph and choose the smallest split. Avoid a new abstraction layer if existing lower-level assemblies can host pure contracts cleanly.
+```text
+HBP.Sync.Scene  ----> HBP.Sync.Runtime
+       |                     |
+       +---------------------+----> lower-level external/runtime contracts as allowed
+       |
+       +-----------> HBP.Core.Runtime
+
+HBP.Core.Runtime  ----> no other HBP.* assembly
+```
+
+- `HBP.Core.Runtime` may reference Unity and external libraries, but no assembly whose name starts with `HBP.`.
+- Sync, Transfer, UI, Data and Quest may depend toward Core according to the repository allow-list; Core never depends back toward those features.
+- Pure envelopes, operation DTOs, scheduler and codecs stay in a low-level Sync runtime assembly with no Unity object dependency. Domain/session composition that needs both Sync and Core belongs in `HBP.Sync.Scene` or another existing higher layer.
+- Core may define a feature-neutral domain event, value or port when multiple higher layers need to observe a mutation. It must not define or retain Sync-specific traces, attempts, sinks or telemetry state.
+- Do not introduce a new neutral assembly merely to hide an inversion. A new assembly requires a demonstrated independent responsibility and an approved dependency edge.
+- Every new or changed direct `HBP.*` reference must be explicit in the static dependency allow-list. The checker rejects all cycles and at minimum enforces the zero-HBP-dependency rule for `HBP.Core.Runtime`.
+
+Before editing an `.asmdef`, inspect the actual direct and transitive graph and state the intended edge in the task plan. Run `Tools/check-assembly-dependencies.ps1` before any Unity suite. Successful compilation proves only that there is no compiler-visible cycle; it does not prove that the layer direction is valid.

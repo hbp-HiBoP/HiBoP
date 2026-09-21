@@ -8,14 +8,36 @@ Every task must:
 
 - read this corpus and `AGENTS.md`;
 - state assumptions, objective and non-goals before editing;
+- define the exact semantic boundaries it changes or measures (business mutation accepted, queued, committed to wire, received, applied, next-frame eligible, scientifically stable); a derived notification must not be relabelled as an earlier boundary;
+- identify the logical identity, transmission attempt, owner and lifetime of every new operation/job/trace, including replacement, retry, cancellation, reconnect and shutdown;
+- identify every `.asmdef` edge it adds or changes and prove that dependencies still point from feature/composition layers toward foundational layers;
 - leave the branch compiling at its declared boundary;
 - add the smallest deterministic tests that prove its behavior;
 - run the fast task-specific tier and record its execution time;
+- run the static assembly-dependency gate before Unity tests; `HBP.Core.Runtime` must reference no other `HBP.*` assembly and no unapproved edge or cycle may be introduced;
 - avoid lengthening fast tiers without measurement and justification;
 - run `Tools/format-code.cmd` for changed C# and `git diff --check`;
-- update matrix/validation evidence only for behavior actually demonstrated.
+- update matrix/validation evidence only for behavior actually demonstrated;
+- provide a closure table mapping each acceptance claim to its production entry point, deterministic test or measurement, and any limitation that remains unavailable.
 
 Protocol v2 may temporarily coexist in source with experimental code, but one live scene must never have both owners active. Wire/schema backward compatibility is not required.
+
+## Cross-task definition of done
+
+The following rules apply to every task in addition to its task-specific acceptance criteria:
+
+- **Causal boundary:** originate mutations and measurements at the business boundary that owns the state change. UI refreshes, render callbacks and derived events are evidence of later effects, not substitutes for the originating setter.
+- **Identity and attempts:** distinguish the logical operation/job from each transport or computation attempt. Coalescing may replace an unsent value but must not make samples, acknowledgements or results from different values or attempts share an ambiguous identity.
+- **Single ownership:** name the component that owns each mutable queue, loop, job and lifecycle transition. Start, cancellation, replacement, reconnect and shutdown must have one deterministic owner.
+- **Failure symmetry:** prove success and the relevant failure boundary. A success milestone is emitted only after successful completion, never from an unconditional cleanup path. Where applicable this includes failure before commitment, partial write/read, lost ACK, retry, cancellation, stale completion, disconnect and shutdown with work in flight.
+- **Non-perturbing observability:** capture lightweight raw timestamps/allocation points at the boundaries around the code under measurement, then publish or format diagnostics outside that interval. A capture context is immutable and atomically identifies its sink, clock/frequency, main thread and generation; closing it stops admission and accounts for writers already in flight. Measure diagnostic overhead separately, and never present a proxy or instrumented cost as the business cost without qualification.
+- **Inactive-path cost:** when no sent-scene session or diagnostic capture is active, add no polling, scene traversal, serialization, recurring allocation or permanent per-frame synchronization work. Any unavoidable constant check must be identified and justified.
+- **Bounded work:** declare bounds for queues, retained attempts, samples, bulk data and task-owned caches. Overflow must have an explicit tested result rather than silent loss.
+- **Production-path proof:** tests of a helper are insufficient when correctness depends on where it is called. At least one focused test or reviewable trace must demonstrate that the real production entry point uses the helper at the intended boundary.
+- **Honest evidence:** an unavailable device measurement or unobservable boundary is recorded as unavailable. It must not be replaced by a weaker milestone with the stronger name.
+- **Dependency direction:** compilation is not architectural validation. `HBP.Core.Runtime` has zero dependencies on other `HBP.*` assemblies. Feature-specific telemetry, synchronization contracts and latches stay in Sync or its composition layer; a lower layer may expose only feature-neutral domain events/ports. Every changed `.asmdef` edge passes the static repository policy.
+
+A task is not complete merely because its focused tests pass. It is complete when every task-specific acceptance statement has an auditable row in the closure table and no known defect invalidates the collected evidence.
 
 ## T00 — Baseline instrumentation and fast-test foundation
 
@@ -26,13 +48,21 @@ Protocol v2 may temporarily coexist in source with experimental code, but one li
 - establish the test tiers/categories in `07-verification.md`;
 - provide fake monotonic time and deterministic async synchronization utilities;
 - instrument initial transfer and three profiles: site color, continuous cut movement and timeline playback/seek;
-- record setter, queue/send where available, receive/apply, next-visible and scientific-stable milestones;
+- define every milestone precisely, including its owning thread and whether it is local, remote or an ACK upper bound;
+- capture the initial-transfer origin at the user-request boundary and record the Desktop receipt returned after Quest publication; keep capture start distinct from the user request;
+- capture site color, cut and timeline origins at their business setters before derived work; the original point must not be overwritten by render/update notifications;
+- record queue/send where available, receive/apply, next-visible and scientific-stable milestones;
+- distinguish a logical trace from each transmission attempt so coalescing, retry and reconnect cannot merge unrelated samples;
+- capture only lightweight raw points at measured boundaries and defer sink locking, correlation formatting and CSV work until after the measured interval;
+- make capture enable/disable/flush safe with producers in flight, and keep the disabled path free of recurring per-frame work;
 - record current test durations, main-thread/GC costs and available USB/Wi-Fi baselines;
 - publish provisional p95, allocation and main-thread regression budgets for the three profiles, with unavailable device measurements clearly marked.
 
 **Do not:** redesign or repair the current protocol.
 
-**Acceptance:** focused fast commands exist, timing tests use no real sleeps, and a baseline/budget report is reviewable.
+**Acceptance:** focused fast commands exist; timing tests use no real sleeps; success, failure, retry/replacement and capture-shutdown semantics are deterministic; production hooks demonstrate the declared causal boundaries; instrumentation overhead is separated from measured work; every published budget is computable from an unambiguous trace or explicitly marked unavailable; deterministic tests cover a writer in flight during capture close, retry/reconnect identity, same-profile replacement without loss of pending disjoint profiles, preservation of the first setter point across capture restart, every complete-cut input path including custom-normal X/Y/Z, and successful versus failed streaming preparation; observer/correlation state is bounded; unavailable Quest identities are explicitly labelled as proxy/unknown; and a baseline/budget report is reviewable from results produced by the final code, not stale artifacts from an earlier implementation.
+
+The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the fast static assembly-dependency check used by all later tasks. It rejects `HBP.Core.Runtime -> HBP.*`, dependency cycles and newly introduced direct `HBP.*` edges absent from the explicit policy. It runs without starting Unity and is invoked by the sync test entry point before any Unity process.
 
 ## T01 — Minimal pure v2 contract and codec
 

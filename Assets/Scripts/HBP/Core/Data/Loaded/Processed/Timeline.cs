@@ -1,5 +1,6 @@
 using HBP.Core.Tools;
 using System.Collections.Generic;
+using System;
 using HBP.Core.Enums;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +10,9 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 {
     public abstract class BasicTimeline
     {
+        /// <summary>Raised synchronously before a timeline anchor component changes.</summary>
+        public static event Action<BasicTimeline> AnchorChanging;
+
         #region Properties
 
         /// <summary>
@@ -42,14 +46,18 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get { return m_CurrentIndex; }
             set
             {
+                int next;
                 if (IsLooping)
                 {
-                    m_CurrentIndex = (value % Length + Length) % Length;
+                    next = (value % Length + Length) % Length;
                 }
                 else
                 {
-                    m_CurrentIndex = Mathf.Clamp(value, 0, Length - 1);
+                    next = Mathf.Clamp(value, 0, Length - 1);
                 }
+
+                if (m_CurrentIndex != next) AnchorChanging?.Invoke(this);
+                m_CurrentIndex = next;
 
                 if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
 
@@ -60,7 +68,17 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// <summary>
         /// Is the timeline looping ?
         /// </summary>
-        public bool IsLooping { get; set; }
+        private bool m_IsLooping;
+
+        public bool IsLooping
+        {
+            get => m_IsLooping;
+            set
+            {
+                if (m_IsLooping != value) AnchorChanging?.Invoke(this);
+                m_IsLooping = value;
+            }
+        }
 
         protected bool m_IsPlaying;
 
@@ -72,6 +90,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get { return m_IsPlaying; }
             set
             {
+                if (m_IsPlaying != value) AnchorChanging?.Invoke(this);
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
                 m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
@@ -102,7 +121,17 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// <summary>
         /// Step of the timeline
         /// </summary>
-        public int Step { get; set; } = 1;
+        private int m_Step = 1;
+
+        public int Step
+        {
+            get => m_Step;
+            set
+            {
+                if (m_Step != value) AnchorChanging?.Invoke(this);
+                m_Step = value;
+            }
+        }
 
         /// <summary>
         /// Time between two timeline updates
