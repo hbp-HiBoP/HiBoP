@@ -1,59 +1,74 @@
-# Live replication, offline editing, and conflicts
+# Authority, disconnection and reconciliation
 
-## Authority and immediate feedback
+## Connected authority
 
-Desktop assigns accepted common revisions. Both applications apply their own user input locally immediately. On Quest, a manipulation updates local common scene state and its interaction preview on the input frame; it does not wait for a Desktop response. If native cut or projection calculation cannot finish within that frame, show the live handle/plane preview while retaining the last coherent scientific result until a new one is ready. Mark the new state **provisional** until Desktop accepts it. This preserves interaction responsiveness without pretending the network or scientific computation has zero latency.
+Desktop is the online sequencer, not a render server. It assigns `canonicalSequence` to accepted operations. Quest applies its own input immediately, sends a proposal with a stable `operationId`, and treats the Desktop echo as acknowledgement rather than applying the same operation twice.
 
-The state model has one accepted baseline `B`, zero or more pending Quest edits `Q`, and a visible state produced by replaying `Q` over `B`. Desktop has its accepted state `D`; when connected, Quest proposals are validated against `D`, accepted or reconciled, and echoed back with an increasing common revision. Echoes acknowledge edit IDs and advance the Quest baseline; they must not snap an ongoing Quest gesture back to an older value. All visible local application uses the same scientific setters/operations as Desktop, not a second Quest implementation.
+With one alternating user, genuine conflicts should be exceptional. Desktop keeps a `lastAcceptedCanonicalSequence` by touched operation key/group for the lifetime of an incarnation. A Quest proposal declares the last canonical sequence it observed; it is accepted when no touched key has a newer Desktop assignment. If a touched key is newer, Desktop wins and returns its authoritative assignment. The map is bounded by schema/entity limits, not time; deleted-entity tombstone watermarks remain until incarnation close so a stale proposal cannot resurrect them. Automatic producers such as timeline playback follow their dedicated clock rules rather than pretending to be simultaneous user edits.
+
+## Connection state machine
 
 ```text
-Quest input -> local scientific apply -> next Quest render
-            -> queue state proposal -> Desktop validates/merges
-            -> common revision -> Quest acknowledges/rebases pending branch
+Unsent
+  -> InitialPublishing
+  -> Connected
+  -> GracePeriod (500 ms)
+  -> OfflineLocal
+  -> Reconciling
+  -> Connected
+
+Connected/GracePeriod/OfflineLocal -> Closed for an explicit close
 ```
 
-The wire proposal is a **state assignment**, for example `{cutId, geometry: complete desired cut definition}`, with edit ID, local sequence, base revision and gesture ID. It is not an enum of every UI action. An operation such as create/delete still requires explicit entity membership changes and tombstones; a delta is always derived from the same complete state contract.
+`GracePeriod` is silent: the UI still appears connected, outgoing operations remain in memory and the writer retries event-driven. If the same session returns within 500 ms, unacknowledged operations are resent with their existing IDs and deduplicated by the receiver.
 
-## Session state machine
+After 500 ms:
 
-`Unsent -> PreparingInitial -> Live -> DisconnectedEditable -> Reconciling -> Live`.
-An explicit close or replacement enters `Closed`; network loss does not. Pairing may remain active without an open visualization, but that is `Unsent` and does not activate capture. On restart, a persisted editable session may enter `OfflineRecovered` after its resources and journal are verified; this needs its own validation, not an assumption from the current temporary archive.
+- show an informational disconnection dialog;
+- cancel active filter/correlation/activity coordination on both sides as soon as each side detects confirmed loss;
+- abandon the retry journal and retain only current local state;
+- keep both applications fully usable;
+- do not persist the branch across process close/crash.
 
-The connection state, accepted revision, local edit durability and visible/rendered revision are separate indicators. Never show “in sync” merely because the TLS socket is connected.
+The Quest visualization remains usable indefinitely until the user closes it or the process exits.
 
-## Online ordering
+## Reconnection handshake
 
-Each epoch has a Desktop common revision and per-device monotonic proposal sequence. Each edit carries a stable ID reused on retry. Desktop deduplicates `(epoch, device, editId)`, validates schema and target IDs, and serializes accepted state assignments. The response includes the accepted revision and normalized values. A stale proposal can be rebased automatically only when its touched atomic groups are unchanged since its base. Otherwise it becomes a conflict. Retries never execute a second time. Old render jobs and packets cannot supersede a newer accepted or locally visible state.
+Peers exchange session/scene/incarnation identity and an incrementally maintained lightweight checkpoint identity; the handshake never captures/hashes the whole scene. For all common incarnations:
 
-For a continuously dragged cut, individual samples may be accepted at up to the negotiated rate. The outgoing queue retains only the newest unsent preview for that gesture. The final pose is a separate reliable terminal proposal and must survive reconnect. Create, delete, topology switches and other dependency changes are ordered barriers: do not coalesce them away or send dependent values before their resources and IDs exist.
+- equal checkpoint identities reconnect automatically;
+- divergent state opens one global choice for the reconnection, not one choice per scene;
+- affected shared scenes are locked while the choice is open;
+- “Keep Desktop” validates every selected checkpoint, then commits each common scene under an interaction lock on Quest;
+- “Keep Quest” validates every selected checkpoint, then commits each common scene under an interaction lock on Desktop;
+- heavy resources are never included.
 
-## Offline branch and recovery
+“Atomic” here means no partial validated batch is intentionally exposed inside one scene. It is not a transactional rollback across several Unity scenes. If a setter unexpectedly fails after validation, mark that scene reconciliation failed/out-of-sync, keep the UI locked for that scene and require retry or full resend; do not claim that all scenes committed.
 
-When the link drops, Quest retains the last accepted baseline, all required resources, IDs, pending edits and local sequence. Local operations continue and are applied immediately. Record their semantic changes, not controller motion or 90-Hz presentation poses. Coalesce consecutive assignments to the same group within a gesture, while preserving creation/deletion boundaries and the final value. Queue storage has explicit size limits and an actionable full-storage error; never silently evict a pending edit.
+Checkpoint transfer is bounded, chunked, cancelable before commit and displayed with progress after 200 ms. If the connection drops during transfer/staging, discard the incomplete staging buffer, remain offline and offer reconciliation again after the next connection. Once a per-scene Unity commit begins it runs to completion or enters the explicit failed state.
 
-Persist an accepted checkpoint and session/manifest identity on both devices, plus Quest tombstones and pending final edits, using atomic replace or append/commit records. A visible intermediate drag sample may be newer than its durable checkpoint; the UI must not claim crash durability until the final edit is committed. The initial prepared resources needed for offline use must be pinned in a session store rather than relying on temporary `SceneArchive` cleanup. Validate hashes and compatibility before recovering after a process restart. If Desktop loses its accepted baseline, do not guess a three-way merge base from Quest's claims; recover the checkpoint or stop with a repairable session error.
+The discarded state is not retained as a conflict branch. There is no property-level merge, wall-clock “last writer” algorithm or three-way merge engine.
 
-Desktop need not capture every frame during an outage merely because the old session exists. Its current scene continues to work normally. On reconnection, capture the live Desktop state and compare it with the retained baseline. A checkpoint before explicit Desktop scene closure is necessary if a closed scene is expected to reconcile later; otherwise closing/replacing the scene must explicitly end the epoch and tell the user pending Quest edits need export/resolution. This lifecycle decision is a stage gate.
+## Missing and orphaned incarnations
 
-## Three-way reconciliation
+If Desktop closed a scene while connected, Quest closes the matching incarnation.
 
-After reconnect, obtain `B` (last mutually accepted baseline), `D` (Desktop current state) and `Q` (Quest current branch plus pending edit provenance). Compare by stable entity ID and **atomic property group**, not by entire scene and not by wall-clock timestamps.
+If Desktop closed it while offline, reconnection reports that the visualization no longer exists on Desktop. The Quest incarnation remains usable but becomes permanently local/orphaned. A small per-scene disconnected indicator is shown. Its edits are never synchronized, even if Desktop later reopens the same source: reopening creates a different `incarnationId`.
 
-| B -> D | B -> Q | Result |
-| --- | --- | --- |
-| unchanged | changed | Apply Quest change to Desktop and publish common revision. |
-| changed | unchanged | Apply Desktop change to Quest after rebasing its remaining pending branch. |
-| same final value | same final value | Accept once; deduplicate. |
-| different, disjoint groups | different, disjoint groups | Merge both after validation of dependencies. |
-| different values in one atomic group | different values in that group | Conflict; retain both candidates and request a choice. |
-| delete entity | modify same entity | Conflict; keep a tombstone and the edited candidate, with no automatic resurrection. |
+A scene opened on Desktop while offline has no prepared counterpart on Quest. After reconnection it requires the normal full-scene delivery before live synchronization can start.
 
-A cut's orientation, normal, flip and position are one coherent **geometry group**; mixing half of Desktop's cut with half of Quest's is invalid. Other groups should be as small as their invariants permit: color can merge independently from a cut's geometry, but a selected resource and its topology-dependent mask must be resolved together. ROI membership, selected ROI and sphere edits require referential checks. The inventory must define groups for every field.
+Orphaned/missing incarnations are excluded from the global Desktop/Quest state choice.
 
-During a conflict, Desktop retains its currently accepted state; Quest retains the locally visible pending alternative and labels it unsynchronized. The conflict record stores baseline, Desktop value and Quest value plus affected IDs. A conflict UI should be available on both devices after reconnect so the user can select Desktop, Quest, or an explicitly edited value without having to leave the headset. The selection becomes a new accepted revision. The UI must not silently discard a Quest branch, and Quest must not claim convergence while it still displays a conflicting alternative. A conflict in one group need not block unrelated groups. If a parent entity is deleted, dependent edits are held together until that conflict is resolved.
+## Online rejection and retry
 
-Conflict records and pending edits must survive another disconnection. “Keep both” means retaining both values for a later decision, not duplicating a scientific entity whose identity would then be ambiguous. A separate duplicate/copy operation may be offered by the UI if meaningful.
+An invalid operation receives a scoped rejection containing operation ID and reason. Independent operations continue. Missing resource/topology/schema errors make the affected operation unavailable and request a full scene resend; they do not kill the socket or unrelated scenes.
 
-## Example: the same cut moves while disconnected
+Loss of an acknowledgement after application is handled by idempotent retry. A bounded applied-operation cache and cumulative accepted sequence prevent duplicate effects.
 
-At common revision 42, cut `c7` has geometry `G0`. Quest loses network and locally moves it to `GQ`, showing `GQ` immediately. Desktop moves `c7` to `GD`. Reconnection compares `(G0, GD, GQ)` and finds a geometry conflict. Desktop continues showing `GD`; Quest continues showing `GQ` with pending status. Choosing `GQ` publishes revision 43 with `GQ`, which Desktop applies; choosing `GD` acknowledges and clears Quest's pending edit after Quest applies `GD`. In neither case does reconnect itself overwrite a user's work.
+## Offline behavior of long jobs
+
+Quest computes filters and correlations locally only when already offline and the user explicitly starts them. A job that began online is cancelled when the 500 ms grace expires; it is not automatically restarted offline. Activity projection follows the same cancellation rule and can be relaunched locally.
+
+## Future multi-scene behavior
+
+The first core may bind one active visualization, but all state and transport owners are keyed by `sceneId` and `incarnationId`. Future behavior will synchronize open/close and selected scene. The last brain/column interacted with on Quest will select the corresponding Desktop scene/column. This is a later implementation stage, not permission to use a global unkeyed session now.

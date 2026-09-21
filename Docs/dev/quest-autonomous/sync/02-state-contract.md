@@ -1,64 +1,116 @@
-# Shared scientific state contract
+# Operation and checkpoint contract
 
-## Design rule
+## Primary abstraction
 
-`SharedVisualizationState` is a versioned, detached value graph for the **current open scene**. It is not the project-file format, a copy of Unity objects, or a sequence of UI clicks. The existing `VisualizationConfiguration` and per-column configurations provide fields and migration behavior, but runtime values must be captured from `Base3DScene`, its managers, columns, sites and timelines.
+The hot path is a stream of versioned, typed, absolute business mutations. It is not a diff of a captured dictionary and not a serialization of UI events.
 
-The wire schema uses fixed field IDs, explicit versions, bounded collections and a whitelist of supported types. A deterministic canonical encoding or explicit equality implementation supplies hashes and comparisons. Do not use a generic reflection serializer over `MonoBehaviour` or `BaseData` as the sync contract.
-
-## Proposed shape
+Examples:
 
 ```text
-SharedVisualizationState {
-  schemaVersion, epochId, visualizationId, commonRevision,
-  resourceManifestId,
-  scene: SceneState,
-  columns: ordered ColumnState[] keyed by existing Column.ID,
-  cuts: ordered CutState[] keyed by session-stable CutId,
-  rois: ordered RoiState[] keyed by session-stable RoiId,
-  activeRoiId?, selectedColumnId?,
-  topologyAndMaskReferences,
-  optional prepared outputs with provenance
-}
-
-ColumnState {
-  columnId, modality, shared parameters, selected resource,
-  sites: SiteState[] keyed by columnId + full site identity,
-  selectedSiteId?, navigation: TimelineState?,
-  modality-specific shared parameters
-}
-
-TimelineState { index, playing, looping, step, sampling, anchorTime? }
-CutState { cutId, orientation, normal, flip, position, other scientific settings }
-RoiState { roiId, name, ordered spheres with stable IDs and scientific coordinates }
+SetCutDefinition(cutId, completeDefinition)
+SetSiteColor(columnId, siteId, requestedColor)
+SetTimelineAnchor(columnId, index, playing, looping, step, anchor)
+SetRoiSphere(roiId, sphereId, completeDefinition)
+ApplyTriangleMask(topologyId, adaptiveMask)
 ```
 
-These are design sketches, not a claim that the named types already exist. The inventory must add any omitted visible operation before freezing schema version 1. IDs must survive list reordering. In particular, the current cut runtime index is not a network identity. Stable IDs for ROI and spheres are also required if edits to one object must be merged while others change.
+An operation describes intended domain state. “Move cut by delta” and raw controller trajectories are not canonical because replay can apply them twice. A complete cut definition is small and idempotent.
 
-## Value classification
+## Envelope identity
 
-| Family | Shared value or input | Derived locally or separate resource | Local presentation |
-| --- | --- | --- | --- |
-| Anatomy | selected mesh/MRI/implantation, representation, mesh part, visibility, color, erasure mask identity | native surfaces/volume and geometry identified by content hash | Quest column pose and scale; Desktop camera |
-| Cuts | definition, stable identity, order, automatic-cut policy and dependent selection | meshes, textures, clipping results produced by common code | gizmo pose before scientific commit, hover |
-| Sites | blacklist, highlight, color, labels, filtered inclusion, selected site when scientifically relevant, moved scientific position | prepared data mask, ROI membership and appearance from shared inputs | controller pointer and local tooltip placement |
-| ROI | identity, ordered spheres, name, active ROI and activation that changes scientific output | ROI membership and projection results | editing handle pose |
-| Columns | modality settings and selected resource from existing configurations; ordered identity | activity buffers/functional files from initial delivery; calculated projection | local layout/minimize when it does not change science |
-| Timeline | actual navigation index, play/loop/step/sampling state and synchronization anchor | current sample and calculated frames | local control widget |
-| Overlays | atlas/fMRI selection, opacity, thresholds and scientifically relevant enable flags | local output if parity is proven; otherwise versioned prepared result | panel visibility |
+Every operation carries:
 
-`SiteState.IsFiltered` is an input to shared science and is sent as the **resulting inclusion set** of a Desktop filter, not as rendering instructions. `IsMasked` and `IsOutOfROI` may be derived if the relevant source data and active ROI are identical; validate this in the inventory. If not, promote the minimum missing input into the contract. An output buffer is transferred only when local derivation cannot satisfy the parity gate.
+```text
+schemaVersion
+sessionId
+sceneId
+incarnationId
+operationId
+originDevice
+originSequence
+canonicalSequence?  // assigned by Desktop while online
+operationType
+payload
+```
 
-## Resources and dependency identity
+- `sceneId` identifies the logical visualization/data relationship.
+- `incarnationId` identifies one opening of that scene. Closing and reopening creates a new incarnation even for the same source.
+- `operationId` is stable across retries and echoes.
+- `originSequence` orders records committed to the wire from one device. It is assigned after unsent coalescing, not at setter invocation.
+- `canonicalSequence` orders accepted online operations per scene incarnation.
 
-The initial `ScenePayload` contains prepared anatomy, columns and heavy data. During live synchronization, ordinary state messages reference resources already installed by content hash. A newly selected or generated resource is prepared, validated and sent before the revision referring to it can become visible. Triangle erasure masks carry the selected surface/topology hash and exact expected length; a mask for a previous topology is invalid. Resource ownership must outlive pending work and offline edits. Resource changes are barriers for dependent state, not a reason to reset every Quest presentation wrapper.
+Each typed operation definition also owns deterministic scheduling metadata derived from its validated payload: optional coalescing key, bounded touched-key set and optional barrier scope. This metadata is not supplied as an untrusted arbitrary list by UI code. Batch/configuration handlers enumerate all touched keys before apply; overlap is defined by these keys.
 
-## Capture and application
+Identifiers are not collection indices. Cuts, ROI, spheres, columns and resources require stable IDs. Sites use stable column identity plus site full identity. Automatic cuts use permanent semantic IDs for their three axes.
 
-Capture a coherent state on the Unity thread without yielding across live graph reads. Encoding and network I/O use a detached copy on workers. The Quest validates schema, identities, finite numbers, bounds, resource versions and dependencies before calling common operations. Apply related values as a transaction with one invalidation batch and a render/publication fence. `LoadConfiguration()` is not this reconciler: it resets and recreates content.
+## Mutation classes
 
-For a gesture, publish absolute desired values. `Set cut C to position P` is idempotent; `move cut C by delta D` is not. The network may coalesce intermediate previews while retaining the final value and gesture identity.
+| Class | Reliability and scheduling |
+| --- | --- |
+| Structural | Create/delete/open/close and collection membership. Reliable, ordered, never coalesced. |
+| Scalar assignment | Latest unsent value may replace an older value for the same scene/entity/property key. |
+| Complete small object | Complete cut or sphere definition. Coalescable by object; application is atomic. |
+| Atomic batch | Site imports/configuration results. Reliable as one validated assignment; a large body uses descriptor + independent bulk stream. |
+| Job command | Reliable start/cancel with a generation ID. Result has its own chunk stream. |
+| Timeline anchor | Latest anchor wins; playback advances locally. |
+| Checkpoint | Full syncable state used only for initial agreement/reconnection/diagnosis. Never emitted per interaction. |
 
-## Completeness discipline
+“Final” is a stream property. There is no required UI-specific final flag: an unsent preview may be superseded, but the newest remaining value is never discarded merely because input stopped.
 
-Every Desktop mutation route and later Quest control must map to: (1) a shared field or explicitly local presentation field, (2) capture logic, (3) application through common code, (4) invalidation and resource dependencies, and (5) a parity test. A field present only in a saved configuration does not prove that the live value is captured. A source signal timeline does not prove the column's copied navigation timeline is captured.
+## Checkpoint contract
+
+A `SceneCheckpoint` is a detached, bounded representation of all synchronized properties for one incarnation. It exists for:
+
+- fallback initial live-state agreement when the normal capture-boundary journal cannot prove/replay continuity;
+- user-selected reconciliation after a confirmed disconnection;
+- optional diagnostics that detect missed mutation routes during development.
+
+It is forbidden as the normal change detector. Creating one may be O(scene); ordinary mutations may not.
+
+The checkpoint includes current identities, collections, parameters, site state, masks, selections, timeline anchors and available canonical filter/correlation results. It excludes mesh/MRI/functional source bytes, Unity objects, derived render meshes/textures and local presentation.
+
+A checkpoint is composed from the same typed state records and validation/apply handlers that own each operation family. Each family adds its checkpoint export/apply coverage when its handler is implemented. A generic `StateKey -> byte[]` map, reflection capture, post-hoc whole-scene diff or global invalidation is forbidden. Checkpoint support must not be deferred into a second monolithic adapter at reconciliation time.
+
+Checkpoint identity is maintained incrementally by accepted typed handlers (for example a versioned aggregate/Merkle-style composition chosen in T03), with O(change) update cost. Reconnect handshake must not rebuild or hash a 30,000-site checkpoint by traversing the scene.
+
+## Atomicity and validation
+
+Before applying an operation, validate schema, scene/incarnation, entity identity, finite values, bounds, expected resource/topology identity and payload length. Related fields apply atomically and emit one targeted invalidation batch.
+
+Atomicity is semantic, not a requirement to inline all bytes in the scene-operation stream. Any operation body above the measured inline threshold is represented by a small ordered descriptor containing operation ID, touched keys/barrier scope, schema, length and digest; its bytes travel on an independent reliable bulk stream. The receiver stages and validates the complete body before one apply. This applies to large configuration/site batches and dense triangle masks as well as job results and checkpoints.
+
+Examples:
+
+- all fields of a cut geometry apply together;
+- a batch of site assignments becomes visible together;
+- a triangle mask must match the original topology and exact triangle count;
+- a bulk checkpoint validates completely before any shared setter is called.
+
+A failed operation does not terminate the session. It is rejected with a scoped reason. An operation whose resource dependency is unavailable is never partially applied.
+
+## Resource references
+
+All selectable heavy resources are part of the initial prepared-scene manifest. Live operations use stable resource IDs plus cached content fingerprints. Resource list positions, paths and display names are not identities.
+
+Fingerprints are calculated once after resource preparation on immutable buffers, preferably on a worker. If unavailable when send begins, the digest is accumulated over the exact outgoing bytes and verified over the same incoming bytes. There is no extra traversal, Unity-main-thread geometry read or duplicate copy solely for hashing.
+
+## Special representations
+
+- Site inclusion uses a bit per site in the immutable transferred site order plus the roster identity. At 30,000 sites this is about 3.75 KiB before compression.
+- Triangle visibility addresses the immutable original topology. The wire chooses a sparse ID list or dense bitset without changing semantics. Runtime deletion must not renumber network identities.
+- Bulk site changes use one atomic batch. Single-site changes use a single-site operation.
+- Requested colors and parameters cross the wire; local appearance rules derive final rendered values.
+- Filter and correlation results carry the generation/command ID that produced them. A result for an obsolete generation is discarded.
+
+## Local application and echo suppression
+
+Local and remote callers use the same business operations. A scoped application context carries origin and operation ID so a remote apply:
+
+- performs normal validation and invalidation;
+- may participate in local UI refresh;
+- does not emit a new proposal back to its sender;
+- does not get applied twice when Desktop echoes an identical Quest proposal.
+
+Canonical echo handling has an explicit confirmation/correction path. If Desktop accepted byte-equivalent canonical payload, Quest only confirms it. If Desktop canonicalized a different value (notably a timeline anchor) or rejected a proposal, Quest applies the authoritative correction through the same targeted handler without repeating already-equivalent effects.
+
+No generic “begin synchronized state” method may invalidate unrelated systems before the actual operation is known.

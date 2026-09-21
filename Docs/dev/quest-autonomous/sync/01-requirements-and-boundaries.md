@@ -1,48 +1,77 @@
 # Requirements and boundaries
 
-## User journey
+## Product scenario
 
-1. Open a visualization on Desktop; pair and send it to Quest through the current workflow.
-2. Quest validates and publishes the prepared scene. The applications establish one synchronization epoch for that visualization and agree on a common scientific revision.
-3. A Desktop edit updates Desktop immediately and then Quest. A future Quest edit updates Quest immediately and then Desktop. Each side keeps its own presentation transforms.
-4. If the connection fails, the existing Quest scene remains usable. Quest edits continue locally. Desktop can continue editing the sent visualization. Reconnection reconciles the two branches.
-5. Explicitly sending a different visualization starts a new epoch. Closing or replacing a session is distinct from losing the network.
+One person uses one Desktop and one Quest, alternating between them. A visualization is prepared and sent once. Thereafter, edits to its shared scientific/visible intent propagate with the lowest practical latency in both directions.
 
-## Release boundaries
+The target for ordinary operations is:
 
-The first user-facing release must mirror all Desktop manipulations available **after the visualization is open** that can affect the scientific scene or visible content: cuts; ROI and active ROI; site selection, filtering, highlighting, blacklist, colors, labels and moved positions; column selection and modality-specific settings; selected resources and anatomical representation; atlas/fMRI overlays; thresholds, gain, opacity and color; surface erasure; timelines; and other live controls found by the operation inventory. This list is a starting classification, not an exhaustive acceptance list. The inventory in `06-implementation-stages.md` is the release contract.
+1. the local business setter records and applies the change;
+2. transport work begins without waiting for derived calculation or rendering;
+3. the remote receives and applies the same business operation at its earliest Unity update opportunity;
+4. the result is eligible for the following rendered frame.
 
-Quest-origin editing and offline Quest edits are the next user-facing capability. The state schema, identities, protocol and merge rules must be designed for them from the start; a Quest-side test driver should exercise both directions before adding full Quest controls. Once Quest editing is exposed, every control offered there must work locally while disconnected and reconcile afterward. This does not imply that the first release must expose every Desktop control as a Quest UI control.
+This is a statistical latency objective, not a promise that network and arbitrary scientific computation always complete within one refresh interval. The system must avoid self-inflicted idle frames, polling delays and global barriers.
 
-Source-project/database edits, data import/export, patient or protocol authoring, and synchronization of several unrelated visualizations are outside this session. Existing scene data may still depend on definitions captured at pairing; changing those source definitions is not implicitly part of live visualization sync.
+## Functional requirements
 
-## Observable invariants
-
-| ID | Invariant |
+| ID | Requirement |
 | --- | --- |
-| R1 | Local interaction feedback never waits for a round trip. Quest can show and calculate from a provisional local state. |
-| R2 | Every accepted common revision means the same canonical scientific inputs on both devices; rendering can lag that revision but must report it distinctly. |
-| R3 | Reapplying a revision or an edit ID has no second effect. Older work cannot become visible after newer work. |
-| R4 | A temporary disconnect never destroys the received scene; once Quest editing is exposed, it also never discards pending local edits. |
-| R5 | Conflict resolution preserves both alternatives until a user decision; equal and disjoint changes merge without a prompt. |
-| R6 | Quest presentation survives live updates, reconnection and resource changes for IDs that still exist. It never changes Desktop scientific coordinates. |
-| R7 | Without an active sent-scene session, synchronization adds no per-frame work to Desktop. |
-| R8 | A user-visible error identifies a missing resource, incompatible schema or unresolved conflict; the application never reports synchronized while branches differ. |
+| R1 | Local application never waits for a network round trip. |
+| R2 | An ordinary connected mutation performs work proportional to the changed value, not the number of sites, triangles, columns or other scene entities. |
+| R3 | Desktop orders accepted operations while connected. A non-conflicting Quest proposal is accepted; Desktop wins a genuinely concurrent conflict. |
+| R4 | Every sample from a continuous setter is applied locally and offered to the scheduler. The remote need not receive superseded unsent previews: the newest unsent value may replace them; structural operations are never coalesced. |
+| R5 | Once a value stream stops, its latest value is retained until delivered or superseded by a later user value. |
+| R6 | Immutable/selectable source resources such as meshes, MRI and functional datasets cross the wire only during a full scene delivery. Live operations reference the initial manifest. Bounded derived job results such as correlations are not source resources and may be streamed live. |
+| R7 | Calculations are local unless an operation explicitly declares a canonical result transfer. Filters and correlations are the confirmed exceptions while online. |
+| R8 | Remote application invokes the same domain operation as local interaction and performs only its targeted invalidations. |
+| R9 | Selection of column, site, ROI and ROI sphere is shared in the single-scene core. Selected-scene synchronization is added with multi-scene T17. Hover, pointer state, camera and physical Quest wrapper transforms are local. |
+| R10 | Pairing without an active delivered scene adds no scene polling or scene-sized work. A disconnected or connected Quest must not degrade normal Desktop interaction. |
+| R11 | Transport remains responsive while calculations and bulk results are active. Small interactive messages can overtake bulk chunks. |
+| R12 | A transient disconnect does not destroy the Quest scene. Offline process state is not durable across application crash or close. |
+| R13 | Reconnection selects one current state; it does not merge branches. |
+| R14 | A missing/incompatible resource rejects the dependent operation visibly and requires a full scene resend. Partial application is forbidden. |
+| R15 | The implementation and its tests preserve short development cycles. Fast tests may not depend on real time, real sockets, device availability or full scene construction. |
 
-## Three distinct states
+## Scale assumptions
 
-- **Accepted common state:** the most recent revision assigned by Desktop and confirmed by both sides. Desktop coordinates this history.
-- **Local pending branch:** changes made after that revision which have not yet been accepted, including all offline Quest edits. The branch has its own monotonic local sequence and stable edit IDs; it is never confused with a common revision.
-- **Visible state:** the scientific result each device currently renders, plus any clearly marked local interaction preview. Quest can immediately show its pending manipulation, while expensive cut/projection output may still show the last completed state. This is expected to differ temporarily from Desktop during computation, latency, disconnection, or conflict. Status and diagnostics must expose the distinction.
+The live operation design must remain predictable with approximately:
 
-Desktop is the coordinator of common revisions, not the sole place allowed to run an operation. Quest applies the same shared operation locally first. This distinction is essential for instant and offline interaction.
+- 30,000 sites;
+- a 300,000-triangle base mesh;
+- eight columns;
+- three cuts;
+- one ROI with three spheres;
+- large functional datasets already installed by the initial delivery.
 
-## Presentation boundary
+These sizes do not authorize the sync layer to manage scientific computation. They constrain encoding and algorithms: a one-site color change cannot scan 30,000 sites, while a deliberate 30,000-site batch may legitimately be O(30,000).
 
-The scientific frame uses the coordinates expected by the common `Base3DScene` and native calculations. A cut normal, ROI sphere, site position or mesh mask is expressed in that frame. The local Quest wrapper applies position/rotation/scale to the entire scientific frame; its transform is stored separately by local column ID. A Desktop camera move, Quest grab, recenter or head move changes presentation only. Selection is shared **when it affects scientific output**, for example an automatic cut around the selected site; UI focus and hover are local.
+## Shared intent versus local presentation
 
-## Explicit limitations requiring qualification
+Shared intent includes scientific inputs and visible choices that should describe the same visualization: selections, cut definitions, ROI geometry/activation, filters, site states, resource selection, hemisphere, representation, triangle visibility, timeline controls, colors and overlay parameters.
 
-The same source code and native library on both devices make local reproduction plausible, but do not prove identical inputs, numerical output, shader behavior, resource versions or timing. The qualification matrix must establish parity per operation and modality. If an operation cannot be reproduced on Quest, the release must either make that common path work or explicitly change the product requirement; quietly substituting an approximate visual result does not meet R2.
+Local presentation includes Desktop cameras and panels; Quest pose, grab, recentering, physical column layout and scale; hover, tooltip and pointer; file dialogs; progress-widget layout; and local tool focus. The removed Quest “hide surface” feature is not part of the contract. The selected anatomical hemisphere is shared.
 
-Offline continuity during a live Quest process is mandatory. Durable recovery of edits after process death is included in the target design: record the edit and its base identity before claiming it is safely queued, and retain the prepared resources while the pending branch depends on them. Exact storage format, size policy and Android restart behavior are implementation decisions to verify in the persistence stage.
+## Calculation boundary
+
+Operations normally send inputs before local derived work finishes. Cuts send their full definition, ROI sends sphere parameters, activity sends projection intent, and both peers calculate locally.
+
+Confirmed canonical-result exceptions:
+
+- a filter sends its command, then the final site-inclusion bitset calculated by Desktop while online;
+- a correlation sends its command, then the final correlation data calculated or loaded by Desktop while online;
+- a triangle erase sends the exact affected original triangle identities/mask rather than replaying the gesture.
+
+## Explicit non-goals for the first refactor
+
+- automatic three-way merge of offline edits;
+- persistent recovery after either process crashes;
+- multiple simultaneous Quest devices or users;
+- live synchronization of source project, patients, protocols or imported source databases;
+- loading a new heavy resource incrementally after initial delivery;
+- initial implementation of multi-scene UI lifecycle, although protocol identity must support it;
+- guaranteeing identical frame rates or shader pixels between devices.
+
+## Release boundary
+
+The online core is not complete until every applicable D1–D34 family in `operation-matrix.md` has an explicit operation, apply path and verification result. A demonstration limited to cuts is a vertical slice, not a release.

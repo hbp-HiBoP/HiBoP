@@ -1,44 +1,44 @@
-# Desktop–Quest visualization synchronization
+# Desktop–Quest synchronization v2
 
-Status: S0–S2 implemented. S3 transport and the real-scene cut creation/movement path passed local and physical Quest validation; full D1–D34 operation coverage remains a release gate. Per-operation rollback for an atlas unavailable on Quest is tracked for S4–S5. The on-device localizer check awaits separately installed files. S4–S6 and the first user-facing synchronization release remain pending.
+Status: **specification reset approved; implementation not started**.
 
-This plan applies after the user opens a visualization on Desktop and sends it to Quest. Both applications then use the same scientific scene implementation and may eventually edit that scene. The initial delivery remains the existing prepared-scene transfer. Synchronization concerns the open visualization, not edits to the source project, patients, protocols, or imports.
+The synchronization work implemented after commit `a4ef93c` does not satisfy the product or performance requirements. Its snapshot/diff hot path, globally blocking acknowledgements, coarse invalidation and unfinished bidirectional model are not the foundation of the next implementation. The replacement is intentionally wire-incompatible and may delete the current S1–S3 runtime once the new vertical slice is active. Keeping the branch buildable between tasks remains mandatory; preserving the old sync protocol does not.
 
-## Product decisions
+The initial scene delivery remains a separate workflow. Live synchronization starts only after Quest has published that prepared scene. It exchanges typed business operations and bounded job results, never a recaptured scene on each edit.
 
-1. Desktop coordinates and persists the accepted shared state. Quest renders and edits its local copy immediately, including while disconnected. Desktop authority does **not** put the network in the Quest interaction-to-photon path.
-2. After reconnection, independent edits merge. Concurrent edits to the same atomic property group, and delete-versus-edit cases, remain visible as conflicts until the user chooses a result. Neither device silently discards the Quest branch.
-3. Continuous gestures may generate 60/90 input samples per second. The network scheduler must bound work and favor the newest preview; every completed gesture gets a reliable final state. No claim that every rendered frame requires a packet.
-4. A Desktop installation that has never sent a scene to Quest has no new per-frame capture, comparison, serialization, allocation, or scientific computation. Pairing alone does not activate replication. Once a scene has been sent, its session remains active through temporary disconnection so both sides can record edits.
-5. Scientific inputs and intended state cross the wire. Each side runs the common scene operations. A filtered site's inclusion is an input/result of filtering; rendering instructions or meshes are transferred only when a particular derived result cannot be reproduced locally to the accepted parity.
-6. Presentation stays local: Desktop camera/views and Quest head pose, column pose/scale, recentering and controller tracking do not modify shared scientific coordinates.
-7. The first user-facing synchronization release covers **every Desktop manipulation of an already open visualization** on Quest. Quest-origin controls and offline editing are the next user-facing capability, designed into the same state/transport model and exercised through test drivers before those controls ship. A cut-plane demonstration is not permission to ship a cut-only Desktop-to-Quest feature.
+## Canonical decisions
+
+- One user alternates between one Desktop and one Quest. Desktop orders accepted operations while connected; Quest applies its own interactions optimistically.
+- A normal setter must emit work proportional to the modification, not to the scene. No global capture, diff, render fence or acknowledgement may gate the next mutation.
+- Continuous values keep the newest unsent preview; structural operations and the newest value after a stream stops are reliable.
+- Both directions use the same business setters and targeted invalidations. Remote application suppresses re-emission without bypassing domain behavior.
+- Filter and correlation jobs run only on Desktop while online; Quest waits for the canonical result. Activity projection runs locally on both devices.
+- A 500 ms disconnection grace queues and retries operations. Beyond it, both peers continue locally. Reconnection chooses one whole state—Desktop or Quest—rather than merging.
+- Heavy resources are transferred only with the initial/full scene delivery. Incremental messages reference a verified manifest. A missing resource requires a full resend.
+- Local camera, Quest wrapper pose/scale, tracked poses, hover and UI layout remain local. Scientific selections and parameters are shared.
+- Future multi-scene support is designed into identifiers and envelopes now, but implemented after the online single-scene core.
+- Automated tests are a development-loop feature: the fast sync suite must stay deterministic and short. Real sockets, sleeps, full scene loads and device tests do not belong in the per-edit tier.
 
 ## Read in order
 
-1. [Requirements and scope](01-requirements-and-boundaries.md)
-2. [Shared state contract](02-state-contract.md)
-3. [Live replication, offline editing, and conflicts](03-replication-and-offline.md)
-4. [Transport and performance](04-transport-and-performance.md)
-5. [Integration into the current code](05-code-integration.md)
-6. [Implementation stages](06-implementation-stages.md)
-7. [Verification and release gate](07-verification.md)
+1. [Why the current system is being replaced](00-current-system-audit.md)
+2. [Requirements and boundaries](01-requirements-and-boundaries.md)
+3. [Operation and checkpoint contract](02-state-contract.md)
+4. [Authority, disconnection and reconciliation](03-replication-and-offline.md)
+5. [Transport and performance](04-transport-and-performance.md)
+6. [Integration and invalidation model](05-code-integration.md)
+7. [Ordered implementation tasks](06-implementation-stages.md)
+8. [Fast-test strategy and release verification](07-verification.md)
+9. [Wire protocol v2](08-wire-protocol.md)
+10. [Long-running jobs](09-long-running-jobs.md)
+11. [Scene lifecycle and future multi-scene support](10-scene-lifecycle.md)
+12. [Operation matrix](operation-matrix.md)
+13. [Prompt template for implementation agents](prompt.md)
 
-S0 inventory: [open-visualization operation matrix and schema checklist](operation-matrix.md). Its D/Q/O checks are planned validation cases, not completed tests.
+Operator-only aid: [recommended model for each implementation task](model-selection.md). This guide is non-normative and does not change task scope or acceptance criteria.
 
-S1 contract: [canonical schema, codec and merge rules](08-s1-state-codec.md).
+## Authority of these documents
 
-S2 local validation: [live adapter coverage, results and S3 boundaries](09-s2-live-adapter.md).
+These documents supersede the previous S1 state codec, S2 live adapter and S3 active-session plans as well as future-sync assumptions in `../05-state-command-and-sync-model.md`. Historical task records remain useful evidence, not requirements.
 
-S3 validation: [active session, device result and localizer boundary](10-s3-active-session.md).
-
-These documents supersede the future-sync assumptions in `../05-state-command-and-sync-model.md` for this new work. They do not alter the completed QUEST-001–031 task records or retrospectively claim those tasks tested synchronization. The historical `feature/xr` contracts are references for revision and idempotence invariants, not a codebase or command catalogue to merge wholesale.
-
-## Current baseline
-
-- `DesktopSceneCapture.CaptureForQuestAsync` currently creates a fresh session ID and revision 1 on every send; `ScenePayload.Revision` is not a live stream cursor.
-- `QuestAnatomySession` publishes complete deliveries by transfer ID and has a bounded delivery history. It does not order incremental scene updates.
-- `QuestAnatomyView.ApplyAsync` rebuilds the scene and column wrappers. Using it on every change would reset Quest presentation.
-- `Base3DScene.CaptureConfiguration` reads live scientific values. Stored configurations alone are not the entire live state.
-
-The detailed source anchors and consequences are in [the integration audit](05-code-integration.md). All design choices below require a real operation inventory and device validation before they can be called complete.
+If code and these documents disagree during the refactor, the documented v2 behavior is the target. An agent must record a genuine blocker or request a specification decision rather than silently preserving legacy behavior.
