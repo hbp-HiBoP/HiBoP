@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using HBP.Core.Enums;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
 using HBP.Sync;
@@ -62,6 +64,51 @@ namespace HBP.Tests.Transfer.Scene
 
                 AssertOrigin(observer, SyncProfile.TimelineAnchor, 0);
             }
+        }
+
+        [Test]
+        public void CutOrientationSetter_ReportsTheBusinessOrigin()
+        {
+            AssertCutOrigin(cut => cut.Orientation = Enum.GetValues(typeof(CutOrientation)).Cast<CutOrientation>().First(value => value != cut.Orientation));
+        }
+
+        [Test]
+        public void CutNumberOfCutsSetter_ReportsTheBusinessOrigin()
+        {
+            AssertCutOrigin(cut => cut.NumberOfCuts = cut.NumberOfCuts + 1);
+        }
+
+        [TestCase("index")]
+        [TestCase("play")]
+        [TestCase("pause")]
+        [TestCase("loop")]
+        [TestCase("step")]
+        public void EachTimelineInput_ReportsItsOwnPreMutationOrigin(string input)
+        {
+            var timeline = new TestTimeline();
+            if (input == "pause") timeline.IsPlaying = true;
+            var clock = new TestClock();
+            using (SyncTelemetry.BeginCapture(new NullSink(), clock))
+            using (var observer = Observe(timelines: new BasicTimeline[] { timeline }))
+            {
+                switch (input)
+                {
+                    case "index": timeline.CurrentIndex = 2; break;
+                    case "play": timeline.IsPlaying = true; break;
+                    case "pause": timeline.IsPlaying = false; break;
+                    case "loop": timeline.IsLooping = true; break;
+                    case "step": timeline.Step = 2; break;
+                }
+
+                clock.Advance();
+                AssertOrigin(observer, SyncProfile.TimelineAnchor, 0);
+            }
+        }
+
+        private sealed class TestTimeline : BasicTimeline
+        {
+            public TestTimeline() => Length = 10;
+            public override SubTimeline CurrentSubtimeline => null;
         }
 
         private static void AssertCutOrigin(Action<SceneCut> mutate)

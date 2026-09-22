@@ -24,7 +24,10 @@ namespace HBP.Sync
         {
             point = m_Point;
             m_Point = default;
-            return point.IsValid;
+            if (point.IsValid && point.ContextGeneration == SyncTelemetry.ActiveCaptureGeneration)
+                return true;
+            point = default;
+            return false;
         }
 
         public void Clear() => m_Point = default;
@@ -39,7 +42,7 @@ namespace HBP.Sync
         public SyncTelemetryPoint CaptureStart { get; }
         public SyncTelemetryPoint CaptureEnd { get; }
         public SyncTelemetryPoint Queued { get; }
-        public bool IsValid => Setter.IsValid && Queued.IsValid;
+        public bool IsValid => Setter.IsValid && CaptureStart.IsValid && CaptureEnd.IsValid && Queued.IsValid && Setter.ContextGeneration == CaptureStart.ContextGeneration && Setter.ContextGeneration == CaptureEnd.ContextGeneration && Setter.ContextGeneration == Queued.ContextGeneration;
 
         internal SyncLogicalTrace(SyncProfile profile, long logicalTraceId, long captureGeneration, SyncTelemetryPoint setter, SyncTelemetryPoint captureStart, SyncTelemetryPoint captureEnd, SyncTelemetryPoint queued)
         {
@@ -130,11 +133,15 @@ namespace HBP.Sync
     {
         private readonly DirtyTrace[] m_Dirty = new DirtyTrace[3];
         private readonly SyncLogicalTrace[] m_Pending = new SyncLogicalTrace[3];
+        private readonly bool[] m_PendingAttempted = new bool[3];
 
         public void Begin(SyncProfile profile, long logicalTraceId, SyncTelemetryPoint setter)
         {
             int index = Index(profile);
-            if (!setter.IsValid || m_Dirty[index].Setter.IsValid)
+            if (!setter.IsValid || setter.ContextGeneration != SyncTelemetry.ActiveCaptureGeneration)
+                return;
+            // A dirty point from a closed recording must not hide the first setter of a new one.
+            if (m_Dirty[index].Setter.IsValid && m_Dirty[index].Setter.ContextGeneration == setter.ContextGeneration)
                 return;
             m_Dirty[index] = new DirtyTrace(logicalTraceId, setter);
         }
@@ -151,12 +158,27 @@ namespace HBP.Sync
             int replacedCount = 0;
             for (int i = 0; i < m_Pending.Length; i++)
             {
+                if (!IsCurrent(m_Pending[i]))
+                {
+                    m_Pending[i] = default;
+                    m_PendingAttempted[i] = false;
+                }
+
                 DirtyTrace dirty = m_Dirty[i];
                 if (!dirty.Setter.IsValid) continue;
-                if (m_Pending[i].IsValid)
+                if (dirty.Setter.ContextGeneration != SyncTelemetry.ActiveCaptureGeneration)
+                {
+                    m_Dirty[i] = default;
+                    continue;
+                }
+
+                if (!captureStart.IsValid || !captureEnd.IsValid || !queued.IsValid || dirty.Setter.ContextGeneration != captureStart.ContextGeneration || dirty.Setter.ContextGeneration != captureEnd.ContextGeneration || dirty.Setter.ContextGeneration != queued.ContextGeneration)
+                    continue;
+                if (m_Pending[i].IsValid && !m_PendingAttempted[i])
                     Add(m_Pending[i], ref replacedFirst, ref replacedSecond, ref replacedThird, ref replacedCount);
                 SyncLogicalTrace current = new(Profile(i), dirty.LogicalTraceId, generation, dirty.Setter, captureStart, captureEnd, queued);
                 m_Pending[i] = current;
+                m_PendingAttempted[i] = false;
                 m_Dirty[i] = default;
                 Add(current, ref capturedFirst, ref capturedSecond, ref capturedThird, ref capturedCount);
             }
@@ -164,7 +186,27 @@ namespace HBP.Sync
             return new SyncTraceCapture(new SyncTraceBatch(capturedFirst, capturedSecond, capturedThird), new SyncTraceBatch(replacedFirst, replacedSecond, replacedThird));
         }
 
-        public SyncTraceBatch SnapshotPending() => SyncTraceBatch.FromSlots(m_Pending[0], m_Pending[1], m_Pending[2]);
+        public SyncTraceBatch SnapshotPending() => SyncTraceBatch.FromSlots(IsCurrent(m_Pending[0]) ? m_Pending[0] : default, IsCurrent(m_Pending[1]) ? m_Pending[1] : default, IsCurrent(m_Pending[2]) ? m_Pending[2] : default);
+
+        public SyncTraceBatch SnapshotPendingForAttempt()
+        {
+            SyncTraceBatch batch = SnapshotPending();
+
+            for (int i = 0; i < batch.Count; i++)
+            {
+                SyncLogicalTrace trace = batch[i];
+                int index = Index(trace.Profile);
+
+                if (m_Pending[index].LogicalTraceId == trace.LogicalTraceId && m_Pending[index].CaptureGeneration == trace.CaptureGeneration && m_Pending[index].Setter.ContextGeneration == trace.Setter.ContextGeneration)
+                {
+                    m_PendingAttempted[index] = true;
+                }
+            }
+
+            return batch;
+        }
+
+        private static bool IsCurrent(SyncLogicalTrace trace) => trace.IsValid && trace.Setter.ContextGeneration == SyncTelemetry.ActiveCaptureGeneration;
 
         public void ClearPending(SyncTraceBatch accepted)
         {
@@ -172,8 +214,11 @@ namespace HBP.Sync
             {
                 SyncLogicalTrace trace = accepted[i];
                 int index = Index(trace.Profile);
-                if (m_Pending[index].LogicalTraceId == trace.LogicalTraceId && m_Pending[index].CaptureGeneration == trace.CaptureGeneration)
+                if (m_Pending[index].LogicalTraceId == trace.LogicalTraceId && m_Pending[index].CaptureGeneration == trace.CaptureGeneration && m_Pending[index].Setter.ContextGeneration == trace.Setter.ContextGeneration)
+                {
                     m_Pending[index] = default;
+                    m_PendingAttempted[index] = false;
+                }
             }
         }
 

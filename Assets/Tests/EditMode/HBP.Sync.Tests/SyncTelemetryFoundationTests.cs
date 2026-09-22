@@ -47,16 +47,38 @@ namespace HBP.Sync.Tests
             Assert.That(observed, Is.InstanceOf<OperationCanceledException>());
 
             var sink = new BlockingSink();
-            IDisposable capture = SyncTelemetry.BeginCapture(sink, new FakeMonotonicClock(1000));
+            ISyncTelemetryCapture capture = SyncTelemetry.BeginCapture(sink, new FakeMonotonicClock(1000));
             SyncTelemetryPoint point = SyncTelemetry.CapturePoint();
             Task writer = Task.Run(() => SyncTelemetry.MarkAt(SyncProfile.SiteColor, new SyncTelemetryIdentity("scope", 1, 1), SyncMilestone.Setter, point));
-            await sink.Entered;
-
-            Task close = Task.Run(capture.Dispose);
-            Assert.That(close.IsCompleted, Is.False);
-            sink.Release();
-            await writer;
-            await close;
+            try
+            {
+                await sink.Entered;
+                // CloseAsync stops admission before returning. This is not a thread-scheduling assertion.
+                Task close = capture.CloseAsync();
+                Assert.That(SyncTelemetry.Enabled, Is.False);
+                Assert.That(close.IsCompleted, Is.False);
+                Assert.That(capture.CloseAsync(), Is.SameAs(close));
+                SyncTelemetry.MarkAt(SyncProfile.SiteColor, "late", SyncMilestone.Setter, point);
+                Assert.That(sink.Count, Is.EqualTo(1));
+                var nextSink = new BoundedSyncTelemetrySink(4);
+                using (SyncTelemetry.BeginCapture(nextSink, new FakeMonotonicClock(1000)))
+                {
+                    SyncTelemetry.MarkAt(SyncProfile.SiteColor, "stale", SyncMilestone.Setter, point);
+                    SyncTelemetry.Mark(SyncProfile.SiteColor, "new", SyncMilestone.Setter);
+                    sink.Release();
+                    await writer;
+                    await close;
+                    Assert.That(SyncTelemetry.Enabled, Is.True, "An older close must not detach the newer capture.");
+                    Assert.That(nextSink.Count, Is.EqualTo(1));
+                }
+            }
+            finally
+            {
+                // A failed assertion must not leave a blocked worker or active process-global capture.
+                sink.Release();
+                await writer;
+                await capture.CloseAsync();
+            }
 
             Assert.That(sink.Count, Is.EqualTo(1));
             Assert.That(SyncTelemetry.Enabled, Is.False);
@@ -195,6 +217,42 @@ namespace HBP.Sync.Tests
                 Assert.That(pending.Count, Is.EqualTo(1));
                 Assert.That(pending[0].LogicalTraceId, Is.EqualTo(12));
                 Assert.That(pending[0].CaptureGeneration, Is.EqualTo(22));
+            }
+        }
+
+        [Test]
+        public void PendingAlreadyAcceptedForAttempt_IsNotReportedAsReplaced()
+        {
+            var tracker = new SyncTraceTracker();
+
+            using (SyncTelemetry.BeginCapture(new BoundedSyncTelemetrySink(32), new FakeMonotonicClock(1000)))
+            {
+                SyncTelemetryPoint point = SyncTelemetry.CapturePoint();
+
+                tracker.Begin(SyncProfile.TimelineAnchor, 11, point);
+                tracker.Capture(21, point, point, point);
+
+                SyncTraceBatch firstAttempt = tracker.SnapshotPendingForAttempt();
+
+                Assert.That(firstAttempt.Count, Is.EqualTo(1));
+                Assert.That(firstAttempt[0].LogicalTraceId, Is.EqualTo(11));
+
+                tracker.Begin(SyncProfile.TimelineAnchor, 12, point);
+                SyncTraceCapture next = tracker.Capture(22, point, point, point);
+
+                Assert.That(next.Replaced.IsEmpty, Is.True);
+
+                SyncTraceBatch pending = tracker.SnapshotPending();
+                Assert.That(pending.Count, Is.EqualTo(1));
+                Assert.That(pending[0].LogicalTraceId, Is.EqualTo(12));
+
+                // Completion of the old in-flight attempt must not clear
+                // the newer pending trace.
+                tracker.ClearPending(firstAttempt);
+
+                pending = tracker.SnapshotPending();
+                Assert.That(pending.Count, Is.EqualTo(1));
+                Assert.That(pending[0].LogicalTraceId, Is.EqualTo(12));
             }
         }
 

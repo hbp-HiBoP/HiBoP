@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HBP.Sync
 {
@@ -114,6 +115,7 @@ namespace HBP.Sync
         public long AllocatedBytes { get; }
         public int ManagedThreadId { get; }
         internal long ContextGeneration { get; }
+        public long RecordingGeneration => ContextGeneration;
         internal long ClockFrequency { get; }
         internal int MainThreadId { get; }
 
@@ -141,6 +143,7 @@ namespace HBP.Sync
         public int ManagedThreadId { get; }
         public bool IsMainThread { get; }
         public long PayloadBytes { get; }
+        public long RecordingGeneration { get; }
 
         internal SyncTelemetrySample(SyncProfile profile, SyncMilestone milestone, SyncTelemetryIdentity identity, SyncTelemetryPoint point, long payloadBytes)
         {
@@ -153,12 +156,19 @@ namespace HBP.Sync
             ManagedThreadId = point.ManagedThreadId;
             IsMainThread = point.ManagedThreadId == point.MainThreadId;
             PayloadBytes = payloadBytes;
+            RecordingGeneration = point.ContextGeneration;
         }
     }
 
     public interface ISyncTelemetrySink
     {
         void Record(SyncTelemetrySample sample);
+    }
+
+    /// <summary>CloseAsync stops admission synchronously, then asynchronously drains admitted writers.</summary>
+    public interface ISyncTelemetryCapture : IDisposable
+    {
+        Task CloseAsync();
     }
 
     /// <summary>A fixed-capacity sink that retains the oldest admitted samples and counts overflow.</summary>
@@ -278,7 +288,7 @@ namespace HBP.Sync
             }
         }
 
-        public static IDisposable BeginCapture(ISyncTelemetrySink sink, IMonotonicClock clock = null, int mainThreadId = 0)
+        public static ISyncTelemetryCapture BeginCapture(ISyncTelemetrySink sink, IMonotonicClock clock = null, int mainThreadId = 0)
         {
             if (sink == null)
                 throw new ArgumentNullException(nameof(sink));
@@ -297,6 +307,7 @@ namespace HBP.Sync
             private readonly object m_Gate = new();
             private bool m_Accepting = true;
             private int m_Writers;
+            private readonly TaskCompletionSource<bool> m_Drained = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
             public ISyncTelemetrySink Sink { get; }
             public IMonotonicClock Clock { get; }
@@ -309,6 +320,7 @@ namespace HBP.Sync
                 Sink = sink;
                 Clock = clock;
                 Frequency = clock.Frequency;
+                if (Frequency <= 0) throw new ArgumentOutOfRangeException(nameof(clock), "The monotonic frequency must be positive.");
                 MainThreadId = mainThreadId;
                 Generation = generation;
             }
@@ -329,40 +341,48 @@ namespace HBP.Sync
                 lock (m_Gate)
                 {
                     if (--m_Writers == 0 && !m_Accepting)
-                        Monitor.PulseAll(m_Gate);
+                        m_Drained.TrySetResult(true);
                 }
             }
 
-            public void Close()
+            public Task CloseAsync()
             {
                 lock (m_Gate)
                 {
                     m_Accepting = false;
-                    while (m_Writers != 0)
-                        Monitor.Wait(m_Gate);
+                    if (m_Writers == 0) m_Drained.TrySetResult(true);
+                    return m_Drained.Task;
                 }
             }
         }
 
-        private sealed class CaptureSession : IDisposable
+        private sealed class CaptureSession : ISyncTelemetryCapture
         {
-            private CaptureContext m_Owner;
+            private readonly object m_Gate = new();
+            private readonly CaptureContext m_Owner;
+            private Task m_Close;
 
             public CaptureSession(CaptureContext owner) => m_Owner = owner;
 
-            public void Dispose()
+            public Task CloseAsync()
             {
-                CaptureContext owner = Interlocked.Exchange(ref m_Owner, null);
-                if (owner == null)
-                    return;
-                lock (s_Gate)
+                lock (m_Gate)
                 {
-                    if (!ReferenceEquals(s_Context, owner))
-                        return;
-                    Volatile.Write(ref s_Context, null);
-                    owner.Close();
+                    if (m_Close != null) return m_Close;
+                    lock (s_Gate)
+                    {
+                        if (ReferenceEquals(s_Context, m_Owner))
+                            Volatile.Write(ref s_Context, null);
+                        m_Close = m_Owner.CloseAsync();
+                    }
+
+                    return m_Close;
                 }
             }
+
+            // For short, synchronous sinks only. Async/test owners should await CloseAsync.
+            // A sink must not synchronously dispose its own capture from inside Record.
+            public void Dispose() => CloseAsync().GetAwaiter().GetResult();
         }
     }
 }

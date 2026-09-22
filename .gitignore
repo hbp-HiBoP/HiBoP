@@ -74,3 +74,6 @@ Docs/Doxygen/html
 
 # Localizers atlas
 /Assets/Data/Atlases/Localizers
+
+# Android deployment
+.android/

@@ -43,6 +43,7 @@ namespace HBP.Sync.Scene
         public void ResetCuts(IEnumerable<SceneCut> cuts)
         {
             if (cuts == null) throw new ArgumentNullException(nameof(cuts));
+            if (m_Disposed || !SyncTelemetry.Enabled) return;
             m_Cuts.Clear();
             foreach (SceneCut cut in cuts)
                 m_Cuts.Add(cut);
@@ -50,17 +51,17 @@ namespace HBP.Sync.Scene
 
         private void OnSiteColorChanging(SiteState site)
         {
-            if (m_Sites.Contains(site)) m_SiteColor.CaptureFirst();
+            if (SyncTelemetry.Enabled && m_Sites.Contains(site)) m_SiteColor.CaptureFirst();
         }
 
         private void OnCutDefinitionChanging(SceneCut cut)
         {
-            if (m_Cuts.Contains(cut)) m_CutDefinition.CaptureFirst();
+            if (SyncTelemetry.Enabled && m_Cuts.Contains(cut)) m_CutDefinition.CaptureFirst();
         }
 
         private void OnTimelineAnchorChanging(BasicTimeline timeline)
         {
-            if (m_Timelines.Contains(timeline)) m_TimelineAnchor.CaptureFirst();
+            if (SyncTelemetry.Enabled && m_Timelines.Contains(timeline)) m_TimelineAnchor.CaptureFirst();
         }
 
         public void Dispose()

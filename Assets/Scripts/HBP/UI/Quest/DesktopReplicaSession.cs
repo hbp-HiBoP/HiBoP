@@ -300,7 +300,7 @@ namespace HBP.Quest.Desktop
                     baseState = accepted;
                     candidate = accepted == null ? initial : pending ?? accepted;
                     clock = accepted == null ? initialClockTime : pendingClockTime;
-                    traces = telemetryTraces != null && ReferenceEquals(candidate, pending) ? telemetryTraces.SnapshotPending() : default;
+                    traces = telemetryTraces != null && ReferenceEquals(candidate, pending) ? telemetryTraces.SnapshotPendingForAttempt() : default;
                 }
 
                 if (candidate == null) throw new InvalidOperationException("Replica has no checkpoint.");

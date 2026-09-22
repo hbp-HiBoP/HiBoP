@@ -64,14 +64,7 @@ namespace HBP.Quest
         private sealed class InitialTransferTelemetry
         {
             public string TransferId;
-            public SyncTelemetryPoint FirstReceived;
-            public SyncTelemetryPoint LastReceived;
-            public long PayloadBytes;
-            public SyncTelemetryPoint ApplyStart;
-            public SyncTelemetryPoint ApplyEnd;
-            public SyncTelemetryPoint NextVisible;
-            public bool ReceiptSent;
-            public bool BasePublished;
+            public SyncReceiveTelemetry Trace;
         }
 
         private readonly struct ReceiveResult
@@ -327,7 +320,7 @@ namespace HBP.Quest
             string file = Path.Combine(Application.temporaryCachePath, "scene-" + Guid.NewGuid().ToString("N") + ".hbscene");
             try
             {
-                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress, allowBlocks ? (input, token) => ReceiveBlocksAsync(input, token, progress) : null, (received, total) => ReportTransferProgress(received, total), RecordTransferWireProgress, PublishInitialReceiptTelemetry).ConfigureAwait(false);
+                return await PinnedTlsTransfer.ReceiveFileAsync(stream, file, stop, publish, progress, allowBlocks ? (input, token) => ReceiveBlocksAsync(input, token, progress) : null, (received, total) => ReportTransferProgress(received, total), RecordTransferWireProgress).ConfigureAwait(false);
             }
             finally
             {
@@ -363,7 +356,6 @@ namespace HBP.Quest
                 receipt[0] = (byte)result;
                 Buffer.BlockCopy(digest, 0, receipt, 1, 32);
                 await stream.WriteAsync(receipt, 0, receipt.Length, stop).ConfigureAwait(false);
-                PublishInitialReceiptTelemetry();
                 return new DeliveryReceipt(digest, result);
             }
             finally
@@ -416,33 +408,39 @@ namespace HBP.Quest
                 if (deliveries.Count >= MaximumDeliveryHistory) throw new InvalidOperationException("Delivery history is full; reopen the receiver before sending new identities.");
                 var next = new Entry { TransferId = snapshot.TransferId, SessionId = snapshot.SessionId, ContentHash = hash, Status = DeliveryStatus.Published };
                 deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
+                InitialTransferTelemetry telemetry = null;
+                if (SyncTelemetry.Enabled)
+                {
+                    lock (telemetryGate)
+                    {
+                        telemetry = new InitialTransferTelemetry
+                        {
+                            TransferId = snapshot.TransferId,
+                            Trace = new SyncReceiveTelemetry(firstTransferByte, lastTransferByte, transferWireBytes)
+                        };
+                    }
+                }
+
                 try
                 {
-                    SyncTelemetryPoint applyStart = SyncTelemetry.CapturePoint();
+                    telemetry?.Trace.CaptureApplyStart();
                     await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
-                    SyncTelemetryPoint applyEnd = SyncTelemetry.CapturePoint();
-                    if (SyncTelemetry.Enabled)
+                    telemetry?.Trace.CaptureApplyEnd();
+                    if (telemetry != null)
                     {
-                        lock (telemetryGate)
-                        {
-                            pendingInitialTelemetry = new InitialTransferTelemetry
-                            {
-                                TransferId = snapshot.TransferId,
-                                FirstReceived = firstTransferByte,
-                                LastReceived = lastTransferByte,
-                                PayloadBytes = transferWireBytes,
-                                ApplyStart = applyStart,
-                                ApplyEnd = applyEnd
-                            };
-                        }
-
-                        _ = RecordInitialNextVisibleAsync(pendingInitialTelemetry, stop);
+                        pendingInitialTelemetry = telemetry;
+                        _ = RecordInitialNextVisibleAsync(telemetry, stop);
                     }
                 }
                 catch
                 {
                     deliveries.Remove(next.TransferId);
                     throw;
+                }
+                finally
+                {
+                    // Publish captured facts even if apply or the later receipt fails; never fabricate ApplyEnd.
+                    telemetry?.Trace.Publish(SyncProfile.InitialTransfer, InitialTransferIdentity(snapshot.TransferId));
                 }
 
                 if (current != null) current.Status = DeliveryStatus.Superseded;
@@ -498,48 +496,35 @@ namespace HBP.Quest
                 ulong revision = snapshot?.CommonRevision ?? delta.Revision;
                 Guid epoch = snapshot?.EpochId ?? acceptedReplica?.EpochId ?? Guid.Empty;
                 MeasuredProfiles profiles = SyncTelemetry.Enabled ? GetMeasuredProfiles(delta) : default;
-                await OnUnityThreadAsync(() => ReceivedRevision = revision, stop).ConfigureAwait(false);
-                await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Received, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                SyncTelemetryPoint applyStart = default;
-                SyncTelemetryPoint applyEnd = default;
+                SyncReceiveTelemetry telemetry = profiles.Count == 0 ? null : new SyncReceiveTelemetry(firstByte, lastByte, frame.Body.Length + 5L);
                 try
                 {
-                    Task<(SyncTelemetryPoint Start, SyncTelemetryPoint End)> application = await OnUnityThreadAsync(() => ApplyReplicaAsync(snapshot, delta, senderClock, resources, profiles, stop), stop).ConfigureAwait(false);
-                    (applyStart, applyEnd) = await application.ConfigureAwait(false);
+                    await OnUnityThreadAsync(() => ReceivedRevision = revision, stop).ConfigureAwait(false);
+                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Received, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
+                    Task application = await OnUnityThreadAsync(() => ApplyReplicaAsync(snapshot, delta, senderClock, resources, telemetry, stop), stop).ConfigureAwait(false);
+                    await application.ConfigureAwait(false);
                     resources.Clear();
                     await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Applied, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                    Task visible = await OnUnityThreadAsync(() => WaitReplicaVisibleAsync(revision, stop), stop).ConfigureAwait(false);
+                    Task visible = await OnUnityThreadAsync(() => WaitReplicaVisibleAsync(revision, stop, telemetry), stop).ConfigureAwait(false);
                     await visible.ConfigureAwait(false);
-                    SyncTelemetryPoint nextVisible = profiles.Count == 0 ? default : SyncTelemetry.CapturePoint();
                     await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Visible, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                    PublishReplicaTelemetry(profiles, epoch, revision, firstByte, lastByte, applyStart, applyEnd, nextVisible, frame.Body.Length + 5L);
                 }
                 catch (Exception exception) when (exception is InvalidDataException || exception is InvalidOperationException || exception is ArgumentException)
                 {
                     byte[] message = Encoding.UTF8.GetBytes(exception.Message);
                     await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Rejected, message, stop).ConfigureAwait(false);
-                    PublishReplicaTelemetry(profiles, epoch, revision, firstByte, lastByte, applyStart, applyEnd, default, frame.Body.Length + 5L);
                     throw;
+                }
+                finally
+                {
+                    // IOException, cancellation and even a failed rejection ACK retain the phases already reached.
+                    for (int i = 0; i < profiles.Count; i++)
+                        telemetry?.Publish(profiles[i], ReplicaIdentity(epoch, revision));
                 }
             }
         }
 
-        private static void PublishReplicaTelemetry(MeasuredProfiles profiles, Guid epoch, ulong revision, SyncTelemetryPoint firstByte, SyncTelemetryPoint lastByte, SyncTelemetryPoint applyStart, SyncTelemetryPoint applyEnd, SyncTelemetryPoint nextVisible, long payloadBytes)
-        {
-            for (int i = 0; i < profiles.Count; i++)
-            {
-                SyncProfile profile = profiles[i];
-                SyncTelemetryIdentity identity = ReplicaIdentity(epoch, revision);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.FirstByteReceived, firstByte, payloadBytes);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.LastByteReceived, lastByte, payloadBytes);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.ApplyStart, applyStart);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.ApplyEnd, applyEnd);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.NextVisible, nextVisible);
-                SyncTelemetry.MarkAt(profile, identity, SyncMilestone.ScientificStable, nextVisible);
-            }
-        }
-
-        private async Task<(SyncTelemetryPoint Start, SyncTelemetryPoint End)> ApplyReplicaAsync(StateSnapshot snapshot, ReplicaDelta delta, float senderClock, Dictionary<string, byte[]> resources, MeasuredProfiles profiles, CancellationToken stop)
+        private async Task ApplyReplicaAsync(StateSnapshot snapshot, ReplicaDelta delta, float senderClock, Dictionary<string, byte[]> resources, SyncReceiveTelemetry telemetry, CancellationToken stop)
         {
             await publicationGate.WaitAsync(stop);
             try
@@ -553,7 +538,7 @@ namespace HBP.Quest
 
                 if (acceptedReplica != null && snapshot.CommonRevision <= acceptedReplica.CommonRevision)
                 {
-                    if (snapshot.CommonRevision == acceptedReplica.CommonRevision && SharedStateCodec.Encode(snapshot).AsSpan().SequenceEqual(SharedStateCodec.Encode(acceptedReplica))) return (default, default);
+                    if (snapshot.CommonRevision == acceptedReplica.CommonRevision && SharedStateCodec.Encode(snapshot).AsSpan().SequenceEqual(SharedStateCodec.Encode(acceptedReplica))) return;
                     throw new InvalidDataException("Stale or divergent replica revision.");
                 }
 
@@ -576,13 +561,12 @@ namespace HBP.Quest
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
                 deadline.CancelAfter(TimeSpan.FromSeconds(30));
                 await UniTask.WaitUntil(() => view.Scene != null && view.Scene.CanApplyPreparedState, cancellationToken: deadline.Token);
-                SyncTelemetryPoint applyStart = profiles.Count == 0 ? default : SyncTelemetry.CapturePoint();
+                telemetry?.CaptureApplyStart();
                 applying.Apply(ReplicaClock.ToLocalClock(snapshot, senderClock, Time.realtimeSinceStartup), delta);
-                SyncTelemetryPoint applyEnd = profiles.Count == 0 ? default : SyncTelemetry.CapturePoint();
+                telemetry?.CaptureApplyEnd();
                 replica = applying;
                 acceptedReplica = snapshot;
                 AppliedRevision = snapshot.CommonRevision;
-                return (applyStart, applyEnd);
             }
             finally
             {
@@ -590,7 +574,7 @@ namespace HBP.Quest
             }
         }
 
-        private async Task WaitReplicaVisibleAsync(ulong revision, CancellationToken stop)
+        private async Task WaitReplicaVisibleAsync(ulong revision, CancellationToken stop, SyncReceiveTelemetry telemetry)
         {
             int generation = replicaGeneration;
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
@@ -600,6 +584,8 @@ namespace HBP.Quest
             await UniTask.NextFrame(cancellationToken: deadline.Token);
             if (generation != replicaGeneration || acceptedReplica?.CommonRevision != revision) throw new InvalidDataException("Replica scene was replaced before visibility.");
             VisibleRevision = revision;
+            // This is the Unity-thread CPU eligibility boundary, not the later worker continuation.
+            telemetry?.CaptureNextVisible();
         }
 
         private async UniTask RecordInitialNextVisibleAsync(InitialTransferTelemetry telemetry, CancellationToken stop)
@@ -607,55 +593,17 @@ namespace HBP.Quest
             try
             {
                 await UniTask.NextFrame(cancellationToken: stop);
-                SyncTelemetryPoint nextVisible = SyncTelemetry.CapturePoint();
-                bool publish;
-                lock (telemetryGate)
-                {
-                    if (!ReferenceEquals(pendingInitialTelemetry, telemetry)) return;
-                    telemetry.NextVisible = nextVisible;
-                    publish = telemetry.ReceiptSent;
-                    if (publish) pendingInitialTelemetry = null;
-                }
-
-                if (publish) PublishInitialVisibleTelemetry(telemetry);
+                if (!ReferenceEquals(pendingInitialTelemetry, telemetry) || current?.TransferId != telemetry.TransferId || view == null || view.Scene == null) return;
+                telemetry.Trace.CaptureNextVisible();
+                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, InitialTransferIdentity(telemetry.TransferId), SyncMilestone.NextVisible, telemetry.Trace.NextVisible);
             }
             catch (OperationCanceledException) when (stop.IsCancellationRequested)
             {
             }
-        }
-
-        private void PublishInitialReceiptTelemetry()
-        {
-            InitialTransferTelemetry telemetry;
-            bool publishBase;
-            bool publishVisible;
-            lock (telemetryGate)
+            finally
             {
-                telemetry = pendingInitialTelemetry;
-                if (telemetry == null) return;
-                telemetry.ReceiptSent = true;
-                publishBase = !telemetry.BasePublished;
-                telemetry.BasePublished = true;
-                publishVisible = telemetry.NextVisible.IsValid;
-                if (publishVisible) pendingInitialTelemetry = null;
+                if (ReferenceEquals(pendingInitialTelemetry, telemetry)) pendingInitialTelemetry = null;
             }
-
-            if (publishBase)
-            {
-                SyncTelemetryIdentity identity = InitialTransferIdentity(telemetry.TransferId);
-                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.FirstByteReceived, telemetry.FirstReceived, telemetry.PayloadBytes);
-                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.LastByteReceived, telemetry.LastReceived, telemetry.PayloadBytes);
-                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.ApplyStart, telemetry.ApplyStart);
-                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.ApplyEnd, telemetry.ApplyEnd);
-                SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.ScientificStable, telemetry.ApplyEnd);
-            }
-
-            if (publishVisible) PublishInitialVisibleTelemetry(telemetry);
-        }
-
-        private static void PublishInitialVisibleTelemetry(InitialTransferTelemetry telemetry)
-        {
-            SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, InitialTransferIdentity(telemetry.TransferId), SyncMilestone.NextVisible, telemetry.NextVisible);
         }
 
         private void RecordTransferWireProgress(long received)
@@ -746,6 +694,7 @@ namespace HBP.Quest
         public void CloseSession()
         {
             RequireMainThread();
+            pendingInitialTelemetry = null;
             replica = null;
             acceptedReplica = null;
             ReceivedRevision = AppliedRevision = VisibleRevision = 0;
@@ -766,7 +715,10 @@ namespace HBP.Quest
 
         private void OnApplicationPause(bool paused)
         {
-            if (paused) Disconnect();
+            if (!paused) return;
+            Disconnect();
+            // Android may kill a paused application without a quitting callback. This is explicitly a partial checkpoint.
+            SyncTelemetryCapture.ExportCheckpoint("quest-pause");
         }
 
         private void OnDisable() => Disconnect();
