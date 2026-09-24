@@ -1421,7 +1421,7 @@ namespace HBP.Data.Module3D
                 if (m_AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
                 OnSelectSite.Invoke(site);
             });
-            column.OnChangeSiteState.AddListener((site) => { InvalidateActivityField(false); });
+            column.OnChangeSiteState.AddListener(OnSiteStateChanged);
             column.OnUpdateActivityAlpha.AddListener(() =>
             {
                 SceneInformation.FunctionalCutTexturesNeedUpdate = true;
@@ -1550,6 +1550,17 @@ namespace HBP.Data.Module3D
             column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
             Columns.Add(column);
             if (m_DesktopPresentation) m_DesktopPresentation.InitializeColumn(column);
+        }
+
+        private void OnSiteStateChanged(Core.Object3D.Site site)
+        {
+            if (site.State.CurrentChangeKind == Core.Object3D.SiteStateChangeKind.Color)
+            {
+                SceneInformation.SitesNeedUpdate = true;
+                return;
+            }
+
+            InvalidateActivityField(false);
         }
 
         #endregion
@@ -1702,7 +1713,8 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="cut">Cut to be updated</param>
         /// <param name="changedByUser">Has the cut been updated by the user or programatically ?</param>
-        public void UpdateCutPlane(Core.Object3D.Cut cut, bool changedByUser = false)
+        /// <param name="preserveDefinitionNormal">Keep the received normal for a synchronized complete cut definition.</param>
+        public void UpdateCutPlane(Core.Object3D.Cut cut, bool changedByUser = false, bool preserveDefinitionNormal = false)
         {
             if (cut.Orientation == CutOrientation.Custom)
             {
@@ -1715,7 +1727,7 @@ namespace HBP.Data.Module3D
             {
                 using Core.DLL.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
                 m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, cut.Flip);
-                cut.Normal = plane.Normal;
+                if (!preserveDefinitionNormal) cut.Normal = plane.Normal;
             }
 
             if (changedByUser) LastPlaneModifiedIndex = cut.Index;

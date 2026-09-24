@@ -37,9 +37,11 @@ namespace HBP.Core.DLL
             get => m_Normal;
             set
             {
-                if (m_Normal != value) OnNormalChanging();
+                bool changed = m_Normal != value;
+                if (changed) OnNormalChanging();
                 m_Normal = value;
                 UpdateNativePlane();
+                if (changed) OnNormalChanged();
             }
         }
 
@@ -47,6 +49,11 @@ namespace HBP.Core.DLL
 
         /// <summary>Called synchronously before the plane normal changes.</summary>
         protected virtual void OnNormalChanging()
+        {
+        }
+
+        /// <summary>Called synchronously after the plane normal changes.</summary>
+        protected virtual void OnNormalChanged()
         {
         }
 
@@ -70,8 +77,11 @@ namespace HBP.Core.DLL
 
         public void Normalize()
         {
+            Vector3 previous = m_Normal;
+            if (previous != previous.normalized) OnNormalChanging();
             ThrowIfFailed(hbp_plane_normalize(_handle.Handle));
             m_Normal = m_Normal.normalized;
+            if (previous != m_Normal) OnNormalChanged();
         }
 
         public int PointSide(Vector3 point)

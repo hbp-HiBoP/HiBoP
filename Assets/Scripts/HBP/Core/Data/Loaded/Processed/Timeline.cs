@@ -10,8 +10,13 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 {
     public abstract class BasicTimeline
     {
+        [ThreadStatic] private static int s_AutomaticPlaybackUpdateDepth;
+
         /// <summary>Raised synchronously before a timeline anchor component changes.</summary>
         public static event Action<BasicTimeline> AnchorChanging;
+
+        /// <summary>Raised after a timeline anchor component changes; the bool marks automatic playback advancement.</summary>
+        public static event Action<BasicTimeline, bool> AnchorChanged;
 
         #region Properties
 
@@ -34,6 +39,10 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 
         protected int m_CurrentIndex;
         private float m_CurrentIndexAnchorTime;
+        private bool m_IsUpdatingAutomatically;
+
+        /// <summary>True while a playback tick synchronously invokes timeline and derived domain callbacks.</summary>
+        public static bool IsAutomaticPlaybackUpdateInProgress => s_AutomaticPlaybackUpdateDepth > 0;
 
         /// <summary>Local monotonic time when the playing timeline reached its current index.</summary>
         public float CurrentIndexAnchorTime => IsPlaying ? m_CurrentIndexAnchorTime : 0f;
@@ -56,11 +65,13 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                     next = Mathf.Clamp(value, 0, Length - 1);
                 }
 
-                if (m_CurrentIndex != next) AnchorChanging?.Invoke(this);
+                bool changed = m_CurrentIndex != next;
+                if (changed) AnchorChanging?.Invoke(this);
                 m_CurrentIndex = next;
 
                 if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
 
+                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
                 OnUpdateCurrentIndex.Invoke();
             }
         }
@@ -75,8 +86,10 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get => m_IsLooping;
             set
             {
-                if (m_IsLooping != value) AnchorChanging?.Invoke(this);
+                bool changed = m_IsLooping != value;
+                if (changed) AnchorChanging?.Invoke(this);
                 m_IsLooping = value;
+                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 
@@ -90,10 +103,12 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get { return m_IsPlaying; }
             set
             {
-                if (m_IsPlaying != value) AnchorChanging?.Invoke(this);
+                bool changed = m_IsPlaying != value;
+                if (changed) AnchorChanging?.Invoke(this);
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
                 m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
+                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 
@@ -128,8 +143,10 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get => m_Step;
             set
             {
-                if (m_Step != value) AnchorChanging?.Invoke(this);
+                bool changed = m_Step != value;
+                if (changed) AnchorChanging?.Invoke(this);
                 m_Step = value;
+                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 
@@ -162,20 +179,32 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// </summary>
         public void Play()
         {
-            if (IsPlaying)
+            bool wasUpdatingAutomatically = m_IsUpdatingAutomatically;
+            bool startsAutomaticUpdate = !wasUpdatingAutomatically;
+            m_IsUpdatingAutomatically = true;
+            if (startsAutomaticUpdate) s_AutomaticPlaybackUpdateDepth++;
+            try
             {
-                m_TimeSinceLastUpdate += Time.deltaTime;
-                while (m_TimeSinceLastUpdate > UpdateInterval)
+                if (IsPlaying)
                 {
-                    CurrentIndex++;
-                    m_TimeSinceLastUpdate -= UpdateInterval;
-                    if (CurrentIndex >= Length - 1 && !IsLooping)
+                    m_TimeSinceLastUpdate += Time.deltaTime;
+                    while (m_TimeSinceLastUpdate > UpdateInterval)
                     {
-                        IsPlaying = false;
-                        CurrentIndex = 0;
-                        OnStopTimelinePlay.Invoke();
+                        CurrentIndex++;
+                        m_TimeSinceLastUpdate -= UpdateInterval;
+                        if (CurrentIndex >= Length - 1 && !IsLooping)
+                        {
+                            IsPlaying = false;
+                            CurrentIndex = 0;
+                            OnStopTimelinePlay.Invoke();
+                        }
                     }
                 }
+            }
+            finally
+            {
+                m_IsUpdatingAutomatically = wasUpdatingAutomatically;
+                if (startsAutomaticUpdate) s_AutomaticPlaybackUpdateDepth--;
             }
         }
 

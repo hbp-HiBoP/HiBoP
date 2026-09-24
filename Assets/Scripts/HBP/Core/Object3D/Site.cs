@@ -83,10 +83,27 @@ namespace HBP.Core.Object3D
     /// The information avaiable in this class depends on which column the site is
     /// Each instance of the <see cref="Site"/> class has its own instance of this class
     /// </remarks>
+    public enum SiteStateChangeKind : byte
+    {
+        Other,
+        Color
+    }
+
     public class SiteState
     {
         /// <summary>Raised synchronously before a requested site color changes.</summary>
         public static event Action<SiteState> ColorChanging;
+
+        /// <summary>Raised synchronously after a requested site color changes.</summary>
+        public static event Action<SiteState> ColorChanged;
+
+        private SiteStateChangeKind m_CurrentChangeKind;
+
+        /// <summary>The innermost site-state change whose listeners are currently running.</summary>
+        public SiteStateChangeKind CurrentChangeKind => m_CurrentChangeKind;
+
+        /// <summary>True only while color listeners for the innermost change are running.</summary>
+        public bool IsColorChangeInProgress => m_CurrentChangeKind == SiteStateChangeKind.Color;
 
         #region Properties
 
@@ -122,7 +139,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsFiltered = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Other);
             }
         }
 
@@ -137,7 +154,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsBlackListed = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Other);
             }
         }
 
@@ -152,7 +169,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsHighlighted = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Other);
             }
         }
 
@@ -166,9 +183,11 @@ namespace HBP.Core.Object3D
             get { return m_Color; }
             set
             {
-                if (m_Color != value) ColorChanging?.Invoke(this);
+                bool changed = m_Color != value;
+                if (changed) ColorChanging?.Invoke(this);
                 m_Color = value;
-                OnChangeState.Invoke();
+                if (changed) ColorChanged?.Invoke(this);
+                NotifyStateChanged(SiteStateChangeKind.Color);
             }
         }
 
@@ -199,7 +218,7 @@ namespace HBP.Core.Object3D
             if (!Labels.Contains(label))
             {
                 Labels.Add(label);
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Other);
             }
         }
 
@@ -210,7 +229,7 @@ namespace HBP.Core.Object3D
         public void RemoveLabel(string label)
         {
             Labels.Remove(label);
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Other);
         }
 
         /// <summary>
@@ -219,7 +238,7 @@ namespace HBP.Core.Object3D
         public void RemoveAllLabels()
         {
             Labels.Clear();
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Other);
         }
 
         /// <summary>
@@ -244,7 +263,7 @@ namespace HBP.Core.Object3D
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Other);
         }
 
         /// <summary>Apply one synchronized site assignment with a single change event.</summary>
@@ -256,7 +275,7 @@ namespace HBP.Core.Object3D
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Other);
         }
 
         public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
@@ -288,7 +307,21 @@ namespace HBP.Core.Object3D
                 }
             }
 
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Other);
+        }
+
+        private void NotifyStateChanged(SiteStateChangeKind changeKind)
+        {
+            SiteStateChangeKind previousChangeKind = m_CurrentChangeKind;
+            m_CurrentChangeKind = changeKind;
+            try
+            {
+                OnChangeState.Invoke();
+            }
+            finally
+            {
+                m_CurrentChangeKind = previousChangeKind;
+            }
         }
 
         #endregion
