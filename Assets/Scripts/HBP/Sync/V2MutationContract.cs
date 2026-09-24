@@ -28,7 +28,9 @@ namespace HBP.Sync
 
     public enum V2BarrierScope : byte
     {
-        None = 0
+        None = 0,
+        TouchedKeys = 1,
+        AllScene = 2
     }
 
     public abstract class V2BinaryIdentity : IEquatable<V2BinaryIdentity>

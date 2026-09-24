@@ -50,15 +50,15 @@ The connection multiplexes three logical lanes. Lane priority and delivery class
 2. **interactive:** scalar/complete-object assignments, with coalescing by explicit key;
 3. **bulk:** every payload body above the inline threshold, including checkpoints, job results, large atomic configuration/site batches and dense masks.
 
-Bulk payloads are divided into bounded chunks (initially tune around 16–32 KiB). Between chunks the scheduler rechecks higher-priority lanes. A multi-megabyte correlation result may not block a color or selection behind one write.
+Bulk payloads are divided into bounded chunks (T03 starts at 16 KiB). Between chunks the scheduler rechecks higher-priority lanes. A multi-megabyte correlation result may not block a color or selection behind one write.
 
-The inline threshold is chosen and measured in T03, then enforced by the codec. A large operation places only a small reliable descriptor on its scene-operation stream; the descriptor carries operation ID, touched keys/barrier scope, body schema, length, digest and bulk-stream ID. The body uses an independent reliable bulk stream and applies only after complete validation. No large byte array is allowed on a session-control or scene-operation stream.
+T03 selects a 4 KiB inline threshold and an 8-interactive-record burst. The pure scheduler routes bodies over 4 KiB to a small reliable descriptor on the scene-operation stream; the descriptor carries operation ID, touched keys/barrier scope, body schema, length, digest and bulk-stream ID. The body uses an independent reliable bulk stream and applies only after complete validation. No large byte array is allowed on a session-control or scene-operation stream.
 
-Priority is not starvation: after a bounded configurable burst of interactive records, a pending bulk stream receives at least one chunk unless urgent control work is pending. T03 chooses the initial burst from benchmarks and tests continuous interactive traffic with guaranteed bulk progress.
+Priority is not starvation: after a bounded configurable burst of interactive records, a pending bulk stream receives at least one chunk unless urgent control work is pending. T03 starts at a burst of 8; its continuous-traffic scheduler test verified a maximum wait of 8 before a pending bulk chunk. This is a fairness bound, not a throughput-optimality claim.
 
 Coalescing removes only an unsent replaceable value with the same key. It never removes create/delete, a job transition, a checkpoint barrier or the newest value remaining for a key.
 
-Reliable frame sequences are scoped to explicit session-control, per-scene operation or per-transfer bulk streams. Origin sequence numbers are assigned when an operation is committed to its scene-operation stream, after unsent coalescing. ACK/ping/telemetry messages are ephemeral and do not consume a reliable sequence. A structural/control barrier seals earlier coalescing slots: a later value cannot replace a slot positioned before that barrier.
+Reliable frame sequences are scoped to explicit session-control, per-scene operation or per-transfer bulk streams. Origin sequence numbers are assigned when an operation is committed to its scene-operation stream, after unsent coalescing. ACK/ping/telemetry messages are ephemeral and do not consume a reliable sequence; an ephemeral session-control record may pass a blocked reliable session-control queue head while reliable records keep their relative order. A structural/control barrier seals earlier coalescing slots: a later value cannot replace a slot positioned before that barrier.
 
 Lane priority never changes semantic ordering. Create/delete and every other structural scene mutation remain records in the scene-operation reliable stream even though the scheduler serves them through the control lane. Only connection/session lifecycle uses the session-control stream. An invalidating scene close may overtake scene traffic only by declaring the final scene-operation watermark and bulk generations to apply or discard.
 
@@ -76,6 +76,8 @@ Queues are bounded by count and bytes. On saturation:
 - queue depth, replacements and drops are instrumented.
 
 No producer may block the Unity thread waiting for socket capacity.
+
+T03 initial scheduler caps are 256 scene records / 256 KiB (16 records / 16 KiB reserved for scene control), 64 session-control records / 64 KiB (8 records / 8 KiB reserved), and 128 retained reliable frames / 256 KiB (8 frames / 16 KiB reserved). Retained bulk bodies are capped at 8 transfers, 16 MiB each and 32 MiB total. These are bounded and tested starting limits for the pure scheduler; production transport profiling may justify later tuning without weakening bounded admission or visible required-work failure.
 
 ## Acknowledgements
 
