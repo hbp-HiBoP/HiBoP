@@ -560,7 +560,7 @@ namespace HBP.Quest
 
                 using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
                 deadline.CancelAfter(TimeSpan.FromSeconds(30));
-                await UniTask.WaitUntil(() => view.Scene != null && view.Scene.CanApplyPreparedState, cancellationToken: deadline.Token);
+                await UniTask.WaitUntil(() => view.Scene != null && view.Scene.CanApplyLegacyStateSnapshot, cancellationToken: deadline.Token);
                 telemetry?.CaptureApplyStart();
                 applying.Apply(ReplicaClock.ToLocalClock(snapshot, senderClock, Time.realtimeSinceStartup), delta);
                 telemetry?.CaptureApplyEnd();

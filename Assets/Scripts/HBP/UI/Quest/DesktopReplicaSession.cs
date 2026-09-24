@@ -172,7 +172,7 @@ namespace HBP.Quest.Desktop
                 return;
             }
 
-            if ((!cutsDirty && !timelinesDirty && !stateDirty) || !scene.CanApplyPreparedState || scene.SceneInformation.GeometryNeedsUpdate) return;
+            if ((!cutsDirty && !timelinesDirty && !stateDirty) || !scene.CanApplyLegacyStateSnapshot || scene.SceneInformation.GeometryNeedsUpdate) return;
             SyncTraceCapture traceCapture = default;
             try
             {

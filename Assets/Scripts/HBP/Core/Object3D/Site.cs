@@ -86,7 +86,9 @@ namespace HBP.Core.Object3D
     public enum SiteStateChangeKind : byte
     {
         Other,
-        Color
+        Color,
+        Presentation,
+        ScientificMask
     }
 
     public class SiteState
@@ -139,7 +141,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsFiltered = value;
-                NotifyStateChanged(SiteStateChangeKind.Other);
+                NotifyStateChanged(SiteStateChangeKind.ScientificMask);
             }
         }
 
@@ -154,7 +156,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsBlackListed = value;
-                NotifyStateChanged(SiteStateChangeKind.Other);
+                NotifyStateChanged(SiteStateChangeKind.ScientificMask);
             }
         }
 
@@ -169,7 +171,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsHighlighted = value;
-                NotifyStateChanged(SiteStateChangeKind.Other);
+                NotifyStateChanged(SiteStateChangeKind.Presentation);
             }
         }
 
@@ -218,7 +220,7 @@ namespace HBP.Core.Object3D
             if (!Labels.Contains(label))
             {
                 Labels.Add(label);
-                NotifyStateChanged(SiteStateChangeKind.Other);
+                NotifyStateChanged(SiteStateChangeKind.Presentation);
             }
         }
 
@@ -229,7 +231,7 @@ namespace HBP.Core.Object3D
         public void RemoveLabel(string label)
         {
             Labels.Remove(label);
-            NotifyStateChanged(SiteStateChangeKind.Other);
+            NotifyStateChanged(SiteStateChangeKind.Presentation);
         }
 
         /// <summary>
@@ -238,7 +240,7 @@ namespace HBP.Core.Object3D
         public void RemoveAllLabels()
         {
             Labels.Clear();
-            NotifyStateChanged(SiteStateChangeKind.Other);
+            NotifyStateChanged(SiteStateChangeKind.Presentation);
         }
 
         /// <summary>
@@ -259,27 +261,30 @@ namespace HBP.Core.Object3D
         /// <param name="labels">Labels of the site</param>
         public void ApplyState(bool blacklisted, bool highlighted, Color color, IEnumerable<string> labels)
         {
+            bool scientificMaskChanged = m_IsBlackListed != blacklisted;
             m_IsBlackListed = blacklisted;
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
-            NotifyStateChanged(SiteStateChangeKind.Other);
+            NotifyStateChanged(scientificMaskChanged ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
         }
 
         /// <summary>Apply one synchronized site assignment with a single change event.</summary>
         public void ApplySynchronizedState(bool filtered, bool blacklisted, bool highlighted, Color color, IReadOnlyList<string> labels)
         {
             if (m_IsFiltered == filtered && m_IsBlackListed == blacklisted && m_IsHighlighted == highlighted && m_Color == color && Labels.SequenceEqual(labels)) return;
+            bool scientificMaskChanged = m_IsFiltered != filtered || m_IsBlackListed != blacklisted;
             m_IsFiltered = filtered;
             m_IsBlackListed = blacklisted;
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
-            NotifyStateChanged(SiteStateChangeKind.Other);
+            NotifyStateChanged(scientificMaskChanged ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
         }
 
         public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
         {
+            bool previousBlacklisted = m_IsBlackListed;
             if (importHighlighted && m_IsHighlighted != isHighlighted)
                 m_IsHighlighted = isHighlighted;
 
@@ -307,7 +312,7 @@ namespace HBP.Core.Object3D
                 }
             }
 
-            NotifyStateChanged(SiteStateChangeKind.Other);
+            NotifyStateChanged(previousBlacklisted != m_IsBlackListed ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
         }
 
         private void NotifyStateChanged(SiteStateChangeKind changeKind)

@@ -118,6 +118,7 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<SceneCut, CutId> m_CutIds = new();
         private readonly Dictionary<CutId, SceneCut> m_Cuts = new();
         private readonly Dictionary<BasicTimeline, List<TimelineTarget>> m_Timelines = new();
+        private readonly Base3DScene m_Scene;
         private readonly V2OriginDevice m_LocalOrigin;
         private readonly IMonotonicClock m_Clock;
         private readonly Action<SceneCut> m_UpdateCut;
@@ -126,10 +127,23 @@ namespace HBP.Sync.Scene
 
         public event Action<OperationId, V2Mutation, V2OriginDevice> MutationProposed;
 
+        /// <summary>Reserve a sensitive scene operation before applying its accepted value.</summary>
+        public bool TryBeginSensitiveActivityOperation(out IDisposable operationScope)
+        {
+            if (m_Scene == null)
+            {
+                operationScope = null;
+                return false;
+            }
+
+            return m_Scene.TryBeginSensitiveActivityOperation(out operationScope);
+        }
+
         /// <summary>Bind the currently prepared scene once; per-edit target resolution uses object-keyed lookups.</summary>
         public V2SceneMutationBoundary(Base3DScene scene, V2OriginDevice localOrigin, IMonotonicClock clock = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null) : this(CreateSiteTargets(scene), CreateCutTargets(scene), CreateTimelineTargets(scene), localOrigin, clock, cut => scene.UpdateCutPlane(cut, preserveDefinitionNormal: true), timelineAgeSeconds)
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
+            m_Scene = scene;
         }
 
         /// <summary>Bind explicit fixture targets or a prepared-scene projection of its stable IDs.</summary>

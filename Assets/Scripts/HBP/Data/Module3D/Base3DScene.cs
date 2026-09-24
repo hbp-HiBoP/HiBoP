@@ -16,6 +16,30 @@ using System.Threading;
 
 namespace HBP.Data.Module3D
 {
+    public enum ActivityProjectionState : byte
+    {
+        Absent,
+        Stale,
+        Computing,
+        Ready,
+        Failed
+    }
+
+    /// <summary>Versions one prepared input set and retains its target columns through worker completion.</summary>
+    internal sealed class ActivityProjectionInputLease
+    {
+        public ulong ProjectionGeneration { get; }
+        public ulong InputGeneration { get; }
+        public Column3D[] Columns { get; }
+
+        public ActivityProjectionInputLease(ulong projectionGeneration, ulong inputGeneration, Column3D[] columns)
+        {
+            ProjectionGeneration = projectionGeneration;
+            InputGeneration = inputGeneration;
+            Columns = columns;
+        }
+    }
+
     /// <summary>
     /// Class containing all the data concerning the gameObjects, the DLL objects and the parameters of the 3D scene
     /// </summary>
@@ -30,7 +54,7 @@ namespace HBP.Data.Module3D
         #region Properties
 
         private Exception m_PreparationError;
-        private bool AutomaticActivityComputationEnabled => ProjectionEnabled && Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate && IsCurrentSurfaceProjectionCompatible();
+        private bool AutomaticActivityComputationEnabled => ProjectionRequested && AutomaticRecomputeEnabled && IsCurrentSurfaceProjectionCompatible();
 
         /// <summary>
         /// Name of the scene
@@ -569,29 +593,50 @@ namespace HBP.Data.Module3D
 
         private bool m_IsGeneratorUpToDate = false;
 
-        private bool? m_ProjectionIntent;
+        private bool m_ProjectionRequested;
+        private bool m_InitialAutomaticProjectionRequestInitialized;
+        private bool m_ExplicitProjectionRequestPending;
+        private ulong m_ProjectionGeneration;
+        private ulong m_ActivityInputGeneration;
+        private ActivityProjectionInputLease m_ActiveActivityProjection;
+        private int m_SensitiveActivityOperationCount;
+        private ActivityProjectionState m_ProjectionState = ActivityProjectionState.Absent;
         private bool m_PreserveSynchronizedTimelinesOnNextGenerator;
 
-        /// <summary>Whether the current scene intends to show a computed activity projection.</summary>
-        public bool ProjectionEnabled => m_ProjectionIntent ?? (m_IsGeneratorUpToDate || SceneInformation.GeneratorUpdateRequested || Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate);
+        /// <summary>Whether this scene has an accepted request to show an activity projection.</summary>
+        public bool ProjectionRequested => m_ProjectionRequested;
+
+        /// <summary>Whether the user preference enables automatic recomputation.</summary>
+        public bool AutomaticRecomputeEnabled => Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate;
+
+        public ActivityProjectionState ProjectionState => m_ProjectionState;
+        public ulong ProjectionGeneration => m_ProjectionGeneration;
+        public ulong ActivityInputGeneration => m_ActivityInputGeneration;
+
+        /// <summary>Legacy name retained for shared-state capture and older callers.</summary>
+        public bool ProjectionEnabled => ProjectionRequested;
 
         public void SetProjectionEnabled(bool enabled)
         {
-            bool wasEnabled = ProjectionEnabled;
-            m_ProjectionIntent = enabled;
+            bool wasRequested = ProjectionRequested;
+            if (wasRequested == enabled) return;
+
+            m_ProjectionRequested = enabled;
             if (enabled)
             {
-                if (!wasEnabled || !m_IsGeneratorUpToDate)
-                {
-                    InvalidateActivityField();
-                    SceneInformation.GeneratorUpdateRequested = true;
-                }
+                m_ExplicitProjectionRequestPending = true;
+                m_ProjectionState = ActivityProjectionState.Stale;
+                SceneInformation.GeneratorNeedsUpdate = true;
+                SceneInformation.GeneratorUpdateRequested = true;
             }
             else
             {
+                ++m_ProjectionGeneration;
+                m_ExplicitProjectionRequestPending = false;
                 m_PreserveSynchronizedTimelinesOnNextGenerator = false;
                 SceneInformation.GeneratorUpdateRequested = false;
-                if (wasEnabled || m_IsGeneratorUpToDate) InvalidateActivityField();
+                m_ProjectionState = ActivityProjectionState.Absent;
+                InvalidateActivityField();
             }
         }
 
@@ -599,9 +644,90 @@ namespace HBP.Data.Module3D
         public void RequestActivityProjection()
         {
             m_PreserveSynchronizedTimelinesOnNextGenerator = false;
-            m_ProjectionIntent = true;
-            InvalidateActivityField();
+            m_ProjectionRequested = true;
+            m_ExplicitProjectionRequestPending = true;
+            m_ProjectionState = ActivityProjectionState.Stale;
+            SceneInformation.GeneratorNeedsUpdate = true;
             SceneInformation.GeneratorUpdateRequested = true;
+        }
+
+        /// <summary>Apply the initial automatic request once scene resources and configuration are prepared.</summary>
+        internal void InitializeAutomaticActivityProjection(bool automaticPolicyEnabled)
+        {
+            if (m_InitialAutomaticProjectionRequestInitialized) return;
+            m_InitialAutomaticProjectionRequestInitialized = true;
+            if (!automaticPolicyEnabled || ProjectionRequested) return;
+
+            m_ProjectionRequested = true;
+            m_ProjectionState = ActivityProjectionState.Stale;
+            SceneInformation.GeneratorNeedsUpdate = true;
+        }
+
+        /// <summary>
+        /// Reserves a scientific-input mutation before applying it. The scope prevents a
+        /// projection from starting until the accepted mutation has completed.
+        /// </summary>
+        public bool TryBeginSensitiveActivityOperation(out IDisposable operationScope)
+        {
+            operationScope = null;
+            if (m_DestroyRequested || m_UpdatingGenerators || m_ProjectionState == ActivityProjectionState.Computing)
+                return false;
+
+            ++m_SensitiveActivityOperationCount;
+            operationScope = new SensitiveActivityOperationScope(this);
+            return true;
+        }
+
+        private void EndSensitiveActivityOperation()
+        {
+            if (m_SensitiveActivityOperationCount <= 0)
+                throw new InvalidOperationException("No sensitive activity operation is active.");
+            --m_SensitiveActivityOperationCount;
+        }
+
+        internal bool TryBeginActivityProjection(out ActivityProjectionInputLease lease)
+        {
+            lease = null;
+            if (m_DestroyRequested || m_UpdatingGenerators || m_SensitiveActivityOperationCount != 0 || !ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled))
+                return false;
+
+            ++m_ProjectionGeneration;
+            lease = new ActivityProjectionInputLease(m_ProjectionGeneration, m_ActivityInputGeneration, Columns.ToArray());
+            m_ActiveActivityProjection = lease;
+            m_ProjectionState = ActivityProjectionState.Computing;
+            m_UpdatingGenerators = true;
+            m_ExplicitProjectionRequestPending = false;
+            SceneInformation.GeneratorNeedsUpdate = false;
+            SceneInformation.GeneratorUpdateRequested = false;
+            bool preserveTimelineState = m_PreserveSynchronizedTimelinesOnNextGenerator;
+            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
+            SetGeneratorUpToDate(false, preserveTimelineState);
+            return true;
+        }
+
+        internal bool IsCurrentActivityProjection(ActivityProjectionInputLease lease)
+        {
+            return lease != null && !m_DestroyRequested && ReferenceEquals(lease, m_ActiveActivityProjection) && lease.ProjectionGeneration == m_ProjectionGeneration && lease.InputGeneration == m_ActivityInputGeneration;
+        }
+
+        internal bool ShouldStartActivityProjection(bool automaticPolicyEnabled)
+        {
+            return ProjectionRequested && SceneInformation.GeneratorNeedsUpdate && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.ProjectionGridNeedsUpdate && !SceneInformation.SurfaceProjectionNeedsUpdate && !m_ConfiguredGeometryPending && (m_ExplicitProjectionRequestPending || (m_ProjectionState == ActivityProjectionState.Stale && automaticPolicyEnabled));
+        }
+
+        private sealed class SensitiveActivityOperationScope : IDisposable
+        {
+            private Base3DScene m_Scene;
+
+            public SensitiveActivityOperationScope(Base3DScene scene) => m_Scene = scene;
+
+            public void Dispose()
+            {
+                Base3DScene scene = m_Scene;
+                if (scene == null) return;
+                m_Scene = null;
+                scene.EndSensitiveActivityOperation();
+            }
         }
 
         /// <summary>
@@ -616,6 +742,10 @@ namespace HBP.Data.Module3D
         private void SetGeneratorUpToDate(bool value, bool preserveTimelineState)
         {
             m_IsGeneratorUpToDate = value;
+            if (value)
+                m_ProjectionState = ActivityProjectionState.Ready;
+            else if (m_ProjectionState != ActivityProjectionState.Computing)
+                m_ProjectionState = ProjectionRequested ? ActivityProjectionState.Stale : ActivityProjectionState.Absent;
             BrainMaterials.SetActivity(value);
             if (!value && !preserveTimelineState)
             {
@@ -896,23 +1026,20 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            if (m_UpdatingGenerators) return;
-            if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
-            else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
-            ApplyConfiguredGeometry();
+            if (!m_UpdatingGenerators)
+            {
+                if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
+                else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
+                ApplyConfiguredGeometry();
+            }
+
             if (SceneInformation.CutsNeedUpdate) UpdateCuts();
             if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
             if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
-            if (ProjectionEnabled && (!m_IsGeneratorUpToDate || SceneInformation.GeneratorNeedsUpdate))
-            {
-                if (SceneInformation.GeneratorUpdateRequested)
-                    UpdateGenerator();
-                else if (m_ProjectionIntent == true || AutomaticActivityComputationEnabled)
-                    UpdateGenerator();
-            }
+            if (!m_UpdatingGenerators && ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled)) StartActivityProjection();
         }
 
         private void OnDestroy()
@@ -1216,17 +1343,23 @@ namespace HBP.Data.Module3D
             if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
         }
 
-        public bool CanApplyPreparedState => !m_DestroyRequested && !m_UpdatingGenerators && !m_ConfiguredGeometryPending;
+        /// <summary>Safe typed scene operations remain admissible while activity computes.</summary>
+        public bool CanApplyPreparedState => !m_DestroyRequested && !m_ConfiguredGeometryPending;
 
-        private ulong m_SynchronizedStateGeneration;
+        /// <summary>Whole-scene legacy snapshots may replace resources borrowed by an active projection.</summary>
+        public bool CanApplyLegacyStateSnapshot => CanApplyPreparedState && !m_UpdatingGenerators;
 
-        /// <summary>Invalidate work started under an older synchronized scene state.</summary>
+        /// <summary>Guard the legacy whole-scene snapshot path; typed operations own their invalidation.</summary>
         public void BeginSynchronizedStateApplication()
         {
-            if (!CanApplyPreparedState) throw new InvalidOperationException("The prepared scene is busy.");
-            ++m_SynchronizedStateGeneration;
+            if (!CanApplyLegacyStateSnapshot) throw new InvalidOperationException("The prepared scene is busy.");
             m_PreserveSynchronizedTimelinesOnNextGenerator = false;
-            InvalidateActivityField(false);
+        }
+
+        /// <summary>Invalidate an in-flight collider snapshot when accepted legacy geometry changes.</summary>
+        public void InvalidateSynchronizedGeometryColliderWork()
+        {
+            if (!CanApplyLegacyStateSnapshot) throw new InvalidOperationException("The prepared scene is busy.");
             SceneInformation.CollidersNeedUpdate = true;
         }
 
@@ -1554,7 +1687,7 @@ namespace HBP.Data.Module3D
 
         private void OnSiteStateChanged(Core.Object3D.Site site)
         {
-            if (site.State.CurrentChangeKind == Core.Object3D.SiteStateChangeKind.Color)
+            if (site.State.CurrentChangeKind is Core.Object3D.SiteStateChangeKind.Color or Core.Object3D.SiteStateChangeKind.Presentation)
             {
                 SceneInformation.SitesNeedUpdate = true;
                 return;
@@ -1925,20 +2058,24 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Update the textures generator for iEEG
+        /// Explicitly request and update the textures generator for iEEG.
         /// </summary>
         public void UpdateGenerator()
         {
-            if (m_DestroyRequested || m_UpdatingGenerators || !CanComputeFunctionalValues)
+            if (m_DestroyRequested) return;
+
+            RequestActivityProjection();
+            StartActivityProjection();
+        }
+
+        private void StartActivityProjection()
+        {
+            if (m_DestroyRequested || !CanComputeFunctionalValues || !ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled))
                 return;
 
             OnIEEGOutdated.Invoke(false);
-            SceneInformation.GeneratorNeedsUpdate = false;
-            bool preserveTimelineState = m_PreserveSynchronizedTimelinesOnNextGenerator;
-            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
-            SetGeneratorUpToDate(false, preserveTimelineState);
-            SceneInformation.GeneratorUpdateRequested = false;
-            ComputeGenerators().Forget();
+            if (!TryBeginActivityProjection(out ActivityProjectionInputLease lease)) return;
+            ComputeGenerators(lease).Forget();
         }
 
         /// <summary>
@@ -1952,6 +2089,8 @@ namespace HBP.Data.Module3D
 
         public void InvalidateActivityField(bool clearRenderedActivity = true)
         {
+            ++m_ActivityInputGeneration;
+            m_ProjectionState = ProjectionRequested ? ActivityProjectionState.Stale : ActivityProjectionState.Absent;
             SceneInformation.GeneratorNeedsUpdate = true;
             SceneInformation.SitesNeedUpdate = true;
             if (clearRenderedActivity)
@@ -2219,6 +2358,9 @@ namespace HBP.Data.Module3D
             UpdateGeometry();
             ApplyConfiguredGeometry();
             await RestoreConfiguredSurfaceRepresentationAsync(progress, token, animate: false);
+            await UniTask.SwitchToMainThread();
+            token.ThrowIfCancellationRequested();
+            InitializeAutomaticActivityProjection(AutomaticRecomputeEnabled);
         }
 
         public async UniTask PrepareRenderingAsync(CancellationToken token)
@@ -2229,7 +2371,8 @@ namespace HBP.Data.Module3D
                 if (IsClosing) throw new ObjectDisposedException(Name);
                 if (m_PreparationError != null) throw new InvalidOperationException("Common scene preparation failed.", m_PreparationError);
                 bool geometryReady = SceneInformation.CompletelyLoaded && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.ProjectionGridNeedsUpdate && !SceneInformation.SurfaceProjectionNeedsUpdate;
-                if (geometryReady && (IsGeneratorUpToDate || !CanComputeFunctionalValues || (!SceneInformation.GeneratorUpdateRequested && !AutomaticActivityComputationEnabled)) && !m_UpdatingGenerators && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
+                bool explicitProjectionInProgress = m_ExplicitProjectionRequestPending || m_ProjectionState == ActivityProjectionState.Computing;
+                if (geometryReady && !explicitProjectionInProgress && (IsGeneratorUpToDate || !CanComputeFunctionalValues || (!SceneInformation.GeneratorUpdateRequested && !AutomaticActivityComputationEnabled)) && !m_UpdatingGenerators && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
                 await UniTask.Yield();
             }
         }
@@ -2737,29 +2880,30 @@ namespace HBP.Data.Module3D
             else update();
         }
 
-        private async UniTaskVoid ComputeGenerators()
+        private async UniTaskVoid ComputeGenerators(ActivityProjectionInputLease lease)
         {
-            await ComputeGeneratorsAsync();
+            await ComputeGeneratorsAsync(lease);
         }
 
-        private async UniTask ComputeGeneratorsAsync()
+        private async UniTask ComputeGeneratorsAsync(ActivityProjectionInputLease lease)
         {
-            ulong stateGeneration = m_SynchronizedStateGeneration;
             m_PreparationError = null;
-            m_UpdatingGenerators = true;
             var completion = new UniTaskCompletionSource();
             m_GeneratorWork = completion.Task;
-            foreach (var column in Columns) column.GeneratorWork = completion.Task;
+            // Column cleanup and site-list replacement await this task; prepared handles and arrays stay borrowed until native work returns.
+            foreach (var column in lease.Columns) column.GeneratorWork = completion.Task;
             bool succeeded = false;
             try
             {
                 OnUpdatingGenerators.Invoke(true);
-                await LoadActivityAsync();
+                await LoadActivityAsync(lease);
                 succeeded = true;
             }
             catch (Exception exception)
             {
                 m_PreparationError = exception;
+                if (IsCurrentActivityProjection(lease)) m_ProjectionState = ActivityProjectionState.Failed;
+                if (ReferenceEquals(lease, m_ActiveActivityProjection)) m_ActiveActivityProjection = null;
                 throw;
             }
             finally
@@ -2767,9 +2911,19 @@ namespace HBP.Data.Module3D
                 await UniTask.SwitchToMainThread();
                 try
                 {
-                    if (!m_DestroyRequested)
-                        foreach (var update in m_PendingGeneratorUpdates)
-                            update();
+                    try
+                    {
+                        if (!m_DestroyRequested)
+                            foreach (var update in m_PendingGeneratorUpdates)
+                                update();
+                    }
+                    catch (Exception exception)
+                    {
+                        m_PreparationError = exception;
+                        if (IsCurrentActivityProjection(lease)) m_ProjectionState = ActivityProjectionState.Failed;
+                        if (ReferenceEquals(lease, m_ActiveActivityProjection)) m_ActiveActivityProjection = null;
+                        throw;
+                    }
                 }
                 finally
                 {
@@ -2781,20 +2935,24 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            if (succeeded && !m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && stateGeneration == m_SynchronizedStateGeneration) FinalizeGeneratorsComputing();
+            if (succeeded && IsCurrentActivityProjection(lease) && !SceneInformation.GeneratorNeedsUpdate)
+                FinalizeGeneratorsComputing();
+            else if (ReferenceEquals(lease, m_ActiveActivityProjection) && m_ProjectionState == ActivityProjectionState.Computing)
+                m_ProjectionState = ActivityProjectionState.Failed;
+
+            if (ReferenceEquals(lease, m_ActiveActivityProjection)) m_ActiveActivityProjection = null;
         }
 
         /// <summary>
         /// Compute activity for every column using inputs prepared on the Unity thread
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async UniTask LoadActivityAsync()
+        private async UniTask LoadActivityAsync(ActivityProjectionInputLease lease)
         {
-            ulong stateGeneration = m_SynchronizedStateGeneration;
             Core.DLL.ActivityGenerator currentGenerator = null;
             string currentMessage = "";
             int currentColumn = 0;
-            var columns = Columns.ToArray();
+            var columns = lease.Columns;
             int numberOfColumns = columns.Length;
             // Freeze every column's inputs on the Unity thread before dispatching native work.
             bool roiActive = m_ROIManager.SelectedROI != null;
@@ -2826,7 +2984,7 @@ namespace HBP.Data.Module3D
                 currentMessage = "Initializing";
                 for (int i = 0; i < computations.Length; i++)
                 {
-                    if (m_DestroyRequested || SceneInformation.GeneratorNeedsUpdate || stateGeneration != m_SynchronizedStateGeneration) return;
+                    if (!IsCurrentActivityProjection(lease) || SceneInformation.GeneratorNeedsUpdate) return;
                     var computation = computations[i];
                     if (!computation.Column) continue;
                     currentColumn = i;
@@ -2842,7 +3000,7 @@ namespace HBP.Data.Module3D
                         await UniTask.SwitchToMainThread();
                     }
 
-                    if (!m_DestroyRequested && !SceneInformation.GeneratorNeedsUpdate && stateGeneration == m_SynchronizedStateGeneration && computation.Column) computation.Work.Publish?.Invoke();
+                    if (IsCurrentActivityProjection(lease) && !SceneInformation.GeneratorNeedsUpdate && computation.Column) computation.Work.Publish?.Invoke();
                 }
 
                 currentMessage = "Finalizing";
@@ -2862,7 +3020,6 @@ namespace HBP.Data.Module3D
         private async UniTask UpdateMeshesCollidersAsync()
         {
             m_UpdatingColliders = true;
-            ulong stateGeneration = m_SynchronizedStateGeneration;
             // Own a snapshot so another mesh selection cannot free the worker's input.
             var source = (Core.DLL.Surface)(MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated ? MeshManager.SimplifiedBrainSurface : MeshManager.SimplifiedMeshToUse).Clone();
             var planes = Cuts.Select(cut => new Core.Object3D.Cut(cut.Point, cut.Normal)).ToArray();
@@ -2876,7 +3033,7 @@ namespace HBP.Data.Module3D
                 else cuts.Add((Core.DLL.Surface)source.Clone());
                 await UniTask.SwitchToMainThread();
                 if (m_BeforeColliderPublish != null) await m_BeforeColliderPublish();
-                if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate || stateGeneration != m_SynchronizedStateGeneration) return;
+                if (m_DestroyRequested || !this || SceneInformation.CollidersNeedUpdate) return;
                 cuts[0].UpdateMeshFromDLL(m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh);
                 var filter = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshFilter>();
                 var collider = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>();

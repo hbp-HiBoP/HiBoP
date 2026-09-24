@@ -363,11 +363,12 @@ namespace HBP.Sync.Scene
             }
 
             ValidateCutOrder(fields);
-            if (!m_Scene.CanApplyPreparedState) throw new InvalidOperationException("Prepared scene is busy with native or geometry work.");
+            if (!m_Scene.CanApplyLegacyStateSnapshot) throw new InvalidOperationException("Prepared scene is busy with native or geometry work.");
 
             m_Scene.BeginSynchronizedStateApplication();
             if (cutsOnly)
             {
+                m_Scene.InvalidateSynchronizedGeometryColliderWork();
                 ApplyCuts(fields, delta.Assignments.Keys.Concat(delta.Removals).Select(key => key.Id).ToHashSet());
                 RememberMembership(fields);
                 m_Scene.SceneInformation.CutsNeedUpdate = true;
@@ -385,6 +386,7 @@ namespace HBP.Sync.Scene
             bool Has(EntityKind kind) => changed == null || changed.Any(key => key.Entity == kind);
             bool SceneField(params ushort[] ids) => changed == null || changed.Any(key => key.Entity == EntityKind.Scene && ids.Contains(key.FieldId));
             bool geometry = SceneField(11, 12, 13, 14, 17, 18, 19, 20);
+            if (geometry || Has(EntityKind.Cut)) m_Scene.InvalidateSynchronizedGeometryColliderWork();
             if (SceneField(27)) m_Scene.SetProjectionEnabled(Bool(fields, EntityKind.Scene, "", "", 27));
             if (geometry)
             {

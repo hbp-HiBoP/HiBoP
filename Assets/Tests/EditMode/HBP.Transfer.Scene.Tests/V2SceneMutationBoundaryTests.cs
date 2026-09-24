@@ -7,8 +7,10 @@ using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
+using HBP.Quest;
 using HBP.Sync;
 using HBP.Sync.Scene;
+using HBP.Transfer.Scene;
 using NUnit.Framework;
 using UnityEngine;
 using CoreVolume = HBP.Core.DLL.Volume;
@@ -49,6 +51,225 @@ namespace HBP.Tests.Transfer.Scene
         public void NestedNonColorChange_InvalidatesActivityInTheSceneEvenDuringColorCallback()
         {
             AssertNestedSiteStateChangeInvalidation(state => state.IsBlackListed = true, expectGeneratorUpdate: true);
+        }
+
+        [Test]
+        public void NestedHighlightChange_OnlyInvalidatesSiteRenderingInTheScene()
+        {
+            AssertNestedSiteStateChangeInvalidation(state => state.IsHighlighted = true, expectGeneratorUpdate: false);
+        }
+
+        [Test]
+        public void NestedLabelChange_OnlyInvalidatesSiteRenderingInTheScene()
+        {
+            AssertNestedSiteStateChangeInvalidation(state => state.AddLabel("reviewed"), expectGeneratorUpdate: false);
+        }
+
+        [Test]
+        public void SiteStateChangeKind_DistinguishesPresentationFromScientificMask()
+        {
+            var state = new SiteState();
+            SiteStateChangeKind observed = SiteStateChangeKind.Other;
+            state.OnChangeState.AddListener(() => observed = state.CurrentChangeKind);
+
+            state.ApplySynchronizedState(true, false, true, Color.green, Array.Empty<string>());
+            Assert.That(observed, Is.EqualTo(SiteStateChangeKind.Presentation));
+
+            state.ApplySynchronizedState(false, true, true, Color.green, Array.Empty<string>());
+            Assert.That(observed, Is.EqualTo(SiteStateChangeKind.ScientificMask));
+        }
+
+        [Test]
+        public void SensitiveActivityAdmission_OrdersMutationBeforeStartAndRejectsAfterStart()
+        {
+            GameObject root = new("activity projection admission test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                using var boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest, new TestClock(0));
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.RequestActivityProjection();
+
+                Assert.That(boundary.TryBeginSensitiveActivityOperation(out IDisposable mutationScope), Is.True);
+                using (mutationScope)
+                {
+                    scene.InvalidateActivityField(clearRenderedActivity: false);
+                    Assert.That(scene.TryBeginActivityProjection(out _), Is.False);
+                }
+
+                Assert.That(scene.TryBeginActivityProjection(out ActivityProjectionInputLease lease), Is.True);
+                Assert.That(lease.InputGeneration, Is.EqualTo(scene.ActivityInputGeneration));
+                Assert.That(lease.ProjectionGeneration, Is.EqualTo(scene.ProjectionGeneration));
+                Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Computing));
+                Assert.That(boundary.TryBeginSensitiveActivityOperation(out _), Is.False);
+
+                scene.InvalidateActivityField(clearRenderedActivity: false);
+                Assert.That(scene.IsCurrentActivityProjection(lease), Is.False);
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.False);
+            }
+            finally
+            {
+                SetPrivateField(scene, "m_UpdatingGenerators", false);
+                SetPrivateField(scene, "m_ActiveActivityProjection", null);
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void AutomaticStartupProjectionRequest_IsReadyAfterPreparationAndExplicitRemovalStaysRemoved()
+        {
+            GameObject root = new("automatic startup projection request test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                scene.SceneInformation.Initialized = true;
+                scene.SceneInformation.CompletelyLoaded = true;
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.SceneInformation.GeneratorNeedsUpdate = false;
+                scene.SceneInformation.GeneratorUpdateRequested = false;
+
+                scene.InitializeAutomaticActivityProjection(automaticPolicyEnabled: true);
+
+                Assert.That(scene.ProjectionRequested, Is.True);
+                Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+                Assert.That(scene.SceneInformation.GeneratorNeedsUpdate, Is.True);
+                Assert.That(scene.SceneInformation.GeneratorUpdateRequested, Is.False);
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: true), Is.True);
+
+                scene.SetProjectionEnabled(false);
+                scene.InitializeAutomaticActivityProjection(automaticPolicyEnabled: true);
+
+                Assert.That(scene.ProjectionRequested, Is.False);
+                Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Absent));
+                Assert.That(scene.SceneInformation.GeneratorUpdateRequested, Is.False);
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: true), Is.False);
+            }
+            finally
+            {
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void ExplicitGeneratorUpdate_RequestsProjectionWhileAutomaticStaleStateRemainsGated()
+        {
+            GameObject root = new("explicit generator update request test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.InitializeAutomaticActivityProjection(automaticPolicyEnabled: true);
+                scene.InvalidateActivityField(clearRenderedActivity: false);
+
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.False);
+
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = true;
+                scene.UpdateGenerator();
+                Assert.That(scene.ProjectionRequested, Is.True);
+                Assert.That(scene.SceneInformation.GeneratorNeedsUpdate, Is.True);
+                Assert.That(scene.SceneInformation.GeneratorUpdateRequested, Is.True);
+
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.True);
+            }
+            finally
+            {
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void QuestRecalculateProjection_RequestsAnExplicitUpdateWhenAutomaticPolicyIsDisabled()
+        {
+            GameObject root = new("Quest explicit projection request test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            var view = root.AddComponent<QuestAnatomyView>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.InitializeAutomaticActivityProjection(automaticPolicyEnabled: true);
+                scene.InvalidateActivityField(clearRenderedActivity: false);
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.False);
+
+                var restoredScene = (RestoredScene)Activator.CreateInstance(typeof(RestoredScene), BindingFlags.Instance | BindingFlags.NonPublic, binder: null, args: new object[] { scene, null, null }, culture: null);
+                typeof(QuestAnatomyView).GetField("current", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, restoredScene);
+
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = true;
+                view.RecalculateProjection();
+
+                Assert.That(scene.ProjectionRequested, Is.True);
+                Assert.That(scene.SceneInformation.GeneratorNeedsUpdate, Is.True);
+                Assert.That(scene.SceneInformation.GeneratorUpdateRequested, Is.True);
+
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.True);
+            }
+            finally
+            {
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void SafeSceneUpdates_ContinueWhileControlledProjectionIsComputing()
+        {
+            GameObject root = new("activity projection safe update test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                scene.SceneInformation.Initialized = true;
+                scene.SceneInformation.CompletelyLoaded = true;
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.SceneInformation.SitesNeedUpdate = true;
+                scene.RequestActivityProjection();
+                Assert.That(scene.TryBeginActivityProjection(out _), Is.True);
+
+                bool siteRenderingUpdated = false;
+                scene.OnSitesRenderingUpdated.AddListener(() => siteRenderingUpdated = true);
+                typeof(Base3DScene).GetMethod("Update", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scene, null);
+
+                Assert.That(siteRenderingUpdated, Is.True);
+                Assert.That(scene.SceneInformation.SitesNeedUpdate, Is.False);
+                Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Computing));
+                Assert.That(scene.CanApplyPreparedState, Is.True);
+                Assert.That(scene.CanApplyLegacyStateSnapshot, Is.False);
+            }
+            finally
+            {
+                SetPrivateField(scene, "m_UpdatingGenerators", false);
+                SetPrivateField(scene, "m_ActiveActivityProjection", null);
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
         }
 
         [TestCase(CutOrientation.Axial)]
@@ -368,6 +589,22 @@ namespace HBP.Tests.Transfer.Scene
             scene.SceneInformation.GeneratorNeedsUpdate = false;
             scene.SceneInformation.CollidersNeedUpdate = false;
             scene.SceneInformation.FunctionalSurfaceNeedsUpdate = false;
+        }
+
+        private static BrainMaterials InitializeTestBrainMaterials(Base3DScene scene)
+        {
+            var brainMaterials = new BrainMaterials();
+            typeof(Base3DScene).GetProperty(nameof(Base3DScene.BrainMaterials)).SetValue(scene, brainMaterials);
+            return brainMaterials;
+        }
+
+        private static void DestroyTestBrainMaterials(BrainMaterials brainMaterials)
+        {
+            foreach (string fieldName in new[] { "m_Brain", "m_TransparentBrain", "m_Cut", "m_TransparentCut" })
+            {
+                Material material = (Material)typeof(BrainMaterials).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(brainMaterials);
+                if (material) Object.DestroyImmediate(material);
+            }
         }
 
         private static void CreateMinimalNifti(string path)

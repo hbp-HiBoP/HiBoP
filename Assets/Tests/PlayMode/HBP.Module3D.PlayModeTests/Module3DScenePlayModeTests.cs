@@ -1087,6 +1087,61 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.Module3DScene")]
+        public async Task PrepareRendering_WaitsForExplicitProjectionRequestedFromReadyUntilItCompletes()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            using PlayModeSceneScope testScene = new("Module3DScenePrepareRenderingExplicitProjection");
+
+            GameObject sceneObject = new("Prepare rendering projection request fixture");
+            sceneObject.SetActive(false);
+            SceneManager.MoveGameObjectToScene(sceneObject, testScene.Scene);
+            Base3DScene scene = sceneObject.AddComponent<Base3DScene>();
+            scene.SceneInformation.CompletelyLoaded = true;
+            scene.SceneInformation.GeometryNeedsUpdate = false;
+            scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            scene.SceneInformation.CutsNeedUpdate = false;
+            scene.SceneInformation.BaseCutTexturesNeedUpdate = false;
+            scene.SceneInformation.FunctionalCutTexturesNeedUpdate = false;
+            scene.SceneInformation.GUICutTexturesNeedUpdate = false;
+            scene.SceneInformation.FunctionalSurfaceNeedsUpdate = false;
+            scene.SceneInformation.SitesNeedUpdate = false;
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", true);
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Ready);
+            Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Ready));
+
+            scene.RequestActivityProjection();
+            Assert.That(scene.IsGeneratorUpToDate, Is.True, "The previous result stays ready until the new request starts.");
+            UniTask preparation = scene.PrepareRenderingAsync(CancellationToken.None);
+            Assert.That(preparation.Status.IsCompleted(), Is.False, "The prior ready result cannot satisfy a pending explicit request.");
+
+            SetPrivateField(scene, "m_ExplicitProjectionRequestPending", false);
+            scene.SceneInformation.GeneratorNeedsUpdate = false;
+            scene.SceneInformation.GeneratorUpdateRequested = false;
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Computing);
+            SetPrivateField(scene, "m_UpdatingGenerators", true);
+            await UniTask.Yield();
+            Assert.That(preparation.Status.IsCompleted(), Is.False, "Preparation remains pending while the requested generation is computing.");
+
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", true);
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Ready);
+            SetPrivateField(scene, "m_UpdatingGenerators", false);
+            await preparation;
+
+            scene.InvalidateActivityField(clearRenderedActivity: false);
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", false);
+            scene.SceneInformation.GeneratorUpdateRequested = false;
+            scene.SceneInformation.SitesNeedUpdate = false;
+            Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+            UniTask idleManualStalePreparation = scene.PrepareRenderingAsync(CancellationToken.None);
+            Assert.That(idleManualStalePreparation.Status, Is.EqualTo(UniTaskStatus.Succeeded), "Manual stale state without a pending request remains idle.");
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
         [Category("NativeMigration")]
         [Category("NativeDll")]
         [Category("HbpCoreOnly")]
@@ -1427,7 +1482,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(invalidLocalizerThreshold, 2)));
             Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
 
-            await WaitForConditionAsync(() => quest.CanApplyPreparedState, "previous native activity computation to finish", maxFrames: 600);
+            await WaitForConditionAsync(() => quest.CanApplyLegacyStateSnapshot, "previous native activity computation to finish", maxFrames: 600);
             await WaitForConditionAsync(() => !GetPrivateField<bool>(quest, "m_UpdatingColliders"), "previous collider computation to finish", maxFrames: 600);
             MethodInfo refreshColliders = typeof(Base3DScene).GetMethod("RefreshColliders", BindingFlags.NonPublic | BindingFlags.Instance);
             Assert.That(refreshColliders, Is.Not.Null);
@@ -1451,6 +1506,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 StateSnapshot moved = source.Capture(2);
                 destination.Apply(moved);
                 Assert.That(SharedStateCodec.Encode(destination.Capture(2)), Is.EqualTo(SharedStateCodec.Encode(moved)));
+                Assert.That(quest.SceneInformation.CollidersNeedUpdate, Is.True, "An accepted cut update invalidates the paused collider result immediately.");
 
                 SetPrivateField(quest, "m_BeforeColliderPublish", null);
                 releaseStaleCollider.TrySetResult();
@@ -1607,10 +1663,10 @@ namespace HBP.Tests.PlayMode.Module3D
                 WireRuntimeCameraGraph(quest);
                 EnsureRuntimeSiteConfigurations(quest);
                 EnsureRuntimeCutColorSchemes(quest);
-                for (int frame = 0; frame < 100 && (desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate || !quest.CanApplyPreparedState); frame++)
+                for (int frame = 0; frame < 100 && (desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate || !quest.CanApplyLegacyStateSnapshot); frame++)
                     await UniTask.NextFrame();
                 Assert.That(desktop.SceneInformation.GeometryNeedsUpdate || quest.SceneInformation.GeometryNeedsUpdate, Is.False);
-                Assert.That(quest.CanApplyPreparedState, Is.True);
+                Assert.That(quest.CanApplyLegacyStateSnapshot, Is.True);
 
                 Guid epoch = Guid.NewGuid();
                 string manifest = new string('c', 64);
