@@ -180,6 +180,7 @@ namespace HBP.Sync.Scene
         public void Apply(V2Mutation mutation, V2MutationApplicationOrigin origin, OperationId operationId)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            ValidateMutation(mutation);
             using (origin == V2MutationApplicationOrigin.Remote ? V2MutationApplicationContext.EnterRemote(operationId) : V2MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
             {
                 if (!ApplyCore(mutation)) return;
@@ -187,6 +188,57 @@ namespace HBP.Sync.Scene
 
             if (origin != V2MutationApplicationOrigin.Remote)
                 MutationProposed?.Invoke(operationId, mutation, ToOriginDevice(origin));
+        }
+
+        /// <summary>Reads the current prepared value for the touched key of a typed mutation.</summary>
+        public V2Mutation ReadCurrentMutation(V2Mutation key)
+        {
+            if (key == null) throw new ArgumentNullException(nameof(key));
+            if (key is SetSiteColor siteColor)
+            {
+                SiteState state = ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);
+                return CreateSiteColor(new SiteTarget(siteColor.ColumnId, siteColor.FullSiteId), state.Color);
+            }
+
+            if (key is SetCutDefinition cutDefinition)
+                return CreateCutDefinition(ResolveCut(cutDefinition.CutId), cutDefinition.CutId);
+
+            if (key is SetTimelineAnchor timelineAnchor)
+            {
+                (BasicTimeline timeline, ColumnId columnId) = ResolveTimeline(timelineAnchor.ColumnId);
+                return CreateTimelineAnchor(timeline, columnId);
+            }
+
+            throw new ArgumentException("Unsupported v2 scene mutation.", nameof(key));
+        }
+
+        /// <summary>Checks prepared targets and typed values that could fail before an authority commits a sequence.</summary>
+        internal void ValidateMutation(V2Mutation mutation)
+        {
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            if (mutation is SetSiteColor siteColor)
+            {
+                ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);
+                return;
+            }
+
+            if (mutation is SetCutDefinition cutDefinition)
+            {
+                ResolveCut(cutDefinition.CutId);
+                if (cutDefinition.NumberOfCuts > int.MaxValue)
+                    throw new ArgumentOutOfRangeException(nameof(mutation), "Cut count exceeds the prepared scene's supported range.");
+                return;
+            }
+
+            if (mutation is SetTimelineAnchor timelineAnchor)
+            {
+                (BasicTimeline timeline, _) = ResolveTimeline(timelineAnchor.ColumnId);
+                if (timelineAnchor.Index >= timeline.Length)
+                    throw new ArgumentOutOfRangeException(nameof(mutation), "Timeline index exceeds the prepared timeline.");
+                return;
+            }
+
+            throw new ArgumentException("Unsupported v2 scene mutation.", nameof(mutation));
         }
 
         public V2SceneMutationCheckpoint CaptureCheckpoint()
