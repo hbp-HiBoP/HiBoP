@@ -5,15 +5,15 @@ and high-frequency workflow rules.
 
 ## C# formatting
 
-Before reviewing or handing off C# changes, run:
+After **all implementation, testing, validation, and review work is complete**, run this **once as the final action before responding to the user**:
 
 ```powershell
 .\Tools\format-code.cmd
 ```
 
-This normally formats staged, unstaged, and untracked C# files. Use
-`-Base origin/develop` when committed branch changes must also be included, and
-`-All` only when the full `Assets` tree is intentionally targeted.
+Do not run it earlier or perform further work afterward. Its output does not need to be reviewed.
+
+Use `-Base origin/develop` when committed branch changes must also be included, and `-All` only when the full `Assets` tree is intentionally targeted.
 
 ## Assembly dependency architecture
 
