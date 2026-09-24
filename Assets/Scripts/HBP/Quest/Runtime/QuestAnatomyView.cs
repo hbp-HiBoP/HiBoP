@@ -19,6 +19,7 @@ namespace HBP.Quest
         private RestoredScene current;
         private readonly List<Task> releases = new();
         private readonly List<QuestColumnPresentation> columns = new();
+        private QuestColumnPresentation[] presentationSnapshot = Array.Empty<QuestColumnPresentation>();
         private CancellationTokenSource preparation;
         private Task preparationCompletion = Task.CompletedTask;
         public Base3DScene Scene => current?.Scene;
@@ -78,6 +79,7 @@ namespace HBP.Quest
                 candidate = null;
                 columns.Clear();
                 columns.AddRange(presentations);
+                presentationSnapshot = columns.ToArray();
                 presentations.Clear();
                 if (!sameVisualization) SurfaceHidden = false;
                 foreach (var old in previousColumns)
@@ -141,10 +143,9 @@ namespace HBP.Quest
         {
             var camera = Camera.main;
             if (camera != null && camera.TryGetComponent<HBP.Rendering.HBPEdgeCameraSettings>(out var edges)) edges.EdgesEnabled = Scene != null && Scene.EdgeMode;
-            QuestColumnPresentation[] visibleColumns = columns.ToArray();
             foreach (var renderer in GetComponentsInChildren<Renderer>(true))
             {
-                var owner = visibleColumns.FirstOrDefault(column => column != null && renderer.transform.IsChildOf(column.transform));
+                var owner = presentationSnapshot.FirstOrDefault(column => column != null && renderer.transform.IsChildOf(column.transform));
                 renderer.forceRenderingOff = owner == null || (SurfaceHidden && owner.Column != null && renderer.gameObject == owner.Column.BrainMesh);
             }
         }
@@ -167,6 +168,7 @@ namespace HBP.Quest
             current = null;
             var previousColumns = columns.ToArray();
             columns.Clear();
+            presentationSnapshot = Array.Empty<QuestColumnPresentation>();
             foreach (var item in previousColumns) item.Hide();
             if (previous != null) TrackRelease(previous, previousColumns);
         }

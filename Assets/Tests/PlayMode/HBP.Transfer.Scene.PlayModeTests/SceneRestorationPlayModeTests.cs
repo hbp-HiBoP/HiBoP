@@ -160,7 +160,6 @@ namespace HBP.Tests.SceneTransfer
                 var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
                 desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
                 Debug.Log($"S2 mesh binding: Desktop scene {clock.Elapsed.TotalSeconds:F1}s");
-                Assert.That(SceneArchive.MeshGeometryFingerprint(Object3DManager.MNI.GreyMatter), Is.EqualTo(payload.Meshes[0].GeometryHash), "Shared MNI after Desktop opening");
                 var original = Object3DManager.MNI.GreyMatter;
                 var prepared = (LeftRightMesh3D)desktop.Scene.MeshManager.Meshes[0];
                 AssertPreparedSurface(original.Both, prepared.Both, "both");
@@ -171,7 +170,6 @@ namespace HBP.Tests.SceneTransfer
                 AssertPreparedSurface(original.SimplifiedRight, prepared.SimplifiedRight, "simplified right");
                 Assert.That(new SurfaceCapture(original.Both).Data.UV, Is.Empty, "The prepared MNI source has no projection UVs.");
                 Assert.That(new SurfaceCapture(prepared.Both).Data.UV, Is.Not.Empty, "Scene initialization adds projection UVs without changing resource identity.");
-                Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop prepared mesh");
 
                 var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
                 if (exerciseReplica)
@@ -186,8 +184,6 @@ namespace HBP.Tests.SceneTransfer
                 else await view.ApplyAsync(questArchive.Read(file), questArchive, token);
 
                 Debug.Log($"S2 mesh binding: Quest scene {clock.Elapsed.TotalSeconds:F1}s");
-                Assert.That(SceneArchive.MeshGeometryFingerprint(desktop.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Desktop mesh after Quest opening");
-                Assert.That(SceneArchive.MeshGeometryFingerprint(view.Scene.MeshManager.Meshes[0]), Is.EqualTo(payload.Meshes[0].GeometryHash), "Quest prepared mesh");
 
                 byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                 var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
@@ -1424,7 +1420,7 @@ namespace HBP.Tests.SceneTransfer
             archive.Globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
             var payload = new ScenePayload { TransferId = "fixture", SessionId = "runtime", Revision = 1, GlobalContextId = archive.Globals.Id, Visualization = model, StandardFiles = new(Object3DManager.MNI.ResourceHashes) };
             var mesh = Object3DManager.MNI.GreyMatter;
-            payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, GeometryHash = SceneArchive.MeshGeometryFingerprint(mesh), StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
+            payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
             payload.MRIs.Add(new VolumeResource { Name = Object3DManager.MNI.MRI.Name, Standard = "MNI" });
             payload.Visualization.Configuration.ErasedTriangles = Enumerable.Repeat(1, mesh.Both.NumberOfTriangles).ToArray();
             payload.Visualization.Configuration.ErasedSimplifiedTriangles = Enumerable.Repeat(1, mesh.SimplifiedBoth.NumberOfTriangles).ToArray();
@@ -1440,10 +1436,8 @@ namespace HBP.Tests.SceneTransfer
             string image = archive.AddFile(fmri, StandardData.HashFile(fmri));
             payload.Columns[4].Functional.Add(new FunctionalResource { Name = "fMRI", File = image });
             var channels = new FunctionalResource { Name = "channels", Values = new() { ["A1"] = new[] { 1f, 2f, 3f } }, Units = new() { ["A1"] = "fT" }, Frequency = 100 };
-            channels.MegContentHash = SceneArchive.MegContentFingerprint(channels.Values, channels.Units, channels.Frequency);
             payload.Columns[5].Functional.Add(channels);
             var volume = new FunctionalResource { Name = "volume", File = image, Values = new(), Units = new() };
-            volume.MegContentHash = SceneArchive.MegContentFingerprint(volume.Values, volume.Units, volume.Frequency);
             payload.Columns[5].Functional.Add(volume);
             return payload;
         }

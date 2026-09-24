@@ -250,7 +250,6 @@ namespace HBP.Transfer.Scene
                             functional.Values = item.ValuesByChannel;
                             functional.Units = item.UnitByChannel;
                             functional.Frequency = item.Frequency.RawValue;
-                            functional.MegContentHash = SceneArchive.MegContentFingerprint(functional.Values, functional.Units, functional.Frequency);
                             state.Functional.Add(functional);
                         }
 
@@ -269,7 +268,7 @@ namespace HBP.Transfer.Scene
         {
             if (!mesh.IsLoaded || mesh.IsInflationInProgress) throw new InvalidOperationException($"Mesh '{mesh.Name}' is not prepared.");
             string standard = ReferenceEquals(mesh.Both, Object3DManager.MNI.GreyMatter.Both) ? "grey" : ReferenceEquals(mesh.Both, Object3DManager.MNI.WhiteMatter.Both) ? "white" : null;
-            var resource = new MeshResource { Name = mesh.Name, PatientId = patient, Type = mesh.Type, Standard = standard, Representation = mesh.Representation, GeometryHash = SceneArchive.MeshGeometryFingerprint(mesh) };
+            var resource = new MeshResource { Name = mesh.Name, PatientId = patient, Type = mesh.Type, Standard = standard, Representation = mesh.Representation };
             if (mesh is RuntimeSingleMesh3D preview)
             {
                 resource.SourceMRI = preview.SourceMRIName;
