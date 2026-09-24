@@ -301,6 +301,84 @@ namespace HBP.Sync
         }
     }
 
+    /// <summary>
+    /// Creates bulk stream identities whose low 64 bits are a per-direction,
+    /// per-session ordinal. The ordinal lets resume state retire a contiguous
+    /// prefix without retaining every historical random GUID.
+    /// </summary>
+    public static class V2BulkStreamIdentityCodec
+    {
+        private const byte DesktopTag = 0xB1;
+        private const byte QuestTag = 0xB2;
+
+        public static ReliableStreamId Create(SessionId sessionId, V2OriginDevice originDevice, ulong ordinal)
+        {
+            if (sessionId == null)
+                throw new ArgumentNullException(nameof(sessionId));
+            if (ordinal == 0)
+                throw new ArgumentOutOfRangeException(nameof(ordinal));
+            byte[] sessionBytes = sessionId.ToByteArray();
+            var streamBytes = new byte[16];
+            Buffer.BlockCopy(sessionBytes, 0, streamBytes, 0, 7);
+            streamBytes[7] = GetTag(originDevice);
+            WriteUInt64(streamBytes, 8, ordinal);
+            return ReliableStreamId.FromBytes(streamBytes);
+        }
+
+        public static bool TryGetOrdinal(SessionId sessionId, V2OriginDevice originDevice, ReliableStreamId streamId, out ulong ordinal)
+        {
+            ordinal = 0;
+            if (sessionId == null || streamId == null)
+                return false;
+            byte[] sessionBytes = sessionId.ToByteArray();
+            byte[] streamBytes = streamId.ToByteArray();
+            for (int i = 0; i < 7; i++)
+            {
+                if (streamBytes[i] != sessionBytes[i])
+                    return false;
+            }
+
+            byte tag;
+            try
+            {
+                tag = GetTag(originDevice);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                return false;
+            }
+
+            if (streamBytes[7] != tag)
+                return false;
+            ordinal = ReadUInt64(streamBytes, 8);
+            return ordinal != 0;
+        }
+
+        private static byte GetTag(V2OriginDevice originDevice)
+        {
+            switch (originDevice)
+            {
+                case V2OriginDevice.Desktop: return DesktopTag;
+                case V2OriginDevice.Quest: return QuestTag;
+                default: throw new ArgumentOutOfRangeException(nameof(originDevice));
+            }
+        }
+
+        private static void WriteUInt64(byte[] bytes, int offset, ulong value)
+        {
+            for (int i = 0; i < 8; i++)
+                bytes[offset + i] = (byte)(value >> (8 * i));
+        }
+
+        private static ulong ReadUInt64(byte[] bytes, int offset)
+        {
+            ulong value = 0;
+            for (int i = 0; i < 8; i++)
+                value |= (ulong)bytes[offset + i] << (8 * i);
+            return value;
+        }
+    }
+
     public sealed class V2EnqueueResult
     {
         public bool Accepted { get; }
@@ -324,6 +402,8 @@ namespace HBP.Sync
         public ReliableStreamId StreamId { get; }
         public ulong? ReliableFrameSequence { get; }
         public ulong? OriginSequence { get; }
+        public ulong? CanonicalSequence { get; }
+        public ulong? ObservedCanonicalSequence { get; }
         public OperationId OperationId { get; }
         public V2ScheduleLane Lane { get; }
         public V2DeliveryReliability Reliability { get; }
@@ -334,11 +414,13 @@ namespace HBP.Sync
         public int? ChunkOffset { get; }
         public int PayloadLength => m_Payload.Length;
 
-        internal V2ReliableFrame(ReliableStreamId streamId, ulong? reliableFrameSequence, ulong? originSequence, OperationId operationId, V2ScheduleLane lane, V2DeliveryReliability reliability, byte[] payload, V2BulkTransferDescriptor bulkDescriptor = null, int? chunkIndex = null, int? chunkCount = null, int? chunkOffset = null)
+        internal V2ReliableFrame(ReliableStreamId streamId, ulong? reliableFrameSequence, ulong? originSequence, OperationId operationId, V2ScheduleLane lane, V2DeliveryReliability reliability, byte[] payload, V2BulkTransferDescriptor bulkDescriptor = null, int? chunkIndex = null, int? chunkCount = null, int? chunkOffset = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
         {
             StreamId = streamId;
             ReliableFrameSequence = reliableFrameSequence;
             OriginSequence = originSequence;
+            CanonicalSequence = canonicalSequence;
+            ObservedCanonicalSequence = observedCanonicalSequence;
             OperationId = operationId;
             Lane = lane;
             Reliability = reliability;
@@ -413,6 +495,7 @@ namespace HBP.Sync
     public sealed class V2OutgoingScheduler
     {
         private const int ReconnectGraceMilliseconds = 500;
+        public const int MaximumUnretiredBulkStreams = 126;
 
         private readonly SessionId m_SessionId;
         private readonly SceneId m_SceneId;
@@ -429,6 +512,7 @@ namespace HBP.Sync
         private readonly Dictionary<Guid, BulkTransferState> m_BulkByOperation = new Dictionary<Guid, BulkTransferState>();
         private readonly Queue<BulkTransferState> m_BulkRoundRobin = new Queue<BulkTransferState>();
         private readonly HashSet<Guid> m_BulkQueuedIds = new HashSet<Guid>();
+        private readonly SortedSet<ulong> m_RetiredBulkOrdinals = new SortedSet<ulong>();
 
         private readonly ReliableStreamState m_SessionControlStream;
         private readonly ReliableStreamState m_SceneOperationStream;
@@ -448,6 +532,8 @@ namespace HBP.Sync
         private long m_SessionOverflowCount;
         private long m_GraceExpiredFrameCount;
         private long m_GraceExpiredRecordCount;
+        private ulong m_NextBulkStreamOrdinal = 1;
+        private ulong m_BulkStreamRetiredThrough;
 
         public SessionId SessionId => m_SessionId;
         public SceneId SceneId => m_SceneId;
@@ -457,6 +543,7 @@ namespace HBP.Sync
         public V2OriginDevice OriginDevice => m_OriginDevice;
         public V2SchedulerLimits Limits => m_Limits;
         public V2SchedulerState State => m_State;
+        public ulong BulkStreamRetiredThrough => m_BulkStreamRetiredThrough;
 
         public V2OutgoingScheduler(SessionId sessionId, SceneId sceneId, IncarnationId incarnationId, V2OriginDevice originDevice, IMonotonicClock clock = null, V2SchedulerLimits limits = null, Func<Guid> guidFactory = null)
         {
@@ -512,13 +599,13 @@ namespace HBP.Sync
             return new V2EnqueueResult(true, V2EnqueueDisposition.Accepted);
         }
 
-        public V2EnqueueResult EnqueueMutation(V2Mutation mutation, bool coalesciblePreview = true, OperationId operationId = null)
+        public V2EnqueueResult EnqueueMutation(V2Mutation mutation, bool coalesciblePreview = true, OperationId operationId = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
         {
             if (mutation == null)
                 throw new ArgumentNullException(nameof(mutation));
             byte[] payload = V2MutationPayloadCodec.Encode(mutation);
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, mutation);
-            return EnqueueSceneOperation(payload, descriptor, coalesciblePreview, false, false, 1, operationId);
+            return EnqueueSceneOperation(payload, descriptor, coalesciblePreview, false, false, 1, operationId, canonicalSequence, observedCanonicalSequence);
         }
 
         /// <summary>
@@ -527,7 +614,7 @@ namespace HBP.Sync
         /// Bodies above InlineThresholdBytes are automatically replaced on the scene
         /// stream by a descriptor and transferred on a separate reliable bulk stream.
         /// </summary>
-        public V2EnqueueResult EnqueueSceneOperation(byte[] encodedBody, V2ScheduleDescriptor descriptor, bool coalesciblePreview = false, bool structural = false, bool final = false, ushort bodySchema = 1, OperationId operationId = null)
+        public V2EnqueueResult EnqueueSceneOperation(byte[] encodedBody, V2ScheduleDescriptor descriptor, bool coalesciblePreview = false, bool structural = false, bool final = false, ushort bodySchema = 1, OperationId operationId = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
         {
             if (encodedBody == null)
                 throw new ArgumentNullException(nameof(encodedBody));
@@ -552,7 +639,7 @@ namespace HBP.Sync
 
             bool asBulk = encodedBody.Length > m_Limits.InlineThresholdBytes;
             if (!asBulk)
-                return EnqueueInlineSceneRecord((byte[])encodedBody.Clone(), descriptor, coalesciblePreview, structural, final, id);
+                return EnqueueInlineSceneRecord((byte[])encodedBody.Clone(), descriptor, coalesciblePreview, structural, final, id, canonicalSequence, observedCanonicalSequence);
 
             LinkedListNode<PendingRecord> existingSlot = coalesciblePreview ? FindCoalescingSlot(descriptor.CoalescingKey) : null;
             BulkTransferState replacedTransfer = existingSlot?.Value.BulkTransfer;
@@ -562,6 +649,8 @@ namespace HBP.Sync
             bool withinTransferLimit = resultingBulkTransferCount <= m_Limits.MaxBulkTransfers;
             bool withinBodyByteLimit = encodedBody.Length <= m_Limits.MaxBulkBodyBytesTotal - retainedBulkBytesAfterReplacement;
             if (encodedBody.Length > m_Limits.MaxBulkBodyBytesPerTransfer || !withinTransferLimit || !withinBodyByteLimit)
+                return structural || final ? FaultRequiredAdmission(id) : new V2EnqueueResult(false, V2EnqueueDisposition.Backpressured, id);
+            if (!CanAllocateBulkStream())
                 return structural || final ? FaultRequiredAdmission(id) : new V2EnqueueResult(false, V2EnqueueDisposition.Backpressured, id);
 
             byte[] body = (byte[])encodedBody.Clone();
@@ -573,14 +662,20 @@ namespace HBP.Sync
             var bulkDescriptor = new V2BulkTransferDescriptor(id, bulkStreamId, bodySchema, body, m_Limits.BulkChunkBytes, descriptor, digest);
             byte[] descriptorPayload = bulkDescriptor.Encode();
             if (descriptorPayload.Length > m_Limits.InlineThresholdBytes)
+            {
+                RetireBulkStream(bulkStreamId);
                 return new V2EnqueueResult(false, V2EnqueueDisposition.Rejected, id);
+            }
 
             var transfer = new BulkTransferState(bulkDescriptor, body);
             V2ScheduleLane lane = structural || final ? V2ScheduleLane.SceneControl : V2ScheduleLane.Interactive;
             var pending = new PendingRecord(descriptorPayload, V2DeliveryReliability.Reliable, lane, id, coalesciblePreview, descriptor, transfer, bulkDescriptor, bodySchema);
             V2EnqueueDisposition disposition;
             if (!CanAdmitSceneRecord(pending, lane != V2ScheduleLane.Interactive, existingSlot))
+            {
+                RetireBulkStream(bulkStreamId);
                 return lane == V2ScheduleLane.Interactive ? RecordPreviewPressure(id) : FaultRequiredAdmission(id);
+            }
 
             if (existingSlot != null)
                 ReplaceSceneSlot(existingSlot, pending);
@@ -741,10 +836,10 @@ namespace HBP.Sync
             return new V2SchedulerMetrics(m_SceneQueue.Count, m_SessionControlQueue.Count, m_SceneQueuedBytes, m_SessionControlQueuedBytes, m_RetainedBulkBodyBytes, m_OutstandingReliableFrames, m_OutstandingReliableBytes, m_CoalescedPreviewCount, m_PreviewPressureCount, m_EphemeralDropCount, m_RetryCount, m_SessionOverflowCount, m_GraceExpiredFrameCount, m_GraceExpiredRecordCount);
         }
 
-        private V2EnqueueResult EnqueueInlineSceneRecord(byte[] payload, V2ScheduleDescriptor descriptor, bool coalesciblePreview, bool structural, bool final, OperationId operationId)
+        private V2EnqueueResult EnqueueInlineSceneRecord(byte[] payload, V2ScheduleDescriptor descriptor, bool coalesciblePreview, bool structural, bool final, OperationId operationId, ulong? canonicalSequence, ulong? observedCanonicalSequence)
         {
             V2ScheduleLane lane = structural || final ? V2ScheduleLane.SceneControl : V2ScheduleLane.Interactive;
-            var pending = new PendingRecord(payload, V2DeliveryReliability.Reliable, lane, operationId, coalesciblePreview, descriptor, null, null, 1);
+            var pending = new PendingRecord(payload, V2DeliveryReliability.Reliable, lane, operationId, coalesciblePreview, descriptor, null, null, 1, canonicalSequence: canonicalSequence, observedCanonicalSequence: observedCanonicalSequence);
             LinkedListNode<PendingRecord> existingSlot = coalesciblePreview ? FindCoalescingSlot(descriptor.CoalescingKey) : null;
             if (!CanAdmitSceneRecord(pending, lane != V2ScheduleLane.Interactive, existingSlot))
                 return lane == V2ScheduleLane.Interactive ? RecordPreviewPressure(operationId) : FaultRequiredAdmission(operationId);
@@ -819,7 +914,7 @@ namespace HBP.Sync
                 originSequence = m_NextOriginSequence++;
             }
 
-            var frame = new V2ReliableFrame(stream.StreamId, sequence, originSequence, pending.OperationId, pending.Lane, V2DeliveryReliability.Reliable, pending.Payload, pending.BulkDescriptor, pending.ChunkIndex, pending.ChunkCount, pending.ChunkOffset);
+            var frame = new V2ReliableFrame(stream.StreamId, sequence, originSequence, pending.OperationId, pending.Lane, V2DeliveryReliability.Reliable, pending.Payload, pending.BulkDescriptor, pending.ChunkIndex, pending.ChunkCount, pending.ChunkOffset, pending.CanonicalSequence, pending.ObservedCanonicalSequence);
             stream.Retain(frame);
             m_OutstandingReliableFrames++;
             m_OutstandingReliableBytes = checked(m_OutstandingReliableBytes + frame.WireBytes);
@@ -986,6 +1081,7 @@ namespace HBP.Sync
 
             m_BulkByStream.Remove(transfer.Descriptor.BulkStreamId.Value);
             m_Streams.Remove(transfer.Descriptor.BulkStreamId.Value);
+            RetireBulkStream(transfer.Descriptor.BulkStreamId);
         }
 
         private void CompleteBulkTransfer(BulkTransferState transfer)
@@ -1000,6 +1096,7 @@ namespace HBP.Sync
             m_BulkByOperation.Remove(transfer.Descriptor.OperationId.Value);
             m_BulkByStream.Remove(transfer.Descriptor.BulkStreamId.Value);
             m_Streams.Remove(transfer.Descriptor.BulkStreamId.Value);
+            RetireBulkStream(transfer.Descriptor.BulkStreamId);
         }
 
         private void RemoveBulkFromRoundRobin(Guid streamId)
@@ -1068,10 +1165,40 @@ namespace HBP.Sync
 
         private ReliableStreamId CreateBulkStreamId()
         {
-            Guid value = NextGuid();
-            while (m_Streams.ContainsKey(value) || value == m_SessionId.Value || value == m_SceneId.Value || value == m_IncarnationId.Value)
-                value = NextGuid();
-            return new ReliableStreamId(value);
+            while (true)
+            {
+                if (m_NextBulkStreamOrdinal == ulong.MaxValue)
+                    throw new InvalidOperationException("The bulk stream ordinal space is exhausted.");
+                ulong ordinal = m_NextBulkStreamOrdinal++;
+                ReliableStreamId streamId = V2BulkStreamIdentityCodec.Create(m_SessionId, m_OriginDevice, ordinal);
+                Guid value = streamId.Value;
+                if (!m_Streams.ContainsKey(value) && value != m_SessionId.Value && value != m_SceneId.Value && value != m_IncarnationId.Value)
+                    return streamId;
+                RetireBulkOrdinal(ordinal);
+            }
+        }
+
+        private bool CanAllocateBulkStream()
+        {
+            if (m_NextBulkStreamOrdinal == 0 || m_NextBulkStreamOrdinal <= m_BulkStreamRetiredThrough)
+                return false;
+            ulong unretiredCount = m_NextBulkStreamOrdinal - m_BulkStreamRetiredThrough - 1;
+            return unretiredCount < MaximumUnretiredBulkStreams;
+        }
+
+        private void RetireBulkStream(ReliableStreamId streamId)
+        {
+            if (V2BulkStreamIdentityCodec.TryGetOrdinal(m_SessionId, m_OriginDevice, streamId, out ulong ordinal))
+                RetireBulkOrdinal(ordinal);
+        }
+
+        private void RetireBulkOrdinal(ulong ordinal)
+        {
+            if (ordinal <= m_BulkStreamRetiredThrough)
+                return;
+            m_RetiredBulkOrdinals.Add(ordinal);
+            while (m_BulkStreamRetiredThrough < ulong.MaxValue - 1 && m_RetiredBulkOrdinals.Remove(m_BulkStreamRetiredThrough + 1))
+                m_BulkStreamRetiredThrough++;
         }
 
         private Guid NextGuid()
@@ -1109,9 +1236,11 @@ namespace HBP.Sync
             public int? ChunkIndex { get; }
             public int? ChunkOffset { get; }
             public int? ChunkCount { get; }
+            public ulong? CanonicalSequence { get; }
+            public ulong? ObservedCanonicalSequence { get; }
             public int WireBytes { get; }
 
-            public PendingRecord(byte[] payload, V2DeliveryReliability reliability, V2ScheduleLane lane, OperationId operationId, bool coalescible, V2ScheduleDescriptor descriptor, BulkTransferState bulkTransfer, V2BulkTransferDescriptor bulkDescriptor, ushort bodySchema, int? chunkIndex = null, int? chunkOffset = null, int? chunkCount = null)
+            public PendingRecord(byte[] payload, V2DeliveryReliability reliability, V2ScheduleLane lane, OperationId operationId, bool coalescible, V2ScheduleDescriptor descriptor, BulkTransferState bulkTransfer, V2BulkTransferDescriptor bulkDescriptor, ushort bodySchema, int? chunkIndex = null, int? chunkOffset = null, int? chunkCount = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
             {
                 Payload = payload ?? throw new ArgumentNullException(nameof(payload));
                 Reliability = reliability;
@@ -1125,6 +1254,8 @@ namespace HBP.Sync
                 ChunkIndex = chunkIndex;
                 ChunkOffset = chunkOffset;
                 ChunkCount = chunkCount;
+                CanonicalSequence = canonicalSequence;
+                ObservedCanonicalSequence = observedCanonicalSequence;
                 WireBytes = checked(payload.Length + V2MutationEnvelopeCodec.HeaderLength);
             }
         }

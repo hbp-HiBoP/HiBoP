@@ -18,12 +18,14 @@ namespace HBP.Tests.Transfer
         private Task serving;
         private string folder, statePath;
         private int installations;
+        private bool failReplicaWithProtocol;
         private TaskCompletionSource<bool> replicaEntered, releaseReplica;
 
         [SetUp]
         public void SetUp()
         {
             installations = 0;
+            failReplicaWithProtocol = false;
             replicaEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             releaseReplica = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             folder = Path.Combine(Path.GetTempPath(), "hibop-quest030-" + Guid.NewGuid().ToString("N"));
@@ -53,6 +55,8 @@ namespace HBP.Tests.Transfer
             }, async (_, token) =>
             {
                 replicaEntered.TrySetResult(true);
+                if (failReplicaWithProtocol)
+                    throw new V2TransportProtocolException("Malformed replica session.");
                 using var cancelled = token.Register(() => releaseReplica.TrySetCanceled());
                 await releaseReplica.Task;
             });
@@ -105,6 +109,22 @@ namespace HBP.Tests.Transfer
             Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
             releaseReplica.TrySetResult(true);
             await control;
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        public async Task ReplicaProtocolFailure_DoesNotFaultServeShutdown()
+        {
+            byte[] credential = await Pair();
+            await Resume(credential, Guid.NewGuid().ToString("N"));
+            failReplicaWithProtocol = true;
+            Task control = QuestPairing.OpenReplicaAsync("127.0.0.1", receiver.Pin, credential, stop.Token, async (_, __) => await releaseReplica.Task);
+
+            await AwaitBoundedAsync(replicaEntered.Task);
+            releaseReplica.TrySetResult(true);
+            await AwaitBoundedAsync(control);
+            stop.Cancel();
+            await AwaitBoundedAsync(serving);
         }
 
         [Test]
@@ -302,6 +322,14 @@ namespace HBP.Tests.Transfer
             {
                 return exception;
             }
+        }
+
+        private static async Task AwaitBoundedAsync(Task task)
+        {
+            Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+            if (completed != task)
+                throw new TimeoutException("The pairing server did not reach its deterministic shutdown barrier.");
+            await task;
         }
     }
 }
