@@ -35,7 +35,6 @@ namespace HBP.Dev
                 BuildTarget target = EditorUserBuildSettings.activeBuildTarget;
                 ScriptingImplementation scriptingBackend = GetCommandLineScriptingBackend(target);
                 bool development = HasCommandLineArgument("-developmentBuild");
-                WriteBuildInfo();
                 if (target == BuildTarget.Android)
                 {
                     if (scriptingBackend != ScriptingImplementation.IL2CPP)
@@ -74,6 +73,8 @@ namespace HBP.Dev
             BuildProfile profile = target == BuildTarget.StandaloneWindows64 ? HBPBuildProfiles.Load(false) : null;
             BuildProfile.SetActiveBuildProfile(profile);
             PlayerSettings.SetScriptingBackend(NamedBuildTarget.Standalone, scriptingBackend);
+            string version = HBPBuildProfiles.ApplyProductVersion();
+            WriteBuildInfo(version);
 
             string os = "";
             switch (target)
@@ -95,7 +96,7 @@ namespace HBP.Dev
                     break;
             }
 
-            string buildName = string.Format("{0}.{1}.{2}", Application.productName, Application.version, os);
+            string buildName = string.Format("{0}.{1}.{2}", Application.productName, version, os);
             string buildDirectory = buildsDirectory + buildName + "/";
             string dataDirectory = buildDirectory;
             string hibopName = "HiBoP";
@@ -234,6 +235,8 @@ namespace HBP.Dev
             BuildProfile profile = HBPBuildProfiles.Load(true);
             if (BuildProfile.GetActiveBuildProfile() != profile)
                 throw new BuildFailedException("Quest must be the active Build Profile before building.");
+            string version = HBPBuildProfiles.ApplyProductVersion();
+            WriteBuildInfo(version);
             Directory.CreateDirectory(buildsDirectory);
             bool bundle = EditorUserBuildSettings.buildAppBundle;
             bool export = EditorUserBuildSettings.exportAsGoogleAndroidProject;
@@ -353,12 +356,12 @@ namespace HBP.Dev
             return target == BuildTarget.StandaloneOSX ? ScriptingImplementation.Mono2x : ScriptingImplementation.IL2CPP;
         }
 
-        internal static void WriteBuildInfo()
+        internal static void WriteBuildInfo(string version)
         {
             BuildInfo buildInfo = new()
             {
                 UnityVersion = Application.unityVersion,
-                Version = Application.version,
+                Version = version,
                 BuildDate = DateTime.Now,
                 Commit = GetBuildCommit()
             };
@@ -538,7 +541,6 @@ namespace HBP.Dev
 
             if (GUILayout.Button("Build!"))
             {
-                HBPBuilder.WriteBuildInfo();
                 if (m_BuildDirectory[m_BuildDirectory.Length - 1] != '/' && m_BuildDirectory[m_BuildDirectory.Length - 1] != '\\')
                 {
                     m_BuildDirectory += '/';
