@@ -34,7 +34,21 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Selected implantation3D ID
         /// </summary>
-        public int SelectedImplantationID { get; set; }
+        private int m_SelectedImplantationID;
+
+        public int SelectedImplantationID
+        {
+            get => m_SelectedImplantationID;
+            set
+            {
+                if (m_SelectedImplantationID == value) return;
+                m_SelectedImplantationID = value;
+                ResourceSelectionChanged?.Invoke();
+            }
+        }
+
+        /// <summary>Raised when the selected prepared implantation resource changes.</summary>
+        public event System.Action ResourceSelectionChanged;
 
         /// <summary>
         /// Selected implantation3D

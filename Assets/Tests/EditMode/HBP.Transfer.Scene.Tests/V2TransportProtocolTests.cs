@@ -68,6 +68,23 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task FrameReader_CapturesFirstAndLastReceivePointsWhenTelemetryIsEnabled()
+        {
+            V2TransportRecord expected = CreateEphemeralControl(new byte[] { 1, 2, 3, 4 });
+            using var stream = new MemoryStream(V2TransportFrameCodec.Encode(expected));
+            var sink = new BoundedSyncTelemetrySink(8);
+            using (SyncTelemetry.BeginCapture(sink))
+            {
+                V2TransportRecord received = await V2TransportFrameCodec.ReadAsync(stream, CancellationToken.None);
+                Assert.That(received.FirstReceived.IsValid, Is.True);
+                Assert.That(received.LastReceived.IsValid, Is.True);
+                Assert.That(received.FirstReceived.Timestamp, Is.LessThanOrEqualTo(received.LastReceived.Timestamp));
+                Assert.That(received.FirstReceived.RecordingGeneration, Is.EqualTo(received.LastReceived.RecordingGeneration));
+            }
+        }
+
+        [Test]
         [Category("Sync.Loopback")]
         public async Task FrameReader_RejectsOversizedLengthBeforeReadingOrAllocatingTheBody()
         {

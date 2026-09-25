@@ -38,9 +38,12 @@ namespace HBP.Transfer.Transport
         public V2ScheduleLane Lane { get; }
         public ushort BodySchema { get; }
         public int? ChunkIndex { get; }
+        public V2Mutation Mutation { get; }
+        public SyncTelemetryPoint FirstReceived { get; private set; }
+        public SyncTelemetryPoint LastReceived { get; private set; }
         public int PayloadLength => m_Payload.Length;
 
-        public V2TransportRecord(V2TransportMessageKind kind, SessionId sessionId, SceneId sceneId = null, IncarnationId incarnationId = null, OperationId messageId = null, ReliableStreamId streamId = null, ulong reliableFrameSequence = 0, ulong originSequence = 0, V2OriginDevice originDevice = V2OriginDevice.Desktop, V2ScheduleLane lane = V2ScheduleLane.SessionControl, ushort bodySchema = 0, int? chunkIndex = null, byte[] payload = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null, ulong bulkStreamRetiredThrough = 0)
+        public V2TransportRecord(V2TransportMessageKind kind, SessionId sessionId, SceneId sceneId = null, IncarnationId incarnationId = null, OperationId messageId = null, ReliableStreamId streamId = null, ulong reliableFrameSequence = 0, ulong originSequence = 0, V2OriginDevice originDevice = V2OriginDevice.Desktop, V2ScheduleLane lane = V2ScheduleLane.SessionControl, ushort bodySchema = 0, int? chunkIndex = null, byte[] payload = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null, ulong bulkStreamRetiredThrough = 0, V2Mutation mutation = null)
         {
             Kind = kind;
             SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
@@ -57,11 +60,18 @@ namespace HBP.Transfer.Transport
             Lane = lane;
             BodySchema = bodySchema;
             ChunkIndex = chunkIndex;
+            Mutation = mutation;
             m_Payload = payload == null ? Array.Empty<byte>() : (byte[])payload.Clone();
         }
 
         public byte[] GetPayloadCopy() => (byte[])m_Payload.Clone();
         internal byte[] PayloadBytes => m_Payload;
+
+        internal void SetReceivePoints(SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived)
+        {
+            FirstReceived = firstReceived;
+            LastReceived = lastReceived;
+        }
     }
 
     /// <summary>
@@ -143,8 +153,9 @@ namespace HBP.Transfer.Transport
         {
             if (stream == null)
                 throw new ArgumentNullException(nameof(stream));
+            FrameReadProgress progress = SyncTelemetry.Enabled ? new FrameReadProgress() : null;
             var header = new byte[HeaderLength];
-            if (!await ReadExactAsync(stream, header, 0, header.Length, true, cancellationToken).ConfigureAwait(false))
+            if (!await ReadExactAsync(stream, header, 0, header.Length, true, cancellationToken, progress, captureFirst: true).ConfigureAwait(false))
                 return null;
 
             if (HasMagic(header, 0, MutationMagic))
@@ -152,16 +163,22 @@ namespace HBP.Transfer.Transport
                 int payloadLength = ReadMutationPayloadLength(header);
                 var frame = new byte[checked(HeaderLength + payloadLength)];
                 Buffer.BlockCopy(header, 0, frame, 0, HeaderLength);
-                if (payloadLength > 0 && !await ReadExactAsync(stream, frame, HeaderLength, payloadLength, false, cancellationToken).ConfigureAwait(false))
+                if (payloadLength > 0 && !await ReadExactAsync(stream, frame, HeaderLength, payloadLength, false, cancellationToken, progress, captureLast: true).ConfigureAwait(false))
                     throw new EndOfStreamException("Truncated v2 mutation payload.");
-                return CreateRecord(V2MutationEnvelopeCodec.Decode(frame));
+                if (payloadLength == 0) progress?.CaptureLast();
+                V2TransportRecord mutationRecord = CreateRecord(V2MutationEnvelopeCodec.Decode(frame));
+                mutationRecord.SetReceivePoints(progress?.First ?? default, progress?.Last ?? default);
+                return mutationRecord;
             }
 
             HeaderFields fields = ReadHeader(header, 0);
             var payload = new byte[fields.PayloadLength];
-            if (payload.Length > 0 && !await ReadExactAsync(stream, payload, 0, payload.Length, false, cancellationToken).ConfigureAwait(false))
+            if (payload.Length > 0 && !await ReadExactAsync(stream, payload, 0, payload.Length, false, cancellationToken, progress, captureLast: true).ConfigureAwait(false))
                 throw new EndOfStreamException("Truncated v2 transport payload.");
-            return CreateRecord(fields, payload);
+            if (payload.Length == 0) progress?.CaptureLast();
+            V2TransportRecord record = CreateRecord(fields, payload);
+            record.SetReceivePoints(progress?.First ?? default, progress?.Last ?? default);
+            return record;
         }
 
         public static async Task WriteAsync(Stream stream, V2TransportRecord record, CancellationToken cancellationToken)
@@ -172,7 +189,7 @@ namespace HBP.Transfer.Transport
             await stream.WriteAsync(frame, 0, frame.Length, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<bool> ReadExactAsync(Stream stream, byte[] buffer, int offset, int count, bool allowCleanEnd, CancellationToken cancellationToken)
+        private static async Task<bool> ReadExactAsync(Stream stream, byte[] buffer, int offset, int count, bool allowCleanEnd, CancellationToken cancellationToken, FrameReadProgress progress, bool captureFirst = false, bool captureLast = false)
         {
             int read = 0;
             while (read < count)
@@ -185,10 +202,21 @@ namespace HBP.Transfer.Transport
                     throw new EndOfStreamException("The v2 transport stream ended mid-frame.");
                 }
 
+                if (read == 0 && captureFirst) progress?.CaptureFirst();
                 read += current;
+                if (read == count && captureLast) progress?.CaptureLast();
             }
 
             return true;
+        }
+
+        private sealed class FrameReadProgress
+        {
+            public SyncTelemetryPoint First { get; private set; }
+            public SyncTelemetryPoint Last { get; private set; }
+
+            public void CaptureFirst() => First = SyncTelemetry.CapturePoint();
+            public void CaptureLast() => Last = SyncTelemetry.CapturePoint();
         }
 
         private static HeaderFields ReadHeader(byte[] bytes, int offset)
@@ -323,7 +351,7 @@ namespace HBP.Transfer.Transport
 
         private static V2TransportRecord CreateRecord(V2MutationEnvelope envelope)
         {
-            return new V2TransportRecord(V2TransportMessageKind.Application, envelope.SessionId, envelope.SceneId, envelope.IncarnationId, envelope.OperationId, envelope.ReliableStreamId, envelope.ReliableFrameSequence, envelope.OriginSequence, envelope.OriginDevice, V2ScheduleLane.Interactive, 1, payload: V2MutationPayloadCodec.Encode(envelope.Mutation), canonicalSequence: envelope.CanonicalSequence, observedCanonicalSequence: envelope.ObservedCanonicalSequence);
+            return new V2TransportRecord(V2TransportMessageKind.Application, envelope.SessionId, envelope.SceneId, envelope.IncarnationId, envelope.OperationId, envelope.ReliableStreamId, envelope.ReliableFrameSequence, envelope.OriginSequence, envelope.OriginDevice, V2ScheduleLane.Interactive, 1, payload: V2MutationPayloadCodec.Encode(envelope.Mutation), canonicalSequence: envelope.CanonicalSequence, observedCanonicalSequence: envelope.ObservedCanonicalSequence, mutation: envelope.Mutation);
         }
 
         private static V2TransportRecord CreateRecord(HeaderFields fields, byte[] payload)

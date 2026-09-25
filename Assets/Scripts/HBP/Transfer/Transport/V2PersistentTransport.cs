@@ -69,7 +69,22 @@ namespace HBP.Transfer.Transport
         {
             get
             {
-                lock (m_Gate) return m_State;
+                lock (m_Gate)
+                {
+                    if (m_State == V2PersistentTransportState.DisconnectedGrace)
+                    {
+                        m_State = m_Scheduler.State switch
+                        {
+                            V2SchedulerState.DisconnectedGrace => V2PersistentTransportState.DisconnectedGrace,
+                            V2SchedulerState.Online => V2PersistentTransportState.Connected,
+                            V2SchedulerState.Offline => V2PersistentTransportState.Disconnected,
+                            V2SchedulerState.Faulted => V2PersistentTransportState.Faulted,
+                            _ => m_State
+                        };
+                    }
+
+                    return m_State;
+                }
             }
         }
 
@@ -109,6 +124,22 @@ namespace HBP.Transfer.Transport
             if (result.Accepted)
                 SignalWriter();
             return result;
+        }
+
+        /// <summary>Wakes the transport writer after an attached driver enqueues directly on its scheduler.</summary>
+        public void NotifySchedulerChanged()
+        {
+            bool schedulerFaulted;
+            lock (m_Gate)
+            {
+                ThrowIfUnavailable();
+                schedulerFaulted = MarkSchedulerFaultedLocked();
+            }
+
+            if (schedulerFaulted)
+                StopFaultedSession();
+            else
+                SignalWriter();
         }
 
         public V2EnqueueResult EnqueueSceneOperation(byte[] encodedBody, V2ScheduleDescriptor descriptor, bool coalesciblePreview = false, bool structural = false, bool final = false, ushort bodySchema = 1, OperationId operationId = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
@@ -771,7 +802,7 @@ namespace HBP.Transfer.Transport
             IncarnationId incarnation = frame.Lane == V2ScheduleLane.SessionControl ? null : m_Scheduler.IncarnationId;
             ReliableStreamId stream = frame.StreamId ?? m_Scheduler.SessionControlStreamId;
             int? chunkIndex = frame.ChunkIndex;
-            ushort bodySchema = frame.BulkDescriptor?.BodySchema ?? (frame.Lane == V2ScheduleLane.SessionControl ? (ushort)0 : (ushort)1);
+            ushort bodySchema = frame.BodySchema;
             ulong? canonicalSequence = frame.CanonicalSequence;
             ulong? observedCanonicalSequence = frame.ObservedCanonicalSequence;
             var record = new V2TransportRecord(V2TransportMessageKind.Application, m_Scheduler.SessionId, scene, incarnation, frame.OperationId, stream, frame.ReliableFrameSequence.GetValueOrDefault(), frame.OriginSequence.GetValueOrDefault(), m_Scheduler.OriginDevice, frame.Lane, bodySchema, chunkIndex, frame.GetPayloadCopy(), canonicalSequence, observedCanonicalSequence);

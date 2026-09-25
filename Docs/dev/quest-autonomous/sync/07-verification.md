@@ -124,7 +124,7 @@ Additional deterministic races cover:
 - projection start accepted before/after a sensitive proposal, including authoritative rollback after rejection;
 - a nested/derived setter under remote context (for example automatic cuts) that must not re-emit;
 - tiny interactive apply with an already queued bulk backlog and a bounded per-frame apply budget;
-- initial-publication mutation replay, structural mutation, journal overflow checkpoint fallback and topology-change abort.
+- initial-publication replay for the supported color, D4 cut-definition and timeline mutations; unsupported structural/resource/topology changes abort and restart the full delivery; journal overflow selects one checkpoint fallback.
 - activity input lease lifetime across mutation, cancellation, scene close and stale native completion.
 
 ## Operation-matrix tests

@@ -37,6 +37,7 @@ namespace HBP.Quest.Desktop
         private string endpoint, store;
         private SceneDelivery offer;
         private DesktopReplicaSession replica;
+        private DesktopV2ReplicaSession publicationReplica;
         private PairingSnapshot globals;
         private CancellationTokenSource operation;
         private readonly CancellationTokenSource lifetime = new();
@@ -67,6 +68,12 @@ namespace HBP.Quest.Desktop
                 if (replica.IsClosed) replica = null;
                 else replica.Tick(Time.unscaledTime);
                 if (replica?.RejectionReason is { } rejection && Status != rejection) SetStatus(rejection);
+            }
+
+            if (publicationReplica != null && publicationReplica.IsClosed)
+            {
+                publicationReplica.Dispose();
+                publicationReplica = null;
             }
 
             if (!busy && !scanning && (discoveryActive || reconnect) && Time.unscaledTime >= nextDiscovery)
@@ -192,6 +199,9 @@ namespace HBP.Quest.Desktop
                 captureGeneration = Interlocked.Increment(ref nextTransferCaptureGeneration);
             }
 
+            string userRequestTransferId = requestedTransferId;
+            long userRequestCaptureGeneration = captureGeneration;
+
             try
             {
                 await RunAsync(async token =>
@@ -201,48 +211,83 @@ namespace HBP.Quest.Desktop
                     if (retry && !CanRetry) throw new InvalidOperationException("No prepared visualization is available to retry.");
                     failedDelivery = false;
                     var context = SynchronizationContext.Current;
+                    bool retryCurrent = retry && publicationReplica?.CanRetryTransfer == true;
+                    int publicationRestarts = 0;
                     try
                     {
-                        var result = await LoadingManager.LoadAsync<(DeliveryReceipt Receipt, Exception Error)>(async (update, loadingToken) =>
+                        while (true)
                         {
-                            try
+                            if (!retryCurrent && (retry || publicationRestarts > 0))
                             {
-                                using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, loadingToken);
-                                var stop = linked.Token;
-                                void Report(float value, string message) => context.Post(_ => update(value, 0, new LoadingText(message)), null);
-                                if (!retry)
+                                requestedTransferId = Guid.NewGuid().ToString("N");
+                                captureGeneration = Interlocked.Increment(ref nextTransferCaptureGeneration);
+                            }
+
+                            var result = await LoadingManager.LoadAsync<(DeliveryReceipt Receipt, Exception Error)>(async (update, loadingToken) =>
+                            {
+                                try
                                 {
-                                    offer?.Dispose();
+                                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, loadingToken);
+                                    var stop = linked.Token;
+                                    void Report(float value, string message) => context.Post(_ => update(value, 0, new LoadingText(message)), null);
+                                    if (!retryCurrent)
+                                    {
+                                        offer?.Dispose();
+                                        offer = null;
+                                        publicationReplica?.Dispose();
+                                        publicationReplica = null;
+                                        Report(0.02f, "Preparing visualization");
+                                        offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene, requestedTransferId, captureGeneration, (scene, transferId, sessionId) => { publicationReplica = new DesktopV2ReplicaSession(scene, sessionId, transferId); });
+                                        Report(0.20f, "Connecting to Quest");
+                                    }
+
+                                    DesktopV2ReplicaSession owner = publicationReplica ?? throw new InvalidOperationException("The prepared visualization has no v2 publication owner.");
+                                    using var publicationStop = CancellationTokenSource.CreateLinkedTokenSource(stop, owner.PublicationAbortToken);
+                                    var delivery = offer;
+                                    DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, publicationStop.Token, (stream, sendStop) => delivery.SendAsync(stream, sendStop, null, (count, total) =>
+                                    {
+                                        float value = 0.20f + 0.65f * Mathf.Clamp01((float)count / total);
+                                        Report(value, $"Sending visualization: {100L * Math.Min(count, total) / total}%");
+                                    }));
+                                    await UniTask.SwitchToMainThread(stop);
+                                    var binding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
+                                    await owner.StartAfterPublicationAsync(binding, endpoint, pin, credential, publicationStop.Token);
+                                    update(1, 0, new LoadingText("Visualization ready on Quest"));
+                                    return (receipt, null);
+                                }
+                                catch (Exception error)
+                                {
+                                    await UniTask.SwitchToMainThread();
+                                    return (null, error);
+                                }
+                            }, true);
+                            await UniTask.SwitchToMainThread(token);
+                            if (result.Error != null)
+                            {
+                                bool restart = publicationReplica?.RequiresPublicationRestart == true || result.Error is DesktopV2ReplicaSession.V2PublicationRestartException;
+                                if (!restart || publicationRestarts >= 2) throw result.Error;
+                                publicationRestarts++;
+                                retryCurrent = false;
+                                publicationReplica?.Dispose();
+                                publicationReplica = null;
+                                if (offer != null)
+                                {
+                                    SceneDelivery incomplete = offer;
                                     offer = null;
-                                    Report(0.02f, "Preparing visualization");
-                                    offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene, requestedTransferId, captureGeneration);
-                                    Report(0.20f, "Connecting to Quest");
+                                    await incomplete.DisposeAsync();
                                 }
 
-                                var delivery = offer;
-                                DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, stop, (stream, sendStop) => delivery.SendAsync(stream, sendStop, null, (count, total) =>
-                                {
-                                    float value = 0.20f + 0.65f * Mathf.Clamp01((float)count / total);
-                                    Report(value, $"Sending visualization: {100L * Math.Min(count, total) / total}%");
-                                }));
-                                await UniTask.SwitchToMainThread();
-                                update(1, 0, new LoadingText("Visualization ready on Quest"));
-                                return (receipt, null);
+                                continue;
                             }
-                            catch (Exception error)
+
+                            sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
+                            if (sent)
                             {
-                                await UniTask.SwitchToMainThread();
-                                return (null, error);
+                                replica?.Dispose();
+                                replica = null;
                             }
-                        }, true);
-                        await UniTask.SwitchToMainThread(token);
-                        if (result.Error != null) throw result.Error;
-                        sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
-                        if (sent)
-                        {
-                            var binding = PreparedSceneDeliveryBinding.FromSent(offer, result.Receipt);
-                            replica?.Dispose();
-                            replica = new DesktopReplicaSession(offer.SourceScene, binding, endpoint, pin, credential);
+
+                            break;
                         }
 
                         SetStatus(sent ? "Visualization ready on Quest." : "The visualization was closed or replaced on Quest. Send a new snapshot.");
@@ -259,6 +304,12 @@ namespace HBP.Quest.Desktop
                             await incomplete.DisposeAsync();
                         }
 
+                        if (!failedDelivery)
+                        {
+                            publicationReplica?.Dispose();
+                            publicationReplica = null;
+                        }
+
                         await UniTask.SwitchToMainThread();
                         connected = false;
                         Changed?.Invoke();
@@ -270,7 +321,7 @@ namespace HBP.Quest.Desktop
             {
                 if (!retry)
                 {
-                    var identity = new SyncTelemetryIdentity(requestedTransferId, 1, captureGeneration);
+                    var identity = new SyncTelemetryIdentity(userRequestTransferId, 1, userRequestCaptureGeneration);
                     SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.UserRequest, requestPoint);
                 }
             }
@@ -394,6 +445,8 @@ namespace HBP.Quest.Desktop
         {
             replica?.Dispose();
             replica = null;
+            publicationReplica?.Dispose();
+            publicationReplica = null;
             if (credential != null) Array.Clear(credential, 0, credential.Length);
             credential = pin = null;
             globals?.Dispose();
@@ -414,6 +467,7 @@ namespace HBP.Quest.Desktop
         private async void OnDestroy()
         {
             replica?.Dispose();
+            publicationReplica?.Dispose();
             lifetime.Cancel();
             operation?.Cancel();
             try

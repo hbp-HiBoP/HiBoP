@@ -1,12 +1,22 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using HBP.Core.Data;
+using HBP.Core.Object3D;
+using HBP.Data.Module3D;
 using HBP.Sync;
+using HBP.Sync.Scene;
+using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace HBP.Sync.Tests
 {
@@ -53,6 +63,106 @@ namespace HBP.Sync.Tests
             Assert.That((await ReadIncomingAsync(desktop)).ReliableFrameSequence, Is.EqualTo(1UL));
             Assert.That(desktop.SnapshotMetrics().OutstandingReliableFrames, Is.Zero);
 
+            desktop.Dispose();
+            quest.Dispose();
+            pair.Close();
+            await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task InlineSceneOperation_PreservesItsBodySchemaOnTheWire()
+        {
+            var desktop = CreateTransport(V2OriginDevice.Desktop, 1500);
+            var quest = CreateTransport(V2OriginDevice.Quest, 1600);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> desktopRun = CaptureRunAsync(desktop, pair.Client.GetStream(), stop.Token);
+            Task<Exception> questRun = CaptureRunAsync(quest, pair.Server.GetStream(), stop.Token);
+            var operation = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000016"));
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+
+            Assert.That(desktop.EnqueueSceneOperation(new byte[] { 0x48, 0x42, 0x43, 0x50 }, descriptor, structural: true, bodySchema: 2, operationId: operation).Accepted, Is.True);
+            V2TransportRecord received = await ReadIncomingAsync(quest);
+
+            Assert.That(received.MessageId, Is.EqualTo(operation));
+            Assert.That(received.Lane, Is.EqualTo(V2ScheduleLane.SceneControl));
+            Assert.That(received.BodySchema, Is.EqualTo(2));
+            CollectionAssert.AreEqual(new byte[] { 0x48, 0x42, 0x43, 0x50 }, received.GetPayloadCopy());
+
+            desktop.Dispose();
+            quest.Dispose();
+            pair.Close();
+            await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestProposalRejection_DeliversSchemaThreeDecisionOnInteractiveLane()
+        {
+            var desktop = CreateTransport(V2OriginDevice.Desktop, 1550);
+            var quest = CreateTransport(V2OriginDevice.Quest, 1650);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> desktopRun = CaptureRunAsync(desktop, pair.Client.GetStream(), stop.Token);
+            Task<Exception> questRun = CaptureRunAsync(quest, pair.Server.GetStream(), stop.Token);
+            var operation = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000056"));
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(Scene, Incarnation, Color("conflicting-site"));
+            byte[] body = V2QuestProposalDecisionCodec.EncodeRejection(operation, "stale_sequence");
+
+            Assert.That(desktop.EnqueueSceneOperation(body, descriptor, bodySchema: V2QuestProposalDecisionCodec.BodySchema, operationId: operation).Accepted, Is.True);
+            V2TransportRecord received = await ReadIncomingAsync(quest);
+            V2QuestProposalDecision decision = V2QuestProposalDecisionCodec.Decode(received.GetPayloadCopy(), Scene, Incarnation);
+
+            Assert.That(received.MessageId, Is.EqualTo(operation));
+            Assert.That(received.OriginDevice, Is.EqualTo(V2OriginDevice.Desktop));
+            Assert.That(received.Lane, Is.EqualTo(V2ScheduleLane.Interactive));
+            Assert.That(received.BodySchema, Is.EqualTo(V2QuestProposalDecisionCodec.BodySchema));
+            Assert.That(decision.OperationId, Is.EqualTo(operation));
+            Assert.That(decision.RejectionCode, Is.EqualTo("stale_sequence"));
+            Assert.That(decision.Correction, Is.Null);
+
+            desktop.Dispose();
+            quest.Dispose();
+            pair.Close();
+            await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task CheckpointBulkReceiver_ReassemblesBoundedSchemaTwoBody()
+        {
+            var desktop = CreateTransport(V2OriginDevice.Desktop, 1700);
+            var quest = CreateTransport(V2OriginDevice.Quest, 1800);
+            byte[] expected = Bytes(V2SchedulerLimits.DefaultInlineThresholdBytes + 904, 0x6A);
+            var operation = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000017"));
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+            Assert.That(desktop.EnqueueSceneOperation(expected, descriptor, structural: true, bodySchema: V2PublicationCheckpointBulkReceiver.BodySchema, operationId: operation).Accepted, Is.True);
+
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> desktopRun = CaptureRunAsync(desktop, pair.Client.GetStream(), stop.Token);
+            Task<Exception> questRun = CaptureRunAsync(quest, pair.Server.GetStream(), stop.Token);
+            var receiver = new V2PublicationCheckpointBulkReceiver();
+            byte[] actual = null;
+            OperationId completedOperation = null;
+            while (actual == null)
+            {
+                V2TransportRecord record = await ReadIncomingAsync(quest);
+                if (!receiver.IsActive)
+                {
+                    Assert.That(receiver.IsCheckpointDescriptor(record), Is.True);
+                    receiver.Begin(record, V2OriginDevice.Desktop);
+                    continue;
+                }
+
+                Assert.That(receiver.TryAppend(record, out actual, out completedOperation), Is.True);
+            }
+
+            Assert.That(completedOperation, Is.EqualTo(operation));
+            CollectionAssert.AreEqual(expected, actual);
+            Assert.That(receiver.IsActive, Is.False);
+            receiver.Reset();
             desktop.Dispose();
             quest.Dispose();
             pair.Close();
@@ -254,6 +364,375 @@ namespace HBP.Sync.Tests
             quest.Dispose();
             secondPair.Close();
             await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSession_CheckpointMutationReceivedBeforeDisconnectIsAppliedOnceAfterReplay()
+        {
+            using var fixture = new SessionSceneFixture(16);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(fixture.Scene, binding);
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 128);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 5070, limits);
+            var appliedColor = new Color(0.2f, 0.7f, 0.4f, 1f);
+            SetSiteColor mutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), appliedColor.r, appliedColor.g, appliedColor.b, appliedColor.a);
+            OperationId checkpointId = new OperationId(GuidFor(55071));
+            OperationId mutationId = new OperationId(GuidFor(55072));
+            OperationId barrierId = new OperationId(GuidFor(55073));
+            V2ScheduleDescriptor allScene = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+            byte[] checkpoint;
+            using (var sourceBoundary = new V2SceneMutationBoundary(fixture.Scene, V2OriginDevice.Desktop))
+                checkpoint = V2SceneMutationCheckpointCodec.Encode(0, sourceBoundary.CaptureCheckpoint());
+
+            Assert.That(checkpoint.Length, Is.GreaterThan(limits.InlineThresholdBytes), "The fixture must exercise the checkpoint bulk path.");
+            Assert.That(desktopPeer.EnqueueSceneOperation(checkpoint, allScene, structural: true, bodySchema: V2PublicationCheckpointBulkReceiver.BodySchema, operationId: checkpointId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueMutation(mutation, 1UL, null, coalesciblePreview: false, operationId: mutationId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueSceneOperation(V2PublicationControlCodec.EncodeLiveBarrier(1), allScene, structural: true, operationId: barrierId).Accepted, Is.True);
+
+            int matchingColorApplications = 0;
+            Action<SiteState> countMutationApply = state =>
+            {
+                if (ReferenceEquals(state, fixture.Sites[0].State) && state.Color == appliedColor) matchingColorApplications++;
+            };
+            SiteState.ColorChanged += countMutationApply;
+            LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
+            var droppedBulk = new DropBulkWriteStream(firstPair.Client.GetStream());
+            Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, droppedBulk, CancellationToken.None);
+            Task<Exception> firstQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
+
+            try
+            {
+                await AwaitGuardAsync(droppedBulk.Dropped.Task);
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 2, "Quest did not retain the interleaved mutation and barrier before checkpoint completion.");
+                List<V2TransportRecord> beforeDisconnect = GetDeferredRecords(questOwner);
+                Assert.That(beforeDisconnect[0].MessageId, Is.EqualTo(mutationId));
+                Assert.That(beforeDisconnect[1].MessageId, Is.EqualTo(barrierId));
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.True);
+                Assert.That(matchingColorApplications, Is.Zero, "The interleaved mutation must wait for the incomplete checkpoint.");
+                Assert.That(GetDeferredByteCount(questOwner), Is.GreaterThan(0));
+
+                firstPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+                Assert.That(desktopPeer.State, Is.EqualTo(V2PersistentTransportState.DisconnectedGrace));
+                Assert.That((bool)questOwner.GetType().GetProperty("CanResumeConnection").GetValue(questOwner), Is.True);
+                Assert.That(GetDeferredRecords(questOwner), Has.Count.EqualTo(2), "Disconnect must not discard the queue whose records have transport ACKs.");
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.True, "The partial checkpoint receiver must remain on the retained Quest owner.");
+
+                using var resumedPair = await LoopbackPeerPair.ConnectAsync();
+                Task<Exception> resumedDesktopRun = CaptureRunAsync(desktopPeer, resumedPair.Client.GetStream(), CancellationToken.None);
+                Task<Exception> resumedQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, resumedPair.Server.GetStream(), CancellationToken.None));
+                V2TransportRecord acknowledgement = await ReadIncomingAsync(desktopPeer);
+                Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
+                Assert.That(acknowledgedBarrier, Is.EqualTo(barrierId));
+                Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(appliedColor));
+                Assert.That(matchingColorApplications, Is.EqualTo(1), "The retained interleaved canonical mutation must apply once after checkpoint replay.");
+                Assert.That(GetDeferredRecords(questOwner), Is.Empty);
+                Assert.That(GetDeferredByteCount(questOwner), Is.Zero);
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.False);
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(1UL));
+
+                ((IDisposable)questOwner).Dispose();
+                desktopPeer.Dispose();
+                resumedPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(resumedDesktopRun, resumedQuestRun));
+            }
+            finally
+            {
+                SiteState.ColorChanged -= countMutationApply;
+                ((IDisposable)questOwner).Dispose();
+                desktopPeer.Dispose();
+                firstPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSession_DisconnectAfterFinalCheckpointChunkRetainsCheckpointUntilReplay()
+        {
+            using var fixture = new SessionSceneFixture(16);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            var checkpointApplyStarted = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            int checkpointApplyAttempts = 0;
+            Func<CancellationToken, Task> beforeCheckpointApply = async stop =>
+            {
+                if (Interlocked.Increment(ref checkpointApplyAttempts) == 1)
+                {
+                    checkpointApplyStarted.TrySetResult(true);
+                    await Task.Delay(Timeout.Infinite, stop);
+                }
+            };
+            object questOwner = CreateQuestSession(fixture.Scene, binding, beforeCheckpointApply, null);
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 128);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 5080, limits);
+            Color appliedColor = new Color(0.31f, 0.62f, 0.83f, 1f);
+            var mutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), appliedColor.r, appliedColor.g, appliedColor.b, appliedColor.a);
+            OperationId checkpointId = new OperationId(GuidFor(55081));
+            OperationId mutationId = new OperationId(GuidFor(55082));
+            OperationId barrierId = new OperationId(GuidFor(55083));
+            V2ScheduleDescriptor allScene = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+            byte[] checkpoint;
+            using (var sourceBoundary = new V2SceneMutationBoundary(fixture.Scene, V2OriginDevice.Desktop))
+                checkpoint = V2SceneMutationCheckpointCodec.Encode(0, sourceBoundary.CaptureCheckpoint());
+
+            Assert.That(checkpoint.Length, Is.GreaterThan(limits.InlineThresholdBytes));
+            Assert.That(desktopPeer.EnqueueSceneOperation(checkpoint, allScene, structural: true, bodySchema: V2PublicationCheckpointBulkReceiver.BodySchema, operationId: checkpointId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueMutation(mutation, 1UL, null, coalesciblePreview: false, operationId: mutationId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueSceneOperation(V2PublicationControlCodec.EncodeLiveBarrier(1), allScene, structural: true, operationId: barrierId).Accepted, Is.True);
+
+            int matchingColorApplications = 0;
+            Action<SiteState> countMutationApply = state =>
+            {
+                if (ReferenceEquals(state, fixture.Sites[0].State) && state.Color == appliedColor) matchingColorApplications++;
+            };
+            SiteState.ColorChanged += countMutationApply;
+            LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
+            Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, firstPair.Client.GetStream(), CancellationToken.None);
+            Task<Exception> firstQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
+            LoopbackPeerPair resumedPair = null;
+            Task<Exception> resumedDesktopRun = null;
+            Task<Exception> resumedQuestRun = null;
+
+            try
+            {
+                await AwaitGuardAsync(checkpointApplyStarted.Task);
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.False, "The final chunk must have completed and reset the bulk receiver.");
+                Assert.That(GetCompletedCheckpoint(questOwner), Is.Not.Null, "The completed bytes must be retained before application starts.");
+                Assert.That(GetDeferredDrainPending(questOwner), Is.True);
+                List<V2TransportRecord> deferred = GetDeferredRecords(questOwner);
+                Assert.That(deferred, Has.Count.EqualTo(2));
+                Assert.That(deferred[0].MessageId, Is.EqualTo(mutationId));
+                Assert.That(deferred[1].MessageId, Is.EqualTo(barrierId));
+                Assert.That(matchingColorApplications, Is.Zero);
+
+                firstPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+                Assert.That((bool)questOwner.GetType().GetProperty("CanResumeConnection").GetValue(questOwner), Is.True);
+                Assert.That(GetCompletedCheckpoint(questOwner), Is.Not.Null, "A disconnect before application must leave the completed checkpoint with the same owner.");
+                Assert.That(GetDeferredRecords(questOwner), Has.Count.EqualTo(2));
+
+                resumedPair = await LoopbackPeerPair.ConnectAsync();
+                resumedDesktopRun = CaptureRunAsync(desktopPeer, resumedPair.Client.GetStream(), CancellationToken.None);
+                resumedQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, resumedPair.Server.GetStream(), CancellationToken.None));
+                V2TransportRecord acknowledgement = await ReadIncomingAsync(desktopPeer);
+                Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
+                Assert.That(acknowledgedBarrier, Is.EqualTo(barrierId));
+                Assert.That(checkpointApplyAttempts, Is.EqualTo(2), "The retained checkpoint is resumed once on reconnect.");
+                Assert.That(GetCompletedCheckpoint(questOwner), Is.Null);
+                Assert.That(GetDeferredDrainPending(questOwner), Is.False);
+                Assert.That(GetDeferredRecords(questOwner), Is.Empty);
+                Assert.That(GetDeferredByteCount(questOwner), Is.Zero);
+                Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(appliedColor));
+                Assert.That(matchingColorApplications, Is.EqualTo(1), "The interleaved canonical mutation is applied once after the checkpoint.");
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(1UL));
+            }
+            finally
+            {
+                SiteState.ColorChanged -= countMutationApply;
+                ((IDisposable)questOwner).Dispose();
+                desktopPeer.Dispose();
+                firstPair.Close();
+                resumedPair?.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+                if (resumedDesktopRun != null && resumedQuestRun != null)
+                    await AwaitGuardAsync(Task.WhenAll(resumedDesktopRun, resumedQuestRun));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSession_DisconnectDuringDeferredDrainResumesAtNextRecord()
+        {
+            using var fixture = new SessionSceneFixture(16);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            var deferredRecordProcessed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            OperationId firstMutationId = new OperationId(GuidFor(55091));
+            int pauseCount = 0;
+            Func<V2TransportRecord, CancellationToken, Task> afterDeferredRecordProcessed = async (record, stop) =>
+            {
+                if (record.MessageId.Equals(firstMutationId) && Interlocked.Increment(ref pauseCount) == 1)
+                {
+                    deferredRecordProcessed.TrySetResult(true);
+                    await Task.Delay(Timeout.Infinite, stop);
+                }
+            };
+            object questOwner = CreateQuestSession(fixture.Scene, binding, null, afterDeferredRecordProcessed);
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 128);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 5090, limits);
+            Color firstColor = new Color(0.23f, 0.51f, 0.76f, 1f);
+            Color secondColor = new Color(0.76f, 0.41f, 0.19f, 1f);
+            SiteId site = new SiteId(fixture.SiteIds[0]);
+            var firstMutation = new SetSiteColor(new ColumnId(fixture.ColumnId), site, firstColor.r, firstColor.g, firstColor.b, firstColor.a);
+            var secondMutation = new SetSiteColor(new ColumnId(fixture.ColumnId), site, secondColor.r, secondColor.g, secondColor.b, secondColor.a);
+            OperationId checkpointId = new OperationId(GuidFor(55101));
+            OperationId secondMutationId = new OperationId(GuidFor(55102));
+            OperationId barrierId = new OperationId(GuidFor(55103));
+            V2ScheduleDescriptor allScene = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+            byte[] checkpoint;
+            using (var sourceBoundary = new V2SceneMutationBoundary(fixture.Scene, V2OriginDevice.Desktop))
+                checkpoint = V2SceneMutationCheckpointCodec.Encode(0, sourceBoundary.CaptureCheckpoint());
+
+            Assert.That(checkpoint.Length, Is.GreaterThan(limits.InlineThresholdBytes));
+            Assert.That(desktopPeer.EnqueueSceneOperation(checkpoint, allScene, structural: true, bodySchema: V2PublicationCheckpointBulkReceiver.BodySchema, operationId: checkpointId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueMutation(firstMutation, 1UL, null, coalesciblePreview: false, operationId: firstMutationId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueMutation(secondMutation, 2UL, null, coalesciblePreview: false, operationId: secondMutationId).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueSceneOperation(V2PublicationControlCodec.EncodeLiveBarrier(2), allScene, structural: true, operationId: barrierId).Accepted, Is.True);
+
+            int firstApplications = 0;
+            int secondApplications = 0;
+            Action<SiteState> countMutationApply = state =>
+            {
+                if (!ReferenceEquals(state, fixture.Sites[0].State)) return;
+                if (state.Color == firstColor) firstApplications++;
+                if (state.Color == secondColor) secondApplications++;
+            };
+            SiteState.ColorChanged += countMutationApply;
+            LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
+            Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, firstPair.Client.GetStream(), CancellationToken.None);
+            Task<Exception> firstQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
+            LoopbackPeerPair resumedPair = null;
+            Task<Exception> resumedDesktopRun = null;
+            Task<Exception> resumedQuestRun = null;
+
+            try
+            {
+                await AwaitGuardAsync(deferredRecordProcessed.Task);
+                Assert.That(GetCompletedCheckpoint(questOwner), Is.Null, "The checkpoint must already be applied before the drain interruption.");
+                Assert.That(GetDeferredDrainPending(questOwner), Is.True);
+                List<V2TransportRecord> remaining = GetDeferredRecords(questOwner);
+                Assert.That(remaining, Has.Count.EqualTo(2));
+                Assert.That(remaining[0].MessageId, Is.EqualTo(secondMutationId));
+                Assert.That(remaining[1].MessageId, Is.EqualTo(barrierId));
+                Assert.That(firstApplications, Is.EqualTo(1));
+                Assert.That(secondApplications, Is.Zero);
+
+                firstPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+                Assert.That((bool)questOwner.GetType().GetProperty("CanResumeConnection").GetValue(questOwner), Is.True);
+                Assert.That(GetDeferredDrainPending(questOwner), Is.True);
+                Assert.That(GetDeferredRecords(questOwner), Has.Count.EqualTo(2));
+
+                resumedPair = await LoopbackPeerPair.ConnectAsync();
+                resumedDesktopRun = CaptureRunAsync(desktopPeer, resumedPair.Client.GetStream(), CancellationToken.None);
+                resumedQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, resumedPair.Server.GetStream(), CancellationToken.None));
+                V2TransportRecord acknowledgement = await ReadIncomingAsync(desktopPeer);
+                Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
+                Assert.That(acknowledgedBarrier, Is.EqualTo(barrierId));
+                Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(secondColor));
+                Assert.That(firstApplications, Is.EqualTo(1), "The already drained record must not be applied again.");
+                Assert.That(secondApplications, Is.EqualTo(1), "The next ordered record must be applied exactly once after reconnect.");
+                Assert.That(GetDeferredRecords(questOwner), Is.Empty);
+                Assert.That(GetDeferredByteCount(questOwner), Is.Zero);
+                Assert.That(GetDeferredDrainPending(questOwner), Is.False);
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(2UL));
+            }
+            finally
+            {
+                SiteState.ColorChanged -= countMutationApply;
+                ((IDisposable)questOwner).Dispose();
+                desktopPeer.Dispose();
+                firstPair.Close();
+                resumedPair?.Close();
+                await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+                if (resumedDesktopRun != null && resumedQuestRun != null)
+                    await AwaitGuardAsync(Task.WhenAll(resumedDesktopRun, resumedQuestRun));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task DesktopAndQuestSessions_ReconnectInitialBarrierBeforeReportingLive()
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+
+            var firstDroppedBarrier = new TaskCompletionSource<DropMessageKindWriteStream>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var secondPairReady = new TaskCompletionSource<LoopbackPeerPair>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var connectionTransports = new List<V2PersistentTransport>();
+            var connectionPairs = new List<LoopbackPeerPair>();
+            var questRuns = new List<Task<Exception>>();
+            int openCount = 0;
+            var questAckCount = new CountingSessionControlWriteStream();
+            Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> openReplica = async (host, pin, credential, stop, transport) =>
+            {
+                int attempt = Interlocked.Increment(ref openCount);
+                LoopbackPeerPair pair = await LoopbackPeerPair.ConnectAsync();
+                connectionTransports.Add(transport);
+                connectionPairs.Add(pair);
+                Stream desktopStream = pair.Client.GetStream();
+                Stream questStream = pair.Server.GetStream();
+                if (attempt == 1)
+                {
+                    var drop = new DropMessageKindWriteStream(desktopStream, V2TransportMessageKind.Application);
+                    firstDroppedBarrier.TrySetResult(drop);
+                    desktopStream = drop;
+                }
+                else if (attempt == 2)
+                {
+                    questStream = questAckCount.Wrap(questStream);
+                    secondPairReady.TrySetResult(pair);
+                }
+
+                questRuns.Add(CaptureTaskExceptionAsync(RunQuestSession(questOwner, questStream, stop)));
+                await transport.RunConnectionAsync(desktopStream, stop);
+            };
+
+            object desktopOwner = null;
+            Task startPublication = null;
+            try
+            {
+                Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+                ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+                Assert.That(constructor, Is.Not.Null, "The Desktop owner should expose its connector seam for session-level reconnect verification.");
+                desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), openReplica });
+                MethodInfo start = desktopOwnerType.GetMethod("StartAfterPublicationAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                Assert.That(start, Is.Not.Null);
+                startPublication = (Task)start.Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
+
+                DropMessageKindWriteStream dropped = await AwaitGuardValueAsync(firstDroppedBarrier.Task);
+                await AwaitGuardAsync(dropped.Dropped.Task);
+                Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.False, "The production Desktop owner must wait for the barrier acknowledgement.");
+                Assert.That(dropped.DroppedRecord.MessageId, Is.Not.Null);
+
+                connectionPairs[0].Close();
+                LoopbackPeerPair resumedPair = await AwaitGuardValueAsync(secondPairReady.Task);
+                await AwaitGuardAsync(startPublication);
+                Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
+                Assert.That((bool)desktopOwnerType.GetProperty("IsClosed").GetValue(desktopOwner), Is.False);
+                Assert.That(openCount, Is.EqualTo(2), "Reconnect should reuse the existing Desktop owner and transport.");
+                Assert.That(connectionTransports, Has.Count.EqualTo(2));
+                Assert.That(ReferenceEquals(connectionTransports[0], connectionTransports[1]), Is.True, "Both production connection attempts must use the same persistent Desktop transport.");
+                Assert.That(questAckCount.SessionControlApplicationWrites, Is.EqualTo(1), "The retained Quest session must apply and acknowledge the replayed barrier once.");
+                Assert.That((V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That(resumedPair, Is.SameAs(connectionPairs[1]));
+
+                var desktopTransport = (V2PersistentTransport)desktopOwnerType.GetField("m_Transport", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                Assert.That(desktopTransport.SnapshotMetrics().OutstandingReliableFrames, Is.Zero, "The initial barrier is acknowledged before the owner reports the scene live.");
+            }
+            finally
+            {
+                if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+                ((IDisposable)questOwner).Dispose();
+                foreach (LoopbackPeerPair pair in connectionPairs) pair.Close();
+                if (startPublication != null && !startPublication.IsCompleted)
+                {
+                    try
+                    {
+                        await AwaitGuardAsync(startPublication);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                if (questRuns.Count > 0)
+                    await AwaitGuardAsync(Task.WhenAll(questRuns));
+            }
         }
 
         [Test]
@@ -641,6 +1120,154 @@ namespace HBP.Sync.Tests
             return await task;
         }
 
+        private static async Task<T> AwaitGuardValueAsync<T>(Task<T> task)
+        {
+            Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+            if (completed != task)
+                throw new TimeoutException("The loopback session did not reach its deterministic barrier.");
+            return await task;
+        }
+
+        private static async Task WaitUntilAsync(Func<bool> condition, string timeoutMessage)
+        {
+            var timeout = System.Diagnostics.Stopwatch.StartNew();
+            while (!condition())
+            {
+                if (timeout.Elapsed >= TimeSpan.FromSeconds(5)) throw new TimeoutException(timeoutMessage);
+                await Task.Delay(5);
+            }
+        }
+
+        private static object CreateQuestSession(Base3DScene scene, PreparedSceneDeliveryBinding binding, Func<CancellationToken, Task> beforeCheckpointApply = null, Func<V2TransportRecord, CancellationToken, Task> afterDeferredRecordProcessed = null)
+        {
+            Type sessionType = FindLoadedType("HBP.Quest.QuestV2ReplicaSession");
+            Assert.That(sessionType, Is.Not.Null, "Quest's production v2 session should be loaded for this integration test.");
+            ConstructorInfo constructor = sessionType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(PreparedSceneDeliveryBinding), typeof(Func<CancellationToken, Task>), typeof(Func<V2TransportRecord, CancellationToken, Task>) }, null);
+            Assert.That(constructor, Is.Not.Null);
+            return constructor.Invoke(new object[] { scene, binding, beforeCheckpointApply, afterDeferredRecordProcessed });
+        }
+
+        private static PreparedSceneDeliveryBinding CreatePreparedBinding()
+        {
+            var metadata = new JObject
+            {
+                ["TransferId"] = Incarnation.Value.ToString(),
+                ["SessionId"] = "published-session",
+                ["GlobalContextId"] = Session.Value.ToString(),
+                ["Visualization"] = new JObject { ["ID"] = Scene.Value.ToString() },
+                ["StandardFiles"] = new JObject(),
+                ["Meshes"] = new JArray(),
+                ["MRIs"] = new JArray(),
+                ["Columns"] = new JArray()
+            };
+            PreparedSceneManifest manifest = PreparedSceneManifest.FromMetadata(metadata);
+            ConstructorInfo constructor = typeof(PreparedSceneDeliveryBinding).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(PreparedSceneManifest) }, null);
+            Assert.That(constructor, Is.Not.Null);
+            return (PreparedSceneDeliveryBinding)constructor.Invoke(new object[] { "loopback-manifest-hash", manifest });
+        }
+
+        private static Type FindLoadedType(string name)
+        {
+            foreach (System.Reflection.Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                Type type = assembly.GetType(name, throwOnError: false);
+                if (type != null) return type;
+            }
+
+            return null;
+        }
+
+        private static Task RunQuestSession(object owner, Stream stream, CancellationToken stop)
+        {
+            MethodInfo run = owner.GetType().GetMethod("RunConnectionAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(run, Is.Not.Null);
+            return (Task)run.Invoke(owner, new object[] { stream, stop });
+        }
+
+        private static List<V2TransportRecord> GetDeferredRecords(object questOwner)
+        {
+            FieldInfo queueField = questOwner.GetType().GetField("m_DeferredRecords", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(queueField, Is.Not.Null, "The bounded deferred records must belong to the retained Quest session.");
+            var records = new List<V2TransportRecord>();
+            foreach (object deferred in (IEnumerable)queueField.GetValue(questOwner))
+            {
+                FieldInfo recordField = deferred.GetType().GetField("Record", BindingFlags.Instance | BindingFlags.Public);
+                Assert.That(recordField, Is.Not.Null);
+                records.Add((V2TransportRecord)recordField.GetValue(deferred));
+            }
+
+            return records;
+        }
+
+        private static int GetDeferredByteCount(object questOwner)
+        {
+            FieldInfo bytes = questOwner.GetType().GetField("m_DeferredBytes", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(bytes, Is.Not.Null);
+            return (int)bytes.GetValue(questOwner);
+        }
+
+        private static bool GetCheckpointReceiverActive(object questOwner)
+        {
+            FieldInfo receiverField = questOwner.GetType().GetField("m_CheckpointBulkReceiver", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(receiverField, Is.Not.Null);
+            return (bool)receiverField.FieldType.GetProperty("IsActive").GetValue(receiverField.GetValue(questOwner));
+        }
+
+        private static byte[] GetCompletedCheckpoint(object questOwner)
+        {
+            FieldInfo checkpoint = questOwner.GetType().GetField("m_CompletedCheckpoint", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(checkpoint, Is.Not.Null);
+            return (byte[])checkpoint.GetValue(questOwner);
+        }
+
+        private static bool GetDeferredDrainPending(object questOwner)
+        {
+            FieldInfo pending = questOwner.GetType().GetField("m_DeferredDrainPending", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(pending, Is.Not.Null);
+            return (bool)pending.GetValue(questOwner);
+        }
+
+        private static ulong GetDriverCanonicalWatermark(object questOwner)
+        {
+            FieldInfo driverField = questOwner.GetType().GetField("m_Driver", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(driverField, Is.Not.Null);
+            return (ulong)driverField.FieldType.GetProperty("LastObservedCanonicalSequence").GetValue(driverField.GetValue(questOwner));
+        }
+
+        private static void SetPrivateField(object target, string fieldName, object value)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing field {target.GetType().Name}.{fieldName}.");
+            field.SetValue(target, value);
+        }
+
+        private static void SetAutoProperty(object target, string propertyName, object value)
+        {
+            Type current = target.GetType();
+            FieldInfo backingField = null;
+            while (current != null && backingField == null)
+            {
+                backingField = current.GetField("<" + propertyName + ">k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                current = current.BaseType;
+            }
+
+            Assert.That(backingField, Is.Not.Null, $"Missing backing field for {target.GetType().Name}.{propertyName}.");
+            backingField.SetValue(target, value);
+        }
+
+        private static async Task<Exception> CaptureTaskExceptionAsync(Task task)
+        {
+            try
+            {
+                await task;
+                return null;
+            }
+            catch (Exception exception)
+            {
+                return exception;
+            }
+        }
+
         private sealed class LoopbackPeerPair : IDisposable
         {
             public TcpClient Client { get; }
@@ -679,6 +1306,169 @@ namespace HBP.Sync.Tests
             }
 
             public void Dispose() => Close();
+        }
+
+        private sealed class SessionSceneFixture : IDisposable
+        {
+            private const string FixturePatientId = "50000000-0000-0000-0000-000000000005";
+            public GameObject Root { get; }
+            public Base3DScene Scene { get; }
+            public Column3DAnatomy Column { get; }
+            public List<HBP.Core.Object3D.Site> Sites { get; } = new List<HBP.Core.Object3D.Site>();
+            public List<string> SiteIds { get; } = new List<string>();
+            public string ColumnId => "scene-focused-column";
+
+            public SessionSceneFixture(int siteCount)
+            {
+                Root = new GameObject("v2 session loopback scene");
+                Scene = Root.AddComponent<Base3DScene>();
+                var mriManager = Root.AddComponent<MRIManager>();
+                SetPrivateField(mriManager, "m_Scene", Scene);
+                SetPrivateField(Scene, "m_MRIManager", mriManager);
+
+                var patient = new Patient { ID = FixturePatientId, Name = "loopback-patient" };
+                var columnData = new AnatomicColumn("loopback-column", new BaseConfiguration(), new AnatomicConfiguration(), ColumnId);
+                SetAutoProperty(Scene, "Visualization", new Visualization("loopback-scene", new[] { patient }, new Column[] { columnData }, new VisualizationConfiguration(), V2PersistentTransportLoopbackTests.Scene.Value.ToString()));
+                Column = Root.AddComponent<Column3DAnatomy>();
+                SetAutoProperty(Column, "ColumnData", columnData);
+                for (int index = 0; index < siteCount; index++)
+                {
+                    string rawName = "site-" + index.ToString("D3");
+                    var siteObject = new GameObject(rawName);
+                    siteObject.transform.SetParent(Root.transform, false);
+                    HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                    site.Information = new SiteInformation { Patient = patient, Name = rawName };
+                    site.State = new SiteState();
+                    Sites.Add(site);
+                    SiteIds.Add(FixturePatientId + "_" + rawName);
+                }
+
+                SetAutoProperty(Column, "Sites", Sites);
+                Scene.Columns.Add(Column);
+            }
+
+            public void Dispose()
+            {
+                if (Root) UnityEngine.Object.DestroyImmediate(Root);
+            }
+        }
+
+        private sealed class DropBulkWriteStream : Stream
+        {
+            private readonly Stream m_Inner;
+            public TaskCompletionSource<bool> Dropped { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public DropBulkWriteStream(Stream inner) => m_Inner = inner;
+            public override bool CanRead => m_Inner.CanRead;
+            public override bool CanSeek => false;
+            public override bool CanWrite => m_Inner.CanWrite;
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override void Flush() => m_Inner.Flush();
+            public override int Read(byte[] buffer, int offset, int count) => m_Inner.Read(buffer, offset, count);
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_Inner.ReadAsync(buffer, offset, count, cancellationToken);
+            public override void Write(byte[] buffer, int offset, int count) => m_Inner.Write(buffer, offset, count);
+
+            public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                if (count >= V2TransportFrameCodec.HeaderLength && ReadKind(buffer, offset) == V2TransportMessageKind.Application)
+                {
+                    var frame = new byte[count];
+                    Buffer.BlockCopy(buffer, offset, frame, 0, count);
+                    V2TransportRecord record = V2TransportFrameCodec.Decode(frame);
+                    if (record.Lane == V2ScheduleLane.Bulk)
+                    {
+                        Dropped.TrySetResult(true);
+                        return;
+                    }
+                }
+
+                await m_Inner.WriteAsync(buffer, offset, count, cancellationToken);
+            }
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) m_Inner.Dispose();
+                base.Dispose(disposing);
+            }
+        }
+
+        private sealed class CountingSessionControlWriteStream
+        {
+            private int m_SessionControlApplicationWrites;
+            public int SessionControlApplicationWrites => Volatile.Read(ref m_SessionControlApplicationWrites);
+
+            public Stream Wrap(Stream stream) => new CountingStream(this, stream);
+
+            private void Observe(byte[] buffer, int offset, int count)
+            {
+                if (count < V2TransportFrameCodec.HeaderLength || ReadKind(buffer, offset) != V2TransportMessageKind.Application)
+                    return;
+                if (buffer[offset] != (byte)'H' || buffer[offset + 1] != (byte)'B' || buffer[offset + 2] != (byte)'T' || buffer[offset + 3] != (byte)'2')
+                    return;
+                var frame = new byte[count];
+                Buffer.BlockCopy(buffer, offset, frame, 0, count);
+                V2TransportRecord record = V2TransportFrameCodec.Decode(frame);
+                if (record.Lane == V2ScheduleLane.SessionControl)
+                    Interlocked.Increment(ref m_SessionControlApplicationWrites);
+            }
+
+            private sealed class CountingStream : Stream
+            {
+                private readonly CountingSessionControlWriteStream m_Owner;
+                private readonly Stream m_Inner;
+
+                public CountingStream(CountingSessionControlWriteStream owner, Stream inner)
+                {
+                    m_Owner = owner;
+                    m_Inner = inner;
+                }
+
+                public override bool CanRead => m_Inner.CanRead;
+                public override bool CanSeek => false;
+                public override bool CanWrite => m_Inner.CanWrite;
+                public override long Length => throw new NotSupportedException();
+
+                public override long Position
+                {
+                    get => throw new NotSupportedException();
+                    set => throw new NotSupportedException();
+                }
+
+                public override void Flush() => m_Inner.Flush();
+                public override int Read(byte[] buffer, int offset, int count) => m_Inner.Read(buffer, offset, count);
+                public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_Inner.ReadAsync(buffer, offset, count, cancellationToken);
+
+                public override void Write(byte[] buffer, int offset, int count)
+                {
+                    m_Owner.Observe(buffer, offset, count);
+                    m_Inner.Write(buffer, offset, count);
+                }
+
+                public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+                {
+                    m_Owner.Observe(buffer, offset, count);
+                    await m_Inner.WriteAsync(buffer, offset, count, cancellationToken);
+                }
+
+                public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+                public override void SetLength(long value) => throw new NotSupportedException();
+
+                protected override void Dispose(bool disposing)
+                {
+                    if (disposing) m_Inner.Dispose();
+                    base.Dispose(disposing);
+                }
+            }
         }
 
         private sealed class DropMessageKindWriteStream : Stream

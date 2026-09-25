@@ -59,6 +59,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public int SelectedMeshID { get; private set; }
 
+        /// <summary>Raised when the selected prepared mesh resource changes.</summary>
+        public event System.Action ResourceSelectionChanged;
+
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
@@ -267,7 +270,9 @@ namespace HBP.Data.Module3D
             if (meshID < 0 || meshID >= Meshes.Count)
                 throw new InvalidOperationException("No mesh is available for selection.");
 
+            bool selectionChanged = SelectedMeshID != meshID;
             SelectedMeshID = meshID;
+            if (selectionChanged) ResourceSelectionChanged?.Invoke();
             ApplySelectedMeshCapabilities();
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();

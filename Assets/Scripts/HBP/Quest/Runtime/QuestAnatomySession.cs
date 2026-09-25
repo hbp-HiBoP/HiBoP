@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Transfer.Scene;
@@ -41,6 +42,8 @@ namespace HBP.Quest
         private readonly SemaphoreSlim publicationGate = new(1, 1);
         private LiveGeometryStateAdapter replica;
         private StateSnapshot acceptedReplica;
+        private QuestV2ReplicaSession v2Replica;
+        private CancellationTokenSource v2ReplicaGraceLifetime;
         private int replicaGeneration;
         public ulong ReceivedRevision { get; private set; }
         public ulong AppliedRevision { get; private set; }
@@ -423,6 +426,10 @@ namespace HBP.Quest
 
                 try
                 {
+                    v2Replica?.Dispose();
+                    v2Replica = null;
+                    replica = null;
+                    acceptedReplica = null;
                     telemetry?.Trace.CaptureApplyStart();
                     await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
                     telemetry?.Trace.CaptureApplyEnd();
@@ -459,6 +466,157 @@ namespace HBP.Quest
 
         /// <summary>Receive ordered scientific state on a separate authenticated control stream.</summary>
         public async Task ReceiveReplicaAsync(Stream stream, CancellationToken stop)
+        {
+            QuestV2ReplicaSession retainedSession = await OnUnityThreadAsync(() => v2Replica, stop).ConfigureAwait(false);
+            byte[] prefix;
+            try
+            {
+                prefix = await ReadPrefixAsync(stream, 4, stop).ConfigureAwait(false);
+            }
+            catch (Exception exception) when (!stop.IsCancellationRequested && IsTransientReplicaInterruption(exception) && retainedSession != null)
+            {
+                await OnUnityThreadAsync(() =>
+                {
+                    if (ReferenceEquals(v2Replica, retainedSession))
+                    {
+                        if (retainedSession.CanResumeConnection)
+                            StartV2ReplicaGraceExpiry(retainedSession);
+                        else if (retainedSession.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
+                            MarkV2ReplicaOffline("The Quest replica reconnect grace expired; publish the scene again to resume synchronization.");
+                    }
+
+                    return 0;
+                }, CancellationToken.None).ConfigureAwait(false);
+                return;
+            }
+
+            var replay = new PrefixReadStream(prefix, stream);
+            if (HasTransportMagic(prefix, "HBT2") || HasTransportMagic(prefix, "HBS2"))
+            {
+                Task<QuestV2ReplicaSession> acquisition = await OnUnityThreadAsync(() =>
+                {
+                    if (!IsReady) throw new InvalidOperationException("Publish a visualization before opening its v2 replica stream.");
+                    byte[] digest = ParseContentHash(current.ContentHash);
+                    var receipt = new DeliveryReceipt(digest, DeliveryStatus.Published);
+                    PreparedSceneDeliveryBinding binding = PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene);
+                    if (v2Replica == null || !v2Replica.Matches(binding))
+                    {
+                        CancelV2ReplicaGraceExpiry();
+                        v2Replica?.Dispose();
+                        v2Replica = new QuestV2ReplicaSession(view.Scene, binding);
+                    }
+
+                    CancelV2ReplicaGraceExpiry();
+                    return Task.FromResult(v2Replica);
+                }, stop).ConfigureAwait(false);
+                QuestV2ReplicaSession session = await acquisition.ConfigureAwait(false);
+                try
+                {
+                    await session.RunConnectionAsync(replay, stop).ConfigureAwait(false);
+                }
+                catch (Exception exception) when (!stop.IsCancellationRequested && IsTransientReplicaInterruption(exception) && session.CanResumeConnection)
+                {
+                    await OnUnityThreadAsync(() =>
+                    {
+                        if (ReferenceEquals(v2Replica, session)) StartV2ReplicaGraceExpiry(session);
+                        return 0;
+                    }, CancellationToken.None).ConfigureAwait(false);
+                    return;
+                }
+                catch (Exception exception)
+                {
+                    if (!stop.IsCancellationRequested)
+                    {
+                        await OnUnityThreadAsync(() =>
+                        {
+                            if (ReferenceEquals(v2Replica, session))
+                            {
+                                if (session.TransportState == V2PersistentTransportState.DisconnectedGrace)
+                                    StartV2ReplicaGraceExpiry(session);
+                                else if (session.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
+                                    MarkV2ReplicaOffline("The Quest v2 replica failed: " + exception.Message);
+                            }
+
+                            return 0;
+                        }, CancellationToken.None).ConfigureAwait(false);
+                    }
+
+                    throw;
+                }
+                finally
+                {
+                    if (stop.IsCancellationRequested)
+                    {
+                        await OnUnityThreadAsync(() =>
+                        {
+                            if (ReferenceEquals(v2Replica, session))
+                            {
+                                CancelV2ReplicaGraceExpiry();
+                                v2Replica = null;
+                                session.Dispose();
+                            }
+
+                            return 0;
+                        }, CancellationToken.None).ConfigureAwait(false);
+                    }
+                }
+
+                return;
+            }
+
+            await ReceiveLegacyReplicaAsync(replay, stop).ConfigureAwait(false);
+        }
+
+        private static bool IsTransientReplicaInterruption(Exception exception) => exception is IOException || exception is SocketException || exception is ObjectDisposedException;
+
+        private void StartV2ReplicaGraceExpiry(QuestV2ReplicaSession session)
+        {
+            CancelV2ReplicaGraceExpiry();
+            var lifetime = new CancellationTokenSource();
+            v2ReplicaGraceLifetime = lifetime;
+            _ = ExpireV2ReplicaGraceAsync(session, lifetime);
+        }
+
+        private async Task ExpireV2ReplicaGraceAsync(QuestV2ReplicaSession session, CancellationTokenSource lifetime)
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(V2OutgoingScheduler.ReconnectGraceMilliseconds), lifetime.Token).ConfigureAwait(false);
+                await OnUnityThreadAsync(() =>
+                {
+                    if (!ReferenceEquals(v2Replica, session) || !ReferenceEquals(v2ReplicaGraceLifetime, lifetime)) return 0;
+                    v2ReplicaGraceLifetime = null;
+                    lifetime.Dispose();
+                    if (session.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
+                        MarkV2ReplicaOffline("The Quest replica reconnect grace expired; publish the scene again to resume synchronization.");
+                    return 0;
+                }, CancellationToken.None).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+            {
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError("Quest v2 replica reconnect expiry failed: " + exception);
+            }
+        }
+
+        private void CancelV2ReplicaGraceExpiry()
+        {
+            CancellationTokenSource lifetime = v2ReplicaGraceLifetime;
+            v2ReplicaGraceLifetime = null;
+            if (lifetime == null) return;
+            lifetime.Cancel();
+            lifetime.Dispose();
+        }
+
+        private void MarkV2ReplicaOffline(string reason)
+        {
+            IsConnected = false;
+            LastError = reason;
+        }
+
+        private async Task ReceiveLegacyReplicaAsync(Stream stream, CancellationToken stop)
         {
             var resources = new Dictionary<string, byte[]>(StringComparer.Ordinal);
             StateSnapshot checkpoint = await OnUnityThreadAsync(() => acceptedReplica, stop).ConfigureAwait(false);
@@ -688,6 +846,9 @@ namespace HBP.Quest
         {
             RequireMainThread();
             reception?.Cancel();
+            CancelV2ReplicaGraceExpiry();
+            v2Replica?.Dispose();
+            v2Replica = null;
             IsConnected = false;
         }
 
@@ -695,6 +856,8 @@ namespace HBP.Quest
         {
             RequireMainThread();
             pendingInitialTelemetry = null;
+            v2Replica?.Dispose();
+            v2Replica = null;
             replica = null;
             acceptedReplica = null;
             ReceivedRevision = AppliedRevision = VisibleRevision = 0;
@@ -729,6 +892,99 @@ namespace HBP.Quest
             CloseSession();
             deliveries.Clear();
             _ = ReleaseGlobalsAsync();
+        }
+
+        private static async Task<byte[]> ReadPrefixAsync(Stream stream, int count, CancellationToken stop)
+        {
+            if (stream == null) throw new ArgumentNullException(nameof(stream));
+            var prefix = new byte[count];
+            int offset = 0;
+            while (offset < count)
+            {
+                int read = await stream.ReadAsync(prefix, offset, count - offset, stop).ConfigureAwait(false);
+                if (read == 0) throw new EndOfStreamException("The authenticated Quest replica stream ended before its protocol header.");
+                offset += read;
+            }
+
+            return prefix;
+        }
+
+        private static bool HasTransportMagic(byte[] prefix, string expected)
+        {
+            if (prefix == null || prefix.Length < 4) return false;
+            for (int i = 0; i < 4; i++)
+                if (prefix[i] != (byte)expected[i])
+                    return false;
+            return true;
+        }
+
+        private static byte[] ParseContentHash(string hash)
+        {
+            if (hash == null || hash.Length != 64) throw new InvalidDataException("The published scene content hash is invalid.");
+            var bytes = new byte[32];
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = Convert.ToByte(hash.Substring(i * 2, 2), 16);
+            return bytes;
+        }
+
+        private sealed class PrefixReadStream : Stream
+        {
+            private readonly byte[] m_Prefix;
+            private readonly Stream m_Inner;
+            private int m_Offset;
+
+            public PrefixReadStream(byte[] prefix, Stream inner)
+            {
+                m_Prefix = prefix ?? throw new ArgumentNullException(nameof(prefix));
+                m_Inner = inner ?? throw new ArgumentNullException(nameof(inner));
+            }
+
+            public override bool CanRead => m_Inner.CanRead;
+            public override bool CanSeek => false;
+            public override bool CanWrite => m_Inner.CanWrite;
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override int Read(byte[] buffer, int offset, int count)
+            {
+                int copied = CopyPrefix(buffer, offset, count);
+                return copied > 0 ? copied : m_Inner.Read(buffer, offset, count);
+            }
+
+            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                int copied = CopyPrefix(buffer, offset, count);
+                return copied > 0 ? copied : await m_Inner.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+            }
+
+            private int CopyPrefix(byte[] buffer, int offset, int count)
+            {
+                if (buffer == null) throw new ArgumentNullException(nameof(buffer));
+                if (offset < 0 || count < 0 || offset > buffer.Length - count) throw new ArgumentOutOfRangeException();
+                int remaining = m_Prefix.Length - m_Offset;
+                if (remaining == 0 || count == 0) return 0;
+                int copied = Math.Min(remaining, count);
+                Buffer.BlockCopy(m_Prefix, m_Offset, buffer, offset, copied);
+                m_Offset += copied;
+                return copied;
+            }
+
+            public override void Flush() => m_Inner.Flush();
+            public override void Write(byte[] buffer, int offset, int count) => m_Inner.Write(buffer, offset, count);
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_Inner.WriteAsync(buffer, offset, count, cancellationToken);
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) m_Inner.Dispose();
+                base.Dispose(disposing);
+            }
         }
 
         private async Task ReleaseGlobalsAsync()

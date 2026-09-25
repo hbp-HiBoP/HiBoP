@@ -192,12 +192,12 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 - wire real setters, session and early single-point Quest PlayerLoop apply;
 - decode/validate off-thread and enqueue detached records;
 - implement capture-boundary-to-Quest-publication mutation journal, ordered replay and overflow checkpoint fallback;
-- abort/restart publication on unsupported resource/topology mutation;
+- abort and restart full publication on a structural, resource or topology mutation that T08 cannot represent with its three typed mutation families;
 - ensure a v2 scene never has the experimental `DesktopReplicaSession`/adapter owner active simultaneously;
 - remove artificial next-frame/quiescence gates from this path;
 - preserve Quest wrapper transforms and collect received/applied/visible telemetry.
 
-**Acceptance:** color/cut/timeline work both directions without snapshot capture; mutation/structural change during initial transfer replays correctly; journal overflow falls back once; no double owner/send exists; T00 provisional p95/GC/main-thread budgets receive an explicit pass/fail decision.
+**Acceptance:** color, D4 complete-cut-definition and timeline mutations work in both directions without live snapshot capture. Mutations in those three families during initial delivery replay in canonical order. An unsupported structural, resource or topology mutation aborts the current delivery and starts a new full delivery from a fresh capture; T08 does not add D3 or other structural handlers. Journal overflow falls back to one checkpoint; no double owner/send exists; T00 provisional p95/GC/main-thread budgets receive an explicit pass/fail/unavailable decision, with unavailable evidence never counted as a pass.
 
 ## T09 — Selection, appearance and timeline coverage
 

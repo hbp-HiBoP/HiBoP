@@ -18,7 +18,7 @@ namespace HBP.Transfer.Scene
     public static class DesktopSceneCapture
     {
         /// <summary>Entry point for LoadingManager, whose delegate begins on a worker thread.</summary>
-        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null, string transferId = null, long captureGeneration = 0)
+        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null, string transferId = null, long captureGeneration = 0, Action<Base3DScene, string, string> captureBoundary = null)
         {
             await UniTask.SwitchToMainThread(token);
             if (ReferenceEquals(sourceScene, null))
@@ -37,7 +37,7 @@ namespace HBP.Transfer.Scene
 #endif
             transferId ??= Guid.NewGuid().ToString("N");
             var telemetryIdentity = new SyncTelemetryIdentity(transferId, 1, captureGeneration == 0 ? 1 : captureGeneration);
-            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity);
+            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity, captureBoundary);
             update(0.20f, 0, new LoadingText("Visualization prepared"));
             return delivery;
         }
@@ -68,10 +68,10 @@ namespace HBP.Transfer.Scene
 
         public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null, bool streaming = false)
         {
-            return await CaptureDeliveryInstrumentedAsync(scene, transferId, sessionId, revision, globals, token, progress, streaming, default);
+            return await CaptureDeliveryInstrumentedAsync(scene, transferId, sessionId, revision, globals, token, progress, streaming, default, null);
         }
 
-        private static async Task<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity)
+        private static async Task<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity, Action<Base3DScene, string, string> captureBoundary)
         {
             if (!PlayerLoopHelper.IsMainThread)
                 throw new InvalidOperationException("Capture must start on Unity's thread.");
@@ -108,6 +108,7 @@ namespace HBP.Transfer.Scene
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
                     Report("Capturing visualization");
+                    captureBoundary?.Invoke(scene, transferId, globals.Id);
                     ScenePayload payload;
                     payload = Capture(scene, archive, transferId, sessionId, revision, standardFiles);
                     // No await across the live graph: metadata and numeric bytes are now owned.

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using HBP.Transfer.Transport;
 
 namespace HBP.Sync.Scene
 {
@@ -97,6 +99,122 @@ namespace HBP.Sync.Scene
         }
     }
 
+    public sealed class V2QuestProposalDecision
+    {
+        public OperationId OperationId { get; }
+        public V2MutationCorrection Correction { get; }
+        public string RejectionCode { get; }
+
+        internal V2QuestProposalDecision(OperationId operationId, V2MutationCorrection correction, string rejectionCode)
+        {
+            OperationId = operationId ?? throw new ArgumentNullException(nameof(operationId));
+            Correction = correction;
+            RejectionCode = rejectionCode ?? throw new ArgumentNullException(nameof(rejectionCode));
+        }
+    }
+
+    /// <summary>Versioned scene-stream body for a Quest proposal rejection or targeted correction.</summary>
+    public static class V2QuestProposalDecisionCodec
+    {
+        public const ushort BodySchema = 3;
+        private const ushort SchemaVersion = 1;
+        private const int FixedHeaderLength = 37;
+        private const int MaximumRejectionCodeBytes = 256;
+        private static readonly byte[] Magic = Encoding.ASCII.GetBytes("HBPD");
+        private static readonly UTF8Encoding Utf8 = new(false, true);
+
+        public static byte[] EncodeCorrection(V2MutationCorrection correction)
+        {
+            if (correction == null) throw new ArgumentNullException(nameof(correction));
+            byte[] mutation = V2MutationPayloadCodec.Encode(correction.AuthoritativeMutation);
+            return Encode(correction.OperationId, correction.RejectionCode, correction.CanonicalSequence, mutation);
+        }
+
+        public static byte[] EncodeRejection(OperationId operationId, string rejectionCode)
+        {
+            return Encode(operationId, rejectionCode, 0, Array.Empty<byte>());
+        }
+
+        public static V2QuestProposalDecision Decode(byte[] bytes, SceneId sceneId, IncarnationId incarnationId)
+        {
+            if (sceneId == null) throw new ArgumentNullException(nameof(sceneId));
+            if (incarnationId == null) throw new ArgumentNullException(nameof(incarnationId));
+            if (bytes == null || bytes.Length < FixedHeaderLength || bytes.Length > V2TransportFrameCodec.MaximumPayloadBytes)
+                throw new InvalidDataException("Invalid Quest proposal decision length.");
+
+            using var stream = new MemoryStream(bytes, false);
+            using var reader = new BinaryReader(stream, Utf8, true);
+            try
+            {
+                if (!reader.ReadBytes(Magic.Length).AsSpan().SequenceEqual(Magic) || reader.ReadUInt16() != SchemaVersion)
+                    throw new InvalidDataException("Unsupported Quest proposal decision signature or schema.");
+                byte[] operationBytes = reader.ReadBytes(16);
+                if (operationBytes.Length != 16) throw new EndOfStreamException();
+                var operationId = new OperationId(new Guid(operationBytes));
+                byte hasCorrection = reader.ReadByte();
+                if (hasCorrection > 1) throw new InvalidDataException("Invalid Quest proposal decision flags.");
+                ulong canonicalSequence = reader.ReadUInt64();
+                ushort rejectionLength = reader.ReadUInt16();
+                int mutationLength = reader.ReadInt32();
+                if (rejectionLength == 0 || rejectionLength > MaximumRejectionCodeBytes || mutationLength < 0 || mutationLength > V2MutationEnvelopeCodec.MaximumPayloadBytes || mutationLength != stream.Length - stream.Position - rejectionLength)
+                    throw new InvalidDataException("Invalid Quest proposal decision fields.");
+                string rejectionCode = Utf8.GetString(reader.ReadBytes(rejectionLength));
+                if (hasCorrection == 0)
+                {
+                    if (canonicalSequence != 0 || mutationLength != 0)
+                        throw new InvalidDataException("A rejection without correction cannot carry canonical state.");
+                    return new V2QuestProposalDecision(operationId, null, rejectionCode);
+                }
+
+                if (mutationLength == 0) throw new InvalidDataException("A correction must carry an authoritative mutation.");
+                byte[] mutationBytes = reader.ReadBytes(mutationLength);
+                if (mutationBytes.Length != mutationLength || stream.Position != stream.Length)
+                    throw new InvalidDataException("Truncated Quest proposal correction.");
+                V2Mutation mutation = V2MutationPayloadCodec.Decode(mutationBytes);
+                var correction = new V2MutationCorrection(sceneId, incarnationId, operationId, canonicalSequence, mutation, rejectionCode);
+                return new V2QuestProposalDecision(operationId, correction, rejectionCode);
+            }
+            catch (EndOfStreamException exception)
+            {
+                throw new InvalidDataException("Truncated Quest proposal decision.", exception);
+            }
+            catch (DecoderFallbackException exception)
+            {
+                throw new InvalidDataException("Invalid Quest proposal decision text.", exception);
+            }
+            catch (ArgumentException exception)
+            {
+                throw new InvalidDataException("Invalid Quest proposal decision identity.", exception);
+            }
+        }
+
+        private static byte[] Encode(OperationId operationId, string rejectionCode, ulong canonicalSequence, byte[] mutation)
+        {
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
+            byte[] text = Utf8.GetBytes(rejectionCode);
+            if (text.Length > MaximumRejectionCodeBytes) throw new InvalidDataException("Quest proposal rejection code exceeds its bound.");
+            if (mutation == null || mutation.Length > V2MutationEnvelopeCodec.MaximumPayloadBytes)
+                throw new InvalidDataException("Quest proposal correction exceeds its payload bound.");
+
+            using var stream = new MemoryStream(FixedHeaderLength + text.Length + mutation.Length);
+            using var writer = new BinaryWriter(stream, Utf8, true);
+            writer.Write(Magic);
+            writer.Write(SchemaVersion);
+            writer.Write(operationId.ToByteArray());
+            writer.Write(mutation.Length == 0 ? (byte)0 : (byte)1);
+            writer.Write(canonicalSequence);
+            writer.Write(checked((ushort)text.Length));
+            writer.Write(mutation.Length);
+            writer.Write(text);
+            writer.Write(mutation);
+            writer.Flush();
+            if (stream.Length > V2TransportFrameCodec.MaximumPayloadBytes)
+                throw new InvalidDataException("Quest proposal decision exceeds the inline transport bound.");
+            return stream.ToArray();
+        }
+    }
+
     /// <summary>Desktop acceptance-order authority for one prepared scene incarnation.</summary>
     public sealed class V2DesktopMutationAuthority : IDisposable
     {
@@ -141,6 +259,15 @@ namespace HBP.Sync.Scene
             return AcceptQuestProposal(proposal.OperationId, proposal.Mutation, proposal.ObservedCanonicalSequence);
         }
 
+        public V2DesktopProposalResult AcceptQuestProposal(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, V2Mutation mutation, ulong observedCanonicalSequence)
+        {
+            if (sceneId == null) throw new ArgumentNullException(nameof(sceneId));
+            if (incarnationId == null) throw new ArgumentNullException(nameof(incarnationId));
+            if (!m_SceneId.Equals(sceneId) || !m_IncarnationId.Equals(incarnationId))
+                return new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "wrong_incarnation");
+            return AcceptQuestProposal(operationId, mutation, observedCanonicalSequence);
+        }
+
         /// <summary>Accepts a decoded proposal when its transport metadata is already available to the receiver.</summary>
         public V2DesktopProposalResult AcceptQuestProposal(OperationId operationId, V2Mutation mutation, ulong observedCanonicalSequence)
         {
@@ -179,7 +306,11 @@ namespace HBP.Sync.Scene
             }
 
             if (observedCanonicalSequence > m_CanonicalSequence || m_CanonicalSequence == ulong.MaxValue)
-                return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "stale_sequence"));
+            {
+                ulong keySequence = m_Ledger.TryGetLastAcceptedSequence(descriptor.CoalescingKey, out ulong lastAccepted) ? lastAccepted : m_CanonicalSequence;
+                var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
+                return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
+            }
 
             ulong acceptedSequence = m_CanonicalSequence + 1;
             V2OperationAdmission admission = m_Ledger.Accept(operationId, descriptor, observedCanonicalSequence, acceptedSequence, payload);
@@ -361,6 +492,7 @@ namespace HBP.Sync.Scene
         public event Action<OperationId, V2EnqueueDisposition> ProposalNotQueued;
         public event Action<OperationId> ProposalConfirmed;
         public event Action<OperationId, V2Mutation> AuthoritativeCorrectionApplied;
+        public event Action<OperationId, string> ProposalRejected;
         public event Action OfflineLocalEntered;
 
         public V2QuestMutationDriver(SceneId sceneId, IncarnationId incarnationId, V2SceneMutationBoundary boundary, V2OutgoingScheduler scheduler, ulong lastObservedCanonicalSequence = 0)
@@ -470,6 +602,23 @@ namespace HBP.Sync.Scene
             return true;
         }
 
+        public bool ReceiveCanonical(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ulong canonicalSequence, V2Mutation mutation)
+        {
+            if (sceneId == null) throw new ArgumentNullException(nameof(sceneId));
+            if (incarnationId == null) throw new ArgumentNullException(nameof(incarnationId));
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            return ReceiveCanonical(new V2CanonicalMutation(sceneId, incarnationId, operationId, canonicalSequence, mutation));
+        }
+
+        public void AdvanceCanonicalWatermark(ulong canonicalSequence)
+        {
+            ThrowIfDisposed();
+            if (canonicalSequence < m_LastObservedCanonicalSequence)
+                throw new InvalidDataException("A canonical checkpoint cannot move the observed sequence backwards.");
+            m_LastObservedCanonicalSequence = canonicalSequence;
+        }
+
         /// <summary>Applies a rejection's current authoritative value through the same targeted setter handler.</summary>
         public bool ReceiveCorrection(V2MutationCorrection correction)
         {
@@ -496,6 +645,18 @@ namespace HBP.Sync.Scene
             }
 
             return false;
+        }
+
+        /// <summary>Closes the online proposal set when the Desktop cannot provide a usable correction.</summary>
+        public bool ReceiveRejection(OperationId operationId, string rejectionCode)
+        {
+            ThrowIfDisposed();
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
+            if (!m_Pending.ContainsKey(operationId.Value)) return false;
+            ProposalRejected?.Invoke(operationId, rejectionCode);
+            EnterOfflineLocal();
+            return true;
         }
 
         private void OnLocalMutationProposed(OperationId operationId, V2Mutation mutation, V2OriginDevice device)

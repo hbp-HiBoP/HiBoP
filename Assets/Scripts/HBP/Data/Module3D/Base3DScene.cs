@@ -898,6 +898,11 @@ namespace HBP.Data.Module3D
         [HideInInspector] public GenericEvent<Core.Object3D.Cut> OnAddCut = new();
 
         /// <summary>
+        /// Event called when removing a cut from the scene
+        /// </summary>
+        [HideInInspector] public GenericEvent<Core.Object3D.Cut> OnRemoveCut = new();
+
+        /// <summary>
         /// Event called when cuts are updated
         /// </summary>
         [HideInInspector] public UnityEvent OnUpdateCuts = new();
@@ -1831,6 +1836,7 @@ namespace HBP.Data.Module3D
 
             try
             {
+                OnRemoveCut.Invoke(cut);
                 cut.OnRemoveCut.Invoke();
             }
             finally

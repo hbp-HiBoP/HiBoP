@@ -109,6 +109,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(driver.TryGetNextTransmission(out V2TransmissionAttempt firstAttempt), Is.True);
             V2DesktopProposalResult first = authority.AcceptQuestProposal(proposal);
             Assert.That(first.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1), "The same Quest driver must retain its unacknowledged proposal across the disconnect.");
 
             driver.BeginDisconnectGrace();
             Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
@@ -118,6 +119,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(replay.Frame, Is.SameAs(firstAttempt.Frame));
             Assert.That(replay.Frame.OperationId, Is.EqualTo(proposal.OperationId));
             Assert.That(replay.Frame.ObservedCanonicalSequence, Is.EqualTo(proposal.ObservedCanonicalSequence));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1), "Reconnect must reuse the original owner and pending proposal until canonical replay is applied.");
 
             V2DesktopProposalResult retry = authority.AcceptQuestProposal(proposal);
             Assert.That(retry.Outcome, Is.EqualTo(V2ProposalOutcome.Duplicate));
@@ -130,7 +132,8 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(driver.PendingProposalCount, Is.Zero);
             Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
             Assert.That(driver.AbandonedProposalCount, Is.Zero);
-            TestContext.WriteLine($"HBP_SYNC_T06_LOST_ACK replay=1 sameFrame=true retryOutcome={retry.Outcome}");
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL), "Replaying the Quest proposal must not create a second Desktop canonical mutation.");
+            TestContext.WriteLine($"HBP_SYNC_T06_LOST_ACK owner=retained unacknowledgedProposal=1 canonicalReplay=1 duplicateApplies=0");
         }
 
         [Test]
@@ -159,7 +162,13 @@ namespace HBP.Tests.Transfer.Scene
             V2DesktopProposalResult disjoint = authority.AcceptQuestProposal(queued[1]);
             Assert.That(disjoint.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
             driver.ReceiveCanonical(disjoint.CanonicalMutation);
-            driver.ReceiveCorrection(conflict.Correction);
+
+            byte[] decisionBytes = V2QuestProposalDecisionCodec.EncodeCorrection(conflict.Correction);
+            V2QuestProposalDecision decision = V2QuestProposalDecisionCodec.Decode(decisionBytes, Scene, Incarnation);
+            Assert.That(decision.OperationId, Is.EqualTo(queued[0].OperationId));
+            Assert.That(decision.RejectionCode, Is.EqualTo("stale_sequence"));
+            Assert.That(decision.Correction.CanonicalSequence, Is.EqualTo(conflict.Correction.CanonicalSequence));
+            Assert.That(driver.ReceiveCorrection(decision.Correction), Is.True, "A same-key conflict must replace Quest's optimistic value with Desktop's authoritative value.");
 
             Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
             Assert.That(quest.SiteB.Color, Is.EqualTo(desktop.SiteB.Color));
@@ -357,6 +366,83 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(driver.TryReconnect(), Is.False);
             Assert.That(driver.TryGetNextTransmission(out _), Is.False);
             TestContext.WriteLine("HBP_SYNC_T06_GRACE expiryAtMs=500 offlineNotice=1 abandoned=1 viewPreserved=true");
+        }
+
+        [Test]
+        public void InitialPublicationJournal_ReplaysAcceptedMutationsInCanonicalOrder()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            var journal = new V2PublicationMutationJournal(Scene, Incarnation);
+            var accepted = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += accepted.Add;
+
+            desktop.Boundary.Apply(Color("site-a", 0.15f, 0.25f, 0.35f), V2MutationApplicationOrigin.LocalDesktop, Operation(601));
+            desktop.Boundary.Apply(Cut(V2CutOrientation.Custom, true, 7, 0.75f, 0.25f, 0.5f, 0.75f), V2MutationApplicationOrigin.LocalDesktop, Operation(602));
+            desktop.Boundary.Apply(new SetTimelineAnchor(desktop.ColumnId, 19, false, true, 3, 0, 1000), V2MutationApplicationOrigin.LocalDesktop, Operation(603));
+            foreach (V2CanonicalMutation mutation in accepted)
+                Assert.That(journal.TryRecord(mutation), Is.True);
+
+            V2PublicationJournalResult replay = journal.Complete(() => throw new AssertionException("Replay must not capture a checkpoint."));
+            Assert.That(replay.Disposition, Is.EqualTo(V2PublicationJournalDisposition.Replay));
+            Assert.That(replay.Mutations, Has.Count.EqualTo(3));
+            Assert.That(replay.Mutations[0].CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(replay.Mutations[1].CanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(replay.Mutations[2].CanonicalSequence, Is.EqualTo(3UL));
+            foreach (V2CanonicalMutation mutation in replay.Mutations)
+                driver.ReceiveCanonical(mutation);
+
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+            Assert.That(quest.Cut.Normal, Is.EqualTo(desktop.Cut.Normal));
+            Assert.That(quest.Timeline.CurrentIndex, Is.EqualTo(desktop.Timeline.CurrentIndex));
+        }
+
+        [Test]
+        public void InitialPublicationJournal_OverflowUsesOneTypedCheckpointFallback()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            var journal = new V2PublicationMutationJournal(Scene, Incarnation, maximumMutations: 1);
+            var accepted = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += accepted.Add;
+
+            desktop.Boundary.Apply(Color("site-a", 0.15f, 0.25f, 0.35f), V2MutationApplicationOrigin.LocalDesktop, Operation(611));
+            desktop.Boundary.Apply(Cut(V2CutOrientation.Custom, true, 7, 0.75f, 0.25f, 0.5f, 0.75f), V2MutationApplicationOrigin.LocalDesktop, Operation(612));
+            Assert.That(journal.TryRecord(accepted[0]), Is.True);
+            Assert.That(journal.TryRecord(accepted[1]), Is.False);
+
+            int checkpointCaptures = 0;
+            V2PublicationJournalResult fallback = journal.Complete(() =>
+            {
+                checkpointCaptures++;
+                return desktop.Boundary.CaptureCheckpoint();
+            });
+            Assert.That(fallback.Disposition, Is.EqualTo(V2PublicationJournalDisposition.Checkpoint));
+            Assert.That(fallback.Mutations, Is.Empty);
+            Assert.That(checkpointCaptures, Is.EqualTo(1));
+
+            byte[] encoded = V2SceneMutationCheckpointCodec.Encode(authority.CanonicalSequence, fallback.Checkpoint);
+            V2PublishedSceneCheckpoint decoded = V2SceneMutationCheckpointCodec.Decode(encoded);
+            quest.Boundary.ApplyCheckpoint(decoded.Checkpoint, Operation(613));
+            Assert.That(decoded.CanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+            Assert.That(quest.Cut.Normal, Is.EqualTo(desktop.Cut.Normal));
+        }
+
+        [Test]
+        public void InitialPublicationControl_RoundTripsLiveBarrierAndAcknowledgement()
+        {
+            OperationId barrier = Operation(621);
+            byte[] live = V2PublicationControlCodec.EncodeLiveBarrier(37);
+            Assert.That(V2PublicationControlCodec.TryDecodeLiveBarrier(live, out ulong sequence), Is.True);
+            Assert.That(sequence, Is.EqualTo(37UL));
+
+            byte[] acknowledgement = V2PublicationControlCodec.EncodeAcknowledgement(barrier);
+            Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement, out OperationId decoded), Is.True);
+            Assert.That(decoded, Is.EqualTo(barrier));
         }
 
         private static V2QuestMutationDriver CreateQuestDriver(Fixture fixture, IMonotonicClock clock)

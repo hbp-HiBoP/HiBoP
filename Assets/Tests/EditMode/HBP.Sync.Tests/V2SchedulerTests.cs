@@ -294,6 +294,7 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        [Category("Sync.SceneFocused")]
         public void Scheduler_GraceExpiryReportsAbandonedRetriesAndPendingPreviews()
         {
             var clock = new FakeMonotonicClock();

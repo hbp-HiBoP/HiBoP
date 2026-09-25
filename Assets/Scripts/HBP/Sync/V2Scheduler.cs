@@ -407,6 +407,7 @@ namespace HBP.Sync
         public OperationId OperationId { get; }
         public V2ScheduleLane Lane { get; }
         public V2DeliveryReliability Reliability { get; }
+        public ushort BodySchema { get; }
         public int WireBytes { get; }
         public V2BulkTransferDescriptor BulkDescriptor { get; }
         public int? ChunkIndex { get; }
@@ -414,7 +415,7 @@ namespace HBP.Sync
         public int? ChunkOffset { get; }
         public int PayloadLength => m_Payload.Length;
 
-        internal V2ReliableFrame(ReliableStreamId streamId, ulong? reliableFrameSequence, ulong? originSequence, OperationId operationId, V2ScheduleLane lane, V2DeliveryReliability reliability, byte[] payload, V2BulkTransferDescriptor bulkDescriptor = null, int? chunkIndex = null, int? chunkCount = null, int? chunkOffset = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null)
+        internal V2ReliableFrame(ReliableStreamId streamId, ulong? reliableFrameSequence, ulong? originSequence, OperationId operationId, V2ScheduleLane lane, V2DeliveryReliability reliability, byte[] payload, V2BulkTransferDescriptor bulkDescriptor = null, int? chunkIndex = null, int? chunkCount = null, int? chunkOffset = null, ulong? canonicalSequence = null, ulong? observedCanonicalSequence = null, ushort bodySchema = 1)
         {
             StreamId = streamId;
             ReliableFrameSequence = reliableFrameSequence;
@@ -424,6 +425,7 @@ namespace HBP.Sync
             OperationId = operationId;
             Lane = lane;
             Reliability = reliability;
+            BodySchema = bodySchema;
             m_Payload = payload ?? throw new ArgumentNullException(nameof(payload));
             WireBytes = checked(payload.Length + V2MutationEnvelopeCodec.HeaderLength);
             BulkDescriptor = bulkDescriptor;
@@ -494,7 +496,7 @@ namespace HBP.Sync
     /// </summary>
     public sealed class V2OutgoingScheduler
     {
-        private const int ReconnectGraceMilliseconds = 500;
+        public const int ReconnectGraceMilliseconds = 500;
         public const int MaximumUnretiredBulkStreams = 126;
 
         private readonly SessionId m_SessionId;
@@ -639,7 +641,7 @@ namespace HBP.Sync
 
             bool asBulk = encodedBody.Length > m_Limits.InlineThresholdBytes;
             if (!asBulk)
-                return EnqueueInlineSceneRecord((byte[])encodedBody.Clone(), descriptor, coalesciblePreview, structural, final, id, canonicalSequence, observedCanonicalSequence);
+                return EnqueueInlineSceneRecord((byte[])encodedBody.Clone(), descriptor, coalesciblePreview, structural, final, id, bodySchema, canonicalSequence, observedCanonicalSequence);
 
             LinkedListNode<PendingRecord> existingSlot = coalesciblePreview ? FindCoalescingSlot(descriptor.CoalescingKey) : null;
             BulkTransferState replacedTransfer = existingSlot?.Value.BulkTransfer;
@@ -836,10 +838,10 @@ namespace HBP.Sync
             return new V2SchedulerMetrics(m_SceneQueue.Count, m_SessionControlQueue.Count, m_SceneQueuedBytes, m_SessionControlQueuedBytes, m_RetainedBulkBodyBytes, m_OutstandingReliableFrames, m_OutstandingReliableBytes, m_CoalescedPreviewCount, m_PreviewPressureCount, m_EphemeralDropCount, m_RetryCount, m_SessionOverflowCount, m_GraceExpiredFrameCount, m_GraceExpiredRecordCount);
         }
 
-        private V2EnqueueResult EnqueueInlineSceneRecord(byte[] payload, V2ScheduleDescriptor descriptor, bool coalesciblePreview, bool structural, bool final, OperationId operationId, ulong? canonicalSequence, ulong? observedCanonicalSequence)
+        private V2EnqueueResult EnqueueInlineSceneRecord(byte[] payload, V2ScheduleDescriptor descriptor, bool coalesciblePreview, bool structural, bool final, OperationId operationId, ushort bodySchema, ulong? canonicalSequence, ulong? observedCanonicalSequence)
         {
             V2ScheduleLane lane = structural || final ? V2ScheduleLane.SceneControl : V2ScheduleLane.Interactive;
-            var pending = new PendingRecord(payload, V2DeliveryReliability.Reliable, lane, operationId, coalesciblePreview, descriptor, null, null, 1, canonicalSequence: canonicalSequence, observedCanonicalSequence: observedCanonicalSequence);
+            var pending = new PendingRecord(payload, V2DeliveryReliability.Reliable, lane, operationId, coalesciblePreview, descriptor, null, null, bodySchema, canonicalSequence: canonicalSequence, observedCanonicalSequence: observedCanonicalSequence);
             LinkedListNode<PendingRecord> existingSlot = coalesciblePreview ? FindCoalescingSlot(descriptor.CoalescingKey) : null;
             if (!CanAdmitSceneRecord(pending, lane != V2ScheduleLane.Interactive, existingSlot))
                 return lane == V2ScheduleLane.Interactive ? RecordPreviewPressure(operationId) : FaultRequiredAdmission(operationId);
@@ -885,7 +887,7 @@ namespace HBP.Sync
             PendingRecord pending = node.Value;
             m_SessionControlQueue.Remove(node);
             m_SessionControlQueuedBytes -= pending.WireBytes;
-            var ephemeral = new V2ReliableFrame(null, null, null, null, V2ScheduleLane.SessionControl, V2DeliveryReliability.Ephemeral, pending.Payload);
+            var ephemeral = new V2ReliableFrame(null, null, null, null, V2ScheduleLane.SessionControl, V2DeliveryReliability.Ephemeral, pending.Payload, bodySchema: 0);
             return CreateAttempt(ephemeral, false);
         }
 
@@ -914,7 +916,7 @@ namespace HBP.Sync
                 originSequence = m_NextOriginSequence++;
             }
 
-            var frame = new V2ReliableFrame(stream.StreamId, sequence, originSequence, pending.OperationId, pending.Lane, V2DeliveryReliability.Reliable, pending.Payload, pending.BulkDescriptor, pending.ChunkIndex, pending.ChunkCount, pending.ChunkOffset, pending.CanonicalSequence, pending.ObservedCanonicalSequence);
+            var frame = new V2ReliableFrame(stream.StreamId, sequence, originSequence, pending.OperationId, pending.Lane, V2DeliveryReliability.Reliable, pending.Payload, pending.BulkDescriptor, pending.ChunkIndex, pending.ChunkCount, pending.ChunkOffset, pending.CanonicalSequence, pending.ObservedCanonicalSequence, pending.BodySchema);
             stream.Retain(frame);
             m_OutstandingReliableFrames++;
             m_OutstandingReliableBytes = checked(m_OutstandingReliableBytes + frame.WireBytes);

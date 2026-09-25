@@ -24,6 +24,7 @@ namespace HBP.Sync
         public void CaptureApplyStart() => ApplyStart = SyncTelemetry.CapturePoint();
         public void CaptureApplyEnd() => ApplyEnd = SyncTelemetry.CapturePoint();
         public void CaptureNextVisible() => NextVisible = SyncTelemetry.CapturePoint();
+        public void CaptureNextVisible(SyncTelemetryPoint point) => NextVisible = point;
 
         public void Publish(SyncProfile profile, SyncTelemetryIdentity identity)
         {
