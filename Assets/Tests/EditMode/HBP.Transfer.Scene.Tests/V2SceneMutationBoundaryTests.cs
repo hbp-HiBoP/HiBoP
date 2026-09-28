@@ -334,6 +334,24 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void AxialCutWithSignedZeroNormal_PublishesPositionAndCheckpoint()
+        {
+            using var source = new Fixture("source", V2OriginDevice.Desktop, 1000);
+            float negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
+            source.Cut.Normal = new Vector3(negativeZero, 0f, 1f);
+            source.Cut.Orientation = CutOrientation.Axial;
+            source.Rebind(updateCut: null);
+
+            source.Cut.Position = 0.8f;
+
+            Assert.That(source.LastProposal, Is.TypeOf<SetCutDefinition>());
+            SetCutDefinition proposal = (SetCutDefinition)source.LastProposal;
+            Assert.That(proposal.Position, Is.EqualTo(0.8f));
+            Assert.That(BitConverter.SingleToInt32Bits(proposal.NormalX), Is.Zero);
+            Assert.That(source.Boundary.CaptureCheckpoint().CutDefinitions, Has.Count.EqualTo(1));
+        }
+
+        [Test]
         public void CutDefinition_AppliesCompleteStateAndKeepsNewestPreview()
         {
             using var source = new Fixture("source", V2OriginDevice.Desktop, 1000);

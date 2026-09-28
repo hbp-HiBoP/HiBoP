@@ -450,7 +450,10 @@ namespace HBP.Sync.Scene
 
         private SetSiteColor CreateSiteColor(SiteTarget target, Color color) => new SetSiteColor(target.ColumnId, target.SiteId, color.r, color.g, color.b, color.a);
 
-        private static SetCutDefinition CreateCutDefinition(SceneCut cut, CutId id) => new SetCutDefinition(id, (V2CutOrientation)cut.Orientation, cut.Flip, checked((uint)cut.NumberOfCuts), cut.Position, cut.Normal.x, cut.Normal.y, cut.Normal.z);
+        private static SetCutDefinition CreateCutDefinition(SceneCut cut, CutId id) => new SetCutDefinition(id, (V2CutOrientation)cut.Orientation, cut.Flip, checked((uint)cut.NumberOfCuts), CanonicalZero(cut.Position), CanonicalZero(cut.Normal.x), CanonicalZero(cut.Normal.y), CanonicalZero(cut.Normal.z));
+
+        // Native MRI orientation math can produce -0; the v2 wire contract requires canonical +0.
+        private static float CanonicalZero(float value) => value == 0f ? 0f : value;
 
         private SetTimelineAnchor CreateTimelineAnchor(BasicTimeline timeline, ColumnId columnId) => new SetTimelineAnchor(columnId, timeline.CurrentIndex, timeline.IsPlaying, timeline.IsLooping, timeline.Step, m_Clock.GetTimestamp(), checked((ulong)m_Clock.Frequency));
 

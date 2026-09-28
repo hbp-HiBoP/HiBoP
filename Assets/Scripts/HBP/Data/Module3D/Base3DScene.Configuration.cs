@@ -65,6 +65,7 @@ namespace HBP.Data.Module3D
             foreach (Core.Data.Cut cut in Visualization.Configuration.Cuts)
             {
                 Core.Object3D.Cut newCut = AddCutPlane();
+                if (!string.IsNullOrEmpty(cut.ID)) newCut.ID = cut.ID;
                 newCut.Normal = cut.Normal.ToVector3();
                 newCut.Orientation = cut.Orientation;
                 newCut.Flip = cut.Flip;
@@ -163,7 +164,7 @@ namespace HBP.Data.Module3D
             List<Core.Data.Cut> cuts = new();
             foreach (Core.Object3D.Cut cut in Cuts)
             {
-                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
+                cuts.Add(new Core.Data.Cut(cut.ID, cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
 
             Visualization.Configuration.Cuts = cuts;
@@ -215,7 +216,7 @@ namespace HBP.Data.Module3D
             List<Core.Data.Cut> cuts = new();
             foreach (Core.Object3D.Cut cut in Cuts)
             {
-                cuts.Add(new Core.Data.Cut(cut.Normal, cut.Orientation, cut.Flip, cut.Position));
+                cuts.Add(new Core.Data.Cut(cut.ID, cut.Normal, cut.Orientation, cut.Flip, cut.Position));
             }
 
             configuration.Cuts = cuts;

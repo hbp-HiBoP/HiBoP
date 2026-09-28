@@ -41,6 +41,12 @@ Operator-only aid: [recommended model for each implementation task](model-select
 
 Implementation evidence: [T00 baseline instrumentation and provisional budgets](T00-baseline-and-budgets.md).
 
+M1 physical test: [Windows/Quest procedure and evidence collection](M1-physical-test.md).
+
+M1 physical result (2026-09-28): [Windows/Quest test report](M1-physical-test-report-2026-09-28.md).
+
+M1 cut-ID fix retest (2026-09-28): [editor-signed build and physical result](M1-cut-id-fix-retest-2026-09-28.md).
+
 ## Authority of these documents
 
 These documents supersede the previous S1 state codec, S2 live adapter and S3 active-session plans as well as future-sync assumptions in `../05-state-command-and-sync-model.md`. Historical task records remain useful evidence, not requirements.

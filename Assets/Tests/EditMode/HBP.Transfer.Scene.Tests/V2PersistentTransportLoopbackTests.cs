@@ -14,6 +14,7 @@ using HBP.Sync;
 using HBP.Sync.Scene;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEngine;
@@ -736,6 +737,217 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task ExistingPreparedCut_PreservesStableIdAndSynchronizesDiscreteAndFinalContinuousEdits()
+        {
+            using var desktopFixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            var desktopCut = new HBP.Core.Object3D.Cut
+            {
+                ID = "desktop-runtime-cut",
+                Orientation = HBP.Core.Enums.CutOrientation.Custom,
+                Flip = false,
+                NumberOfCuts = 321,
+                Position = 0.45f
+            };
+            var questCut = new HBP.Core.Object3D.Cut
+            {
+                ID = "quest-runtime-cut",
+                Orientation = HBP.Core.Enums.CutOrientation.Custom,
+                Flip = false,
+                NumberOfCuts = 321,
+                Position = 0.4f
+            };
+            Vector3 normal = new Vector3(BitConverter.Int32BitsToSingle(int.MinValue), 0.5f, 0.7f);
+            desktopCut.Normal = normal;
+            questCut.Normal = normal;
+            desktopFixture.Scene.Cuts.Add(desktopCut);
+            questFixture.Scene.Cuts.Add(questCut);
+            SetPrivateField(desktopFixture.Scene, "m_MeshManager", desktopFixture.Root.AddComponent<MeshManager>());
+            SetPrivateField(questFixture.Scene, "m_MeshManager", questFixture.Root.AddComponent<MeshManager>());
+
+            Assert.That(desktopCut.ID, Is.Not.EqualTo(questCut.ID), "The prepared scene begins with independently generated runtime identities.");
+            var capturedCut = new HBP.Core.Data.Cut(desktopCut.ID, desktopCut.Normal, desktopCut.Orientation, desktopCut.Flip, desktopCut.Position);
+            HBP.Core.Data.Cut restoredCut = JsonConvert.DeserializeObject<HBP.Core.Data.Cut>(JsonConvert.SerializeObject(capturedCut));
+            questCut.ID = restoredCut.ID;
+            questCut.Normal = restoredCut.Normal.ToVector3();
+            questCut.Orientation = restoredCut.Orientation;
+            questCut.Flip = restoredCut.Flip;
+            questCut.Position = restoredCut.Position;
+            Assert.That(restoredCut.ID, Is.EqualTo(desktopCut.ID), "The prepared-scene definition must carry the Desktop Cut.ID through serialization.");
+            Assert.That(questCut.ID, Is.EqualTo(desktopCut.ID), "Quest must restore the identity used by the Desktop publisher.");
+            var desktopTimeline = desktopFixture.AddTimeline("session-timeline");
+            var questTimeline = questFixture.AddTimeline("session-timeline");
+
+            var proposed = new List<(OperationId Id, SetCutDefinition Mutation)>();
+            using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+            using (var questBoundary = new V2SceneMutationBoundary(questFixture.Scene, V2OriginDevice.Quest))
+            {
+                desktopBoundary.MutationProposed += (id, mutation, _) =>
+                {
+                    if (mutation is SetCutDefinition cutDefinition)
+                        proposed.Add((id, cutDefinition));
+                };
+
+                desktopCut.Position = 0.63f;
+                desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                questBoundary.Apply((SetCutDefinition)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(proposed[^1].Mutation)), V2MutationApplicationOrigin.Remote, proposed[^1].Id);
+                Assert.That(questCut.Position, Is.EqualTo(0.63f), "The discrete slider change must resolve to the Quest's preexisting cut.");
+
+                desktopCut.Flip = true;
+                desktopCut.Position = 1f - desktopCut.Position;
+                desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                questBoundary.Apply((SetCutDefinition)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(proposed[^1].Mutation)), V2MutationApplicationOrigin.Remote, proposed[^1].Id);
+                Assert.That(questCut.Flip, Is.True);
+                Assert.That(questCut.Position, Is.EqualTo(0.37f));
+
+                foreach (float position in new[] { 0.38f, 0.64f, 0.82f })
+                {
+                    desktopCut.Position = position;
+                    desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                    questBoundary.Apply((SetCutDefinition)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(proposed[^1].Mutation)), V2MutationApplicationOrigin.Remote, proposed[^1].Id);
+                }
+
+                SetCutDefinition complete = proposed[^1].Mutation;
+                Assert.That(complete.CutId.Value, Is.EqualTo(desktopCut.ID));
+                Assert.That(complete.Orientation, Is.EqualTo(V2CutOrientation.Custom));
+                Assert.That(complete.Flip, Is.True);
+                Assert.That(complete.NumberOfCuts, Is.EqualTo(321u));
+                Assert.That(complete.Position, Is.EqualTo(0.82f));
+                Assert.That(BitConverter.SingleToInt32Bits(complete.NormalX), Is.Zero, "Native signed zero must be canonicalized before encoding.");
+                Assert.That(new Vector3(complete.NormalX, complete.NormalY, complete.NormalZ), Is.EqualTo(normal));
+                SetCutDefinition receiverDefinition = (SetCutDefinition)questBoundary.ReadCurrentMutation(complete);
+                Assert.That(receiverDefinition.CutId, Is.EqualTo(complete.CutId));
+                Assert.That(receiverDefinition.Position, Is.EqualTo(0.82f));
+                Assert.That(receiverDefinition.Flip, Is.True);
+                Assert.That(questCut.Position, Is.EqualTo(0.82f), "Continuous updates must leave the receiver at the final desktop value.");
+                Assert.That(questCut.Flip, Is.True);
+                Assert.That(proposed, Has.Count.EqualTo(6), "Each valid definition change must produce one complete typed mutation.");
+            }
+
+            // Restore the shared definition from the full prepared-scene transfer before the live
+            // session starts. Runtime definition edits below must use only the persistent mutation path.
+            desktopCut.Position = 0.4f;
+            desktopCut.Flip = false;
+            questCut.Position = 0.4f;
+            questCut.Flip = false;
+
+            var questWrapperObject = new GameObject("v2 Quest wrapper state");
+            questWrapperObject.SetActive(false);
+            var questView = questWrapperObject.AddComponent<HBP.Quest.QuestAnatomyView>();
+            ConstructorInfo restoredSceneConstructor = typeof(RestoredScene).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(ScenePayload), typeof(SceneArchive) }, null);
+            Assert.That(restoredSceneConstructor, Is.Not.Null);
+            var wrapperPublishedScene = (RestoredScene)restoredSceneConstructor.Invoke(new object[] { questFixture.Scene, null, null });
+            SetPrivateField(questView, "current", wrapperPublishedScene);
+            questFixture.Root.transform.SetParent(questWrapperObject.transform, false);
+            questView.ToggleSurface();
+            Vector3 wrapperPosition = new Vector3(0.21f, -0.13f, 0.37f);
+            Quaternion wrapperRotation = Quaternion.Euler(7f, 19f, 3f);
+            Vector3 wrapperScale = new Vector3(1.2f, 0.9f, 1.1f);
+            questWrapperObject.transform.localPosition = wrapperPosition;
+            questWrapperObject.transform.localRotation = wrapperRotation;
+            questWrapperObject.transform.localScale = wrapperScale;
+
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            var connectionPairs = new List<LoopbackPeerPair>();
+            var questRuns = new List<Task<Exception>>();
+            int openCount = 0;
+            Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> openReplica = async (host, pin, credential, stop, transport) =>
+            {
+                Interlocked.Increment(ref openCount);
+                LoopbackPeerPair pair = await LoopbackPeerPair.ConnectAsync();
+                connectionPairs.Add(pair);
+                questRuns.Add(CaptureTaskExceptionAsync(RunQuestSession(questOwner, pair.Server.GetStream(), stop)));
+                await transport.RunConnectionAsync(pair.Client.GetStream(), stop);
+            };
+
+            object desktopOwner = null;
+            Task startPublication = null;
+            try
+            {
+                Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+                ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+                Assert.That(constructor, Is.Not.Null);
+                desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), openReplica });
+                MethodInfo start = desktopOwnerType.GetMethod("StartAfterPublicationAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                Assert.That(start, Is.Not.Null);
+                startPublication = (Task)start.Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
+                await AwaitGuardAsync(startPublication);
+
+                Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
+                Assert.That(questCut.Position, Is.EqualTo(0.4f), "The persistent session starts from the shared prepared scene definition.");
+                Assert.That(questCut.Flip, Is.False);
+
+                desktopCut.Position = 0.25f;
+                desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                await WaitUntilAsync(() => questCut.Position == 0.25f, "Quest did not receive the discrete position change.");
+
+                desktopCut.Flip = true;
+                desktopCut.Position = 1f - desktopCut.Position;
+                desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                await WaitUntilAsync(() => questCut.Flip && questCut.Position == 0.75f, "Quest did not receive the flip and its discrete position change.");
+
+                desktopTimeline.CurrentIndex = 17;
+                desktopTimeline.IsLooping = true;
+                desktopTimeline.Step = 2;
+                await WaitUntilAsync(() => questTimeline.CurrentIndex == 17 && questTimeline.IsLooping && questTimeline.Step == 2, "The existing timeline anchor mutation regressed while synchronizing cuts.");
+
+                foreach (float position in new[] { 0.3f, 0.56f, 0.91f })
+                {
+                    desktopCut.Position = position;
+                    desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
+                }
+
+                await WaitUntilAsync(() => questCut.Position == 0.91f, "Quest did not converge to the final continuous position.");
+
+                Color synchronizedColor = new Color(0.17f, 0.43f, 0.89f, 1f);
+                desktopFixture.Sites[0].State.Color = synchronizedColor;
+                await WaitUntilAsync(() => questFixture.Sites[0].State.Color == synchronizedColor, "The existing site-color mutation regressed while synchronizing cuts.");
+
+                Assert.That(openCount, Is.EqualTo(1), "Cut edits must flow over the live session without reopening the replica or sending a new full scene.");
+                Assert.That(questView.PublishedScene.Scene, Is.SameAs(questFixture.Scene));
+                Assert.That(questView.SurfaceHidden, Is.True);
+                Assert.That(Vector3.Distance(questWrapperObject.transform.localPosition, wrapperPosition), Is.LessThan(1e-5f));
+                Assert.That(Quaternion.Angle(questWrapperObject.transform.localRotation, wrapperRotation), Is.LessThan(0.01f));
+                Assert.That(Vector3.Distance(questWrapperObject.transform.localScale, wrapperScale), Is.LessThan(1e-5f));
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.GreaterThanOrEqualTo(10UL));
+            }
+            finally
+            {
+                if (desktopOwner != null)
+                {
+                    CancellationTokenSource lifetime = (CancellationTokenSource)desktopOwnerType.GetField("m_Lifetime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                    CancellationTokenSource connectionLifetime = (CancellationTokenSource)desktopOwnerType.GetField("m_ConnectionLifetime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                    lifetime.Cancel();
+                    connectionLifetime?.Cancel();
+                }
+
+                foreach (LoopbackPeerPair pair in connectionPairs) pair.Close();
+                if (desktopOwner != null)
+                {
+                    var desktopTasks = new List<Task>();
+                    foreach (string fieldName in new[] { "m_IncomingTask", "m_ConnectionTask" })
+                    {
+                        Task pending = (Task)desktopOwnerType.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                        if (pending != null) desktopTasks.Add(CaptureTaskExceptionAsync(pending));
+                    }
+
+                    if (desktopTasks.Count > 0) await AwaitGuardAsync(Task.WhenAll(desktopTasks));
+                    ((IDisposable)desktopOwner).Dispose();
+                }
+
+                if (questRuns.Count > 0)
+                    await AwaitGuardAsync(Task.WhenAll(questRuns));
+                ((IDisposable)questOwner).Dispose();
+                SetPrivateField(questView, "current", null);
+                UnityEngine.Object.DestroyImmediate(questWrapperObject);
+            }
+        }
+
+        [Test]
         public async Task Resume_ReplaysMutationWithAuthoritativeCanonicalSequence()
         {
             var desktop = CreateTransport(V2OriginDevice.Desktop, 6500);
@@ -1347,10 +1559,43 @@ namespace HBP.Sync.Tests
                 Scene.Columns.Add(Column);
             }
 
+            public TestTimeline AddTimeline(string columnId)
+            {
+                var timeline = new TestTimeline(64);
+                var columnData = new AnatomicColumn(columnId, new BaseConfiguration(), new AnatomicConfiguration(), columnId);
+                TimelineSessionColumn3D column = Root.AddComponent<TimelineSessionColumn3D>();
+                column.Initialize(columnData, timeline);
+                Scene.Columns.Add(column);
+                return timeline;
+            }
+
             public void Dispose()
             {
                 if (Root) UnityEngine.Object.DestroyImmediate(Root);
             }
+        }
+
+        private sealed class TimelineSessionColumn3D : Column3D
+        {
+            private TestTimeline m_Timeline;
+            public override HBP.Core.Data.BasicTimeline NavigationTimeline => m_Timeline;
+
+            public void Initialize(Column data, TestTimeline timeline)
+            {
+                ColumnData = data;
+                Sites = new List<HBP.Core.Object3D.Site>();
+                m_Timeline = timeline;
+            }
+
+            public override void ComputeSurfaceBrainUVWithActivity()
+            {
+            }
+        }
+
+        private sealed class TestTimeline : HBP.Core.Data.BasicTimeline
+        {
+            public TestTimeline(int length) => Length = length;
+            public override HBP.Core.Data.SubTimeline CurrentSubtimeline => null;
         }
 
         private sealed class DropBulkWriteStream : Stream

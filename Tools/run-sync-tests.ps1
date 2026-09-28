@@ -77,7 +77,9 @@ try {
     if ($run.Name -ne "test-run") { throw "Unexpected XML root '$($run.Name)'." }
     $total = [int]$run.total; $passed = [int]$run.passed; $failed = [int]$run.failed
     $skipped = [int]$run.skipped; $inconclusive = [int]$run.inconclusive
-    $loadedSeconds = [double]::Parse([string]$run.duration, [Globalization.CultureInfo]::InvariantCulture)
+    $duration = [string]$run.duration
+    if ($duration -notmatch '^\d+(?:[.,]\d+)?$') { throw "Invalid Unity test duration '$duration'." }
+    $loadedSeconds = [double]::Parse($duration.Replace(',', '.'), [Globalization.NumberStyles]::AllowDecimalPoint, [Globalization.CultureInfo]::InvariantCulture)
     if ($total -le 0 -or $passed -ne $total -or $failed -gt 0 -or $skipped -gt 0 -or $inconclusive -gt 0 -or $run.result -ne "Passed") {
         throw "Tier not fully passed: total=$total passed=$passed failed=$failed skipped=$skipped inconclusive=$inconclusive result=$($run.result)."
     }
