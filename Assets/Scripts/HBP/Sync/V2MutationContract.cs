@@ -15,7 +15,21 @@ namespace HBP.Sync
     {
         SetSiteColor = 1,
         SetCutDefinition = 2,
-        SetTimelineAnchor = 3
+        SetTimelineAnchor = 3,
+        SetSelectedColumn = 4,
+        SetSelectedSite = 5,
+        SetSceneBoolean = 6,
+        SetSceneFloat = 7,
+        SetSceneColor = 8,
+        SetSiteHighlight = 9,
+        SetSiteLabels = 10,
+        SetActivityAlpha = 11,
+        SetColumnSpan = 12,
+        SetFunctionalDisplay = 13,
+        SetIbcDifumoDisplay = 14,
+        SetLocalizerDisplay = 15,
+        SetFmriAtlasCalibration = 16,
+        SetSelectedRoiSphere = 17
     }
 
     public enum V2CutOrientation : byte
@@ -255,6 +269,15 @@ namespace HBP.Sync
         }
     }
 
+    public enum V2TimelineAnchorIntent : byte
+    {
+        Play = 1,
+        Pause = 2,
+        Seek = 3,
+        Step = 4,
+        Loop = 5
+    }
+
     public sealed class SetTimelineAnchor : V2Mutation
     {
         public ColumnId ColumnId { get; }
@@ -264,9 +287,14 @@ namespace HBP.Sync
         public int Step { get; }
         public long MonotonicAnchorTicks { get; }
         public ulong TickFrequency { get; }
+        public V2TimelineAnchorIntent Intent { get; }
         public override V2OperationType Type => V2OperationType.SetTimelineAnchor;
 
-        public SetTimelineAnchor(ColumnId columnId, int index, bool playing, bool looping, int step, long monotonicAnchorTicks, ulong tickFrequency)
+        public SetTimelineAnchor(ColumnId columnId, int index, bool playing, bool looping, int step, long monotonicAnchorTicks, ulong tickFrequency) : this(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, playing ? V2TimelineAnchorIntent.Play : V2TimelineAnchorIntent.Pause)
+        {
+        }
+
+        public SetTimelineAnchor(ColumnId columnId, int index, bool playing, bool looping, int step, long monotonicAnchorTicks, ulong tickFrequency, V2TimelineAnchorIntent intent)
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             if (index < 0)
@@ -277,6 +305,10 @@ namespace HBP.Sync
                 throw new ArgumentOutOfRangeException(nameof(monotonicAnchorTicks));
             if (tickFrequency == 0 || tickFrequency > 1000000000000UL)
                 throw new ArgumentOutOfRangeException(nameof(tickFrequency));
+            if (!Enum.IsDefined(typeof(V2TimelineAnchorIntent), intent))
+                throw new ArgumentOutOfRangeException(nameof(intent));
+            if (intent == V2TimelineAnchorIntent.Play && !playing || intent == V2TimelineAnchorIntent.Pause && playing)
+                throw new ArgumentException("Play and pause anchor intents must match the playing state.", nameof(intent));
 
             Index = index;
             Playing = playing;
@@ -284,6 +316,7 @@ namespace HBP.Sync
             Step = step;
             MonotonicAnchorTicks = monotonicAnchorTicks;
             TickFrequency = tickFrequency;
+            Intent = intent;
         }
     }
 
@@ -291,7 +324,21 @@ namespace HBP.Sync
     {
         SiteColor = 1,
         CutDefinition = 2,
-        TimelineAnchor = 3
+        TimelineAnchor = 3,
+        SelectedColumn = 4,
+        SelectedSite = 5,
+        SceneBoolean = 6,
+        SceneFloat = 7,
+        SceneColor = 8,
+        SiteHighlight = 9,
+        SiteLabels = 10,
+        ActivityAlpha = 11,
+        ColumnSpan = 12,
+        FunctionalDisplay = 13,
+        IbcDifumoDisplay = 14,
+        LocalizerDisplay = 15,
+        FmriAtlasCalibration = 16,
+        SelectedRoiSphere = 17
     }
 
     public sealed class V2TouchedKey : IEquatable<V2TouchedKey>
@@ -302,8 +349,11 @@ namespace HBP.Sync
         public ColumnId ColumnId { get; }
         public SiteId SiteId { get; }
         public CutId CutId { get; }
+        public string RoiId { get; }
+        public string SphereId { get; }
+        public int PropertyId { get; }
 
-        internal V2TouchedKey(SceneId sceneId, IncarnationId incarnationId, V2TouchedKeyKind kind, ColumnId columnId, SiteId siteId, CutId cutId)
+        internal V2TouchedKey(SceneId sceneId, IncarnationId incarnationId, V2TouchedKeyKind kind, ColumnId columnId, SiteId siteId, CutId cutId, string roiId = null, string sphereId = null, int propertyId = 0)
         {
             SceneId = sceneId;
             IncarnationId = incarnationId;
@@ -311,9 +361,12 @@ namespace HBP.Sync
             ColumnId = columnId;
             SiteId = siteId;
             CutId = cutId;
+            RoiId = roiId;
+            SphereId = sphereId;
+            PropertyId = propertyId;
         }
 
-        public bool Equals(V2TouchedKey other) => other != null && SceneId.Equals(other.SceneId) && IncarnationId.Equals(other.IncarnationId) && Kind == other.Kind && Equals(ColumnId, other.ColumnId) && Equals(SiteId, other.SiteId) && Equals(CutId, other.CutId);
+        public bool Equals(V2TouchedKey other) => other != null && SceneId.Equals(other.SceneId) && IncarnationId.Equals(other.IncarnationId) && Kind == other.Kind && Equals(ColumnId, other.ColumnId) && Equals(SiteId, other.SiteId) && Equals(CutId, other.CutId) && StringComparer.Ordinal.Equals(RoiId, other.RoiId) && StringComparer.Ordinal.Equals(SphereId, other.SphereId) && PropertyId == other.PropertyId;
 
         public override bool Equals(object obj) => Equals(obj as V2TouchedKey);
 
@@ -326,7 +379,10 @@ namespace HBP.Sync
                 hash = (hash * 397) ^ (int)Kind;
                 hash = (hash * 397) ^ (ColumnId?.GetHashCode() ?? 0);
                 hash = (hash * 397) ^ (SiteId?.GetHashCode() ?? 0);
-                return (hash * 397) ^ (CutId?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (CutId?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (RoiId == null ? 0 : StringComparer.Ordinal.GetHashCode(RoiId));
+                hash = (hash * 397) ^ (SphereId == null ? 0 : StringComparer.Ordinal.GetHashCode(SphereId));
+                return (hash * 397) ^ PropertyId;
             }
         }
     }
@@ -338,6 +394,8 @@ namespace HBP.Sync
         public bool SupportsLatestUnsentCoalescing => true;
         public V2BarrierScope BarrierScope => V2BarrierScope.None;
 
+        public static V2MutationDescriptor Create(SceneId sceneId, IncarnationId incarnationId, V2Mutation mutation) => new V2MutationDescriptor(sceneId, incarnationId, mutation);
+
         internal V2MutationDescriptor(SceneId sceneId, IncarnationId incarnationId, V2Mutation mutation)
         {
             V2TouchedKey key;
@@ -347,6 +405,34 @@ namespace HBP.Sync
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CutDefinition, null, null, cutDefinition.CutId);
             else if (mutation is SetTimelineAnchor timelineAnchor)
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.TimelineAnchor, timelineAnchor.ColumnId, null, null);
+            else if (mutation is SetSelectedColumn)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SelectedColumn, null, null, null);
+            else if (mutation is SetSelectedSite selectedSite)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SelectedSite, selectedSite.ColumnId, null, null);
+            else if (mutation is SetSceneBoolean sceneBoolean)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SceneBoolean, null, null, null, propertyId: (int)sceneBoolean.Property);
+            else if (mutation is SetSceneFloat sceneFloat)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SceneFloat, null, null, null, propertyId: (int)sceneFloat.Property);
+            else if (mutation is SetSceneColor sceneColor)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SceneColor, null, null, null, propertyId: (int)sceneColor.Property);
+            else if (mutation is SetSiteHighlight siteHighlight)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteHighlight, siteHighlight.ColumnId, siteHighlight.SiteId, null);
+            else if (mutation is SetSiteLabels siteLabels)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteLabels, siteLabels.ColumnId, siteLabels.SiteId, null);
+            else if (mutation is SetActivityAlpha activityAlpha)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.ActivityAlpha, activityAlpha.ColumnId, null, null);
+            else if (mutation is SetColumnSpan span)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.ColumnSpan, span.ColumnId, null, null, propertyId: (int)span.Kind);
+            else if (mutation is SetFunctionalDisplay functionalDisplay)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.FunctionalDisplay, functionalDisplay.ColumnId, null, null, propertyId: (int)functionalDisplay.Modality);
+            else if (mutation is SetIbcDifumoDisplay)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.IbcDifumoDisplay, null, null, null);
+            else if (mutation is SetLocalizerDisplay)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.LocalizerDisplay, null, null, null);
+            else if (mutation is SetFmriAtlasCalibration)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.FmriAtlasCalibration, null, null, null);
+            else if (mutation is SetSelectedRoiSphere sphere)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SelectedRoiSphere, null, null, null, sphere.RoiId, null);
             else
                 throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
 
@@ -443,12 +529,13 @@ namespace HBP.Sync
     {
         public SetTimelineAnchor Value { get; }
         public ushort RecordType => (ushort)V2OperationType.SetTimelineAnchor;
-        public ushort SchemaVersion => 1;
+        public ushort SchemaVersion => 2;
 
         public TimelineAnchorCheckpointRecord(SetTimelineAnchor value) => Value = value ?? throw new ArgumentNullException(nameof(value));
         public byte[] Encode() => V2CheckpointRecordCodec.Encode(RecordType, Value);
         public static TimelineAnchorCheckpointRecord Decode(byte[] bytes) => new TimelineAnchorCheckpointRecord((SetTimelineAnchor)V2CheckpointRecordCodec.Decode(bytes, V2OperationType.SetTimelineAnchor));
     }
+
 
     internal static class V2IdentityCodec
     {

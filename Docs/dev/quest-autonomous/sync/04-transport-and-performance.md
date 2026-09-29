@@ -95,9 +95,9 @@ There is no generic “visible ACK” that waits for every subsystem in the scen
 
 ## Timeline clock
 
-Timeline playback sends an index, play/loop state, step and a monotonic anchor. Desktop is the connected canonical clock. Quest seeks optimistically, then adopts the Desktop anchor. Both advance locally; automatic sample changes are not network mutations. Correct only when drift exceeds one sample. End/loop behavior is deterministic from the anchor and does not require a message if both sides reach the same state.
+Timeline mutations send an index, play/loop state, step and a monotonic anchor. Desktop is the connected canonical clock. Quest seeks optimistically, then adopts the Desktop anchor. While paused, seek/step/loop changes use the transmitted index exactly and never consult the clock estimator. During `play`, both sides advance locally and automatic sample changes are not network mutations; correct only when drift exceeds one sample plus the estimate's uncertainty. End/loop behavior is deterministic from the anchor and does not require a message if both sides reach the same state.
 
-Do not serialize Unity `float` realtime as a durable clock. Use a 64-bit monotonic representation and account for observed transit/offset when adopting an anchor. Clock samples carry quality/age; the estimator uses multiple recent ping samples and rejects stale/high-uncertainty estimates. Without a valid estimate, apply the received seek immediately and start playback on receipt, then re-anchor when clock quality becomes valid. Tests include asymmetric latency and long-running counters.
+Do not serialize Unity `float` realtime as a durable clock. Use a 64-bit monotonic representation and account for observed transit/offset when adopting a playing anchor. While any timeline is playing, the liveness owner sends one clock probe every 250 ms. The estimator retains at most 32 samples from a rolling two-second window; it requires at least three samples, a newest sample no older than one second, and chooses the lowest-RTT sample. Reject estimates whose uncertainty exceeds half a sample. If quality is invalid, apply the transmitted index exactly and start playback on receipt; paused anchors remain exact regardless of clock quality. Tests include asymmetric latency and long-running counters.
 
 ## Initial scene delivery is a separate performance path
 

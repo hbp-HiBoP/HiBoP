@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -14,6 +15,7 @@ using HBP.Transfer.Scene;
 using NUnit.Framework;
 using UnityEngine;
 using CoreVolume = HBP.Core.DLL.Volume;
+using RoiSphere = HBP.Data.Module3D.Sphere;
 using SceneCut = HBP.Core.Object3D.Cut;
 using Object = UnityEngine.Object;
 
@@ -22,6 +24,10 @@ namespace HBP.Tests.Transfer.Scene
     [Category("Sync.SceneFocused")]
     public class V2SceneMutationBoundaryTests
     {
+        private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
+        private static readonly IncarnationId IncarnationIdForT09 = new(Guid.Parse("20000000-0000-0000-0000-000000000009"));
+        private static readonly SessionId SessionIdForT09 = new(Guid.Parse("30000000-0000-0000-0000-000000000009"));
+
         [Test]
         public void SiteColor_UsesConstantTimeTargetLookupAcrossThirtyThousandSites()
         {
@@ -398,6 +404,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new Fixture("source", V2OriginDevice.Desktop, sourceClock);
             using var target = new Fixture("target", V2OriginDevice.Quest, targetClock, timelineAgeSeconds: _ => 5d);
             source.Timeline.CurrentIndex = 2;
+            source.Timeline.Step = 5;
             source.Timeline.IsPlaying = true;
             var targetProposals = new List<V2Mutation>();
             int timelineCallbacks = 0;
@@ -408,8 +415,8 @@ namespace HBP.Tests.Transfer.Scene
                 target.Cut.Position = target.Cut.Position == 0.5f ? 0.75f : 0.5f;
             });
 
-            source.Timeline.Step = 5;
             SetTimelineAnchor proposal = (SetTimelineAnchor)source.LastProposal;
+            Assert.That(proposal.Intent, Is.EqualTo(V2TimelineAnchorIntent.Play));
             target.Boundary.Apply(proposal, V2MutationApplicationOrigin.Remote, source.LastOperationId);
 
             Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(27));
@@ -429,6 +436,353 @@ namespace HBP.Tests.Transfer.Scene
 
             Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(2));
             Assert.That(target.Timeline.IsPlaying, Is.False);
+        }
+
+        [Test]
+        public void PausedTimelineAnchor_DoesNotAskTheClockEstimator()
+        {
+            int estimateCalls = 0;
+            using var target = new Fixture("paused-estimator", V2OriginDevice.Quest, new TestClock(6000), timelineTimingEstimate: _ =>
+            {
+                estimateCalls++;
+                return new V2TimelineAnchorTimingEstimate(5d, 0d);
+            });
+            var anchor = new SetTimelineAnchor(target.ColumnId, 2, false, false, 5, 1000, 1000);
+
+            target.Boundary.Apply(anchor, V2MutationApplicationOrigin.Remote, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(2));
+            Assert.That(estimateCalls, Is.Zero);
+        }
+
+        [TestCase(V2TimelineAnchorIntent.Pause)]
+        [TestCase(V2TimelineAnchorIntent.Seek)]
+        [TestCase(V2TimelineAnchorIntent.Step)]
+        [TestCase(V2TimelineAnchorIntent.Loop)]
+        public void NonPlayTimelineAnchors_PreserveIntentAndApplyExactIndexWithoutEstimating(V2TimelineAnchorIntent intent)
+        {
+            using var source = new Fixture("intent-source", V2OriginDevice.Desktop, new TestClock(1000, 1000));
+            int estimateCalls = 0;
+            using var target = new Fixture("intent-target", V2OriginDevice.Quest, new TestClock(6000, 1000), timelineTimingEstimate: _ =>
+            {
+                estimateCalls++;
+                return new V2TimelineAnchorTimingEstimate(5d, 0d);
+            });
+            source.Timeline.CurrentIndex = 40;
+            source.Timeline.Step = 2;
+            source.Timeline.IsPlaying = true;
+            target.Timeline.CurrentIndex = 80;
+            target.Timeline.IsPlaying = true;
+
+            switch (intent)
+            {
+                case V2TimelineAnchorIntent.Pause:
+                    source.Timeline.IsPlaying = false;
+                    break;
+                case V2TimelineAnchorIntent.Seek:
+                    source.Timeline.CurrentIndex = 55;
+                    break;
+                case V2TimelineAnchorIntent.Step:
+                    source.Timeline.Step = 7;
+                    break;
+                case V2TimelineAnchorIntent.Loop:
+                    source.Timeline.IsLooping = true;
+                    break;
+                default:
+                    Assert.Fail("Test case must represent a non-play anchor.");
+                    break;
+            }
+
+            var published = (SetTimelineAnchor)source.LastProposal;
+            Assert.That(published.Intent, Is.EqualTo(intent));
+            SetTimelineAnchor received = (SetTimelineAnchor)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(published));
+            Assert.That(received.Intent, Is.EqualTo(intent), "The wire payload must preserve the anchor intent.");
+            target.Boundary.Apply(received, V2MutationApplicationOrigin.Remote, source.LastOperationId);
+
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(received.Index));
+            Assert.That(target.Timeline.IsPlaying, Is.EqualTo(received.Playing));
+            Assert.That(target.Timeline.Step, Is.EqualTo(received.Step));
+            Assert.That(target.Timeline.IsLooping, Is.EqualTo(received.Looping));
+            Assert.That(estimateCalls, Is.Zero);
+        }
+
+        [Test]
+        public void PlayingTimelineAnchor_WithUnusableEstimateStartsAtTransmittedFinalIndex()
+        {
+            int estimateCalls = 0;
+            using var target = new Fixture("play-final-index", V2OriginDevice.Quest, new TestClock(6000), timelineTimingEstimate: _ =>
+            {
+                estimateCalls++;
+                return null;
+            });
+            var anchor = new SetTimelineAnchor(target.ColumnId, target.Timeline.Length - 1, true, false, 5, 1000, 1000, V2TimelineAnchorIntent.Play);
+
+            target.Boundary.Apply(anchor, V2MutationApplicationOrigin.Remote, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(target.Timeline.Length - 1));
+            Assert.That(target.Timeline.IsPlaying, Is.True);
+            Assert.That(estimateCalls, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void PlayingTimelineAnchor_OnlyCorrectsDriftBeyondOneSamplePlusUncertainty()
+        {
+            using var target = new Fixture("playing-threshold", V2OriginDevice.Quest, new TestClock(6000), timelineTimingEstimate: anchor => anchor.Index switch
+            {
+                10 => new V2TimelineAnchorTimingEstimate(0.1d, 0.05d),
+                11 => new V2TimelineAnchorTimingEstimate(0.2d, 0.05d),
+                _ => new V2TimelineAnchorTimingEstimate(0.3d, 0.05d)
+            });
+            target.Timeline.CurrentIndex = 10;
+            target.Timeline.IsPlaying = true;
+
+            target.Boundary.Apply(new SetTimelineAnchor(target.ColumnId, 10, true, false, 10, 1000, 1000), V2MutationApplicationOrigin.Remote, new OperationId(Guid.NewGuid()));
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(10), "One-sample drift must not seek while playing.");
+
+            target.Timeline.CurrentIndex = 14;
+            target.Boundary.Apply(new SetTimelineAnchor(target.ColumnId, 11, true, false, 10, 1000, 1000), V2MutationApplicationOrigin.Remote, new OperationId(Guid.NewGuid()));
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(14), "One-sample drift must not seek while the accepted estimate adds uncertainty to the threshold.");
+
+            target.Timeline.CurrentIndex = 20;
+            target.Boundary.Apply(new SetTimelineAnchor(target.ColumnId, 12, true, false, 10, 1000, 1000), V2MutationApplicationOrigin.Remote, new OperationId(Guid.NewGuid()));
+            Assert.That(target.Timeline.CurrentIndex, Is.EqualTo(15), "Drift beyond one sample plus uncertainty must seek to the estimated position.");
+        }
+
+        [Test]
+        public void ScenePresentationCheckpoint_AppliesTypedValuesWithoutEchoOrActivityInvalidation()
+        {
+            using var source = new BoundSceneFixture();
+            using var target = new BoundSceneFixture();
+            var sourceMutations = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, mutation, _) => sourceMutations.Add(mutation);
+
+            source.Scene.StrongCuts = true;
+            source.Scene.SiteGain = 1.5f;
+            source.Scene.AtlasManager.AtlasAlpha = 0.4f;
+            source.Scene.BrainMaterials.SetAlpha(0.6f);
+
+            Assert.That(sourceMutations.Select(mutation => mutation.Type), Is.EquivalentTo(new[]
+            {
+                V2OperationType.SetSceneBoolean,
+                V2OperationType.SetSceneFloat,
+                V2OperationType.SetSceneFloat,
+                V2OperationType.SetSceneFloat
+            }));
+
+            byte[] encoded = V2SceneMutationCheckpointCodec.Encode(9, source.Boundary.CaptureCheckpoint());
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(33));
+            Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(V2OperationType.SetSceneBoolean));
+
+            var targetMutations = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => targetMutations.Add(mutation);
+            ResetSceneInvalidationFlags(target.Scene);
+            target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.Scene.StrongCuts, Is.True);
+            Assert.That(target.Scene.SiteGain, Is.EqualTo(1.5f));
+            Assert.That(target.Scene.AtlasManager.AtlasAlpha, Is.EqualTo(0.4f));
+            Assert.That(target.Scene.BrainMaterials.Alpha, Is.EqualTo(0.6f));
+            Assert.That(targetMutations, Is.Empty);
+            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.False);
+            Assert.That(target.Scene.SceneInformation.ProjectionGridNeedsUpdate, Is.False);
+            Assert.That(target.Scene.SceneInformation.GeometryNeedsUpdate, Is.False);
+        }
+
+        [Test]
+        public void SelectionAndSitePresentation_CheckpointAppliesWithoutEchoOrActivityInvalidation()
+        {
+            using var source = new BoundSceneFixture();
+            using var target = new BoundSceneFixture();
+            var proposals = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+
+            source.Column.IsSelected = true;
+            source.Scene.SelectSiteForSynchronization(source.Column, source.Site);
+            source.Site.State.IsHighlighted = true;
+            source.Site.State.AddLabel("reviewed");
+            source.Column.ActivityAlpha = 0.35f;
+
+            Assert.That(proposals.Select(mutation => mutation.Type), Is.EquivalentTo(new[]
+            {
+                V2OperationType.SetSelectedColumn,
+                V2OperationType.SetSelectedSite,
+                V2OperationType.SetSiteHighlight,
+                V2OperationType.SetSiteLabels,
+                V2OperationType.SetActivityAlpha
+            }));
+
+            byte[] bytes = V2SceneMutationCheckpointCodec.Encode(12, source.Boundary.CaptureCheckpoint());
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(bytes).Checkpoint;
+            var appliedProposals = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => appliedProposals.Add(mutation);
+            target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            ulong projectionGeneration = target.Scene.ProjectionGeneration;
+            ulong activityInputGeneration = target.Scene.ActivityInputGeneration;
+
+            target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.Column.IsSelected, Is.True);
+            Assert.That(target.Column.SelectedSite, Is.SameAs(target.Site));
+            Assert.That(target.Site.State.IsHighlighted, Is.True);
+            Assert.That(target.Site.State.Labels, Is.EqualTo(new[] { "reviewed" }));
+            Assert.That(target.Column.ActivityAlpha, Is.EqualTo(0.35f));
+            Assert.That(appliedProposals, Is.Empty);
+            Assert.That(target.Scene.ProjectionGeneration, Is.EqualTo(projectionGeneration));
+            Assert.That(target.Scene.ActivityInputGeneration, Is.EqualTo(activityInputGeneration));
+            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.False);
+            Assert.That(target.Scene.SceneInformation.ProjectionGridNeedsUpdate, Is.False);
+            Assert.That(target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate, Is.False);
+        }
+
+        [Test]
+        public void PreparedSpansAndFunctionalThresholds_CheckpointApplyAtomicallyWithoutEcho()
+        {
+            using var source = new BoundSceneFixture();
+            using var target = new BoundSceneFixture();
+            var proposals = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+
+            source.StaticColumn.StaticParameters.ApplySynchronizedSpanValues(-1f, 0.25f, 1f);
+            source.DynamicColumn.DynamicParameters.ApplySynchronizedSpanValues(-2f, 0f, 3f);
+            source.FmriColumn.FMRIParameters.ApplySynchronizedCalibration(0.1f, 0.4f, 0.2f, 0.8f);
+            source.FmriColumn.FMRIParameters.SetHideValues(true, false, true);
+            source.MegColumn.MEGParameters.ApplySynchronizedCalibration(0.05f, 0.45f, 0.3f, 0.95f);
+            source.MegColumn.MEGParameters.SetHideValues(false, true, false);
+
+            Assert.That(proposals.Count(mutation => mutation.Type == V2OperationType.SetColumnSpan), Is.EqualTo(2));
+            Assert.That(proposals.Count(mutation => mutation.Type == V2OperationType.SetFunctionalDisplay), Is.EqualTo(4));
+
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(13, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            var targetProposals = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => targetProposals.Add(mutation);
+            ulong projectionGeneration = target.Scene.ProjectionGeneration;
+            ulong activityInputGeneration = target.Scene.ActivityInputGeneration;
+
+            target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.StaticColumn.StaticParameters.SpanMin, Is.EqualTo(-1f));
+            Assert.That(target.StaticColumn.StaticParameters.Middle, Is.EqualTo(0.25f));
+            Assert.That(target.StaticColumn.StaticParameters.SpanMax, Is.EqualTo(1f));
+            Assert.That(target.DynamicColumn.DynamicParameters.SpanMin, Is.EqualTo(-2f));
+            Assert.That(target.DynamicColumn.DynamicParameters.Middle, Is.EqualTo(0f));
+            Assert.That(target.DynamicColumn.DynamicParameters.SpanMax, Is.EqualTo(3f));
+            Assert.That(target.FmriColumn.FMRIParameters.FMRINegativeCalMinFactor, Is.EqualTo(0.1f));
+            Assert.That(target.FmriColumn.FMRIParameters.HideLowerValues, Is.True);
+            Assert.That(target.FmriColumn.FMRIParameters.HideHigherValues, Is.True);
+            Assert.That(target.MegColumn.MEGParameters.FMRIPositiveCalMaxFactor, Is.EqualTo(0.95f));
+            Assert.That(target.MegColumn.MEGParameters.HideMiddleValues, Is.True);
+            Assert.That(targetProposals, Is.Empty);
+            Assert.That(target.Scene.ProjectionGeneration, Is.EqualTo(projectionGeneration));
+            Assert.That(target.Scene.ActivityInputGeneration, Is.EqualTo(activityInputGeneration));
+        }
+
+        [Test]
+        public void T09DesktopCanonicalMutations_ConvergeOnQuestDriverWithoutEchoOrActivityInvalidation()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var clock = new TestClock(0);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, clock);
+            using var questDriver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var canonicals = new List<V2CanonicalMutation>();
+            var questEchoes = new List<V2Mutation>();
+            authority.CanonicalReady += canonical =>
+            {
+                canonicals.Add(canonical);
+                Assert.That(questDriver.ReceiveCanonical(canonical), Is.True);
+            };
+            quest.Boundary.MutationProposed += (_, mutation, _) => questEchoes.Add(mutation);
+            V2Mutation[] mutations = CreateT09DriverMutations(desktop, 19);
+            ulong projectionGeneration = quest.Scene.ProjectionGeneration;
+            ulong activityInputGeneration = quest.Scene.ActivityInputGeneration;
+            var stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < mutations.Length; i++)
+            {
+                try
+                {
+                    desktop.Boundary.Apply(mutations[i], V2MutationApplicationOrigin.LocalDesktop, T09Operation(i + 1));
+                }
+                catch (Exception exception)
+                {
+                    throw new Exception($"Desktop T09 operation {i} ({mutations[i].Type}) failed: {exception}");
+                }
+            }
+
+            stopwatch.Stop();
+            Assert.That(canonicals, Has.Count.EqualTo(mutations.Length));
+            Assert.That(authority.CanonicalSequence, Is.EqualTo((ulong)mutations.Length));
+            Assert.That(questDriver.LastObservedCanonicalSequence, Is.EqualTo((ulong)mutations.Length));
+            Assert.That(questEchoes, Is.Empty);
+            AssertT09DriverValuesMatch(desktop, quest, 19);
+            Assert.That(quest.Scene.ProjectionGeneration, Is.EqualTo(projectionGeneration));
+            Assert.That(quest.Scene.ActivityInputGeneration, Is.EqualTo(activityInputGeneration));
+            TestContext.WriteLine($"HBP_SYNC_T09_DESKTOP_TO_QUEST operations={mutations.Length} canonical={canonicals.Count} echoes={questEchoes.Count} elapsedMs={stopwatch.Elapsed.TotalMilliseconds:F3}");
+        }
+
+        [Test]
+        public void T09QuestProposals_ConvergeOnDesktopAuthorityWithoutEchoOrActivityInvalidation()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var clock = new TestClock(0);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, clock);
+            using var questDriver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var canonicals = new List<V2CanonicalMutation>();
+            var desktopEchoes = new List<V2Mutation>();
+            authority.CanonicalReady += canonicals.Add;
+            desktop.Boundary.MutationProposed += (_, mutation, _) => desktopEchoes.Add(mutation);
+            questDriver.ProposalQueued += proposal =>
+            {
+                V2DesktopProposalResult accepted = authority.AcceptQuestProposal(proposal);
+                Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                Assert.That(questDriver.ReceiveCanonical(accepted.CanonicalMutation), Is.False, "A matching T09 proposal is confirmed without applying it a second time.");
+            };
+            V2Mutation[] mutations = CreateT09DriverMutations(quest, 23);
+            ulong desktopProjectionGeneration = desktop.Scene.ProjectionGeneration;
+            ulong desktopActivityInputGeneration = desktop.Scene.ActivityInputGeneration;
+            var stopwatch = Stopwatch.StartNew();
+
+            for (int i = 0; i < mutations.Length; i++)
+            {
+                try
+                {
+                    Assert.That(questDriver.ApplyOptimistic(mutations[i], T09Operation(100 + i)), Is.Not.Null);
+                }
+                catch (Exception exception)
+                {
+                    throw new Exception($"Quest T09 operation {i} ({mutations[i].Type}) failed: {exception}");
+                }
+            }
+
+            stopwatch.Stop();
+            Assert.That(canonicals, Has.Count.EqualTo(mutations.Length));
+            Assert.That(authority.CanonicalSequence, Is.EqualTo((ulong)mutations.Length));
+            Assert.That(questDriver.LastObservedCanonicalSequence, Is.EqualTo((ulong)mutations.Length));
+            Assert.That(questDriver.PendingProposalCount, Is.Zero);
+            Assert.That(desktopEchoes, Is.Empty);
+            AssertT09DriverValuesMatch(quest, desktop, 23);
+            Assert.That(desktop.Scene.ProjectionGeneration, Is.EqualTo(desktopProjectionGeneration));
+            Assert.That(desktop.Scene.ActivityInputGeneration, Is.EqualTo(desktopActivityInputGeneration));
+            TestContext.WriteLine($"HBP_SYNC_T09_QUEST_TO_DESKTOP operations={mutations.Length} canonical={canonicals.Count} echoes={desktopEchoes.Count} elapsedMs={stopwatch.Elapsed.TotalMilliseconds:F3}");
+        }
+
+        [Test]
+        public void T09PreparedResourceOperations_RejectCleanlyWithoutASelectedPreparedMesh()
+        {
+            using var fixture = new BoundSceneFixture();
+
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(new SetSceneBoolean(V2SceneBooleanProperty.DisplayMarsAtlas, true), V2MutationApplicationOrigin.Remote, T09Operation(301)));
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(new SetSceneBoolean(V2SceneBooleanProperty.DisplayJuBrainAtlas, true), V2MutationApplicationOrigin.Remote, T09Operation(302)));
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(new SetIbcDifumoDisplay(true, "0", false, string.Empty, 0), V2MutationApplicationOrigin.Remote, T09Operation(303)));
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(new SetIbcDifumoDisplay(false, "invalid-contrast", false, string.Empty, 0), V2MutationApplicationOrigin.Remote, T09Operation(305)));
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(new SetLocalizerDisplay(true, "prepared-protocol", "prepared-data", "prepared-bloc", 0, 0f, 0.5f, 1f), V2MutationApplicationOrigin.Remote, T09Operation(304)));
         }
 
         [Test]
@@ -505,12 +859,79 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(target.State.Color, Is.EqualTo(SiteState.DefaultColor));
         }
 
+        private static V2Mutation[] CreateT09DriverMutations(BoundSceneFixture fixture, int timelineIndex)
+        {
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            return new V2Mutation[]
+            {
+                new SetSelectedColumn(columnId),
+                new SetSelectedSite(columnId, siteId),
+                new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true),
+                new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, true),
+                new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, true),
+                new SetSceneBoolean(V2SceneBooleanProperty.BrainTransparent, true),
+                new SetSceneFloat(V2SceneFloatProperty.SiteGain, 1.5f),
+                new SetSceneFloat(V2SceneFloatProperty.BrainAlpha, 0.6f),
+                new SetSceneFloat(V2SceneFloatProperty.AtlasAlpha, 0.4f),
+                new SetSceneColor(V2SceneColorProperty.Brain, (int)ColorType.Hot),
+                new SetSceneColor(V2SceneColorProperty.Cut, (int)ColorType.Warm),
+                new SetSceneColor(V2SceneColorProperty.Colormap, (int)ColorType.XRain),
+                new SetSiteHighlight(columnId, siteId, true),
+                new SetSiteLabels(columnId, siteId, new[] { "reviewed", "T09" }),
+                new SetActivityAlpha(columnId, 0.35f),
+                new SetColumnSpan(new ColumnId(fixture.StaticColumn.ColumnData.ID), V2ColumnSpanKind.Static, -1f, 0.25f, 1f),
+                new SetColumnSpan(new ColumnId(fixture.DynamicColumn.ColumnData.ID), V2ColumnSpanKind.Dynamic, -2f, 0f, 3f),
+                new SetFunctionalDisplay(new ColumnId(fixture.FmriColumn.ColumnData.ID), V2FunctionalModality.Fmri, 0.1f, 0.4f, 0.2f, 0.8f, true, false, true),
+                new SetFunctionalDisplay(new ColumnId(fixture.MegColumn.ColumnData.ID), V2FunctionalModality.Meg, 0.05f, 0.45f, 0.3f, 0.95f, false, true, false),
+                new SetTimelineAnchor(new ColumnId(fixture.FmriColumn.ColumnData.ID), timelineIndex, true, true, 3, 0, 1000),
+                new SetSelectedRoiSphere(fixture.Roi.ID, fixture.Sphere.ID)
+            };
+        }
+
+        private static void AssertT09DriverValuesMatch(BoundSceneFixture expected, BoundSceneFixture actual, int timelineIndex)
+        {
+            Assert.That(actual.Column.IsSelected, Is.True);
+            Assert.That(actual.Column.SelectedSite, Is.SameAs(actual.Site));
+            Assert.That(actual.Scene.StrongCuts, Is.True);
+            Assert.That(actual.Scene.HideBlacklistedSites, Is.True);
+            Assert.That(actual.Scene.EdgeMode, Is.True);
+            Assert.That(actual.Scene.IsBrainTransparent, Is.True);
+            Assert.That(actual.Scene.SiteGain, Is.EqualTo(1.5f));
+            Assert.That(actual.Materials.Alpha, Is.EqualTo(0.6f));
+            Assert.That(actual.Scene.AtlasManager.AtlasAlpha, Is.EqualTo(0.4f));
+            Assert.That(actual.Scene.BrainColor, Is.EqualTo(ColorType.Hot));
+            Assert.That(actual.Scene.CutColor, Is.EqualTo(ColorType.Warm));
+            Assert.That(actual.Scene.Colormap, Is.EqualTo(ColorType.XRain));
+            Assert.That(actual.Scene.AtlasManager.DisplayMarsAtlas, Is.False);
+            Assert.That(actual.Scene.AtlasManager.DisplayJuBrainAtlas, Is.False);
+            Assert.That(actual.Site.State.IsHighlighted, Is.True);
+            Assert.That(actual.Site.State.Labels, Is.EqualTo(new[] { "reviewed", "T09" }));
+            Assert.That(actual.Column.ActivityAlpha, Is.EqualTo(0.35f));
+            Assert.That(actual.StaticColumn.StaticParameters.SpanMin, Is.EqualTo(-1f));
+            Assert.That(actual.DynamicColumn.DynamicParameters.SpanMax, Is.EqualTo(3f));
+            Assert.That(actual.FmriColumn.FMRIParameters.FMRINegativeCalMinFactor, Is.EqualTo(0.1f));
+            Assert.That(actual.FmriColumn.FMRIParameters.HideLowerValues, Is.True);
+            Assert.That(actual.MegColumn.MEGParameters.FMRIPositiveCalMaxFactor, Is.EqualTo(0.95f));
+            Assert.That(actual.MegColumn.MEGParameters.HideMiddleValues, Is.True);
+            Assert.That(actual.FmriColumn.Timeline.CurrentIndex, Is.EqualTo(timelineIndex));
+            Assert.That(actual.FmriColumn.Timeline.IsPlaying, Is.True);
+            Assert.That(actual.FmriColumn.Timeline.IsLooping, Is.True);
+            Assert.That(actual.FmriColumn.Timeline.Step, Is.EqualTo(3));
+            Assert.That(actual.Roi.SelectedSphereID, Is.EqualTo(0));
+            Assert.That(actual.Roi.SelectedSphere, Is.SameAs(actual.Sphere));
+            Assert.That(actual.Site.State.Color, Is.EqualTo(expected.Site.State.Color));
+        }
+
+        private static OperationId T09Operation(int value) => new(Guid.Parse($"40000000-0000-0000-0000-{value:X12}"));
+
         private sealed class Fixture : IDisposable
         {
             private readonly Action<SceneCut> m_UpdateCut;
             private readonly IMonotonicClock m_Clock;
             private readonly V2OriginDevice m_LocalOrigin;
             private readonly Func<SetTimelineAnchor, double?> m_TimelineAgeSeconds;
+            private readonly Func<SetTimelineAnchor, V2TimelineAnchorTimingEstimate?> m_TimelineTimingEstimate;
 
             public SiteState State { get; } = new SiteState();
             public SceneCut Cut { get; } = new SceneCut();
@@ -521,15 +942,16 @@ namespace HBP.Tests.Transfer.Scene
             public ColumnId ColumnId { get; }
             public SiteId SiteId { get; }
 
-            public Fixture(string prefix, V2OriginDevice localOrigin, long clockTicks, string siteId = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null) : this(prefix, localOrigin, new TestClock(clockTicks, 1000), siteId, timelineAgeSeconds)
+            public Fixture(string prefix, V2OriginDevice localOrigin, long clockTicks, string siteId = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null, Func<SetTimelineAnchor, V2TimelineAnchorTimingEstimate?> timelineTimingEstimate = null) : this(prefix, localOrigin, new TestClock(clockTicks, 1000), siteId, timelineAgeSeconds, timelineTimingEstimate)
             {
             }
 
-            public Fixture(string prefix, V2OriginDevice localOrigin, IMonotonicClock clock, string siteId = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null)
+            public Fixture(string prefix, V2OriginDevice localOrigin, IMonotonicClock clock, string siteId = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null, Func<SetTimelineAnchor, V2TimelineAnchorTimingEstimate?> timelineTimingEstimate = null)
             {
                 m_LocalOrigin = localOrigin;
                 m_Clock = clock;
                 m_TimelineAgeSeconds = timelineAgeSeconds;
+                m_TimelineTimingEstimate = timelineTimingEstimate;
                 m_UpdateCut = _ => CutInvalidationCount++;
                 ColumnId = new ColumnId("shared-column");
                 SiteId = new SiteId(siteId ?? "shared-site");
@@ -542,7 +964,7 @@ namespace HBP.Tests.Transfer.Scene
             public void Rebind(Action<SceneCut> updateCut)
             {
                 Boundary?.Dispose();
-                Boundary = new V2SceneMutationBoundary(new[] { (State, ColumnId, SiteId) }, new[] { (Cut, new CutId(Cut.ID)) }, new[] { ((BasicTimeline)Timeline, ColumnId) }, m_LocalOrigin, m_Clock, updateCut, m_TimelineAgeSeconds);
+                Boundary = new V2SceneMutationBoundary(new[] { (State, ColumnId, SiteId) }, new[] { (Cut, new CutId(Cut.ID)) }, new[] { ((BasicTimeline)Timeline, ColumnId) }, m_LocalOrigin, m_Clock, updateCut, m_TimelineAgeSeconds, m_TimelineTimingEstimate);
                 Boundary.MutationProposed += (id, mutation, _) =>
                 {
                     LastOperationId = id;
@@ -554,6 +976,126 @@ namespace HBP.Tests.Transfer.Scene
             {
                 Boundary?.Dispose();
                 Cut.Dispose();
+            }
+        }
+
+        private sealed class BoundSceneFixture : IDisposable
+        {
+            public GameObject Root { get; }
+            public Base3DScene Scene { get; }
+            public BrainMaterials Materials { get; }
+            public Column3DAnatomy Column { get; }
+            public HBP.Core.Object3D.Site Site { get; }
+            public Column3DStatic StaticColumn { get; }
+            public TestDynamicColumn DynamicColumn { get; }
+            public Column3DFMRI FmriColumn { get; }
+            public Column3DMEG MegColumn { get; }
+            public ROI Roi { get; }
+            public RoiSphere Sphere { get; }
+            private SharedMaterials SphereMaterials { get; }
+            public V2SceneMutationBoundary Boundary { get; }
+
+            public BoundSceneFixture(V2OriginDevice localOrigin = V2OriginDevice.Quest)
+            {
+                Root = new GameObject("T09 typed scene fixture");
+                Root.SetActive(false);
+                Scene = Root.AddComponent<Base3DScene>();
+                Materials = InitializeTestBrainMaterials(Scene);
+                SetPrivateField(Scene, "m_MeshManager", Root.AddComponent<MeshManager>());
+                AtlasManager atlasManager = Root.AddComponent<AtlasManager>();
+                SetPrivateField(Scene, "m_AtlasManager", atlasManager);
+                SetPrivateField(atlasManager, "m_Scene", Scene);
+                FMRIManager fmriManager = Root.AddComponent<FMRIManager>();
+                SetPrivateField(Scene, "m_FMRIManager", fmriManager);
+                SetPrivateField(fmriManager, "m_Scene", Scene);
+                ROIManager roiManager = Root.AddComponent<ROIManager>();
+                SetPrivateField(Scene, "m_ROIManager", roiManager);
+                const string patientId = "60000000-0000-0000-0000-000000000009";
+                var patient = new Patient { ID = patientId, Name = "t09-patient" };
+                var columnData = new AnatomicColumn("t09-column", new BaseConfiguration(), new AnatomicConfiguration(), "t09-column-id");
+                Column = Root.AddComponent<Column3DAnatomy>();
+                SetAutoProperty(Column, "ColumnData", columnData);
+                var siteObject = new GameObject("t09-site");
+                siteObject.transform.SetParent(Root.transform, false);
+                Site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                Site.Information = new SiteInformation { Patient = patient, Name = "t09-site" };
+                Site.State = new SiteState();
+                SetAutoProperty(Column, "Sites", new List<HBP.Core.Object3D.Site> { Site });
+                Site.OnSelectSite.AddListener(selected =>
+                {
+                    if (selected)
+                    {
+                        Column.UnselectSite();
+                        SetAutoProperty(Column, "SelectedSite", Site);
+                    }
+                    else if (ReferenceEquals(Column.SelectedSite, Site))
+                    {
+                        SetAutoProperty(Column, "SelectedSite", null);
+                    }
+
+                    Column.OnSelectSite.Invoke(Column.SelectedSite);
+                });
+                Scene.Columns.Add(Column);
+                StaticColumn = Root.AddComponent<Column3DStatic>();
+                SetAutoProperty(StaticColumn, "ColumnData", NewColumnData("t09-static-column-id"));
+                SetAutoProperty(StaticColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                Scene.Columns.Add(StaticColumn);
+                DynamicColumn = Root.AddComponent<TestDynamicColumn>();
+                SetAutoProperty(DynamicColumn, "ColumnData", NewColumnData("t09-dynamic-column-id"));
+                SetAutoProperty(DynamicColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                Scene.Columns.Add(DynamicColumn);
+                FmriColumn = Root.AddComponent<Column3DFMRI>();
+                SetAutoProperty(FmriColumn, "ColumnData", NewColumnData("t09-fmri-column-id"));
+                SetAutoProperty(FmriColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                FMRITimeline fmriTimeline = new();
+                SetAutoProperty(fmriTimeline, "Length", 100);
+                SetAutoProperty(FmriColumn, "Timeline", fmriTimeline);
+                Scene.Columns.Add(FmriColumn);
+                MegColumn = Root.AddComponent<Column3DMEG>();
+                SetAutoProperty(MegColumn, "ColumnData", NewColumnData("t09-meg-column-id"));
+                SetAutoProperty(MegColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                FMRITimeline megTimeline = new();
+                SetAutoProperty(megTimeline, "Length", 100);
+                SetAutoProperty(MegColumn, "Timeline", megTimeline);
+                Scene.Columns.Add(MegColumn);
+                Roi = Root.AddComponent<ROI>();
+                Roi.ID = "t09-roi-id";
+                SetAutoProperty(Roi, "SelectedSphereID", -1);
+                GameObject sphereObject = new("t09-sphere");
+                sphereObject.transform.SetParent(Root.transform, false);
+                sphereObject.AddComponent<MeshRenderer>();
+                Sphere = sphereObject.AddComponent<RoiSphere>();
+                Sphere.ID = "t09-sphere-id";
+                SphereMaterials = ScriptableObject.CreateInstance<SharedMaterials>();
+                SetPrivateField(Sphere, "m_SharedMaterials", SphereMaterials);
+                SetAutoProperty(Roi, "Spheres", new List<RoiSphere> { Sphere });
+                SetAutoProperty(roiManager, "ROIs", new List<ROI> { Roi });
+                DisplayedObjects displayedObjects = Root.AddComponent<DisplayedObjects>();
+                SetAutoProperty(displayedObjects, "Brain", NewRendererObject("t09-brain"));
+                SetAutoProperty(displayedObjects, "SimplifiedBrain", NewRendererObject("t09-simplified-brain"));
+                SetAutoProperty(displayedObjects, "BrainCutMeshes", new List<GameObject>());
+                SetPrivateField(Scene, "m_DisplayedObjects", displayedObjects);
+                foreach (Column3D column in Scene.Columns)
+                    SetAutoProperty(column, "BrainMesh", NewRendererObject("t09-column-brain-" + column.ColumnData.ID));
+                Boundary = new V2SceneMutationBoundary(Scene, localOrigin, new TestClock(0));
+            }
+
+            private static AnatomicColumn NewColumnData(string id) => new AnatomicColumn(id, new BaseConfiguration(), new AnatomicConfiguration(), id);
+
+            private GameObject NewRendererObject(string name)
+            {
+                var gameObject = new GameObject(name);
+                gameObject.transform.SetParent(Root.transform, false);
+                gameObject.AddComponent<MeshRenderer>();
+                return gameObject;
+            }
+
+            public void Dispose()
+            {
+                Boundary.Dispose();
+                DestroyTestBrainMaterials(Materials);
+                Object.DestroyImmediate(SphereMaterials);
+                Object.DestroyImmediate(Root);
             }
         }
 
@@ -653,7 +1195,40 @@ namespace HBP.Tests.Transfer.Scene
 
         private static void SetPrivateField(object target, string fieldName, object value)
         {
-            typeof(Base3DScene).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+            Type type = target.GetType();
+            FieldInfo field = null;
+            while (type != null && field == null)
+            {
+                field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                type = type.BaseType;
+            }
+
+            Assert.That(field, Is.Not.Null, "Field " + fieldName + " was not found on " + target.GetType().Name + ".");
+            field.SetValue(target, value);
+        }
+
+        private static void SetAutoProperty(object target, string propertyName, object value)
+        {
+            Type current = target.GetType();
+            FieldInfo backingField = null;
+            while (current != null && backingField == null)
+            {
+                backingField = current.GetField("<" + propertyName + ">k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);
+                current = current.BaseType;
+            }
+
+            Assert.That(backingField, Is.Not.Null, "Missing backing field for " + target.GetType().Name + "." + propertyName + ".");
+            backingField.SetValue(target, value);
+        }
+
+        private sealed class TestDynamicColumn : Column3DDynamic
+        {
+            public override Timeline Timeline => null;
+            public override Timeline ProjectionTimeline => null;
+
+            protected override void SetActivityData()
+            {
+            }
         }
 
         private sealed class TestTimeline : BasicTimeline

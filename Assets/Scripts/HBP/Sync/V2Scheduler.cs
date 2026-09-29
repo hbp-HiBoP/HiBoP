@@ -229,6 +229,9 @@ namespace HBP.Sync
                 WriteBoundedString(writer, key.ColumnId?.Value);
                 WriteBoundedString(writer, key.SiteId?.Value);
                 WriteBoundedString(writer, key.CutId?.Value);
+                WriteBoundedString(writer, key.RoiId);
+                WriteBoundedString(writer, key.SphereId);
+                writer.Write(key.PropertyId);
                 writer.Flush();
                 using (SHA256 sha = SHA256.Create())
                 {

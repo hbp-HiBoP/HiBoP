@@ -21,6 +21,7 @@ namespace HBP.Quest
 
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly V2SceneMutationBoundary m_Boundary;
+        private readonly V2TimelineClockEstimator m_TimelineClock;
         private readonly V2OutgoingScheduler m_Scheduler;
         private readonly V2PersistentTransport m_Transport;
         private readonly V2QuestMutationDriver m_Driver;
@@ -82,9 +83,11 @@ namespace HBP.Quest
             m_Identity = binding.CreateV2Identity();
             TransferId = binding.TransferId;
             ManifestHash = binding.ManifestHash;
-            m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest);
+            m_TimelineClock = new V2TimelineClockEstimator(StopwatchMonotonicClock.Instance);
+            m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest, timelineTimingEstimate: anchor => m_TimelineClock.TryEstimate(anchor.MonotonicAnchorTicks, anchor.TickFrequency, anchor.Step, out V2TimelineAnchorTimingEstimate estimate) ? estimate : (V2TimelineAnchorTimingEstimate?)null);
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Quest);
-            m_Transport = new V2PersistentTransport(m_Scheduler);
+            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval);
+            m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_Driver = new V2QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler);
             m_BeforeCheckpointApply = beforeCheckpointApply;
             m_AfterDeferredRecordProcessed = afterDeferredRecordProcessed;

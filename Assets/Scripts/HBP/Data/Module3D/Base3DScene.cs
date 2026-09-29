@@ -393,6 +393,7 @@ namespace HBP.Data.Module3D
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 SceneInformation.CutsNeedUpdate = true;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnSharedStateChanged.Invoke();
             }
         }
 

@@ -126,7 +126,7 @@ namespace HBP.Sync.Tests
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 8, 0));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 8, 3));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => bytes[129] = 1);
-            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, V2MutationEnvelopeCodec.HeaderLength, 2));
+            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, V2MutationEnvelopeCodec.HeaderLength, 3));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, V2MutationEnvelopeCodec.HeaderLength + 2, 99));
         }
 
@@ -205,9 +205,15 @@ namespace HBP.Sync.Tests
         [Test]
         public void TimelineAnchor_RoundTripsFlagsStepAndMonotonicClock()
         {
-            var requested = new SetTimelineAnchor(new ColumnId("timeline-column"), 17, true, true, 1000000, long.MaxValue, 1000000000000UL);
-            var decoded = (SetTimelineAnchor)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(requested));
+            var requested = new SetTimelineAnchor(new ColumnId("timeline-column"), 17, true, true, 1000000, long.MaxValue, 1000000000000UL, V2TimelineAnchorIntent.Loop);
+            byte[] encoded = V2MutationPayloadCodec.Encode(requested);
+            var decoded = (SetTimelineAnchor)V2MutationPayloadCodec.Decode(encoded);
             AssertTimelineAnchor(decoded, requested);
+
+            byte[] legacyPlay = (byte[])V2MutationPayloadCodec.Encode(new SetTimelineAnchor(new ColumnId("timeline-column"), 17, true, true, 1000000, long.MaxValue, 1000000000000UL)).Clone();
+            Array.Resize(ref legacyPlay, legacyPlay.Length - 1);
+            WriteUInt16(legacyPlay, 0, 1);
+            Assert.That(((SetTimelineAnchor)V2MutationPayloadCodec.Decode(legacyPlay)).Intent, Is.EqualTo(V2TimelineAnchorIntent.Play));
         }
 
         [Test]
@@ -219,6 +225,8 @@ namespace HBP.Sync.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => NewTimeline(0, 1, 0));
             Assert.Throws<ArgumentOutOfRangeException>(() => NewTimeline(0, 1, 1000000000001UL));
             Assert.Throws<ArgumentOutOfRangeException>(() => new SetTimelineAnchor(new ColumnId("c"), 0, false, false, 1, -1, 1));
+            Assert.Throws<ArgumentException>(() => new SetTimelineAnchor(new ColumnId("c"), 0, false, false, 1, 0, 1, V2TimelineAnchorIntent.Play));
+            Assert.Throws<ArgumentException>(() => new SetTimelineAnchor(new ColumnId("c"), 0, true, false, 1, 0, 1, V2TimelineAnchorIntent.Pause));
 
             byte[] frame = V2MutationEnvelopeCodec.Encode(CreateDesktopEnvelope(NewTimeline(3, 2, 1000), 9));
             int playingOffset = V2MutationEnvelopeCodec.HeaderLength + 4 + 2 + Encoding.UTF8.GetByteCount("column") + 4;
@@ -269,10 +277,17 @@ namespace HBP.Sync.Tests
             byte[] timelineBytes = new TimelineAnchorCheckpointRecord(timeline).Encode();
             Assert.That(ReadUInt16(siteBytes, 0), Is.EqualTo((ushort)V2OperationType.SetSiteColor));
             Assert.That(ReadUInt16(siteBytes, 2), Is.EqualTo(1));
+            Assert.That(ReadUInt16(timelineBytes, 2), Is.EqualTo(2));
             Assert.That(ReadUInt16(siteBytes, 4), Is.EqualTo(siteBytes.Length - 6));
             AssertSiteColor(SiteColorCheckpointRecord.Decode(siteBytes).Value, site);
             AssertCutDefinition(CutDefinitionCheckpointRecord.Decode(cutBytes).Value, cut);
             AssertTimelineAnchor(TimelineAnchorCheckpointRecord.Decode(timelineBytes).Value, timeline);
+
+            byte[] legacyTimeline = (byte[])timelineBytes.Clone();
+            Array.Resize(ref legacyTimeline, legacyTimeline.Length - 1);
+            WriteUInt16(legacyTimeline, 2, 1);
+            WriteUInt16(legacyTimeline, 4, (ushort)(legacyTimeline.Length - 6));
+            Assert.That(TimelineAnchorCheckpointRecord.Decode(legacyTimeline).Value.Intent, Is.EqualTo(V2TimelineAnchorIntent.Play));
 
             byte[] unknownSchema = (byte[])siteBytes.Clone();
             WriteUInt16(unknownSchema, 2, 2);
@@ -281,6 +296,67 @@ namespace HBP.Sync.Tests
             byte[] unknownRecord = (byte[])siteBytes.Clone();
             WriteUInt16(unknownRecord, 0, 99);
             Assert.Throws<InvalidDataException>(() => SiteColorCheckpointRecord.Decode(unknownRecord));
+        }
+
+        [Test]
+        public void T09Mutations_RoundTripAllTypedFamiliesAndCheckpointRecords()
+        {
+            V2Mutation[] mutations =
+            {
+                new SetSelectedColumn(new ColumnId("column")),
+                new SetSelectedSite(new ColumnId("column"), new SiteId("site")),
+                new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true),
+                new SetSceneFloat(V2SceneFloatProperty.SiteGain, 1.25f),
+                new SetSceneColor(V2SceneColorProperty.Colormap, 17),
+                new SetSiteHighlight(new ColumnId("column"), new SiteId("site"), true),
+                new SetSiteLabels(new ColumnId("column"), new SiteId("site"), new[] { "first", "e\u0301", "third" }),
+                new SetActivityAlpha(new ColumnId("column"), 0.65f),
+                new SetColumnSpan(new ColumnId("column"), V2ColumnSpanKind.Static, -0.5f, 0f, 0.75f),
+                new SetFunctionalDisplay(new ColumnId("fmri"), V2FunctionalModality.Fmri, 0.1f, 0.4f, 0.2f, 0.8f, true, false, true),
+                new SetIbcDifumoDisplay(true, "ibc-3", true, "difumo-64", 9),
+                new SetLocalizerDisplay(true, "protocol", "data", "bloc", 7, 80f, 100f, 120f),
+                new SetFmriAtlasCalibration(0.35f, 0.1f, 0.4f, 0.2f, 0.8f),
+                new SetSelectedRoiSphere("roi", "sphere")
+            };
+
+            foreach (V2Mutation mutation in mutations)
+            {
+                byte[] encoded = V2MutationPayloadCodec.Encode(mutation);
+                V2Mutation decoded = V2MutationPayloadCodec.Decode(encoded);
+                Assert.That(decoded.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
+                Assert.That(V2MutationPayloadCodec.Encode(decoded), Is.EqualTo(encoded), mutation.Type.ToString());
+
+                V2T09CheckpointRecord record = V2T09CheckpointRecord.FromMutation(mutation);
+                V2T09CheckpointRecord decodedRecord = V2T09CheckpointRecord.Decode(record.Encode());
+                Assert.That(decodedRecord.GetType(), Is.EqualTo(record.GetType()), mutation.Type.ToString());
+                Assert.That(V2MutationPayloadCodec.Encode(decodedRecord.Value), Is.EqualTo(encoded), mutation.Type.ToString());
+            }
+
+            Assert.Throws<ArgumentException>(() => new SetLocalizerDisplay(false, "bad\nprotocol", string.Empty, string.Empty, 0, 0f, 0.5f, 1f));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new SetSiteLabels(new ColumnId("column"), new SiteId("site"), new[] { new string('x', 256), new string('y', 129) }));
+        }
+
+        [Test]
+        public void T09Descriptors_IsolateAtomicPropertiesAndCoalesceByStableOwner()
+        {
+            var sceneId = new SceneId(GuidFor(901));
+            var incarnationId = new IncarnationId(GuidFor(902));
+
+            V2TouchedKey strongCuts = V2MutationDescriptor.Create(sceneId, incarnationId, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true)).CoalescingKey;
+            V2TouchedKey edgeMode = V2MutationDescriptor.Create(sceneId, incarnationId, new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, true)).CoalescingKey;
+            Assert.That(strongCuts.Kind, Is.EqualTo(V2TouchedKeyKind.SceneBoolean));
+            Assert.That(strongCuts, Is.Not.EqualTo(edgeMode));
+
+            V2TouchedKey staticSpan = V2MutationDescriptor.Create(sceneId, incarnationId, new SetColumnSpan(new ColumnId("column"), V2ColumnSpanKind.Static, 0f, 0.5f, 1f)).CoalescingKey;
+            V2TouchedKey dynamicSpan = V2MutationDescriptor.Create(sceneId, incarnationId, new SetColumnSpan(new ColumnId("column"), V2ColumnSpanKind.Dynamic, 0f, 0.5f, 1f)).CoalescingKey;
+            Assert.That(staticSpan.Kind, Is.EqualTo(V2TouchedKeyKind.ColumnSpan));
+            Assert.That(staticSpan, Is.Not.EqualTo(dynamicSpan));
+
+            V2TouchedKey firstSphere = V2MutationDescriptor.Create(sceneId, incarnationId, new SetSelectedRoiSphere("roi", "sphere-a")).CoalescingKey;
+            V2TouchedKey secondSphere = V2MutationDescriptor.Create(sceneId, incarnationId, new SetSelectedRoiSphere("roi", "sphere-b")).CoalescingKey;
+            Assert.That(firstSphere.Kind, Is.EqualTo(V2TouchedKeyKind.SelectedRoiSphere));
+            Assert.That(firstSphere, Is.EqualTo(secondSphere));
+            Assert.That(firstSphere.RoiId, Is.EqualTo("roi"));
         }
 
         private static V2MutationEnvelope CreateDesktopEnvelope(V2Mutation mutation, int seed, ulong canonicalSequence = 1)
@@ -350,6 +426,7 @@ namespace HBP.Sync.Tests
             Assert.That(actual.Step, Is.EqualTo(expected.Step));
             Assert.That(actual.MonotonicAnchorTicks, Is.EqualTo(expected.MonotonicAnchorTicks));
             Assert.That(actual.TickFrequency, Is.EqualTo(expected.TickFrequency));
+            Assert.That(actual.Intent, Is.EqualTo(expected.Intent));
         }
 
         private static int SiteColorRgbaOffset(byte[] frame)

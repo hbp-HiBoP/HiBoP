@@ -255,7 +255,7 @@ namespace HBP.Sync
         private readonly int m_MaximumRecords;
         private readonly int m_MaximumBytes;
         private readonly Dictionary<V2TouchedKey, CheckpointEntry> m_Entries = new Dictionary<V2TouchedKey, CheckpointEntry>();
-        private readonly byte[][] m_FamilyDigests = { new byte[32], new byte[32], new byte[32] };
+        private readonly byte[][] m_FamilyDigests = CreateFamilyDigests();
         private int m_EncodedBytes;
 
         public int RecordCount => m_Entries.Count;
@@ -277,6 +277,13 @@ namespace HBP.Sync
         public bool Add(CutDefinitionCheckpointRecord record) => AddRecord(record?.Value, V2TouchedKeyKind.CutDefinition, record?.Encode());
         public bool Add(TimelineAnchorCheckpointRecord record) => AddRecord(record?.Value, V2TouchedKeyKind.TimelineAnchor, record?.Encode());
 
+        public bool Add(V2T09CheckpointRecord record)
+        {
+            if (record == null) throw new ArgumentNullException(nameof(record));
+            V2TouchedKeyKind kind = new V2MutationDescriptor(m_SceneId, m_IncarnationId, record.Value).CoalescingKey.Kind;
+            return AddRecord(record.Value, kind, record.Encode());
+        }
+
         public bool Remove(V2TouchedKey key)
         {
             if (key == null)
@@ -297,7 +304,7 @@ namespace HBP.Sync
             using (var stream = new MemoryStream())
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
-                writer.Write(Encoding.ASCII.GetBytes("HBPCHK1"));
+                writer.Write(Encoding.ASCII.GetBytes("HBPCHK2"));
                 writer.Write(m_SceneId.ToByteArray());
                 writer.Write(m_IncarnationId.ToByteArray());
                 writer.Write(checked((uint)m_Entries.Count));
@@ -349,7 +356,7 @@ namespace HBP.Sync
         private static int FamilyIndex(V2TouchedKeyKind kind)
         {
             int index = (int)kind - 1;
-            if (index < 0 || index > 2)
+            if (index < 0 || index >= 18)
                 throw new ArgumentOutOfRangeException(nameof(kind));
             return index;
         }
@@ -358,6 +365,13 @@ namespace HBP.Sync
         {
             for (int i = 0; i < target.Length; i++)
                 target[i] ^= value[i];
+        }
+
+        private static byte[][] CreateFamilyDigests()
+        {
+            var digests = new byte[18][];
+            for (int i = 0; i < digests.Length; i++) digests[i] = new byte[32];
+            return digests;
         }
 
         private sealed class CheckpointEntry

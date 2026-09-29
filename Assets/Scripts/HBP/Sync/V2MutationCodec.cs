@@ -6,7 +6,8 @@ namespace HBP.Sync
 {
     public static class V2MutationPayloadCodec
     {
-        public const ushort SchemaVersion = 1;
+        public const ushort SchemaVersion = 2;
+        private const ushort LegacySchemaVersion = 1;
         public const int MaximumPayloadBytes = 1024;
         private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
 
@@ -39,10 +40,10 @@ namespace HBP.Sync
                 try
                 {
                     ushort schemaVersion = reader.ReadUInt16();
-                    if (schemaVersion != SchemaVersion)
+                    if (schemaVersion != LegacySchemaVersion && schemaVersion != SchemaVersion)
                         throw new InvalidDataException("Unsupported mutation schema.");
                     V2OperationType operationType = (V2OperationType)reader.ReadUInt16();
-                    V2Mutation mutation = ReadBody(reader, operationType);
+                    V2Mutation mutation = ReadBody(reader, operationType, schemaVersion);
                     if (stream.Position != stream.Length)
                         throw new InvalidDataException("Trailing mutation payload bytes.");
                     return mutation;
@@ -74,7 +75,7 @@ namespace HBP.Sync
             }
         }
 
-        internal static V2Mutation ReadBody(BinaryReader reader, V2OperationType operationType)
+        internal static V2Mutation ReadBody(BinaryReader reader, V2OperationType operationType, ushort schemaVersion = SchemaVersion)
         {
             switch (operationType)
             {
@@ -103,10 +104,11 @@ namespace HBP.Sync
                         int step = reader.ReadInt32();
                         long monotonicAnchorTicks = reader.ReadInt64();
                         ulong tickFrequency = reader.ReadUInt64();
-                        return new SetTimelineAnchor(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency);
+                        V2TimelineAnchorIntent intent = schemaVersion >= 2 ? ReadTimelineAnchorIntent(reader) : playing ? V2TimelineAnchorIntent.Play : V2TimelineAnchorIntent.Pause;
+                        return new SetTimelineAnchor(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, intent);
                     }
                 default:
-                    throw new InvalidDataException("Unsupported mutation operation type.");
+                    return V2T09MutationCodec.ReadBody(reader, operationType);
             }
         }
 
@@ -145,6 +147,13 @@ namespace HBP.Sync
                 writer.Write(timelineAnchor.Step);
                 writer.Write(timelineAnchor.MonotonicAnchorTicks);
                 writer.Write(timelineAnchor.TickFrequency);
+                writer.Write((byte)timelineAnchor.Intent);
+                return;
+            }
+
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSelectedColumn)
+            {
+                V2T09MutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
@@ -207,6 +216,14 @@ namespace HBP.Sync
             if (value > 1)
                 throw new InvalidDataException("Invalid boolean value.");
             return value == 1;
+        }
+
+        private static V2TimelineAnchorIntent ReadTimelineAnchorIntent(BinaryReader reader)
+        {
+            byte value = reader.ReadByte();
+            if (!Enum.IsDefined(typeof(V2TimelineAnchorIntent), value))
+                throw new InvalidDataException("Invalid timeline anchor intent.");
+            return (V2TimelineAnchorIntent)value;
         }
     }
 
@@ -383,16 +400,18 @@ namespace HBP.Sync
     internal static class V2CheckpointRecordCodec
     {
         private const ushort SchemaVersion = 1;
+        private const ushort TimelineAnchorSchemaVersion = 2;
         private const int PrefixLength = 6;
 
         internal static byte[] Encode(ushort recordType, V2Mutation mutation)
         {
             byte[] body = V2MutationPayloadCodec.EncodeBody(mutation);
+            ushort schemaVersion = mutation is SetTimelineAnchor ? TimelineAnchorSchemaVersion : SchemaVersion;
             using (var stream = new MemoryStream(PrefixLength + body.Length))
             using (var writer = new BinaryWriter(stream))
             {
                 writer.Write(recordType);
-                writer.Write(SchemaVersion);
+                writer.Write(schemaVersion);
                 writer.Write((ushort)body.Length);
                 writer.Write(body);
                 return stream.ToArray();
@@ -414,12 +433,13 @@ namespace HBP.Sync
                     ushort bodyLength = reader.ReadUInt16();
                     if (recordType != (ushort)expectedType)
                         throw new InvalidDataException("Unexpected checkpoint record type.");
-                    if (schemaVersion != SchemaVersion)
+                    bool timelineAnchor = expectedType == V2OperationType.SetTimelineAnchor;
+                    if (schemaVersion != SchemaVersion && (!timelineAnchor || schemaVersion != TimelineAnchorSchemaVersion))
                         throw new InvalidDataException("Unsupported checkpoint record schema.");
                     if (bodyLength > V2MutationPayloadCodec.MaximumPayloadBytes || PrefixLength + bodyLength != bytes.Length)
                         throw new InvalidDataException("Invalid checkpoint body length.");
 
-                    V2Mutation mutation = V2MutationPayloadCodec.ReadBody(reader, expectedType);
+                    V2Mutation mutation = V2MutationPayloadCodec.ReadBody(reader, expectedType, schemaVersion);
                     if (stream.Position != stream.Length)
                         throw new InvalidDataException("Trailing checkpoint record bytes.");
                     return mutation;
@@ -437,6 +457,16 @@ namespace HBP.Sync
                     throw new InvalidDataException("Invalid checkpoint record length.", exception);
                 }
             }
+        }
+
+        internal static V2Mutation DecodeAny(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length < PrefixLength || bytes.Length > PrefixLength + V2MutationPayloadCodec.MaximumPayloadBytes)
+                throw new InvalidDataException("Invalid checkpoint record length.");
+            ushort type = (ushort)(bytes[0] | bytes[1] << 8);
+            if (type < (ushort)V2OperationType.SetSelectedColumn || type > (ushort)V2OperationType.SetSelectedRoiSphere)
+                throw new InvalidDataException("Unsupported T09 checkpoint record type.");
+            return Decode(bytes, (V2OperationType)type);
         }
     }
 }

@@ -8,6 +8,31 @@ using HBP.Sync;
 
 namespace HBP.Transfer.Transport
 {
+    /// <summary>Four-timestamp sample for estimating the remote monotonic clock against the local one.</summary>
+    public sealed class V2ClockProbeSample
+    {
+        public long LocalSendTicks { get; }
+        public long LocalReceiveTicks { get; }
+        public ulong LocalTickFrequency { get; }
+        public long RemoteReceiveTicks { get; }
+        public long RemoteSendTicks { get; }
+        public ulong RemoteTickFrequency { get; }
+
+        public V2ClockProbeSample(long localSendTicks, long localReceiveTicks, ulong localTickFrequency, long remoteReceiveTicks, long remoteSendTicks, ulong remoteTickFrequency)
+        {
+            if (localSendTicks < 0 || localReceiveTicks < localSendTicks || remoteReceiveTicks < 0 || remoteSendTicks < remoteReceiveTicks)
+                throw new ArgumentOutOfRangeException(nameof(localSendTicks));
+            if (localTickFrequency == 0 || localTickFrequency > 1000000000000UL || remoteTickFrequency == 0 || remoteTickFrequency > 1000000000000UL)
+                throw new ArgumentOutOfRangeException(nameof(localTickFrequency));
+            LocalSendTicks = localSendTicks;
+            LocalReceiveTicks = localReceiveTicks;
+            LocalTickFrequency = localTickFrequency;
+            RemoteReceiveTicks = remoteReceiveTicks;
+            RemoteSendTicks = remoteSendTicks;
+            RemoteTickFrequency = remoteTickFrequency;
+        }
+    }
+
     public enum V2TransportMessageKind : ushort
     {
         Application = 1,

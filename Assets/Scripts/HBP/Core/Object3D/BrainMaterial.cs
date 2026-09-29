@@ -5,6 +5,8 @@ namespace HBP.Core.Object3D
 {
     public class BrainMaterials
     {
+        public event System.Action<float> AlphaChanged;
+
         #region Properties
 
         /// <summary>
@@ -199,10 +201,12 @@ namespace HBP.Core.Object3D
         /// <param name="alpha">Alpha value to be used</param>
         public void SetAlpha(float alpha)
         {
+            bool changed = Alpha != alpha;
             Alpha = alpha;
             Color color = new(1, 1, 1, alpha);
             m_TransparentBrain.SetColor("_Color", color);
             m_TransparentCut.SetColor("_Color", color);
+            if (changed) AlphaChanged?.Invoke(alpha);
         }
 
         #endregion

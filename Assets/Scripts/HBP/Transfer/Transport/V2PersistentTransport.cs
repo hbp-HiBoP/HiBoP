@@ -35,6 +35,8 @@ namespace HBP.Transfer.Transport
         private readonly object m_Gate = new object();
         private readonly V2OutgoingScheduler m_Scheduler;
         private readonly TimeSpan m_LivenessInterval;
+        private readonly TimeSpan m_ClockProbeInterval;
+        private readonly Func<bool> m_ShouldProbeClock;
         private readonly CancellationTokenSource m_DisposeSource = new CancellationTokenSource();
         private readonly SemaphoreSlim m_WriterSignal = new SemaphoreSlim(0, 1);
         private readonly SemaphoreSlim m_IncomingAvailable = new SemaphoreSlim(0);
@@ -43,7 +45,7 @@ namespace HBP.Transfer.Transport
         private readonly Dictionary<Guid, ulong> m_LastSentSequences = new Dictionary<Guid, ulong>();
         private readonly Dictionary<Guid, InboundStreamState> m_InboundStreams = new Dictionary<Guid, InboundStreamState>();
         private readonly Queue<Guid> m_PendingPingOrder = new Queue<Guid>();
-        private readonly Dictionary<Guid, long> m_PendingPings = new Dictionary<Guid, long>();
+        private readonly Dictionary<Guid, PendingPing> m_PendingPings = new Dictionary<Guid, PendingPing>();
         private readonly Queue<V2TransportRecord> m_Incoming = new Queue<V2TransportRecord>();
         private readonly Func<Guid> m_GuidFactory;
         private ulong m_LastOriginSequence;
@@ -64,6 +66,9 @@ namespace HBP.Transfer.Transport
         private Stream m_CurrentStream;
         private V2PersistentTransportState m_State = V2PersistentTransportState.Disconnected;
         private TimeSpan? m_LastRoundTrip;
+        private long m_LastLivenessProbeTicks;
+
+        public event Action<V2ClockProbeSample> ClockProbeSampleReceived;
 
         public V2PersistentTransportState State
         {
@@ -96,12 +101,16 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public V2PersistentTransport(V2OutgoingScheduler scheduler, TimeSpan? livenessInterval = null, Func<Guid> guidFactory = null)
+        public V2PersistentTransport(V2OutgoingScheduler scheduler, TimeSpan? livenessInterval = null, Func<Guid> guidFactory = null, Func<bool> shouldProbeClock = null, TimeSpan? clockProbeInterval = null)
         {
             m_Scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
             m_LivenessInterval = livenessInterval ?? TimeSpan.FromSeconds(15);
             if (m_LivenessInterval <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException(nameof(livenessInterval));
+            m_ClockProbeInterval = clockProbeInterval ?? TimeSpan.FromMilliseconds(250);
+            if (m_ClockProbeInterval <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException(nameof(clockProbeInterval));
+            m_ShouldProbeClock = shouldProbeClock;
             if (scheduler.Limits.BulkChunkBytes > V2TransportFrameCodec.MaximumPayloadBytes)
                 throw new ArgumentOutOfRangeException(nameof(scheduler), "The scheduler bulk chunk exceeds the transport frame bound.");
             m_GuidFactory = guidFactory ?? Guid.NewGuid;
@@ -232,7 +241,7 @@ namespace HBP.Transfer.Transport
 
                 while (m_PendingPingOrder.Count > 0 && !m_PendingPings.ContainsKey(m_PendingPingOrder.Peek()))
                     m_PendingPingOrder.Dequeue();
-                m_PendingPings.Add(id, timestamp);
+                m_PendingPings.Add(id, new PendingPing(timestamp, checked((ulong)Stopwatch.Frequency)));
                 m_PendingPingOrder.Enqueue(id);
                 if (!QueueDirectControl(CreatePingRecord(id, timestamp)))
                 {
@@ -530,10 +539,26 @@ namespace HBP.Transfer.Transport
         private async Task LivenessLoopAsync(Task handshakeReady, CancellationToken cancellationToken)
         {
             await AwaitWithCancellationAsync(handshakeReady, cancellationToken).ConfigureAwait(false);
+            m_LastLivenessProbeTicks = Stopwatch.GetTimestamp();
             while (true)
             {
-                await Task.Delay(m_LivenessInterval, cancellationToken).ConfigureAwait(false);
-                SendLivenessProbe();
+                await Task.Delay(m_ClockProbeInterval, cancellationToken).ConfigureAwait(false);
+                long now = Stopwatch.GetTimestamp();
+                bool shouldProbeClock = false;
+                try
+                {
+                    shouldProbeClock = m_ShouldProbeClock?.Invoke() == true;
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+
+                double elapsed = (double)(now - m_LastLivenessProbeTicks) / Stopwatch.Frequency;
+                if (shouldProbeClock || elapsed >= m_LivenessInterval.TotalSeconds)
+                {
+                    SendLivenessProbe();
+                    m_LastLivenessProbeTicks = now;
+                }
             }
         }
 
@@ -600,10 +625,13 @@ namespace HBP.Transfer.Transport
         private void ProcessPing(V2TransportRecord record)
         {
             byte[] request = record.GetPayloadCopy();
+            long remoteReceiveTicks = Stopwatch.GetTimestamp();
+            long requesterSendTicks = unchecked((long)ReadUInt64(request, 0));
             byte[] response = new byte[32];
-            Buffer.BlockCopy(request, 0, response, 0, 16);
-            WriteUInt64(response, 16, unchecked((ulong)Stopwatch.GetTimestamp()));
-            WriteUInt64(response, 24, checked((ulong)Stopwatch.Frequency));
+            WriteUInt64(response, 0, unchecked((ulong)remoteReceiveTicks));
+            WriteUInt64(response, 8, unchecked((ulong)Stopwatch.GetTimestamp()));
+            WriteUInt64(response, 16, checked((ulong)Stopwatch.Frequency));
+            WriteUInt64(response, 24, unchecked((ulong)requesterSendTicks));
             var pong = new V2TransportRecord(V2TransportMessageKind.Pong, m_Scheduler.SessionId, messageId: record.MessageId, originDevice: m_Scheduler.OriginDevice, payload: response);
             lock (m_Gate)
                 QueueDirectControl(pong);
@@ -613,19 +641,31 @@ namespace HBP.Transfer.Transport
         private void ProcessPong(V2TransportRecord record)
         {
             byte[] payload = record.GetPayloadCopy();
-            long sentAt = unchecked((long)ReadUInt64(payload, 0));
-            ulong sentFrequency = ReadUInt64(payload, 8);
-            if (sentFrequency != checked((ulong)Stopwatch.Frequency))
-                return;
+            V2ClockProbeSample sample = null;
             lock (m_Gate)
             {
-                if (!m_PendingPings.TryGetValue(record.MessageId.Value, out long expectedSentAt) || expectedSentAt != sentAt)
+                if (!m_PendingPings.TryGetValue(record.MessageId.Value, out PendingPing pending))
                     return;
                 m_PendingPings.Remove(record.MessageId.Value);
-                long elapsed = Stopwatch.GetTimestamp() - sentAt;
+                long receivedAt = Stopwatch.GetTimestamp();
+                long elapsed = receivedAt - pending.SentTicks;
                 if (elapsed >= 0)
                     m_LastRoundTrip = TimeSpan.FromSeconds((double)elapsed / Stopwatch.Frequency);
+
+                // Older peers echo the request prefix and remain usable for liveness.
+                // Only a four-timestamp response can qualify timeline extrapolation.
+                bool legacyPong = ReadUInt64(payload, 0) == unchecked((ulong)pending.SentTicks) && ReadUInt64(payload, 8) == pending.TickFrequency;
+                if (!legacyPong && ReadUInt64(payload, 24) == unchecked((ulong)pending.SentTicks))
+                {
+                    long remoteReceiveTicks = unchecked((long)ReadUInt64(payload, 0));
+                    long remoteSendTicks = unchecked((long)ReadUInt64(payload, 8));
+                    ulong remoteFrequency = ReadUInt64(payload, 16);
+                    if (remoteReceiveTicks >= 0 && remoteSendTicks >= remoteReceiveTicks && remoteFrequency > 0 && remoteFrequency <= 1000000000000UL)
+                        sample = new V2ClockProbeSample(pending.SentTicks, receivedAt, pending.TickFrequency, remoteReceiveTicks, remoteSendTicks, remoteFrequency);
+                }
             }
+
+            if (sample != null) ClockProbeSampleReceived?.Invoke(sample);
         }
 
         private void ProcessApplicationRecord(V2TransportRecord record)
@@ -844,6 +884,18 @@ namespace HBP.Transfer.Transport
             WriteUInt64(payload, 0, unchecked((ulong)timestamp));
             WriteUInt64(payload, 8, checked((ulong)Stopwatch.Frequency));
             return new V2TransportRecord(V2TransportMessageKind.Ping, m_Scheduler.SessionId, messageId: new OperationId(id), originDevice: m_Scheduler.OriginDevice, payload: payload);
+        }
+
+        private sealed class PendingPing
+        {
+            public long SentTicks { get; }
+            public ulong TickFrequency { get; }
+
+            public PendingPing(long sentTicks, ulong tickFrequency)
+            {
+                SentTicks = sentTicks;
+                TickFrequency = tickFrequency;
+            }
         }
 
         private V2TransportRecord CreateAcknowledgement(ReliableStreamId streamId, ulong throughSequence)

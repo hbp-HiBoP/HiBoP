@@ -31,6 +31,7 @@ namespace HBP.Quest.Desktop
         private readonly Base3DScene m_Scene;
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly V2SceneMutationBoundary m_Boundary;
+        private readonly V2TimelineClockEstimator m_TimelineClock;
         private readonly V2DesktopMutationAuthority m_Authority;
         private readonly V2PublicationMutationJournal m_Journal;
         private readonly V2OutgoingScheduler m_Scheduler;
@@ -101,11 +102,13 @@ namespace HBP.Quest.Desktop
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
             m_Identity = V2PreparedSceneIdentity.Create(globalContextId, scene.Visualization.ID, transferId);
-            m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Desktop);
+            m_TimelineClock = new V2TimelineClockEstimator(StopwatchMonotonicClock.Instance);
+            m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Desktop, timelineTimingEstimate: anchor => m_TimelineClock.TryEstimate(anchor.MonotonicAnchorTicks, anchor.TickFrequency, anchor.Step, out V2TimelineAnchorTimingEstimate estimate) ? estimate : (V2TimelineAnchorTimingEstimate?)null);
             m_Authority = new V2DesktopMutationAuthority(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary);
             m_Journal = new V2PublicationMutationJournal(m_Identity.SceneId, m_Identity.IncarnationId);
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop);
-            m_Transport = new V2PersistentTransport(m_Scheduler);
+            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval);
+            m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_OpenReplica = openReplica ?? QuestPairing.OpenV2ReplicaAsync;
             m_Authority.CanonicalReady += OnCanonicalReady;
             m_Authority.SessionMustDisconnect += OnAuthorityFailure;
@@ -182,7 +185,7 @@ namespace HBP.Quest.Desktop
             Task initialConnection = m_OpenReplica(host, pin, credential, m_ConnectionLifetime.Token, m_Transport);
             m_ConnectionTask = MaintainConnectionAsync(initialConnection, host, pin, credential);
             _ = ObserveConnectionAsync(m_ConnectionTask);
-            _ = ObserveIncomingAsync(m_IncomingTask);
+            _ = ObserveIncomingAsync(m_IncomingTask, m_ConnectionLifetime.Token);
             Task cancellation = stop.CanBeCanceled ? Task.Delay(Timeout.Infinite, stop) : Task.Delay(Timeout.Infinite);
             Task completed = await Task.WhenAny(m_InitialApplyAcknowledged.Task, m_IncomingTask, cancellation).ConfigureAwait(false);
             if (completed == cancellation)
@@ -326,6 +329,9 @@ namespace HBP.Quest.Desktop
             catch (OperationCanceledException) when (m_Lifetime.IsCancellationRequested)
             {
             }
+            catch (ObjectDisposedException) when (m_Lifetime.IsCancellationRequested)
+            {
+            }
             catch (Exception exception)
             {
                 MarkConnectionClosed("The Quest v2 replica connection failed: " + exception.Message);
@@ -421,7 +427,7 @@ namespace HBP.Quest.Desktop
 
         private static bool IsTransientConnectionFailure(Exception exception) => exception is IOException || exception is SocketException || exception is ObjectDisposedException;
 
-        private async Task ObserveIncomingAsync(Task incoming)
+        private async Task ObserveIncomingAsync(Task incoming, CancellationToken stop)
         {
             try
             {
@@ -429,6 +435,9 @@ namespace HBP.Quest.Desktop
                 if (!m_Lifetime.IsCancellationRequested) MarkConnectionClosed("The Quest v2 mutation receiver ended.");
             }
             catch (OperationCanceledException) when (m_Lifetime.IsCancellationRequested)
+            {
+            }
+            catch (ObjectDisposedException) when (stop.IsCancellationRequested)
             {
             }
             catch (Exception exception)
