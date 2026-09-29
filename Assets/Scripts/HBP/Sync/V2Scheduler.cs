@@ -385,13 +385,15 @@ namespace HBP.Sync
         public V2EnqueueDisposition Disposition { get; }
         public OperationId OperationId { get; }
         public ReliableStreamId BulkStreamId { get; }
+        public OperationId ReplacedOperationId { get; }
 
-        internal V2EnqueueResult(bool accepted, V2EnqueueDisposition disposition, OperationId operationId = null, ReliableStreamId bulkStreamId = null)
+        internal V2EnqueueResult(bool accepted, V2EnqueueDisposition disposition, OperationId operationId = null, ReliableStreamId bulkStreamId = null, OperationId replacedOperationId = null)
         {
             Accepted = accepted;
             Disposition = disposition;
             OperationId = operationId;
             BulkStreamId = bulkStreamId;
+            ReplacedOperationId = replacedOperationId;
         }
     }
 
@@ -679,6 +681,7 @@ namespace HBP.Sync
                 return lane == V2ScheduleLane.Interactive ? RecordPreviewPressure(id) : FaultRequiredAdmission(id);
             }
 
+            OperationId replacedOperationId = existingSlot?.Value.OperationId;
             if (existingSlot != null)
                 ReplaceSceneSlot(existingSlot, pending);
             else
@@ -698,7 +701,7 @@ namespace HBP.Sync
             disposition = existingSlot == null ? V2EnqueueDisposition.Accepted : V2EnqueueDisposition.ReplacedUnsent;
             if (existingSlot != null)
                 m_CoalescedPreviewCount++;
-            return new V2EnqueueResult(true, disposition, id, bulkStreamId);
+            return new V2EnqueueResult(true, disposition, id, bulkStreamId, replacedOperationId);
         }
 
         public bool TryGetNextTransmission(out V2TransmissionAttempt transmission)
@@ -848,9 +851,10 @@ namespace HBP.Sync
 
             if (existingSlot != null)
             {
+                OperationId replacedOperationId = existingSlot.Value.OperationId;
                 ReplaceSceneSlot(existingSlot, pending);
                 m_CoalescedPreviewCount++;
-                return new V2EnqueueResult(true, V2EnqueueDisposition.ReplacedUnsent, operationId);
+                return new V2EnqueueResult(true, V2EnqueueDisposition.ReplacedUnsent, operationId, replacedOperationId: replacedOperationId);
             }
 
             LinkedListNode<PendingRecord> node = m_SceneQueue.AddLast(pending);
@@ -1035,6 +1039,8 @@ namespace HBP.Sync
             if (previous.BulkTransfer != null)
                 RemoveUncommittedTransfer(previous.BulkTransfer);
             node.Value = replacement;
+            m_SceneQueue.Remove(node);
+            m_SceneQueue.AddLast(node);
             if (replacement.Coalescible)
                 m_CoalescingSlots[replacement.Descriptor.CoalescingKey] = node;
         }

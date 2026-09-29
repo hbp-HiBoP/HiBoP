@@ -77,6 +77,7 @@ namespace HBP.Sync.Tests
             V2EnqueueResult replacement = scheduler.EnqueueMutation(SiteColor("column-A", "site-A", 0.8f));
             Assert.That(first.Disposition, Is.EqualTo(V2EnqueueDisposition.Accepted));
             Assert.That(replacement.Disposition, Is.EqualTo(V2EnqueueDisposition.ReplacedUnsent));
+            Assert.That(replacement.ReplacedOperationId, Is.EqualTo(first.OperationId));
 
             V2TransmissionAttempt initialAttempt = Next(scheduler);
             V2ReliableFrame committed = initialAttempt.Frame;
@@ -109,6 +110,30 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        public void Scheduler_CoalescedCanonicalPreviewKeepsSurvivingSequenceOrder()
+        {
+            var scheduler = CreateScheduler(new FakeMonotonicClock());
+            OperationId firstId = new OperationId(GuidFor(310));
+            OperationId secondId = new OperationId(GuidFor(311));
+            OperationId latestId = new OperationId(GuidFor(312));
+
+            Assert.That(scheduler.EnqueueMutation(SiteColor("column-A", "site-A", 0.1f), true, firstId, canonicalSequence: 1).Accepted, Is.True);
+            Assert.That(scheduler.EnqueueMutation(SiteColor("column-A", "site-B", 0.2f), true, secondId, canonicalSequence: 2).Accepted, Is.True);
+            V2EnqueueResult replacement = scheduler.EnqueueMutation(SiteColor("column-A", "site-A", 0.3f), true, latestId, canonicalSequence: 3);
+            Assert.That(replacement.Disposition, Is.EqualTo(V2EnqueueDisposition.ReplacedUnsent));
+            Assert.That(replacement.ReplacedOperationId, Is.EqualTo(firstId));
+
+            V2ReliableFrame first = Next(scheduler).Frame;
+            V2ReliableFrame second = Next(scheduler).Frame;
+            Assert.That(first.OperationId, Is.EqualTo(secondId));
+            Assert.That(first.CanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(first.OriginSequence, Is.EqualTo(1UL));
+            Assert.That(second.OperationId, Is.EqualTo(latestId));
+            Assert.That(second.CanonicalSequence, Is.EqualTo(3UL));
+            Assert.That(second.OriginSequence, Is.EqualTo(2UL));
+        }
+
+        [Test]
         public void Scheduler_HoldsAndCoalescesPreviewUnderWindowPressureWhileControlUsesReserve()
         {
             var limits = new V2SchedulerLimits(bulkChunkBytes: 256, maxReliableFrames: 2, maxReliableBytes: 4096, reservedReliableFrames: 1, reservedReliableBytes: 512);
@@ -117,10 +142,11 @@ namespace HBP.Sync.Tests
             V2ReliableFrame first = Next(scheduler).Frame;
             Assert.That(first.ReliableFrameSequence, Is.EqualTo(1UL));
 
-            scheduler.EnqueueMutation(SiteColor("column-A", "site-B", 0.1f));
+            V2EnqueueResult pending = scheduler.EnqueueMutation(SiteColor("column-A", "site-B", 0.1f));
             Assert.That(scheduler.TryGetNextTransmission(out _), Is.False);
             V2EnqueueResult coalesced = scheduler.EnqueueMutation(SiteColor("column-A", "site-B", 0.7f));
             Assert.That(coalesced.Disposition, Is.EqualTo(V2EnqueueDisposition.ReplacedUnsent));
+            Assert.That(coalesced.ReplacedOperationId, Is.EqualTo(pending.OperationId));
             Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(1));
 
             Assert.That(scheduler.EnqueueSessionControl(new byte[] { 0x51 }, V2DeliveryReliability.Reliable).Accepted, Is.True);
@@ -581,6 +607,7 @@ namespace HBP.Sync.Tests
             V2EnqueueResult replacement = scheduler.EnqueueSceneOperation(MakeBytes(512, 0xB2), descriptor, coalesciblePreview: true);
             Assert.That(replacement.Accepted, Is.True);
             Assert.That(replacement.Disposition, Is.EqualTo(V2EnqueueDisposition.ReplacedUnsent));
+            Assert.That(replacement.ReplacedOperationId, Is.EqualTo(first.OperationId));
             Assert.That(scheduler.CancelBulk(first.OperationId), Is.False);
             Assert.That(scheduler.SnapshotMetrics().RetainedBulkBodyBytes, Is.EqualTo(512));
             Assert.That(scheduler.SnapshotMetrics().RetainedBulkBodyBytes, Is.LessThanOrEqualTo(limits.MaxBulkBodyBytesTotal));

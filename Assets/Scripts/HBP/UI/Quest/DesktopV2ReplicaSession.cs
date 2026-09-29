@@ -262,7 +262,7 @@ namespace HBP.Quest.Desktop
 
         private void EnqueueCanonicalLocked(V2CanonicalMutation mutation)
         {
-            V2EnqueueResult queued = m_Transport.EnqueueMutation(mutation.Mutation, mutation.CanonicalSequence, null, coalesciblePreview: false, operationId: mutation.OperationId);
+            V2EnqueueResult queued = m_Transport.EnqueueMutation(mutation.Mutation, mutation.CanonicalSequence, null, coalesciblePreview: mutation.OriginDevice == V2OriginDevice.Desktop, operationId: mutation.OperationId);
             if (!queued.Accepted)
                 AbortLocked(false, "The v2 transport could not retain an accepted Desktop mutation: " + queued.Disposition + ".");
         }

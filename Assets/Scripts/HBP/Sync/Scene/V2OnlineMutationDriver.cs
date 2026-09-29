@@ -52,14 +52,16 @@ namespace HBP.Sync.Scene
         public OperationId OperationId { get; }
         public ulong CanonicalSequence { get; }
         public V2Mutation Mutation { get; }
+        public V2OriginDevice OriginDevice { get; }
 
-        internal V2CanonicalMutation(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ulong canonicalSequence, V2Mutation mutation)
+        internal V2CanonicalMutation(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ulong canonicalSequence, V2Mutation mutation, V2OriginDevice originDevice = V2OriginDevice.Desktop)
         {
             SceneId = sceneId;
             IncarnationId = incarnationId;
             OperationId = operationId;
             CanonicalSequence = canonicalSequence;
             Mutation = mutation;
+            OriginDevice = originDevice;
         }
     }
 
@@ -318,7 +320,7 @@ namespace HBP.Sync.Scene
             {
                 m_Boundary.Apply(mutation, V2MutationApplicationOrigin.Remote, operationId);
                 m_CanonicalSequence = acceptedSequence;
-                var canonical = new V2CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation);
+                var canonical = new V2CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation, V2OriginDevice.Quest);
                 var result = Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Accepted, canonical));
                 CanonicalReady?.Invoke(canonical);
                 return result;
@@ -465,7 +467,8 @@ namespace HBP.Sync.Scene
         private readonly V2SceneMutationBoundary m_Boundary;
         private readonly V2OutgoingScheduler m_Scheduler;
         private readonly Dictionary<Guid, byte[]> m_Pending = new Dictionary<Guid, byte[]>();
-        private readonly Queue<V2QuestMutationProposal> m_DeferredProposals = new Queue<V2QuestMutationProposal>();
+        private readonly LinkedList<V2QuestMutationProposal> m_DeferredProposals = new LinkedList<V2QuestMutationProposal>();
+        private readonly Dictionary<V2TouchedKey, LinkedListNode<V2QuestMutationProposal>> m_DeferredByKey = new Dictionary<V2TouchedKey, LinkedListNode<V2QuestMutationProposal>>();
         private readonly Dictionary<Guid, byte[]> m_Received = new Dictionary<Guid, byte[]>();
         private readonly Dictionary<V2TouchedKey, ulong> m_LastAppliedByKey = new Dictionary<V2TouchedKey, ulong>();
         private ulong m_LastObservedCanonicalSequence;
@@ -572,7 +575,7 @@ namespace HBP.Sync.Scene
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
             if (m_Pending.TryGetValue(canonical.OperationId.Value, out byte[] optimisticPayload))
             {
-                m_Pending.Remove(canonical.OperationId.Value);
+                RemovePendingProposal(canonical.OperationId);
                 RememberReceived(canonical.OperationId, payload);
                 m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
                 bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
@@ -631,7 +634,7 @@ namespace HBP.Sync.Scene
             if (TryGetReceived(correction.OperationId, payload)) return false;
             if (!m_Pending.TryGetValue(correction.OperationId.Value, out byte[] optimisticPayload)) return false;
 
-            m_Pending.Remove(correction.OperationId.Value);
+            RemovePendingProposal(correction.OperationId);
             RememberReceived(correction.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, correction.CanonicalSequence);
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, correction.AuthoritativeMutation);
@@ -672,7 +675,9 @@ namespace HBP.Sync.Scene
             }
 
             var proposal = new V2QuestMutationProposal(m_SceneId, m_IncarnationId, operationId, m_LastObservedCanonicalSequence, mutation);
-            if (m_Pending.Count >= MaximumRememberedOperations)
+            V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, mutation).CoalescingKey;
+            bool replacesDeferred = m_DeferredByKey.ContainsKey(key);
+            if (m_Pending.Count >= MaximumRememberedOperations && !replacesDeferred)
             {
                 ProposalNotQueued?.Invoke(operationId, V2EnqueueDisposition.Backpressured);
                 EnterOfflineLocal(1);
@@ -681,20 +686,16 @@ namespace HBP.Sync.Scene
 
             m_Pending.Add(operationId.Value, V2MutationPayloadCodec.Encode(mutation));
             m_LastCreatedProposal = proposal;
-            if (m_DeferredProposals.Count > 0)
-            {
-                DeferProposal(proposal, V2EnqueueDisposition.Backpressured);
-                return;
-            }
-
             ScheduleProposal(proposal);
         }
 
         private void ScheduleProposal(V2QuestMutationProposal proposal)
         {
-            V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: false, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
+            V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: true, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
             if (queued.Accepted)
             {
+                RemovePendingProposal(queued.ReplacedOperationId);
+                RemoveDeferredProposalForKey(V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation).CoalescingKey);
                 ProposalQueued?.Invoke(proposal);
                 return;
             }
@@ -711,7 +712,18 @@ namespace HBP.Sync.Scene
 
         private void DeferProposal(V2QuestMutationProposal proposal, V2EnqueueDisposition disposition)
         {
-            m_DeferredProposals.Enqueue(proposal);
+            V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation).CoalescingKey;
+            if (m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> existing))
+            {
+                RemovePendingProposal(existing.Value.OperationId);
+                existing.Value = proposal;
+            }
+            else
+            {
+                LinkedListNode<V2QuestMutationProposal> node = m_DeferredProposals.AddLast(proposal);
+                m_DeferredByKey.Add(key, node);
+            }
+
             ProposalDeferred?.Invoke(proposal, disposition);
         }
 
@@ -719,11 +731,13 @@ namespace HBP.Sync.Scene
         {
             while (!m_OfflineLocal && m_DeferredProposals.Count > 0)
             {
-                V2QuestMutationProposal proposal = m_DeferredProposals.Peek();
-                V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: false, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
+                LinkedListNode<V2QuestMutationProposal> node = m_DeferredProposals.First;
+                V2QuestMutationProposal proposal = node.Value;
+                V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: true, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
                 if (queued.Accepted)
                 {
-                    m_DeferredProposals.Dequeue();
+                    RemovePendingProposal(queued.ReplacedOperationId);
+                    RemoveDeferredProposal(node, removePending: false);
                     ProposalQueued?.Invoke(proposal);
                     continue;
                 }
@@ -735,6 +749,29 @@ namespace HBP.Sync.Scene
                 EnterOfflineLocal();
                 return;
             }
+        }
+
+        private void RemovePendingProposal(OperationId operationId)
+        {
+            if (operationId == null) return;
+            m_Pending.Remove(operationId.Value);
+        }
+
+        private void RemoveDeferredProposalForKey(V2TouchedKey key)
+        {
+            if (!m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> node)) return;
+            RemoveDeferredProposal(node, removePending: true);
+        }
+
+        private void RemoveDeferredProposal(LinkedListNode<V2QuestMutationProposal> node, bool removePending)
+        {
+            if (node == null) return;
+            V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, node.Value.Mutation).CoalescingKey;
+            if (m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> indexed) && ReferenceEquals(indexed, node))
+                m_DeferredByKey.Remove(key);
+            m_DeferredProposals.Remove(node);
+            if (removePending)
+                RemovePendingProposal(node.Value.OperationId);
         }
 
         private V2QuestMutationConnectionState RefreshConnectionState()
@@ -757,6 +794,7 @@ namespace HBP.Sync.Scene
             AbandonedProposalCount += m_Pending.Count + additionalAbandoned;
             m_Pending.Clear();
             m_DeferredProposals.Clear();
+            m_DeferredByKey.Clear();
             m_Received.Clear();
             m_LastAppliedByKey.Clear();
             m_OfflineLocal = true;

@@ -738,6 +738,100 @@ namespace HBP.Sync.Tests
 
         [Test]
         [Category("Sync.SceneFocused")]
+        public void DesktopReplicaSession_CoalescesCanonicalMutationsBeforeWireCommit()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            using var questBoundary = new V2SceneMutationBoundary(questFixture.Scene, V2OriginDevice.Quest);
+            var questScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest);
+            using var questDriver = new V2QuestMutationDriver(Scene, Incarnation, questBoundary, questScheduler);
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object desktopOwner = constructor.Invoke(new object[] { fixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+
+            try
+            {
+                FieldInfo state = desktopOwnerType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(state, Is.Not.Null);
+                state.SetValue(desktopOwner, Enum.Parse(state.FieldType, "Live"));
+
+                var canonical = new List<V2CanonicalMutation>();
+                var authority = (V2DesktopMutationAuthority)desktopOwnerType.GetField("m_Authority", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                authority.CanonicalReady += canonical.Add;
+
+                fixture.Sites[0].State.Color = new Color(0.1f, 0.2f, 0.3f, 1f);
+                fixture.Sites[0].State.Color = new Color(0.8f, 0.7f, 0.6f, 1f);
+
+                var scheduler = (V2OutgoingScheduler)desktopOwnerType.GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                Assert.That(canonical, Has.Count.EqualTo(2));
+                Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(1));
+                Assert.That(scheduler.SnapshotMetrics().CoalescedPreviewCount, Is.EqualTo(1));
+                Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt transmission), Is.True);
+                Assert.That(transmission.Frame.OperationId, Is.EqualTo(canonical[1].OperationId));
+                Assert.That(transmission.Frame.CanonicalSequence, Is.EqualTo(canonical[1].CanonicalSequence));
+                Assert.That(transmission.Frame.ReliableFrameSequence, Is.EqualTo(1UL));
+                Assert.That(transmission.Frame.OriginSequence, Is.EqualTo(1UL));
+                SetSiteColor sent = (SetSiteColor)V2MutationPayloadCodec.Decode(transmission.Frame.GetPayloadCopy());
+                Assert.That(sent.Red, Is.EqualTo(0.8f));
+                Assert.That(sent.Green, Is.EqualTo(0.7f));
+                Assert.That(sent.Blue, Is.EqualTo(0.6f));
+                Assert.That(questDriver.ReceiveCanonical(canonical[1]), Is.True);
+                Assert.That(questFixture.Sites[0].State.Color, Is.EqualTo(fixture.Sites[0].State.Color));
+            }
+            finally
+            {
+                ((IDisposable)desktopOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void DesktopReplicaSession_PreservesQuestProposalEchoBeforeLaterDesktopPreview()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            using var questBoundary = new V2SceneMutationBoundary(questFixture.Scene, V2OriginDevice.Quest);
+            var questScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest);
+            using var questDriver = new V2QuestMutationDriver(Scene, Incarnation, questBoundary, questScheduler);
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object desktopOwner = constructor.Invoke(new object[] { fixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+
+            try
+            {
+                FieldInfo state = desktopOwnerType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(state, Is.Not.Null);
+                state.SetValue(desktopOwner, Enum.Parse(state.FieldType, "Live"));
+                var authority = (V2DesktopMutationAuthority)desktopOwnerType.GetField("m_Authority", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                var scheduler = (V2OutgoingScheduler)desktopOwnerType.GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                var questEdit = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.8f, 0.7f, 0.6f, 1f);
+                V2QuestMutationProposal proposal = questDriver.ApplyOptimistic(questEdit, new OperationId(GuidFor(55110)));
+                V2DesktopProposalResult accepted = authority.AcceptQuestProposal(proposal);
+                Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+
+                fixture.Sites[0].State.Color = new Color(0.1f, 0.2f, 0.3f, 1f);
+                Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(2));
+                Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt echo), Is.True);
+                Assert.That(echo.Frame.OperationId, Is.EqualTo(proposal.OperationId));
+                Assert.That(questDriver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+                Assert.That(questDriver.PendingProposalCount, Is.Zero);
+                Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt desktopPreview), Is.True);
+                Assert.That(desktopPreview.Frame.CanonicalSequence, Is.EqualTo(2UL));
+            }
+            finally
+            {
+                ((IDisposable)desktopOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
         public async Task ExistingPreparedCut_PreservesStableIdAndSynchronizesDiscreteAndFinalContinuousEdits()
         {
             using var desktopFixture = new SessionSceneFixture(1);

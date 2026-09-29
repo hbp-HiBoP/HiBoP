@@ -288,6 +288,71 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void QuestLatestUnsentProposal_ReplacesSchedulerRecordAndClearsSupersededPendingId()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest, new TestClock());
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, quest.Boundary, scheduler);
+
+            V2QuestMutationProposal superseded = driver.ApplyOptimistic(Color("site-a", 0.1f, 0.2f, 0.3f), Operation(472));
+            V2QuestMutationProposal latest = driver.ApplyOptimistic(Color("site-a", 0.8f, 0.7f, 0.6f), Operation(473));
+
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.DeferredProposalCount, Is.Zero);
+            Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(1));
+            Assert.That(scheduler.SnapshotMetrics().CoalescedPreviewCount, Is.EqualTo(1));
+            Assert.That(driver.TryGetNextTransmission(out V2TransmissionAttempt transmission), Is.True);
+            Assert.That(transmission.Frame.OperationId, Is.EqualTo(latest.OperationId));
+            Assert.That(transmission.Frame.OperationId, Is.Not.EqualTo(superseded.OperationId));
+            Assert.That(transmission.Frame.OriginSequence, Is.EqualTo(1UL));
+            SetSiteColor sent = (SetSiteColor)V2MutationPayloadCodec.Decode(transmission.Frame.GetPayloadCopy());
+            Assert.That(sent.Red, Is.EqualTo(0.8f));
+            Assert.That(sent.Green, Is.EqualTo(0.7f));
+
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(latest);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+        }
+
+        [Test]
+        public void QuestLatestDeferredProposal_ReplacesSameKeyWithoutLeakingPendingIds()
+        {
+            var clock = new TestClock();
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, clock);
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest, clock, new V2SchedulerLimits(maxSceneQueuedRecords: 1, reservedSceneControlRecords: 0));
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, quest.Boundary, scheduler);
+            Assert.That(scheduler.EnqueueMutation(Color("site-b", 0.1f, 0.2f, 0.3f), coalesciblePreview: false, operationId: Operation(474), observedCanonicalSequence: 0).Accepted, Is.True);
+
+            V2QuestMutationProposal superseded = driver.ApplyOptimistic(Color("site-a", 0.1f, 0.2f, 0.3f), Operation(475));
+            V2QuestMutationProposal latest = driver.ApplyOptimistic(Color("site-a", 0.8f, 0.7f, 0.6f), Operation(476));
+
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.DeferredProposalCount, Is.EqualTo(1));
+            Assert.That(driver.TryGetNextTransmission(out V2TransmissionAttempt blocker), Is.True);
+            Assert.That(blocker.Frame.OperationId, Is.EqualTo(Operation(474)));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.TryGetNextTransmission(out V2TransmissionAttempt transmission), Is.True);
+            Assert.That(transmission.Frame.OperationId, Is.EqualTo(latest.OperationId));
+            Assert.That(transmission.Frame.OperationId, Is.Not.EqualTo(superseded.OperationId));
+            Assert.That(transmission.Frame.OriginSequence, Is.EqualTo(2UL));
+            SetSiteColor sent = (SetSiteColor)V2MutationPayloadCodec.Decode(transmission.Frame.GetPayloadCopy());
+            Assert.That(sent.Red, Is.EqualTo(0.8f));
+            Assert.That(driver.DeferredProposalCount, Is.Zero);
+
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(latest);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+        }
+
+        [Test]
         public void DesktopLedgerOverflow_FaultsAuthorityAndRequestsSessionDisconnect()
         {
             using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
