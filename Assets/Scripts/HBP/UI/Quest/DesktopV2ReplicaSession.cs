@@ -36,6 +36,8 @@ namespace HBP.Quest.Desktop
         private readonly V2PublicationMutationJournal m_Journal;
         private readonly V2OutgoingScheduler m_Scheduler;
         private readonly V2PersistentTransport m_Transport;
+        private readonly V2SceneOperationBulkReceiver m_SceneOperationBulkReceiver = new V2SceneOperationBulkReceiver();
+        private readonly System.Collections.Generic.Queue<V2TransportRecord> m_DeferredIncoming = new System.Collections.Generic.Queue<V2TransportRecord>();
         private readonly Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> m_OpenReplica;
         private readonly CancellationTokenSource m_Lifetime = new CancellationTokenSource();
         private readonly CancellationTokenSource m_PublicationAbort = new CancellationTokenSource();
@@ -127,6 +129,7 @@ namespace HBP.Quest.Desktop
             if (binding == null) throw new ArgumentNullException(nameof(binding));
             ValidateBinding(binding);
             stop.ThrowIfCancellationRequested();
+            m_Boundary.BindPreparedResources(binding);
             lock (m_Gate)
             {
                 ThrowIfAbortedLocked();
@@ -285,35 +288,94 @@ namespace HBP.Quest.Desktop
             {
                 V2TransportRecord record = await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
                 if (record == null) continue;
-                if (record.Kind != V2TransportMessageKind.Application) continue;
-                byte[] payload = record.GetPayloadCopy();
-                if (record.Lane == V2ScheduleLane.SessionControl)
+                if (m_SceneOperationBulkReceiver.IsActive)
                 {
-                    if (!V2PublicationControlCodec.TryDecodeAcknowledgement(payload, out OperationId barrierId))
-                        throw new InvalidDataException("Unsupported v2 session-control application message.");
-                    m_InitialApplyAcknowledged.TrySetResult(barrierId);
+                    if (m_SceneOperationBulkReceiver.TryAppend(record, out V2TransportRecord completedMutation))
+                    {
+                        if (completedMutation != null)
+                        {
+                            await ProcessIncomingApplicationRecordAsync(completedMutation, stop).ConfigureAwait(false);
+                            await DrainDeferredIncomingAsync(stop).ConfigureAwait(false);
+                        }
+                    }
+                    else
+                    {
+                        m_DeferredIncoming.Enqueue(record);
+                    }
+
                     continue;
                 }
 
-                if (record.Lane != V2ScheduleLane.Interactive || record.OriginDevice != V2OriginDevice.Quest || !record.ObservedCanonicalSequence.HasValue || record.Mutation == null)
-                    throw new InvalidDataException("Unexpected v2 Quest application record.");
-
-                await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
-                V2DesktopProposalResult result = m_Authority.AcceptQuestProposal(record.SceneId, record.IncarnationId, record.MessageId, record.Mutation, record.ObservedCanonicalSequence.Value);
-                if (result.Correction != null)
-                {
-                    EnqueueQuestProposalDecision(record, V2QuestProposalDecisionCodec.EncodeCorrection(result.Correction));
-                }
-                else if (result.CanonicalMutation == null && result.Outcome != V2ProposalOutcome.Duplicate)
-                {
-                    EnqueueQuestProposalDecision(record, V2QuestProposalDecisionCodec.EncodeRejection(record.MessageId, result.RejectionCode ?? "proposal_rejected"));
-                }
+                await ProcessIncomingApplicationRecordAsync(record, stop).ConfigureAwait(false);
+                await DrainDeferredIncomingAsync(stop).ConfigureAwait(false);
             }
         }
 
-        private void EnqueueQuestProposalDecision(V2TransportRecord proposal, byte[] body)
+        private async Task DrainDeferredIncomingAsync(CancellationToken stop)
         {
-            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_Identity.SceneId, m_Identity.IncarnationId, proposal.Mutation);
+            while (true)
+            {
+                if (m_SceneOperationBulkReceiver.IsActive)
+                {
+                    if (!m_SceneOperationBulkReceiver.TryAppendNextBuffered(m_DeferredIncoming, record => record, out _, out V2TransportRecord completedMutation))
+                        return;
+                    if (completedMutation != null)
+                        await ProcessIncomingApplicationRecordAsync(completedMutation, stop).ConfigureAwait(false);
+                    continue;
+                }
+
+                if (m_DeferredIncoming.Count == 0) return;
+                await ProcessIncomingApplicationRecordAsync(m_DeferredIncoming.Dequeue(), stop).ConfigureAwait(false);
+            }
+        }
+
+        private async Task ProcessIncomingApplicationRecordAsync(V2TransportRecord record, CancellationToken stop)
+        {
+            if (record.Kind != V2TransportMessageKind.Application) return;
+            byte[] payload = record.GetPayloadCopy();
+            if (record.Lane == V2ScheduleLane.SessionControl)
+            {
+                if (!V2PublicationControlCodec.TryDecodeAcknowledgement(payload, out OperationId barrierId))
+                    throw new InvalidDataException("Unsupported v2 session-control application message.");
+                m_InitialApplyAcknowledged.TrySetResult(barrierId);
+                return;
+            }
+
+            if (m_SceneOperationBulkReceiver.IsMutationDescriptor(record))
+            {
+                if (record.OriginDevice != V2OriginDevice.Quest || !record.ObservedCanonicalSequence.HasValue || record.CanonicalSequence.HasValue)
+                    throw new InvalidDataException("A structural Desktop proposal must carry a Quest observed canonical sequence.");
+                m_SceneOperationBulkReceiver.Begin(record);
+                return;
+            }
+
+            if (record.Lane == V2ScheduleLane.SceneControl && record.BodySchema == V2SceneOperationBulkReceiver.BodySchema)
+            {
+                if (record.OriginDevice != V2OriginDevice.Quest || !record.ObservedCanonicalSequence.HasValue || record.CanonicalSequence.HasValue)
+                    throw new InvalidDataException("A structural Desktop proposal must carry a Quest observed canonical sequence.");
+                await AcceptQuestMutationAsync(record, V2MutationPayloadCodec.Decode(payload), stop).ConfigureAwait(false);
+                return;
+            }
+
+            if (record.Lane != V2ScheduleLane.Interactive || record.OriginDevice != V2OriginDevice.Quest || !record.ObservedCanonicalSequence.HasValue || record.CanonicalSequence.HasValue || record.Mutation == null)
+                throw new InvalidDataException("Unexpected v2 Quest application record.");
+
+            await AcceptQuestMutationAsync(record, record.Mutation, stop).ConfigureAwait(false);
+        }
+
+        private async Task AcceptQuestMutationAsync(V2TransportRecord record, V2Mutation mutation, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            V2DesktopProposalResult result = m_Authority.AcceptQuestProposal(record.SceneId, record.IncarnationId, record.MessageId, mutation, record.ObservedCanonicalSequence.Value);
+            if (result.Correction != null)
+                EnqueueQuestProposalDecision(record, mutation, V2QuestProposalDecisionCodec.EncodeCorrection(result.Correction));
+            else if (result.CanonicalMutation == null && result.Outcome != V2ProposalOutcome.Duplicate)
+                EnqueueQuestProposalDecision(record, mutation, V2QuestProposalDecisionCodec.EncodeRejection(record.MessageId, result.RejectionCode ?? "proposal_rejected"));
+        }
+
+        private void EnqueueQuestProposalDecision(V2TransportRecord proposal, V2Mutation mutation, byte[] body)
+        {
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_Identity.SceneId, m_Identity.IncarnationId, mutation);
             V2EnqueueResult queued = m_Transport.EnqueueSceneOperation(body, descriptor, bodySchema: V2QuestProposalDecisionCodec.BodySchema, operationId: proposal.MessageId);
             if (!queued.Accepted)
                 throw new IOException("The v2 transport could not retain the Quest proposal decision: " + queued.Disposition + ".");
@@ -530,6 +592,8 @@ namespace HBP.Quest.Desktop
             m_PublicationAbort.Cancel();
             m_ConnectionLifetime?.Cancel();
             m_Transport.Dispose();
+            m_SceneOperationBulkReceiver.Reset();
+            m_DeferredIncoming.Clear();
             m_Authority.Dispose();
             m_Boundary.Dispose();
             m_Lifetime.Dispose();

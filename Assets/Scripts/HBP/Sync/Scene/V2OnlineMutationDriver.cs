@@ -301,15 +301,27 @@ namespace HBP.Sync.Scene
             }
             catch (ArgumentOutOfRangeException)
             {
-                ulong keySequence = m_Ledger.TryGetLastAcceptedSequence(descriptor.CoalescingKey, out ulong lastAccepted) ? lastAccepted : m_CanonicalSequence;
+                ulong keySequence = GetLastAcceptedSequence(descriptor);
                 var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "invalid_mutation_value");
                 string rejectionCode = mutation is SetTimelineAnchor ? "timeline_index_out_of_range" : "invalid_mutation_value";
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: rejectionCode));
             }
+            catch (Exception exception) when (exception is InvalidOperationException || exception is InvalidDataException)
+            {
+                string rejectionCode = mutation is ApplyTriangleMask ? "topology_unavailable" : "prepared_resource_unavailable";
+                if (current != null && V2MutationPayloadCodec.Encode(current).Length <= V2TransportFrameCodec.MaximumPayloadBytes / 2)
+                {
+                    ulong keySequence = GetLastAcceptedSequence(descriptor);
+                    var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, rejectionCode);
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: rejectionCode));
+                }
+
+                return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: rejectionCode));
+            }
 
             if (observedCanonicalSequence > m_CanonicalSequence || m_CanonicalSequence == ulong.MaxValue)
             {
-                ulong keySequence = m_Ledger.TryGetLastAcceptedSequence(descriptor.CoalescingKey, out ulong lastAccepted) ? lastAccepted : m_CanonicalSequence;
+                ulong keySequence = GetLastAcceptedSequence(descriptor);
                 var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
             }
@@ -328,7 +340,7 @@ namespace HBP.Sync.Scene
 
             if (admission == V2OperationAdmission.Conflicting)
             {
-                ulong keySequence = m_Ledger.TryGetLastAcceptedSequence(descriptor.CoalescingKey, out ulong lastAccepted) ? lastAccepted : m_CanonicalSequence;
+                ulong keySequence = GetLastAcceptedSequence(descriptor);
                 var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
             }
@@ -342,6 +354,15 @@ namespace HBP.Sync.Scene
             }
 
             return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "invalid_proposal"));
+        }
+
+        private ulong GetLastAcceptedSequence(V2ScheduleDescriptor descriptor)
+        {
+            ulong latest = 0;
+            foreach (V2TouchedKey key in descriptor.TouchedKeys)
+                if (m_Ledger.TryGetLastAcceptedSequence(key, out ulong sequence) && sequence > latest)
+                    latest = sequence;
+            return latest == 0 ? m_CanonicalSequence : latest;
         }
 
         private void OnLocalMutationProposed(OperationId operationId, V2Mutation mutation, V2OriginDevice device)
@@ -657,8 +678,11 @@ namespace HBP.Sync.Scene
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
             if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
             if (!m_Pending.ContainsKey(operationId.Value)) return false;
+            bool restored = m_Boundary.TryRollbackOptimisticOperation(operationId);
+            RemoveDeferredProposalForOperation(operationId);
+            RemovePendingProposal(operationId);
             ProposalRejected?.Invoke(operationId, rejectionCode);
-            EnterOfflineLocal();
+            if (!restored) EnterOfflineLocal();
             return true;
         }
 
@@ -676,7 +700,7 @@ namespace HBP.Sync.Scene
 
             var proposal = new V2QuestMutationProposal(m_SceneId, m_IncarnationId, operationId, m_LastObservedCanonicalSequence, mutation);
             V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, mutation).CoalescingKey;
-            bool replacesDeferred = m_DeferredByKey.ContainsKey(key);
+            bool replacesDeferred = key != null && m_DeferredByKey.ContainsKey(key);
             if (m_Pending.Count >= MaximumRememberedOperations && !replacesDeferred)
             {
                 ProposalNotQueued?.Invoke(operationId, V2EnqueueDisposition.Backpressured);
@@ -691,11 +715,12 @@ namespace HBP.Sync.Scene
 
         private void ScheduleProposal(V2QuestMutationProposal proposal)
         {
-            V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: true, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation);
+            V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: descriptor.CoalescingKey != null, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
             if (queued.Accepted)
             {
                 RemovePendingProposal(queued.ReplacedOperationId);
-                RemoveDeferredProposalForKey(V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation).CoalescingKey);
+                if (descriptor.CoalescingKey != null) RemoveDeferredProposalForKey(descriptor.CoalescingKey);
                 ProposalQueued?.Invoke(proposal);
                 return;
             }
@@ -713,7 +738,7 @@ namespace HBP.Sync.Scene
         private void DeferProposal(V2QuestMutationProposal proposal, V2EnqueueDisposition disposition)
         {
             V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation).CoalescingKey;
-            if (m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> existing))
+            if (key != null && m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> existing))
             {
                 RemovePendingProposal(existing.Value.OperationId);
                 existing.Value = proposal;
@@ -721,7 +746,7 @@ namespace HBP.Sync.Scene
             else
             {
                 LinkedListNode<V2QuestMutationProposal> node = m_DeferredProposals.AddLast(proposal);
-                m_DeferredByKey.Add(key, node);
+                if (key != null) m_DeferredByKey.Add(key, node);
             }
 
             ProposalDeferred?.Invoke(proposal, disposition);
@@ -733,7 +758,8 @@ namespace HBP.Sync.Scene
             {
                 LinkedListNode<V2QuestMutationProposal> node = m_DeferredProposals.First;
                 V2QuestMutationProposal proposal = node.Value;
-                V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: true, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
+                V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, proposal.Mutation);
+                V2EnqueueResult queued = m_Scheduler.EnqueueMutation(proposal.Mutation, coalesciblePreview: descriptor.CoalescingKey != null, operationId: proposal.OperationId, observedCanonicalSequence: proposal.ObservedCanonicalSequence);
                 if (queued.Accepted)
                 {
                     RemovePendingProposal(queued.ReplacedOperationId);
@@ -755,19 +781,32 @@ namespace HBP.Sync.Scene
         {
             if (operationId == null) return;
             m_Pending.Remove(operationId.Value);
+            m_Boundary.ForgetOptimisticOperation(operationId);
         }
 
         private void RemoveDeferredProposalForKey(V2TouchedKey key)
         {
+            if (key == null) return;
             if (!m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> node)) return;
             RemoveDeferredProposal(node, removePending: true);
+        }
+
+        private void RemoveDeferredProposalForOperation(OperationId operationId)
+        {
+            LinkedListNode<V2QuestMutationProposal> node = m_DeferredProposals.First;
+            while (node != null)
+            {
+                LinkedListNode<V2QuestMutationProposal> next = node.Next;
+                if (node.Value.OperationId.Equals(operationId)) RemoveDeferredProposal(node, removePending: false);
+                node = next;
+            }
         }
 
         private void RemoveDeferredProposal(LinkedListNode<V2QuestMutationProposal> node, bool removePending)
         {
             if (node == null) return;
             V2TouchedKey key = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, node.Value.Mutation).CoalescingKey;
-            if (m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> indexed) && ReferenceEquals(indexed, node))
+            if (key != null && m_DeferredByKey.TryGetValue(key, out LinkedListNode<V2QuestMutationProposal> indexed) && ReferenceEquals(indexed, node))
                 m_DeferredByKey.Remove(key);
             m_DeferredProposals.Remove(node);
             if (removePending)
@@ -816,10 +855,11 @@ namespace HBP.Sync.Scene
             m_Received.Add(operationId.Value, payload);
         }
 
-        private bool WasKeySuperseded(V2TouchedKey key, ulong sequence) => m_LastAppliedByKey.TryGetValue(key, out ulong lastApplied) && lastApplied >= sequence;
+        private bool WasKeySuperseded(V2TouchedKey key, ulong sequence) => key != null && m_LastAppliedByKey.TryGetValue(key, out ulong lastApplied) && lastApplied >= sequence;
 
         private void MarkKeyApplied(V2TouchedKey key, ulong sequence)
         {
+            if (key == null) return;
             if (!m_LastAppliedByKey.TryGetValue(key, out ulong lastApplied) || sequence > lastApplied)
                 m_LastAppliedByKey[key] = sequence;
         }

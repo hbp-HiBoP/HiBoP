@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -10,6 +13,7 @@ using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.Events;
 using SceneCut = HBP.Core.Object3D.Cut;
+using RoiSphere = HBP.Data.Module3D.Sphere;
 
 namespace HBP.Sync.Scene
 {
@@ -105,13 +109,15 @@ namespace HBP.Sync.Scene
         public IReadOnlyList<CutDefinitionCheckpointRecord> CutDefinitions { get; }
         public IReadOnlyList<TimelineAnchorCheckpointRecord> TimelineAnchors { get; }
         public IReadOnlyList<V2T09CheckpointRecord> T09Records { get; }
+        public IReadOnlyList<V2T10CheckpointRecord> T10Records { get; }
 
-        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null)
+        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null)
         {
             SiteColors = Array.AsReadOnly(siteColors.ToArray());
             CutDefinitions = Array.AsReadOnly(cutDefinitions.ToArray());
             TimelineAnchors = Array.AsReadOnly(timelineAnchors.ToArray());
             T09Records = Array.AsReadOnly((t09Records ?? Enumerable.Empty<V2T09CheckpointRecord>()).ToArray());
+            T10Records = Array.AsReadOnly((t10Records ?? Enumerable.Empty<V2T10CheckpointRecord>()).ToArray());
         }
     }
 
@@ -128,9 +134,14 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<SiteState, SitePresentationSnapshot> m_SitePresentationStates = new();
         private readonly Dictionary<SiteState, UnityAction> m_SiteStateListeners = new();
         private readonly Dictionary<ROI, UnityAction> m_RoiSelectionListeners = new();
+        private readonly Dictionary<ROI, UnityAction> m_RoiStructureListeners = new();
+        private readonly Dictionary<ROI, RoiStateSnapshot> m_RoiStateSnapshots = new();
+        private readonly Dictionary<Guid, V2Mutation> m_OptimisticRollbacks = new();
+        private readonly Queue<Guid> m_OptimisticRollbackOrder = new();
         private readonly Dictionary<Column3D, List<(UnityEvent Event, UnityAction Listener)>> m_ColumnListeners = new();
         private readonly Dictionary<Column3D, UnityAction<Core.Object3D.Site>> m_ColumnSelectionListeners = new();
         private V2Mutation m_LastSceneStrongCuts;
+        private V2Mutation m_LastSceneAutomaticCuts;
         private V2Mutation m_LastSceneHideBlacklisted;
         private V2Mutation m_LastSceneSiteGain;
         private V2Mutation m_LastSceneEdgeMode;
@@ -145,6 +156,11 @@ namespace HBP.Sync.Scene
         private V2Mutation m_LastSceneIbcDifumo;
         private V2Mutation m_LastSceneLocalizer;
         private V2Mutation m_LastSceneFmriCalibration;
+        private V2Mutation m_LastMeshDisplay;
+        private V2Mutation m_LastSelectedMri;
+        private V2Mutation m_LastMriCalibration;
+        private V2Mutation m_LastImplantation;
+        private V2Mutation m_LastTriangleMask;
         private V2Mutation m_LastSelectedColumn;
         private readonly Dictionary<Column3D, V2Mutation> m_LastSelectedSites = new();
         private readonly Dictionary<Column3D, V2Mutation> m_LastActivityAlphas = new();
@@ -159,6 +175,12 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<BasicTimeline, TimelineAnchorState> m_TimelineAnchorStates = new();
         private int m_PlayingTimelineCount;
         private bool m_Disposed;
+        private bool m_RoiObserverInitialized;
+        private string m_LastActiveRoiId;
+        private CutId[] m_LastCutOrder = Array.Empty<CutId>();
+        private UnityAction m_CutOrderListener;
+        private PreparedSceneResourceCatalog m_ResourceCatalog;
+        private string m_ResourceManifestHash;
 
         public event Action<OperationId, V2Mutation, V2OriginDevice> MutationProposed;
         public bool IsAnyTimelinePlaying => Volatile.Read(ref m_PlayingTimelineCount) > 0;
@@ -181,6 +203,37 @@ namespace HBP.Sync.Scene
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
             BindSceneTargets(scene);
+        }
+
+        /// <summary>Bind exact resources from the published delivery before enabling live resource mutations.</summary>
+        public void BindPreparedResources(PreparedSceneDeliveryBinding binding)
+        {
+            if (binding == null) throw new ArgumentNullException(nameof(binding));
+            RequireScene();
+            if (m_ResourceCatalog != null)
+            {
+                if (StringComparer.Ordinal.Equals(m_ResourceManifestHash, binding.ManifestHash)) return;
+                throw new InvalidOperationException("A prepared scene boundary cannot be rebound to another resource manifest.");
+            }
+
+            var catalog = new PreparedSceneResourceCatalog(m_Scene, binding.ManifestHash);
+            catalog.AssertDeliveryManifest(binding.Manifest);
+            m_ResourceCatalog = catalog;
+            m_ResourceManifestHash = binding.ManifestHash;
+            if (m_Scene.MeshManager != null)
+            {
+                m_Scene.MeshManager.ResourceSelectionChanged += ObserveMeshSelection;
+                m_Scene.MeshManager.DisplaySelectionChanged += ObserveMeshDisplay;
+            }
+
+            if (m_Scene.MRIManager != null) m_Scene.MRIManager.ResourceSelectionChanged += ObserveMriSelection;
+            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged += ObserveImplantationSelection;
+            if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.VisibilityMaskChanged += ObserveTriangleMask;
+            ObserveMeshDisplay();
+            ObserveMriSelection();
+            ObserveImplantationSelection();
+            ObserveMriCalibration();
+            ObserveTriangleMask();
         }
 
         /// <summary>Bind explicit fixture targets or a prepared-scene projection of its stable IDs.</summary>
@@ -238,13 +291,50 @@ namespace HBP.Sync.Scene
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             ValidateMutation(mutation);
+            V2Mutation rollback = mutation is MoveSites ? null : ReadCurrentMutation(mutation);
             using (origin == V2MutationApplicationOrigin.Remote ? V2MutationApplicationContext.EnterRemote(operationId) : V2MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
             {
                 if (!ApplyCore(mutation)) return;
             }
 
             if (origin != V2MutationApplicationOrigin.Remote)
+            {
+                if (origin == V2MutationApplicationOrigin.LocalQuest) RememberOptimisticRollback(operationId, rollback);
                 MutationProposed?.Invoke(operationId, mutation, ToOriginDevice(origin));
+            }
+        }
+
+        /// <summary>Restores the prepared value recorded before one rejected optimistic Quest operation.</summary>
+        public bool TryRollbackOptimisticOperation(OperationId operationId)
+        {
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            if (!m_OptimisticRollbacks.TryGetValue(operationId.Value, out V2Mutation rollback)) return false;
+            m_OptimisticRollbacks.Remove(operationId.Value);
+            Apply(rollback, V2MutationApplicationOrigin.Remote, operationId);
+            return true;
+        }
+
+        public void ForgetOptimisticOperation(OperationId operationId)
+        {
+            if (operationId != null) m_OptimisticRollbacks.Remove(operationId.Value);
+        }
+
+        private void RememberOptimisticRollback(OperationId operationId, V2Mutation rollback)
+        {
+            if (m_LocalOrigin != V2OriginDevice.Quest || operationId == null || rollback == null) return;
+            Guid id = operationId.Value;
+            if (m_OptimisticRollbacks.ContainsKey(id)) m_OptimisticRollbacks[id] = rollback;
+            else
+            {
+                m_OptimisticRollbacks.Add(id, rollback);
+                m_OptimisticRollbackOrder.Enqueue(id);
+            }
+
+            while (m_OptimisticRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
+            {
+                Guid oldest = m_OptimisticRollbackOrder.Dequeue();
+                m_OptimisticRollbacks.Remove(oldest);
+            }
         }
 
         /// <summary>Reads the current prepared value for the touched key of a typed mutation.</summary>
@@ -265,6 +355,9 @@ namespace HBP.Sync.Scene
                 (BasicTimeline timeline, ColumnId columnId) = ResolveTimeline(timelineAnchor.ColumnId);
                 return CreateTimelineAnchor(timeline, columnId);
             }
+
+            if ((ushort)key.Type >= (ushort)V2OperationType.CreateCut)
+                return ReadCurrentT10Mutation(key);
 
             if ((ushort)key.Type >= (ushort)V2OperationType.SetSelectedColumn)
                 return ReadCurrentT09Mutation(key);
@@ -298,6 +391,12 @@ namespace HBP.Sync.Scene
                 return;
             }
 
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.CreateCut)
+            {
+                ValidateT10Mutation(mutation);
+                return;
+            }
+
             if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSelectedColumn)
             {
                 ValidateT09Mutation(mutation);
@@ -324,7 +423,291 @@ namespace HBP.Sync.Scene
                 timelineRecords.Add(new TimelineAnchorCheckpointRecord(CreateTimelineAnchor(entry.Key, target.ColumnId)));
 
             var t09Records = m_Scene == null ? new List<V2T09CheckpointRecord>() : CaptureT09Records();
-            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records);
+            var t10Records = m_Scene == null ? new List<V2T10CheckpointRecord>() : CaptureT10Records();
+            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records);
+        }
+
+        private List<V2T10CheckpointRecord> CaptureT10Records()
+        {
+            var records = new List<V2T10CheckpointRecord>();
+            void Add(V2Mutation mutation) => records.Add(new V2T10CheckpointRecord(mutation));
+
+            foreach (SceneCut cut in m_Scene.Cuts)
+            {
+                CutId id = m_CutIds[cut];
+                Add(new CreateCut(id, CreateCutDefinition(cut, id), cut.Index));
+            }
+
+            Add(new SetCutOrder(m_Scene.Cuts.Select(cut => m_CutIds[cut])));
+
+            if (m_Scene.ROIManager != null)
+            {
+                foreach (ROI roi in m_Scene.ROIManager.ROIs) Add(CreateRoiMutation(roi));
+                Add(new SetActiveRoi(m_Scene.ROIManager.SelectedROI ? new RoiId(m_Scene.ROIManager.SelectedROI.ID) : null));
+            }
+
+            if (m_Scene.MRIManager != null)
+                Add(new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor));
+
+            if (m_ResourceCatalog != null)
+            {
+                if (m_Scene.MeshManager?.SelectedMesh != null) Add(CreateMeshDisplayMutation());
+                if (m_Scene.MRIManager?.SelectedMRI != null) Add(CreateSelectedMriMutation());
+                if (m_Scene.ImplantationManager?.SelectedImplantation != null) Add(CreateImplantationMutation());
+                if (m_Scene.MeshManager?.SelectedMesh != null && m_Scene.TriangleEraser != null) Add(CreateTriangleMaskMutation());
+            }
+
+            return records;
+        }
+
+        private void ValidateCheckpointT10Records(IReadOnlyList<V2T10CheckpointRecord> records)
+        {
+            if (records == null) throw new ArgumentNullException(nameof(records));
+            if (records.Count == 0) return;
+            var touched = new HashSet<V2TouchedKey>();
+            var stagedCuts = new HashSet<CutId>();
+            var stagedRois = new HashSet<string>(StringComparer.Ordinal);
+            var stagedSpheres = new HashSet<string>(StringComparer.Ordinal);
+            SetCutOrder cutOrder = null;
+            SetActiveRoi activeRoiRoster = null;
+            SetMeshDisplay meshDisplay = null;
+            ApplyTriangleMask masks = null;
+
+            var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
+            var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
+            foreach (V2T10CheckpointRecord record in records)
+            {
+                if (record?.Value == null || !IsCheckpointT10Mutation(record.Value))
+                    throw new ArgumentException("Checkpoint contains an unsupported T10 record.", nameof(records));
+                V2MutationDescriptor descriptor = V2MutationDescriptor.Create(validationScene, validationIncarnation, record.Value);
+                foreach (V2TouchedKey key in descriptor.TouchedKeys)
+                    if (!touched.Add(key))
+                        throw new ArgumentException("Checkpoint contains a duplicate T10 record key.", nameof(records));
+
+                switch (record.Value)
+                {
+                    case CreateCut value:
+                        if (!stagedCuts.Add(value.CutId)) throw new ArgumentException("Checkpoint contains a duplicate cut identity.", nameof(records));
+                        break;
+                    case SetCutOrder value:
+                        if (cutOrder != null) throw new ArgumentException("Checkpoint contains more than one cut order.", nameof(records));
+                        cutOrder = value;
+                        break;
+                    case CreateRoi value:
+                        RequireRoiManager();
+                        if (!stagedRois.Add(value.RoiId.Value)) throw new ArgumentException("Checkpoint contains a duplicate ROI identity.", nameof(records));
+                        break;
+                    case SetActiveRoi value:
+                        RequireRoiManager();
+                        if (activeRoiRoster != null) throw new ArgumentException("Checkpoint contains more than one active ROI record.", nameof(records));
+                        activeRoiRoster = value;
+                        break;
+                    case SetMeshDisplay value:
+                        ValidateT10Mutation(value);
+                        meshDisplay = value;
+                        break;
+                    case ApplyTriangleMask value:
+                        masks = value;
+                        break;
+                    default:
+                        ValidateT10Mutation(record.Value);
+                        break;
+                }
+            }
+
+            if (cutOrder != null)
+            {
+                if (cutOrder.CutIds.Count != stagedCuts.Count || cutOrder.CutIds.Any(id => !stagedCuts.Contains(id)))
+                    throw new InvalidDataException("Checkpoint cut order must name every cut identity exactly once.");
+                foreach (CreateCut cut in records.Select(record => record.Value).OfType<CreateCut>())
+                    if (cut.Order >= stagedCuts.Count)
+                        throw new ArgumentOutOfRangeException(nameof(records), "Checkpoint cut order exceeds the prepared scene.");
+            }
+            else if (stagedCuts.Count > 0 || m_Cuts.Count > 0)
+            {
+                throw new InvalidDataException("Checkpoint cut roster is missing its typed order record.");
+            }
+
+            var availableRois = new HashSet<string>(stagedRois, StringComparer.Ordinal);
+            if (activeRoiRoster == null)
+                foreach (string id in m_RoisById.Keys)
+                    availableRois.Add(id);
+            if (activeRoiRoster?.RoiId != null && !availableRois.Contains(activeRoiRoster.RoiId.Value))
+                throw new KeyNotFoundException("Checkpoint active ROI is not present in the authoritative ROI roster.");
+
+            foreach (CreateRoi roi in records.Select(record => record.Value).OfType<CreateRoi>())
+            {
+                int roiRosterSize = activeRoiRoster == null ? availableRois.Count : stagedRois.Count;
+                if (roi.Order >= roiRosterSize) throw new ArgumentOutOfRangeException(nameof(records), "Checkpoint ROI order exceeds the prepared scene.");
+                foreach (V2RoiSphereDefinition sphere in roi.Spheres)
+                    if (!stagedSpheres.Add(sphere.SphereId.Value))
+                        throw new InvalidDataException("Checkpoint contains duplicate sphere identities across ROIs.");
+            }
+
+            foreach (CreateRoi roiRecord in records.Select(record => record.Value).OfType<CreateRoi>())
+            {
+                foreach (V2RoiSphereDefinition sphere in roiRecord.Spheres)
+                {
+                    if (m_RoisById.Values.Any(existingRoi => (activeRoiRoster == null || stagedRois.Contains(existingRoi.ID)) && !StringComparer.Ordinal.Equals(existingRoi.ID, roiRecord.RoiId.Value) && existingRoi.Spheres.Any(existingSphere => existingSphere.ID == sphere.SphereId.Value)))
+                        throw new InvalidDataException("Checkpoint ROI sphere identity is already owned by another ROI.");
+                }
+            }
+
+            if (masks != null)
+            {
+                if (meshDisplay == null)
+                {
+                    ValidateTriangleMask(masks);
+                }
+                else
+                {
+                    Mesh3D mesh = m_ResourceCatalog.ResolveMesh(meshDisplay.MeshId.Value);
+                    MeshPart part = meshDisplay.Part switch { V2MeshPart.Left => MeshPart.Left, V2MeshPart.Right => MeshPart.Right, _ => MeshPart.Both };
+                    Core.Object3D.SurfaceRepresentation representation = meshDisplay.Representation == V2SurfaceRepresentation.Inflated ? Core.Object3D.SurfaceRepresentation.Inflated : Core.Object3D.SurfaceRepresentation.Anatomical;
+                    string resource = m_ResourceCatalog.MeshReference(mesh);
+                    TopologyId expectedComplete = new("surface:" + resource + ":" + part.ToString().ToLowerInvariant() + ":complete");
+                    TopologyId expectedSimplified = new("surface:" + resource + ":" + part.ToString().ToLowerInvariant() + ":simplified");
+                    int completeCount = mesh.GetSurface(representation, part, simplified: false).NumberOfTriangles;
+                    int simplifiedCount = mesh.GetSurface(representation, part, simplified: true).NumberOfTriangles;
+                    if (!masks.Masks[0].TopologyId.Equals(expectedComplete) || masks.Masks[0].TriangleCount != completeCount || !masks.Masks[1].TopologyId.Equals(expectedSimplified) || masks.Masks[1].TriangleCount != simplifiedCount)
+                        throw new InvalidDataException("Checkpoint triangle masks do not match the selected prepared original topology.");
+                }
+            }
+        }
+
+        private static bool IsCheckpointT10Mutation(V2Mutation mutation) => mutation.Type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask;
+
+        private void ApplyCheckpointT10Records(IReadOnlyList<V2T10CheckpointRecord> records)
+        {
+            foreach (V2T10CheckpointRecord record in records.OrderBy(record => GetCheckpointApplyOrder(record.Value)).ThenBy(record => record.Value is CreateCut cut ? cut.Order : record.Value is CreateRoi roi ? roi.Order : 0))
+                ApplyCheckpointT10Mutation(record.Value);
+        }
+
+        private static int GetCheckpointApplyOrder(V2Mutation mutation) =>
+            mutation.Type switch
+            {
+                V2OperationType.CreateCut => 0,
+                V2OperationType.SetCutOrder => 1,
+                V2OperationType.CreateRoi => 2,
+                V2OperationType.SetActiveRoi => 3,
+                V2OperationType.SetMeshDisplay => 4,
+                V2OperationType.SetSelectedMri => 5,
+                V2OperationType.SetMriCalibration => 6,
+                V2OperationType.SetImplantation => 7,
+                V2OperationType.ApplyTriangleMask => 8,
+                _ => throw new ArgumentException("Unsupported T10 checkpoint mutation.", nameof(mutation))
+            };
+
+        private void ApplyCheckpointT10Mutation(V2Mutation mutation)
+        {
+            switch (mutation)
+            {
+                case CreateCut value:
+                    if (!m_Cuts.TryGetValue(value.CutId, out SceneCut cut))
+                    {
+                        cut = m_Scene.AddCutPlane(value.CutId.Value);
+                        RegisterCut(cut);
+                    }
+
+                    ApplyCore(value.Definition);
+                    MoveCutToOrder(value.CutId, value.Order);
+                    break;
+                case SetCutOrder value:
+                    if (!m_Scene.Cuts.Select(cut => m_CutIds[cut]).SequenceEqual(value.CutIds)) ApplyCutOrder(value);
+                    break;
+                case CreateRoi value:
+                    ApplyCheckpointRoi(value);
+                    break;
+                case SetActiveRoi value:
+                    ApplyCore(value);
+                    break;
+                default:
+                    ApplyT10Mutation(mutation);
+                    break;
+            }
+        }
+
+        private void ApplyCheckpointRoi(CreateRoi value)
+        {
+            if (!m_RoisById.TryGetValue(value.RoiId.Value, out ROI roi))
+            {
+                roi = m_Scene.ROIManager.AddROI(value.Name);
+                string generatedId = roi.ID;
+                m_RoisById.Remove(generatedId);
+                roi.ID = value.RoiId.Value;
+                RegisterRoi(roi);
+            }
+            else if (!StringComparer.Ordinal.Equals(roi.Name, value.Name))
+            {
+                roi.Name = value.Name;
+            }
+
+            var desired = value.Spheres.ToDictionary(sphere => sphere.SphereId.Value, StringComparer.Ordinal);
+            for (int i = roi.Spheres.Count - 1; i >= 0; i--)
+                if (!desired.ContainsKey(roi.Spheres[i].ID))
+                    roi.RemoveSphere(i);
+
+            for (int i = 0; i < value.Spheres.Count; i++)
+            {
+                V2RoiSphereDefinition definition = value.Spheres[i];
+                int currentIndex = roi.Spheres.FindIndex(sphere => StringComparer.Ordinal.Equals(sphere.ID, definition.SphereId.Value));
+                if (currentIndex < 0)
+                {
+                    AddSphere(roi, definition, roi.Spheres.Count);
+                    currentIndex = roi.Spheres.Count - 1;
+                }
+                else
+                {
+                    RoiSphere existing = roi.Spheres[currentIndex];
+                    existing.Position = new Vector3(definition.X, definition.Y, definition.Z);
+                    existing.SetInfluenceRadius(definition.InfluenceRadius);
+                    if (currentIndex != i)
+                    {
+                        roi.Spheres.RemoveAt(currentIndex);
+                        roi.Spheres.Insert(i, existing);
+                    }
+                }
+            }
+
+            MoveRoiToOrder(roi, value.Order);
+            m_RoiStateSnapshots[roi] = RoiStateSnapshot.Capture(roi, value.Order);
+        }
+
+        private void ReconcileCheckpointRosters(IReadOnlyList<V2T10CheckpointRecord> records)
+        {
+            SetCutOrder cutOrder = records.Select(record => record.Value).OfType<SetCutOrder>().SingleOrDefault();
+            if (cutOrder != null)
+            {
+                var desiredCuts = new HashSet<CutId>(cutOrder.CutIds);
+                foreach (SceneCut cut in m_Scene.Cuts.Where(cut => !desiredCuts.Contains(m_CutIds[cut])).ToArray())
+                    m_Scene.RemoveCutPlane(cut);
+            }
+
+            bool hasRoiRoster = records.Any(record => record.Value is SetActiveRoi);
+            if (!hasRoiRoster || m_Scene.ROIManager == null) return;
+            var desiredRois = new HashSet<string>(records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
+            foreach (ROI roi in m_Scene.ROIManager.ROIs.Where(roi => !desiredRois.Contains(roi.ID)).ToArray())
+                m_Scene.ROIManager.RemoveROI(roi);
+        }
+
+        private static void ValidateCheckpointT09Records(IReadOnlyList<V2T09CheckpointRecord> records, IReadOnlyList<V2T10CheckpointRecord> t10Records)
+        {
+            var stagedRois = t10Records.Select(record => record.Value).OfType<CreateRoi>().ToDictionary(roi => roi.RoiId.Value, StringComparer.Ordinal);
+            bool hasRoiRoster = t10Records.Any(record => record.Value is SetActiveRoi);
+            foreach (V2T09CheckpointRecord record in records)
+            {
+                if (record.Value is SetSelectedRoiSphere selection && (hasRoiRoster || stagedRois.ContainsKey(selection.RoiId)))
+                {
+                    if (!stagedRois.TryGetValue(selection.RoiId, out CreateRoi roi))
+                        throw new KeyNotFoundException("Checkpoint selected sphere references an ROI outside the authoritative ROI roster.");
+                    if (selection.SphereId.Length > 0 && !roi.Spheres.Any(sphere => StringComparer.Ordinal.Equals(sphere.SphereId.Value, selection.SphereId)))
+                        throw new KeyNotFoundException("Checkpoint selected sphere is absent from its staged ROI.");
+                    continue;
+                }
+
+                // T09 validation is completed by the bound boundary after it has checked staged T10 identities.
+                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty T09 record.", nameof(records));
+            }
         }
 
         public void ApplyCheckpoint(V2SceneMutationCheckpoint checkpoint, OperationId operationId)
@@ -341,9 +724,13 @@ namespace HBP.Sync.Scene
             }
 
             var cutKeys = new HashSet<CutId>();
+            var stagedCuts = new HashSet<CutId>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateCut>().Select(cut => cut.CutId));
+            bool hasCutRoster = checkpoint.T10Records.Any(record => record.Value is SetCutOrder);
             foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions)
             {
-                ResolveCut(record.Value.CutId);
+                if (hasCutRoster && !stagedCuts.Contains(record.Value.CutId))
+                    throw new KeyNotFoundException("Checkpoint cut definition is outside the authoritative cut roster.");
+                if (!stagedCuts.Contains(record.Value.CutId)) ResolveCut(record.Value.CutId);
                 if (!cutKeys.Add(record.Value.CutId)) throw new ArgumentException("Checkpoint contains a duplicate cut key.", nameof(checkpoint));
             }
 
@@ -355,11 +742,22 @@ namespace HBP.Sync.Scene
                 if (!timelineKeys.Add(record.Value.ColumnId)) throw new ArgumentException("Checkpoint contains a duplicate timeline key.", nameof(checkpoint));
             }
 
+            ValidateCheckpointT10Records(checkpoint.T10Records);
+            ValidateCheckpointT09Records(checkpoint.T09Records, checkpoint.T10Records);
+            var stagedRoiIds = new HashSet<string>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
+            bool hasRoiRoster = checkpoint.T10Records.Any(record => record.Value is SetActiveRoi);
             foreach (V2T09CheckpointRecord record in checkpoint.T09Records)
+            {
+                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty T09 record.", nameof(checkpoint));
+                if (record.Value is SetSelectedRoiSphere selectedSphere && (hasRoiRoster || stagedRoiIds.Contains(selectedSphere.RoiId)))
+                    continue;
                 ValidateMutation(record.Value);
+            }
 
             using (V2MutationApplicationContext.EnterRemote(operationId))
             {
+                ReconcileCheckpointRosters(checkpoint.T10Records);
+                ApplyCheckpointT10Records(checkpoint.T10Records);
                 foreach (SiteColorCheckpointRecord record in checkpoint.SiteColors) ApplyCore(record.Value);
                 foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions) ApplyCore(record.Value);
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
@@ -400,6 +798,9 @@ namespace HBP.Sync.Scene
                 ApplyTimelineAnchor(timeline, timelineAnchor);
                 return true;
             }
+
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.CreateCut)
+                return ApplyT10Mutation(mutation);
 
             if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSelectedColumn)
                 return ApplyT09Mutation(mutation);
@@ -472,11 +873,27 @@ namespace HBP.Sync.Scene
             }
 
             m_LastSelectedColumn = new SetSelectedColumn(scene.SelectedColumn ? new ColumnId(scene.SelectedColumn.ColumnData.ID) : null);
+            m_LastSceneAutomaticCuts = new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, scene.AutomaticCutAroundSelectedSite);
+            m_LastActiveRoiId = scene.ROIManager?.SelectedROI?.ID;
+            m_LastCutOrder = scene.Cuts.Select(cut => new CutId(cut.ID)).ToArray();
+            scene.OnAddCut.AddListener(OnCutAdded);
+            scene.OnRemoveCut.AddListener(OnCutRemoved);
+            m_CutOrderListener = ObserveCutOrder;
+            scene.OnModifyPlanesCuts.AddListener(m_CutOrderListener);
+            scene.OnChangeAutomaticCutAroundSelectedSite.AddListener(OnAutomaticCutPolicyChanged);
+            scene.SitePositionCommandExecuted += OnSitePositionCommandExecuted;
             scene.OnSharedStateChanged.AddListener(ObserveScenePresentation);
             if (scene.BrainMaterials != null) scene.BrainMaterials.AlphaChanged += OnBrainAlphaChanged;
             if (scene.FMRIManager != null) scene.FMRIManager.PresentationChanged += ObserveFmriPresentation;
             Module3DMain.OnSelectColumn.AddListener(OnModuleColumnSelected);
             scene.OnUpdateROI.AddListener(RefreshRoiTargets);
+            if (scene.ROIManager != null)
+            {
+                scene.ROIManager.RoiAdded += OnRoiAdded;
+                scene.ROIManager.RoiRemoved += OnRoiRemoved;
+                scene.ROIManager.ActiveRoiChanged += OnActiveRoiChanged;
+            }
+
             RefreshRoiTargets();
             ObserveScenePresentation();
             if (scene.FMRIManager != null) ObserveFmriPresentation();
@@ -493,6 +910,7 @@ namespace HBP.Sync.Scene
             var records = new List<V2T09CheckpointRecord>();
             void Add(V2Mutation mutation) => records.Add(V2T09CheckpointRecord.FromMutation(mutation));
             Add(new SetSelectedColumn(m_Scene.SelectedColumn ? new ColumnId(m_Scene.SelectedColumn.ColumnData.ID) : null));
+            Add(new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
@@ -589,8 +1007,10 @@ namespace HBP.Sync.Scene
         {
             if (m_Scene == null || m_Disposed) return;
             ObserveT09(ref m_LastSceneStrongCuts, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
+            ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             ObserveT09(ref m_LastSceneHideBlacklisted, new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
             ObserveT09(ref m_LastSceneSiteGain, new SetSceneFloat(V2SceneFloatProperty.SiteGain, m_Scene.SiteGain));
+            ObserveMriCalibration();
             ObserveT09(ref m_LastSceneEdgeMode, new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
             if (m_Scene.BrainMaterials != null)
             {
@@ -666,27 +1086,222 @@ namespace HBP.Sync.Scene
             if (!ShouldSuppressPublication()) Publish(current);
         }
 
+        private void ObserveT10(ref V2Mutation previous, V2Mutation current)
+        {
+            if (previous == null)
+            {
+                previous = current;
+                return;
+            }
+
+            if (V2MutationPayloadCodec.Encode(previous).SequenceEqual(V2MutationPayloadCodec.Encode(current))) return;
+            V2Mutation rollback = previous;
+            previous = current;
+            if (!ShouldSuppressPublication()) Publish(current, rollback);
+        }
+
+        private void ObserveMeshSelection() => ObserveMeshDisplay();
+
+        private void ObserveMeshDisplay()
+        {
+            if (m_Disposed || m_ResourceCatalog == null) return;
+            MeshManager manager = m_Scene.MeshManager;
+            if (manager == null || manager.Meshes == null || manager.SelectedMeshID < 0 || manager.SelectedMeshID >= manager.Meshes.Count) return;
+            try
+            {
+                ObserveT10(ref m_LastMeshDisplay, CreateMeshDisplayMutation());
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
+            {
+            }
+        }
+
+        private void ObserveMriSelection()
+        {
+            if (m_Disposed || m_ResourceCatalog == null || m_Scene.MRIManager == null) return;
+            try
+            {
+                ObserveT10(ref m_LastSelectedMri, CreateSelectedMriMutation());
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
+            {
+            }
+        }
+
+        private void ObserveMriCalibration()
+        {
+            if (m_Disposed || m_Scene.MRIManager == null) return;
+            ObserveT10(ref m_LastMriCalibration, new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor));
+        }
+
+        private void ObserveImplantationSelection()
+        {
+            if (m_Disposed || m_ResourceCatalog == null || m_Scene.ImplantationManager?.SelectedImplantation == null) return;
+            try
+            {
+                ObserveT10(ref m_LastImplantation, CreateImplantationMutation());
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
+            {
+            }
+        }
+
+        private void ObserveTriangleMask()
+        {
+            if (m_Disposed || m_ResourceCatalog == null || m_Scene.TriangleEraser == null) return;
+            try
+            {
+                ObserveT10(ref m_LastTriangleMask, CreateTriangleMaskMutation());
+            }
+            catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
+            {
+            }
+        }
+
         private void RefreshRoiTargets()
         {
             if (m_Scene == null || m_Scene.ROIManager == null || m_Disposed) return;
-            var current = new HashSet<ROI>(m_Scene.ROIManager.ROIs);
-            foreach (ROI stale in m_RoisById.Values.Where(roi => !current.Contains(roi)).ToArray())
+            ROI[] current = m_Scene.ROIManager.ROIs.ToArray();
+            var currentSet = new HashSet<ROI>(current);
+            if (!m_RoiObserverInitialized)
             {
-                if (m_RoiSelectionListeners.TryGetValue(stale, out UnityAction listener)) stale.OnChangeSphereSelectionState.RemoveListener(listener);
-                m_RoiSelectionListeners.Remove(stale);
-                m_LastRoiSpheres.Remove(stale);
-                m_RoisById.Remove(stale.ID);
+                foreach (ROI roi in current)
+                {
+                    RegisterRoi(roi);
+                    m_RoiStateSnapshots[roi] = RoiStateSnapshot.Capture(roi, m_Scene.ROIManager.ROIs.IndexOf(roi));
+                }
+
+                m_LastActiveRoiId = m_Scene.ROIManager.SelectedROI ? m_Scene.ROIManager.SelectedROI.ID : null;
+                m_RoiObserverInitialized = true;
+                return;
+            }
+
+            foreach (ROI stale in m_RoiStateSnapshots.Keys.Where(roi => !currentSet.Contains(roi)).ToArray())
+            {
+                RoiStateSnapshot previous = m_RoiStateSnapshots[stale];
+                if (!ShouldSuppressPublication()) Publish(new DeleteRoi(new RoiId(previous.RoiId)));
+                UnregisterRoi(stale);
             }
 
             foreach (ROI roi in current)
             {
-                if (m_RoisById.TryGetValue(roi.ID, out ROI existing) && ReferenceEquals(existing, roi)) continue;
-                if (!m_RoisById.TryAdd(roi.ID, roi)) throw new InvalidOperationException("Prepared ROIs must have unique stable identities.");
-                m_LastRoiSpheres.Add(roi, new SetSelectedRoiSphere(roi.ID, roi.SelectedSphere ? roi.SelectedSphere.ID : string.Empty));
-                UnityAction listener = () => OnRoiSphereSelectionChanged(roi);
-                roi.OnChangeSphereSelectionState.AddListener(listener);
-                m_RoiSelectionListeners.Add(roi, listener);
+                RegisterRoi(roi);
+                RoiStateSnapshot next = RoiStateSnapshot.Capture(roi, m_Scene.ROIManager.ROIs.IndexOf(roi));
+                if (!m_RoiStateSnapshots.TryGetValue(roi, out RoiStateSnapshot previous))
+                {
+                    if (!ShouldSuppressPublication()) Publish(CreateRoiMutation(roi));
+                    m_RoiStateSnapshots[roi] = next;
+                    continue;
+                }
+
+                if (!StringComparer.Ordinal.Equals(previous.RoiId, next.RoiId))
+                {
+                    if (!ShouldSuppressPublication())
+                    {
+                        Publish(new DeleteRoi(new RoiId(previous.RoiId)));
+                        Publish(CreateRoiMutation(roi));
+                    }
+                }
+                else
+                {
+                    if (!StringComparer.Ordinal.Equals(previous.Name, next.Name) && !ShouldSuppressPublication())
+                        Publish(new RenameRoi(new RoiId(next.RoiId), next.Name));
+
+                    foreach (string oldSphereId in previous.Spheres.Keys.Except(next.Spheres.Keys, StringComparer.Ordinal))
+                        if (!ShouldSuppressPublication())
+                            Publish(new DeleteRoiSphere(new RoiId(next.RoiId), new SphereId(oldSphereId)));
+                    foreach (KeyValuePair<string, V2RoiSphereDefinition> sphere in next.Spheres)
+                    {
+                        if (!previous.Spheres.TryGetValue(sphere.Key, out V2RoiSphereDefinition oldSphere))
+                        {
+                            if (!ShouldSuppressPublication()) Publish(new CreateRoiSphere(new RoiId(next.RoiId), sphere.Value, roi.Spheres.FindIndex(item => item.ID == sphere.Key)));
+                        }
+                        else if (!SphereDefinitionEquals(oldSphere, sphere.Value) && !ShouldSuppressPublication())
+                            Publish(new SetRoiSphereDefinition(new RoiId(next.RoiId), sphere.Value));
+                    }
+                }
+
+                m_RoiStateSnapshots[roi] = next;
             }
+
+            string activeRoiId = m_Scene.ROIManager.SelectedROI ? m_Scene.ROIManager.SelectedROI.ID : null;
+            if (!StringComparer.Ordinal.Equals(m_LastActiveRoiId, activeRoiId) && !ShouldSuppressPublication())
+                Publish(new SetActiveRoi(activeRoiId == null ? null : new RoiId(activeRoiId)), new SetActiveRoi(m_LastActiveRoiId == null ? null : new RoiId(m_LastActiveRoiId)));
+            m_LastActiveRoiId = activeRoiId;
+        }
+
+        private void OnRoiAdded(ROI _) => RefreshRoiTargets();
+
+        private void OnRoiRemoved(ROI _) => RefreshRoiTargets();
+
+        private void OnActiveRoiChanged(ROI roi)
+        {
+            if (roi && !m_RoiStateSnapshots.ContainsKey(roi)) RefreshRoiTargets();
+            string activeRoiId = roi ? roi.ID : null;
+            if (StringComparer.Ordinal.Equals(m_LastActiveRoiId, activeRoiId)) return;
+            string previousActiveRoiId = m_LastActiveRoiId;
+            m_LastActiveRoiId = activeRoiId;
+            if (!ShouldSuppressPublication())
+                Publish(new SetActiveRoi(activeRoiId == null ? null : new RoiId(activeRoiId)), new SetActiveRoi(previousActiveRoiId == null ? null : new RoiId(previousActiveRoiId)));
+        }
+
+        private static bool SphereDefinitionEquals(V2RoiSphereDefinition left, V2RoiSphereDefinition right) => left.SphereId.Equals(right.SphereId) && left.X == right.X && left.Y == right.Y && left.Z == right.Z && left.InfluenceRadius == right.InfluenceRadius;
+
+        private void OnCutAdded(SceneCut cut)
+        {
+            if (m_Disposed || cut == null) return;
+            RegisterCut(cut);
+            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new CreateCut(m_CutIds[cut], CreateCutDefinition(cut, m_CutIds[cut]), cut.Index));
+            m_LastCutOrder = m_Scene.Cuts.Select(item => new CutId(item.ID)).ToArray();
+        }
+
+        private void OnCutRemoved(SceneCut cut)
+        {
+            if (m_Disposed || cut == null || !m_CutIds.TryGetValue(cut, out CutId id)) return;
+            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new DeleteCut(id));
+            m_CutIds.Remove(cut);
+            m_Cuts.Remove(id);
+            m_LastCutOrder = m_Scene.Cuts.Select(item => new CutId(item.ID)).ToArray();
+        }
+
+        private void RegisterCut(SceneCut cut)
+        {
+            CutId id = new(cut.ID);
+            if (m_CutIds.TryGetValue(cut, out CutId existingId))
+            {
+                if (existingId.Equals(id)) return;
+                m_Cuts.Remove(existingId);
+                m_CutIds.Remove(cut);
+            }
+
+            if (!m_Cuts.TryAdd(id, cut) || !m_CutIds.TryAdd(cut, id))
+                throw new InvalidOperationException("Cut identities must remain unique in the prepared scene.");
+        }
+
+        private void ObserveCutOrder()
+        {
+            if (m_Disposed || m_Scene == null) return;
+            foreach (SceneCut cut in m_Scene.Cuts) RegisterCut(cut);
+            CutId[] current = m_Scene.Cuts.Select(cut => new CutId(cut.ID)).ToArray();
+            if (current.SequenceEqual(m_LastCutOrder)) return;
+            CutId[] previous = m_LastCutOrder;
+            m_LastCutOrder = current;
+            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite)
+                Publish(new SetCutOrder(current), new SetCutOrder(previous));
+        }
+
+        private void OnAutomaticCutPolicyChanged(bool _) => ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
+
+        private void OnSitePositionCommandExecuted(SitePositionCommand command)
+        {
+            V2SiteMoveCommand mapped = command switch
+            {
+                SitePositionCommand.MoveLeft => V2SiteMoveCommand.Left,
+                SitePositionCommand.MoveRight => V2SiteMoveCommand.Right,
+                SitePositionCommand.Reset => V2SiteMoveCommand.Reset,
+                _ => throw new ArgumentOutOfRangeException(nameof(command))
+            };
+            if (!ShouldSuppressPublication()) Publish(new MoveSites(mapped));
         }
 
         private static SetColumnSpan CreateStaticSpan(Column3DStatic column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), V2ColumnSpanKind.Static, column.StaticParameters.SpanMin, column.StaticParameters.Middle, column.StaticParameters.SpanMax);
@@ -729,6 +1344,416 @@ namespace HBP.Sync.Scene
                 SetSelectedRoiSphere value => CurrentSelectedRoiSphere(ResolveRoi(value.RoiId)),
                 _ => throw new ArgumentException("Unsupported T09 scene mutation.", nameof(key))
             };
+        }
+
+        private V2Mutation ReadCurrentT10Mutation(V2Mutation key)
+        {
+            RequireScene();
+            return key switch
+            {
+                CreateCut value => m_Cuts.TryGetValue(value.CutId, out SceneCut cut) ? new CreateCut(value.CutId, CreateCutDefinition(cut, value.CutId), m_Scene.Cuts.IndexOf(cut)) : new DeleteCut(value.CutId),
+                DeleteCut value => m_Cuts.TryGetValue(value.CutId, out SceneCut cut) ? new CreateCut(value.CutId, CreateCutDefinition(cut, value.CutId), m_Scene.Cuts.IndexOf(cut)) : new DeleteCut(value.CutId),
+                SetCutOrder => new SetCutOrder(m_Scene.Cuts.Select(cut => new CutId(cut.ID))),
+                CreateRoi value => m_RoisById.TryGetValue(value.RoiId.Value, out ROI roi) ? CreateRoiMutation(roi) : new DeleteRoi(value.RoiId),
+                RenameRoi value => new RenameRoi(value.RoiId, ResolveRoi(value.RoiId.Value).Name),
+                DeleteRoi value => m_RoisById.TryGetValue(value.RoiId.Value, out ROI roi) ? CreateRoiMutation(roi, CaptureRoiSelectionSnapshot(roi)) : new DeleteRoi(value.RoiId),
+                SetActiveRoi => new SetActiveRoi(m_Scene.ROIManager.SelectedROI ? new RoiId(m_Scene.ROIManager.SelectedROI.ID) : null),
+                CreateRoiSphere value => CurrentSphereMutation(value.RoiId, value.Definition.SphereId),
+                DeleteRoiSphere value => CurrentSphereCreationMutation(value.RoiId, value.SphereId),
+                SetRoiSphereDefinition value => CurrentSphereMutation(value.RoiId, value.Definition.SphereId),
+                MoveSites value => value,
+                SetMeshDisplay => CreateMeshDisplayMutation(),
+                SetSelectedMri => CreateSelectedMriMutation(),
+                SetMriCalibration => new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor),
+                SetImplantation => CreateImplantationMutation(),
+                ApplyTriangleMask => CreateTriangleMaskMutation(),
+                _ => throw new ArgumentException("Unsupported T10 scene mutation.", nameof(key))
+            };
+        }
+
+        private void ValidateT10Mutation(V2Mutation mutation)
+        {
+            RequireScene();
+            switch (mutation)
+            {
+                case CreateCut value:
+                    if (m_Cuts.ContainsKey(value.CutId) || value.Order > m_Scene.Cuts.Count) throw new InvalidOperationException("Cut identity or insertion order is not valid for the prepared scene.");
+                    break;
+                case DeleteCut value: ResolveCut(value.CutId); break;
+                case SetCutOrder value:
+                    if (value.CutIds.Count != m_Scene.Cuts.Count || value.CutIds.Any(id => !m_Cuts.ContainsKey(id)) || value.CutIds.Count != value.CutIds.Distinct().Count())
+                        throw new InvalidOperationException("Cut order must be a complete permutation of the prepared cut identities.");
+                    break;
+                case CreateRoi value:
+                    RequireRoiManager();
+                    if (m_RoisById.ContainsKey(value.RoiId.Value) || value.Order > m_Scene.ROIManager.ROIs.Count) throw new InvalidOperationException("ROI identity or insertion order is not valid for the prepared scene.");
+                    foreach (V2RoiSphereDefinition sphere in value.Spheres)
+                        if (m_RoisById.Values.Any(roi => roi.Spheres.Any(existing => existing.ID == sphere.SphereId.Value)))
+                            throw new InvalidOperationException("ROI sphere identity already exists in the prepared scene.");
+                    ValidateRoiSelectionSnapshot(value.SelectionSnapshot, value.RoiId, value.Spheres.Select(sphere => sphere.SphereId));
+                    break;
+                case RenameRoi value: ResolveRoi(value.RoiId.Value); break;
+                case DeleteRoi value: ResolveRoi(value.RoiId.Value); break;
+                case SetActiveRoi value:
+                    RequireRoiManager();
+                    if (value.RoiId != null) ResolveRoi(value.RoiId.Value);
+                    break;
+                case CreateRoiSphere value:
+                    ROI createOwner = ResolveRoi(value.RoiId.Value);
+                    if (value.Order > createOwner.Spheres.Count || m_RoisById.Values.Any(roi => roi.Spheres.Any(sphere => sphere.ID == value.Definition.SphereId.Value))) throw new InvalidOperationException("ROI sphere identity or insertion order is not valid for the prepared ROI.");
+                    ValidateRoiSelectionSnapshot(value.SelectionSnapshot, value.RoiId, createOwner.Spheres.Select(sphere => new SphereId(sphere.ID)).Append(value.Definition.SphereId));
+                    break;
+                case DeleteRoiSphere value: ResolveSphere(value.RoiId, value.SphereId); break;
+                case SetRoiSphereDefinition value: ResolveSphere(value.RoiId, value.Definition.SphereId); break;
+                case MoveSites: break;
+                case SetMeshDisplay value:
+                    RequireResourceCatalog();
+                    Mesh3D mesh = m_ResourceCatalog.ResolveMesh(value.MeshId.Value);
+                    if (value.Part != V2MeshPart.Both && !mesh.SupportsHemispheres) throw new InvalidOperationException("The prepared mesh does not support hemisphere selection.");
+                    if (value.Representation == V2SurfaceRepresentation.Inflated && !mesh.HasInflatedRepresentation) throw new InvalidOperationException("The requested surface representation is not prepared.");
+                    break;
+                case SetSelectedMri value:
+                    RequireResourceCatalog();
+                    m_ResourceCatalog.ResolveMri(value.ResourceId.Value);
+                    break;
+                case SetMriCalibration:
+                    if (m_Scene.MRIManager == null) throw new InvalidOperationException("MRI calibration is unavailable in the prepared scene.");
+                    break;
+                case SetImplantation value:
+                    RequireResourceCatalog();
+                    Implantation3D implantation = m_ResourceCatalog.ResolveImplantation(value.ResourceId.Value);
+                    if (!StringComparer.Ordinal.Equals(ComputeMembershipHash(implantation), value.MembershipHash)) throw new InvalidOperationException("Implantation membership does not match the prepared resource.");
+                    break;
+                case ApplyTriangleMask value: ValidateTriangleMask(value); break;
+                default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
+            }
+        }
+
+        private bool ApplyT10Mutation(V2Mutation mutation)
+        {
+            ValidateT10Mutation(mutation);
+            switch (mutation)
+            {
+                case CreateCut value:
+                    {
+                        SceneCut cut = m_Scene.AddCutPlane(value.CutId.Value);
+                        RegisterCut(cut);
+                        ApplyCore(value.Definition);
+                        MoveCutToOrder(value.CutId, value.Order);
+                        return true;
+                    }
+                case DeleteCut value:
+                    m_Scene.RemoveCutPlane(ResolveCut(value.CutId));
+                    return true;
+                case SetCutOrder value:
+                    ApplyCutOrder(value);
+                    return true;
+                case CreateRoi value:
+                    {
+                        ROI roi = m_Scene.ROIManager.AddROI(value.Name);
+                        string generatedId = roi.ID;
+                        m_RoisById.Remove(generatedId);
+                        roi.ID = value.RoiId.Value;
+                        RegisterRoi(roi);
+                        foreach (V2RoiSphereDefinition sphere in value.Spheres)
+                            AddSphere(roi, sphere, roi.Spheres.Count);
+                        MoveRoiToOrder(roi, value.Order);
+                        m_RoiStateSnapshots[roi] = RoiStateSnapshot.Capture(roi, value.Order);
+                        m_LastRoiSpheres[roi] = CurrentSelectedRoiSphere(roi);
+                        m_LastActiveRoiId = m_Scene.ROIManager.SelectedROI ? m_Scene.ROIManager.SelectedROI.ID : null;
+                        if (value.SelectionSnapshot != null) ApplyRoiSelectionSnapshot(roi, value.SelectionSnapshot);
+                        return true;
+                    }
+                case RenameRoi value:
+                    {
+                        ROI roi = ResolveRoi(value.RoiId.Value);
+                        if (roi.Name == value.Name) return false;
+                        roi.Name = value.Name;
+                        return true;
+                    }
+                case DeleteRoi value:
+                    m_Scene.ROIManager.RemoveROI(ResolveRoi(value.RoiId.Value));
+                    return true;
+                case SetActiveRoi value:
+                    {
+                        ROI roi = value.RoiId == null ? null : ResolveRoi(value.RoiId.Value);
+                        if (ReferenceEquals(m_Scene.ROIManager.SelectedROI, roi)) return false;
+                        m_Scene.ROIManager.SelectedROI = roi;
+                        return true;
+                    }
+                case CreateRoiSphere value:
+                    {
+                        ROI roi = ResolveRoi(value.RoiId.Value);
+                        AddSphere(roi, value.Definition, value.Order);
+                        if (value.SelectionSnapshot != null) ApplyRoiSelectionSnapshot(roi, value.SelectionSnapshot);
+                    }
+                    return true;
+                case DeleteRoiSphere value:
+                    {
+                        (ROI roi, RoiSphere sphere) = ResolveSphere(value.RoiId, value.SphereId);
+                        roi.RemoveSphere(roi.Spheres.IndexOf(sphere));
+                        return true;
+                    }
+                case SetRoiSphereDefinition value:
+                    {
+                        (ROI roi, RoiSphere sphere) = ResolveSphere(value.RoiId, value.Definition.SphereId);
+                        Vector3 position = new Vector3(value.Definition.X, value.Definition.Y, value.Definition.Z);
+                        if (sphere.Position == position && sphere.InfluenceRadius == value.Definition.InfluenceRadius) return false;
+                        sphere.Position = position;
+                        sphere.SetInfluenceRadius(value.Definition.InfluenceRadius);
+                        roi.OnChangeSphereParameters.Invoke();
+                        return true;
+                    }
+                case MoveSites value:
+                    if (value.Command == V2SiteMoveCommand.Left) m_Scene.MoveSitesToHemisphere(false);
+                    else if (value.Command == V2SiteMoveCommand.Right) m_Scene.MoveSitesToHemisphere(true);
+                    else m_Scene.ResetSitesPositions();
+                    return true;
+                case SetMeshDisplay value:
+                    ApplyMeshDisplay(value);
+                    return true;
+                case SetSelectedMri value:
+                    m_Scene.MRIManager.SelectPrepared(m_ResourceCatalog.ResolveMri(value.ResourceId.Value));
+                    return true;
+                case SetMriCalibration value:
+                    m_Scene.MRIManager.SetCalValues(value.Minimum, value.Maximum);
+                    return true;
+                case SetImplantation value:
+                    m_Scene.ImplantationManager.SelectPrepared(m_ResourceCatalog.ResolveImplantation(value.ResourceId.Value));
+                    return true;
+                case ApplyTriangleMask value:
+                    m_Scene.TriangleEraser.CurrentMasks = value.Masks.Select(mask => mask.ToVisibilityMask()).ToList();
+                    return true;
+                default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
+            }
+        }
+
+        private CreateRoi CreateRoiMutation(ROI roi, V2RoiSelectionSnapshot selectionSnapshot = null) => new CreateRoi(new RoiId(roi.ID), roi.Name, roi.Spheres.Select((sphere, index) => CreateSphereDefinition(sphere)), m_Scene.ROIManager.ROIs.IndexOf(roi), selectionSnapshot);
+
+        private static V2RoiSphereDefinition CreateSphereDefinition(RoiSphere sphere) => new V2RoiSphereDefinition(new SphereId(sphere.ID), sphere.Position.x, sphere.Position.y, sphere.Position.z, sphere.InfluenceRadius);
+
+        private V2Mutation CurrentSphereMutation(RoiId roiId, SphereId sphereId)
+        {
+            try
+            {
+                (_, RoiSphere sphere) = ResolveSphere(roiId, sphereId);
+                return new SetRoiSphereDefinition(roiId, CreateSphereDefinition(sphere));
+            }
+            catch (KeyNotFoundException)
+            {
+                return new DeleteRoiSphere(roiId, sphereId);
+            }
+        }
+
+        private V2Mutation CurrentSphereCreationMutation(RoiId roiId, SphereId sphereId)
+        {
+            try
+            {
+                (ROI roi, RoiSphere sphere) = ResolveSphere(roiId, sphereId);
+                return new CreateRoiSphere(roiId, CreateSphereDefinition(sphere), roi.Spheres.IndexOf(sphere), CaptureRoiSelectionSnapshot(roi));
+            }
+            catch (KeyNotFoundException)
+            {
+                return new DeleteRoiSphere(roiId, sphereId);
+            }
+        }
+
+        private V2RoiSelectionSnapshot CaptureRoiSelectionSnapshot(ROI roi)
+        {
+            int selectedSphereIndex = roi.SelectedSphereID;
+            SphereId selectedSphereId = selectedSphereIndex >= 0 && selectedSphereIndex < roi.Spheres.Count ? new SphereId(roi.Spheres[selectedSphereIndex].ID) : null;
+            return new V2RoiSelectionSnapshot(m_Scene.ROIManager.SelectedROI ? new RoiId(m_Scene.ROIManager.SelectedROI.ID) : null, selectedSphereId);
+        }
+
+        private void ValidateRoiSelectionSnapshot(V2RoiSelectionSnapshot selectionSnapshot, RoiId restoredRoiId, IEnumerable<SphereId> restoredSphereIds)
+        {
+            if (selectionSnapshot == null) return;
+            if (selectionSnapshot.ActiveRoiId != null && !selectionSnapshot.ActiveRoiId.Equals(restoredRoiId) && !m_RoisById.ContainsKey(selectionSnapshot.ActiveRoiId.Value))
+                throw new InvalidOperationException("ROI selection snapshot refers to an unavailable active ROI.");
+            if (selectionSnapshot.SelectedSphereId != null && !restoredSphereIds.Contains(selectionSnapshot.SelectedSphereId))
+                throw new InvalidOperationException("ROI selection snapshot refers to an unavailable selected sphere.");
+        }
+
+        private void ApplyRoiSelectionSnapshot(ROI roi, V2RoiSelectionSnapshot selectionSnapshot)
+        {
+            ApplyT09Mutation(new SetSelectedRoiSphere(roi.ID, selectionSnapshot.SelectedSphereId?.Value ?? string.Empty));
+            ApplyT10Mutation(new SetActiveRoi(selectionSnapshot.ActiveRoiId));
+        }
+
+        private void RequireRoiManager()
+        {
+            if (m_Scene.ROIManager == null) throw new InvalidOperationException("ROI editing is unavailable in the prepared scene.");
+        }
+
+        private void RegisterRoi(ROI roi)
+        {
+            foreach (string staleId in m_RoisById.Where(entry => ReferenceEquals(entry.Value, roi) && !StringComparer.Ordinal.Equals(entry.Key, roi.ID)).Select(entry => entry.Key).ToArray())
+                m_RoisById.Remove(staleId);
+            if (!m_RoisById.TryAdd(roi.ID, roi) && (!m_RoisById.TryGetValue(roi.ID, out ROI existing) || !ReferenceEquals(existing, roi)))
+                throw new InvalidOperationException("ROI identities must remain unique in the prepared scene.");
+            int selectedSphereIndex = roi.SelectedSphereID;
+            string selectedSphereId = selectedSphereIndex >= 0 && selectedSphereIndex < roi.Spheres.Count ? roi.Spheres[selectedSphereIndex].ID : string.Empty;
+            m_LastRoiSpheres[roi] = new SetSelectedRoiSphere(roi.ID, selectedSphereId);
+            if (!m_RoiSelectionListeners.ContainsKey(roi))
+            {
+                UnityAction selectionListener = () => OnRoiSphereSelectionChanged(roi);
+                roi.OnChangeSphereSelectionState.AddListener(selectionListener);
+                m_RoiSelectionListeners.Add(roi, selectionListener);
+            }
+
+            if (!m_RoiStructureListeners.ContainsKey(roi))
+            {
+                UnityAction structureListener = () => RefreshRoiTargets();
+                roi.OnUpdateROIName.AddListener(structureListener);
+                roi.OnChangeNumberOfSpheres.AddListener(structureListener);
+                roi.OnChangeSphereParameters.AddListener(structureListener);
+                m_RoiStructureListeners.Add(roi, structureListener);
+            }
+        }
+
+        private void UnregisterRoi(ROI roi)
+        {
+            if (m_RoiSelectionListeners.TryGetValue(roi, out UnityAction selectionListener)) roi.OnChangeSphereSelectionState.RemoveListener(selectionListener);
+            if (m_RoiStructureListeners.TryGetValue(roi, out UnityAction structureListener))
+            {
+                roi.OnUpdateROIName.RemoveListener(structureListener);
+                roi.OnChangeNumberOfSpheres.RemoveListener(structureListener);
+                roi.OnChangeSphereParameters.RemoveListener(structureListener);
+            }
+
+            m_RoiSelectionListeners.Remove(roi);
+            m_RoiStructureListeners.Remove(roi);
+            m_LastRoiSpheres.Remove(roi);
+            m_RoiStateSnapshots.Remove(roi);
+            foreach (string id in m_RoisById.Where(entry => ReferenceEquals(entry.Value, roi)).Select(entry => entry.Key).ToArray())
+                m_RoisById.Remove(id);
+        }
+
+        private void AddSphere(ROI roi, V2RoiSphereDefinition definition, int order)
+        {
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", new Vector3(definition.X, definition.Y, definition.Z), definition.InfluenceRadius);
+            RoiSphere sphere = roi.Spheres[roi.Spheres.Count - 1];
+            sphere.ID = definition.SphereId.Value;
+            if (order != roi.Spheres.Count - 1)
+            {
+                roi.Spheres.RemoveAt(roi.Spheres.Count - 1);
+                roi.Spheres.Insert(order, sphere);
+                roi.SelectSphere(order);
+            }
+
+            sphere.Position = new Vector3(definition.X, definition.Y, definition.Z);
+            sphere.SetInfluenceRadius(definition.InfluenceRadius);
+            m_LastRoiSpheres[roi] = CurrentSelectedRoiSphere(roi);
+            if (m_RoiStateSnapshots.ContainsKey(roi))
+                m_RoiStateSnapshots[roi] = RoiStateSnapshot.Capture(roi, m_Scene.ROIManager.ROIs.IndexOf(roi));
+        }
+
+        private void MoveRoiToOrder(ROI roi, int order)
+        {
+            List<ROI> rois = m_Scene.ROIManager.ROIs;
+            int current = rois.IndexOf(roi);
+            if (current < 0) throw new InvalidOperationException("ROI is not owned by the prepared scene.");
+            if (current == order) return;
+            rois.RemoveAt(current);
+            rois.Insert(order, roi);
+            m_Scene.ROIManager.UpdateROIMasks();
+        }
+
+        private void MoveCutToOrder(CutId cutId, int order)
+        {
+            List<SceneCut> cuts = m_Scene.Cuts;
+            SceneCut cut = ResolveCut(cutId);
+            int current = cuts.IndexOf(cut);
+            cuts.RemoveAt(current);
+            cuts.Insert(order, cut);
+            for (int i = 0; i < cuts.Count; i++) cuts[i].Index = i;
+            m_Scene.SceneInformation.CutsNeedUpdate = true;
+            m_Scene.OnModifyPlanesCuts.Invoke();
+        }
+
+        private void ApplyCutOrder(SetCutOrder value)
+        {
+            SceneCut[] ordered = value.CutIds.Select(ResolveCut).ToArray();
+            m_Scene.Cuts.Clear();
+            m_Scene.Cuts.AddRange(ordered);
+            for (int i = 0; i < ordered.Length; i++) ordered[i].Index = i;
+            m_Scene.SceneInformation.CutsNeedUpdate = true;
+            m_LastCutOrder = value.CutIds.ToArray();
+            m_Scene.OnModifyPlanesCuts.Invoke();
+        }
+
+        private void ApplyMeshDisplay(SetMeshDisplay value)
+        {
+            Mesh3D mesh = m_ResourceCatalog.ResolveMesh(value.MeshId.Value);
+            m_Scene.MeshManager.SelectPrepared(mesh);
+            MeshPart part = value.Part switch { V2MeshPart.Left => MeshPart.Left, V2MeshPart.Right => MeshPart.Right, _ => MeshPart.Both };
+            m_Scene.MeshManager.SelectMeshPart(part);
+            m_Scene.MeshManager.SelectRepresentation(value.Representation == V2SurfaceRepresentation.Inflated ? Core.Object3D.SurfaceRepresentation.Inflated : Core.Object3D.SurfaceRepresentation.Anatomical);
+        }
+
+        private SetMeshDisplay CreateMeshDisplayMutation()
+        {
+            RequireResourceCatalog();
+            Mesh3D mesh = m_Scene.MeshManager.SelectedMesh;
+            V2MeshPart part = m_Scene.MeshManager.MeshPartToDisplay switch { MeshPart.Left => V2MeshPart.Left, MeshPart.Right => V2MeshPart.Right, _ => V2MeshPart.Both };
+            V2SurfaceRepresentation representation = mesh.Representation == Core.Object3D.SurfaceRepresentation.Inflated ? V2SurfaceRepresentation.Inflated : V2SurfaceRepresentation.Anatomical;
+            return new SetMeshDisplay(new ResourceId(m_ResourceCatalog.MeshReference(mesh)), part, representation);
+        }
+
+        private SetSelectedMri CreateSelectedMriMutation()
+        {
+            RequireResourceCatalog();
+            return new SetSelectedMri(new ResourceId(m_ResourceCatalog.MriReference(m_Scene.MRIManager.SelectedMRI)));
+        }
+
+        private SetImplantation CreateImplantationMutation()
+        {
+            RequireResourceCatalog();
+            Implantation3D implantation = m_Scene.ImplantationManager.SelectedImplantation;
+            if (implantation == null) throw new InvalidOperationException("No prepared implantation is selected.");
+            return new SetImplantation(new ResourceId(m_ResourceCatalog.ImplantationReference(implantation)), ComputeMembershipHash(implantation));
+        }
+
+        private static string ComputeMembershipHash(Implantation3D implantation) => ApplyTriangleMask.HashMembership(implantation.SiteInfos.Select(site => (site.Patient?.ID ?? string.Empty) + "_" + site.Name));
+
+        private void RequireResourceCatalog()
+        {
+            if (m_ResourceCatalog == null) throw new InvalidOperationException("Prepared resource identities are unavailable before the scene publication is bound.");
+            m_ResourceCatalog.AssertPreparedRoster();
+        }
+
+        private (TopologyId Complete, TopologyId Simplified) CurrentTopologyIds()
+        {
+            RequireResourceCatalog();
+            Mesh3D mesh = m_Scene.MeshManager.SelectedMesh;
+            string resource = m_ResourceCatalog.MeshReference(mesh);
+            string part = m_Scene.MeshManager.MeshPartToDisplay.ToString().ToLowerInvariant();
+            return (new TopologyId("surface:" + resource + ":" + part + ":complete"), new TopologyId("surface:" + resource + ":" + part + ":simplified"));
+        }
+
+        private ApplyTriangleMask CreateTriangleMaskMutation()
+        {
+            if (m_Scene.TriangleEraser == null) throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
+            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
+            List<int[]> masks = m_Scene.TriangleEraser.CurrentMasks;
+            if (masks.Count != 2) throw new InvalidOperationException("Both original topology masks are required.");
+            return new ApplyTriangleMask(new[]
+            {
+                V2TriangleMask.FromVisibilityMask(complete, masks[0]),
+                V2TriangleMask.FromVisibilityMask(simplified, masks[1])
+            });
+        }
+
+        private void ValidateTriangleMask(ApplyTriangleMask mutation)
+        {
+            if (m_Scene.TriangleEraser == null || m_Scene.MeshManager?.SelectedMesh == null) throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
+            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
+            List<int[]> current = m_Scene.TriangleEraser.CurrentMasks;
+            TopologyId[] expectedIds = { complete, simplified };
+            if (current.Count != 2 || mutation.Masks.Count != 2) throw new InvalidOperationException("Both original topology masks are required.");
+            for (int i = 0; i < 2; i++)
+                if (!mutation.Masks[i].TopologyId.Equals(expectedIds[i]) || mutation.Masks[i].TriangleCount != current[i].Length)
+                    throw new InvalidOperationException("Triangle mask topology does not match the prepared original surface.");
         }
 
         private void ValidateT09Mutation(V2Mutation mutation)
@@ -955,6 +1980,7 @@ namespace HBP.Sync.Scene
             switch (value.Property)
             {
                 case V2SceneBooleanProperty.StrongCuts: m_Scene.StrongCuts = value.Value; break;
+                case V2SceneBooleanProperty.AutomaticCutAroundSelectedSite: m_Scene.AutomaticCutAroundSelectedSite = value.Value; break;
                 case V2SceneBooleanProperty.HideBlacklistedSites: m_Scene.HideBlacklistedSites = value.Value; break;
                 case V2SceneBooleanProperty.EdgeMode: m_Scene.EdgeMode = value.Value; break;
                 case V2SceneBooleanProperty.BrainTransparent: m_Scene.IsBrainTransparent = value.Value; break;
@@ -990,6 +2016,7 @@ namespace HBP.Sync.Scene
             property switch
             {
                 V2SceneBooleanProperty.StrongCuts => m_Scene.StrongCuts,
+                V2SceneBooleanProperty.AutomaticCutAroundSelectedSite => m_Scene.AutomaticCutAroundSelectedSite,
                 V2SceneBooleanProperty.HideBlacklistedSites => m_Scene.HideBlacklistedSites,
                 V2SceneBooleanProperty.EdgeMode => m_Scene.EdgeMode,
                 V2SceneBooleanProperty.BrainTransparent => m_Scene.IsBrainTransparent,
@@ -1079,6 +2106,14 @@ namespace HBP.Sync.Scene
             throw new KeyNotFoundException("ROI target is not part of the prepared scene.");
         }
 
+        private (ROI Roi, RoiSphere Sphere) ResolveSphere(RoiId roiId, SphereId sphereId)
+        {
+            ROI roi = ResolveRoi(roiId.Value);
+            RoiSphere sphere = roi.Spheres.FirstOrDefault(item => item && StringComparer.Ordinal.Equals(item.ID, sphereId.Value));
+            if (!sphere) throw new KeyNotFoundException("ROI sphere target is not part of the prepared ROI.");
+            return (roi, sphere);
+        }
+
         private void RequireScene()
         {
             if (m_Scene == null) throw new InvalidOperationException("This T09 mutation requires a bound prepared scene.");
@@ -1107,7 +2142,7 @@ namespace HBP.Sync.Scene
 
         private void OnCutDefinitionChanged(SceneCut cut)
         {
-            if (m_Disposed || !m_CutIds.TryGetValue(cut, out CutId id) || ShouldSuppressPublication()) return;
+            if (m_Disposed || m_Scene?.AutomaticCutAroundSelectedSite == true || !m_CutIds.TryGetValue(cut, out CutId id) || ShouldSuppressPublication()) return;
             SetCutDefinition mutation;
             try
             {
@@ -1189,16 +2224,19 @@ namespace HBP.Sync.Scene
             return false;
         }
 
-        private void Publish(V2Mutation mutation)
+        private void Publish(V2Mutation mutation, V2Mutation rollback = null)
         {
             if (V2MutationApplicationContext.TryGetCurrent(out V2MutationApplicationOrigin origin, out V2OriginDevice? device, out OperationId operationId, out bool suppressNested))
             {
                 if (origin == V2MutationApplicationOrigin.Remote || suppressNested) return;
+                if (device == V2OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback);
                 MutationProposed?.Invoke(operationId, mutation, device.Value);
                 return;
             }
 
-            MutationProposed?.Invoke(new OperationId(Guid.NewGuid()), mutation, m_LocalOrigin);
+            OperationId generatedOperationId = new(Guid.NewGuid());
+            if (m_LocalOrigin == V2OriginDevice.Quest) RememberOptimisticRollback(generatedOperationId, rollback);
+            MutationProposed?.Invoke(generatedOperationId, mutation, m_LocalOrigin);
         }
 
         private SiteState ResolveSite(ColumnId columnId, SiteId siteId)
@@ -1331,10 +2369,31 @@ namespace HBP.Sync.Scene
             BasicTimeline.AnchorChanged -= OnTimelineAnchorChanged;
             if (m_Scene != null)
             {
+                m_Scene.OnAddCut.RemoveListener(OnCutAdded);
+                m_Scene.OnRemoveCut.RemoveListener(OnCutRemoved);
+                if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);
+                m_Scene.OnChangeAutomaticCutAroundSelectedSite.RemoveListener(OnAutomaticCutPolicyChanged);
+                m_Scene.SitePositionCommandExecuted -= OnSitePositionCommandExecuted;
                 m_Scene.OnSharedStateChanged.RemoveListener(ObserveScenePresentation);
                 m_Scene.OnUpdateROI.RemoveListener(RefreshRoiTargets);
+                if (m_Scene.ROIManager != null)
+                {
+                    m_Scene.ROIManager.RoiAdded -= OnRoiAdded;
+                    m_Scene.ROIManager.RoiRemoved -= OnRoiRemoved;
+                    m_Scene.ROIManager.ActiveRoiChanged -= OnActiveRoiChanged;
+                }
+
                 if (m_Scene.BrainMaterials != null) m_Scene.BrainMaterials.AlphaChanged -= OnBrainAlphaChanged;
                 if (m_Scene.FMRIManager != null) m_Scene.FMRIManager.PresentationChanged -= ObserveFmriPresentation;
+                if (m_Scene.MeshManager != null)
+                {
+                    m_Scene.MeshManager.ResourceSelectionChanged -= ObserveMeshSelection;
+                    m_Scene.MeshManager.DisplaySelectionChanged -= ObserveMeshDisplay;
+                }
+
+                if (m_Scene.MRIManager != null) m_Scene.MRIManager.ResourceSelectionChanged -= ObserveMriSelection;
+                if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged -= ObserveImplantationSelection;
+                if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.VisibilityMaskChanged -= ObserveTriangleMask;
                 Module3DMain.OnSelectColumn.RemoveListener(OnModuleColumnSelected);
             }
 
@@ -1342,6 +2401,13 @@ namespace HBP.Sync.Scene
                 entry.Key.OnChangeState.RemoveListener(entry.Value);
             foreach (KeyValuePair<ROI, UnityAction> entry in m_RoiSelectionListeners)
                 entry.Key.OnChangeSphereSelectionState.RemoveListener(entry.Value);
+            foreach (KeyValuePair<ROI, UnityAction> entry in m_RoiStructureListeners)
+            {
+                entry.Key.OnUpdateROIName.RemoveListener(entry.Value);
+                entry.Key.OnChangeNumberOfSpheres.RemoveListener(entry.Value);
+                entry.Key.OnChangeSphereParameters.RemoveListener(entry.Value);
+            }
+
             foreach (KeyValuePair<Column3D, UnityAction<Core.Object3D.Site>> entry in m_ColumnSelectionListeners)
                 entry.Key.OnSelectSite.RemoveListener(entry.Value);
             foreach (KeyValuePair<Column3D, List<(UnityEvent Event, UnityAction Listener)>> entry in m_ColumnListeners)
@@ -1352,6 +2418,8 @@ namespace HBP.Sync.Scene
             Interlocked.Exchange(ref m_PlayingTimelineCount, 0);
             m_SiteStateListeners.Clear();
             m_RoiSelectionListeners.Clear();
+            m_RoiStructureListeners.Clear();
+            m_RoiStateSnapshots.Clear();
             m_ColumnSelectionListeners.Clear();
             m_ColumnListeners.Clear();
             m_SitePresentationStates.Clear();
@@ -1367,6 +2435,32 @@ namespace HBP.Sync.Scene
             m_CutIds.Clear();
             m_Cuts.Clear();
             m_Timelines.Clear();
+            m_ResourceCatalog = null;
+        }
+
+        private sealed class RoiStateSnapshot
+        {
+            public string RoiId { get; }
+            public string Name { get; }
+            public int Order { get; }
+            public IReadOnlyDictionary<string, V2RoiSphereDefinition> Spheres { get; }
+
+            private RoiStateSnapshot(string roiId, string name, int order, IReadOnlyDictionary<string, V2RoiSphereDefinition> spheres)
+            {
+                RoiId = roiId;
+                Name = name;
+                Order = order;
+                Spheres = spheres;
+            }
+
+            public static RoiStateSnapshot Capture(ROI roi, int order)
+            {
+                var spheres = new Dictionary<string, V2RoiSphereDefinition>(StringComparer.Ordinal);
+                foreach (RoiSphere sphere in roi.Spheres)
+                    if (!spheres.TryAdd(sphere.ID, CreateSphereDefinition(sphere)))
+                        throw new InvalidOperationException("ROI sphere identities must be unique.");
+                return new RoiStateSnapshot(roi.ID, roi.Name, order, spheres);
+            }
         }
 
         private sealed class SiteTarget

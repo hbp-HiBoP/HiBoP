@@ -13,7 +13,8 @@ namespace HBP.Sync
         EdgeMode = 3,
         BrainTransparent = 4,
         DisplayMarsAtlas = 5,
-        DisplayJuBrainAtlas = 6
+        DisplayJuBrainAtlas = 6,
+        AutomaticCutAroundSelectedSite = 7
     }
 
     public enum V2SceneFloatProperty : byte
@@ -70,7 +71,7 @@ namespace HBP.Sync
 
         public SetSceneBoolean(V2SceneBooleanProperty property, bool value)
         {
-            if ((byte)property < (byte)V2SceneBooleanProperty.StrongCuts || (byte)property > (byte)V2SceneBooleanProperty.DisplayJuBrainAtlas) throw new ArgumentOutOfRangeException(nameof(property));
+            if ((byte)property < (byte)V2SceneBooleanProperty.StrongCuts || (byte)property > (byte)V2SceneBooleanProperty.AutomaticCutAroundSelectedSite) throw new ArgumentOutOfRangeException(nameof(property));
             Property = property;
             Value = value;
         }

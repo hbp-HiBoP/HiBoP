@@ -92,7 +92,7 @@ namespace HBP.Transfer.Transport
         public byte[] GetPayloadCopy() => (byte[])m_Payload.Clone();
         internal byte[] PayloadBytes => m_Payload;
 
-        internal void SetReceivePoints(SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived)
+        public void SetReceivePoints(SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived)
         {
             FirstReceived = firstReceived;
             LastReceived = lastReceived;

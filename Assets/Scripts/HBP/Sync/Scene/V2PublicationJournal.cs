@@ -141,9 +141,10 @@ namespace HBP.Sync.Scene
     /// <summary>Versioned bounded composition of typed scene-mutation checkpoint records.</summary>
     public static class V2SceneMutationCheckpointCodec
     {
-        private const ushort SchemaVersion = 2;
-        private const int HeaderLength = 26;
-        private const int MaximumRecordLength = V2MutationPayloadCodec.MaximumPayloadBytes + 6;
+        private const ushort SchemaVersion = 3;
+        private const int MinimumHeaderLength = 26;
+        private const int HeaderLength = 34;
+        private const int MaximumRecordLength = V2MutationPayloadCodec.MaximumPayloadBytes + 8;
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("HBCP");
         private static readonly SceneId ValidationSceneId = new SceneId(Guid.Parse("00000000-0000-0000-0000-000000000001"));
         private static readonly IncarnationId ValidationIncarnationId = new IncarnationId(Guid.Parse("00000000-0000-0000-0000-000000000002"));
@@ -154,13 +155,14 @@ namespace HBP.Sync.Scene
         public static byte[] Encode(ulong canonicalSequence, V2SceneMutationCheckpoint checkpoint)
         {
             if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
-            ValidateCounts(checkpoint.SiteColors.Count, checkpoint.CutDefinitions.Count, checkpoint.TimelineAnchors.Count, checkpoint.T09Records.Count);
+            ValidateCounts(checkpoint.SiteColors.Count, checkpoint.CutDefinitions.Count, checkpoint.TimelineAnchors.Count, checkpoint.T09Records.Count, checkpoint.T10Records.Count);
 
             SiteColorCheckpointRecord[] sites = checkpoint.SiteColors.OrderBy(record => record.Value.ColumnId.Value, StringComparer.Ordinal).ThenBy(record => record.Value.FullSiteId.Value, StringComparer.Ordinal).ToArray();
             CutDefinitionCheckpointRecord[] cuts = checkpoint.CutDefinitions.OrderBy(record => record.Value.CutId.Value, StringComparer.Ordinal).ToArray();
             TimelineAnchorCheckpointRecord[] timelines = checkpoint.TimelineAnchors.OrderBy(record => record.Value.ColumnId.Value, StringComparer.Ordinal).ToArray();
             V2T09CheckpointRecord[] t09Records = checkpoint.T09Records.OrderBy(record => Convert.ToBase64String(V2MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
-            ValidateUniqueKeys(sites, cuts, timelines, t09Records);
+            V2T10CheckpointRecord[] t10Records = checkpoint.T10Records.OrderBy(record => Convert.ToBase64String(V2MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
+            ValidateUniqueKeys(sites, cuts, timelines, t09Records, t10Records);
 
             using var stream = new MemoryStream(Math.Min(MaximumCheckpointBytes, HeaderLength + sites.Length * 64));
             using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
@@ -171,17 +173,19 @@ namespace HBP.Sync.Scene
             writer.Write(cuts.Length);
             writer.Write(timelines.Length);
             writer.Write(t09Records.Length);
-            WriteRecords(writer, sites.Select(record => record.Encode()));
-            WriteRecords(writer, cuts.Select(record => record.Encode()));
-            WriteRecords(writer, timelines.Select(record => record.Encode()));
-            WriteRecords(writer, t09Records.Select(record => record.Encode()));
+            writer.Write(t10Records.Length);
+            WriteRecords(writer, sites.Select(record => record.Encode()), wideLength: true);
+            WriteRecords(writer, cuts.Select(record => record.Encode()), wideLength: true);
+            WriteRecords(writer, timelines.Select(record => record.Encode()), wideLength: true);
+            WriteRecords(writer, t09Records.Select(record => record.Encode()), wideLength: true);
+            WriteRecords(writer, t10Records.Select(record => record.Encode()), wideLength: true);
             writer.Flush();
             return stream.ToArray();
         }
 
         public static V2PublishedSceneCheckpoint Decode(byte[] bytes)
         {
-            if (bytes == null || bytes.Length < HeaderLength || bytes.Length > MaximumCheckpointBytes)
+            if (bytes == null || bytes.Length < MinimumHeaderLength || bytes.Length > MaximumCheckpointBytes)
                 throw new InvalidDataException("Invalid typed scene checkpoint length.");
 
             using var stream = new MemoryStream(bytes, false);
@@ -191,28 +195,32 @@ namespace HBP.Sync.Scene
                 if (!reader.ReadBytes(Magic.Length).SequenceEqual(Magic))
                     throw new InvalidDataException("Unsupported typed scene checkpoint signature or schema.");
                 ushort schemaVersion = reader.ReadUInt16();
-                if (schemaVersion != 1 && schemaVersion != SchemaVersion)
+                if (schemaVersion != 1 && schemaVersion != 2 && schemaVersion != SchemaVersion)
                     throw new InvalidDataException("Unsupported typed scene checkpoint signature or schema.");
                 ulong canonicalSequence = reader.ReadUInt64();
                 int siteCount = reader.ReadInt32();
                 int cutCount = reader.ReadInt32();
                 int timelineCount = reader.ReadInt32();
                 int t09Count = schemaVersion >= 2 ? reader.ReadInt32() : 0;
-                ValidateCounts(siteCount, cutCount, timelineCount, t09Count);
+                int t10Count = schemaVersion >= 3 ? reader.ReadInt32() : 0;
+                ValidateCounts(siteCount, cutCount, timelineCount, t09Count, t10Count);
+                if (schemaVersion >= 3 && bytes.Length < HeaderLength) throw new InvalidDataException("Truncated typed scene checkpoint header.");
 
                 var sites = new List<SiteColorCheckpointRecord>(siteCount);
                 var cuts = new List<CutDefinitionCheckpointRecord>(cutCount);
                 var timelines = new List<TimelineAnchorCheckpointRecord>(timelineCount);
                 var t09Records = new List<V2T09CheckpointRecord>(t09Count);
-                ReadRecords(reader, siteCount, SiteColorCheckpointRecord.Decode, sites);
-                ReadRecords(reader, cutCount, CutDefinitionCheckpointRecord.Decode, cuts);
-                ReadRecords(reader, timelineCount, TimelineAnchorCheckpointRecord.Decode, timelines);
-                ReadRecords(reader, t09Count, V2T09CheckpointRecord.Decode, t09Records);
+                var t10Records = new List<V2T10CheckpointRecord>(t10Count);
+                ReadRecords(reader, siteCount, SiteColorCheckpointRecord.Decode, sites, wideLength: schemaVersion >= 3);
+                ReadRecords(reader, cutCount, CutDefinitionCheckpointRecord.Decode, cuts, wideLength: schemaVersion >= 3);
+                ReadRecords(reader, timelineCount, TimelineAnchorCheckpointRecord.Decode, timelines, wideLength: schemaVersion >= 3);
+                ReadRecords(reader, t09Count, V2T09CheckpointRecord.Decode, t09Records, wideLength: schemaVersion >= 3);
+                ReadRecords(reader, t10Count, V2T10CheckpointRecord.Decode, t10Records, wideLength: true);
                 if (stream.Position != stream.Length)
                     throw new InvalidDataException("Trailing typed scene checkpoint bytes.");
 
-                ValidateUniqueKeys(sites, cuts, timelines, t09Records);
-                return new V2PublishedSceneCheckpoint(canonicalSequence, new V2SceneMutationCheckpoint(sites, cuts, timelines, t09Records));
+                ValidateUniqueKeys(sites, cuts, timelines, t09Records, t10Records);
+                return new V2PublishedSceneCheckpoint(canonicalSequence, new V2SceneMutationCheckpoint(sites, cuts, timelines, t09Records, t10Records));
             }
             catch (EndOfStreamException exception)
             {
@@ -224,39 +232,40 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private static void WriteRecords(BinaryWriter writer, IEnumerable<byte[]> records)
+        private static void WriteRecords(BinaryWriter writer, IEnumerable<byte[]> records, bool wideLength)
         {
             foreach (byte[] record in records)
             {
                 if (record == null || record.Length < 6 || record.Length > MaximumRecordLength)
                     throw new InvalidDataException("Invalid typed checkpoint record length.");
-                writer.Write(checked((ushort)record.Length));
+                if (wideLength) writer.Write(checked((uint)record.Length));
+                else writer.Write(checked((ushort)record.Length));
                 writer.Write(record);
                 if (writer.BaseStream.Length > MaximumCheckpointBytes)
                     throw new InvalidDataException("Typed scene checkpoint exceeds its 16 MiB transport bound.");
             }
         }
 
-        private static void ReadRecords<T>(BinaryReader reader, int count, Func<byte[], T> decode, List<T> output)
+        private static void ReadRecords<T>(BinaryReader reader, int count, Func<byte[], T> decode, List<T> output, bool wideLength)
         {
             for (int i = 0; i < count; i++)
             {
-                ushort length = reader.ReadUInt16();
-                if (length < 6 || length > MaximumRecordLength)
+                uint length = wideLength ? reader.ReadUInt32() : reader.ReadUInt16();
+                if (length < 6 || length > (uint)MaximumRecordLength)
                     throw new InvalidDataException("Invalid typed checkpoint record length.");
-                byte[] record = reader.ReadBytes(length);
+                byte[] record = reader.ReadBytes(checked((int)length));
                 if (record.Length != length) throw new EndOfStreamException();
                 output.Add(decode(record));
             }
         }
 
-        private static void ValidateCounts(int siteCount, int cutCount, int timelineCount, int t09Count)
+        private static void ValidateCounts(int siteCount, int cutCount, int timelineCount, int t09Count, int t10Count)
         {
-            if (siteCount < 0 || cutCount < 0 || timelineCount < 0 || t09Count < 0 || (long)siteCount + cutCount + timelineCount + t09Count > MaximumRecords)
+            if (siteCount < 0 || cutCount < 0 || timelineCount < 0 || t09Count < 0 || t10Count < 0 || (long)siteCount + cutCount + timelineCount + t09Count + t10Count > MaximumRecords)
                 throw new InvalidDataException("Typed scene checkpoint record count exceeds its bound.");
         }
 
-        private static void ValidateUniqueKeys(IReadOnlyList<SiteColorCheckpointRecord> sites, IReadOnlyList<CutDefinitionCheckpointRecord> cuts, IReadOnlyList<TimelineAnchorCheckpointRecord> timelines, IReadOnlyList<V2T09CheckpointRecord> t09Records)
+        private static void ValidateUniqueKeys(IReadOnlyList<SiteColorCheckpointRecord> sites, IReadOnlyList<CutDefinitionCheckpointRecord> cuts, IReadOnlyList<TimelineAnchorCheckpointRecord> timelines, IReadOnlyList<V2T09CheckpointRecord> t09Records, IReadOnlyList<V2T10CheckpointRecord> t10Records)
         {
             var siteKeys = new HashSet<(string Column, string Site)>();
             foreach (SiteColorCheckpointRecord record in sites)
@@ -277,7 +286,19 @@ namespace HBP.Sync.Scene
             foreach (V2T09CheckpointRecord record in t09Records)
                 if (record?.Value == null || !t09Keys.Add(V2MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).CoalescingKey))
                     throw new InvalidDataException("Typed scene checkpoint contains a duplicate or null T09 key.");
+
+            var t10Keys = new HashSet<V2TouchedKey>();
+            foreach (V2T10CheckpointRecord record in t10Records)
+            {
+                if (record?.Value == null || !IsCheckpointT10Type(record.Value.Type))
+                    throw new InvalidDataException("Typed scene checkpoint contains an unsupported T10 record.");
+                foreach (V2TouchedKey key in V2MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).TouchedKeys)
+                    if (!t10Keys.Add(key))
+                        throw new InvalidDataException("Typed scene checkpoint contains a duplicate T10 key.");
+            }
         }
+
+        private static bool IsCheckpointT10Type(V2OperationType type) => type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask;
     }
 
     public static class V2PublicationControlCodec

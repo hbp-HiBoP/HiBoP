@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
@@ -127,6 +128,96 @@ namespace HBP.Sync.Tests
             quest.Dispose();
             pair.Close();
             await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void SceneOperationBulkReceiver_RoutesBufferedSecondMaskChunksBeforeFollowingMutation()
+        {
+            const int triangleCount = 40000;
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 128, maxBulkBodyBytesPerTransfer: 65536, maxBulkBodyBytesTotal: 131072);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop, limits: limits);
+            var firstMask = CreateTriangleMask(0xFF);
+            var secondMask = CreateTriangleMask(0xAA);
+            var followingMutation = new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true);
+            Assert.That(scheduler.EnqueueMutation(firstMask, operationId: new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000071")), canonicalSequence: 1UL).Accepted, Is.True);
+            Assert.That(scheduler.EnqueueMutation(secondMask, operationId: new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000072")), canonicalSequence: 2UL).Accepted, Is.True);
+            Assert.That(scheduler.EnqueueMutation(followingMutation, operationId: new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000073")), canonicalSequence: 3UL).Accepted, Is.True);
+
+            var received = new List<V2TransportRecord>();
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt attempt))
+            {
+                V2ReliableFrame frame = attempt.Frame;
+                received.Add(new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, frame.OperationId, frame.StreamId, frame.ReliableFrameSequence ?? 0, frame.OriginSequence ?? 0, V2OriginDevice.Desktop, frame.Lane, frame.BodySchema, chunkIndex: frame.ChunkIndex, payload: frame.GetPayloadCopy(), canonicalSequence: frame.CanonicalSequence, observedCanonicalSequence: frame.ObservedCanonicalSequence, mutation: frame.Lane == V2ScheduleLane.Interactive ? V2MutationPayloadCodec.Decode(frame.GetPayloadCopy()) : null));
+                Assert.That(scheduler.Acknowledge(frame.StreamId, frame.ReliableFrameSequence.Value), Is.True);
+            }
+
+            var receiver = new V2SceneOperationBulkReceiver();
+            var deferred = new Queue<V2TransportRecord>();
+            var applied = new List<V2Mutation>();
+
+            void Accept(V2TransportRecord record)
+            {
+                if (receiver.IsActive)
+                {
+                    if (!receiver.TryAppend(record, out V2TransportRecord completed))
+                    {
+                        deferred.Enqueue(record);
+                        return;
+                    }
+
+                    if (completed != null) applied.Add(V2MutationPayloadCodec.Decode(completed.GetPayloadCopy()));
+                }
+                else if (receiver.IsMutationDescriptor(record))
+                {
+                    receiver.Begin(record);
+                }
+                else
+                {
+                    applied.Add(record.Mutation ?? V2MutationPayloadCodec.Decode(record.GetPayloadCopy()));
+                }
+
+                DrainDeferred();
+            }
+
+            void DrainDeferred()
+            {
+                while (true)
+                {
+                    if (receiver.IsActive)
+                    {
+                        if (!receiver.TryAppendNextBuffered(deferred, record => record, out _, out V2TransportRecord completed)) return;
+                        if (completed != null) applied.Add(V2MutationPayloadCodec.Decode(completed.GetPayloadCopy()));
+                        continue;
+                    }
+
+                    if (deferred.Count == 0) return;
+                    V2TransportRecord next = deferred.Dequeue();
+                    if (receiver.IsMutationDescriptor(next)) receiver.Begin(next);
+                    else applied.Add(next.Mutation ?? V2MutationPayloadCodec.Decode(next.GetPayloadCopy()));
+                }
+            }
+
+            foreach (V2TransportRecord record in received) Accept(record);
+
+            Assert.That(receiver.IsActive, Is.False);
+            Assert.That(deferred, Is.Empty);
+            Assert.That(applied, Has.Count.EqualTo(3));
+            Assert.That(applied[0], Is.TypeOf<ApplyTriangleMask>());
+            Assert.That(applied[1], Is.TypeOf<ApplyTriangleMask>());
+            Assert.That(V2MutationPayloadCodec.Encode(applied[0]), Is.EqualTo(V2MutationPayloadCodec.Encode(firstMask)));
+            Assert.That(V2MutationPayloadCodec.Encode(applied[1]), Is.EqualTo(V2MutationPayloadCodec.Encode(secondMask)));
+            Assert.That(applied[2], Is.TypeOf<SetSceneBoolean>());
+
+            ApplyTriangleMask CreateTriangleMask(byte value)
+            {
+                byte[] visible = Enumerable.Repeat(value, (triangleCount + 7) / 8).ToArray();
+                return new ApplyTriangleMask(new[]
+                {
+                    new V2TriangleMask(new TopologyId("bulk-mask:complete"), triangleCount, visible),
+                    new V2TriangleMask(new TopologyId("bulk-mask:simplified"), triangleCount, visible)
+                });
+            }
         }
 
         [Test]
@@ -695,14 +786,54 @@ namespace HBP.Sync.Tests
                 Assert.That(start, Is.Not.Null);
                 startPublication = (Task)start.Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
 
-                DropMessageKindWriteStream dropped = await AwaitGuardValueAsync(firstDroppedBarrier.Task);
-                await AwaitGuardAsync(dropped.Dropped.Task);
+                DropMessageKindWriteStream dropped;
+                try
+                {
+                    dropped = await AwaitGuardValueAsync(firstDroppedBarrier.Task);
+                }
+                catch (Exception exception)
+                {
+                    string failureReason = desktopOwnerType.GetProperty("FailureReason").GetValue(desktopOwner) as string;
+                    throw new AssertionException($"Initial connection was not opened: owner={failureReason ?? "none"}; publication={startPublication?.Exception}; wait={exception}");
+                }
+
+                try
+                {
+                    await AwaitGuardAsync(dropped.Dropped.Task);
+                }
+                catch (Exception exception)
+                {
+                    string failureReason = desktopOwnerType.GetProperty("FailureReason").GetValue(desktopOwner) as string;
+                    throw new AssertionException($"Initial barrier was not written: owner={failureReason ?? "none"}; publication={startPublication?.Exception}; wait={exception}");
+                }
+
                 Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.False, "The production Desktop owner must wait for the barrier acknowledgement.");
                 Assert.That(dropped.DroppedRecord.MessageId, Is.Not.Null);
 
                 connectionPairs[0].Close();
-                LoopbackPeerPair resumedPair = await AwaitGuardValueAsync(secondPairReady.Task);
-                await AwaitGuardAsync(startPublication);
+                LoopbackPeerPair resumedPair;
+                try
+                {
+                    resumedPair = await AwaitGuardValueAsync(secondPairReady.Task);
+                }
+                catch (Exception exception)
+                {
+                    string failureReason = desktopOwnerType.GetProperty("FailureReason").GetValue(desktopOwner) as string;
+                    V2PersistentTransport diagnosticTransport = (V2PersistentTransport)desktopOwnerType.GetField("m_Transport", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                    throw new AssertionException($"Replica did not reconnect: opens={openCount}; state={diagnosticTransport.State}; owner={failureReason ?? "none"}; quest={questOwner.GetType().GetProperty("TransportState").GetValue(questOwner)}; wait={exception}");
+                }
+
+                try
+                {
+                    await AwaitGuardAsync(startPublication);
+                }
+                catch (Exception exception)
+                {
+                    string failureReason = desktopOwnerType.GetProperty("FailureReason").GetValue(desktopOwner) as string;
+                    string questFailures = string.Join("; ", questRuns.Where(task => task.IsCompleted).Select(task => task.Result?.ToString() ?? "completed cleanly"));
+                    throw new AssertionException($"Initial publication was not acknowledged: owner={failureReason ?? "none"}; quest={questFailures}; wait={exception}");
+                }
+
                 Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
                 Assert.That((bool)desktopOwnerType.GetProperty("IsClosed").GetValue(desktopOwner), Is.False);
                 Assert.That(openCount, Is.EqualTo(2), "Reconnect should reuse the existing Desktop owner and transport.");
@@ -734,6 +865,39 @@ namespace HBP.Sync.Tests
                 if (questRuns.Count > 0)
                     await AwaitGuardAsync(Task.WhenAll(questRuns));
             }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void MissingPreparedResourceAndTopologyRejectOnlyThatQuestOperation()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var boundary = new V2SceneMutationBoundary(fixture.Scene, V2OriginDevice.Quest);
+            boundary.BindPreparedResources(CreatePreparedBinding());
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, boundary, scheduler);
+            var proposed = new List<V2Mutation>();
+            boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+
+            Assert.Throws<InvalidDataException>(() => driver.ApplyOptimistic(new SetMeshDisplay(new ResourceId("missing-mesh"), V2MeshPart.Both, V2SurfaceRepresentation.Anatomical), new OperationId(GuidFor(55121))));
+            Assert.Throws<InvalidOperationException>(() => driver.ApplyOptimistic(new ApplyTriangleMask(new[]
+            {
+                new V2TriangleMask(new TopologyId("unavailable-topology:complete"), 1, new[] { 0 }),
+                new V2TriangleMask(new TopologyId("unavailable-topology:simplified"), 1, new[] { 0 })
+            }), new OperationId(GuidFor(55122))));
+
+            Assert.That(proposed, Is.Empty, "A resource or topology preflight failure must not publish or partially apply the operation.");
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+
+            var color = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.6f, 0.3f, 0.8f, 1f);
+            OperationId colorOperation = new OperationId(GuidFor(55123));
+            Assert.That(driver.ApplyOptimistic(color, colorOperation), Is.Not.Null, "A later valid operation must remain admissible.");
+            Assert.That(proposed, Has.Count.EqualTo(1));
+            Assert.That(driver.ReceiveRejection(colorOperation, "prepared_resource_unavailable"), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(SiteState.DefaultColor), "Only the rejected operation is rolled back.");
         }
 
         [Test]
@@ -942,8 +1106,17 @@ namespace HBP.Sync.Tests
             questWrapperObject.transform.localRotation = wrapperRotation;
             questWrapperObject.transform.localScale = wrapperScale;
 
-            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
-            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding("scene-focused-column", "session-timeline");
+            object questOwner;
+            try
+            {
+                questOwner = CreateQuestSession(questFixture.Scene, binding);
+            }
+            catch (TargetInvocationException exception)
+            {
+                throw new AssertionException("Quest session construction failed: " + exception.InnerException);
+            }
+
             Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
             Assert.That(desktopOwnerType, Is.Not.Null);
             var connectionPairs = new List<LoopbackPeerPair>();
@@ -965,11 +1138,28 @@ namespace HBP.Sync.Tests
                 Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
                 ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
                 Assert.That(constructor, Is.Not.Null);
-                desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), openReplica });
+                try
+                {
+                    desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), openReplica });
+                }
+                catch (TargetInvocationException exception)
+                {
+                    throw new AssertionException("Desktop session construction failed: " + exception.InnerException);
+                }
+
                 MethodInfo start = desktopOwnerType.GetMethod("StartAfterPublicationAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
                 Assert.That(start, Is.Not.Null);
                 startPublication = (Task)start.Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
-                await AwaitGuardAsync(startPublication);
+                try
+                {
+                    await AwaitGuardAsync(startPublication);
+                }
+                catch (Exception exception)
+                {
+                    string failureReason = desktopOwnerType.GetProperty("FailureReason").GetValue(desktopOwner) as string;
+                    string questFailures = string.Join("; ", questRuns.Where(task => task.IsCompleted).Select(task => task.Result?.ToString() ?? "completed cleanly"));
+                    throw new AssertionException($"Initial publication was not acknowledged: owner={failureReason ?? "none"}; quest={questFailures}; wait={exception}");
+                }
 
                 Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
                 Assert.That(questCut.Position, Is.EqualTo(0.4f), "The persistent session starts from the shared prepared scene definition.");
@@ -1453,8 +1643,10 @@ namespace HBP.Sync.Tests
             return constructor.Invoke(new object[] { scene, binding, beforeCheckpointApply, afterDeferredRecordProcessed });
         }
 
-        private static PreparedSceneDeliveryBinding CreatePreparedBinding()
+        private static PreparedSceneDeliveryBinding CreatePreparedBinding(params string[] columnIds)
         {
+            if (columnIds == null || columnIds.Length == 0)
+                columnIds = new[] { "scene-focused-column" };
             var metadata = new JObject
             {
                 ["TransferId"] = Incarnation.Value.ToString(),
@@ -1464,12 +1656,16 @@ namespace HBP.Sync.Tests
                 ["StandardFiles"] = new JObject(),
                 ["Meshes"] = new JArray(),
                 ["MRIs"] = new JArray(),
-                ["Columns"] = new JArray()
+                ["Columns"] = new JArray(columnIds.Select(id => new JObject
+                {
+                    ["Id"] = id,
+                    ["Functional"] = new JArray()
+                }))
             };
             PreparedSceneManifest manifest = PreparedSceneManifest.FromMetadata(metadata);
             ConstructorInfo constructor = typeof(PreparedSceneDeliveryBinding).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(PreparedSceneManifest) }, null);
             Assert.That(constructor, Is.Not.Null);
-            return (PreparedSceneDeliveryBinding)constructor.Invoke(new object[] { "loopback-manifest-hash", manifest });
+            return (PreparedSceneDeliveryBinding)constructor.Invoke(new object[] { new string('a', 64), manifest });
         }
 
         private static Type FindLoadedType(string name)

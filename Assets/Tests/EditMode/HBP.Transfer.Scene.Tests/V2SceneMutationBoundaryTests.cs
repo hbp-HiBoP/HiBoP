@@ -569,17 +569,44 @@ namespace HBP.Tests.Transfer.Scene
                 V2OperationType.SetSceneFloat
             }));
 
-            byte[] encoded = V2SceneMutationCheckpointCodec.Encode(9, source.Boundary.CaptureCheckpoint());
+            V2SceneMutationCheckpoint captured;
+            try
+            {
+                captured = source.Boundary.CaptureCheckpoint();
+            }
+            catch (Exception exception)
+            {
+                throw new AssertionException("checkpoint capture failed: " + exception);
+            }
+
+            byte[] encoded;
+            try
+            {
+                encoded = V2SceneMutationCheckpointCodec.Encode(9, captured);
+            }
+            catch (Exception exception)
+            {
+                throw new AssertionException("checkpoint encoding failed: " + exception);
+            }
+
             V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(33));
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(34));
             Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(V2OperationType.SetSceneBoolean));
+            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == V2SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
 
             var targetMutations = new List<V2Mutation>();
             target.Boundary.MutationProposed += (_, mutation, _) => targetMutations.Add(mutation);
             ResetSceneInvalidationFlags(target.Scene);
             target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
             target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
-            target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+            try
+            {
+                target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+            }
+            catch (Exception exception)
+            {
+                throw new AssertionException("checkpoint apply failed: " + exception);
+            }
 
             Assert.That(target.Scene.StrongCuts, Is.True);
             Assert.That(target.Scene.SiteGain, Is.EqualTo(1.5f));
@@ -859,6 +886,289 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(target.State.Color, Is.EqualTo(SiteState.DefaultColor));
         }
 
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void T10Checkpoint_ReconcilesCutAndRoiRostersBeforeDefinitionsAndSelection()
+        {
+            using var source = new BoundSceneFixture(V2OriginDevice.Desktop, cutIds: new[] { "checkpoint-created-cut" }, roiId: "checkpoint-created-roi", sphereId: "checkpoint-created-sphere", configureCutCreation: true);
+            using var target = new BoundSceneFixture(V2OriginDevice.Quest, cutIds: new[] { "checkpoint-obsolete-cut" }, roiId: "checkpoint-obsolete-roi", sphereId: "checkpoint-obsolete-sphere", configureCutCreation: true);
+
+            SceneCut sourceCut = source.Scene.Cuts.Single();
+            sourceCut.Orientation = HBP.Core.Enums.CutOrientation.Custom;
+            sourceCut.Flip = true;
+            sourceCut.NumberOfCuts = 7;
+            sourceCut.Position = 0.73f;
+            sourceCut.Normal = new Vector3(0.25f, 0.5f, 0.75f);
+            source.Roi.Name = "checkpoint ROI";
+            source.Sphere.Position = new Vector3(1.25f, -2.5f, 3.75f);
+            source.Sphere.SetInfluenceRadius(4.5f);
+            source.Scene.ROIManager.SelectedROI = source.Roi;
+            source.Roi.SelectSphere(0);
+
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(21, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            var proposals = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+
+            target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
+
+            Assert.That(target.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "checkpoint-created-cut" }));
+            SceneCut restoredCut = target.Scene.Cuts.Single();
+            Assert.That(restoredCut.Orientation, Is.EqualTo(HBP.Core.Enums.CutOrientation.Custom));
+            Assert.That(restoredCut.Flip, Is.True);
+            Assert.That(restoredCut.NumberOfCuts, Is.EqualTo(7));
+            Assert.That(restoredCut.Position, Is.EqualTo(0.73f));
+            Assert.That(restoredCut.Normal, Is.EqualTo(new Vector3(0.25f, 0.5f, 0.75f)));
+
+            Assert.That(target.Scene.ROIManager.ROIs, Has.Count.EqualTo(1));
+            ROI restoredRoi = target.Scene.ROIManager.ROIs.Single();
+            Assert.That(restoredRoi.ID, Is.EqualTo("checkpoint-created-roi"));
+            Assert.That(restoredRoi.Name, Is.EqualTo("checkpoint ROI"));
+            Assert.That(restoredRoi.Spheres, Has.Count.EqualTo(1));
+            Assert.That(restoredRoi.Spheres[0].ID, Is.EqualTo("checkpoint-created-sphere"));
+            Assert.That(restoredRoi.Spheres[0].Position, Is.EqualTo(new Vector3(1.25f, -2.5f, 3.75f)));
+            Assert.That(restoredRoi.Spheres[0].InfluenceRadius, Is.EqualTo(4.5f));
+            Assert.That(target.Scene.ROIManager.SelectedROI, Is.SameAs(restoredRoi));
+            Assert.That(restoredRoi.SelectedSphere, Is.SameAs(restoredRoi.Spheres[0]));
+            Assert.That(proposals, Is.Empty, "Applying an authoritative checkpoint must not publish local structural echoes.");
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void RejectedNonActiveRoiDeletion_RestoresFullRosterSelectionAndQuestDriverAcceptsNextOperation()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            SeedDeletionRois(quest, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            SeedDeletionRois(desktop, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+
+            V2QuestMutationProposal deletion = driver.ApplyOptimistic(new DeleteRoi(new RoiId("inactive-roi")), T09Operation(921));
+            Assert.That(deletion, Is.Not.Null);
+            Assert.That(quest.Scene.ROIManager.ROIs.Select(roi => roi.ID), Is.EqualTo(new[] { "t09-roi-id" }));
+            Assert.That(driver.ReceiveRejection(deletion.OperationId, "roi_delete_rejected"), Is.True);
+
+            AssertRoiState(quest, "t09-roi-id", ExpectedRoi("t09-roi-id", "Base ROI", new[] { BaseSphereFirst, BaseSphereLast }, "base-sphere-last"), ExpectedRoi("inactive-roi", "Inactive ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, "inactive-sphere-middle"));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+
+            var nextDefinition = TestSphere("inactive-sphere-middle", -1f, 5f);
+            V2QuestMutationProposal next = driver.ApplyOptimistic(new SetRoiSphereDefinition(new RoiId("inactive-roi"), nextDefinition), T09Operation(922));
+            Assert.That(next, Is.Not.Null);
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(next);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(FindRoi(desktop, "inactive-roi").Spheres[1].Position, Is.EqualTo(new Vector3(-1f, -0.75f, -0.5f)));
+            Assert.That(FindRoi(quest, "inactive-roi").Spheres[1].Position, Is.EqualTo(new Vector3(-1f, -0.75f, -0.5f)));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void RejectedNonSelectedNonLastSphereDeletion_RestoresSelectionAndQuestDriverAcceptsNextOperation()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            SeedDeletionRois(quest, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            SeedDeletionRois(desktop, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+
+            V2QuestMutationProposal deletion = driver.ApplyOptimistic(new DeleteRoiSphere(new RoiId("t09-roi-id"), new SphereId("t09-sphere-id")), T09Operation(923));
+            Assert.That(deletion, Is.Not.Null);
+            AssertRoiState(quest, "t09-roi-id", ExpectedRoi("t09-roi-id", "Base ROI", new[] { BaseSphereLast }, "base-sphere-last"), ExpectedRoi("inactive-roi", "Inactive ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, "inactive-sphere-middle"));
+            Assert.That(driver.ReceiveRejection(deletion.OperationId, "sphere_delete_rejected"), Is.True);
+
+            AssertRoiState(quest, "t09-roi-id", ExpectedRoi("t09-roi-id", "Base ROI", new[] { BaseSphereFirst, BaseSphereLast }, "base-sphere-last"), ExpectedRoi("inactive-roi", "Inactive ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, "inactive-sphere-middle"));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+
+            V2RoiSphereDefinition nextDefinition = TestSphere("t09-sphere-id", 8f, 6f);
+            V2QuestMutationProposal next = driver.ApplyOptimistic(new SetRoiSphereDefinition(new RoiId("t09-roi-id"), nextDefinition), T09Operation(924));
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(next);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(FindRoi(desktop, "t09-roi-id").Spheres[0].Position, Is.EqualTo(new Vector3(8f, 8.25f, 8.5f)));
+            Assert.That(FindRoi(quest, "t09-roi-id").Spheres[0].Position, Is.EqualTo(new Vector3(8f, 8.25f, 8.5f)));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void StaleNonActiveRoiDeletionCorrection_RestoresAuthoritativeRosterAndSelections()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            SeedDeletionRois(quest, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            SeedDeletionRois(desktop, "inactive-roi", "t09-sphere-id", "inactive-sphere-last");
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+
+            V2QuestMutationProposal deletion = driver.ApplyOptimistic(new DeleteRoi(new RoiId("inactive-roi")), T09Operation(925));
+            desktop.Boundary.Apply(new RenameRoi(new RoiId("inactive-roi"), "Desktop ROI"), V2MutationApplicationOrigin.LocalDesktop, T09Operation(926));
+            V2DesktopProposalResult rejected = authority.AcceptQuestProposal(deletion);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(rejected.Correction, Is.Not.Null);
+
+            V2QuestProposalDecision decoded = V2QuestProposalDecisionCodec.Decode(V2QuestProposalDecisionCodec.EncodeCorrection(rejected.Correction), SceneIdForT09, IncarnationIdForT09);
+            Assert.That(driver.ReceiveCorrection(decoded.Correction), Is.True);
+            AssertRoiState(quest, "inactive-roi", ExpectedRoi("t09-roi-id", "Base ROI", new[] { BaseSphereFirst, BaseSphereLast }, "base-sphere-last"), ExpectedRoi("inactive-roi", "Desktop ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, "inactive-sphere-last"));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+
+            V2RoiSphereDefinition nextDefinition = TestSphere("base-sphere-last", -7f, 7f);
+            V2QuestMutationProposal next = driver.ApplyOptimistic(new SetRoiSphereDefinition(new RoiId("t09-roi-id"), nextDefinition), T09Operation(927));
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(next);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(FindRoi(quest, "t09-roi-id").Spheres[1].Position, Is.EqualTo(new Vector3(-7f, -6.75f, -6.5f)));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void StaleNonSelectedSphereDeletionCorrection_RestoresAuthoritativeGeometryOrderAndSelections()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            SeedDeletionRois(quest, "t09-roi-id", "base-sphere-last", "inactive-sphere-middle");
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            SeedDeletionRois(desktop, "inactive-roi", "t09-sphere-id", "inactive-sphere-middle");
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+
+            V2QuestMutationProposal deletion = driver.ApplyOptimistic(new DeleteRoiSphere(new RoiId("t09-roi-id"), new SphereId("t09-sphere-id")), T09Operation(928));
+            V2RoiSphereDefinition desktopDefinition = TestSphere("t09-sphere-id", 12f, 8f);
+            desktop.Boundary.Apply(new SetRoiSphereDefinition(new RoiId("t09-roi-id"), desktopDefinition), V2MutationApplicationOrigin.LocalDesktop, T09Operation(929));
+            V2DesktopProposalResult rejected = authority.AcceptQuestProposal(deletion);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(rejected.Correction, Is.Not.Null);
+
+            V2QuestProposalDecision decoded = V2QuestProposalDecisionCodec.Decode(V2QuestProposalDecisionCodec.EncodeCorrection(rejected.Correction), SceneIdForT09, IncarnationIdForT09);
+            Assert.That(driver.ReceiveCorrection(decoded.Correction), Is.True);
+            AssertRoiState(quest, "inactive-roi", ExpectedRoi("t09-roi-id", "Base ROI", new[] { desktopDefinition, BaseSphereLast }, "t09-sphere-id"), ExpectedRoi("inactive-roi", "Inactive ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, "inactive-sphere-middle"));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+
+            V2RoiSphereDefinition nextDefinition = TestSphere("t09-sphere-id", -12f, 9f);
+            V2QuestMutationProposal next = driver.ApplyOptimistic(new SetRoiSphereDefinition(new RoiId("t09-roi-id"), nextDefinition), T09Operation(930));
+            V2DesktopProposalResult accepted = authority.AcceptQuestProposal(next);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(FindRoi(quest, "t09-roi-id").Spheres[0].Position, Is.EqualTo(new Vector3(-12f, -11.75f, -11.5f)));
+        }
+
+        private static readonly V2RoiSphereDefinition BaseSphereFirst = TestSphere("t09-sphere-id", 1f, 2f);
+        private static readonly V2RoiSphereDefinition BaseSphereLast = TestSphere("base-sphere-last", 3f, 3f);
+        private static readonly V2RoiSphereDefinition InactiveSphereFirst = TestSphere("inactive-sphere-first", 5f, 4f);
+        private static readonly V2RoiSphereDefinition InactiveSphereMiddle = TestSphere("inactive-sphere-middle", 7f, 5f);
+        private static readonly V2RoiSphereDefinition InactiveSphereLast = TestSphere("inactive-sphere-last", 9f, 6f);
+
+        private static V2RoiSphereDefinition TestSphere(string id, float x, float radius) => new(new SphereId(id), x, x + 0.25f, x + 0.5f, radius);
+
+        private static void SeedDeletionRois(BoundSceneFixture fixture, string activeRoiId, string baseSelectedSphereId, string inactiveSelectedSphereId)
+        {
+            var baseRoiId = new RoiId("t09-roi-id");
+            fixture.Boundary.Apply(new RenameRoi(baseRoiId, "Base ROI"), V2MutationApplicationOrigin.Remote, T09Operation(931));
+            fixture.Boundary.Apply(new SetRoiSphereDefinition(baseRoiId, BaseSphereFirst), V2MutationApplicationOrigin.Remote, T09Operation(932));
+            fixture.Boundary.Apply(new CreateRoiSphere(baseRoiId, BaseSphereLast, 1), V2MutationApplicationOrigin.Remote, T09Operation(933));
+            fixture.Boundary.Apply(new CreateRoi(new RoiId("inactive-roi"), "Inactive ROI", new[] { InactiveSphereFirst, InactiveSphereMiddle, InactiveSphereLast }, 1), V2MutationApplicationOrigin.Remote, T09Operation(934));
+            fixture.Boundary.Apply(new SetSelectedRoiSphere(baseRoiId.Value, baseSelectedSphereId), V2MutationApplicationOrigin.Remote, T09Operation(935));
+            fixture.Boundary.Apply(new SetSelectedRoiSphere("inactive-roi", inactiveSelectedSphereId), V2MutationApplicationOrigin.Remote, T09Operation(936));
+            fixture.Boundary.Apply(new SetActiveRoi(new RoiId(activeRoiId)), V2MutationApplicationOrigin.Remote, T09Operation(937));
+        }
+
+        private static ROI FindRoi(BoundSceneFixture fixture, string roiId) => fixture.Scene.ROIManager.ROIs.Single(roi => roi.ID == roiId);
+
+        private static RoiStateExpectation ExpectedRoi(string roiId, string name, V2RoiSphereDefinition[] spheres, string selectedSphereId) => new(roiId, name, spheres, selectedSphereId);
+
+        private static void AssertRoiState(BoundSceneFixture fixture, string activeRoiId, params RoiStateExpectation[] expected)
+        {
+            Assert.That(fixture.Scene.ROIManager.ROIs.Select(roi => roi.ID), Is.EqualTo(expected.Select(roi => roi.RoiId)), "ROI identity and order");
+            Assert.That(fixture.Scene.ROIManager.SelectedROI?.ID, Is.EqualTo(activeRoiId), "active ROI identity");
+            for (int i = 0; i < expected.Length; i++)
+            {
+                ROI roi = fixture.Scene.ROIManager.ROIs[i];
+                RoiStateExpectation expectedRoi = expected[i];
+                Assert.That(roi.Name, Is.EqualTo(expectedRoi.Name), expectedRoi.RoiId + " name");
+                Assert.That(roi.Spheres.Select(sphere => sphere.ID), Is.EqualTo(expectedRoi.Spheres.Select(sphere => sphere.SphereId.Value)), expectedRoi.RoiId + " sphere identity and order");
+                for (int sphereIndex = 0; sphereIndex < expectedRoi.Spheres.Length; sphereIndex++)
+                {
+                    RoiSphere sphere = roi.Spheres[sphereIndex];
+                    V2RoiSphereDefinition definition = expectedRoi.Spheres[sphereIndex];
+                    Assert.That(sphere.Position, Is.EqualTo(new Vector3(definition.X, definition.Y, definition.Z)), definition.SphereId.Value + " position");
+                    Assert.That(sphere.InfluenceRadius, Is.EqualTo(definition.InfluenceRadius), definition.SphereId.Value + " radius");
+                }
+
+                int selectedSphereIndex = roi.SelectedSphereID;
+                string selectedSphereId = selectedSphereIndex >= 0 && selectedSphereIndex < roi.Spheres.Count ? roi.Spheres[selectedSphereIndex].ID : null;
+                Assert.That(selectedSphereId, Is.EqualTo(expectedRoi.SelectedSphereId), expectedRoi.RoiId + " selected sphere identity");
+            }
+        }
+
+        private sealed class RoiStateExpectation
+        {
+            public string RoiId { get; }
+            public string Name { get; }
+            public V2RoiSphereDefinition[] Spheres { get; }
+            public string SelectedSphereId { get; }
+
+            public RoiStateExpectation(string roiId, string name, V2RoiSphereDefinition[] spheres, string selectedSphereId)
+            {
+                RoiId = roiId;
+                Name = name;
+                Spheres = spheres;
+                SelectedSphereId = selectedSphereId;
+            }
+        }
+
+        [Test]
+        public void T10CutIdentity_SurvivesNonLastDeletionReorderAndBothDriverDirections()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var questScheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var questDriver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, questScheduler);
+            int questProposals = 0;
+            int desktopProposals = 0;
+            int questCutEffects = 0;
+            int desktopCutEffects = 0;
+            quest.Boundary.MutationProposed += (_, _, device) =>
+            {
+                if (device == V2OriginDevice.Quest) questProposals++;
+            };
+            desktop.Boundary.MutationProposed += (_, _, device) =>
+            {
+                if (device == V2OriginDevice.Desktop) desktopProposals++;
+            };
+            quest.Scene.OnModifyPlanesCuts.AddListener(() => questCutEffects++);
+            desktop.Scene.OnModifyPlanesCuts.AddListener(() => desktopCutEffects++);
+            authority.CanonicalReady += canonical => questDriver.ReceiveCanonical(canonical);
+            questDriver.ProposalQueued += proposal => Assert.That(authority.AcceptQuestProposal(proposal).Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+
+            Assert.That(questDriver.ApplyOptimistic(new DeleteCut(new CutId("t10-cut-middle")), T09Operation(811)), Is.Not.Null);
+            Assert.That(quest.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "t10-cut-first", "t10-cut-last" }));
+            Assert.That(desktop.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "t10-cut-first", "t10-cut-last" }));
+
+            Assert.That(questDriver.ApplyOptimistic(new SetCutOrder(new[] { new CutId("t10-cut-last"), new CutId("t10-cut-first") }), T09Operation(812)), Is.Not.Null);
+            Assert.That(quest.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "t10-cut-last", "t10-cut-first" }));
+            Assert.That(desktop.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "t10-cut-last", "t10-cut-first" }));
+
+            var lastDefinition = new SetCutDefinition(new CutId("t10-cut-last"), V2CutOrientation.Custom, true, 7, 0.7f, 0.25f, 0.5f, 0.75f);
+            Assert.That(questDriver.ApplyOptimistic(lastDefinition, T09Operation(813)), Is.Not.Null);
+            Assert.That(quest.Scene.Cuts[0].ID, Is.EqualTo("t10-cut-last"));
+            Assert.That(quest.Scene.Cuts[0].Flip, Is.True);
+            Assert.That(desktop.Scene.Cuts[0].ID, Is.EqualTo("t10-cut-last"));
+            Assert.That(desktop.Scene.Cuts[0].NumberOfCuts, Is.EqualTo(7));
+
+            var firstDefinition = new SetCutDefinition(new CutId("t10-cut-first"), V2CutOrientation.Custom, false, 2, 0.3f, 0f, 1f, 0f);
+            desktop.Boundary.Apply(firstDefinition, V2MutationApplicationOrigin.LocalDesktop, T09Operation(814));
+            Assert.That(quest.Scene.Cuts[1].ID, Is.EqualTo("t10-cut-first"));
+            Assert.That(quest.Scene.Cuts[1].Position, Is.EqualTo(0.3f));
+            Assert.That(questProposals, Is.EqualTo(3), "Remote Quest operations and their canonical echoes must not emit another proposal.");
+            Assert.That(desktopProposals, Is.EqualTo(1), "Quest driver applications must remain remote on Desktop; only the explicit Desktop edit is proposed.");
+            Assert.That(questDriver.PendingProposalCount, Is.Zero);
+            Assert.That(questCutEffects, Is.EqualTo(4), "Matching canonical echoes must not repeat cut or derived-scene effects.");
+            Assert.That(desktopCutEffects, Is.EqualTo(4), "Desktop applies each accepted cause once and never re-emits its derived cut effects.");
+        }
+
         private static V2Mutation[] CreateT09DriverMutations(BoundSceneFixture fixture, int timelineIndex)
         {
             var columnId = new ColumnId(fixture.Column.ColumnData.ID);
@@ -993,15 +1303,30 @@ namespace HBP.Tests.Transfer.Scene
             public ROI Roi { get; }
             public RoiSphere Sphere { get; }
             private SharedMaterials SphereMaterials { get; }
+            private CoreVolume CutTestVolume { get; }
+            private string CutTestVolumePath { get; }
+            private Mesh CutTemplateMesh { get; }
             public V2SceneMutationBoundary Boundary { get; }
 
-            public BoundSceneFixture(V2OriginDevice localOrigin = V2OriginDevice.Quest)
+            public BoundSceneFixture(V2OriginDevice localOrigin = V2OriginDevice.Quest, bool seedCuts = false, string[] cutIds = null, string roiId = "t09-roi-id", string sphereId = "t09-sphere-id", bool configureCutCreation = false)
             {
                 Root = new GameObject("T09 typed scene fixture");
                 Root.SetActive(false);
                 Scene = Root.AddComponent<Base3DScene>();
                 Materials = InitializeTestBrainMaterials(Scene);
                 SetPrivateField(Scene, "m_MeshManager", Root.AddComponent<MeshManager>());
+                MRIManager mriManager = Root.AddComponent<MRIManager>();
+                SetPrivateField(mriManager, "m_Scene", Scene);
+                SetPrivateField(Scene, "m_MRIManager", mriManager);
+                if (configureCutCreation)
+                {
+                    CutTestVolumePath = Path.Combine(Application.temporaryCachePath, "sync-checkpoint-cut-" + Guid.NewGuid().ToString("N") + ".nii");
+                    CreateMinimalNifti(CutTestVolumePath);
+                    CutTestVolume = new CoreVolume();
+                    if (!CutTestVolume.LoadNIFTIFile(CutTestVolumePath)) throw new InvalidOperationException("Unable to load the checkpoint cut fixture volume.");
+                    mriManager.MRIs.Add(new MRI3D("checkpoint-test", CutTestVolume));
+                }
+
                 AtlasManager atlasManager = Root.AddComponent<AtlasManager>();
                 SetPrivateField(Scene, "m_AtlasManager", atlasManager);
                 SetPrivateField(atlasManager, "m_Scene", Scene);
@@ -1010,6 +1335,7 @@ namespace HBP.Tests.Transfer.Scene
                 SetPrivateField(fmriManager, "m_Scene", Scene);
                 ROIManager roiManager = Root.AddComponent<ROIManager>();
                 SetPrivateField(Scene, "m_ROIManager", roiManager);
+                SetPrivateField(roiManager, "m_Scene", Scene);
                 const string patientId = "60000000-0000-0000-0000-000000000009";
                 var patient = new Patient { ID = patientId, Name = "t09-patient" };
                 var columnData = new AnatomicColumn("t09-column", new BaseConfiguration(), new AnatomicConfiguration(), "t09-column-id");
@@ -1058,25 +1384,71 @@ namespace HBP.Tests.Transfer.Scene
                 SetAutoProperty(megTimeline, "Length", 100);
                 SetAutoProperty(MegColumn, "Timeline", megTimeline);
                 Scene.Columns.Add(MegColumn);
-                Roi = Root.AddComponent<ROI>();
-                Roi.ID = "t09-roi-id";
+                var roiObject = new GameObject("t09-roi");
+                roiObject.transform.SetParent(Root.transform, false);
+                Roi = roiObject.AddComponent<ROI>();
+                Roi.ID = roiId;
                 SetAutoProperty(Roi, "SelectedSphereID", -1);
                 GameObject sphereObject = new("t09-sphere");
                 sphereObject.transform.SetParent(Root.transform, false);
                 sphereObject.AddComponent<MeshRenderer>();
                 Sphere = sphereObject.AddComponent<RoiSphere>();
-                Sphere.ID = "t09-sphere-id";
+                Sphere.ID = sphereId;
                 SphereMaterials = ScriptableObject.CreateInstance<SharedMaterials>();
                 SetPrivateField(Sphere, "m_SharedMaterials", SphereMaterials);
                 SetAutoProperty(Roi, "Spheres", new List<RoiSphere> { Sphere });
                 SetAutoProperty(roiManager, "ROIs", new List<ROI> { Roi });
+                var prefabContainer = new GameObject("T09 fixture prefab container");
+                prefabContainer.transform.SetParent(Root.transform, false);
+                prefabContainer.SetActive(false);
+                var spherePrefab = new GameObject("T09 fixture sphere prefab");
+                spherePrefab.transform.SetParent(prefabContainer.transform, false);
+                spherePrefab.AddComponent<MeshFilter>();
+                spherePrefab.AddComponent<MeshRenderer>();
+                spherePrefab.AddComponent<SphereCollider>();
+                SetPrivateField(spherePrefab.AddComponent<RoiSphere>(), "m_SharedMaterials", SphereMaterials);
+                SetPrivateField(Roi, "m_SpherePrefab", spherePrefab);
+                var roiPrefab = new GameObject("T09 fixture ROI prefab");
+                roiPrefab.transform.SetParent(prefabContainer.transform, false);
+                SetPrivateField(roiPrefab.AddComponent<ROI>(), "m_SpherePrefab", spherePrefab);
                 DisplayedObjects displayedObjects = Root.AddComponent<DisplayedObjects>();
+                SetPrivateField(displayedObjects, "m_Scene", Scene);
+                SetPrivateField(displayedObjects, "m_ROIParent", Root.transform);
+                SetPrivateField(displayedObjects, "m_ROIPrefab", roiPrefab);
                 SetAutoProperty(displayedObjects, "Brain", NewRendererObject("t09-brain"));
                 SetAutoProperty(displayedObjects, "SimplifiedBrain", NewRendererObject("t09-simplified-brain"));
                 SetAutoProperty(displayedObjects, "BrainCutMeshes", new List<GameObject>());
                 SetPrivateField(Scene, "m_DisplayedObjects", displayedObjects);
+                SetPrivateField(roiManager, "m_DisplayedObjects", displayedObjects);
+                if (configureCutCreation)
+                {
+                    var cutPrefab = new GameObject("T10 fixture cut prefab");
+                    cutPrefab.transform.SetParent(prefabContainer.transform, false);
+                    CutTemplateMesh = new Mesh();
+                    cutPrefab.AddComponent<MeshFilter>().sharedMesh = CutTemplateMesh;
+                    cutPrefab.AddComponent<MeshRenderer>();
+                    SetPrivateField(displayedObjects, "m_BrainCutMeshesParent", Root.transform);
+                    SetPrivateField(displayedObjects, "m_CutPrefab", cutPrefab);
+                }
+
                 foreach (Column3D column in Scene.Columns)
                     SetAutoProperty(column, "BrainMesh", NewRendererObject("t09-column-brain-" + column.ColumnData.ID));
+
+                string[] initialCutIds = cutIds ?? (seedCuts ? new[] { "t10-cut-first", "t10-cut-middle", "t10-cut-last" } : Array.Empty<string>());
+                if (initialCutIds.Length > 0)
+                {
+                    // Cut identity and order tests do not need scene columns; removing one should not exercise column rendering.
+                    Scene.Columns.Clear();
+                    var ownedCutMeshes = (List<Mesh>)typeof(DisplayedObjects).GetField("m_OwnedCutMeshes", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(displayedObjects);
+                    for (int i = 0; i < initialCutIds.Length; i++)
+                    {
+                        var cut = new SceneCut(Vector3.zero, Vector3.right) { ID = initialCutIds[i], Index = i, Orientation = HBP.Core.Enums.CutOrientation.Custom };
+                        Scene.Cuts.Add(cut);
+                        displayedObjects.BrainCutMeshes.Add(NewRendererObject("t10-cut-visual-" + i));
+                        ownedCutMeshes.Add(new Mesh());
+                    }
+                }
+
                 Boundary = new V2SceneMutationBoundary(Scene, localOrigin, new TestClock(0));
             }
 
@@ -1093,9 +1465,12 @@ namespace HBP.Tests.Transfer.Scene
             public void Dispose()
             {
                 Boundary.Dispose();
+                CutTestVolume?.Dispose();
                 DestroyTestBrainMaterials(Materials);
                 Object.DestroyImmediate(SphereMaterials);
                 Object.DestroyImmediate(Root);
+                if (CutTemplateMesh != null) Object.DestroyImmediate(CutTemplateMesh);
+                if (!string.IsNullOrEmpty(CutTestVolumePath) && File.Exists(CutTestVolumePath)) File.Delete(CutTestVolumePath);
             }
         }
 

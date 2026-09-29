@@ -238,6 +238,28 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void ResourceOrTopologyRejection_RollsBackOnlyThatOptimisticOperation()
+        {
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            Color priorSiteA = quest.SiteA.Color;
+            Color priorSiteB = quest.SiteB.Color;
+            var rejected = new List<string>();
+            driver.ProposalRejected += (_, code) => rejected.Add(code);
+
+            V2QuestMutationProposal proposal = driver.ApplyOptimistic(Color("site-a", 0.9f, 0.1f, 0.3f), Operation(463));
+            Assert.That(proposal, Is.Not.Null);
+            Assert.That(quest.SiteA.Color, Is.Not.EqualTo(priorSiteA));
+            Assert.That(driver.ReceiveRejection(proposal.OperationId, "topology_unavailable"), Is.True);
+
+            Assert.That(quest.SiteA.Color, Is.EqualTo(priorSiteA));
+            Assert.That(quest.SiteB.Color, Is.EqualTo(priorSiteB));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(rejected, Is.EqualTo(new[] { "topology_unavailable" }));
+        }
+
+        [Test]
         public void QuestSchedulerPressure_DefersProposalUntilCapacityReturns()
         {
             var clock = new TestClock();

@@ -356,7 +356,7 @@ namespace HBP.Sync
         private static int FamilyIndex(V2TouchedKeyKind kind)
         {
             int index = (int)kind - 1;
-            if (index < 0 || index >= 18)
+            if (index < 0 || index >= 27)
                 throw new ArgumentOutOfRangeException(nameof(kind));
             return index;
         }
@@ -369,7 +369,7 @@ namespace HBP.Sync
 
         private static byte[][] CreateFamilyDigests()
         {
-            var digests = new byte[18][];
+            var digests = new byte[27][];
             for (int i = 0; i < digests.Length; i++) digests[i] = new byte[32];
             return digests;
         }

@@ -62,6 +62,9 @@ namespace HBP.Data.Module3D
         /// <summary>Raised when the selected prepared mesh resource changes.</summary>
         public event System.Action ResourceSelectionChanged;
 
+        /// <summary>Raised when the selected mesh part or representation changes.</summary>
+        public event System.Action DisplaySelectionChanged;
+
         /// <summary>
         /// Selected Mesh3D
         /// </summary>
@@ -272,8 +275,15 @@ namespace HBP.Data.Module3D
 
             bool selectionChanged = SelectedMeshID != meshID;
             SelectedMeshID = meshID;
-            if (selectionChanged) ResourceSelectionChanged?.Invoke();
-            ApplySelectedMeshCapabilities();
+            try
+            {
+                ApplySelectedMeshCapabilities();
+            }
+            finally
+            {
+                if (selectionChanged) ResourceSelectionChanged?.Invoke();
+            }
+
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
 
@@ -329,9 +339,12 @@ namespace HBP.Data.Module3D
         /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
         public void SelectMeshPart(MeshPart meshPartToDisplay)
         {
-            MeshPartToDisplay = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
+            MeshPart selected = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
+            bool changed = MeshPartToDisplay != selected;
+            MeshPartToDisplay = selected;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
+            if (changed) DisplaySelectionChanged?.Invoke();
         }
 
         /// <summary>
@@ -345,6 +358,7 @@ namespace HBP.Data.Module3D
             SelectedMesh.SelectRepresentation(representation);
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceMesh();
+            DisplaySelectionChanged?.Invoke();
         }
 
         /// <summary>

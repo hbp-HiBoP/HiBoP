@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Text;
 using HBP.Sync;
 using HBP.Transfer.Transport;
 
@@ -9,6 +10,7 @@ namespace HBP.Sync.Scene
     public sealed class V2PublicationCheckpointBulkReceiver
     {
         public const ushort BodySchema = 2;
+        private static readonly byte[] DescriptorMagic = Encoding.ASCII.GetBytes("HBSO");
         private const int DescriptorMaximumBytes = V2SchedulerLimits.DefaultInlineThresholdBytes;
         private const int MaximumBodyBytes = 16 * 1024 * 1024;
         private const int MaximumChunkBytes = V2TransportFrameCodec.MaximumPayloadBytes;
@@ -32,9 +34,12 @@ namespace HBP.Sync.Scene
         {
             if (record == null || record.Kind != V2TransportMessageKind.Application || record.Lane != V2ScheduleLane.SceneControl || record.BodySchema != BodySchema || record.ChunkIndex.HasValue)
                 return false;
-            if (record.PayloadLength < 2) return false;
+            if (record.PayloadLength < DescriptorMagic.Length + 2) return false;
             byte[] payload = record.GetPayloadCopy();
-            return payload[0] == 1 && payload[1] == 0;
+            for (int i = 0; i < DescriptorMagic.Length; i++)
+                if (payload[i] != DescriptorMagic[i])
+                    return false;
+            return true;
         }
 
         public void Begin(V2TransportRecord record, V2OriginDevice expectedOrigin)
@@ -52,6 +57,8 @@ namespace HBP.Sync.Scene
             using var reader = new BinaryReader(stream);
             try
             {
+                byte[] magic = reader.ReadBytes(DescriptorMagic.Length);
+                if (magic.Length != DescriptorMagic.Length || !Equal(magic, DescriptorMagic)) throw new InvalidDataException("Unsupported checkpoint bulk descriptor signature.");
                 if (reader.ReadUInt16() != 1) throw new InvalidDataException("Unsupported bulk descriptor version.");
                 var operationId = new OperationId(ReadGuid(reader));
                 ushort bodySchema = reader.ReadUInt16();

@@ -8,7 +8,7 @@ namespace HBP.Sync
     {
         public const ushort SchemaVersion = 2;
         private const ushort LegacySchemaVersion = 1;
-        public const int MaximumPayloadBytes = 1024;
+        public const int MaximumPayloadBytes = 16 * 1024 * 1024;
         private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
 
         public static byte[] Encode(V2Mutation mutation)
@@ -24,7 +24,7 @@ namespace HBP.Sync
                 writer.Write((ushort)mutation.Type);
                 writer.Write(encodedBody);
                 if (stream.Length > MaximumPayloadBytes)
-                    throw new InvalidDataException("Mutation payload exceeds 1024 bytes.");
+                    throw new InvalidDataException("Mutation payload exceeds the reliable bulk bound.");
                 return stream.ToArray();
             }
         }
@@ -70,7 +70,7 @@ namespace HBP.Sync
             {
                 WriteBody(writer, mutation);
                 if (stream.Length > MaximumPayloadBytes)
-                    throw new InvalidDataException("Mutation body exceeds 1024 bytes.");
+                    throw new InvalidDataException("Mutation body exceeds the reliable bulk bound.");
                 return stream.ToArray();
             }
         }
@@ -108,7 +108,7 @@ namespace HBP.Sync
                         return new SetTimelineAnchor(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, intent);
                     }
                 default:
-                    return V2T09MutationCodec.ReadBody(reader, operationType);
+                    return (ushort)operationType >= (ushort)V2OperationType.CreateCut ? V2T10MutationCodec.ReadBody(reader, operationType) : V2T09MutationCodec.ReadBody(reader, operationType);
             }
         }
 
@@ -148,6 +148,12 @@ namespace HBP.Sync
                 writer.Write(timelineAnchor.MonotonicAnchorTicks);
                 writer.Write(timelineAnchor.TickFrequency);
                 writer.Write((byte)timelineAnchor.Intent);
+                return;
+            }
+
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.CreateCut)
+            {
+                V2T10MutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
@@ -436,7 +442,7 @@ namespace HBP.Sync
                     bool timelineAnchor = expectedType == V2OperationType.SetTimelineAnchor;
                     if (schemaVersion != SchemaVersion && (!timelineAnchor || schemaVersion != TimelineAnchorSchemaVersion))
                         throw new InvalidDataException("Unsupported checkpoint record schema.");
-                    if (bodyLength > V2MutationPayloadCodec.MaximumPayloadBytes || PrefixLength + bodyLength != bytes.Length)
+                    if (PrefixLength + bodyLength != bytes.Length)
                         throw new InvalidDataException("Invalid checkpoint body length.");
 
                     V2Mutation mutation = V2MutationPayloadCodec.ReadBody(reader, expectedType, schemaVersion);

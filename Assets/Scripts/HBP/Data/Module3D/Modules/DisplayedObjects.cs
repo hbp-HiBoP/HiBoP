@@ -258,7 +258,10 @@ namespace HBP.Data.Module3D
         public void InstantiateCut()
         {
             GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
-            m_OwnedCutMeshes.Add(cut.GetComponent<MeshFilter>().mesh);
+            MeshFilter meshFilter = cut.GetComponent<MeshFilter>();
+            Mesh cutMesh = Instantiate(meshFilter.sharedMesh);
+            meshFilter.sharedMesh = cutMesh;
+            m_OwnedCutMeshes.Add(cutMesh);
             cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
             cut.layer = LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
             cut.transform.localPosition = Vector3.zero;
@@ -269,7 +272,8 @@ namespace HBP.Data.Module3D
         {
             DestroyOwnedMesh(m_OwnedCutMeshes[index]);
             m_OwnedCutMeshes.RemoveAt(index);
-            Destroy(BrainCutMeshes[index]);
+            if (Application.isPlaying) Destroy(BrainCutMeshes[index]);
+            else DestroyImmediate(BrainCutMeshes[index]);
             BrainCutMeshes.RemoveAt(index);
         }
 

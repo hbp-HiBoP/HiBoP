@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography;
 using NUnit.Framework;
 using HBP.Sync.Testing;
@@ -226,6 +227,53 @@ namespace HBP.Sync.Tests
             Assert.That(scheduler.Acknowledge(scheduler.SceneOperationStreamId, 2), Is.True);
             Assert.That(scheduler.Acknowledge(largeResult.BulkStreamId, 9), Is.True);
             Assert.That(scheduler.SnapshotMetrics().RetainedBulkBodyBytes, Is.Zero);
+        }
+
+        [Test]
+        public void Scheduler_KeepsOversizedTriangleMaskDescriptorInAllSceneOrder()
+        {
+            const int triangleCount = 40000;
+            var visible = Enumerable.Repeat((byte)0xFF, (triangleCount + 7) / 8).ToArray();
+            var mask = new ApplyTriangleMask(new[]
+            {
+                new V2TriangleMask(new TopologyId("mesh:part:complete"), triangleCount, visible),
+                new V2TriangleMask(new TopologyId("mesh:part:simplified"), triangleCount, visible)
+            });
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 4096, bulkChunkBytes: 2048, maxBulkBodyBytesPerTransfer: 65536, maxBulkBodyBytesTotal: 131072);
+            var scheduler = CreateScheduler(new FakeMonotonicClock(), limits);
+            V2EnqueueResult maskQueued = scheduler.EnqueueMutation(mask, operationId: new OperationId(GuidFor(4150)), canonicalSequence: 41UL);
+            V2EnqueueResult following = scheduler.EnqueueMutation(new SetMriCalibration(0.2f, 0.8f), operationId: new OperationId(GuidFor(4151)));
+
+            Assert.That(maskQueued.Accepted, Is.True);
+            Assert.That(following.Accepted, Is.True);
+            V2ReliableFrame descriptor = Next(scheduler).Frame;
+            Assert.That(descriptor.Lane, Is.EqualTo(V2ScheduleLane.SceneControl));
+            Assert.That(descriptor.ReliableFrameSequence, Is.EqualTo(1UL));
+            Assert.That(descriptor.OperationId, Is.EqualTo(maskQueued.OperationId));
+            Assert.That(descriptor.CanonicalSequence, Is.EqualTo(41UL), "The ordered bulk descriptor must preserve the authority sequence for its structural body.");
+            Assert.That(descriptor.BulkDescriptor, Is.Not.Null);
+            Assert.That(descriptor.BulkDescriptor.TotalLength, Is.GreaterThan(limits.InlineThresholdBytes));
+            Assert.That(descriptor.BulkDescriptor.Scheduling.BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
+            Assert.That(descriptor.BulkDescriptor.Scheduling.TouchedKeys, Has.Count.EqualTo(2));
+            CollectionAssert.AreEqual(new byte[] { (byte)'H', (byte)'B', (byte)'S', (byte)'O' }, descriptor.GetPayloadCopy().Take(4));
+
+            V2ReliableFrame afterDescriptor = Next(scheduler).Frame;
+            Assert.That(afterDescriptor.Lane, Is.EqualTo(V2ScheduleLane.Interactive));
+            Assert.That(afterDescriptor.ReliableFrameSequence, Is.EqualTo(2UL));
+            Assert.That(afterDescriptor.OperationId, Is.EqualTo(following.OperationId));
+            Assert.That(V2MutationPayloadCodec.Decode(afterDescriptor.GetPayloadCopy()), Is.TypeOf<SetMriCalibration>());
+
+            int sentChunks = 0;
+            while (sentChunks < descriptor.BulkDescriptor.ChunkCount)
+            {
+                V2ReliableFrame chunk = Next(scheduler).Frame;
+                Assert.That(chunk.Lane, Is.EqualTo(V2ScheduleLane.Bulk));
+                Assert.That(chunk.StreamId, Is.EqualTo(maskQueued.BulkStreamId));
+                Assert.That(chunk.ChunkIndex, Is.EqualTo(sentChunks));
+                sentChunks++;
+            }
+
+            Assert.That(sentChunks, Is.GreaterThan(1));
         }
 
         [Test]

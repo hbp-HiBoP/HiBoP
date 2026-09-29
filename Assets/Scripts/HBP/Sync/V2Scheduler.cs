@@ -168,7 +168,7 @@ namespace HBP.Sync
             if (mutation == null)
                 throw new ArgumentNullException(nameof(mutation));
             V2MutationDescriptor descriptor = new V2MutationDescriptor(sceneId, incarnationId, mutation);
-            return new V2ScheduleDescriptor(sceneId, incarnationId, descriptor.CoalescingKey, descriptor.TouchedKeys as IList<V2TouchedKey>, V2BarrierScope.None);
+            return new V2ScheduleDescriptor(sceneId, incarnationId, descriptor.CoalescingKey, descriptor.TouchedKeys as IList<V2TouchedKey>, descriptor.BarrierScope);
         }
 
         public static V2ScheduleDescriptor ForBarrier(SceneId sceneId, IncarnationId incarnationId, IEnumerable<V2ScheduleDescriptor> affectedDescriptors, V2BarrierScope scope, int maximumTouchedKeys = 128)
@@ -203,7 +203,7 @@ namespace HBP.Sync
             return new V2ScheduleDescriptor(sceneId, incarnationId, null, keys, scope);
         }
 
-        internal byte[] EncodeTouchedKeyFingerprints()
+        public byte[] EncodeTouchedKeyFingerprints()
         {
             using (var stream = new MemoryStream())
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
@@ -259,6 +259,7 @@ namespace HBP.Sync
 
     public sealed class V2BulkTransferDescriptor
     {
+        private static readonly byte[] SceneOperationBulkMagic = Encoding.ASCII.GetBytes("HBSO");
         private readonly byte[] m_ContentDigest;
 
         public OperationId OperationId { get; }
@@ -287,6 +288,7 @@ namespace HBP.Sync
             using (var stream = new MemoryStream())
             using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
             {
+                writer.Write(SceneOperationBulkMagic);
                 writer.Write((ushort)1);
                 writer.Write(OperationId.ToByteArray());
                 writer.Write(BodySchema);
@@ -612,7 +614,8 @@ namespace HBP.Sync
                 throw new ArgumentNullException(nameof(mutation));
             byte[] payload = V2MutationPayloadCodec.Encode(mutation);
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, mutation);
-            return EnqueueSceneOperation(payload, descriptor, coalesciblePreview, false, false, 1, operationId, canonicalSequence, observedCanonicalSequence);
+            bool structural = descriptor.BarrierScope != V2BarrierScope.None;
+            return EnqueueSceneOperation(payload, descriptor, coalesciblePreview && !structural, structural, false, 1, operationId, canonicalSequence, observedCanonicalSequence);
         }
 
         /// <summary>
@@ -676,7 +679,7 @@ namespace HBP.Sync
 
             var transfer = new BulkTransferState(bulkDescriptor, body);
             V2ScheduleLane lane = structural || final ? V2ScheduleLane.SceneControl : V2ScheduleLane.Interactive;
-            var pending = new PendingRecord(descriptorPayload, V2DeliveryReliability.Reliable, lane, id, coalesciblePreview, descriptor, transfer, bulkDescriptor, bodySchema);
+            var pending = new PendingRecord(descriptorPayload, V2DeliveryReliability.Reliable, lane, id, coalesciblePreview, descriptor, transfer, bulkDescriptor, bodySchema, canonicalSequence: canonicalSequence, observedCanonicalSequence: observedCanonicalSequence);
             V2EnqueueDisposition disposition;
             if (!CanAdmitSceneRecord(pending, lane != V2ScheduleLane.Interactive, existingSlot))
             {

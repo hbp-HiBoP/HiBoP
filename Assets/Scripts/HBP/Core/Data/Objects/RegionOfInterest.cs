@@ -13,6 +13,7 @@ namespace HBP.Core.Data
     {
         #region Properties
 
+        [JsonProperty] public string ID { get; set; }
         [JsonProperty] public string Name { get; set; }
         [JsonProperty] public List<Sphere> Spheres { get; set; }
 
@@ -20,8 +21,9 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public RegionOfInterest(string name, List<Sphere> spheres)
+        public RegionOfInterest(string name, List<Sphere> spheres, string id = null)
         {
+            ID = id ?? Guid.NewGuid().ToString("D");
             Name = name;
             Spheres = spheres;
         }
@@ -32,7 +34,7 @@ namespace HBP.Core.Data
 
         public object Clone()
         {
-            return new RegionOfInterest(Name, Spheres?.DeepClone(true).ToList() ?? new List<Sphere>());
+            return new RegionOfInterest(Name, Spheres?.DeepClone(true).ToList() ?? new List<Sphere>(), ID);
         }
 
         #endregion
@@ -43,6 +45,7 @@ namespace HBP.Core.Data
     {
         #region Properties
 
+        [JsonProperty] public string ID { get; set; }
         [JsonProperty] public SerializableVector3 Position { get; set; }
         [JsonProperty] public float Radius { get; set; }
 
@@ -50,8 +53,9 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public Sphere(Vector3 position, float radius)
+        public Sphere(Vector3 position, float radius, string id = null)
         {
+            ID = id ?? Guid.NewGuid().ToString("D");
             Position = new SerializableVector3(position);
             Radius = radius;
         }
@@ -62,7 +66,7 @@ namespace HBP.Core.Data
 
         public object Clone()
         {
-            return new Sphere(Position.ToVector3(), Radius);
+            return new Sphere(Position.ToVector3(), Radius, ID);
         }
 
         #endregion

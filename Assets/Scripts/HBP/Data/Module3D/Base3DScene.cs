@@ -1755,10 +1755,11 @@ namespace HBP.Data.Module3D
         /// Add a new cut plane
         /// </summary>
         /// <returns>Newly created cut</returns>
-        public Core.Object3D.Cut AddCutPlane()
+        public Core.Object3D.Cut AddCutPlane(string stableId = null)
         {
             // Add new cut
             Core.Object3D.Cut cut = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
+            if (!string.IsNullOrEmpty(stableId)) cut.ID = stableId;
             switch (Cuts.Count)
             {
                 case 0:
@@ -1940,7 +1941,7 @@ namespace HBP.Data.Module3D
                 cut.Normal = plane.Normal;
             }
 
-            Core.Object3D.Cut axialCut = reuse ? Cuts[0] : AddCutPlane();
+            Core.Object3D.Cut axialCut = reuse ? Cuts[0] : AddCutPlane("hbp:auto-cut:axial");
             SetUnflippedOrientation(axialCut, CutOrientation.Axial);
             Vector3 axialPoint = center + (Vector3.Dot(sitePosition - center, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = bbox.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts);
@@ -1953,7 +1954,7 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(axialCut);
 
-            Core.Object3D.Cut coronalCut = reuse ? Cuts[1] : AddCutPlane();
+            Core.Object3D.Cut coronalCut = reuse ? Cuts[1] : AddCutPlane("hbp:auto-cut:coronal");
             SetUnflippedOrientation(coronalCut, CutOrientation.Coronal);
             Vector3 coronalPoint = center + (Vector3.Dot(sitePosition - center, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = bbox.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts);
@@ -1966,7 +1967,7 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(coronalCut);
 
-            Core.Object3D.Cut sagittalCut = reuse ? Cuts[2] : AddCutPlane();
+            Core.Object3D.Cut sagittalCut = reuse ? Cuts[2] : AddCutPlane("hbp:auto-cut:sagittal");
             SetUnflippedOrientation(sagittalCut, CutOrientation.Sagittal);
             Vector3 sagittalPoint = center + (Vector3.Dot(sitePosition - center, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
             float sagittalOffset = bbox.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts);
@@ -1986,7 +1987,11 @@ namespace HBP.Data.Module3D
         {
             if (!AutomaticCutAroundSelectedSite || Cuts.Count != 3 || Cuts[0].Orientation != CutOrientation.Axial || Cuts[1].Orientation != CutOrientation.Coronal || Cuts[2].Orientation != CutOrientation.Sagittal)
                 throw new InvalidOperationException("Automatic cuts must be axial, coronal and sagittal.");
+            Cuts[0].ID = "hbp:auto-cut:axial";
+            Cuts[1].ID = "hbp:auto-cut:coronal";
+            Cuts[2].ID = "hbp:auto-cut:sagittal";
             m_AutomaticCutsInitialized = true;
+            OnModifyPlanesCuts.Invoke();
         }
 
         #endregion

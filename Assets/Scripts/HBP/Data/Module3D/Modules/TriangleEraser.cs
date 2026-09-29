@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
@@ -40,6 +41,8 @@ namespace HBP.Data.Module3D
     /// </remarks>
     public class TriangleEraser : MonoBehaviour
     {
+        public event Action VisibilityMaskChanged;
+
         #region Properties
 
         /// <summary>
@@ -157,6 +160,7 @@ namespace HBP.Data.Module3D
                     m_Scene.InvalidateSurfaceMesh();
                     m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                    VisibilityMaskChanged?.Invoke();
                 }
             }
         }
@@ -188,6 +192,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            VisibilityMaskChanged?.Invoke();
         }
 
         /// <summary>
@@ -211,6 +216,7 @@ namespace HBP.Data.Module3D
             MeshHasInvisibleTriangles = mask.Contains(0);
             m_MasksStack.Clear();
             m_SimplifiedMasksStack.Clear();
+            VisibilityMaskChanged?.Invoke();
         }
 
         /// <summary>
@@ -236,6 +242,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            VisibilityMaskChanged?.Invoke();
         }
 
         /// <summary>
@@ -254,6 +261,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            VisibilityMaskChanged?.Invoke();
         }
 
         #endregion

@@ -22,6 +22,7 @@ namespace HBP.Data.Module3D
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
         {
+            NormalizeRegionOfInterestIDs();
             SurfaceRepresentation configuredRepresentation = Visualization.Configuration.SurfaceRepresentation;
             if (firstCall) ResetConfiguration();
             BrainColor = Visualization.Configuration.BrainColor;
@@ -174,7 +175,7 @@ namespace HBP.Data.Module3D
             List<RegionOfInterest> rois = new();
             foreach (ROI roi in ROIManager.ROIs)
             {
-                rois.Add(new RegionOfInterest(roi.Name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.InfluenceRadius)).ToList()));
+                rois.Add(new RegionOfInterest(roi.Name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.InfluenceRadius, s.ID)).ToList(), roi.ID));
             }
 
             Visualization.Configuration.RegionsOfInterest = rois;
@@ -224,13 +225,34 @@ namespace HBP.Data.Module3D
             List<RegionOfInterest> rois = new();
             foreach (ROI roi in ROIManager.ROIs)
             {
-                rois.Add(new RegionOfInterest(roi.Name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.InfluenceRadius)).ToList()));
+                rois.Add(new RegionOfInterest(roi.Name, roi.Spheres.Select(s => new Core.Data.Sphere(s.Position, s.InfluenceRadius, s.ID)).ToList(), roi.ID));
             }
 
             configuration.RegionsOfInterest = rois;
             CaptureAdditionalConfiguration(configuration);
 
             return configuration;
+        }
+
+        private void NormalizeRegionOfInterestIDs()
+        {
+            List<RegionOfInterest> rois = Visualization.Configuration.RegionsOfInterest ?? new List<RegionOfInterest>();
+            for (int i = 0; i < rois.Count; i++)
+            {
+                RegionOfInterest roi = rois[i];
+                if (string.IsNullOrEmpty(roi.ID)) roi.ID = Guid.NewGuid().ToString("D");
+                roi.Spheres ??= new List<Core.Data.Sphere>();
+                for (int j = 0; j < roi.Spheres.Count; j++)
+                {
+                    Core.Data.Sphere sphere = roi.Spheres[j];
+                    if (string.IsNullOrEmpty(sphere.ID)) sphere.ID = Guid.NewGuid().ToString("D");
+                    roi.Spheres[j] = sphere;
+                }
+
+                rois[i] = roi;
+            }
+
+            Visualization.Configuration.RegionsOfInterest = rois;
         }
 
         /// <summary>

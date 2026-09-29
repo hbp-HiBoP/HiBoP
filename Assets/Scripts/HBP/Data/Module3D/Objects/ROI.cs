@@ -269,7 +269,8 @@ namespace HBP.Data.Module3D
             if (sphereID == -1) return;
 
             // remove the sphere
-            Destroy(Spheres[sphereID].gameObject);
+            if (Application.isPlaying) Destroy(Spheres[sphereID].gameObject);
+            else DestroyImmediate(Spheres[sphereID].gameObject);
             Spheres.RemoveAt(sphereID);
 
             OnChangeNumberOfSpheres.Invoke();

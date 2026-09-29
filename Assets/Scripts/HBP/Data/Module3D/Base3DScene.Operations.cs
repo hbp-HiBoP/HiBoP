@@ -9,8 +9,18 @@ using UnityEngine;
 
 namespace HBP.Data.Module3D
 {
+    public enum SitePositionCommand : byte
+    {
+        MoveLeft = 1,
+        MoveRight = 2,
+        Reset = 3
+    }
+
     public partial class Base3DScene
     {
+        /// <summary>Reports a completed command that changes the positions of scene sites.</summary>
+        public event Action<SitePositionCommand> SitePositionCommandExecuted;
+
         /// <summary>Resolve a target independently of Desktop selection. Global means the same modality.</summary>
         public List<Column3D> GetColumnGroup(Column3D target, bool allOfSameType)
         {
@@ -91,12 +101,14 @@ namespace HBP.Data.Module3D
             Vector3 center = MeshManager.MeshCenter;
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
             OnSharedStateChanged.Invoke();
+            SitePositionCommandExecuted?.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
         }
 
         public void ResetSitesPositions()
         {
             foreach (var column in Columns) column.ResetSitesPositions();
             OnSharedStateChanged.Invoke();
+            SitePositionCommandExecuted?.Invoke(SitePositionCommand.Reset);
         }
 
         public void ResetSiteFilters(bool included = true)

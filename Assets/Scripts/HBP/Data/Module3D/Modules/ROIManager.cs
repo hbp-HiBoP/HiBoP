@@ -1,11 +1,16 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 using UnityEngine;
 
 namespace HBP.Data.Module3D
 {
     public class ROIManager : MonoBehaviour
     {
+        public event Action<ROI> RoiAdded;
+        public event Action<ROI> RoiRemoved;
+        public event Action<ROI> ActiveRoiChanged;
+
         #region Properties
 
         /// <summary>
@@ -33,6 +38,7 @@ namespace HBP.Data.Module3D
             get { return m_SelectedROI; }
             set
             {
+                bool changed = !ReferenceEquals(m_SelectedROI, value);
                 if (m_SelectedROI != null)
                 {
                     m_SelectedROI.SetVisibility(false);
@@ -49,6 +55,7 @@ namespace HBP.Data.Module3D
                 }
 
                 UpdateROIMasks();
+                if (changed) ActiveRoiChanged?.Invoke(m_SelectedROI);
             }
         }
 
@@ -101,6 +108,7 @@ namespace HBP.Data.Module3D
             ROIs.Add(roi);
             UpdateROIMasks();
             SelectedROI = ROIs.Last();
+            RoiAdded?.Invoke(roi);
 
             return roi;
         }
@@ -131,9 +139,10 @@ namespace HBP.Data.Module3D
         {
             if (roi == null || !ROIs.Contains(roi)) return;
             bool wasSelected = m_SelectedROI == roi;
-            Destroy(roi.gameObject);
             ROIs.Remove(roi);
-            if (wasSelected) m_SelectedROI = null;
+            RoiRemoved?.Invoke(roi);
+            if (Application.isPlaying) Destroy(roi.gameObject);
+            else DestroyImmediate(roi.gameObject);
             if (wasSelected) SelectedROI = ROIs.LastOrDefault();
             else UpdateROIMasks();
         }
@@ -145,7 +154,8 @@ namespace HBP.Data.Module3D
         {
             foreach (var roi in ROIs)
             {
-                Destroy(roi.gameObject);
+                if (Application.isPlaying) Destroy(roi.gameObject);
+                else DestroyImmediate(roi.gameObject);
             }
 
             ROIs.Clear();
@@ -208,9 +218,11 @@ namespace HBP.Data.Module3D
             foreach (Core.Data.RegionOfInterest roi in rois)
             {
                 ROI newROI = AddROI(roi.Name);
+                if (!string.IsNullOrEmpty(roi.ID)) newROI.ID = roi.ID;
                 foreach (Core.Data.Sphere sphere in roi.Spheres)
                 {
                     newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    if (!string.IsNullOrEmpty(sphere.ID)) newROI.Spheres[newROI.Spheres.Count - 1].ID = sphere.ID;
                 }
             }
 

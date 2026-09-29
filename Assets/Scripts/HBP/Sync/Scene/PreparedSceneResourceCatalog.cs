@@ -37,9 +37,9 @@ namespace HBP.Sync.Scene
             if (manifestHash == null || manifestHash.Length != 64 || manifestHash.Any(character => character < '0' || character > '9' && (character < 'a' || character > 'f')))
                 throw new ArgumentException("Invalid delivery manifest hash.", nameof(manifestHash));
             m_ManifestHash = manifestHash;
-            m_Meshes = scene.MeshManager.Meshes.ToArray();
-            m_Mris = scene.MRIManager.MRIs.ToArray();
-            m_Implantations = scene.ImplantationManager.Implantations.ToArray();
+            m_Meshes = scene.MeshManager?.Meshes?.ToArray() ?? Array.Empty<Mesh3D>();
+            m_Mris = scene.MRIManager?.MRIs?.ToArray() ?? Array.Empty<MRI3D>();
+            m_Implantations = scene.ImplantationManager?.Implantations?.ToArray() ?? Array.Empty<Implantation3D>();
             m_MeshRefs = MakeReferences("mesh", manifestHash, m_Meshes.Length);
             m_MriRefs = MakeReferences("mri", manifestHash, m_Mris.Length);
             m_ImplantationRefs = m_Implantations.Select(ComputeImplantationReference).ToArray();
@@ -66,7 +66,7 @@ namespace HBP.Sync.Scene
 
         public void AssertPreparedRoster()
         {
-            if (!m_Meshes.SequenceEqual(m_Scene.MeshManager.Meshes) || !m_Mris.SequenceEqual(m_Scene.MRIManager.MRIs) || !m_Implantations.SequenceEqual(m_Scene.ImplantationManager.Implantations))
+            if (!m_Meshes.SequenceEqual(m_Scene.MeshManager?.Meshes ?? (IEnumerable<Mesh3D>)Array.Empty<Mesh3D>()) || !m_Mris.SequenceEqual(m_Scene.MRIManager?.MRIs ?? (IEnumerable<MRI3D>)Array.Empty<MRI3D>()) || !m_Implantations.SequenceEqual(m_Scene.ImplantationManager?.Implantations ?? (IEnumerable<Implantation3D>)Array.Empty<Implantation3D>()))
                 throw new InvalidDataException("Prepared scene resource roster changed during the synchronization epoch.");
             if (!m_Implantations.Select(ComputeImplantationReference).SequenceEqual(m_ImplantationRefs))
                 throw new InvalidDataException("Prepared implantation data changed during the synchronization epoch.");

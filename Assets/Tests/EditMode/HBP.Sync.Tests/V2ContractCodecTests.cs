@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using HBP.Sync;
 using HBP.Sync.Testing;
@@ -334,6 +335,68 @@ namespace HBP.Sync.Tests
 
             Assert.Throws<ArgumentException>(() => new SetLocalizerDisplay(false, "bad\nprotocol", string.Empty, string.Empty, 0, 0f, 0.5f, 1f));
             Assert.Throws<ArgumentOutOfRangeException>(() => new SetSiteLabels(new ColumnId("column"), new SiteId("site"), new[] { new string('x', 256), new string('y', 129) }));
+        }
+
+        [Test]
+        public void T10Mutations_RoundTripTypedStructuralResourceAndMaskRecords()
+        {
+            var cutId = new CutId("cut-stable-id");
+            var roiId = new RoiId("roi-stable-id");
+            var sphereId = new SphereId("sphere-stable-id");
+            var sphere = new V2RoiSphereDefinition(sphereId, 0.25f, -0.5f, 0.75f, 4.5f);
+            var selectionSnapshot = new V2RoiSelectionSnapshot(new RoiId("active-roi"), sphereId);
+            var sparse = new V2TriangleMask(new TopologyId("surface:mesh:left:complete"), 32, new[] { 2, 29 });
+            var bitset = new V2TriangleMask(new TopologyId("surface:mesh:left:simplified"), 10, new byte[] { 0xAD, 0x01 });
+            V2Mutation[] mutations =
+            {
+                new CreateCut(cutId, new SetCutDefinition(cutId, V2CutOrientation.Custom, true, 3, 0.6f, 0.25f, 0.5f, 0.75f), 2),
+                new DeleteCut(cutId),
+                new SetCutOrder(new[] { cutId, new CutId("another-cut") }),
+                new CreateRoi(roiId, "Stable ROI", new[] { sphere }, 1, selectionSnapshot),
+                new RenameRoi(roiId, "Renamed ROI"),
+                new DeleteRoi(roiId),
+                new SetActiveRoi(null),
+                new CreateRoiSphere(roiId, sphere, 0, selectionSnapshot),
+                new DeleteRoiSphere(roiId, sphereId),
+                new SetRoiSphereDefinition(roiId, sphere),
+                new MoveSites(V2SiteMoveCommand.Right),
+                new SetMeshDisplay(new ResourceId("mesh"), V2MeshPart.Left, V2SurfaceRepresentation.Inflated),
+                new SetSelectedMri(new ResourceId("mri")),
+                new SetMriCalibration(0.2f, 0.8f),
+                new SetImplantation(new ResourceId("implantation"), new string('a', 64)),
+                new ApplyTriangleMask(new[] { sparse, bitset })
+            };
+
+            foreach (V2Mutation mutation in mutations)
+            {
+                byte[] encoded = V2MutationPayloadCodec.Encode(mutation);
+                V2Mutation decoded = V2MutationPayloadCodec.Decode(encoded);
+                Assert.That(decoded.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
+                Assert.That(V2MutationPayloadCodec.Encode(decoded), Is.EqualTo(encoded), mutation.Type.ToString());
+
+                var record = new V2T10CheckpointRecord(mutation);
+                V2T10CheckpointRecord decodedRecord = V2T10CheckpointRecord.Decode(record.Encode());
+                Assert.That(decodedRecord.Value.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
+                Assert.That(V2MutationPayloadCodec.Encode(decodedRecord.Value), Is.EqualTo(encoded), mutation.Type.ToString());
+            }
+
+            CollectionAssert.AreEqual(sparse.ToVisibilityMask(), ((ApplyTriangleMask)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(mutations[^1]))).Masks[0].ToVisibilityMask());
+            CollectionAssert.AreEqual(bitset.ToVisibilityMask(), ((ApplyTriangleMask)V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(mutations[^1]))).Masks[1].ToVisibilityMask());
+        }
+
+        [Test]
+        public void TriangleMaskEncoding_UsesSparseForSmallEditsAndBitsetForDenseMasks()
+        {
+            var sparseVisibility = Enumerable.Repeat(1, 512).ToArray();
+            sparseVisibility[311] = 0;
+            V2TriangleMask sparse = V2TriangleMask.FromVisibilityMask(new TopologyId("complete"), sparseVisibility);
+            Assert.That(sparse.Encoding, Is.EqualTo(V2TriangleMaskEncoding.SparseInvisibleIndices));
+            Assert.That(sparse.InvisibleTriangleIds, Is.EqualTo(new[] { 311 }));
+
+            var denseVisibility = Enumerable.Range(0, 512).Select(index => index % 2).ToArray();
+            V2TriangleMask dense = V2TriangleMask.FromVisibilityMask(new TopologyId("simplified"), denseVisibility);
+            Assert.That(dense.Encoding, Is.EqualTo(V2TriangleMaskEncoding.VisibilityBitset));
+            CollectionAssert.AreEqual(denseVisibility, dense.ToVisibilityMask());
         }
 
         [Test]

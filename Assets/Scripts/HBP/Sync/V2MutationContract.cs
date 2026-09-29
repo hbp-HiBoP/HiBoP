@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text;
 
 namespace HBP.Sync
@@ -29,7 +30,23 @@ namespace HBP.Sync
         SetIbcDifumoDisplay = 14,
         SetLocalizerDisplay = 15,
         SetFmriAtlasCalibration = 16,
-        SetSelectedRoiSphere = 17
+        SetSelectedRoiSphere = 17,
+        CreateCut = 18,
+        DeleteCut = 19,
+        SetCutOrder = 20,
+        CreateRoi = 21,
+        RenameRoi = 22,
+        DeleteRoi = 23,
+        SetActiveRoi = 24,
+        CreateRoiSphere = 25,
+        DeleteRoiSphere = 26,
+        SetRoiSphereDefinition = 27,
+        MoveSites = 28,
+        SetMeshDisplay = 29,
+        SetSelectedMri = 30,
+        SetMriCalibration = 31,
+        SetImplantation = 32,
+        ApplyTriangleMask = 33
     }
 
     public enum V2CutOrientation : byte
@@ -165,6 +182,20 @@ namespace HBP.Sync
     public sealed class ResourceId : V2TextIdentity
     {
         public ResourceId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class RoiId : V2TextIdentity
+    {
+        public RoiId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class SphereId : V2TextIdentity
+    {
+        public SphereId(string value) : base(value)
         {
         }
     }
@@ -338,7 +369,17 @@ namespace HBP.Sync
         IbcDifumoDisplay = 14,
         LocalizerDisplay = 15,
         FmriAtlasCalibration = 16,
-        SelectedRoiSphere = 17
+        SelectedRoiSphere = 17,
+        CutOrder = 18,
+        Roi = 19,
+        ActiveRoi = 20,
+        RoiSphere = 21,
+        SitePosition = 22,
+        MeshDisplay = 23,
+        SelectedMri = 24,
+        MriCalibration = 25,
+        Implantation = 26,
+        TriangleMask = 27
     }
 
     public sealed class V2TouchedKey : IEquatable<V2TouchedKey>
@@ -391,8 +432,8 @@ namespace HBP.Sync
     {
         public V2TouchedKey CoalescingKey { get; }
         public IReadOnlyList<V2TouchedKey> TouchedKeys { get; }
+        public V2BarrierScope BarrierScope { get; }
         public bool SupportsLatestUnsentCoalescing => true;
-        public V2BarrierScope BarrierScope => V2BarrierScope.None;
 
         public static V2MutationDescriptor Create(SceneId sceneId, IncarnationId incarnationId, V2Mutation mutation) => new V2MutationDescriptor(sceneId, incarnationId, mutation);
 
@@ -433,11 +474,48 @@ namespace HBP.Sync
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.FmriAtlasCalibration, null, null, null);
             else if (mutation is SetSelectedRoiSphere sphere)
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SelectedRoiSphere, null, null, null, sphere.RoiId, null);
+            else if (mutation is CreateCut createCut)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CutDefinition, null, null, createCut.CutId);
+            else if (mutation is DeleteCut deleteCut)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CutDefinition, null, null, deleteCut.CutId);
+            else if (mutation is SetCutOrder)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CutOrder, null, null, null);
+            else if (mutation is CreateRoi createRoi)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.Roi, null, null, null, createRoi.RoiId.Value);
+            else if (mutation is RenameRoi renameRoi)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.Roi, null, null, null, renameRoi.RoiId.Value);
+            else if (mutation is DeleteRoi deleteRoi)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.Roi, null, null, null, deleteRoi.RoiId.Value);
+            else if (mutation is SetActiveRoi)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.ActiveRoi, null, null, null);
+            else if (mutation is CreateRoiSphere createSphere)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.RoiSphere, null, null, null, createSphere.RoiId.Value, createSphere.Definition.SphereId.Value);
+            else if (mutation is DeleteRoiSphere deleteSphere)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.RoiSphere, null, null, null, deleteSphere.RoiId.Value, deleteSphere.SphereId.Value);
+            else if (mutation is SetRoiSphereDefinition sphereDefinition)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.RoiSphere, null, null, null, sphereDefinition.RoiId.Value, sphereDefinition.Definition.SphereId.Value);
+            else if (mutation is MoveSites)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SitePosition, null, null, null);
+            else if (mutation is SetMeshDisplay)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.MeshDisplay, null, null, null);
+            else if (mutation is SetSelectedMri)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SelectedMri, null, null, null);
+            else if (mutation is SetMriCalibration)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.MriCalibration, null, null, null);
+            else if (mutation is SetImplantation)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.Implantation, null, null, null);
+            else if (mutation is ApplyTriangleMask masks)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.TriangleMask, null, null, null, masks.Masks[0].TopologyId.Value);
             else
                 throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
 
-            CoalescingKey = key;
-            TouchedKeys = new ReadOnlyCollection<V2TouchedKey>(new[] { key });
+            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask ? V2BarrierScope.AllScene : V2BarrierScope.None;
+            CoalescingKey = BarrierScope == V2BarrierScope.None ? key : null;
+            var keys = new List<V2TouchedKey> { key };
+            if (mutation is ApplyTriangleMask triangleMasks)
+                foreach (V2TriangleMask mask in triangleMasks.Masks.Skip(1))
+                    keys.Add(new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.TriangleMask, null, null, null, mask.TopologyId.Value));
+            TouchedKeys = new ReadOnlyCollection<V2TouchedKey>(keys.Distinct().ToArray());
         }
     }
 
