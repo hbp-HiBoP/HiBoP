@@ -54,6 +54,9 @@ namespace HBP.Data.Module3D
         #region Properties
 
         private Exception m_PreparationError;
+        private int m_SiteStateBatchDepth;
+        private bool m_SiteStateBatchHasMaskChanges;
+        private bool m_SiteStateBatchHasPresentationChanges;
         private bool AutomaticActivityComputationEnabled => ProjectionRequested && AutomaticRecomputeEnabled && IsCurrentSurfaceProjectionCompatible();
 
         /// <summary>
@@ -423,9 +426,11 @@ namespace HBP.Data.Module3D
             get { return m_ShowAllSites; }
             set
             {
+                if (m_ShowAllSites == value) return;
                 m_ShowAllSites = value;
-                m_ROIManager.UpdateROIMasks();
+                m_ROIManager?.UpdateROIMasks();
                 SceneInformation.SitesNeedUpdate = true;
+                OnSharedStateChanged.Invoke();
             }
         }
 
@@ -1693,6 +1698,13 @@ namespace HBP.Data.Module3D
 
         private void OnSiteStateChanged(Core.Object3D.Site site)
         {
+            if (m_SiteStateBatchDepth > 0)
+            {
+                if (site.State.CurrentChangeKind == Core.Object3D.SiteStateChangeKind.ScientificMask) m_SiteStateBatchHasMaskChanges = true;
+                else m_SiteStateBatchHasPresentationChanges = true;
+                return;
+            }
+
             if (site.State.CurrentChangeKind is Core.Object3D.SiteStateChangeKind.Color or Core.Object3D.SiteStateChangeKind.Presentation)
             {
                 SceneInformation.SitesNeedUpdate = true;
@@ -1700,6 +1712,30 @@ namespace HBP.Data.Module3D
             }
 
             InvalidateActivityField(false);
+        }
+
+        /// <summary>Applies a prepared group of site-state changes with one derived-scene invalidation.</summary>
+        public void ApplySiteStateBatch(Action apply)
+        {
+            if (apply == null) throw new ArgumentNullException(nameof(apply));
+            m_SiteStateBatchDepth++;
+            try
+            {
+                apply();
+            }
+            finally
+            {
+                m_SiteStateBatchDepth--;
+                if (m_SiteStateBatchDepth == 0)
+                {
+                    bool maskChanged = m_SiteStateBatchHasMaskChanges;
+                    bool presentationChanged = m_SiteStateBatchHasPresentationChanges;
+                    m_SiteStateBatchHasMaskChanges = false;
+                    m_SiteStateBatchHasPresentationChanges = false;
+                    if (maskChanged) InvalidateActivityField(false);
+                    else if (presentationChanged) SceneInformation.SitesNeedUpdate = true;
+                }
+            }
         }
 
         #endregion

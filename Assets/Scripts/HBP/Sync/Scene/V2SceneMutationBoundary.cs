@@ -110,14 +110,16 @@ namespace HBP.Sync.Scene
         public IReadOnlyList<TimelineAnchorCheckpointRecord> TimelineAnchors { get; }
         public IReadOnlyList<V2T09CheckpointRecord> T09Records { get; }
         public IReadOnlyList<V2T10CheckpointRecord> T10Records { get; }
+        public IReadOnlyList<V2T11CheckpointRecord> T11Records { get; }
 
-        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null)
+        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null, IEnumerable<V2T11CheckpointRecord> t11Records = null)
         {
             SiteColors = Array.AsReadOnly(siteColors.ToArray());
             CutDefinitions = Array.AsReadOnly(cutDefinitions.ToArray());
             TimelineAnchors = Array.AsReadOnly(timelineAnchors.ToArray());
             T09Records = Array.AsReadOnly((t09Records ?? Enumerable.Empty<V2T09CheckpointRecord>()).ToArray());
             T10Records = Array.AsReadOnly((t10Records ?? Enumerable.Empty<V2T10CheckpointRecord>()).ToArray());
+            T11Records = Array.AsReadOnly((t11Records ?? Enumerable.Empty<V2T11CheckpointRecord>()).ToArray());
         }
     }
 
@@ -132,17 +134,24 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<string, Column3D> m_ColumnsById = new(StringComparer.Ordinal);
         private readonly Dictionary<string, ROI> m_RoisById = new(StringComparer.Ordinal);
         private readonly Dictionary<SiteState, SitePresentationSnapshot> m_SitePresentationStates = new();
+        private readonly Dictionary<SceneCut, SetCutDefinition> m_CutDefinitionSnapshots = new();
         private readonly Dictionary<SiteState, UnityAction> m_SiteStateListeners = new();
         private readonly Dictionary<ROI, UnityAction> m_RoiSelectionListeners = new();
         private readonly Dictionary<ROI, UnityAction> m_RoiStructureListeners = new();
         private readonly Dictionary<ROI, RoiStateSnapshot> m_RoiStateSnapshots = new();
         private readonly Dictionary<Guid, V2Mutation> m_OptimisticRollbacks = new();
+        private readonly Dictionary<Guid, V2Mutation> m_OptimisticForwardMutations = new();
+        private readonly Dictionary<Guid, SiteConfigurationProvenanceSnapshot> m_OptimisticSiteConfigurationProvenanceRollbacks = new();
+        private readonly Dictionary<Guid, V2SceneMutationCheckpoint> m_OptimisticCheckpointRollbacks = new();
+        private readonly Dictionary<Guid, SiteConfigurationProvenanceSnapshot> m_OptimisticCheckpointProvenanceRollbacks = new();
+        private readonly Dictionary<(string ColumnId, string SiteId), SiteConfigurationFieldOwners> m_SiteConfigurationFieldOwners = new();
         private readonly Queue<Guid> m_OptimisticRollbackOrder = new();
         private readonly Dictionary<Column3D, List<(UnityEvent Event, UnityAction Listener)>> m_ColumnListeners = new();
         private readonly Dictionary<Column3D, UnityAction<Core.Object3D.Site>> m_ColumnSelectionListeners = new();
         private V2Mutation m_LastSceneStrongCuts;
         private V2Mutation m_LastSceneAutomaticCuts;
         private V2Mutation m_LastSceneHideBlacklisted;
+        private V2Mutation m_LastSceneShowAllSites;
         private V2Mutation m_LastSceneSiteGain;
         private V2Mutation m_LastSceneEdgeMode;
         private V2Mutation m_LastSceneBrainTransparent;
@@ -166,6 +175,9 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<Column3D, V2Mutation> m_LastActivityAlphas = new();
         private readonly Dictionary<Column3D, V2Mutation> m_LastColumnSpans = new();
         private readonly Dictionary<Column3D, V2Mutation> m_LastFunctionalDisplays = new();
+        private readonly Dictionary<Column3D, V2Mutation> m_LastInfluenceDistances = new();
+        private readonly Dictionary<Column3D, V2Mutation> m_LastColumnResources = new();
+        private readonly Dictionary<Column3D, V2Mutation> m_LastCcepSources = new();
         private readonly Base3DScene m_Scene;
         private readonly V2OriginDevice m_LocalOrigin;
         private readonly IMonotonicClock m_Clock;
@@ -174,6 +186,7 @@ namespace HBP.Sync.Scene
         private readonly Func<SetTimelineAnchor, V2TimelineAnchorTimingEstimate?> m_TimelineTimingEstimate;
         private readonly Dictionary<BasicTimeline, TimelineAnchorState> m_TimelineAnchorStates = new();
         private int m_PlayingTimelineCount;
+        private ConfigurationMutationCapture m_ConfigurationMutationCapture;
         private bool m_Disposed;
         private bool m_RoiObserverInitialized;
         private string m_LastActiveRoiId;
@@ -220,6 +233,8 @@ namespace HBP.Sync.Scene
             catalog.AssertDeliveryManifest(binding.Manifest);
             m_ResourceCatalog = catalog;
             m_ResourceManifestHash = binding.ManifestHash;
+            foreach (Column3D column in m_Scene.Columns)
+                BindColumnResourceObservers(column, m_ColumnListeners[column]);
             if (m_Scene.MeshManager != null)
             {
                 m_Scene.MeshManager.ResourceSelectionChanged += ObserveMeshSelection;
@@ -260,12 +275,21 @@ namespace HBP.Sync.Scene
                     throw new ArgumentException("Site mutation targets must have unique column and site identities.", nameof(sites));
             }
 
+            foreach (SiteState state in m_Sites.Keys)
+            {
+                m_SitePresentationStates[state] = SitePresentationSnapshot.Capture(state);
+                UnityAction listener = () => OnBoundSiteStateChanged(state);
+                state.OnChangeState.AddListener(listener);
+                m_SiteStateListeners.Add(state, listener);
+            }
+
             foreach (var target in cuts ?? throw new ArgumentNullException(nameof(cuts)))
             {
                 if (target.Cut == null || target.Id == null)
                     throw new ArgumentException("Cut mutation targets require a cut and stable identity.", nameof(cuts));
                 if (!m_Cuts.TryAdd(target.Id, target.Cut) || !m_CutIds.TryAdd(target.Cut, target.Id))
                     throw new ArgumentException("Cut mutation targets must have unique cut identities and objects.", nameof(cuts));
+                m_CutDefinitionSnapshots.Add(target.Cut, CreateCutDefinition(target.Cut, target.Id));
             }
 
             foreach (var target in timelines ?? throw new ArgumentNullException(nameof(timelines)))
@@ -291,35 +315,485 @@ namespace HBP.Sync.Scene
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             ValidateMutation(mutation);
-            V2Mutation rollback = mutation is MoveSites ? null : ReadCurrentMutation(mutation);
+            V2SceneMutationCheckpoint checkpointRollback = origin == V2MutationApplicationOrigin.LocalQuest && mutation is SetConfigurationTransaction ? CaptureCheckpoint() : null;
+            SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
+            V2Mutation rollback = origin == V2MutationApplicationOrigin.LocalQuest && mutation is not MoveSites && mutation is not SetConfigurationTransaction ? ReadCurrentMutation(mutation) : null;
+            SiteConfigurationProvenanceSnapshot provenanceRollback = rollback == null ? null : CaptureSiteConfigurationProvenanceSnapshot(mutation);
+            bool applied;
             using (origin == V2MutationApplicationOrigin.Remote ? V2MutationApplicationContext.EnterRemote(operationId) : V2MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
             {
-                if (!ApplyCore(mutation)) return;
+                applied = ApplyCore(mutation);
             }
+
+            if (origin == V2MutationApplicationOrigin.Remote || applied)
+                MarkSiteConfigurationWriters(mutation, operationId.Value);
+            if (!applied) return;
 
             if (origin != V2MutationApplicationOrigin.Remote)
             {
-                if (origin == V2MutationApplicationOrigin.LocalQuest) RememberOptimisticRollback(operationId, rollback);
+                if (origin == V2MutationApplicationOrigin.LocalQuest)
+                {
+                    if (checkpointRollback != null) RememberOptimisticCheckpointRollback(operationId, checkpointRollback, checkpointProvenanceRollback);
+                    else RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
+                }
+
                 MutationProposed?.Invoke(operationId, mutation, ToOriginDevice(origin));
             }
+        }
+
+        internal void ApplyOptimisticReplay(V2Mutation mutation, OperationId operationId)
+        {
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            ValidateMutation(mutation);
+            V2SceneMutationCheckpoint checkpointRollback = mutation is SetConfigurationTransaction ? CaptureCheckpoint() : null;
+            SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
+            V2Mutation rollback = mutation is not MoveSites && mutation is not SetConfigurationTransaction ? ReadCurrentMutation(mutation) : null;
+            SiteConfigurationProvenanceSnapshot provenanceRollback = rollback == null ? null : CaptureSiteConfigurationProvenanceSnapshot(mutation);
+            bool applied;
+            using (V2MutationApplicationContext.EnterLocalApply(V2OriginDevice.Quest, operationId))
+                applied = ApplyCore(mutation);
+
+            MarkSiteConfigurationWriters(mutation, operationId.Value);
+
+            if (checkpointRollback != null) RememberOptimisticCheckpointRollback(operationId, checkpointRollback, checkpointProvenanceRollback);
+            else if (rollback != null) RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
         }
 
         /// <summary>Restores the prepared value recorded before one rejected optimistic Quest operation.</summary>
         public bool TryRollbackOptimisticOperation(OperationId operationId)
         {
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            if (m_OptimisticCheckpointRollbacks.TryGetValue(operationId.Value, out V2SceneMutationCheckpoint checkpoint))
+            {
+                m_OptimisticCheckpointProvenanceRollbacks.TryGetValue(operationId.Value, out SiteConfigurationProvenanceSnapshot checkpointProvenance);
+                ApplyCheckpointRollback(checkpoint, operationId, checkpointProvenance);
+                m_OptimisticCheckpointRollbacks.Remove(operationId.Value);
+                m_OptimisticCheckpointProvenanceRollbacks.Remove(operationId.Value);
+                return true;
+            }
+
             if (!m_OptimisticRollbacks.TryGetValue(operationId.Value, out V2Mutation rollback)) return false;
+            m_OptimisticForwardMutations.TryGetValue(operationId.Value, out V2Mutation forward);
+            m_OptimisticSiteConfigurationProvenanceRollbacks.TryGetValue(operationId.Value, out SiteConfigurationProvenanceSnapshot rollbackProvenance);
             m_OptimisticRollbacks.Remove(operationId.Value);
-            Apply(rollback, V2MutationApplicationOrigin.Remote, operationId);
+            m_OptimisticForwardMutations.Remove(operationId.Value);
+            m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(operationId.Value);
+            if (forward != null && TryCreateConditionalSiteConfigurationRestoration(operationId, forward, rollback, rollbackProvenance, out SetSiteConfigurationBatch conditionalRestoration, out Dictionary<(string ColumnId, string SiteId), SiteConfigurationFields> restoredFields))
+            {
+                ApplySiteConfigurationRestoration(conditionalRestoration, operationId, rollbackProvenance, restoredFields);
+                RebasePendingSiteConfigurationRollbacks(operationId, forward, rollback, rollbackProvenance);
+            }
+            else
+            {
+                Apply(rollback, V2MutationApplicationOrigin.Remote, operationId);
+                if (forward != null) RebasePendingSiteConfigurationRollbacks(operationId, forward, rollback, rollbackProvenance);
+            }
+
             return true;
+        }
+
+        private void RebasePendingSiteConfigurationRollbacks(OperationId rejectedOperationId, V2Mutation rejectedForward, V2Mutation restoration, SiteConfigurationProvenanceSnapshot rejectedProvenance)
+        {
+            if (restoration is not SetSiteConfigurationBatch && restoration is not SetSiteBlacklist && restoration is not SetSiteHighlight && restoration is not SetSiteColor && restoration is not SetSiteLabels)
+                return;
+
+            Guid rejectedId = rejectedOperationId.Value;
+            // A checkpoint captured before this operation cannot contain its optimistic values.
+            Guid[] operationOrder = m_OptimisticRollbackOrder.ToArray();
+            int rejectedOrder = Array.IndexOf(operationOrder, rejectedId);
+            if (rejectedOrder < 0) return;
+
+            foreach (Guid operationId in m_OptimisticRollbacks.Keys.ToArray())
+            {
+                if (Array.IndexOf(operationOrder, operationId) <= rejectedOrder) continue;
+                V2Mutation rollback = m_OptimisticRollbacks[operationId];
+                m_OptimisticSiteConfigurationProvenanceRollbacks.TryGetValue(operationId, out SiteConfigurationProvenanceSnapshot provenance);
+                if (TryRebaseTargetedSiteConfigurationRollback(rollback, rejectedForward, restoration, rejectedId, rejectedProvenance, provenance, out V2Mutation rebased, out SiteConfigurationProvenanceSnapshot rebasedProvenance))
+                {
+                    m_OptimisticRollbacks[operationId] = rebased;
+                    m_OptimisticSiteConfigurationProvenanceRollbacks[operationId] = rebasedProvenance;
+                }
+            }
+
+            foreach (Guid operationId in m_OptimisticCheckpointRollbacks.Keys.ToArray())
+            {
+                if (Array.IndexOf(operationOrder, operationId) <= rejectedOrder) continue;
+                V2SceneMutationCheckpoint checkpoint = m_OptimisticCheckpointRollbacks[operationId];
+                m_OptimisticCheckpointProvenanceRollbacks.TryGetValue(operationId, out SiteConfigurationProvenanceSnapshot provenance);
+                if (TryRebaseCheckpointSiteConfiguration(checkpoint, rejectedForward, restoration, rejectedId, rejectedProvenance, provenance, out V2SceneMutationCheckpoint rebased, out SiteConfigurationProvenanceSnapshot rebasedProvenance))
+                {
+                    m_OptimisticCheckpointRollbacks[operationId] = rebased;
+                    m_OptimisticCheckpointProvenanceRollbacks[operationId] = rebasedProvenance;
+                }
+            }
+        }
+
+        private bool TryCreateConditionalSiteConfigurationRestoration(OperationId rejectedOperationId, V2Mutation forward, V2Mutation restoration, SiteConfigurationProvenanceSnapshot rollbackProvenance, out SetSiteConfigurationBatch conditionalRestoration, out Dictionary<(string ColumnId, string SiteId), SiteConfigurationFields> restoredFields)
+        {
+            conditionalRestoration = null;
+            restoredFields = new Dictionary<(string ColumnId, string SiteId), SiteConfigurationFields>();
+            Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> forwardValues = GetSiteConfigurationValues(forward);
+            Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> restorationValues = GetSiteConfigurationValues(restoration);
+            if (forwardValues.Count == 0 || restorationValues.Count == 0) return false;
+
+            var assignments = new List<V2SiteConfigurationAssignment>();
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationMutationValue> entry in forwardValues)
+            {
+                if (!restorationValues.TryGetValue(entry.Key, out SiteConfigurationMutationValue previous)) continue;
+                SiteState state = ResolveSite(new ColumnId(entry.Key.ColumnId), new SiteId(entry.Key.SiteId));
+                V2SiteConfigurationAssignment current = CaptureSiteConfigurationAssignment(new ColumnId(entry.Key.ColumnId), new SiteId(entry.Key.SiteId), state);
+                SiteConfigurationFields fields = entry.Value.Fields & previous.Fields;
+                SiteConfigurationFieldOwners owners = GetSiteConfigurationFieldOwners(entry.Key);
+                SiteConfigurationFields stillOwned = GetFieldsOwnedBy(owners, rejectedOperationId.Value, fields);
+                if (stillOwned == SiteConfigurationFields.None) continue;
+                V2SiteConfigurationAssignment restored = CopySiteConfigurationFields(current, previous.Assignment, stillOwned);
+                if (!SiteConfigurationAssignmentsEqual(current, restored)) assignments.Add(restored);
+                restoredFields[entry.Key] = stillOwned;
+            }
+
+            if (assignments.Count > 0) conditionalRestoration = new SetSiteConfigurationBatch(assignments);
+            return true;
+        }
+
+        private void ApplySiteConfigurationRestoration(SetSiteConfigurationBatch restoration, OperationId operationId, SiteConfigurationProvenanceSnapshot rollbackProvenance, IReadOnlyDictionary<(string ColumnId, string SiteId), SiteConfigurationFields> restoredFields)
+        {
+            if (restoration != null)
+            {
+                ValidateMutation(restoration);
+                using (V2MutationApplicationContext.EnterRemote(operationId))
+                    ApplyCore(restoration);
+            }
+
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationFields> entry in restoredFields)
+            {
+                SiteConfigurationFieldOwners previousOwners = rollbackProvenance != null && rollbackProvenance.TryGet(entry.Key, out SiteConfigurationProvenanceEntry previous) ? previous.Owners : default;
+                SetSiteConfigurationFieldOwners(entry.Key, previousOwners, entry.Value);
+            }
+        }
+
+        private static bool TryRebaseTargetedSiteConfigurationRollback(V2Mutation rollback, V2Mutation rejectedForward, V2Mutation restoration, Guid rejectedOperationId, SiteConfigurationProvenanceSnapshot rejectedProvenance, SiteConfigurationProvenanceSnapshot rollbackProvenance, out V2Mutation rebased, out SiteConfigurationProvenanceSnapshot rebasedProvenance)
+        {
+            rebased = rollback;
+            rebasedProvenance = rollbackProvenance;
+            if (rejectedProvenance == null || rollbackProvenance == null) return false;
+            Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> rollbackValues = GetSiteConfigurationValues(rollback);
+            Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> forwardValues = GetSiteConfigurationValues(rejectedForward);
+            Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> restorationValues = GetSiteConfigurationValues(restoration);
+            if (rollbackValues.Count == 0 || forwardValues.Count == 0 || restorationValues.Count == 0) return false;
+
+            var assignments = new List<V2SiteConfigurationAssignment>(rollbackValues.Count);
+            bool changed = false;
+            SiteConfigurationProvenanceSnapshot updatedProvenance = rollbackProvenance.Clone();
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationMutationValue> entry in rollbackValues)
+            {
+                if (!forwardValues.TryGetValue(entry.Key, out SiteConfigurationMutationValue forwardValue) || !restorationValues.TryGetValue(entry.Key, out SiteConfigurationMutationValue restoreValue))
+                {
+                    assignments.Add(entry.Value.Assignment);
+                    continue;
+                }
+
+                SiteConfigurationFields fields = entry.Value.Fields & forwardValue.Fields & restoreValue.Fields;
+                if (!rollbackProvenance.TryGet(entry.Key, out SiteConfigurationProvenanceEntry rollbackOwners) || !rejectedProvenance.TryGet(entry.Key, out SiteConfigurationProvenanceEntry rejectedOwners))
+                {
+                    assignments.Add(entry.Value.Assignment);
+                    continue;
+                }
+
+                SiteConfigurationFields dependentFields = GetFieldsOwnedBy(rollbackOwners.Owners, rejectedOperationId, fields);
+                V2SiteConfigurationAssignment merged = CopySiteConfigurationFields(entry.Value.Assignment, restoreValue.Assignment, dependentFields);
+                assignments.Add(merged);
+                if (dependentFields != SiteConfigurationFields.None)
+                {
+                    updatedProvenance.SetOwners(entry.Key, dependentFields, rejectedOwners.Owners);
+                    changed = true;
+                }
+            }
+
+            if (!changed) return false;
+            rebased = CreateSiteConfigurationMutationLike(rollback, assignments);
+            rebasedProvenance = updatedProvenance;
+            return true;
+        }
+
+        private static bool TryRebaseCheckpointSiteConfiguration(V2SceneMutationCheckpoint checkpoint, V2Mutation rejectedForward, V2Mutation restoration, Guid rejectedOperationId, SiteConfigurationProvenanceSnapshot rejectedProvenance, SiteConfigurationProvenanceSnapshot checkpointProvenance, out V2SceneMutationCheckpoint rebased, out SiteConfigurationProvenanceSnapshot rebasedProvenance)
+        {
+            rebased = checkpoint;
+            rebasedProvenance = checkpointProvenance;
+            int batchIndex = -1;
+            SetSiteConfigurationBatch currentBatch = null;
+            for (int i = 0; i < checkpoint.T11Records.Count; i++)
+            {
+                if (checkpoint.T11Records[i].Value is not SetSiteConfigurationBatch batch) continue;
+                batchIndex = i;
+                currentBatch = batch;
+                break;
+            }
+
+            if (currentBatch == null) return false;
+            if (!TryRebaseTargetedSiteConfigurationRollback(currentBatch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, checkpointProvenance, out V2Mutation rebasedMutation, out rebasedProvenance)) return false;
+            var records = checkpoint.T11Records.ToArray();
+            records[batchIndex] = new V2T11CheckpointRecord(rebasedMutation);
+            rebased = new V2SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records);
+            return true;
+        }
+
+        private static Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> GetSiteConfigurationValues(V2Mutation mutation)
+        {
+            var values = new Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue>();
+            if (mutation is SetSiteConfigurationBatch batch)
+            {
+                foreach (V2SiteConfigurationAssignment assignment in batch.Assignments)
+                    values.Add((assignment.ColumnId.Value, assignment.SiteId.Value), new SiteConfigurationMutationValue(assignment, SiteConfigurationFields.All));
+                return values;
+            }
+
+            ColumnId columnId;
+            SiteId siteId;
+            SiteConfigurationFields fields;
+            bool blacklisted = false;
+            bool highlighted = false;
+            float red = 0f, green = 0f, blue = 0f, alpha = 1f;
+            IEnumerable<string> labels = Array.Empty<string>();
+            switch (mutation)
+            {
+                case SetSiteBlacklist value:
+                    columnId = value.ColumnId;
+                    siteId = value.SiteId;
+                    blacklisted = value.Blacklisted;
+                    fields = SiteConfigurationFields.Blacklist;
+                    break;
+                case SetSiteHighlight value:
+                    columnId = value.ColumnId;
+                    siteId = value.SiteId;
+                    highlighted = value.Highlighted;
+                    fields = SiteConfigurationFields.Highlight;
+                    break;
+                case SetSiteColor value:
+                    columnId = value.ColumnId;
+                    siteId = value.FullSiteId;
+                    red = value.Red;
+                    green = value.Green;
+                    blue = value.Blue;
+                    alpha = value.Alpha;
+                    fields = SiteConfigurationFields.Color;
+                    break;
+                case SetSiteLabels value:
+                    columnId = value.ColumnId;
+                    siteId = value.SiteId;
+                    labels = value.Labels;
+                    fields = SiteConfigurationFields.Labels;
+                    break;
+                default:
+                    return values;
+            }
+
+            var siteAssignment = new V2SiteConfigurationAssignment(columnId, siteId, blacklisted, highlighted, red, green, blue, alpha, labels);
+            values.Add((columnId.Value, siteId.Value), new SiteConfigurationMutationValue(siteAssignment, fields));
+            return values;
+        }
+
+        private static V2SiteConfigurationAssignment CopySiteConfigurationFields(V2SiteConfigurationAssignment current, V2SiteConfigurationAssignment source, SiteConfigurationFields fields)
+        {
+            bool blacklisted = (fields & SiteConfigurationFields.Blacklist) != 0 ? source.Blacklisted : current.Blacklisted;
+            bool highlighted = (fields & SiteConfigurationFields.Highlight) != 0 ? source.Highlighted : current.Highlighted;
+            float red = (fields & SiteConfigurationFields.Color) != 0 ? source.Red : current.Red;
+            float green = (fields & SiteConfigurationFields.Color) != 0 ? source.Green : current.Green;
+            float blue = (fields & SiteConfigurationFields.Color) != 0 ? source.Blue : current.Blue;
+            float alpha = (fields & SiteConfigurationFields.Color) != 0 ? source.Alpha : current.Alpha;
+            IEnumerable<string> labels = (fields & SiteConfigurationFields.Labels) != 0 ? source.Labels : current.Labels;
+            return new V2SiteConfigurationAssignment(current.ColumnId, current.SiteId, blacklisted, highlighted, red, green, blue, alpha, labels);
+        }
+
+        private static V2SiteConfigurationAssignment CaptureSiteConfigurationAssignment(ColumnId columnId, SiteId siteId, SiteState state) => new(columnId, siteId, state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels);
+
+        private static V2Mutation CreateSiteConfigurationMutationLike(V2Mutation original, IEnumerable<V2SiteConfigurationAssignment> assignments)
+        {
+            if (original is SetSiteConfigurationBatch) return new SetSiteConfigurationBatch(assignments);
+            V2SiteConfigurationAssignment value = assignments.Single();
+            return original switch
+            {
+                SetSiteBlacklist => new SetSiteBlacklist(value.ColumnId, value.SiteId, value.Blacklisted),
+                SetSiteHighlight => new SetSiteHighlight(value.ColumnId, value.SiteId, value.Highlighted),
+                SetSiteColor => new SetSiteColor(value.ColumnId, value.SiteId, value.Red, value.Green, value.Blue, value.Alpha),
+                SetSiteLabels => new SetSiteLabels(value.ColumnId, value.SiteId, value.Labels),
+                _ => throw new ArgumentException("Unsupported site configuration mutation.", nameof(original))
+            };
+        }
+
+        [Flags]
+        private enum SiteConfigurationFields : byte
+        {
+            None = 0,
+            Blacklist = 1 << 0,
+            Highlight = 1 << 1,
+            Color = 1 << 2,
+            Labels = 1 << 3,
+            All = Blacklist | Highlight | Color | Labels
+        }
+
+        private readonly struct SiteConfigurationMutationValue
+        {
+            public V2SiteConfigurationAssignment Assignment { get; }
+            public SiteConfigurationFields Fields { get; }
+
+            public SiteConfigurationMutationValue(V2SiteConfigurationAssignment assignment, SiteConfigurationFields fields)
+            {
+                Assignment = assignment;
+                Fields = fields;
+            }
+        }
+
+        private readonly struct SiteConfigurationFieldOwners
+        {
+            public Guid BlacklistWriter { get; }
+            public Guid HighlightWriter { get; }
+            public Guid ColorWriter { get; }
+            public Guid LabelsWriter { get; }
+
+            public SiteConfigurationFieldOwners(Guid blacklistWriter, Guid highlightWriter, Guid colorWriter, Guid labelsWriter)
+            {
+                BlacklistWriter = blacklistWriter;
+                HighlightWriter = highlightWriter;
+                ColorWriter = colorWriter;
+                LabelsWriter = labelsWriter;
+            }
+
+            public Guid GetWriter(SiteConfigurationFields field) =>
+                field switch
+                {
+                    SiteConfigurationFields.Blacklist => BlacklistWriter,
+                    SiteConfigurationFields.Highlight => HighlightWriter,
+                    SiteConfigurationFields.Color => ColorWriter,
+                    SiteConfigurationFields.Labels => LabelsWriter,
+                    _ => Guid.Empty
+                };
+
+            public SiteConfigurationFieldOwners WithOwners(SiteConfigurationFields fields, SiteConfigurationFieldOwners source) => new((fields & SiteConfigurationFields.Blacklist) != 0 ? source.BlacklistWriter : BlacklistWriter, (fields & SiteConfigurationFields.Highlight) != 0 ? source.HighlightWriter : HighlightWriter, (fields & SiteConfigurationFields.Color) != 0 ? source.ColorWriter : ColorWriter, (fields & SiteConfigurationFields.Labels) != 0 ? source.LabelsWriter : LabelsWriter);
+
+            public static SiteConfigurationFieldOwners ForWriter(Guid writer) => new(writer, writer, writer, writer);
+        }
+
+        private readonly struct SiteConfigurationProvenanceEntry
+        {
+            public SiteConfigurationFields Fields { get; }
+            public SiteConfigurationFieldOwners Owners { get; }
+
+            public SiteConfigurationProvenanceEntry(SiteConfigurationFields fields, SiteConfigurationFieldOwners owners)
+            {
+                Fields = fields;
+                Owners = owners;
+            }
+        }
+
+        private sealed class SiteConfigurationProvenanceSnapshot
+        {
+            private readonly Dictionary<(string ColumnId, string SiteId), SiteConfigurationProvenanceEntry> m_Entries = new();
+
+            public IEnumerable<KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationProvenanceEntry>> Entries => m_Entries;
+
+            public bool TryGet((string ColumnId, string SiteId) key, out SiteConfigurationProvenanceEntry entry) => m_Entries.TryGetValue(key, out entry);
+
+            public void SetOwners((string ColumnId, string SiteId) key, SiteConfigurationFields fields, SiteConfigurationFieldOwners owners)
+            {
+                m_Entries.TryGetValue(key, out SiteConfigurationProvenanceEntry existing);
+                m_Entries[key] = new SiteConfigurationProvenanceEntry(existing.Fields | fields, existing.Owners.WithOwners(fields, owners));
+            }
+
+            public SiteConfigurationProvenanceSnapshot Clone()
+            {
+                var clone = new SiteConfigurationProvenanceSnapshot();
+                foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationProvenanceEntry> entry in m_Entries)
+                    clone.m_Entries.Add(entry.Key, entry.Value);
+                return clone;
+            }
+        }
+
+        private SiteConfigurationFieldOwners GetSiteConfigurationFieldOwners((string ColumnId, string SiteId) key) => m_SiteConfigurationFieldOwners.TryGetValue(key, out SiteConfigurationFieldOwners owners) ? owners : default;
+
+        private void SetSiteConfigurationFieldOwners((string ColumnId, string SiteId) key, SiteConfigurationFieldOwners owners, SiteConfigurationFields fields)
+        {
+            SiteConfigurationFieldOwners current = GetSiteConfigurationFieldOwners(key);
+            m_SiteConfigurationFieldOwners[key] = current.WithOwners(fields, owners);
+        }
+
+        private SiteConfigurationProvenanceSnapshot CaptureSiteConfigurationProvenanceSnapshot(V2Mutation mutation) => CaptureSiteConfigurationProvenanceSnapshot(GetSiteConfigurationValues(mutation));
+
+        private SiteConfigurationProvenanceSnapshot CapturePendingSiteConfigurationProvenanceSnapshot()
+        {
+            var pendingValues = new Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue>();
+            foreach (V2Mutation mutation in m_OptimisticForwardMutations.Values)
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationMutationValue> value in GetSiteConfigurationValues(mutation))
+            {
+                if (pendingValues.TryGetValue(value.Key, out SiteConfigurationMutationValue existing))
+                    pendingValues[value.Key] = new SiteConfigurationMutationValue(existing.Assignment, existing.Fields | value.Value.Fields);
+                else
+                    pendingValues.Add(value.Key, value.Value);
+            }
+
+            return CaptureSiteConfigurationProvenanceSnapshot(pendingValues);
+        }
+
+        private SiteConfigurationProvenanceSnapshot CaptureSiteConfigurationProvenanceSnapshot(Dictionary<(string ColumnId, string SiteId), SiteConfigurationMutationValue> values)
+        {
+            var snapshot = new SiteConfigurationProvenanceSnapshot();
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationMutationValue> value in values)
+                snapshot.SetOwners(value.Key, value.Value.Fields, GetSiteConfigurationFieldOwners(value.Key));
+            return snapshot;
+        }
+
+        private void MarkSiteConfigurationWriters(V2Mutation mutation, Guid writer)
+        {
+            if (mutation is SetConfigurationTransaction transaction)
+            {
+                foreach (V2Mutation child in transaction.Mutations)
+                    MarkSiteConfigurationWriters(child, writer);
+                return;
+            }
+
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationMutationValue> value in GetSiteConfigurationValues(mutation))
+                SetSiteConfigurationFieldOwners(value.Key, SiteConfigurationFieldOwners.ForWriter(writer), value.Value.Fields);
+        }
+
+        private void RestoreSiteConfigurationProvenance(SiteConfigurationProvenanceSnapshot snapshot)
+        {
+            if (snapshot == null) return;
+            foreach (KeyValuePair<(string ColumnId, string SiteId), SiteConfigurationProvenanceEntry> entry in snapshot.Entries)
+                SetSiteConfigurationFieldOwners(entry.Key, entry.Value.Owners, entry.Value.Fields);
+        }
+
+        private void ClearCheckpointSiteConfigurationProvenance(V2SceneMutationCheckpoint checkpoint)
+        {
+            foreach (V2SiteConfigurationAssignment assignment in checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
+                SetSiteConfigurationFieldOwners((assignment.ColumnId.Value, assignment.SiteId.Value), default, SiteConfigurationFields.All);
+        }
+
+        private void MarkCheckpointSiteConfigurationWriters(V2SceneMutationCheckpoint checkpoint, Guid writer)
+        {
+            foreach (V2SiteConfigurationAssignment assignment in checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
+                SetSiteConfigurationFieldOwners((assignment.ColumnId.Value, assignment.SiteId.Value), SiteConfigurationFieldOwners.ForWriter(writer), SiteConfigurationFields.All);
+        }
+
+        private static SiteConfigurationFields GetFieldsOwnedBy(SiteConfigurationFieldOwners owners, Guid writer, SiteConfigurationFields fields)
+        {
+            SiteConfigurationFields owned = SiteConfigurationFields.None;
+            foreach (SiteConfigurationFields field in new[] { SiteConfigurationFields.Blacklist, SiteConfigurationFields.Highlight, SiteConfigurationFields.Color, SiteConfigurationFields.Labels })
+                if ((fields & field) != 0 && owners.GetWriter(field) == writer)
+                    owned |= field;
+            return owned;
         }
 
         public void ForgetOptimisticOperation(OperationId operationId)
         {
-            if (operationId != null) m_OptimisticRollbacks.Remove(operationId.Value);
+            if (operationId == null) return;
+            m_OptimisticRollbacks.Remove(operationId.Value);
+            m_OptimisticForwardMutations.Remove(operationId.Value);
+            m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(operationId.Value);
+            m_OptimisticCheckpointRollbacks.Remove(operationId.Value);
+            m_OptimisticCheckpointProvenanceRollbacks.Remove(operationId.Value);
         }
 
-        private void RememberOptimisticRollback(OperationId operationId, V2Mutation rollback)
+        private void RememberOptimisticRollback(OperationId operationId, V2Mutation rollback, V2Mutation forward = null, SiteConfigurationProvenanceSnapshot provenanceRollback = null)
         {
             if (m_LocalOrigin != V2OriginDevice.Quest || operationId == null || rollback == null) return;
             Guid id = operationId.Value;
@@ -330,10 +804,39 @@ namespace HBP.Sync.Scene
                 m_OptimisticRollbackOrder.Enqueue(id);
             }
 
-            while (m_OptimisticRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
+            if (forward != null) m_OptimisticForwardMutations[id] = forward;
+            if (provenanceRollback != null) m_OptimisticSiteConfigurationProvenanceRollbacks[id] = provenanceRollback;
+
+            while (m_OptimisticRollbacks.Count + m_OptimisticCheckpointRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
             {
                 Guid oldest = m_OptimisticRollbackOrder.Dequeue();
                 m_OptimisticRollbacks.Remove(oldest);
+                m_OptimisticForwardMutations.Remove(oldest);
+                m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(oldest);
+                m_OptimisticCheckpointRollbacks.Remove(oldest);
+                m_OptimisticCheckpointProvenanceRollbacks.Remove(oldest);
+            }
+        }
+
+        private void RememberOptimisticCheckpointRollback(OperationId operationId, V2SceneMutationCheckpoint checkpoint, SiteConfigurationProvenanceSnapshot provenanceRollback = null)
+        {
+            if (m_LocalOrigin != V2OriginDevice.Quest || operationId == null || checkpoint == null) return;
+            Guid id = operationId.Value;
+            if (!m_OptimisticRollbacks.ContainsKey(id) && !m_OptimisticCheckpointRollbacks.ContainsKey(id))
+                m_OptimisticRollbackOrder.Enqueue(id);
+            m_OptimisticRollbacks.Remove(id);
+            m_OptimisticForwardMutations.Remove(id);
+            m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(id);
+            m_OptimisticCheckpointRollbacks[id] = checkpoint;
+            if (provenanceRollback != null) m_OptimisticCheckpointProvenanceRollbacks[id] = provenanceRollback;
+            while (m_OptimisticRollbacks.Count + m_OptimisticCheckpointRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
+            {
+                Guid oldest = m_OptimisticRollbackOrder.Dequeue();
+                m_OptimisticRollbacks.Remove(oldest);
+                m_OptimisticForwardMutations.Remove(oldest);
+                m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(oldest);
+                m_OptimisticCheckpointRollbacks.Remove(oldest);
+                m_OptimisticCheckpointProvenanceRollbacks.Remove(oldest);
             }
         }
 
@@ -355,6 +858,9 @@ namespace HBP.Sync.Scene
                 (BasicTimeline timeline, ColumnId columnId) = ResolveTimeline(timelineAnchor.ColumnId);
                 return CreateTimelineAnchor(timeline, columnId);
             }
+
+            if ((ushort)key.Type >= (ushort)V2OperationType.SetSiteBlacklist)
+                return ReadCurrentT11Mutation(key);
 
             if ((ushort)key.Type >= (ushort)V2OperationType.CreateCut)
                 return ReadCurrentT10Mutation(key);
@@ -391,6 +897,12 @@ namespace HBP.Sync.Scene
                 return;
             }
 
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSiteBlacklist)
+            {
+                ValidateT11Mutation(mutation);
+                return;
+            }
+
             if ((ushort)mutation.Type >= (ushort)V2OperationType.CreateCut)
             {
                 ValidateT10Mutation(mutation);
@@ -409,9 +921,6 @@ namespace HBP.Sync.Scene
         public V2SceneMutationCheckpoint CaptureCheckpoint()
         {
             var siteRecords = new List<SiteColorCheckpointRecord>();
-            foreach (KeyValuePair<SiteState, List<SiteTarget>> entry in m_Sites)
-            foreach (SiteTarget target in entry.Value)
-                siteRecords.Add(new SiteColorCheckpointRecord(CreateSiteColor(target, entry.Key.Color)));
 
             var cutRecords = new List<CutDefinitionCheckpointRecord>();
             foreach (KeyValuePair<SceneCut, CutId> entry in m_CutIds)
@@ -424,7 +933,8 @@ namespace HBP.Sync.Scene
 
             var t09Records = m_Scene == null ? new List<V2T09CheckpointRecord>() : CaptureT09Records();
             var t10Records = m_Scene == null ? new List<V2T10CheckpointRecord>() : CaptureT10Records();
-            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records);
+            var t11Records = CaptureT11Records();
+            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records);
         }
 
         private List<V2T10CheckpointRecord> CaptureT10Records()
@@ -627,6 +1137,41 @@ namespace HBP.Sync.Scene
             }
         }
 
+        private void ValidateCheckpointT11Records(IReadOnlyList<V2T11CheckpointRecord> records)
+        {
+            if (records == null) throw new ArgumentNullException(nameof(records));
+            var touched = new HashSet<V2TouchedKey>();
+            var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
+            var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
+            foreach (V2T11CheckpointRecord record in records)
+            {
+                if (record?.Value == null || record.Value is SetConfigurationTransaction)
+                    throw new ArgumentException("Checkpoint contains an unsupported T11 record.", nameof(records));
+                V2MutationDescriptor descriptor = V2MutationDescriptor.Create(validationScene, validationIncarnation, record.Value);
+                foreach (V2TouchedKey key in descriptor.TouchedKeys)
+                    if (!touched.Add(key))
+                        throw new ArgumentException("Checkpoint contains a duplicate T11 record key.", nameof(records));
+                ValidateMutation(record.Value);
+            }
+        }
+
+        private void ApplyCheckpointT11Records(IReadOnlyList<V2T11CheckpointRecord> records)
+        {
+            foreach (V2T11CheckpointRecord record in records.OrderBy(record => GetCheckpointT11ApplyOrder(record.Value)))
+                ApplyCore(record.Value);
+        }
+
+        private static int GetCheckpointT11ApplyOrder(V2Mutation mutation) =>
+            mutation.Type switch
+            {
+                V2OperationType.SetInfluenceDistance => 0,
+                V2OperationType.SetColumnResource => 1,
+                V2OperationType.SetCcepSource => 2,
+                V2OperationType.SetSiteBlacklist => 3,
+                V2OperationType.SetSiteConfigurationBatch => 4,
+                _ => throw new ArgumentException("Unsupported T11 checkpoint mutation.", nameof(mutation))
+            };
+
         private void ApplyCheckpointRoi(CreateRoi value)
         {
             if (!m_RoisById.TryGetValue(value.RoiId.Value, out ROI roi))
@@ -712,6 +1257,21 @@ namespace HBP.Sync.Scene
 
         public void ApplyCheckpoint(V2SceneMutationCheckpoint checkpoint, OperationId operationId)
         {
+            ApplyCheckpointCore(checkpoint, operationId, null, restoreOptimisticProvenance: false, updateProvenance: true);
+        }
+
+        private void ApplyCheckpointRollback(V2SceneMutationCheckpoint checkpoint, OperationId operationId, SiteConfigurationProvenanceSnapshot provenance)
+        {
+            ApplyCheckpointCore(checkpoint, operationId, provenance, restoreOptimisticProvenance: true, updateProvenance: true);
+        }
+
+        private void ApplyCheckpointWithoutChangingProvenance(V2SceneMutationCheckpoint checkpoint, OperationId operationId)
+        {
+            ApplyCheckpointCore(checkpoint, operationId, null, restoreOptimisticProvenance: false, updateProvenance: false);
+        }
+
+        private void ApplyCheckpointCore(V2SceneMutationCheckpoint checkpoint, OperationId operationId, SiteConfigurationProvenanceSnapshot provenance, bool restoreOptimisticProvenance, bool updateProvenance)
+        {
             if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
 
@@ -743,6 +1303,7 @@ namespace HBP.Sync.Scene
             }
 
             ValidateCheckpointT10Records(checkpoint.T10Records);
+            ValidateCheckpointT11Records(checkpoint.T11Records);
             ValidateCheckpointT09Records(checkpoint.T09Records, checkpoint.T10Records);
             var stagedRoiIds = new HashSet<string>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
             bool hasRoiRoster = checkpoint.T10Records.Any(record => record.Value is SetActiveRoi);
@@ -761,7 +1322,17 @@ namespace HBP.Sync.Scene
                 foreach (SiteColorCheckpointRecord record in checkpoint.SiteColors) ApplyCore(record.Value);
                 foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions) ApplyCore(record.Value);
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
+                ApplyCheckpointT11Records(checkpoint.T11Records);
                 foreach (V2T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value);
+            }
+
+            if (updateProvenance)
+            {
+                m_SiteConfigurationFieldOwners.Clear();
+                if (restoreOptimisticProvenance)
+                    RestoreSiteConfigurationProvenance(provenance);
+                else
+                    MarkCheckpointSiteConfigurationWriters(checkpoint, operationId.Value);
             }
         }
 
@@ -799,6 +1370,9 @@ namespace HBP.Sync.Scene
                 return true;
             }
 
+            if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSiteBlacklist)
+                return ApplyT11Mutation(mutation);
+
             if ((ushort)mutation.Type >= (ushort)V2OperationType.CreateCut)
                 return ApplyT10Mutation(mutation);
 
@@ -810,6 +1384,9 @@ namespace HBP.Sync.Scene
 
         private void BindSceneTargets(Base3DScene scene)
         {
+            scene.ConfigurationMutationStarted += BeginConfigurationMutation;
+            scene.ConfigurationMutationCompleted += CompleteConfigurationMutation;
+            scene.SiteConfigurationBatchRouter = ApplySiteConfigurationBatch;
             foreach (Column3D column in scene.Columns)
             {
                 string id = column.ColumnData.ID;
@@ -827,11 +1404,20 @@ namespace HBP.Sync.Scene
                 {
                     m_LastColumnSpans.Add(column, CreateStaticSpan(staticColumn));
                     AddColumnListener(staticColumn.StaticParameters.OnUpdateSpanValues, () => ObserveColumnSpan(staticColumn), listeners);
+                    m_LastInfluenceDistances.Add(column, CreateInfluenceDistance(column));
+                    AddColumnListener(staticColumn.StaticParameters.OnUpdateInfluenceDistance, () => ObserveInfluenceDistance(column), listeners);
                 }
                 else if (column is Column3DDynamic dynamicColumn)
                 {
                     m_LastColumnSpans.Add(column, CreateDynamicSpan(dynamicColumn));
                     AddColumnListener(dynamicColumn.DynamicParameters.OnUpdateSpanValues, () => ObserveColumnSpan(dynamicColumn), listeners);
+                    m_LastInfluenceDistances.Add(column, CreateInfluenceDistance(column));
+                    AddColumnListener(dynamicColumn.DynamicParameters.OnUpdateInfluenceDistance, () => ObserveInfluenceDistance(column), listeners);
+                }
+                else if (column is Column3DAnatomy anatomyColumn)
+                {
+                    m_LastInfluenceDistances.Add(column, CreateInfluenceDistance(column));
+                    AddColumnListener(anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance, () => ObserveInfluenceDistance(column), listeners);
                 }
 
                 if (column is Column3DFMRI fmriColumn)
@@ -847,6 +1433,13 @@ namespace HBP.Sync.Scene
                     AddColumnListener(megColumn.MEGParameters.OnUpdateHideValues, () => ObserveFunctionalDisplay(megColumn), listeners);
                 }
 
+                if (column is Column3DCCEP ccepColumn)
+                {
+                    m_LastCcepSources.Add(column, CreateCcepSource(ccepColumn));
+                    AddColumnListener(ccepColumn.OnSelectSource, () => ObserveCcepSource(ccepColumn), listeners);
+                }
+
+                BindColumnResourceObservers(column, listeners);
                 m_ColumnListeners.Add(column, listeners);
             }
 
@@ -854,15 +1447,6 @@ namespace HBP.Sync.Scene
                 foreach (ROI roi in scene.ROIManager.ROIs)
                     if (!m_RoisById.TryAdd(roi.ID, roi))
                         throw new ArgumentException("Prepared ROIs must have unique stable identities.", nameof(scene));
-
-            foreach (KeyValuePair<SiteState, List<SiteTarget>> entry in m_Sites)
-            {
-                SiteState state = entry.Key;
-                m_SitePresentationStates[state] = SitePresentationSnapshot.Capture(state);
-                UnityAction listener = () => OnBoundSiteStateChanged(state);
-                state.OnChangeState.AddListener(listener);
-                m_SiteStateListeners.Add(state, listener);
-            }
 
             foreach (ROI roi in scene.ROIManager != null ? scene.ROIManager.ROIs : Enumerable.Empty<ROI>())
             {
@@ -899,10 +1483,289 @@ namespace HBP.Sync.Scene
             if (scene.FMRIManager != null) ObserveFmriPresentation();
         }
 
+        private void BeginConfigurationMutation()
+        {
+            if (m_ConfigurationMutationCapture != null)
+                throw new InvalidOperationException("A configuration mutation is already being captured by this scene boundary.");
+            m_ConfigurationMutationCapture = new ConfigurationMutationCapture(CaptureCheckpoint(), CaptureConfigurationRoster(), CapturePendingSiteConfigurationProvenanceSnapshot());
+        }
+
+        private void CompleteConfigurationMutation(Exception actionError)
+        {
+            ConfigurationMutationCapture capture = m_ConfigurationMutationCapture;
+            if (capture == null) return;
+            m_ConfigurationMutationCapture = null;
+
+            if (actionError != null)
+            {
+                ApplyCheckpointRollback(capture.InitialCheckpoint, new OperationId(Guid.NewGuid()), capture.InitialSiteConfigurationProvenance);
+                return;
+            }
+
+            try
+            {
+                SetConfigurationTransaction transaction = BuildConfigurationTransaction(capture);
+                if (transaction == null) return;
+                ValidateConfigurationTransaction(transaction, capture.InitialRoster);
+
+                OperationId operationId = new(Guid.NewGuid());
+                MarkSiteConfigurationWriters(transaction, operationId.Value);
+                if (m_LocalOrigin == V2OriginDevice.Quest)
+                    RememberOptimisticCheckpointRollback(operationId, capture.InitialCheckpoint, capture.InitialSiteConfigurationProvenance);
+                try
+                {
+                    MutationProposed?.Invoke(operationId, transaction, m_LocalOrigin);
+                }
+                catch
+                {
+                    ForgetOptimisticOperation(operationId);
+                    throw;
+                }
+            }
+            catch (Exception failure)
+            {
+                try
+                {
+                    ApplyCheckpointRollback(capture.InitialCheckpoint, new OperationId(Guid.NewGuid()), capture.InitialSiteConfigurationProvenance);
+                }
+                catch (Exception rollbackFailure)
+                {
+                    throw new AggregateException("Configuration transaction failed and restoring its previous scene state also failed.", failure, rollbackFailure);
+                }
+
+                throw;
+            }
+        }
+
+        private bool ApplySiteConfigurationBatch(IReadOnlyList<SiteConfigurationChange> changes, Action apply)
+        {
+            if (changes == null) throw new ArgumentNullException(nameof(changes));
+            if (apply == null) throw new ArgumentNullException(nameof(apply));
+            SiteConfigurationChange[] previous = changes.Select(change => new SiteConfigurationChange(change.Column, change.SiteId, change.State, new Core.Data.SiteConfiguration(change.State.IsBlackListed, change.State.IsHighlighted, change.State.Color, change.State.Labels))).ToArray();
+            var assignments = new List<V2SiteConfigurationAssignment>();
+            foreach (SiteConfigurationChange change in changes)
+            {
+                if (change.Column?.ColumnData?.ID == null)
+                    throw new InvalidOperationException("Site configuration column has no stable prepared identity.");
+                var key = (new ColumnId(change.Column.ColumnData.ID), new SiteId(change.SiteId));
+                if (!m_SitesById.TryGetValue(key, out SiteState preparedState)) continue;
+                if (!ReferenceEquals(preparedState, change.State))
+                    throw new InvalidOperationException("Site configuration target does not reference the prepared site state.");
+                Core.Data.SiteConfiguration configuration = change.Configuration;
+                if (preparedState.IsBlackListed == configuration.IsBlacklisted && preparedState.IsHighlighted == configuration.IsHighlighted && preparedState.Color == configuration.Color && preparedState.Labels.SequenceEqual(configuration.Labels)) continue;
+                assignments.Add(new V2SiteConfigurationAssignment(key.Item1, key.Item2, configuration.IsBlacklisted, configuration.IsHighlighted, configuration.Color.r, configuration.Color.g, configuration.Color.b, configuration.Color.a, configuration.Labels));
+            }
+
+            if (assignments.Count == 0)
+            {
+                OperationId localOperationId = new(Guid.NewGuid());
+                try
+                {
+                    using (V2MutationApplicationContext.EnterLocalApply(m_LocalOrigin, localOperationId)) apply();
+                }
+                catch (Exception failure)
+                {
+                    try
+                    {
+                        RestoreSiteConfigurationChanges(previous, localOperationId);
+                    }
+                    catch (Exception rollbackFailure)
+                    {
+                        throw new AggregateException("Site configuration import failed and restoring its previous values also failed.", failure, rollbackFailure);
+                    }
+
+                    throw;
+                }
+
+                return false;
+            }
+
+            var mutation = new SetSiteConfigurationBatch(assignments);
+            ValidateMutation(mutation);
+            V2Mutation rollback = ReadCurrentMutation(mutation);
+            SiteConfigurationProvenanceSnapshot provenanceRollback = CaptureSiteConfigurationProvenanceSnapshot(mutation);
+            OperationId operationId = new(Guid.NewGuid());
+            try
+            {
+                using (V2MutationApplicationContext.EnterLocalApply(m_LocalOrigin, operationId)) apply();
+            }
+            catch (Exception failure)
+            {
+                try
+                {
+                    RestoreSiteConfigurationChanges(previous, operationId);
+                }
+                catch (Exception rollbackFailure)
+                {
+                    throw new AggregateException("Site configuration batch failed and restoring its previous values also failed.", failure, rollbackFailure);
+                }
+
+                throw;
+            }
+
+            MarkSiteConfigurationWriters(mutation, operationId.Value);
+            if (m_LocalOrigin == V2OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
+            try
+            {
+                MutationProposed?.Invoke(operationId, mutation, m_LocalOrigin);
+            }
+            catch (Exception failure)
+            {
+                ForgetOptimisticOperation(operationId);
+                try
+                {
+                    RestoreSiteConfigurationChanges(previous, operationId);
+                }
+                catch (Exception rollbackFailure)
+                {
+                    throw new AggregateException("Site configuration publication failed and restoring its previous values also failed.", failure, rollbackFailure);
+                }
+
+                RestoreSiteConfigurationProvenance(provenanceRollback);
+
+                throw;
+            }
+
+            return true;
+        }
+
+        private void RestoreSiteConfigurationChanges(IEnumerable<SiteConfigurationChange> previous, OperationId operationId)
+        {
+            using (V2MutationApplicationContext.EnterRemote(operationId))
+                m_Scene.ApplySiteStateBatch(() =>
+                {
+                    foreach (SiteConfigurationChange change in previous)
+                    {
+                        change.State.ApplyState(change.Configuration.IsBlacklisted, change.Configuration.IsHighlighted, change.Configuration.Color, change.Configuration.Labels);
+                        change.Column.SiteStateBySiteID[change.SiteId] = change.State;
+                    }
+                });
+        }
+
+        private void RecordConfigurationSiteBefore(SiteState state, SitePresentationSnapshot previous)
+        {
+            ConfigurationMutationCapture capture = m_ConfigurationMutationCapture;
+            if (capture == null || !m_Sites.TryGetValue(state, out List<SiteTarget> targets)) return;
+            foreach (SiteTarget target in targets)
+            {
+                var key = (target.ColumnId.Value, target.SiteId.Value);
+                capture.SiteBefore.TryAdd(key, new V2SiteConfigurationAssignment(target.ColumnId, target.SiteId, previous.Blacklisted, previous.Highlighted, previous.Color.r, previous.Color.g, previous.Color.b, previous.Color.a, previous.Labels));
+            }
+        }
+
+        private SetConfigurationTransaction BuildConfigurationTransaction(ConfigurationMutationCapture capture)
+        {
+            var children = new List<ConfigurationMutationChild>();
+            var coalescedIndexes = new Dictionary<V2TouchedKey, int>();
+            SceneId validationScene = new(Guid.Parse("70000000-0000-0000-0000-000000000001"));
+            IncarnationId validationIncarnation = new(Guid.Parse("70000000-0000-0000-0000-000000000002"));
+            foreach ((V2Mutation mutation, V2Mutation rollback) in capture.Children)
+            {
+                if (IsSiteConfigurationMutation(mutation)) continue;
+                if (mutation is MoveSites or SetTimelineAnchor)
+                    throw new InvalidOperationException("Configuration transactions only support reversible configuration mutations.");
+
+                V2MutationDescriptor descriptor = V2MutationDescriptor.Create(validationScene, validationIncarnation, mutation);
+                if (IsCoalescibleConfigurationMutation(mutation) && descriptor.TouchedKeys.Count == 1)
+                {
+                    V2TouchedKey key = descriptor.TouchedKeys[0];
+                    if (coalescedIndexes.TryGetValue(key, out int previousIndex))
+                    {
+                        ConfigurationMutationChild previous = children[previousIndex];
+                        children[previousIndex] = null;
+                        coalescedIndexes[key] = children.Count;
+                        children.Add(new ConfigurationMutationChild(mutation, previous.Rollback));
+                    }
+                    else
+                    {
+                        coalescedIndexes.Add(key, children.Count);
+                        children.Add(new ConfigurationMutationChild(mutation, rollback));
+                    }
+                }
+                else
+                {
+                    children.Add(new ConfigurationMutationChild(mutation, rollback));
+                }
+            }
+
+            SetSiteConfigurationBatch currentSiteBatch = CreateChangedConfigurationBatch(capture.SiteBefore, out V2Mutation previousSiteBatch);
+            if (currentSiteBatch != null)
+                children.Add(new ConfigurationMutationChild(currentSiteBatch, previousSiteBatch));
+
+            ConfigurationMutationChild[] prepared = children.Where(child => child != null).ToArray();
+            if (prepared.Length == 0) return null;
+            if (prepared.Length > 64)
+                throw new InvalidOperationException("Scene configuration exceeds the 64-child atomic transaction bound.");
+            return new SetConfigurationTransaction(prepared.Select(child => child.Mutation));
+        }
+
+        private SetSiteConfigurationBatch CreateChangedConfigurationBatch(IReadOnlyDictionary<(string ColumnId, string SiteId), V2SiteConfigurationAssignment> previous, out V2Mutation rollback)
+        {
+            rollback = null;
+            if (previous.Count == 0) return null;
+            var current = new List<V2SiteConfigurationAssignment>(previous.Count);
+            var old = new List<V2SiteConfigurationAssignment>(previous.Count);
+            foreach (KeyValuePair<(string ColumnId, string SiteId), V2SiteConfigurationAssignment> entry in previous)
+            {
+                var key = (new ColumnId(entry.Key.ColumnId), new SiteId(entry.Key.SiteId));
+                SiteState state = ResolveSite(key.Item1, key.Item2);
+                V2SiteConfigurationAssignment before = entry.Value;
+                var after = new V2SiteConfigurationAssignment(key.Item1, key.Item2, state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels);
+                if (SiteConfigurationAssignmentsEqual(before, after)) continue;
+                old.Add(before);
+                current.Add(after);
+            }
+
+            if (current.Count == 0) return null;
+            rollback = new SetSiteConfigurationBatch(old);
+            return new SetSiteConfigurationBatch(current);
+        }
+
+        private static bool SiteConfigurationAssignmentsEqual(V2SiteConfigurationAssignment left, V2SiteConfigurationAssignment right) => left.Blacklisted == right.Blacklisted && left.Highlighted == right.Highlighted && left.Red == right.Red && left.Green == right.Green && left.Blue == right.Blue && left.Alpha == right.Alpha && left.Labels.SequenceEqual(right.Labels);
+
+        private static bool IsSiteConfigurationMutation(V2Mutation mutation) => mutation is SetSiteBlacklist or SetSiteColor or SetSiteHighlight or SetSiteLabels or SetSiteConfigurationBatch;
+
+        private static bool IsCoalescibleConfigurationMutation(V2Mutation mutation) => mutation is SetSiteBlacklist or SetInfluenceDistance or SetColumnResource or SetCcepSource or SetSceneBoolean or SetSceneFloat or SetSceneColor or SetSelectedColumn or SetSelectedSite or SetActivityAlpha or SetColumnSpan or SetFunctionalDisplay or SetIbcDifumoDisplay or SetLocalizerDisplay or SetFmriAtlasCalibration or SetSelectedRoiSphere or SetCutDefinition or SetCutOrder or RenameRoi or SetActiveRoi or SetRoiSphereDefinition or SetMeshDisplay or SetSelectedMri or SetMriCalibration or SetImplantation or ApplyTriangleMask;
+
+        private StagedConfigurationRoster CaptureConfigurationRoster()
+        {
+            var cuts = m_Scene.Cuts.Select(cut => m_CutIds[cut]).ToList();
+            var rois = new Dictionary<string, HashSet<string>>(StringComparer.Ordinal);
+            var roiOrder = new List<string>();
+            if (m_Scene.ROIManager != null)
+                foreach (ROI roi in m_Scene.ROIManager.ROIs)
+                {
+                    rois.Add(roi.ID, roi.Spheres.Select(sphere => sphere.ID).ToHashSet(StringComparer.Ordinal));
+                    roiOrder.Add(roi.ID);
+                }
+
+            return new StagedConfigurationRoster(cuts, rois, roiOrder, m_Scene.ROIManager?.SelectedROI?.ID);
+        }
+
         private static void AddColumnListener(UnityEvent unityEvent, UnityAction listener, List<(UnityEvent Event, UnityAction Listener)> listeners)
         {
             unityEvent.AddListener(listener);
             listeners.Add((unityEvent, listener));
+        }
+
+        private void BindColumnResourceObservers(Column3D column, List<(UnityEvent Event, UnityAction Listener)> listeners)
+        {
+            if (m_ResourceCatalog == null || m_LastColumnResources.ContainsKey(column)) return;
+            if (column is Column3DStatic staticColumn)
+            {
+                m_LastColumnResources.Add(column, CreateColumnResource(column, V2ColumnResourceKind.StaticLabel));
+                AddColumnListener(staticColumn.OnUpdateSelectedLabel, () => ObserveColumnResource(staticColumn, V2ColumnResourceKind.StaticLabel), listeners);
+            }
+            else if (column is Column3DFMRI fmriColumn)
+            {
+                m_LastColumnResources.Add(column, CreateColumnResource(column, V2ColumnResourceKind.FmriResource));
+                AddColumnListener(fmriColumn.OnChangeSelectedFMRI, () => ObserveColumnResource(fmriColumn, V2ColumnResourceKind.FmriResource), listeners);
+            }
+            else if (column is Column3DMEG megColumn)
+            {
+                m_LastColumnResources.Add(column, CreateColumnResource(column, V2ColumnResourceKind.MegResource));
+                AddColumnListener(megColumn.OnChangeSelectedMEG, () => ObserveColumnResource(megColumn, V2ColumnResourceKind.MegResource), listeners);
+            }
         }
 
         private List<V2T09CheckpointRecord> CaptureT09Records()
@@ -913,6 +1776,7 @@ namespace HBP.Sync.Scene
             Add(new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
+            Add(new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
             Add(new SetSceneFloat(V2SceneFloatProperty.SiteGain, m_Scene.SiteGain));
             if (m_Scene.BrainMaterials != null)
@@ -942,13 +1806,6 @@ namespace HBP.Sync.Scene
                 if (column is Column3DMEG megColumn) Add(CreateFunctionalDisplay(megColumn));
             }
 
-            foreach (KeyValuePair<SiteState, List<SiteTarget>> entry in m_Sites)
-            foreach (SiteTarget target in entry.Value)
-            {
-                Add(new SetSiteHighlight(target.ColumnId, target.SiteId, entry.Key.IsHighlighted));
-                Add(new SetSiteLabels(target.ColumnId, target.SiteId, entry.Key.Labels));
-            }
-
             if (m_Scene.FMRIManager != null)
             {
                 Add(CreateIbcDifumoDisplay());
@@ -959,6 +1816,26 @@ namespace HBP.Sync.Scene
             if (m_Scene.ROIManager != null)
                 foreach (ROI roi in m_Scene.ROIManager.ROIs)
                     Add(new SetSelectedRoiSphere(roi.ID, roi.SelectedSphere ? roi.SelectedSphere.ID : string.Empty));
+            return records;
+        }
+
+        private List<V2T11CheckpointRecord> CaptureT11Records()
+        {
+            var records = new List<V2T11CheckpointRecord>();
+            void Add(V2Mutation mutation) => records.Add(new V2T11CheckpointRecord(mutation));
+
+            if (m_Scene != null)
+            {
+                foreach (Column3D column in m_Scene.Columns)
+                {
+                    if (m_LastInfluenceDistances.ContainsKey(column)) Add(CreateInfluenceDistance(column));
+                    if (m_LastColumnResources.TryGetValue(column, out V2Mutation resource)) Add(resource is SetColumnResource selected ? CreateColumnResource(column, selected.Kind) : resource);
+                    if (column is Column3DCCEP ccepColumn) Add(CreateCcepSource(ccepColumn));
+                }
+            }
+
+            if (m_SitesById.Count > 0)
+                Add(CreateSiteConfigurationBatch(m_SitesById.Keys.Select(key => (key.ColumnId, key.SiteId))));
             return records;
         }
 
@@ -978,14 +1855,17 @@ namespace HBP.Sync.Scene
         {
             if (!m_Sites.TryGetValue(state, out List<SiteTarget> targets)) return;
             SitePresentationSnapshot previous = m_SitePresentationStates[state];
+            RecordConfigurationSiteBefore(state, previous);
             SitePresentationSnapshot current = SitePresentationSnapshot.Capture(state);
             m_SitePresentationStates[state] = current;
-            if (state.CurrentChangeKind != SiteStateChangeKind.Presentation || ShouldSuppressPublication()) return;
+            if (ShouldSuppressPublication()) return;
             foreach (SiteTarget target in targets)
             {
-                if (previous.Highlighted != current.Highlighted)
+                if (state.CurrentChangeKind == SiteStateChangeKind.ScientificMask && previous.Blacklisted != current.Blacklisted)
+                    Publish(new SetSiteBlacklist(target.ColumnId, target.SiteId, current.Blacklisted));
+                if (state.CurrentChangeKind == SiteStateChangeKind.Presentation && previous.Highlighted != current.Highlighted)
                     Publish(new SetSiteHighlight(target.ColumnId, target.SiteId, current.Highlighted));
-                if (!previous.Labels.SequenceEqual(current.Labels))
+                if (state.CurrentChangeKind == SiteStateChangeKind.Presentation && !previous.Labels.SequenceEqual(current.Labels))
                 {
                     try
                     {
@@ -1009,6 +1889,7 @@ namespace HBP.Sync.Scene
             ObserveT09(ref m_LastSceneStrongCuts, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
             ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             ObserveT09(ref m_LastSceneHideBlacklisted, new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
+            ObserveT09(ref m_LastSceneShowAllSites, new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
             ObserveT09(ref m_LastSceneSiteGain, new SetSceneFloat(V2SceneFloatProperty.SiteGain, m_Scene.SiteGain));
             ObserveMriCalibration();
             ObserveT09(ref m_LastSceneEdgeMode, new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
@@ -1052,6 +1933,12 @@ namespace HBP.Sync.Scene
             ObserveT09(m_LastFunctionalDisplays, column, column is Column3DFMRI fmriColumn ? CreateFunctionalDisplay(fmriColumn) : CreateFunctionalDisplay((Column3DMEG)column));
         }
 
+        private void ObserveInfluenceDistance(Column3D column) => ObserveT11(m_LastInfluenceDistances, column, CreateInfluenceDistance(column));
+
+        private void ObserveColumnResource(Column3D column, V2ColumnResourceKind kind) => ObserveT11(m_LastColumnResources, column, CreateColumnResource(column, kind));
+
+        private void ObserveCcepSource(Column3DCCEP column) => ObserveT11(m_LastCcepSources, column, CreateCcepSource(column));
+
         private void OnRoiSphereSelectionChanged(ROI roi)
         {
             if (!m_RoisById.TryGetValue(roi.ID, out ROI ownedRoi) || !ReferenceEquals(ownedRoi, roi)) return;
@@ -1069,8 +1956,9 @@ namespace HBP.Sync.Scene
             }
 
             if (V2MutationPayloadCodec.Encode(previous).SequenceEqual(V2MutationPayloadCodec.Encode(current))) return;
+            V2Mutation rollback = previous;
             previous = current;
-            if (!ShouldSuppressPublication()) Publish(current);
+            if (!ShouldSuppressPublication()) Publish(current, rollback);
         }
 
         private void ObserveT09<TKey>(Dictionary<TKey, V2Mutation> previousByKey, TKey key, V2Mutation current)
@@ -1082,8 +1970,9 @@ namespace HBP.Sync.Scene
             }
 
             if (V2MutationPayloadCodec.Encode(previous).SequenceEqual(V2MutationPayloadCodec.Encode(current))) return;
+            V2Mutation rollback = previous;
             previousByKey[key] = current;
-            if (!ShouldSuppressPublication()) Publish(current);
+            if (!ShouldSuppressPublication()) Publish(current, rollback);
         }
 
         private void ObserveT10(ref V2Mutation previous, V2Mutation current)
@@ -1098,6 +1987,19 @@ namespace HBP.Sync.Scene
             V2Mutation rollback = previous;
             previous = current;
             if (!ShouldSuppressPublication()) Publish(current, rollback);
+        }
+
+        private void ObserveT11<TKey>(Dictionary<TKey, V2Mutation> previousByKey, TKey key, V2Mutation current)
+        {
+            if (!previousByKey.TryGetValue(key, out V2Mutation previous) || previous == null)
+            {
+                previousByKey[key] = current;
+                return;
+            }
+
+            if (V2MutationPayloadCodec.Encode(previous).SequenceEqual(V2MutationPayloadCodec.Encode(current))) return;
+            previousByKey[key] = current;
+            if (!ShouldSuppressPublication()) Publish(current, previous);
         }
 
         private void ObserveMeshSelection() => ObserveMeshDisplay();
@@ -1179,7 +2081,7 @@ namespace HBP.Sync.Scene
             foreach (ROI stale in m_RoiStateSnapshots.Keys.Where(roi => !currentSet.Contains(roi)).ToArray())
             {
                 RoiStateSnapshot previous = m_RoiStateSnapshots[stale];
-                if (!ShouldSuppressPublication()) Publish(new DeleteRoi(new RoiId(previous.RoiId)));
+                if (!ShouldSuppressPublication()) Publish(new DeleteRoi(new RoiId(previous.RoiId)), CreateRoiMutation(previous));
                 UnregisterRoi(stale);
             }
 
@@ -1189,7 +2091,7 @@ namespace HBP.Sync.Scene
                 RoiStateSnapshot next = RoiStateSnapshot.Capture(roi, m_Scene.ROIManager.ROIs.IndexOf(roi));
                 if (!m_RoiStateSnapshots.TryGetValue(roi, out RoiStateSnapshot previous))
                 {
-                    if (!ShouldSuppressPublication()) Publish(CreateRoiMutation(roi));
+                    if (!ShouldSuppressPublication()) Publish(CreateRoiMutation(roi), new DeleteRoi(new RoiId(roi.ID)));
                     m_RoiStateSnapshots[roi] = next;
                     continue;
                 }
@@ -1251,16 +2153,21 @@ namespace HBP.Sync.Scene
         {
             if (m_Disposed || cut == null) return;
             RegisterCut(cut);
-            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new CreateCut(m_CutIds[cut], CreateCutDefinition(cut, m_CutIds[cut]), cut.Index));
+            m_CutDefinitionSnapshots[cut] = CreateCutDefinition(cut, m_CutIds[cut]);
+            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite)
+                Publish(new CreateCut(m_CutIds[cut], m_CutDefinitionSnapshots[cut], cut.Index), new DeleteCut(m_CutIds[cut]));
             m_LastCutOrder = m_Scene.Cuts.Select(item => new CutId(item.ID)).ToArray();
         }
 
         private void OnCutRemoved(SceneCut cut)
         {
             if (m_Disposed || cut == null || !m_CutIds.TryGetValue(cut, out CutId id)) return;
-            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new DeleteCut(id));
+            int previousIndex = Array.FindIndex(m_LastCutOrder, candidate => candidate.Equals(id));
+            V2Mutation rollback = m_CutDefinitionSnapshots.TryGetValue(cut, out SetCutDefinition definition) && previousIndex >= 0 ? new CreateCut(id, definition, previousIndex) : null;
+            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new DeleteCut(id), rollback);
             m_CutIds.Remove(cut);
             m_Cuts.Remove(id);
+            m_CutDefinitionSnapshots.Remove(cut);
             m_LastCutOrder = m_Scene.Cuts.Select(item => new CutId(item.ID)).ToArray();
         }
 
@@ -1276,6 +2183,7 @@ namespace HBP.Sync.Scene
 
             if (!m_Cuts.TryAdd(id, cut) || !m_CutIds.TryAdd(cut, id))
                 throw new InvalidOperationException("Cut identities must remain unique in the prepared scene.");
+            m_CutDefinitionSnapshots[cut] = CreateCutDefinition(cut, id);
         }
 
         private void ObserveCutOrder()
@@ -1311,16 +2219,20 @@ namespace HBP.Sync.Scene
 
         private sealed class SitePresentationSnapshot
         {
+            public bool Blacklisted { get; }
             public bool Highlighted { get; }
+            public Color Color { get; }
             public string[] Labels { get; }
 
-            private SitePresentationSnapshot(bool highlighted, string[] labels)
+            private SitePresentationSnapshot(bool blacklisted, bool highlighted, Color color, string[] labels)
             {
+                Blacklisted = blacklisted;
                 Highlighted = highlighted;
+                Color = color;
                 Labels = labels;
             }
 
-            public static SitePresentationSnapshot Capture(SiteState state) => new SitePresentationSnapshot(state.IsHighlighted, state.Labels.ToArray());
+            public static SitePresentationSnapshot Capture(SiteState state) => new SitePresentationSnapshot(state.IsBlackListed, state.IsHighlighted, state.Color, state.Labels.ToArray());
         }
 
         private V2Mutation ReadCurrentT09Mutation(V2Mutation key)
@@ -1346,6 +2258,38 @@ namespace HBP.Sync.Scene
             };
         }
 
+        private V2Mutation ReadCurrentT11Mutation(V2Mutation key)
+        {
+            return key switch
+            {
+                SetSiteBlacklist value => new SetSiteBlacklist(value.ColumnId, value.SiteId, ResolveSite(value.ColumnId, value.SiteId).IsBlackListed),
+                SetInfluenceDistance value => CreateInfluenceDistance(RequireSceneAndResolveColumn(value.ColumnId)),
+                SetColumnResource value => CreateColumnResource(RequireSceneAndResolveColumn(value.ColumnId), value.Kind),
+                SetCcepSource value => CreateCcepSource(RequireSceneAndResolveCcepColumn(value.ColumnId)),
+                SetSiteConfigurationBatch value => CreateSiteConfigurationBatch(value.Assignments.Select(assignment => (assignment.ColumnId, assignment.SiteId))),
+                SetConfigurationTransaction value => new SetConfigurationTransaction(RequireSceneAndReadCurrentMutations(value.Mutations)),
+                _ => throw new ArgumentException("Unsupported T11 scene mutation.", nameof(key))
+            };
+        }
+
+        private Column3D RequireSceneAndResolveColumn(ColumnId columnId)
+        {
+            RequireScene();
+            return ResolveColumn(columnId);
+        }
+
+        private Column3DCCEP RequireSceneAndResolveCcepColumn(ColumnId columnId)
+        {
+            RequireScene();
+            return ResolveCcepColumn(columnId);
+        }
+
+        private IEnumerable<V2Mutation> RequireSceneAndReadCurrentMutations(IEnumerable<V2Mutation> mutations)
+        {
+            RequireScene();
+            return mutations.Select(ReadCurrentMutation);
+        }
+
         private V2Mutation ReadCurrentT10Mutation(V2Mutation key)
         {
             RequireScene();
@@ -1369,6 +2313,308 @@ namespace HBP.Sync.Scene
                 ApplyTriangleMask => CreateTriangleMaskMutation(),
                 _ => throw new ArgumentException("Unsupported T10 scene mutation.", nameof(key))
             };
+        }
+
+        private void ValidateT11Mutation(V2Mutation mutation)
+        {
+            switch (mutation)
+            {
+                case SetSiteBlacklist value:
+                    ResolveSite(value.ColumnId, value.SiteId);
+                    break;
+                case SetInfluenceDistance value:
+                    RequireScene();
+                    ResolveInfluenceColumn(value.ColumnId);
+                    break;
+                case SetColumnResource value:
+                    RequireScene();
+                    ValidateColumnResource(value);
+                    break;
+                case SetCcepSource value:
+                    RequireScene();
+                    ValidateCcepSource(value);
+                    break;
+                case SetSiteConfigurationBatch value:
+                    foreach (V2SiteConfigurationAssignment assignment in value.Assignments)
+                        ResolveSite(assignment.ColumnId, assignment.SiteId);
+                    break;
+                case SetConfigurationTransaction value:
+                    RequireScene();
+                    ValidateConfigurationTransaction(value, CaptureConfigurationRoster());
+                    break;
+                default:
+                    throw new ArgumentException("Unsupported T11 scene mutation.", nameof(mutation));
+            }
+        }
+
+        private void ValidateConfigurationTransaction(SetConfigurationTransaction transaction, StagedConfigurationRoster initialRoster)
+        {
+            RequireScene();
+            StagedConfigurationRoster staged = initialRoster.Clone();
+            var touched = new HashSet<V2TouchedKey>();
+            var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
+            var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
+            foreach (V2Mutation child in transaction.Mutations)
+            {
+                ValidateConfigurationChild(child, staged);
+                foreach (V2TouchedKey key in V2MutationDescriptor.Create(validationScene, validationIncarnation, child).TouchedKeys)
+                    touched.Add(key);
+            }
+
+            if (touched.Count > 128)
+                throw new ArgumentOutOfRangeException(nameof(transaction), "Configuration transaction exceeds the touched-key bound.");
+        }
+
+        private void ValidateConfigurationChild(V2Mutation child, StagedConfigurationRoster staged)
+        {
+            switch (child)
+            {
+                case MoveSites:
+                case SetTimelineAnchor:
+                    throw new InvalidOperationException("Configuration transactions only support reversible configuration mutations.");
+                case CreateCut value:
+                    if (staged.Cuts.Contains(value.CutId) || value.Order > staged.Cuts.Count)
+                        throw new InvalidOperationException("Cut identity or insertion order is not valid in the staged configuration.");
+                    if (!value.CutId.Equals(value.Definition.CutId) || value.Definition.NumberOfCuts > int.MaxValue)
+                        throw new InvalidOperationException("Staged cut definition does not match its identity or supported range.");
+                    staged.Cuts.Insert(value.Order, value.CutId);
+                    return;
+                case DeleteCut value:
+                    if (!staged.Cuts.Remove(value.CutId))
+                        throw new KeyNotFoundException("Staged cut deletion references an absent cut.");
+                    return;
+                case SetCutOrder value:
+                    if (value.CutIds.Count != staged.Cuts.Count || value.CutIds.Count != value.CutIds.Distinct().Count() || value.CutIds.Any(id => !staged.Cuts.Contains(id)))
+                        throw new InvalidOperationException("Staged cut order must be a complete permutation of the current cut identities.");
+                    staged.Cuts.Clear();
+                    staged.Cuts.AddRange(value.CutIds);
+                    return;
+                case SetCutDefinition value:
+                    if (!staged.Cuts.Contains(value.CutId))
+                        throw new KeyNotFoundException("Staged cut definition references an absent cut.");
+                    if (value.NumberOfCuts > int.MaxValue)
+                        throw new ArgumentOutOfRangeException(nameof(child), "Cut count exceeds the prepared scene's supported range.");
+                    return;
+                case CreateRoi value:
+                    RequireRoiManager();
+                    if (staged.Rois.ContainsKey(value.RoiId.Value) || value.Order > staged.RoiOrder.Count)
+                        throw new InvalidOperationException("ROI identity or insertion order is not valid in the staged configuration.");
+                    var sphereIds = value.Spheres.Select(sphere => sphere.SphereId.Value).ToHashSet(StringComparer.Ordinal);
+                    if (sphereIds.Count != value.Spheres.Count || sphereIds.Any(id => staged.Rois.Values.Any(existing => existing.Contains(id))))
+                        throw new InvalidOperationException("Staged ROI sphere identities must be globally unique.");
+                    ValidateRoiSelectionSnapshot(value.SelectionSnapshot, value.RoiId, value.Spheres.Select(sphere => sphere.SphereId));
+                    staged.Rois.Add(value.RoiId.Value, sphereIds);
+                    staged.RoiOrder.Insert(value.Order, value.RoiId.Value);
+                    return;
+                case RenameRoi value:
+                    RequireStagedRoi(staged, value.RoiId.Value);
+                    return;
+                case DeleteRoi value:
+                    RequireStagedRoi(staged, value.RoiId.Value);
+                    staged.Rois.Remove(value.RoiId.Value);
+                    staged.RoiOrder.Remove(value.RoiId.Value);
+                    if (StringComparer.Ordinal.Equals(staged.ActiveRoiId, value.RoiId.Value)) staged.ActiveRoiId = null;
+                    return;
+                case SetActiveRoi value:
+                    RequireRoiManager();
+                    if (value.RoiId != null) RequireStagedRoi(staged, value.RoiId.Value);
+                    staged.ActiveRoiId = value.RoiId?.Value;
+                    return;
+                case CreateRoiSphere value:
+                    HashSet<string> createSphereOwner = RequireStagedRoi(staged, value.RoiId.Value);
+                    if (value.Order > createSphereOwner.Count || staged.Rois.Values.Any(roi => roi.Contains(value.Definition.SphereId.Value)))
+                        throw new InvalidOperationException("ROI sphere identity or insertion order is not valid in the staged configuration.");
+                    createSphereOwner.Add(value.Definition.SphereId.Value);
+                    ValidateRoiSelectionSnapshot(value.SelectionSnapshot, value.RoiId, createSphereOwner.Select(id => new SphereId(id)));
+                    return;
+                case DeleteRoiSphere value:
+                    if (!RequireStagedRoi(staged, value.RoiId.Value).Remove(value.SphereId.Value))
+                        throw new KeyNotFoundException("Staged ROI sphere deletion references an absent sphere.");
+                    return;
+                case SetRoiSphereDefinition value:
+                    if (!RequireStagedRoi(staged, value.RoiId.Value).Contains(value.Definition.SphereId.Value))
+                        throw new KeyNotFoundException("Staged ROI sphere definition references an absent sphere.");
+                    return;
+                case SetSelectedRoiSphere value:
+                    if (!staged.Rois.TryGetValue(value.RoiId, out HashSet<string> selectedSphereRoster) || value.SphereId.Length > 0 && !selectedSphereRoster.Contains(value.SphereId))
+                        throw new KeyNotFoundException("Selected ROI sphere is absent from the staged ROI roster.");
+                    return;
+                default:
+                    ValidateMutation(child);
+                    return;
+            }
+        }
+
+        private static HashSet<string> RequireStagedRoi(StagedConfigurationRoster staged, string roiId)
+        {
+            if (staged.Rois.TryGetValue(roiId, out HashSet<string> spheres)) return spheres;
+            throw new KeyNotFoundException("Staged ROI operation references an absent ROI.");
+        }
+
+        private void ValidateColumnResource(SetColumnResource value)
+        {
+            RequireResourceCatalog();
+            Column3D column = value.Kind switch
+            {
+                V2ColumnResourceKind.StaticLabel => ResolveStaticColumn(value.ColumnId),
+                V2ColumnResourceKind.FmriResource => ResolveFmriColumn(value.ColumnId),
+                V2ColumnResourceKind.MegResource => ResolveMegColumn(value.ColumnId),
+                _ => throw new ArgumentOutOfRangeException(nameof(value))
+            };
+            int index = m_ResourceCatalog.ResolveColumnIndex(column, value.ResourceReference);
+            if (index < 0 && value.Kind != V2ColumnResourceKind.StaticLabel)
+                throw new InvalidOperationException("Functional column resource selection cannot be empty.");
+        }
+
+        private void ValidateCcepSource(SetCcepSource value)
+        {
+            Column3DCCEP column = ResolveCcepColumn(value.ColumnId);
+            if (value.Mode == V2CcepSourceMode.Site)
+            {
+                if (value.SourceSiteId != null && (!column.Sources.Any(site => StringComparer.Ordinal.Equals(site.Information.FullID, value.SourceSiteId.Value)) || !column.ColumnCCEPData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.ContainsKey(value.SourceSiteId.Value)))
+                    throw new KeyNotFoundException("CCEP source site is not available in the prepared column.");
+                return;
+            }
+
+            if (value.MarsAtlasLabel < 0) return;
+            Mesh3D selectedMesh = m_Scene.MeshManager?.SelectedMesh;
+            bool implantationHasMarsAtlas = m_Scene.ImplantationManager?.SelectedImplantation?.SiteInfos.Any(info => info.SiteData?.Tags?.Any(tagValue => tagValue.Tag is StringTag tag && tag.Name == "MarsAtlas") == true) == true;
+            if (selectedMesh == null || !selectedMesh.SupportsMarsAtlas || !Object3DManager.MarsAtlas.Loaded || !Object3DManager.MarsAtlas.Labels().Contains(value.MarsAtlasLabel) || !implantationHasMarsAtlas)
+                throw new InvalidOperationException("CCEP Mars atlas source is not prepared for the selected mesh and implantation.");
+        }
+
+        private bool ApplyT11Mutation(V2Mutation mutation)
+        {
+            ValidateT11Mutation(mutation);
+            switch (mutation)
+            {
+                case SetSiteBlacklist value:
+                    {
+                        SiteState state = ResolveSite(value.ColumnId, value.SiteId);
+                        if (state.IsBlackListed == value.Blacklisted) return false;
+                        state.IsBlackListed = value.Blacklisted;
+                        return true;
+                    }
+                case SetInfluenceDistance value:
+                    {
+                        Column3D column = ResolveInfluenceColumn(value.ColumnId);
+                        if (column is Column3DAnatomy anatomy)
+                        {
+                            if (anatomy.AnatomyParameters.InfluenceDistance == value.Distance) return false;
+                            anatomy.AnatomyParameters.InfluenceDistance = value.Distance;
+                        }
+                        else if (column is Column3DStatic staticColumn)
+                        {
+                            if (staticColumn.StaticParameters.InfluenceDistance == value.Distance) return false;
+                            staticColumn.StaticParameters.InfluenceDistance = value.Distance;
+                        }
+                        else
+                        {
+                            Column3DDynamic dynamicColumn = (Column3DDynamic)column;
+                            if (dynamicColumn.DynamicParameters.InfluenceDistance == value.Distance) return false;
+                            dynamicColumn.DynamicParameters.InfluenceDistance = value.Distance;
+                        }
+
+                        return true;
+                    }
+                case SetColumnResource value:
+                    {
+                        Column3D column = ResolveColumn(value.ColumnId);
+                        if (StringComparer.Ordinal.Equals(m_ResourceCatalog.ColumnReference(column), value.ResourceReference)) return false;
+                        int index = m_ResourceCatalog.ResolveColumnIndex(column, value.ResourceReference);
+                        if (index >= 0)
+                        {
+                            if (column is Column3DStatic staticColumn) staticColumn.SelectedLabelIndex = index;
+                            else if (column is Column3DFMRI fmriColumn) fmriColumn.SelectedFMRIIndex = index;
+                            else ((Column3DMEG)column).SelectedMEGIndex = index;
+                        }
+
+                        return true;
+                    }
+                case SetCcepSource value:
+                    {
+                        Column3DCCEP column = ResolveCcepColumn(value.ColumnId);
+                        Core.Object3D.Site source = value.SourceSiteId == null ? null : column.Sources.Single(site => StringComparer.Ordinal.Equals(site.Information.FullID, value.SourceSiteId.Value));
+                        column.ApplySynchronizedSource((Column3DCCEP.CCEPMode)value.Mode, source, value.MarsAtlasLabel);
+                        return true;
+                    }
+                case SetSiteConfigurationBatch value:
+                    {
+                        bool changed = false;
+                        Action apply = () =>
+                        {
+                            foreach (V2SiteConfigurationAssignment assignment in value.Assignments)
+                            {
+                                SiteState state = ResolveSite(assignment.ColumnId, assignment.SiteId);
+                                Color color = new Color(assignment.Red, assignment.Green, assignment.Blue, assignment.Alpha);
+                                if (state.IsBlackListed == assignment.Blacklisted && state.IsHighlighted == assignment.Highlighted && state.Color == color && state.Labels.SequenceEqual(assignment.Labels)) continue;
+                                changed = true;
+                                state.ApplySynchronizedState(state.IsFiltered, assignment.Blacklisted, assignment.Highlighted, color, assignment.Labels);
+                            }
+                        };
+                        if (m_Scene != null) m_Scene.ApplySiteStateBatch(apply);
+                        else apply();
+                        return changed;
+                    }
+                case SetConfigurationTransaction value:
+                    {
+                        V2SceneMutationCheckpoint rollback = CaptureCheckpoint();
+                        bool changed = false;
+                        try
+                        {
+                            foreach (V2Mutation child in value.Mutations) changed |= ApplyCore(child);
+                        }
+                        catch (Exception failure)
+                        {
+                            try
+                            {
+                                ApplyCheckpointWithoutChangingProvenance(rollback, new OperationId(Guid.NewGuid()));
+                            }
+                            catch (Exception rollbackFailure)
+                            {
+                                throw new AggregateException("Configuration transaction failed and restoring its previous scene state also failed.", failure, rollbackFailure);
+                            }
+
+                            throw;
+                        }
+
+                        return changed;
+                    }
+                default:
+                    throw new ArgumentException("Unsupported T11 scene mutation.", nameof(mutation));
+            }
+        }
+
+        private Column3D ResolveInfluenceColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DAnatomy or Column3DStatic or Column3DDynamic);
+        private Column3DCCEP ResolveCcepColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DCCEP) as Column3DCCEP;
+
+        private static SetInfluenceDistance CreateInfluenceDistance(Column3D column) =>
+            new SetInfluenceDistance(new ColumnId(column.ColumnData.ID), column switch
+            {
+                Column3DAnatomy anatomy => anatomy.AnatomyParameters.InfluenceDistance,
+                Column3DStatic staticColumn => staticColumn.StaticParameters.InfluenceDistance,
+                Column3DDynamic dynamicColumn => dynamicColumn.DynamicParameters.InfluenceDistance,
+                _ => throw new InvalidOperationException("Column does not support influence distance.")
+            });
+
+        private SetColumnResource CreateColumnResource(Column3D column, V2ColumnResourceKind kind)
+        {
+            RequireResourceCatalog();
+            return new SetColumnResource(new ColumnId(column.ColumnData.ID), kind, m_ResourceCatalog.ColumnReference(column));
+        }
+
+        private static SetCcepSource CreateCcepSource(Column3DCCEP column) => new SetCcepSource(new ColumnId(column.ColumnData.ID), (V2CcepSourceMode)column.Mode, column.SelectedSourceSite == null ? null : new SiteId(column.SelectedSourceSite.Information.FullID), column.Mode == Column3DCCEP.CCEPMode.Site ? -1 : column.SelectedSourceMarsAtlasLabel);
+
+        private SetSiteConfigurationBatch CreateSiteConfigurationBatch(IEnumerable<(ColumnId ColumnId, SiteId SiteId)> targets)
+        {
+            var assignments = new List<V2SiteConfigurationAssignment>();
+            foreach ((ColumnId columnId, SiteId siteId) in targets)
+            {
+                SiteState state = ResolveSite(columnId, siteId);
+                assignments.Add(new V2SiteConfigurationAssignment(columnId, siteId, state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels));
+            }
+
+            return new SetSiteConfigurationBatch(assignments);
         }
 
         private void ValidateT10Mutation(V2Mutation mutation)
@@ -1529,6 +2775,8 @@ namespace HBP.Sync.Scene
         }
 
         private CreateRoi CreateRoiMutation(ROI roi, V2RoiSelectionSnapshot selectionSnapshot = null) => new CreateRoi(new RoiId(roi.ID), roi.Name, roi.Spheres.Select((sphere, index) => CreateSphereDefinition(sphere)), m_Scene.ROIManager.ROIs.IndexOf(roi), selectionSnapshot);
+
+        private static CreateRoi CreateRoiMutation(RoiStateSnapshot snapshot) => new CreateRoi(new RoiId(snapshot.RoiId), snapshot.Name, snapshot.SphereOrder, snapshot.Order);
 
         private static V2RoiSphereDefinition CreateSphereDefinition(RoiSphere sphere) => new V2RoiSphereDefinition(new SphereId(sphere.ID), sphere.Position.x, sphere.Position.y, sphere.Position.z, sphere.InfluenceRadius);
 
@@ -1982,6 +3230,7 @@ namespace HBP.Sync.Scene
                 case V2SceneBooleanProperty.StrongCuts: m_Scene.StrongCuts = value.Value; break;
                 case V2SceneBooleanProperty.AutomaticCutAroundSelectedSite: m_Scene.AutomaticCutAroundSelectedSite = value.Value; break;
                 case V2SceneBooleanProperty.HideBlacklistedSites: m_Scene.HideBlacklistedSites = value.Value; break;
+                case V2SceneBooleanProperty.ShowAllSites: m_Scene.ShowAllSites = value.Value; break;
                 case V2SceneBooleanProperty.EdgeMode: m_Scene.EdgeMode = value.Value; break;
                 case V2SceneBooleanProperty.BrainTransparent: m_Scene.IsBrainTransparent = value.Value; break;
                 case V2SceneBooleanProperty.DisplayMarsAtlas: m_Scene.AtlasManager.DisplayMarsAtlas = value.Value; break;
@@ -2018,6 +3267,7 @@ namespace HBP.Sync.Scene
                 V2SceneBooleanProperty.StrongCuts => m_Scene.StrongCuts,
                 V2SceneBooleanProperty.AutomaticCutAroundSelectedSite => m_Scene.AutomaticCutAroundSelectedSite,
                 V2SceneBooleanProperty.HideBlacklistedSites => m_Scene.HideBlacklistedSites,
+                V2SceneBooleanProperty.ShowAllSites => m_Scene.ShowAllSites,
                 V2SceneBooleanProperty.EdgeMode => m_Scene.EdgeMode,
                 V2SceneBooleanProperty.BrainTransparent => m_Scene.IsBrainTransparent,
                 V2SceneBooleanProperty.DisplayMarsAtlas => m_Scene.AtlasManager.DisplayMarsAtlas,
@@ -2121,7 +3371,11 @@ namespace HBP.Sync.Scene
 
         private void OnSiteColorChanged(SiteState state)
         {
-            if (m_Disposed || !m_Sites.TryGetValue(state, out List<SiteTarget> targets) || ShouldSuppressPublication()) return;
+            if (m_Disposed || !m_Sites.TryGetValue(state, out List<SiteTarget> targets)) return;
+            if (m_SitePresentationStates.TryGetValue(state, out SitePresentationSnapshot previous))
+                RecordConfigurationSiteBefore(state, previous);
+            m_SitePresentationStates[state] = SitePresentationSnapshot.Capture(state);
+            if (ShouldSuppressPublication()) return;
             Color color = state.Color;
             foreach (SiteTarget target in targets)
             {
@@ -2142,7 +3396,7 @@ namespace HBP.Sync.Scene
 
         private void OnCutDefinitionChanged(SceneCut cut)
         {
-            if (m_Disposed || m_Scene?.AutomaticCutAroundSelectedSite == true || !m_CutIds.TryGetValue(cut, out CutId id) || ShouldSuppressPublication()) return;
+            if (m_Disposed || !m_CutIds.TryGetValue(cut, out CutId id)) return;
             SetCutDefinition mutation;
             try
             {
@@ -2154,7 +3408,10 @@ namespace HBP.Sync.Scene
                 return;
             }
 
-            Publish(mutation);
+            m_CutDefinitionSnapshots.TryGetValue(cut, out SetCutDefinition previous);
+            m_CutDefinitionSnapshots[cut] = mutation;
+            if (m_Scene?.AutomaticCutAroundSelectedSite == true || ShouldSuppressPublication()) return;
+            Publish(mutation, previous);
         }
 
         private void OnTimelineAnchorChanged(BasicTimeline timeline, bool automatic)
@@ -2219,6 +3476,7 @@ namespace HBP.Sync.Scene
         private bool ShouldSuppressPublication()
         {
             if (BasicTimeline.IsAutomaticPlaybackUpdateInProgress) return true;
+            if (m_ConfigurationMutationCapture != null) return false;
             if (V2MutationApplicationContext.TryGetCurrent(out V2MutationApplicationOrigin origin, out _, out _, out bool suppressNested))
                 return origin == V2MutationApplicationOrigin.Remote || suppressNested;
             return false;
@@ -2226,16 +3484,26 @@ namespace HBP.Sync.Scene
 
         private void Publish(V2Mutation mutation, V2Mutation rollback = null)
         {
+            if (m_ConfigurationMutationCapture != null)
+            {
+                m_ConfigurationMutationCapture.Children.Add((mutation, rollback));
+                return;
+            }
+
             if (V2MutationApplicationContext.TryGetCurrent(out V2MutationApplicationOrigin origin, out V2OriginDevice? device, out OperationId operationId, out bool suppressNested))
             {
                 if (origin == V2MutationApplicationOrigin.Remote || suppressNested) return;
-                if (device == V2OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback);
+                SiteConfigurationProvenanceSnapshot provenanceRollback = CaptureSiteConfigurationProvenanceSnapshot(mutation);
+                MarkSiteConfigurationWriters(mutation, operationId.Value);
+                if (device == V2OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
                 MutationProposed?.Invoke(operationId, mutation, device.Value);
                 return;
             }
 
             OperationId generatedOperationId = new(Guid.NewGuid());
-            if (m_LocalOrigin == V2OriginDevice.Quest) RememberOptimisticRollback(generatedOperationId, rollback);
+            SiteConfigurationProvenanceSnapshot generatedProvenanceRollback = CaptureSiteConfigurationProvenanceSnapshot(mutation);
+            MarkSiteConfigurationWriters(mutation, generatedOperationId.Value);
+            if (m_LocalOrigin == V2OriginDevice.Quest) RememberOptimisticRollback(generatedOperationId, rollback, mutation, generatedProvenanceRollback);
             MutationProposed?.Invoke(generatedOperationId, mutation, m_LocalOrigin);
         }
 
@@ -2369,6 +3637,10 @@ namespace HBP.Sync.Scene
             BasicTimeline.AnchorChanged -= OnTimelineAnchorChanged;
             if (m_Scene != null)
             {
+                m_Scene.ConfigurationMutationStarted -= BeginConfigurationMutation;
+                m_Scene.ConfigurationMutationCompleted -= CompleteConfigurationMutation;
+                if (m_Scene.SiteConfigurationBatchRouter?.Target == this)
+                    m_Scene.SiteConfigurationBatchRouter = null;
                 m_Scene.OnAddCut.RemoveListener(OnCutAdded);
                 m_Scene.OnRemoveCut.RemoveListener(OnCutRemoved);
                 if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);
@@ -2427,6 +3699,9 @@ namespace HBP.Sync.Scene
             m_LastActivityAlphas.Clear();
             m_LastColumnSpans.Clear();
             m_LastFunctionalDisplays.Clear();
+            m_LastInfluenceDistances.Clear();
+            m_LastColumnResources.Clear();
+            m_LastCcepSources.Clear();
             m_LastRoiSpheres.Clear();
             m_ColumnsById.Clear();
             m_RoisById.Clear();
@@ -2434,8 +3709,55 @@ namespace HBP.Sync.Scene
             m_SitesById.Clear();
             m_CutIds.Clear();
             m_Cuts.Clear();
+            m_CutDefinitionSnapshots.Clear();
             m_Timelines.Clear();
             m_ResourceCatalog = null;
+        }
+
+        private sealed class ConfigurationMutationCapture
+        {
+            public V2SceneMutationCheckpoint InitialCheckpoint { get; }
+            public StagedConfigurationRoster InitialRoster { get; }
+            public SiteConfigurationProvenanceSnapshot InitialSiteConfigurationProvenance { get; }
+            public List<(V2Mutation Mutation, V2Mutation Rollback)> Children { get; } = new();
+            public Dictionary<(string ColumnId, string SiteId), V2SiteConfigurationAssignment> SiteBefore { get; } = new();
+
+            public ConfigurationMutationCapture(V2SceneMutationCheckpoint initialCheckpoint, StagedConfigurationRoster initialRoster, SiteConfigurationProvenanceSnapshot initialSiteConfigurationProvenance)
+            {
+                InitialCheckpoint = initialCheckpoint;
+                InitialRoster = initialRoster;
+                InitialSiteConfigurationProvenance = initialSiteConfigurationProvenance;
+            }
+        }
+
+        private sealed class ConfigurationMutationChild
+        {
+            public V2Mutation Mutation { get; }
+            public V2Mutation Rollback { get; }
+
+            public ConfigurationMutationChild(V2Mutation mutation, V2Mutation rollback)
+            {
+                Mutation = mutation;
+                Rollback = rollback;
+            }
+        }
+
+        private sealed class StagedConfigurationRoster
+        {
+            public List<CutId> Cuts { get; }
+            public Dictionary<string, HashSet<string>> Rois { get; }
+            public List<string> RoiOrder { get; }
+            public string ActiveRoiId { get; set; }
+
+            public StagedConfigurationRoster(List<CutId> cuts, Dictionary<string, HashSet<string>> rois, List<string> roiOrder, string activeRoiId)
+            {
+                Cuts = cuts;
+                Rois = rois;
+                RoiOrder = roiOrder;
+                ActiveRoiId = activeRoiId;
+            }
+
+            public StagedConfigurationRoster Clone() => new StagedConfigurationRoster(new List<CutId>(Cuts), Rois.ToDictionary(entry => entry.Key, entry => new HashSet<string>(entry.Value, StringComparer.Ordinal), StringComparer.Ordinal), new List<string>(RoiOrder), ActiveRoiId);
         }
 
         private sealed class RoiStateSnapshot
@@ -2444,22 +3766,30 @@ namespace HBP.Sync.Scene
             public string Name { get; }
             public int Order { get; }
             public IReadOnlyDictionary<string, V2RoiSphereDefinition> Spheres { get; }
+            public IReadOnlyList<V2RoiSphereDefinition> SphereOrder { get; }
 
-            private RoiStateSnapshot(string roiId, string name, int order, IReadOnlyDictionary<string, V2RoiSphereDefinition> spheres)
+            private RoiStateSnapshot(string roiId, string name, int order, IReadOnlyDictionary<string, V2RoiSphereDefinition> spheres, IReadOnlyList<V2RoiSphereDefinition> sphereOrder)
             {
                 RoiId = roiId;
                 Name = name;
                 Order = order;
                 Spheres = spheres;
+                SphereOrder = sphereOrder;
             }
 
             public static RoiStateSnapshot Capture(ROI roi, int order)
             {
                 var spheres = new Dictionary<string, V2RoiSphereDefinition>(StringComparer.Ordinal);
+                var sphereOrder = new List<V2RoiSphereDefinition>(roi.Spheres.Count);
                 foreach (RoiSphere sphere in roi.Spheres)
-                    if (!spheres.TryAdd(sphere.ID, CreateSphereDefinition(sphere)))
+                {
+                    V2RoiSphereDefinition definition = CreateSphereDefinition(sphere);
+                    if (!spheres.TryAdd(sphere.ID, definition))
                         throw new InvalidOperationException("ROI sphere identities must be unique.");
-                return new RoiStateSnapshot(roi.ID, roi.Name, order, spheres);
+                    sphereOrder.Add(definition);
+                }
+
+                return new RoiStateSnapshot(roi.ID, roi.Name, order, spheres, sphereOrder.AsReadOnly());
             }
         }
 

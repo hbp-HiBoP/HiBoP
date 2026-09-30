@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -218,6 +219,86 @@ namespace HBP.Sync.Tests
                     new V2TriangleMask(new TopologyId("bulk-mask:simplified"), triangleCount, visible)
                 });
             }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void SiteConfigurationBulk_StreamsThirtyThousandAssignmentsAroundIndependentInteractiveTraffic()
+        {
+            const int siteCount = 30000;
+            var assignments = Enumerable.Range(0, siteCount).Select(index => new V2SiteConfigurationAssignment(new ColumnId("bulk-column"), new SiteId("bulk-site-" + index), index % 2 == 0, index % 3 == 0, 0.25f, 0.5f, 0.75f, 1f, Array.Empty<string>())).ToArray();
+            var batch = new SetSiteConfigurationBatch(assignments);
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 8192, maxBulkBodyBytesPerTransfer: 16 * 1024 * 1024, maxBulkBodyBytesTotal: 32 * 1024 * 1024);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop, limits: limits);
+            var batchOperation = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000081"));
+            var interactiveOperation = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000082"));
+            var interactive = new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true);
+            var enqueueWatch = Stopwatch.StartNew();
+            Assert.That(scheduler.EnqueueMutation(batch, operationId: batchOperation, canonicalSequence: 1UL).Accepted, Is.True);
+            enqueueWatch.Stop();
+            Assert.That(scheduler.EnqueueMutation(interactive, operationId: interactiveOperation, canonicalSequence: 2UL, coalesciblePreview: false).Accepted, Is.True);
+
+            var received = new List<V2TransportRecord>();
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt attempt))
+            {
+                V2ReliableFrame frame = attempt.Frame;
+                received.Add(new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, frame.OperationId, frame.StreamId, frame.ReliableFrameSequence ?? 0, frame.OriginSequence ?? 0, V2OriginDevice.Desktop, frame.Lane, frame.BodySchema, chunkIndex: frame.ChunkIndex, payload: frame.GetPayloadCopy(), canonicalSequence: frame.CanonicalSequence, observedCanonicalSequence: frame.ObservedCanonicalSequence, mutation: frame.Lane == V2ScheduleLane.Interactive ? V2MutationPayloadCodec.Decode(frame.GetPayloadCopy()) : null));
+                Assert.That(scheduler.Acknowledge(frame.StreamId, frame.ReliableFrameSequence.Value), Is.True);
+            }
+
+            var receiver = new V2SceneOperationBulkReceiver();
+            var deferred = new Queue<V2TransportRecord>();
+            var applied = new List<V2Mutation>();
+            bool independentInteractiveObserved = false;
+
+            void DrainDeferred()
+            {
+                while (true)
+                {
+                    if (receiver.IsActive)
+                    {
+                        if (!receiver.TryAppendNextBuffered(deferred, record => record, out _, out V2TransportRecord completed)) return;
+                        if (completed != null) applied.Add(V2MutationPayloadCodec.Decode(completed.GetPayloadCopy()));
+                        continue;
+                    }
+
+                    if (deferred.Count == 0) return;
+                    V2TransportRecord next = deferred.Dequeue();
+                    if (receiver.IsMutationDescriptor(next)) receiver.Begin(next);
+                    else applied.Add(next.Mutation ?? V2MutationPayloadCodec.Decode(next.GetPayloadCopy()));
+                }
+            }
+
+            foreach (V2TransportRecord record in received)
+            {
+                if (receiver.IsActive)
+                {
+                    if (receiver.TryAppend(record, out V2TransportRecord completed))
+                    {
+                        if (completed != null) applied.Add(V2MutationPayloadCodec.Decode(completed.GetPayloadCopy()));
+                    }
+                    else if (record.Lane == V2ScheduleLane.Interactive)
+                    {
+                        independentInteractiveObserved = true;
+                        deferred.Enqueue(record);
+                    }
+                    else deferred.Enqueue(record);
+                }
+                else if (receiver.IsMutationDescriptor(record)) receiver.Begin(record);
+                else applied.Add(record.Mutation ?? V2MutationPayloadCodec.Decode(record.GetPayloadCopy()));
+
+                DrainDeferred();
+            }
+
+            Assert.That(independentInteractiveObserved, Is.True, "The interactive operation should be transmitted while the bulk body is still arriving.");
+            Assert.That(receiver.IsActive, Is.False);
+            Assert.That(deferred, Is.Empty);
+            Assert.That(applied, Has.Count.EqualTo(2));
+            Assert.That(applied[0], Is.TypeOf<SetSiteConfigurationBatch>());
+            Assert.That(((SetSiteConfigurationBatch)applied[0]).Assignments, Has.Count.EqualTo(siteCount));
+            Assert.That(V2MutationPayloadCodec.Encode(applied[1]), Is.EqualTo(V2MutationPayloadCodec.Encode(interactive)));
+            Assert.That(received.Count(record => record.Lane == V2ScheduleLane.Bulk), Is.GreaterThan(1));
+            TestContext.WriteLine($"HBP_SYNC_T11_CONFIGURATION_BULK sites={siteCount} bulkChunks={received.Count(record => record.Lane == V2ScheduleLane.Bulk)} enqueueMs={enqueueWatch.Elapsed.TotalMilliseconds:F3} interactiveInterleaved={independentInteractiveObserved}");
         }
 
         [Test]
@@ -536,6 +617,94 @@ namespace HBP.Sync.Tests
                 desktopPeer.Dispose();
                 firstPair.Close();
                 await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T11ThirtyThousandSiteCheckpoint_EncodesTransfersAndAppliesWithInterleavedInteractiveTraffic()
+        {
+            const int siteCount = 30000;
+            using var source = new SessionSceneFixture(siteCount);
+            using var target = new SessionSceneFixture(siteCount);
+            for (int index = 0; index < siteCount; index++)
+            {
+                float channel = (index % 256) / 255f;
+                source.Sites[index].State.ApplySynchronizedState(false, index % 2 == 0, index % 3 == 0, new Color(channel, 1f - channel, (index % 17) / 16f, 1f), new[] { "bulk", index % 2 == 0 ? "even" : "odd" });
+            }
+
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(target.Scene, binding);
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 5095, limits);
+            var checkpointOperation = new OperationId(GuidFor(55131));
+            var interactiveOperation = new OperationId(GuidFor(55132));
+            var barrierOperation = new OperationId(GuidFor(55133));
+            V2ScheduleDescriptor allScene = V2ScheduleDescriptor.ForBarrier(Scene, Incarnation, null, V2BarrierScope.AllScene);
+            var stopwatch = Stopwatch.StartNew();
+            byte[] checkpoint;
+            V2SceneMutationCheckpoint captured;
+            using (var sourceBoundary = new V2SceneMutationBoundary(source.Scene, V2OriginDevice.Desktop))
+            {
+                captured = sourceBoundary.CaptureCheckpoint();
+                checkpoint = V2SceneMutationCheckpointCodec.Encode(0, captured);
+            }
+
+            Assert.That(captured.SiteColors, Is.Empty, "Persisted site state is represented once by the T11 assignment batch.");
+            Assert.That(captured.T09Records.Any(record => record.Value is SetSiteHighlight or SetSiteLabels), Is.False, "New checkpoints omit duplicate persisted presentation records while older records remain decodable.");
+            SetSiteConfigurationBatch assignments = captured.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single();
+            Assert.That(assignments.Assignments, Has.Count.EqualTo(siteCount));
+            int checkpointRecordCount = captured.SiteColors.Count + captured.CutDefinitions.Count + captured.TimelineAnchors.Count + captured.T09Records.Count + captured.T10Records.Count + captured.T11Records.Count;
+            Assert.That(checkpointRecordCount, Is.LessThan(65536));
+            Assert.That(checkpoint.Length, Is.GreaterThan(limits.InlineThresholdBytes));
+            Assert.That(desktopPeer.EnqueueSceneOperation(checkpoint, allScene, structural: true, bodySchema: V2PublicationCheckpointBulkReceiver.BodySchema, operationId: checkpointOperation).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueMutation(new SetSiteHighlight(new ColumnId(source.ColumnId), new SiteId(source.SiteIds[0]), false), 1UL, null, coalesciblePreview: false, operationId: interactiveOperation).Accepted, Is.True);
+            Assert.That(desktopPeer.EnqueueSceneOperation(V2PublicationControlCodec.EncodeLiveBarrier(1), allScene, structural: true, operationId: barrierOperation).Accepted, Is.True);
+
+            using var firstPair = await LoopbackPeerPair.ConnectAsync();
+            var pausedBulk = new PauseFirstBulkWriteStream(firstPair.Client.GetStream());
+            Task<Exception> desktopRun = CaptureRunAsync(desktopPeer, pausedBulk, CancellationToken.None);
+            Task<Exception> questRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
+            try
+            {
+                await AwaitGuardAsync(pausedBulk.Started.Task, timeoutSeconds: 60);
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 2, "The 30,000-site checkpoint did not retain interleaved interactive traffic.", timeoutSeconds: 60);
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.True);
+                Assert.That(GetDeferredRecords(questOwner).Select(record => record.MessageId), Is.EqualTo(new[] { interactiveOperation, barrierOperation }));
+                Assert.That(target.Sites[0].State.IsBlackListed, Is.False, "The incomplete checkpoint must not apply a partial batch.");
+
+                pausedBulk.Release.TrySetResult(true);
+                V2TransportRecord acknowledgement = await ReadIncomingAsync(desktopPeer, timeoutSeconds: 60);
+                Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
+                Assert.That(acknowledgedBarrier, Is.EqualTo(barrierOperation));
+                Assert.That(GetCheckpointReceiverActive(questOwner), Is.False);
+                Assert.That(GetDeferredRecords(questOwner), Is.Empty);
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(1UL));
+
+                int blacklistedCount = 0;
+                for (int index = 0; index < siteCount; index++)
+                {
+                    SiteState state = target.Sites[index].State;
+                    bool blacklisted = index % 2 == 0;
+                    bool highlighted = index % 3 == 0;
+                    if (blacklisted) blacklistedCount++;
+                    if (index == 0) highlighted = false; // The queued interactive operation follows the checkpoint.
+                    Assert.That(state.IsBlackListed, Is.EqualTo(blacklisted), $"site {index} blacklist");
+                    Assert.That(state.IsHighlighted, Is.EqualTo(highlighted), $"site {index} highlight");
+                    float channel = (index % 256) / 255f;
+                    Assert.That(state.Color, Is.EqualTo(new Color(channel, 1f - channel, (index % 17) / 16f, 1f)), $"site {index} color");
+                    Assert.That(state.Labels, Is.EqualTo(new[] { "bulk", blacklisted ? "even" : "odd" }), $"site {index} ordered labels");
+                }
+
+                stopwatch.Stop();
+                TestContext.WriteLine($"HBP_SYNC_T11_REAL_CHECKPOINT sites={siteCount} records={checkpointRecordCount} bytes={checkpoint.Length} chunks={(checkpoint.Length + limits.BulkChunkBytes - 1) / limits.BulkChunkBytes} blacklisted={blacklistedCount} capture_encode_transfer_apply_ms={stopwatch.Elapsed.TotalMilliseconds:F1} interleaved=1");
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+                desktopPeer.Dispose();
+                firstPair.Close();
+                await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun), timeoutSeconds: 60);
             }
         }
 
@@ -1596,15 +1765,15 @@ namespace HBP.Sync.Tests
             }
         }
 
-        private static async Task<V2TransportRecord> ReadIncomingAsync(V2PersistentTransport transport)
+        private static async Task<V2TransportRecord> ReadIncomingAsync(V2PersistentTransport transport, int timeoutSeconds = 5)
         {
-            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
             return await transport.ReadIncomingAsync(timeout.Token);
         }
 
-        private static async Task AwaitGuardAsync(Task task)
+        private static async Task AwaitGuardAsync(Task task, int timeoutSeconds = 5)
         {
-            Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(5)));
+            Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
             if (completed != task)
                 throw new TimeoutException("The loopback transport did not reach its deterministic barrier.");
             await task;
@@ -1624,12 +1793,12 @@ namespace HBP.Sync.Tests
             return await task;
         }
 
-        private static async Task WaitUntilAsync(Func<bool> condition, string timeoutMessage)
+        private static async Task WaitUntilAsync(Func<bool> condition, string timeoutMessage, int timeoutSeconds = 5)
         {
             var timeout = System.Diagnostics.Stopwatch.StartNew();
             while (!condition())
             {
-                if (timeout.Elapsed >= TimeSpan.FromSeconds(5)) throw new TimeoutException(timeoutMessage);
+                if (timeout.Elapsed >= TimeSpan.FromSeconds(timeoutSeconds)) throw new TimeoutException(timeoutMessage);
                 await Task.Delay(5);
             }
         }
@@ -2003,6 +2172,59 @@ namespace HBP.Sync.Tests
                     if (disposing) m_Inner.Dispose();
                     base.Dispose(disposing);
                 }
+            }
+        }
+
+        private sealed class PauseFirstBulkWriteStream : Stream
+        {
+            private readonly Stream m_Inner;
+            private int m_BulkWriteSeen;
+            public TaskCompletionSource<bool> Started { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            public TaskCompletionSource<bool> Release { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public PauseFirstBulkWriteStream(Stream inner) => m_Inner = inner;
+            public override bool CanRead => m_Inner.CanRead;
+            public override bool CanSeek => false;
+            public override bool CanWrite => m_Inner.CanWrite;
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override void Flush() => m_Inner.Flush();
+            public override int Read(byte[] buffer, int offset, int count) => m_Inner.Read(buffer, offset, count);
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_Inner.ReadAsync(buffer, offset, count, cancellationToken);
+            public override void Write(byte[] buffer, int offset, int count) => m_Inner.Write(buffer, offset, count);
+
+            public override async Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                if (count >= V2TransportFrameCodec.HeaderLength && ReadKind(buffer, offset) == V2TransportMessageKind.Application)
+                {
+                    var frame = new byte[count];
+                    Buffer.BlockCopy(buffer, offset, frame, 0, count);
+                    V2TransportRecord record = V2TransportFrameCodec.Decode(frame);
+                    if (record.Lane == V2ScheduleLane.Bulk && Interlocked.CompareExchange(ref m_BulkWriteSeen, 1, 0) == 0)
+                    {
+                        Started.TrySetResult(true);
+                        Task cancelled = Task.Delay(Timeout.Infinite, cancellationToken);
+                        await Task.WhenAny(Release.Task, cancelled);
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                }
+
+                await m_Inner.WriteAsync(buffer, offset, count, cancellationToken);
+            }
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) m_Inner.Dispose();
+                base.Dispose(disposing);
             }
         }
 

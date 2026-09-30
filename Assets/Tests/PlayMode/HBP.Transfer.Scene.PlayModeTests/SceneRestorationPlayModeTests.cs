@@ -45,6 +45,90 @@ namespace HBP.Tests.SceneTransfer
         [Timeout(180000)]
         public Task S3_ReplicaStreamAppliesDesktopStateWithoutReplacingQuestPresentation() => VerifyPreparedMeshAndConfigurationAsync(false, true);
 
+        [Test]
+        [Timeout(180000)]
+        public async Task T11QuestProductionResetRejection_ReplaysCanonicalAndKeepsHistory()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-t11-reset-replay-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            using var settings = new PlayModePersistentDataScope(root);
+            using var scope = new PlayModeSceneScope("T11ProductionResetReplay");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            CancellationToken token = timeout.Token;
+            RestoredScene desktop = null;
+            RestoredScene quest = null;
+            try
+            {
+                await PrepareReferencesAsync();
+                using var source = new SceneArchive(Path.Combine(root, "source"));
+                ScenePayload payload = CreateFixture(source);
+                string fixtureFile = Path.Combine(root, "fixture.hbscene");
+                source.Write(payload, fixtureFile);
+                var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
+                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(fixtureFile), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
+                quest = await SceneRestoration.PrepareAsync(questArchive.Read(fixtureFile), questArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D Content.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                await desktop.Scene.PrepareRenderingAsync(token);
+                await quest.Scene.PrepareRenderingAsync(token);
+
+                // Ensure the production reset has a configuration value to replace before
+                // attaching the boundary, so only the atomic reset envelope is proposed.
+                quest.Scene.ShowAllSites = true;
+                var sceneId = new SceneId(Guid.NewGuid());
+                var incarnationId = new IncarnationId(Guid.NewGuid());
+                using var desktopBoundary = new V2SceneMutationBoundary(desktop.Scene, V2OriginDevice.Desktop);
+                using var questBoundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+                var scheduler = new V2OutgoingScheduler(new SessionId(Guid.NewGuid()), sceneId, incarnationId, V2OriginDevice.Quest);
+                using var questDriver = new V2QuestMutationDriver(sceneId, incarnationId, questBoundary, scheduler);
+                using var authority = new V2DesktopMutationAuthority(sceneId, incarnationId, desktopBoundary);
+                var canonicalMutations = new List<V2CanonicalMutation>();
+                authority.CanonicalReady += canonical =>
+                {
+                    canonicalMutations.Add(canonical);
+                    questDriver.ReceiveCanonical(canonical);
+                };
+                var questPublishedMutations = new List<V2Mutation>();
+                questBoundary.MutationProposed += (_, mutation, _) => questPublishedMutations.Add(mutation);
+                var questProposals = new List<V2QuestMutationProposal>();
+                questDriver.ProposalQueued += questProposals.Add;
+
+                quest.Scene.ResetConfiguration();
+
+                Assert.That(questPublishedMutations, Has.Count.EqualTo(1));
+                Assert.That(questPublishedMutations[0], Is.TypeOf<SetConfigurationTransaction>());
+                Assert.That(questProposals, Has.Count.EqualTo(1));
+                Assert.That(questDriver.PendingProposalCount, Is.EqualTo(1));
+
+                Color acceptedColor = new Color(0.23f, 0.47f, 0.69f, 1f);
+                desktop.Scene.ColumnsIEEG.Single().Sites[0].State.Color = acceptedColor;
+                Assert.That(canonicalMutations, Has.Count.EqualTo(1));
+                Assert.That(quest.Scene.ColumnsIEEG.Single().Sites[0].State.Color, Is.EqualTo(acceptedColor));
+                Assert.That(questDriver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+
+                Assert.That(questDriver.ReceiveRejection(questProposals[0].OperationId, "configuration_rejected"), Is.True);
+                Assert.That(quest.Scene.ShowAllSites, Is.True, "Rejecting reset restores the value present when its transaction began.");
+                Assert.That(quest.Scene.ColumnsIEEG.Single().Sites[0].State.Color, Is.EqualTo(acceptedColor), "The accepted color arriving during reset must be replayed.");
+                Assert.That(questDriver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+                Assert.That(questDriver.ReceiveCanonical(canonicalMutations[0]), Is.False, "Canonical deduplication must survive rejection.");
+                Assert.That(questDriver.PendingProposalCount, Is.Zero);
+                Assert.That(questPublishedMutations, Has.Count.EqualTo(1), "Reset rollback and canonical replay must not echo child mutations.");
+
+                Color laterColor = new Color(0.82f, 0.36f, 0.14f, 1f);
+                desktop.Scene.ColumnsIEEG.Single().Sites[0].State.Color = laterColor;
+                Assert.That(canonicalMutations, Has.Count.EqualTo(2));
+                Assert.That(quest.Scene.ColumnsIEEG.Single().Sites[0].State.Color, Is.EqualTo(laterColor), "Canonical convergence must continue after rejection.");
+                Assert.That(questDriver.LastObservedCanonicalSequence, Is.EqualTo(2UL));
+                Assert.That(questPublishedMutations, Has.Count.EqualTo(1));
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                if (quest != null) await quest.CloseAsync();
+                if (desktop != null) await desktop.CloseAsync();
+                if (Directory.Exists(root) && !Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
+            }
+        }
+
         [Test, Explicit("Requires a paired Quest running HiBoP and USB forwarding on port 45871.")]
         [Timeout(240000)]
         public async Task S3_PhysicalQuestReceivesVisibleRevisions()
@@ -943,8 +1027,30 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2));
 
                 desktopScene.SaveConfiguration();
+                var syncSceneId = new SceneId(Guid.NewGuid());
+                var syncIncarnationId = new IncarnationId(Guid.NewGuid());
+                using var desktopMutationBoundary = new V2SceneMutationBoundary(desktopScene, V2OriginDevice.Desktop);
+                using var questMutationBoundary = new V2SceneMutationBoundary(questScene, V2OriginDevice.Quest);
+                var questMutationScheduler = new V2OutgoingScheduler(new SessionId(Guid.NewGuid()), syncSceneId, syncIncarnationId, V2OriginDevice.Quest);
+                using var questMutationDriver = new V2QuestMutationDriver(syncSceneId, syncIncarnationId, questMutationBoundary, questMutationScheduler);
+                using var desktopMutationAuthority = new V2DesktopMutationAuthority(syncSceneId, syncIncarnationId, desktopMutationBoundary);
+                desktopMutationAuthority.CanonicalReady += canonical => questMutationDriver.ReceiveCanonical(canonical);
+                var configurationTransactions = new List<V2Mutation>();
+                desktopMutationBoundary.MutationProposed += (_, mutation, _) => configurationTransactions.Add(mutation);
+
                 await Replay("D33 reset configuration", () => desktopScene.ResetConfiguration());
+                Assert.That(configurationTransactions, Has.Count.EqualTo(1), "Scene reset must produce one atomic operation.");
+                Assert.That(configurationTransactions[0], Is.TypeOf<SetConfigurationTransaction>());
+                Assert.That(V2MutationDescriptor.Create(syncSceneId, syncIncarnationId, configurationTransactions[0]).BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
+                Assert.That(questMutationDriver.LastObservedCanonicalSequence, Is.EqualTo(1UL), "The Quest driver must apply the reset canonical operation.");
+                configurationTransactions.Clear();
+
                 await Replay("D33 load configuration", () => desktopScene.LoadConfiguration());
+                Assert.That(configurationTransactions, Has.Count.EqualTo(1), "Scene load must produce one atomic operation.");
+                Assert.That(configurationTransactions[0], Is.TypeOf<SetConfigurationTransaction>());
+                Assert.That(V2MutationDescriptor.Create(syncSceneId, syncIncarnationId, configurationTransactions[0]).BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
+                Assert.That(questMutationDriver.LastObservedCanonicalSequence, Is.EqualTo(2UL), "The Quest driver must apply the load canonical operation.");
+                Assert.That(questMutationDriver.PendingProposalCount, Is.Zero);
             }
             finally
             {

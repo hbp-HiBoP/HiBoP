@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
@@ -13,6 +15,7 @@ using HBP.Sync;
 using HBP.Sync.Scene;
 using HBP.Transfer.Scene;
 using NUnit.Framework;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 using CoreVolume = HBP.Core.DLL.Volume;
 using RoiSphere = HBP.Data.Module3D.Sphere;
@@ -45,6 +48,81 @@ namespace HBP.Tests.Transfer.Scene
             SetSiteColor proposal = (SetSiteColor)proposals[0];
             Assert.That(proposal.ColumnId.Value, Is.EqualTo("column-29999"));
             Assert.That(proposal.FullSiteId.Value, Is.EqualTo("site-29999"));
+        }
+
+        [Test]
+        public void SitePresentation_UsesConstantTimeTargetLookupAcrossThirtyThousandSites()
+        {
+            const int siteCount = 30000;
+            var states = Enumerable.Range(0, siteCount).Select(_ => new SiteState()).ToArray();
+            var targets = Enumerable.Range(0, siteCount).Select(index => (states[index], new ColumnId("column-" + index), new SiteId("site-" + index))).ToArray();
+            using var boundary = new V2SceneMutationBoundary(targets, Array.Empty<(SceneCut, CutId)>(), Array.Empty<(BasicTimeline, ColumnId)>(), V2OriginDevice.Desktop, new TestClock(0));
+            var proposals = new List<V2Mutation>();
+            boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            var stopwatch = Stopwatch.StartNew();
+
+            states[siteCount - 1].IsHighlighted = true;
+
+            stopwatch.Stop();
+            Assert.That(proposals, Has.Count.EqualTo(1));
+            Assert.That(proposals[0], Is.TypeOf<SetSiteHighlight>());
+            Assert.That(((SetSiteHighlight)proposals[0]).SiteId.Value, Is.EqualTo("site-29999"));
+            TestContext.WriteLine($"HBP_SYNC_T11_SITE_PRESENTATION siteCount={siteCount} elapsedMs={stopwatch.Elapsed.TotalMilliseconds:F3}");
+        }
+
+        [Test]
+        public void T11Mutations_RoundTripAndMixedConfigurationTransactionUsesStrongestBarrier()
+        {
+            var columnId = new ColumnId("column-a");
+            var siteId = new SiteId("site-a");
+            var assignments = new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, true, true, 0.1f, 0.2f, 0.3f, 1f, new[] { "reviewed", "T11" })
+            });
+            V2Mutation[] mutations =
+            {
+                new SetSiteBlacklist(columnId, siteId, true),
+                new SetInfluenceDistance(columnId, 23.5f),
+                new SetColumnResource(columnId, V2ColumnResourceKind.StaticLabel, "prepared-label-reference"),
+                new SetCcepSource(columnId, V2CcepSourceMode.MarsAtlas, null, -1),
+                assignments,
+                new SetConfigurationTransaction(new V2Mutation[]
+                {
+                    new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, true),
+                    assignments
+                })
+            };
+
+            foreach (V2Mutation mutation in mutations)
+                Assert.That(V2MutationPayloadCodec.Encode(V2MutationPayloadCodec.Decode(V2MutationPayloadCodec.Encode(mutation))), Is.EqualTo(V2MutationPayloadCodec.Encode(mutation)), mutation.Type.ToString());
+
+            V2MutationDescriptor descriptor = V2MutationDescriptor.Create(SceneIdForT09, IncarnationIdForT09, mutations[^1]);
+            Assert.That(descriptor.BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
+            Assert.That(descriptor.CoalescingKey, Is.Null);
+            Assert.That(descriptor.TouchedKeys, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void T11Codec_ContinuesDecodingLegacySchemaSitePresentationRecords()
+        {
+            byte[] payload;
+            using (var stream = new MemoryStream())
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                writer.Write((ushort)1); // Legacy V2 mutation payload schema.
+                writer.Write((ushort)V2OperationType.SetSiteLabels);
+                WriteLegacyText(writer, "column-a");
+                WriteLegacyText(writer, "site-a");
+                writer.Write((ushort)2);
+                WriteLegacyText(writer, "reviewed");
+                WriteLegacyText(writer, "legacy");
+                payload = stream.ToArray();
+            }
+
+            SetSiteLabels decoded = (SetSiteLabels)V2MutationPayloadCodec.Decode(payload);
+            Assert.That(decoded.ColumnId.Value, Is.EqualTo("column-a"));
+            Assert.That(decoded.SiteId.Value, Is.EqualTo("site-a"));
+            Assert.That(decoded.Labels, Is.EqualTo(new[] { "reviewed", "legacy" }));
         }
 
         [Test]
@@ -549,7 +627,7 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
-        public void ScenePresentationCheckpoint_AppliesTypedValuesWithoutEchoOrActivityInvalidation()
+        public void ScenePresentationCheckpoint_AppliesShowAllMaskPolicyWithoutEcho()
         {
             using var source = new BoundSceneFixture();
             using var target = new BoundSceneFixture();
@@ -557,12 +635,14 @@ namespace HBP.Tests.Transfer.Scene
             source.Boundary.MutationProposed += (_, mutation, _) => sourceMutations.Add(mutation);
 
             source.Scene.StrongCuts = true;
+            source.Scene.ShowAllSites = true;
             source.Scene.SiteGain = 1.5f;
             source.Scene.AtlasManager.AtlasAlpha = 0.4f;
             source.Scene.BrainMaterials.SetAlpha(0.6f);
 
             Assert.That(sourceMutations.Select(mutation => mutation.Type), Is.EquivalentTo(new[]
             {
+                V2OperationType.SetSceneBoolean,
                 V2OperationType.SetSceneBoolean,
                 V2OperationType.SetSceneFloat,
                 V2OperationType.SetSceneFloat,
@@ -590,15 +670,17 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(34));
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(33));
             Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(V2OperationType.SetSceneBoolean));
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == V2SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
+            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == V2SceneBooleanProperty.ShowAllSites), Is.True);
 
             var targetMutations = new List<V2Mutation>();
             target.Boundary.MutationProposed += (_, mutation, _) => targetMutations.Add(mutation);
             ResetSceneInvalidationFlags(target.Scene);
             target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
             target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            ulong inputGeneration = target.Scene.ActivityInputGeneration;
             try
             {
                 target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
@@ -609,13 +691,956 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             Assert.That(target.Scene.StrongCuts, Is.True);
+            Assert.That(target.Scene.ShowAllSites, Is.True);
             Assert.That(target.Scene.SiteGain, Is.EqualTo(1.5f));
             Assert.That(target.Scene.AtlasManager.AtlasAlpha, Is.EqualTo(0.4f));
             Assert.That(target.Scene.BrainMaterials.Alpha, Is.EqualTo(0.6f));
             Assert.That(targetMutations, Is.Empty);
-            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.False);
+            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.True);
             Assert.That(target.Scene.SceneInformation.ProjectionGridNeedsUpdate, Is.False);
             Assert.That(target.Scene.SceneInformation.GeometryNeedsUpdate, Is.False);
+            Assert.That(target.Scene.ActivityInputGeneration, Is.EqualTo(inputGeneration + 1));
+        }
+
+        [Test]
+        public void T11BlacklistInfluenceAndShowAll_ApplyThroughPreparedSceneTargets()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop);
+            var proposals = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+
+            fixture.Site.State.IsBlackListed = true;
+            Assert.That(proposals.Select(mutation => mutation.Type), Is.EqualTo(new[] { V2OperationType.SetSiteBlacklist }));
+            proposals.Clear();
+
+            fixture.Boundary.Apply(new SetSiteBlacklist(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), false), V2MutationApplicationOrigin.Remote, T09Operation(351));
+            fixture.Boundary.Apply(new SetInfluenceDistance(new ColumnId(fixture.Column.ColumnData.ID), 27.5f), V2MutationApplicationOrigin.Remote, T09Operation(352));
+            fixture.Boundary.Apply(new SetInfluenceDistance(new ColumnId(fixture.DynamicColumn.ColumnData.ID), 42.5f), V2MutationApplicationOrigin.Remote, T09Operation(357));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.False);
+            Assert.That(fixture.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(27.5f));
+            Assert.That(fixture.DynamicColumn.DynamicParameters.InfluenceDistance, Is.EqualTo(42.5f));
+            Assert.That(proposals, Is.Empty, "Remote application must not echo a T11 operation.");
+
+            ulong inputGeneration = fixture.Scene.ActivityInputGeneration;
+            fixture.Boundary.Apply(new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, true), V2MutationApplicationOrigin.Remote, T09Operation(353));
+            Assert.That(fixture.Scene.ShowAllSites, Is.True);
+            Assert.That(fixture.Site.State.IsOutOfROI, Is.True);
+            Assert.That(fixture.Scene.ActivityInputGeneration, Is.EqualTo(inputGeneration + 1), "ShowAllSites must invalidate the effective ROI mask once.");
+        }
+
+        [Test]
+        public void T11SiteConfigurationBatch_AppliesPersistedFieldsOnceAndCheckpointRestoresThem()
+        {
+            using var source = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var target = new BoundSceneFixture(V2OriginDevice.Quest);
+            source.Site.State.ApplySynchronizedState(true, true, true, new Color(0.15f, 0.35f, 0.55f, 0.75f), new[] { "reviewed", "T11" });
+            source.Site.State.IsFiltered = false;
+            var assignment = new V2SiteConfigurationAssignment(new ColumnId(source.Column.ColumnData.ID), new SiteId(source.Site.Information.FullID), false, false, 0.8f, 0.6f, 0.4f, 1f, new[] { "authoritative", "ordered" });
+            var batch = new SetSiteConfigurationBatch(new[] { assignment });
+            int stateChanges = 0;
+            target.Site.State.OnChangeState.AddListener(() => stateChanges++);
+            target.Site.State.IsFiltered = false;
+            stateChanges = 0;
+            var echoes = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            var invalidBatch = new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(new ColumnId(target.Column.ColumnData.ID), new SiteId(target.Site.Information.FullID), true, true, 0f, 1f, 0f, 1f, Array.Empty<string>()),
+                new V2SiteConfigurationAssignment(new ColumnId(target.Column.ColumnData.ID), new SiteId("missing-site"), true, true, 0f, 1f, 0f, 1f, Array.Empty<string>())
+            });
+            Assert.Throws<KeyNotFoundException>(() => target.Boundary.Apply(invalidBatch, V2MutationApplicationOrigin.Remote, T09Operation(360)));
+            Assert.That(target.Site.State.IsBlackListed, Is.False, "All assignment identities must validate before the first site changes.");
+
+            target.Boundary.Apply(batch, V2MutationApplicationOrigin.Remote, T09Operation(354));
+
+            Assert.That(target.Site.State.IsBlackListed, Is.False);
+            Assert.That(target.Site.State.IsHighlighted, Is.False);
+            Assert.That(target.Site.State.Color, Is.EqualTo(new Color(0.8f, 0.6f, 0.4f, 1f)));
+            Assert.That(target.Site.State.Labels, Is.EqualTo(new[] { "authoritative", "ordered" }));
+            Assert.That(target.Site.State.IsFiltered, Is.False, "Filter state is derived/local and is excluded from the persisted assignment payload.");
+            Assert.That(stateChanges, Is.EqualTo(1));
+            Assert.That(echoes, Is.Empty);
+
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(22, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            Assert.That(checkpoint.T11Records.Any(record => record.Value is SetSiteConfigurationBatch), Is.True);
+            target.Site.State.IsFiltered = true;
+            stateChanges = 0;
+            target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(355));
+
+            Assert.That(target.Site.State.IsBlackListed, Is.True);
+            Assert.That(target.Site.State.IsHighlighted, Is.True);
+            Assert.That(target.Site.State.Color, Is.EqualTo(new Color(0.15f, 0.35f, 0.55f, 0.75f)));
+            Assert.That(target.Site.State.Labels, Is.EqualTo(new[] { "reviewed", "T11" }));
+            Assert.That(target.Site.State.IsFiltered, Is.True);
+            Assert.That(echoes, Is.Empty);
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_PrevalidatesEveryChildBeforeApplyingAny()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop);
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), true),
+                new SetInfluenceDistance(new ColumnId("missing-column"), 40f)
+            });
+
+            Assert.Throws<KeyNotFoundException>(() => fixture.Boundary.Apply(transaction, V2MutationApplicationOrigin.Remote, T09Operation(356)));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.False);
+
+            var validTransaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), true),
+                new SetInfluenceDistance(new ColumnId(fixture.Column.ColumnData.ID), 31f)
+            });
+            fixture.Boundary.Apply(validTransaction, V2MutationApplicationOrigin.Remote, T09Operation(361));
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.True);
+            Assert.That(fixture.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(31f));
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_RejectsNonReversibleMovementAndTimelineChildrenBeforeApplying()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop);
+            var moveSites = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), true),
+                new MoveSites(V2SiteMoveCommand.Left)
+            });
+
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(moveSites, V2MutationApplicationOrigin.Remote, T09Operation(368)));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.False);
+
+            var timeline = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, true),
+                new SetTimelineAnchor(new ColumnId(fixture.Column.ColumnData.ID), 0, false, false, 1, 0, 1000)
+            });
+
+            Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(timeline, V2MutationApplicationOrigin.Remote, T09Operation(369)));
+            Assert.That(fixture.Scene.ShowAllSites, Is.False);
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_ValidatesStagedCutsRoisAndSelections()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop, configureCutCreation: true);
+            fixture.Scene.Columns.Clear();
+            var firstCutId = new CutId("t11-staged-cut-first");
+            var secondCutId = new CutId("t11-staged-cut-second");
+            var createCuts = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new CreateCut(firstCutId, new SetCutDefinition(firstCutId, V2CutOrientation.Custom, false, 1, 0f, 1f, 0f, 0f), 0),
+                new CreateCut(secondCutId, new SetCutDefinition(secondCutId, V2CutOrientation.Custom, false, 1, 0.5f, 1f, 0f, 0f), 1)
+            });
+
+            try
+            {
+                fixture.Boundary.Apply(createCuts, V2MutationApplicationOrigin.Remote, T09Operation(362));
+            }
+            catch (Exception exception)
+            {
+                Assert.Fail("Creating staged cuts failed: " + exception);
+            }
+
+            Assert.That(fixture.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { firstCutId.Value, secondCutId.Value }));
+
+            var replacement = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new DeleteCut(firstCutId),
+                new CreateCut(firstCutId, new SetCutDefinition(firstCutId, V2CutOrientation.Custom, true, 3, 0.25f, 0f, 1f, 0f), 0)
+            });
+            try
+            {
+                fixture.Boundary.Apply(replacement, V2MutationApplicationOrigin.Remote, T09Operation(363));
+            }
+            catch (Exception exception)
+            {
+                Assert.Fail("Replacing a staged cut failed: " + exception);
+            }
+
+            Assert.That(fixture.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { firstCutId.Value, secondCutId.Value }));
+            Assert.That(fixture.Scene.Cuts[0].Flip, Is.True);
+            Assert.That(fixture.Scene.Cuts[0].NumberOfCuts, Is.EqualTo(3));
+
+            var stagedRoiId = new RoiId("t11-staged-roi");
+            var stagedSphereId = new SphereId("t11-staged-sphere");
+            var createThenSelect = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new CreateRoi(stagedRoiId, "staged ROI", new[] { new V2RoiSphereDefinition(stagedSphereId, 1f, 2f, 3f, 4f) }, 1),
+                new SetSelectedRoiSphere(stagedRoiId.Value, stagedSphereId.Value),
+                new SetActiveRoi(stagedRoiId)
+            });
+            try
+            {
+                fixture.Boundary.Apply(createThenSelect, V2MutationApplicationOrigin.Remote, T09Operation(364));
+            }
+            catch (Exception exception)
+            {
+                Assert.Fail("Creating and selecting a staged ROI failed: " + exception);
+            }
+
+            ROI stagedRoi = fixture.Scene.ROIManager.ROIs.Single(roi => roi.ID == stagedRoiId.Value);
+            Assert.That(stagedRoi.SelectedSphereID, Is.EqualTo(0));
+            Assert.That(fixture.Scene.ROIManager.SelectedROI, Is.SameAs(stagedRoi));
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_RestoresCapturedStateAfterChildFailureAndSurfacesRollbackFailure()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), true),
+                new SetInfluenceDistance(new ColumnId(fixture.Column.ColumnData.ID), 31f)
+            });
+            int eventCount = 0;
+            UnityEngine.Events.UnityAction throwOnce = () =>
+            {
+                if (++eventCount == 1) throw new InvalidOperationException("injected application failure");
+            };
+            fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(throwOnce);
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            try
+            {
+                Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(transaction, V2MutationApplicationOrigin.Remote, T09Operation(365)));
+            }
+            finally
+            {
+                fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.RemoveListener(throwOnce);
+            }
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.False);
+            Assert.That(fixture.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(15f));
+            Assert.That(echoes, Is.Empty);
+
+            UnityEngine.Events.UnityAction alwaysThrow = () => throw new InvalidOperationException("injected rollback failure");
+            fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(alwaysThrow);
+            try
+            {
+                Assert.Throws<AggregateException>(() => fixture.Boundary.Apply(transaction, V2MutationApplicationOrigin.Remote, T09Operation(366)));
+            }
+            finally
+            {
+                fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.RemoveListener(alwaysThrow);
+            }
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_QuestRejectionRestoresCompleteOptimisticCheckpointWithoutEcho()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            bool originalBlacklist = fixture.Site.State.IsBlackListed;
+            bool originalHighlight = fixture.Site.State.IsHighlighted;
+            Color originalColor = fixture.Site.State.Color;
+            string[] originalLabels = fixture.Site.State.Labels.ToArray();
+            bool originalShowAllSites = fixture.Scene.ShowAllSites;
+            var assignment = new V2SiteConfigurationAssignment(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), !originalBlacklist, !originalHighlight, 0.12f, 0.34f, 0.56f, 0.78f, new[] { "optimistic", "configuration" });
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteConfigurationBatch(new[] { assignment }),
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            });
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal proposal = driver.ApplyOptimistic(transaction, T09Operation(367));
+
+            Assert.That(proposal, Is.Not.Null);
+            Assert.That(proposal.Mutation, Is.TypeOf<SetConfigurationTransaction>());
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(!originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(!originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(new Color(0.12f, 0.34f, 0.56f, 0.78f)));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(new[] { "optimistic", "configuration" }));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites));
+            Assert.That(echoes, Has.Count.EqualTo(1));
+
+            Assert.That(driver.ReceiveRejection(proposal.OperationId, "configuration_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(echoes, Has.Count.EqualTo(1), "Restoring an authoritative checkpoint after rejection must not echo child mutations.");
+        }
+
+        [Test]
+        public void T11D34BatchRejection_RebasesLaterTransactionRollbackCheckpointWithoutEcho()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            bool originalBlacklist = fixture.Site.State.IsBlackListed;
+            bool originalHighlight = fixture.Site.State.IsHighlighted;
+            Color originalColor = fixture.Site.State.Color;
+            string[] originalLabels = fixture.Site.State.Labels.ToArray();
+            bool originalShowAllSites = fixture.Scene.ShowAllSites;
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            var assignment = new V2SiteConfigurationAssignment(columnId, siteId, !originalBlacklist, !originalHighlight, 0.14f, 0.28f, 0.42f, 0.86f, new[] { "rejected", "batch", "ordered" });
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal batchProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { assignment }), T09Operation(936));
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            });
+            V2QuestMutationProposal transactionProposal = driver.ApplyOptimistic(transaction, T09Operation(937));
+
+            Assert.That(batchProposal, Is.Not.Null);
+            Assert.That(transactionProposal, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(!originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(!originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(new Color(0.14f, 0.28f, 0.42f, 0.86f)));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(new[] { "rejected", "batch", "ordered" }));
+
+            Assert.That(driver.ReceiveRejection(batchProposal.OperationId, "batch_rejected"), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+
+            Assert.That(driver.ReceiveRejection(transactionProposal.OperationId, "transaction_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.PendingProposalCount, Is.Zero, "Both rejected proposals must be removed.");
+            Assert.That(echoes, Has.Count.EqualTo(2), "Batch and transaction rollback must not publish mutation echoes.");
+        }
+
+        [Test]
+        public void T11D33TransactionBeforeD34Batch_RejectionPreservesEarlierCheckpointWithoutEcho()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            bool originalBlacklist = fixture.Site.State.IsBlackListed;
+            bool originalHighlight = fixture.Site.State.IsHighlighted;
+            Color originalColor = fixture.Site.State.Color;
+            string[] originalLabels = fixture.Site.State.Labels.ToArray();
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(columnId, siteId, !originalBlacklist)
+            });
+            V2QuestMutationProposal transactionProposal = driver.ApplyOptimistic(transaction, T09Operation(938));
+            var assignment = new V2SiteConfigurationAssignment(columnId, siteId, originalBlacklist, !originalHighlight, 0.18f, 0.36f, 0.54f, 0.72f, new[] { "later", "rejected", "batch" });
+            V2QuestMutationProposal batchProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { assignment }), T09Operation(939));
+
+            Assert.That(transactionProposal, Is.Not.Null);
+            Assert.That(batchProposal, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(!originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(new Color(0.18f, 0.36f, 0.54f, 0.72f)));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(new[] { "later", "rejected", "batch" }));
+
+            Assert.That(driver.ReceiveRejection(batchProposal.OperationId, "batch_rejected"), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(!originalBlacklist));
+
+            Assert.That(driver.ReceiveRejection(transactionProposal.OperationId, "transaction_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+            Assert.That(driver.PendingProposalCount, Is.Zero, "Both rejected proposals must be removed.");
+            Assert.That(echoes, Has.Count.EqualTo(2), "Batch and transaction rollback must not publish mutation echoes.");
+        }
+
+        [Test]
+        public void T11RejectedD34Batch_RebasesLaterBatchRollbackAndTransactionCheckpointWithoutEcho()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            bool originalBlacklist = fixture.Site.State.IsBlackListed;
+            bool originalHighlight = fixture.Site.State.IsHighlighted;
+            Color originalColor = fixture.Site.State.Color;
+            string[] originalLabels = fixture.Site.State.Labels.ToArray();
+            bool originalShowAllSites = fixture.Scene.ShowAllSites;
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            var firstAssignment = new V2SiteConfigurationAssignment(columnId, siteId, !originalBlacklist, !originalHighlight, 0.11f, 0.22f, 0.33f, 0.44f, new[] { "first", "rejected" });
+            var originalAssignment = new V2SiteConfigurationAssignment(columnId, siteId, originalBlacklist, originalHighlight, originalColor.r, originalColor.g, originalColor.b, originalColor.a, originalLabels);
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal firstBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { firstAssignment }), T09Operation(940));
+            V2QuestMutationProposal secondBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { originalAssignment }), T09Operation(941));
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            });
+            V2QuestMutationProposal configuration = driver.ApplyOptimistic(transaction, T09Operation(942));
+
+            Assert.That(firstBatch, Is.Not.Null);
+            Assert.That(secondBatch, Is.Not.Null);
+            Assert.That(configuration, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(3));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites));
+
+            Assert.That(driver.ReceiveRejection(firstBatch.OperationId, "first_batch_rejected"), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+
+            Assert.That(driver.ReceiveRejection(secondBatch.OperationId, "second_batch_rejected"), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+
+            Assert.That(driver.ReceiveRejection(configuration.OperationId, "configuration_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(fixture.Site.State.IsHighlighted, Is.EqualTo(originalHighlight));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(originalColor));
+            Assert.That(fixture.Site.State.Labels, Is.EqualTo(originalLabels));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.PendingProposalCount, Is.Zero, "All three rejected proposals must be removed.");
+            Assert.That(echoes, Has.Count.EqualTo(3), "Batch and transaction rollback must not publish mutation echoes.");
+        }
+
+        [Test]
+        public void T11RejectedD34Batch_PreservesCanonicalSiteValueBeforeLaterTransactionCheckpoint()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var columnId = new ColumnId(quest.Column.ColumnData.ID);
+            var siteId = new SiteId(quest.Site.Information.FullID);
+            Color white = Color.white;
+            Color red = new(0.85f, 0.12f, 0.18f, 1f);
+            Color blue = new(0.12f, 0.24f, 0.88f, 1f);
+            bool originalShowAllSites = quest.Scene.ShowAllSites;
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(943));
+            quest.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(944));
+            var echoes = new List<V2Mutation>();
+            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            var canonicalMutations = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += canonicalMutations.Add;
+
+            V2QuestMutationProposal batchProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, quest.Site.State.IsBlackListed, quest.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, quest.Site.State.Labels)
+            }), T09Operation(945));
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), blue.r, blue.g, blue.b, blue.a), V2MutationApplicationOrigin.LocalDesktop, T09Operation(946));
+            Assert.That(canonicalMutations, Has.Count.EqualTo(1));
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(blue));
+            V2QuestMutationProposal transactionProposal = driver.ApplyOptimistic(new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !quest.Scene.ShowAllSites)
+            }), T09Operation(947));
+
+            Assert.That(batchProposal, Is.Not.Null);
+            Assert.That(transactionProposal, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(quest.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites));
+            Assert.That(driver.ReceiveRejection(batchProposal.OperationId, "batch_rejected"), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(blue), "Rejecting the earlier batch must preserve the intervening canonical color.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.ReceiveRejection(transactionProposal.OperationId, "transaction_rejected"), Is.True);
+
+            Assert.That(quest.Site.State.Color, Is.EqualTo(blue), "The later transaction checkpoint must retain the canonical color it captured.");
+            Assert.That(quest.Site.State.Color, Is.Not.EqualTo(white));
+            Assert.That(quest.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL), "Rollback must not rewind the canonical watermark.");
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(echoes, Has.Count.EqualTo(2), "Conditional rollback and checkpoint restore must not publish echoes.");
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.False, "Canonical deduplication must survive both rejections.");
+            Assert.That(quest.Site.State.Color, Is.EqualTo(blue));
+        }
+
+        [Test]
+        public void T11RejectedEarlierD34Batch_PreservesLaterPendingBatchThroughCanonicalConfirmation()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var columnId = new ColumnId(quest.Column.ColumnData.ID);
+            var siteId = new SiteId(quest.Site.Information.FullID);
+            Color white = Color.white;
+            Color red = new(0.82f, 0.1f, 0.16f, 1f);
+            Color green = new(0.08f, 0.76f, 0.24f, 1f);
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(948));
+            quest.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(949));
+            var echoes = new List<V2Mutation>();
+            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal firstProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, quest.Site.State.IsBlackListed, quest.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, quest.Site.State.Labels)
+            }), T09Operation(950));
+            V2QuestMutationProposal secondProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, quest.Site.State.IsBlackListed, quest.Site.State.IsHighlighted, green.r, green.g, green.b, green.a, quest.Site.State.Labels)
+            }), T09Operation(951));
+
+            Assert.That(firstProposal, Is.Not.Null);
+            Assert.That(secondProposal, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green));
+            Assert.That(driver.ReceiveRejection(firstProposal.OperationId, "first_batch_rejected"), Is.True);
+
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green), "Rejecting the older batch must leave the newer pending assignment visible.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            V2DesktopProposalResult acceptedSecond = authority.AcceptQuestProposal(secondProposal);
+            Assert.That(acceptedSecond.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(acceptedSecond.CanonicalMutation), Is.False, "The matching canonical should confirm the pending green batch without applying it again.");
+
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(echoes, Has.Count.EqualTo(2), "Rejecting and confirming batches must not publish mutation echoes.");
+            Assert.That(driver.ReceiveCanonical(acceptedSecond.CanonicalMutation), Is.False, "Canonical deduplication must remain active after confirmation.");
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+        }
+
+        [Test]
+        public void T11RejectedD34Batch_PreservesSameValueAuthoritativeWriteAcrossTransactionRollback()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            var desktopColumnId = new ColumnId(desktop.Column.ColumnData.ID);
+            var desktopSiteId = new SiteId(desktop.Site.Information.FullID);
+            var questColumnId = new ColumnId(quest.Column.ColumnData.ID);
+            var questSiteId = new SiteId(quest.Site.Information.FullID);
+            Color white = Color.white;
+            Color red = new(0.86f, 0.13f, 0.19f, 1f);
+            desktop.Boundary.Apply(new SetSiteColor(desktopColumnId, desktopSiteId, white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(952));
+            quest.Boundary.Apply(new SetSiteColor(questColumnId, questSiteId, white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(953));
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var echoes = new List<V2Mutation>();
+            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            var canonicalMutations = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += canonicalMutations.Add;
+
+            V2QuestMutationProposal rejectedBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(questColumnId, questSiteId, quest.Site.State.IsBlackListed, quest.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, quest.Site.State.Labels)
+            }), T09Operation(954));
+            // Desktop accepts the same red value from another operation. Applying the
+            // canonical on Quest is a value no-op, but it must replace O's field owner.
+            desktop.Boundary.Apply(new SetSiteColor(desktopColumnId, desktopSiteId, red.r, red.g, red.b, red.a), V2MutationApplicationOrigin.LocalDesktop, T09Operation(955));
+            Assert.That(canonicalMutations, Has.Count.EqualTo(1));
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(red));
+            bool originalShowAllSites = quest.Scene.ShowAllSites;
+            V2QuestMutationProposal rejectedTransaction = driver.ApplyOptimistic(new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            }), T09Operation(956));
+
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(driver.ReceiveRejection(rejectedBatch.OperationId, "batch_rejected"), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(red), "The matching-value canonical owns the field after O is rejected.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.ReceiveRejection(rejectedTransaction.OperationId, "transaction_rejected"), Is.True);
+
+            Assert.That(quest.Site.State.Color, Is.EqualTo(red), "The transaction checkpoint must preserve the canonical writer it captured.");
+            Assert.That(quest.Site.State.Color, Is.Not.EqualTo(white));
+            Assert.That(quest.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(echoes, Has.Count.EqualTo(2), "Both rejections must suppress mutation echoes.");
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.False, "Canonical deduplication must survive both rejections.");
+            Assert.That(quest.Site.State.Color, Is.EqualTo(red));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+        }
+
+        [Test]
+        public void T11RejectedEarlierD34Batch_PreservesLaterSameValuePendingAssignmentByProvenance()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            Color white = Color.white;
+            Color red = new(0.84f, 0.11f, 0.17f, 1f);
+            Color green = new(0.09f, 0.77f, 0.23f, 1f);
+            fixture.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), V2MutationApplicationOrigin.Remote, T09Operation(957));
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal first = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, fixture.Site.State.IsBlackListed, fixture.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, fixture.Site.State.Labels)
+            }), T09Operation(958));
+            V2QuestMutationProposal second = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, fixture.Site.State.IsBlackListed, fixture.Site.State.IsHighlighted, green.r, green.g, green.b, green.a, fixture.Site.State.Labels)
+            }), T09Operation(959));
+            V2QuestMutationProposal third = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, fixture.Site.State.IsBlackListed, fixture.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, fixture.Site.State.Labels)
+            }), T09Operation(960));
+
+            Assert.That(first, Is.Not.Null);
+            Assert.That(second, Is.Not.Null);
+            Assert.That(third, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(3));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(red));
+            Assert.That(driver.ReceiveRejection(first.OperationId, "first_batch_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(red), "The newest red write must remain even though it matches the rejected operation's value.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.Zero);
+            Assert.That(echoes, Has.Count.EqualTo(3), "Rejecting O1 must not echo a rollback over O3.");
+
+            Assert.That(driver.ReceiveRejection(third.OperationId, "third_batch_rejected"), Is.True);
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(green), "O3 rejection must restore the O2-owned green value.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.ReceiveRejection(second.OperationId, "second_batch_rejected"), Is.True);
+
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(white), "Rebased O2 rollback must not resurrect rejected O1's red value.");
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.LastObservedCanonicalSequence, Is.Zero);
+            Assert.That(echoes, Has.Count.EqualTo(3), "All three rollback applications must suppress mutation echoes.");
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_QuestProposalAcceptsStagedRoiSelectionAndSuppressesCanonicalEcho()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            int questProposalEvents = 0;
+            int confirmations = 0;
+            quest.Boundary.MutationProposed += (_, _, _) => questProposalEvents++;
+            driver.ProposalConfirmed += _ => confirmations++;
+            V2DesktopProposalResult admission = null;
+            bool expectStaleRejection = false;
+            driver.ProposalQueued += proposal =>
+            {
+                admission = authority.AcceptQuestProposal(proposal);
+                if (expectStaleRejection) return;
+                Assert.That(admission.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                Assert.That(driver.ReceiveCanonical(admission.CanonicalMutation), Is.False, "A matching canonical echo must only confirm the optimistic transaction.");
+            };
+
+            var roiId = new RoiId("t11-quest-staged-roi");
+            var sphereId = new SphereId("t11-quest-staged-sphere");
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new CreateRoi(roiId, "Quest staged ROI", new[] { new V2RoiSphereDefinition(sphereId, 1f, 2f, 3f, 4f) }, 1),
+                new SetSelectedRoiSphere(roiId.Value, sphereId.Value)
+            });
+
+            V2QuestMutationProposal proposal = driver.ApplyOptimistic(transaction, T09Operation(370));
+
+            Assert.That(proposal, Is.Not.Null);
+            Assert.That(admission?.CanonicalMutation?.Mutation, Is.TypeOf<SetConfigurationTransaction>());
+            ROI questRoi = quest.Scene.ROIManager.ROIs.Single(roi => roi.ID == roiId.Value);
+            ROI desktopRoi = desktop.Scene.ROIManager.ROIs.Single(roi => roi.ID == roiId.Value);
+            Assert.That(questRoi.SelectedSphereID, Is.EqualTo(0));
+            Assert.That(desktopRoi.SelectedSphereID, Is.EqualTo(questRoi.SelectedSphereID));
+            Assert.That(questProposalEvents, Is.EqualTo(1), "The staged child applications must publish only the transaction envelope.");
+            Assert.That(confirmations, Is.EqualTo(1));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+
+            driver.AdvanceCanonicalWatermark(2);
+            expectStaleRejection = true;
+            var staleRoiId = new RoiId("t11-quest-stale-staged-roi");
+            var staleSphereId = new SphereId("t11-quest-stale-staged-sphere");
+            var staleTransaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new CreateRoi(staleRoiId, "Stale staged ROI", new[] { new V2RoiSphereDefinition(staleSphereId, 5f, 6f, 7f, 8f) }, 2),
+                new SetSelectedRoiSphere(staleRoiId.Value, staleSphereId.Value)
+            });
+            V2QuestMutationProposal staleProposal = driver.ApplyOptimistic(staleTransaction, T09Operation(375));
+            Assert.That(admission.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(admission.RejectionCode, Is.EqualTo("stale_sequence"));
+            Assert.That(admission.Correction, Is.Null, "A transaction with staged identities uses checkpoint rollback instead of an invalid per-child correction.");
+            Assert.That(driver.ReceiveRejection(staleProposal.OperationId, admission.RejectionCode), Is.True);
+            Assert.That(quest.Scene.ROIManager.ROIs.Any(roi => roi.ID == staleRoiId.Value), Is.False);
+            Assert.That(quest.Scene.ROIManager.ROIs.Any(roi => roi.ID == roiId.Value), Is.True);
+            Assert.That(questProposalEvents, Is.EqualTo(2), "The rejected transaction and its child rollback must not emit extra proposals.");
+        }
+
+        [Test]
+        public void T11ConfigurationTransaction_RejectionReplaysInterveningCanonicalsAndKeepsSequenceHistory()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            bool originalBlacklist = quest.Site.State.IsBlackListed;
+            float originalInfluence = quest.Column.AnatomyParameters.InfluenceDistance;
+            bool originalShowAllSites = quest.Scene.ShowAllSites;
+            var echoes = new List<V2Mutation>();
+            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSiteBlacklist(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID), !originalBlacklist),
+                new SetInfluenceDistance(new ColumnId(quest.Column.ColumnData.ID), originalInfluence + 11f)
+            });
+            V2QuestMutationProposal proposal = driver.ApplyOptimistic(transaction, T09Operation(371));
+            var acceptedCanonicals = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += acceptedCanonicals.Add;
+            V2QuestMutationProposal laterOptimistic = driver.ApplyOptimistic(new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites), T09Operation(374));
+            Assert.That(laterOptimistic, Is.Not.Null);
+
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), 0.15f, 0.25f, 0.35f, 1f), V2MutationApplicationOrigin.LocalDesktop, T09Operation(372));
+            Assert.That(acceptedCanonicals, Has.Count.EqualTo(1));
+            Assert.That(driver.ReceiveCanonical(acceptedCanonicals[0]), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(desktop.Site.State.Color));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+
+            Assert.That(driver.ReceiveRejection(proposal.OperationId, "configuration_rejected"), Is.True);
+
+            Assert.That(quest.Site.State.IsBlackListed, Is.EqualTo(originalBlacklist));
+            Assert.That(quest.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(originalInfluence));
+            Assert.That(quest.Site.State.Color, Is.EqualTo(desktop.Site.State.Color), "Rollback must replay an accepted canonical that arrived after the transaction began.");
+            Assert.That(quest.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites), "Rollback must replay a later optimistic edit as well as intervening canonicals.");
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1), "The later optimistic proposal must remain pending after replay.");
+            Assert.That(echoes, Has.Count.EqualTo(2), "Checkpoint rollback and replay must not publish duplicate optimistic proposals.");
+            Assert.That(driver.ReceiveCanonical(acceptedCanonicals[0]), Is.False, "Canonical operation deduplication must survive rollback.");
+
+            V2DesktopProposalResult acceptedLaterOptimistic = authority.AcceptQuestProposal(laterOptimistic);
+            Assert.That(acceptedLaterOptimistic.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(acceptedLaterOptimistic.CanonicalMutation), Is.False);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), 0.65f, 0.55f, 0.45f, 1f), V2MutationApplicationOrigin.LocalDesktop, T09Operation(373));
+            Assert.That(acceptedCanonicals, Has.Count.EqualTo(3));
+            Assert.That(driver.ReceiveCanonical(acceptedCanonicals[2]), Is.True);
+            Assert.That(quest.Site.State.Color, Is.EqualTo(desktop.Site.State.Color));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(3UL));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void T11ConfigurationTransaction_RejectionReplaysCorrectionAtItsApplicationOrder()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            bool originalShowAllSites = quest.Scene.ShowAllSites;
+            var echoes = new List<V2Mutation>();
+            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            var transaction = new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            });
+            V2QuestMutationProposal rejectedTransaction = driver.ApplyOptimistic(transaction, T09Operation(378));
+            Assert.That(rejectedTransaction, Is.Not.Null);
+
+            var optimisticColor = driver.ApplyOptimistic(new SetSiteColor(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID), 0.9f, 0.1f, 0.2f, 1f), T09Operation(379));
+            Assert.That(optimisticColor, Is.Not.Null);
+            var canonicalMutations = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += canonicalMutations.Add;
+
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), 0.1f, 0.2f, 0.8f, 1f), V2MutationApplicationOrigin.LocalDesktop, T09Operation(380));
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.True);
+            Color blue = quest.Site.State.Color;
+
+            // The newer green canonical is accepted but delayed in transit. Desktop
+            // returns it as the current-value correction for the older optimistic O.
+            desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), 0.1f, 0.8f, 0.2f, 1f), V2MutationApplicationOrigin.LocalDesktop, T09Operation(381));
+            Assert.That(canonicalMutations, Has.Count.EqualTo(2));
+            V2DesktopProposalResult rejectedColor = authority.AcceptQuestProposal(optimisticColor);
+            Assert.That(rejectedColor.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(rejectedColor.Correction, Is.Not.Null);
+            Assert.That(rejectedColor.Correction.OperationId, Is.EqualTo(optimisticColor.OperationId));
+            Assert.That(rejectedColor.Correction.CanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(driver.ReceiveCorrection(rejectedColor.Correction), Is.True);
+            Color green = quest.Site.State.Color;
+            Assert.That(green, Is.Not.EqualTo(blue));
+
+            Assert.That(driver.ReceiveRejection(rejectedTransaction.OperationId, "configuration_rejected"), Is.True);
+
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green), "A correction must replay after an earlier canonical that it superseded.");
+            Assert.That(quest.Scene.ShowAllSites, Is.EqualTo(originalShowAllSites));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(echoes, Has.Count.EqualTo(2), "Transaction rollback and authoritative replay must not emit optimistic echoes.");
+            Assert.That(driver.ReceiveCanonical(canonicalMutations[1]), Is.False, "The delayed green canonical must be ignored after its newer correction was applied.");
+            Assert.That(quest.Site.State.Color, Is.EqualTo(green));
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void T11ConfigurationTransaction_ReplayFailureAbandonsPendingProposalsAndRequiresFreshSynchronization()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Quest);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, new TestClock(0));
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            var columnId = new ColumnId(fixture.Column.ColumnData.ID);
+            var siteId = new SiteId(fixture.Site.Information.FullID);
+            bool originalShowAllSites = fixture.Scene.ShowAllSites;
+            float originalInfluenceDistance = fixture.Column.AnatomyParameters.InfluenceDistance;
+            float optimisticInfluenceDistance = originalInfluenceDistance + 6f;
+            Color red = new(0.87f, 0.12f, 0.18f, 1f);
+            var echoes = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+
+            V2QuestMutationProposal transaction = driver.ApplyOptimistic(new SetConfigurationTransaction(new V2Mutation[]
+            {
+                new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
+            }), T09Operation(961));
+            V2QuestMutationProposal batch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
+            {
+                new V2SiteConfigurationAssignment(columnId, siteId, fixture.Site.State.IsBlackListed, fixture.Site.State.IsHighlighted, red.r, red.g, red.b, red.a, fixture.Site.State.Labels)
+            }), T09Operation(962));
+            V2QuestMutationProposal influence = driver.ApplyOptimistic(new SetInfluenceDistance(columnId, optimisticInfluenceDistance), T09Operation(963));
+
+            Assert.That(transaction, Is.Not.Null);
+            Assert.That(batch, Is.Not.Null, "The D34 batch remains a pending proposal before replay begins.");
+            Assert.That(influence, Is.Not.Null);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(3));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(red));
+            Assert.That(fixture.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(optimisticInfluenceDistance));
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites));
+            Assert.That(echoes, Has.Count.EqualTo(3));
+
+            int influenceUpdateCount = 0;
+            bool failNextInfluenceUpdate = true;
+            UnityEngine.Events.UnityAction throwOnce = () =>
+            {
+                influenceUpdateCount++;
+                if (!failNextInfluenceUpdate || influenceUpdateCount < 2) return;
+                failNextInfluenceUpdate = false;
+                throw new InvalidOperationException("injected one-shot rejection replay failure");
+            };
+            fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(throwOnce);
+            try
+            {
+                InvalidOperationException failure = Assert.Throws<InvalidOperationException>(() => driver.ReceiveRejection(transaction.OperationId, "configuration_rejected"));
+                Assert.That(failure.Message, Does.Contain("fresh scene publish is required"));
+            }
+            finally
+            {
+                fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.RemoveListener(throwOnce);
+            }
+
+            Assert.That(influenceUpdateCount, Is.GreaterThanOrEqualTo(2));
+            Assert.That(failNextInfluenceUpdate, Is.False, "The injected failure must occur during replay.");
+            Assert.That(fixture.Scene.ShowAllSites, Is.EqualTo(!originalShowAllSites), "Recovery restores the captured visible scene until a fresh scene is published.");
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(red), "Recovery preserves the remaining D34 assignment visibly.");
+            Assert.That(fixture.Column.AnatomyParameters.InfluenceDistance, Is.EqualTo(optimisticInfluenceDistance));
+            Assert.That(driver.PendingProposalCount, Is.Zero, "A failed replay abandons T, the D34 batch and later proposals together.");
+            Assert.That(driver.AbandonedProposalCount, Is.EqualTo(3));
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.OfflineLocal));
+            Assert.That(driver.TryGetNextTransmission(out _), Is.False, "Abandoned proposals must no longer be sent.");
+            Assert.That(driver.ReceiveRejection(batch.OperationId, "batch_rejected"), Is.False, "The abandoned D34 proposal cannot be rolled back independently after recovery failure.");
+            Assert.That(echoes, Has.Count.EqualTo(3), "Checkpoint restoration and proposal invalidation must not echo mutations.");
+        }
+
+        private static void WriteLegacyText(BinaryWriter writer, string value)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write(checked((ushort)bytes.Length));
+            writer.Write(bytes);
+        }
+
+        [Test]
+        public void T11PreparedColumnResources_ObserveStableSelectionsAndRestoreCheckpoint()
+        {
+            using var source = new T11PreparedResourceFixture();
+            using var target = new T11PreparedResourceFixture();
+            source.Boundary.BindPreparedResources(CreateT11PreparedBinding(source.Scene));
+            target.Boundary.BindPreparedResources(CreateT11PreparedBinding(target.Scene));
+            var proposed = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+
+            source.StaticColumn.SelectedLabelIndex = 1;
+            source.StaticColumn.StaticParameters.InfluenceDistance = 17f;
+            source.FmriColumn.SelectedFMRIIndex = 1;
+            source.MegColumn.SelectedMEGIndex = 1;
+
+            SetColumnResource[] resourceProposals = proposed.OfType<SetColumnResource>().ToArray();
+            Assert.That(resourceProposals.Select(mutation => mutation.Kind), Is.EqualTo(new[]
+            {
+                V2ColumnResourceKind.StaticLabel,
+                V2ColumnResourceKind.FmriResource,
+                V2ColumnResourceKind.MegResource
+            }));
+            Assert.That(resourceProposals.Select(mutation => mutation.ResourceReference).All(reference => reference.Length > 0), Is.True);
+            Assert.That(proposed.OfType<SetInfluenceDistance>().Any(mutation => mutation.ColumnId.Value == source.StaticColumn.ColumnData.ID), Is.True);
+
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(23, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            var echoes = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(358));
+
+            Assert.That(target.StaticColumn.SelectedLabelIndex, Is.EqualTo(1));
+            Assert.That(target.StaticColumn.StaticParameters.InfluenceDistance, Is.EqualTo(17f));
+            Assert.That(target.FmriColumn.SelectedFMRIIndex, Is.EqualTo(1));
+            Assert.That(target.MegColumn.SelectedMEGIndex, Is.EqualTo(1));
+            Assert.That(echoes, Is.Empty);
+        }
+
+        [Test]
+        public void T11CcepSource_CheckpointRestoresTheCompleteSiteSelectionWithoutEcho()
+        {
+            using var source = new T11CcepFixture();
+            using var target = new T11CcepFixture();
+            var proposed = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+
+            source.Column.ApplySynchronizedSource(Column3DCCEP.CCEPMode.Site, source.Site, -1);
+            source.Column.DynamicParameters.InfluenceDistance = 19f;
+            source.Column.DynamicParameters.ApplySynchronizedSpanValues(-2f, 0.25f, 3f);
+
+            SetCcepSource proposal = proposed.OfType<SetCcepSource>().Single();
+            Assert.That(proposal.Mode, Is.EqualTo(V2CcepSourceMode.Site));
+            Assert.That(proposal.SourceSiteId.Value, Is.EqualTo(source.Site.Information.FullID));
+            Assert.That(proposal.MarsAtlasLabel, Is.EqualTo(-1));
+
+            V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(24, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            Assert.That(checkpoint.T11Records.Any(record => record.Value is SetCcepSource), Is.True);
+            var echoes = new List<V2Mutation>();
+            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(359));
+
+            Assert.That(target.Column.Mode, Is.EqualTo(Column3DCCEP.CCEPMode.Site));
+            Assert.That(target.Column.SelectedSourceSite, Is.SameAs(target.Site));
+            Assert.That(target.Column.DynamicParameters.InfluenceDistance, Is.EqualTo(19f));
+            Assert.That(target.Column.DynamicParameters.SpanMin, Is.EqualTo(-2f));
+            Assert.That(target.Column.DynamicParameters.Middle, Is.EqualTo(0.25f));
+            Assert.That(target.Column.DynamicParameters.SpanMax, Is.EqualTo(3f));
+            Assert.That(echoes, Is.Empty);
         }
 
         [Test]
@@ -630,6 +1655,7 @@ namespace HBP.Tests.Transfer.Scene
             source.Scene.SelectSiteForSynchronization(source.Column, source.Site);
             source.Site.State.IsHighlighted = true;
             source.Site.State.AddLabel("reviewed");
+            source.Scene.ShowAllSites = true;
             source.Column.ActivityAlpha = 0.35f;
 
             Assert.That(proposals.Select(mutation => mutation.Type), Is.EquivalentTo(new[]
@@ -638,6 +1664,7 @@ namespace HBP.Tests.Transfer.Scene
                 V2OperationType.SetSelectedSite,
                 V2OperationType.SetSiteHighlight,
                 V2OperationType.SetSiteLabels,
+                V2OperationType.SetSceneBoolean,
                 V2OperationType.SetActivityAlpha
             }));
 
@@ -647,6 +1674,7 @@ namespace HBP.Tests.Transfer.Scene
             target.Boundary.MutationProposed += (_, mutation, _) => appliedProposals.Add(mutation);
             target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
             target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            target.Scene.SceneInformation.GeneratorNeedsUpdate = false;
             ulong projectionGeneration = target.Scene.ProjectionGeneration;
             ulong activityInputGeneration = target.Scene.ActivityInputGeneration;
 
@@ -659,8 +1687,8 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(target.Column.ActivityAlpha, Is.EqualTo(0.35f));
             Assert.That(appliedProposals, Is.Empty);
             Assert.That(target.Scene.ProjectionGeneration, Is.EqualTo(projectionGeneration));
-            Assert.That(target.Scene.ActivityInputGeneration, Is.EqualTo(activityInputGeneration));
-            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.False);
+            Assert.That(target.Scene.ActivityInputGeneration, Is.EqualTo(activityInputGeneration + 1));
+            Assert.That(target.Scene.SceneInformation.GeneratorNeedsUpdate, Is.True, "ShowAllSites changes the effective ROI mask and invalidates activity inputs.");
             Assert.That(target.Scene.SceneInformation.ProjectionGridNeedsUpdate, Is.False);
             Assert.That(target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate, Is.False);
         }
@@ -852,7 +1880,8 @@ namespace HBP.Tests.Transfer.Scene
             source.Timeline.IsLooping = true;
 
             V2SceneMutationCheckpoint checkpoint = source.Boundary.CaptureCheckpoint();
-            Assert.That(checkpoint.SiteColors, Has.Count.EqualTo(1));
+            Assert.That(checkpoint.SiteColors, Is.Empty);
+            Assert.That(checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments, Has.Count.EqualTo(1));
             Assert.That(checkpoint.CutDefinitions, Has.Count.EqualTo(1));
             Assert.That(checkpoint.TimelineAnchors, Has.Count.EqualTo(1));
             var targetProposals = new List<V2Mutation>();
@@ -1289,6 +2318,103 @@ namespace HBP.Tests.Transfer.Scene
             }
         }
 
+        private sealed class T11PreparedResourceFixture : IDisposable
+        {
+            public GameObject Root { get; }
+            public Base3DScene Scene { get; }
+            public Column3DStatic StaticColumn { get; }
+            public Column3DFMRI FmriColumn { get; }
+            public Column3DMEG MegColumn { get; }
+            public V2SceneMutationBoundary Boundary { get; }
+
+            public T11PreparedResourceFixture()
+            {
+                Root = new GameObject("T11 prepared resources");
+                Root.SetActive(false);
+                Scene = Root.AddComponent<Base3DScene>();
+
+                StaticColumn = Root.AddComponent<Column3DStatic>();
+                var staticData = new StaticColumn("t11-static", new BaseConfiguration(), null, string.Empty, new StaticConfiguration(), "t11-static-column");
+                staticData.Data.ValueByChannelIDByLabel.Add("static-a", new Dictionary<string, float> { ["site"] = 0.25f });
+                staticData.Data.ValueByChannelIDByLabel.Add("static-b", new Dictionary<string, float> { ["site"] = 0.75f });
+                SetAutoProperty(StaticColumn, "ColumnData", staticData);
+                SetAutoProperty(StaticColumn, "Labels", new[] { "static-a", "static-b" });
+                SetAutoProperty(StaticColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                Scene.Columns.Add(StaticColumn);
+
+                FmriColumn = Root.AddComponent<Column3DFMRI>();
+                var fmriData = new FMRIColumn("t11-fmri", new BaseConfiguration(), null, new FMRIConfiguration(), "t11-fmri-column");
+                fmriData.Data.FMRIs.Add(Tuple.Create(CreateLoadedFmri("fmri-a"), (Patient)null));
+                fmriData.Data.FMRIs.Add(Tuple.Create(CreateLoadedFmri("fmri-b"), (Patient)null));
+                SetAutoProperty(FmriColumn, "ColumnData", fmriData);
+                SetAutoProperty(FmriColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                Scene.Columns.Add(FmriColumn);
+
+                MegColumn = Root.AddComponent<Column3DMEG>();
+                var megData = new MEGColumn("t11-meg", new BaseConfiguration(), null, new MEGConfiguration(), "t11-meg-column");
+                megData.Data.MEGItems.Add(new HBP.Core.Data.Processed.MEGItem { Label = "meg-a", ValuesByChannel = new Dictionary<string, float[]> { ["channel"] = Array.Empty<float>() } });
+                megData.Data.MEGItems.Add(new HBP.Core.Data.Processed.MEGItem { Label = "meg-b", ValuesByChannel = new Dictionary<string, float[]> { ["channel"] = Array.Empty<float>() } });
+                SetAutoProperty(MegColumn, "ColumnData", megData);
+                SetAutoProperty(MegColumn, "Sites", new List<HBP.Core.Object3D.Site>());
+                Scene.Columns.Add(MegColumn);
+
+                Boundary = new V2SceneMutationBoundary(Scene, V2OriginDevice.Desktop, new TestClock(0));
+            }
+
+            private static HBP.Core.Object3D.FMRI CreateLoadedFmri(string name)
+            {
+                var fmri = new HBP.Core.Object3D.FMRI { Name = name };
+                SetAutoProperty(fmri, "Loaded", true);
+                return fmri;
+            }
+
+            public void Dispose()
+            {
+                Boundary.Dispose();
+                Object.DestroyImmediate(Root);
+            }
+        }
+
+        private sealed class T11CcepFixture : IDisposable
+        {
+            public GameObject Root { get; }
+            public Base3DScene Scene { get; }
+            public Column3DCCEP Column { get; }
+            public HBP.Core.Object3D.Site Site { get; }
+            public V2SceneMutationBoundary Boundary { get; }
+
+            public T11CcepFixture()
+            {
+                Root = new GameObject("T11 CCEP source");
+                Root.SetActive(false);
+                Scene = Root.AddComponent<Base3DScene>();
+                var columnData = new CCEPColumn("t11-ccep", new BaseConfiguration(), null, string.Empty, null, new CCEPConfiguration(), "t11-ccep-column");
+                columnData.Data.ProjectionTimeline = (Timeline)FormatterServices.GetUninitializedObject(typeof(Timeline));
+
+                const string patientId = "60000000-0000-0000-0000-000000000011";
+                var patient = new Patient { ID = patientId, Name = "t11-patient" };
+                var siteObject = new GameObject("t11-source-site");
+                siteObject.transform.SetParent(Root.transform, false);
+                Site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                Site.Information = new SiteInformation { Patient = patient, Name = "t11-source-site", Index = 0 };
+                Site.State = new SiteState();
+                columnData.Data.ProcessedValuesByChannelIDByStimulatedChannelID.Add(Site.Information.FullID, new Dictionary<string, float[]>());
+
+                Column = Root.AddComponent<Column3DCCEP>();
+                SetAutoProperty(Column, "ColumnData", columnData);
+                SetAutoProperty(Column, "Sites", new List<HBP.Core.Object3D.Site> { Site });
+                SetAutoProperty(Column, "Sources", new List<HBP.Core.Object3D.Site> { Site });
+                Scene.Columns.Add(Column);
+                Boundary = new V2SceneMutationBoundary(Scene, V2OriginDevice.Desktop, new TestClock(0));
+            }
+
+            public void Dispose()
+            {
+                Boundary.Dispose();
+                Object.DestroyImmediate(Root);
+            }
+        }
+
         private sealed class BoundSceneFixture : IDisposable
         {
             public GameObject Root { get; }
@@ -1566,6 +2692,39 @@ namespace HBP.Tests.Transfer.Scene
             writer.Write(new byte[] { (byte)'n', (byte)'+', (byte)'1', 0 });
             stream.Position = 352;
             writer.Write(Enumerable.Range(0, 24).Select(i => (byte)i).ToArray());
+        }
+
+        private static PreparedSceneDeliveryBinding CreateT11PreparedBinding(Base3DScene scene)
+        {
+            var columns = new JArray();
+            foreach (Column3D column in scene.Columns)
+            {
+                var functional = new JArray();
+                if (column is Column3DFMRI fmriColumn)
+                    foreach (var item in fmriColumn.ColumnFMRIData.Data.FMRIs)
+                        functional.Add(new JObject { ["Name"] = item.Item1.Name, ["PatientId"] = item.Item2?.ID, ["File"] = null, ["Mask"] = null });
+                else if (column is Column3DMEG megColumn)
+                    foreach (HBP.Core.Data.Processed.MEGItem item in megColumn.ColumnMEGData.Data.MEGItems)
+                        functional.Add(new JObject { ["Name"] = item.Label, ["PatientId"] = item.Patient?.ID, ["File"] = null, ["Mask"] = null });
+
+                columns.Add(new JObject { ["Id"] = column.ColumnData.ID, ["Functional"] = functional });
+            }
+
+            var metadata = new JObject
+            {
+                ["TransferId"] = "t11-transfer",
+                ["SessionId"] = "t11-session",
+                ["GlobalContextId"] = "60000000-0000-0000-0000-000000000012",
+                ["Visualization"] = new JObject { ["ID"] = "70000000-0000-0000-0000-000000000012" },
+                ["StandardFiles"] = new JObject(),
+                ["Meshes"] = new JArray(),
+                ["MRIs"] = new JArray(),
+                ["Columns"] = columns
+            };
+            PreparedSceneManifest manifest = PreparedSceneManifest.FromMetadata(metadata);
+            ConstructorInfo constructor = typeof(PreparedSceneDeliveryBinding).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(string), typeof(PreparedSceneManifest) }, null);
+            Assert.That(constructor, Is.Not.Null);
+            return (PreparedSceneDeliveryBinding)constructor.Invoke(new object[] { new string('b', 64), manifest });
         }
 
         private static void SetPrivateField(object target, string fieldName, object value)

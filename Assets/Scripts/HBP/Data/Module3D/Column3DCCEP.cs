@@ -116,6 +116,23 @@ namespace HBP.Data.Module3D
             }
         }
 
+        /// <summary>Applies the complete synchronized source selection with one activity refresh.</summary>
+        public void ApplySynchronizedSource(CCEPMode mode, Core.Object3D.Site sourceSite, int marsAtlasLabel)
+        {
+            if (mode != CCEPMode.Site && mode != CCEPMode.MarsAtlas) throw new System.ArgumentOutOfRangeException(nameof(mode));
+            if (mode == CCEPMode.Site && marsAtlasLabel != -1 || mode == CCEPMode.MarsAtlas && sourceSite != null)
+                throw new System.ArgumentException("CCEP source fields do not match the selected mode.");
+            if (sourceSite != null && !Sources.Contains(sourceSite))
+                throw new System.ArgumentException("The CCEP source must belong to this column's available sources.", nameof(sourceSite));
+            if (m_Mode == mode && m_SelectedSiteSource == sourceSite && m_SelectedSourceMarsAtlasLabel == marsAtlasLabel) return;
+
+            m_Mode = mode;
+            m_SelectedSiteSource = sourceSite;
+            m_SelectedSourceMarsAtlasLabel = marsAtlasLabel;
+            OnSelectSource.Invoke();
+            SetActivityData();
+        }
+
         /// <summary>
         /// Is a source area selected in this column ?
         /// </summary>

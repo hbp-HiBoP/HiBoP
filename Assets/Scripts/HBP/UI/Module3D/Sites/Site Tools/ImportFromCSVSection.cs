@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -96,15 +97,20 @@ namespace HBP.UI.Module3D
 
         #region Private Methods
 
-        private async UniTask ImportSitesAsync(string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask ImportSitesAsync(string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<Task> beforeBackgroundParsing = null)
         {
-            await UniTask.SwitchToThreadPool();
-
-            var sites = Sites;
-
-            token.ThrowIfCancellationRequested();
-
+            Base3DScene scene = Scene;
+            bool importHighlighted = m_ImportHighlighted.isOn;
+            bool importBlacklisted = m_ImportBlacklisted.isOn;
+            bool importColor = m_ImportColor.isOn;
+            bool importLabels = m_ImportLabels.isOn;
             bool mergeLabels = m_LabelsImportModeDropdown.value == 1;
+            List<Column3D> columns = m_ScopeDropdown.value == 0 ? new() { scene.SelectedColumn } : scene.Columns.ToList();
+            var targets = columns.Where(column => column != null).SelectMany(column => column.Sites.Where(site => !site.State.IsMasked && (ApplyFor != ApplyFor.FilteredSites || site.State.IsFiltered)).Select(site => new SiteImportTarget(column, site))).ToList();
+
+            await UniTask.SwitchToThreadPool();
+            if (beforeBackgroundParsing != null) await beforeBackgroundParsing();
+            token.ThrowIfCancellationRequested();
 
             // Regex pattern to parse CSV correctly (respecting quotes)
             Regex csvParser = new(",(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
@@ -129,7 +135,7 @@ namespace HBP.UI.Module3D
             int totalLines = File.ReadAllLines(csvPath).Length - 1; // Subtract header line
             int processedLines = 0;
 
-            Dictionary<Site, SiteState> stateBySite = new();
+            Dictionary<(string ColumnId, string SiteId), ImportedSiteState> stateBySite = new();
             string line;
             while ((line = sr.ReadLine()) != null)
             {
@@ -151,39 +157,40 @@ namespace HBP.UI.Module3D
                 SiteState state = new();
 
                 // Get highlighted state
-                if (m_ImportHighlighted.isOn && highlightedIndex != -1 && values.Length > highlightedIndex)
+                if (importHighlighted && highlightedIndex != -1 && values.Length > highlightedIndex)
                 {
                     bool.TryParse(values[highlightedIndex], out bool highlighted);
                     state.IsHighlighted = highlighted;
                 }
 
                 // Get blacklisted state
-                if (m_ImportBlacklisted.isOn && blacklistedIndex != -1 && values.Length > blacklistedIndex)
+                if (importBlacklisted && blacklistedIndex != -1 && values.Length > blacklistedIndex)
                 {
                     bool.TryParse(values[blacklistedIndex], out bool blacklisted);
                     state.IsBlackListed = blacklisted;
                 }
 
                 // Get color
-                if (m_ImportColor.isOn && colorIndex != -1 && values.Length > colorIndex)
+                if (importColor && colorIndex != -1 && values.Length > colorIndex)
                 {
                     ColorUtility.TryParseHtmlString(values[colorIndex], out Color color);
                     state.Color = color;
                 }
 
                 // Get labels
-                if (m_ImportLabels.isOn && labelsIndex != -1 && values.Length > labelsIndex)
+                if (importLabels && labelsIndex != -1 && values.Length > labelsIndex)
                 {
                     string labelsString = values[labelsIndex].Trim(' ', '"');
                     state.Labels = labelsString.Split(new char[] { ';' }, StringSplitOptions.RemoveEmptyEntries).ToList();
                 }
 
                 // Store the state for the corresponding sites
-                IEnumerable<Site> sitesToApply = sites.Where(s => s.Information.FullID.Equals(siteID, StringComparison.OrdinalIgnoreCase));
-                if (sitesToApply.Count() == 0) sitesToApply = sites.Where(s => s.Information.FullName.Equals(siteID, StringComparison.OrdinalIgnoreCase));
-                foreach (var site in sitesToApply)
+                List<SiteImportTarget> sitesToApply = targets.Where(target => target.SiteId.Equals(siteID, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (sitesToApply.Count == 0) sitesToApply = targets.Where(target => target.FullName.Equals(siteID, StringComparison.OrdinalIgnoreCase)).ToList();
+                var importedState = new ImportedSiteState(state.IsHighlighted, state.IsBlackListed, state.Color, state.Labels.ToArray());
+                foreach (SiteImportTarget target in sitesToApply)
                 {
-                    stateBySite[site] = state;
+                    stateBySite[(target.ColumnId, target.SiteId)] = importedState;
                 }
 
                 processedLines++;
@@ -192,10 +199,72 @@ namespace HBP.UI.Module3D
             }
 
             // Apply states to the sites
+            sr.Dispose();
             await UniTask.SwitchToMainThread();
-            foreach (var kv in stateBySite)
+            token.ThrowIfCancellationRequested();
+            if (!scene) throw new InvalidOperationException("The scene was closed while importing site states.");
+            var changes = new List<SiteConfigurationChange>(stateBySite.Count);
+            foreach (SiteImportTarget target in targets)
             {
-                kv.Key.State.ApplySpecificState(m_ImportHighlighted.isOn, kv.Value.IsHighlighted, m_ImportBlacklisted.isOn, kv.Value.IsBlackListed, m_ImportColor.isOn, kv.Value.Color, m_ImportLabels.isOn, kv.Value.Labels, mergeLabels);
+                if (!stateBySite.TryGetValue((target.ColumnId, target.SiteId), out ImportedSiteState imported)) continue;
+                Column3D column = scene.Columns.FirstOrDefault(candidate => candidate && StringComparer.Ordinal.Equals(candidate.ColumnData?.ID, target.ColumnId));
+                Site site = column?.Sites.FirstOrDefault(candidate => candidate && StringComparer.OrdinalIgnoreCase.Equals(candidate.Information.FullID, target.SiteId));
+                if (!column || !site || site.State == null) continue;
+                bool highlighted = importHighlighted ? imported.Highlighted : site.State.IsHighlighted;
+                bool blacklisted = importBlacklisted ? imported.Blacklisted : site.State.IsBlackListed;
+                Color color = importColor ? imported.Color : site.State.Color;
+                string[] labels = site.State.Labels.ToArray();
+                if (importLabels)
+                {
+                    if (!mergeLabels)
+                    {
+                        labels = imported.Labels;
+                    }
+                    else
+                    {
+                        var merged = labels.ToList();
+                        foreach (string label in imported.Labels)
+                            if (!merged.Contains(label))
+                                merged.Add(label);
+                        labels = merged.ToArray();
+                    }
+                }
+
+                var configuration = new Core.Data.SiteConfiguration(blacklisted, highlighted, color, labels);
+                if (configuration.IsBlacklisted == site.State.IsBlackListed && configuration.IsHighlighted == site.State.IsHighlighted && configuration.Color == site.State.Color && configuration.Labels.SequenceEqual(site.State.Labels)) continue;
+                changes.Add(new SiteConfigurationChange(column, target.SiteId, site.State, configuration));
+            }
+
+            scene.ApplySiteConfigurationBatch(changes);
+        }
+
+        private sealed class SiteImportTarget
+        {
+            public string ColumnId { get; }
+            public string SiteId { get; }
+            public string FullName { get; }
+
+            public SiteImportTarget(Column3D column, Site site)
+            {
+                ColumnId = column.ColumnData.ID;
+                SiteId = site.Information.FullID;
+                FullName = site.Information.FullName;
+            }
+        }
+
+        private readonly struct ImportedSiteState
+        {
+            public bool Highlighted { get; }
+            public bool Blacklisted { get; }
+            public Color Color { get; }
+            public string[] Labels { get; }
+
+            public ImportedSiteState(bool highlighted, bool blacklisted, Color color, string[] labels)
+            {
+                Highlighted = highlighted;
+                Blacklisted = blacklisted;
+                Color = color;
+                Labels = labels;
             }
         }
 

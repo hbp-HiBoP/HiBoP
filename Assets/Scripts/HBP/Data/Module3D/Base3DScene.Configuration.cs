@@ -12,15 +12,115 @@ using HBP.Core.Object3D;
 
 namespace HBP.Data.Module3D
 {
+    /// <summary>A complete persisted site configuration prepared for an atomic application.</summary>
+    public readonly struct SiteConfigurationChange
+    {
+        public Column3D Column { get; }
+        public string SiteId { get; }
+        public Core.Object3D.SiteState State { get; }
+        public Core.Data.SiteConfiguration Configuration { get; }
+
+        public SiteConfigurationChange(Column3D column, string siteId, Core.Object3D.SiteState state, Core.Data.SiteConfiguration configuration)
+        {
+            Column = column ? column : throw new ArgumentNullException(nameof(column));
+            SiteId = string.IsNullOrWhiteSpace(siteId) ? throw new ArgumentException("A site configuration requires a stable site ID.", nameof(siteId)) : siteId;
+            State = state ?? throw new ArgumentNullException(nameof(state));
+            if (configuration == null) throw new ArgumentNullException(nameof(configuration));
+            if (configuration.Labels == null) throw new ArgumentException("A site configuration requires an ordered label list.", nameof(configuration));
+            Configuration = (Core.Data.SiteConfiguration)configuration.Clone();
+        }
+    }
+
     public partial class Base3DScene
     {
         private bool m_ConfiguredGeometryPending;
+        private int m_ConfigurationMutationDepth;
+
+        /// <summary>Raised once before the outermost synchronous configuration load or reset.</summary>
+        public event Action ConfigurationMutationStarted;
+
+        /// <summary>Raised once when the outermost configuration load or reset finishes.</summary>
+        public event Action<Exception> ConfigurationMutationCompleted;
+
+        /// <summary>Feature-neutral hook used by an attached synchronization boundary to validate and publish one site batch.</summary>
+        public Func<IReadOnlyList<SiteConfigurationChange>, Action, bool> SiteConfigurationBatchRouter { get; set; }
+
+        public bool IsConfigurationMutationActive => m_ConfigurationMutationDepth > 0;
+
+        /// <summary>Runs nested scene/column configuration actions as one observable scope.</summary>
+        public void RunConfigurationMutation(Action mutation)
+        {
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            bool isOutermost = m_ConfigurationMutationDepth++ == 0;
+            Exception actionError = null;
+            try
+            {
+                if (isOutermost) ConfigurationMutationStarted?.Invoke();
+                mutation();
+            }
+            catch (Exception exception)
+            {
+                actionError = exception;
+                throw;
+            }
+            finally
+            {
+                m_ConfigurationMutationDepth--;
+                if (isOutermost)
+                {
+                    try
+                    {
+                        ConfigurationMutationCompleted?.Invoke(actionError);
+                    }
+                    catch (Exception completionError)
+                    {
+                        if (actionError != null) throw new AggregateException("Configuration mutation and completion both failed.", actionError, completionError);
+                        throw;
+                    }
+                }
+            }
+        }
+
+        /// <summary>Validates the complete persisted assignments before applying them with one scene invalidation.</summary>
+        public bool ApplySiteConfigurationBatch(IReadOnlyList<SiteConfigurationChange> changes)
+        {
+            if (changes == null) throw new ArgumentNullException(nameof(changes));
+            SiteConfigurationChange[] prepared = changes.ToArray();
+            var targets = new HashSet<(string ColumnId, string SiteId)>();
+            foreach (SiteConfigurationChange change in prepared)
+            {
+                if (!change.Column || change.State == null || change.Configuration == null || change.Configuration.Labels == null)
+                    throw new ArgumentException("Site configuration assignments must be complete.", nameof(changes));
+                if (!targets.Add((change.Column.ColumnData.ID, change.SiteId)))
+                    throw new ArgumentException("A site configuration batch cannot assign a site more than once.", nameof(changes));
+            }
+
+            if (prepared.Length == 0) return false;
+            Action apply = () => ApplySiteStateBatch(() =>
+            {
+                foreach (SiteConfigurationChange change in prepared)
+                {
+                    change.State.ApplyState(change.Configuration.IsBlacklisted, change.Configuration.IsHighlighted, change.Configuration.Color, change.Configuration.Labels);
+                    change.Column.SiteStateBySiteID[change.SiteId] = change.State;
+                }
+            });
+            if (SiteConfigurationBatchRouter != null)
+                return SiteConfigurationBatchRouter(Array.AsReadOnly(prepared), apply);
+
+            apply();
+            return true;
+        }
 
         /// <summary>
         /// Load the visualization configuration from the loaded visualization
         /// </summary>
         /// <param name="firstCall">Has this method not been called by another load method ?</param>
         public void LoadConfiguration(bool firstCall = true)
+        {
+            RunConfigurationMutation(() => LoadConfigurationCore(firstCall));
+        }
+
+        private void LoadConfigurationCore(bool firstCall)
         {
             NormalizeRegionOfInterestIDs();
             SurfaceRepresentation configuredRepresentation = Visualization.Configuration.SurfaceRepresentation;
@@ -65,8 +165,7 @@ namespace HBP.Data.Module3D
 
             foreach (Core.Data.Cut cut in Visualization.Configuration.Cuts)
             {
-                Core.Object3D.Cut newCut = AddCutPlane();
-                if (!string.IsNullOrEmpty(cut.ID)) newCut.ID = cut.ID;
+                Core.Object3D.Cut newCut = AddCutPlane(cut.ID);
                 newCut.Normal = cut.Normal.ToVector3();
                 newCut.Orientation = cut.Orientation;
                 newCut.Flip = cut.Flip;
@@ -259,6 +358,11 @@ namespace HBP.Data.Module3D
         /// Reset the settings of the loaded scene
         /// </summary>
         public void ResetConfiguration()
+        {
+            RunConfigurationMutation(ResetConfigurationCore);
+        }
+
+        private void ResetConfigurationCore()
         {
             BrainColor = ColorType.BrainColor;
             CutColor = ColorType.Default;

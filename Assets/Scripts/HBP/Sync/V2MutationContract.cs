@@ -46,7 +46,13 @@ namespace HBP.Sync
         SetSelectedMri = 30,
         SetMriCalibration = 31,
         SetImplantation = 32,
-        ApplyTriangleMask = 33
+        ApplyTriangleMask = 33,
+        SetSiteBlacklist = 34,
+        SetInfluenceDistance = 35,
+        SetColumnResource = 36,
+        SetCcepSource = 37,
+        SetSiteConfigurationBatch = 38,
+        SetConfigurationTransaction = 39
     }
 
     public enum V2CutOrientation : byte
@@ -379,7 +385,12 @@ namespace HBP.Sync
         SelectedMri = 24,
         MriCalibration = 25,
         Implantation = 26,
-        TriangleMask = 27
+        TriangleMask = 27,
+        SiteBlacklist = 28,
+        InfluenceDistance = 29,
+        ColumnResource = 30,
+        CcepSource = 31,
+        SiteConfigurationBatch = 32
     }
 
     public sealed class V2TouchedKey : IEquatable<V2TouchedKey>
@@ -439,6 +450,26 @@ namespace HBP.Sync
 
         internal V2MutationDescriptor(SceneId sceneId, IncarnationId incarnationId, V2Mutation mutation)
         {
+            if (mutation is SetConfigurationTransaction transaction)
+            {
+                var transactionKeys = new List<V2TouchedKey>();
+                V2BarrierScope transactionBarrier = V2BarrierScope.None;
+                foreach (V2Mutation child in transaction.Mutations)
+                {
+                    V2MutationDescriptor childDescriptor = new V2MutationDescriptor(sceneId, incarnationId, child);
+                    transactionKeys.AddRange(childDescriptor.TouchedKeys);
+                    if ((byte)childDescriptor.BarrierScope > (byte)transactionBarrier) transactionBarrier = childDescriptor.BarrierScope;
+                }
+
+                var uniqueTransactionKeys = transactionKeys.Distinct().ToArray();
+                if (uniqueTransactionKeys.Length > 128) throw new ArgumentOutOfRangeException(nameof(mutation), "A configuration transaction exceeds the touched-key bound.");
+                if (transactionBarrier == V2BarrierScope.None) transactionBarrier = V2BarrierScope.TouchedKeys;
+                BarrierScope = transactionBarrier;
+                CoalescingKey = null;
+                TouchedKeys = new ReadOnlyCollection<V2TouchedKey>(uniqueTransactionKeys);
+                return;
+            }
+
             V2TouchedKey key;
             if (mutation is SetSiteColor siteColor)
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteColor, siteColor.ColumnId, siteColor.FullSiteId, null);
@@ -506,10 +537,20 @@ namespace HBP.Sync
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.Implantation, null, null, null);
             else if (mutation is ApplyTriangleMask masks)
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.TriangleMask, null, null, null, masks.Masks[0].TopologyId.Value);
+            else if (mutation is SetSiteBlacklist siteBlacklist)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteBlacklist, siteBlacklist.ColumnId, siteBlacklist.SiteId, null);
+            else if (mutation is SetInfluenceDistance influenceDistance)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.InfluenceDistance, influenceDistance.ColumnId, null, null);
+            else if (mutation is SetColumnResource columnResource)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.ColumnResource, columnResource.ColumnId, null, null, propertyId: (int)columnResource.Kind);
+            else if (mutation is SetCcepSource ccepSource)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CcepSource, ccepSource.ColumnId, null, null);
+            else if (mutation is SetSiteConfigurationBatch)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteConfigurationBatch, null, null, null);
             else
                 throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
 
-            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask ? V2BarrierScope.AllScene : V2BarrierScope.None;
+            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetSiteConfigurationBatch ? V2BarrierScope.AllScene : V2BarrierScope.None;
             CoalescingKey = BarrierScope == V2BarrierScope.None ? key : null;
             var keys = new List<V2TouchedKey> { key };
             if (mutation is ApplyTriangleMask triangleMasks)

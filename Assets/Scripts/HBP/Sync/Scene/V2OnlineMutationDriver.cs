@@ -292,7 +292,7 @@ namespace HBP.Sync.Scene
             V2Mutation current = null;
             try
             {
-                current = m_Boundary.ReadCurrentMutation(mutation);
+                current = ReadCurrentMutationForCorrection(mutation);
                 m_Boundary.ValidateMutation(mutation);
             }
             catch (KeyNotFoundException)
@@ -301,9 +301,11 @@ namespace HBP.Sync.Scene
             }
             catch (ArgumentOutOfRangeException)
             {
-                ulong keySequence = GetLastAcceptedSequence(descriptor);
-                var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "invalid_mutation_value");
                 string rejectionCode = mutation is SetTimelineAnchor ? "timeline_index_out_of_range" : "invalid_mutation_value";
+                if (current == null)
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: rejectionCode));
+                ulong keySequence = GetLastAcceptedSequence(descriptor);
+                var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, rejectionCode);
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: rejectionCode));
             }
             catch (Exception exception) when (exception is InvalidOperationException || exception is InvalidDataException)
@@ -321,6 +323,8 @@ namespace HBP.Sync.Scene
 
             if (observedCanonicalSequence > m_CanonicalSequence || m_CanonicalSequence == ulong.MaxValue)
             {
+                if (current == null)
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "stale_sequence"));
                 ulong keySequence = GetLastAcceptedSequence(descriptor);
                 var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
@@ -340,6 +344,8 @@ namespace HBP.Sync.Scene
 
             if (admission == V2OperationAdmission.Conflicting)
             {
+                if (current == null)
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "stale_sequence"));
                 ulong keySequence = GetLastAcceptedSequence(descriptor);
                 var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
@@ -354,6 +360,14 @@ namespace HBP.Sync.Scene
             }
 
             return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "invalid_proposal"));
+        }
+
+        private V2Mutation ReadCurrentMutationForCorrection(V2Mutation mutation)
+        {
+            // A transaction can create staged identities, so no single current-value mutation can
+            // correct it. A plain rejection lets Quest restore its captured checkpoint.
+            if (mutation is SetConfigurationTransaction) return null;
+            return m_Boundary.ReadCurrentMutation(mutation);
         }
 
         private ulong GetLastAcceptedSequence(V2ScheduleDescriptor descriptor)
@@ -492,6 +506,8 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<V2TouchedKey, LinkedListNode<V2QuestMutationProposal>> m_DeferredByKey = new Dictionary<V2TouchedKey, LinkedListNode<V2QuestMutationProposal>>();
         private readonly Dictionary<Guid, byte[]> m_Received = new Dictionary<Guid, byte[]>();
         private readonly Dictionary<V2TouchedKey, ulong> m_LastAppliedByKey = new Dictionary<V2TouchedKey, ulong>();
+        private readonly Dictionary<Guid, List<ReplayMutation>> m_TransactionReplayJournal = new Dictionary<Guid, List<ReplayMutation>>();
+        private readonly HashSet<Guid> m_OverflowedTransactionReplayJournals = new HashSet<Guid>();
         private ulong m_LastObservedCanonicalSequence;
         private bool m_Disposed;
         private bool m_OfflineLocal;
@@ -538,7 +554,29 @@ namespace HBP.Sync.Scene
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
             m_LastCreatedProposal = null;
-            m_Boundary.Apply(mutation, V2MutationApplicationOrigin.LocalQuest, operationId);
+            bool trackTransaction = mutation is SetConfigurationTransaction && !m_TransactionReplayJournal.ContainsKey(operationId.Value);
+            if (trackTransaction) m_TransactionReplayJournal.Add(operationId.Value, new List<ReplayMutation>());
+            try
+            {
+                m_Boundary.Apply(mutation, V2MutationApplicationOrigin.LocalQuest, operationId);
+            }
+            catch
+            {
+                if (trackTransaction)
+                {
+                    m_TransactionReplayJournal.Remove(operationId.Value);
+                    m_OverflowedTransactionReplayJournals.Remove(operationId.Value);
+                }
+
+                throw;
+            }
+
+            if (trackTransaction && m_LastCreatedProposal == null)
+            {
+                m_TransactionReplayJournal.Remove(operationId.Value);
+                m_OverflowedTransactionReplayJournals.Remove(operationId.Value);
+            }
+
             return m_LastCreatedProposal;
         }
 
@@ -596,12 +634,14 @@ namespace HBP.Sync.Scene
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
             if (m_Pending.TryGetValue(canonical.OperationId.Value, out byte[] optimisticPayload))
             {
+                bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
+                bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+                RecordCanonicalForPendingTransactions(canonical, keySuperseded, matchesOptimistic);
                 RemovePendingProposal(canonical.OperationId);
                 RememberReceived(canonical.OperationId, payload);
                 m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
-                bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
                 MarkKeyApplied(descriptor.CoalescingKey, canonical.CanonicalSequence);
-                if (BytesEqual(optimisticPayload, payload))
+                if (matchesOptimistic)
                 {
                     ProposalConfirmed?.Invoke(canonical.OperationId);
                     return false;
@@ -619,7 +659,9 @@ namespace HBP.Sync.Scene
 
             RememberReceived(canonical.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
-            if (WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence)) return false;
+            bool superseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
+            RecordCanonicalForPendingTransactions(canonical, superseded, preserveExistingOrder: false);
+            if (superseded) return false;
 
             m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
             MarkKeyApplied(descriptor.CoalescingKey, canonical.CanonicalSequence);
@@ -655,13 +697,15 @@ namespace HBP.Sync.Scene
             if (TryGetReceived(correction.OperationId, payload)) return false;
             if (!m_Pending.TryGetValue(correction.OperationId.Value, out byte[] optimisticPayload)) return false;
 
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, correction.AuthoritativeMutation);
+            bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, correction.CanonicalSequence);
+            bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+            RecordCanonicalForPendingTransactions(correction.OperationId, correction.AuthoritativeMutation, keySuperseded, matchesOptimistic);
             RemovePendingProposal(correction.OperationId);
             RememberReceived(correction.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, correction.CanonicalSequence);
-            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, correction.AuthoritativeMutation);
-            bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, correction.CanonicalSequence);
             MarkKeyApplied(descriptor.CoalescingKey, correction.CanonicalSequence);
-            if (!BytesEqual(optimisticPayload, payload) && !keySuperseded)
+            if (!matchesOptimistic && !keySuperseded)
             {
                 m_Boundary.Apply(correction.AuthoritativeMutation, V2MutationApplicationOrigin.Remote, correction.OperationId);
                 AuthoritativeCorrectionApplied?.Invoke(correction.OperationId, correction.AuthoritativeMutation);
@@ -678,9 +722,16 @@ namespace HBP.Sync.Scene
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
             if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
             if (!m_Pending.ContainsKey(operationId.Value)) return false;
-            bool restored = m_Boundary.TryRollbackOptimisticOperation(operationId);
+            List<ReplayMutation> replay = m_TransactionReplayJournal.TryGetValue(operationId.Value, out List<ReplayMutation> entries) ? new List<ReplayMutation>(entries) : null;
+            bool replayOverflowed = m_OverflowedTransactionReplayJournals.Contains(operationId.Value);
+            V2SceneMutationCheckpoint liveCheckpoint = !replayOverflowed && replay != null && replay.Count > 0 ? m_Boundary.CaptureCheckpoint() : null;
+            bool restored = !replayOverflowed && m_Boundary.TryRollbackOptimisticOperation(operationId);
+            if (restored && replay != null && replay.Count > 0)
+                ReplayAfterRejectedTransaction(operationId, replay, liveCheckpoint);
+
             RemoveDeferredProposalForOperation(operationId);
             RemovePendingProposal(operationId);
+            RemoveReplayEntriesForOperation(operationId.Value);
             ProposalRejected?.Invoke(operationId, rejectionCode);
             if (!restored) EnterOfflineLocal();
             return true;
@@ -689,12 +740,23 @@ namespace HBP.Sync.Scene
         private void OnLocalMutationProposed(OperationId operationId, V2Mutation mutation, V2OriginDevice device)
         {
             if (m_Disposed || device != V2OriginDevice.Quest) return;
+            bool createdTransactionJournal = mutation is SetConfigurationTransaction && !m_TransactionReplayJournal.ContainsKey(operationId.Value);
+            if (createdTransactionJournal)
+                m_TransactionReplayJournal.Add(operationId.Value, new List<ReplayMutation>());
+
+            RecordOptimisticForPendingTransactions(operationId, mutation);
             RefreshConnectionState();
-            if (m_OfflineLocal) return;
+            if (m_OfflineLocal)
+            {
+                RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
+                return;
+            }
+
             if (m_Pending.ContainsKey(operationId.Value) || m_Received.ContainsKey(operationId.Value))
             {
                 ProposalNotQueued?.Invoke(operationId, V2EnqueueDisposition.Rejected);
                 EnterOfflineLocal(1);
+                RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
                 return;
             }
 
@@ -705,6 +767,7 @@ namespace HBP.Sync.Scene
             {
                 ProposalNotQueued?.Invoke(operationId, V2EnqueueDisposition.Backpressured);
                 EnterOfflineLocal(1);
+                RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
                 return;
             }
 
@@ -782,6 +845,105 @@ namespace HBP.Sync.Scene
             if (operationId == null) return;
             m_Pending.Remove(operationId.Value);
             m_Boundary.ForgetOptimisticOperation(operationId);
+            m_TransactionReplayJournal.Remove(operationId.Value);
+            m_OverflowedTransactionReplayJournals.Remove(operationId.Value);
+        }
+
+        private void RecordOptimisticForPendingTransactions(OperationId operationId, V2Mutation mutation)
+        {
+            foreach (KeyValuePair<Guid, List<ReplayMutation>> pending in m_TransactionReplayJournal)
+            {
+                if (pending.Key == operationId.Value) continue;
+                if (pending.Value.Count >= MaximumRememberedOperations)
+                {
+                    m_OverflowedTransactionReplayJournals.Add(pending.Key);
+                    continue;
+                }
+
+                pending.Value.Add(new ReplayMutation(operationId, mutation, isOptimistic: true));
+            }
+        }
+
+        private void RemoveCreatedTransactionJournal(OperationId operationId, bool created)
+        {
+            if (!created) return;
+            m_TransactionReplayJournal.Remove(operationId.Value);
+            m_OverflowedTransactionReplayJournals.Remove(operationId.Value);
+        }
+
+        private void RecordCanonicalForPendingTransactions(V2CanonicalMutation canonical, bool superseded, bool preserveExistingOrder) => RecordCanonicalForPendingTransactions(canonical.OperationId, canonical.Mutation, superseded, preserveExistingOrder);
+
+        private void RecordCanonicalForPendingTransactions(OperationId operationId, V2Mutation mutation, bool superseded, bool preserveExistingOrder)
+        {
+            foreach (KeyValuePair<Guid, List<ReplayMutation>> pending in m_TransactionReplayJournal)
+            {
+                if (pending.Key == operationId.Value) continue;
+                ReplayMutation existing = pending.Value.Find(entry => entry.OperationId.Equals(operationId));
+                if (superseded)
+                {
+                    if (existing != null) pending.Value.Remove(existing);
+                    continue;
+                }
+
+                if (existing != null && preserveExistingOrder)
+                {
+                    existing.Mutation = mutation;
+                    existing.IsOptimistic = false;
+                    continue;
+                }
+
+                // A correction is applied at receipt time. Move it after intervening
+                // authoritative mutations instead of rewriting the optimistic entry's
+                // earlier position in this journal.
+                if (existing != null) pending.Value.Remove(existing);
+
+                if (pending.Value.Count >= MaximumRememberedOperations)
+                {
+                    m_OverflowedTransactionReplayJournals.Add(pending.Key);
+                    continue;
+                }
+
+                pending.Value.Add(new ReplayMutation(operationId, mutation, isOptimistic: false));
+            }
+        }
+
+        private void ReplayAfterRejectedTransaction(OperationId rejectedOperationId, IReadOnlyList<ReplayMutation> replay, V2SceneMutationCheckpoint liveCheckpoint)
+        {
+            try
+            {
+                foreach (ReplayMutation entry in replay)
+                {
+                    if (entry.IsOptimistic)
+                    {
+                        m_Boundary.ApplyOptimisticReplay(entry.Mutation, entry.OperationId);
+                    }
+                    else
+                    {
+                        m_Boundary.Apply(entry.Mutation, V2MutationApplicationOrigin.Remote, entry.OperationId);
+                    }
+                }
+            }
+            catch (Exception replayFailure)
+            {
+                try
+                {
+                    m_Boundary.ApplyCheckpoint(liveCheckpoint, new OperationId(Guid.NewGuid()));
+                }
+                catch (Exception restoreFailure)
+                {
+                    EnterOfflineLocal();
+                    throw new AggregateException("Rejected configuration transaction replay and live-scene restoration failed; pending proposals were abandoned and a fresh scene publish is required.", replayFailure, restoreFailure);
+                }
+
+                EnterOfflineLocal();
+                throw new InvalidOperationException($"Rejected configuration transaction {rejectedOperationId} could not replay newer scene mutations; the pre-rejection scene state was restored, pending proposals were abandoned, and a fresh scene publish is required.", replayFailure);
+            }
+        }
+
+        private void RemoveReplayEntriesForOperation(Guid operationId)
+        {
+            foreach (List<ReplayMutation> entries in m_TransactionReplayJournal.Values)
+                entries.RemoveAll(entry => entry.OperationId.Value == operationId);
         }
 
         private void RemoveDeferredProposalForKey(V2TouchedKey key)
@@ -831,11 +993,15 @@ namespace HBP.Sync.Scene
         {
             if (m_OfflineLocal) return;
             AbandonedProposalCount += m_Pending.Count + additionalAbandoned;
+            foreach (Guid operationId in m_Pending.Keys)
+                m_Boundary.ForgetOptimisticOperation(new OperationId(operationId));
             m_Pending.Clear();
             m_DeferredProposals.Clear();
             m_DeferredByKey.Clear();
             m_Received.Clear();
             m_LastAppliedByKey.Clear();
+            m_TransactionReplayJournal.Clear();
+            m_OverflowedTransactionReplayJournals.Clear();
             m_OfflineLocal = true;
             OfflineLocalEntered?.Invoke();
         }
@@ -884,6 +1050,8 @@ namespace HBP.Sync.Scene
             m_DeferredProposals.Clear();
             m_Received.Clear();
             m_LastAppliedByKey.Clear();
+            m_TransactionReplayJournal.Clear();
+            m_OverflowedTransactionReplayJournals.Clear();
         }
 
         private static bool BytesEqual(byte[] left, byte[] right)
@@ -893,6 +1061,20 @@ namespace HBP.Sync.Scene
                 if (left[i] != right[i])
                     return false;
             return true;
+        }
+
+        private sealed class ReplayMutation
+        {
+            public OperationId OperationId { get; }
+            public V2Mutation Mutation { get; set; }
+            public bool IsOptimistic { get; set; }
+
+            public ReplayMutation(OperationId operationId, V2Mutation mutation, bool isOptimistic)
+            {
+                OperationId = operationId;
+                Mutation = mutation;
+                IsOptimistic = isOptimistic;
+            }
         }
     }
 }
