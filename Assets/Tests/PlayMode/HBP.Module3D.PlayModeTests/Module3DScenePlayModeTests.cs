@@ -1860,6 +1860,77 @@ namespace HBP.Tests.PlayMode.Module3D
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        [Category("PlayMode.Module3DScene")]
+        [Category("MeshScene.ConfigurationRegression")]
+        public async Task Base3DScene_OpeningWithSavedCutOwnsAndReleasesCutMeshes(bool prefabHasMesh)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("Module3DSceneSavedCutOpening");
+            Project project = CreateMinimalAnatomicProject();
+            Base3DScene baseScene = CreateRuntimeBase3DScene(scope);
+            DisplayedObjects displayed = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+            MeshFilter prefabFilter = GetPrivateField<GameObject>(displayed, "m_CutPrefab").GetComponent<MeshFilter>();
+            if (!prefabHasMesh)
+            {
+                UnityEngine.Object.Destroy(prefabFilter.sharedMesh);
+                prefabFilter.sharedMesh = null;
+            }
+
+            Mesh prefabMesh = prefabFilter.sharedMesh;
+            Visualization visualization = project.Visualizations.Single();
+            visualization.Configuration.Cuts = new List<HBP.Core.Data.Cut> { new("saved-cut", Vector3.up, CutOrientation.Coronal, true, 0.5f) };
+            Mesh savedMesh = null;
+            Mesh addedMesh = null;
+            try
+            {
+                baseScene.Initialize(visualization);
+                await baseScene.InitializeAsync(visualization, (_, _, _) => { }, CancellationToken.None);
+                await baseScene.CompleteInitializationAsync(() =>
+                {
+                    WireRuntimeCameraGraph(baseScene);
+                    EnsureRuntimeSiteConfigurations(baseScene);
+                    foreach (Column3D column in baseScene.Columns)
+                    foreach (HBP.Core.Object3D.Site site in column.Sites)
+                        column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+                }, null, CancellationToken.None);
+
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                var savedCut = baseScene.Cuts.Single();
+                Assert.That(savedCut.ID, Is.EqualTo("saved-cut"));
+                Assert.That(savedCut.Normal, Is.EqualTo(Vector3.up));
+                Assert.That(savedCut.Orientation, Is.EqualTo(CutOrientation.Coronal));
+                Assert.That(savedCut.Flip, Is.True);
+                Assert.That(savedCut.Position, Is.EqualTo(0.5f));
+                savedMesh = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(savedMesh, Is.Not.Null);
+                Assert.That(savedMesh, Is.Not.SameAs(prefabMesh));
+
+                var addedCut = baseScene.AddCutPlane();
+                addedMesh = displayed.BrainCutMeshes.Last().GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(addedMesh, Is.Not.Null);
+                Assert.That(addedMesh, Is.Not.SameAs(savedMesh));
+                Assert.That(addedMesh, Is.Not.SameAs(prefabMesh));
+                baseScene.RemoveCutPlane(addedCut);
+                await UniTask.NextFrame();
+                Assert.That(addedMesh == null, Is.True, "Removing a cut must release its mesh.");
+                Assert.That(savedMesh != null, Is.True, "Removing another cut must preserve the saved cut mesh.");
+                Assert.That(prefabFilter.sharedMesh, Is.SameAs(prefabMesh));
+                if (prefabHasMesh) Assert.That(prefabMesh != null, Is.True);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
+
+            await UniTask.NextFrame();
+            Assert.That(savedMesh == null, Is.True, "Closing the scene must release the saved cut mesh.");
+        }
+
         [Test]
         [Category("PlayMode.Module3DScene")]
         [Category("MeshScene.ConfigurationRegression")]

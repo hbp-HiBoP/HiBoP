@@ -259,7 +259,7 @@ namespace HBP.Data.Module3D
         {
             GameObject cut = Instantiate(m_CutPrefab, m_BrainCutMeshesParent);
             MeshFilter meshFilter = cut.GetComponent<MeshFilter>();
-            Mesh cutMesh = Instantiate(meshFilter.sharedMesh);
+            Mesh cutMesh = meshFilter.sharedMesh != null ? Instantiate(meshFilter.sharedMesh) : new Mesh();
             meshFilter.sharedMesh = cutMesh;
             m_OwnedCutMeshes.Add(cutMesh);
             cut.GetComponent<Renderer>().sharedMaterial = m_Scene.BrainMaterials.CutMaterial;
