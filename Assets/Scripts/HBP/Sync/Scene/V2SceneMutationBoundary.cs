@@ -112,8 +112,9 @@ namespace HBP.Sync.Scene
         public IReadOnlyList<V2T10CheckpointRecord> T10Records { get; }
         public IReadOnlyList<V2T11CheckpointRecord> T11Records { get; }
         public IReadOnlyList<V2SiteFilterCheckpointRecord> T12Records { get; }
+        public IReadOnlyList<V2CorrelationCheckpointRecord> T13Records { get; }
 
-        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null, IEnumerable<V2T11CheckpointRecord> t11Records = null, IEnumerable<V2SiteFilterCheckpointRecord> t12Records = null)
+        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null, IEnumerable<V2T11CheckpointRecord> t11Records = null, IEnumerable<V2SiteFilterCheckpointRecord> t12Records = null, IEnumerable<V2CorrelationCheckpointRecord> t13Records = null)
         {
             SiteColors = Array.AsReadOnly(siteColors.ToArray());
             CutDefinitions = Array.AsReadOnly(cutDefinitions.ToArray());
@@ -122,6 +123,84 @@ namespace HBP.Sync.Scene
             T10Records = Array.AsReadOnly((t10Records ?? Enumerable.Empty<V2T10CheckpointRecord>()).ToArray());
             T11Records = Array.AsReadOnly((t11Records ?? Enumerable.Empty<V2T11CheckpointRecord>()).ToArray());
             T12Records = Array.AsReadOnly((t12Records ?? Enumerable.Empty<V2SiteFilterCheckpointRecord>()).ToArray());
+            T13Records = Array.AsReadOnly((t13Records ?? Enumerable.Empty<V2CorrelationCheckpointRecord>()).ToArray());
+        }
+    }
+
+    /// <summary>Typed checkpoint state for the current canonical correlation matrices and provenance.</summary>
+    public sealed class V2CorrelationCheckpointRecord
+    {
+        private const ushort RecordMagic = 0x5433;
+        private const ushort LegacyRecordSchema = 1;
+        private const ushort RecordSchema = 2;
+        private readonly byte[] m_ResultBytes;
+
+        public bool HasResult => m_ResultBytes != null;
+        public bool DisplayCorrelations { get; }
+        public byte[] ResultBytes => m_ResultBytes == null ? null : (byte[])m_ResultBytes.Clone();
+
+        public V2CorrelationCheckpointRecord(byte[] resultBytes, bool displayCorrelations = false)
+        {
+            if (resultBytes == null || resultBytes.Length == 0)
+            {
+                m_ResultBytes = null;
+            }
+            else
+            {
+                if (resultBytes.Length > CorrelationResultResource.MaximumBytes) throw new ArgumentOutOfRangeException(nameof(resultBytes));
+                CorrelationResultResource.Decode(resultBytes);
+                m_ResultBytes = (byte[])resultBytes.Clone();
+            }
+
+            DisplayCorrelations = displayCorrelations;
+        }
+
+        public byte[] Encode()
+        {
+            using var stream = new MemoryStream((m_ResultBytes?.Length ?? 0) + 10);
+            using var writer = new BinaryWriter(stream);
+            writer.Write(RecordMagic);
+            writer.Write(RecordSchema);
+            writer.Write((byte)(HasResult ? 1 : 0));
+            writer.Write((byte)(DisplayCorrelations ? 1 : 0));
+            if (HasResult)
+            {
+                writer.Write(m_ResultBytes.Length);
+                writer.Write(m_ResultBytes);
+            }
+
+            writer.Flush();
+            return stream.ToArray();
+        }
+
+        public static V2CorrelationCheckpointRecord Decode(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length < 6 || bytes.Length > CorrelationResultResource.MaximumBytes + 10)
+                throw new InvalidDataException("Invalid T13 correlation checkpoint record length.");
+            using var stream = new MemoryStream(bytes, false);
+            using var reader = new BinaryReader(stream);
+            if (reader.ReadUInt16() != RecordMagic)
+                throw new InvalidDataException("Unsupported T13 correlation checkpoint record signature or schema.");
+            ushort schema = reader.ReadUInt16();
+            if (schema != LegacyRecordSchema && schema != RecordSchema)
+                throw new InvalidDataException("Unsupported T13 correlation checkpoint record signature or schema.");
+            byte hasResult = reader.ReadByte();
+            if (hasResult > 1) throw new InvalidDataException("Invalid T13 correlation checkpoint result flag.");
+            byte displayCorrelations = reader.ReadByte();
+            if ((schema == LegacyRecordSchema && displayCorrelations != 0) || (schema == RecordSchema && displayCorrelations > 1))
+                throw new InvalidDataException("Invalid T13 correlation checkpoint display flag.");
+            byte[] result = null;
+            if (hasResult == 1)
+            {
+                int length = reader.ReadInt32();
+                if (length <= 0 || length > CorrelationResultResource.MaximumBytes || length != stream.Length - stream.Position)
+                    throw new InvalidDataException("Invalid T13 correlation checkpoint result length.");
+                result = reader.ReadBytes(length);
+                if (result.Length != length) throw new EndOfStreamException();
+            }
+
+            if (stream.Position != stream.Length) throw new InvalidDataException("Trailing T13 correlation checkpoint record bytes.");
+            return new V2CorrelationCheckpointRecord(result, schema == LegacyRecordSchema ? hasResult == 1 : displayCorrelations == 1);
         }
     }
 
@@ -536,7 +615,7 @@ namespace HBP.Sync.Scene
             if (!TryRebaseTargetedSiteConfigurationRollback(currentBatch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, checkpointProvenance, out V2Mutation rebasedMutation, out rebasedProvenance)) return false;
             var records = checkpoint.T11Records.ToArray();
             records[batchIndex] = new V2T11CheckpointRecord(rebasedMutation);
-            rebased = new V2SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records, checkpoint.T12Records);
+            rebased = new V2SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records, checkpoint.T12Records, checkpoint.T13Records);
             return true;
         }
 
@@ -847,6 +926,7 @@ namespace HBP.Sync.Scene
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
             if (key is SetSiteFilterResult) throw new InvalidOperationException("Site-filter job results are scene-wide and cannot be optimistically corrected.");
+            if (key is SetCorrelationResult) throw new InvalidOperationException("Correlation job results are scene-wide and cannot be optimistically corrected.");
             if (key is SetSiteColor siteColor)
             {
                 SiteState state = ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);
@@ -883,6 +963,8 @@ namespace HBP.Sync.Scene
                 ValidateSiteFilterResult(filterResult);
                 return;
             }
+
+            if (mutation is SetCorrelationResult) return;
 
             if (mutation is SetSiteColor siteColor)
             {
@@ -945,7 +1027,9 @@ namespace HBP.Sync.Scene
             var t11Records = CaptureT11Records();
             var t12Records = new List<V2SiteFilterCheckpointRecord>();
             if (CaptureSiteFilterCheckpoint() is V2SiteFilterCheckpointRecord filterRecord) t12Records.Add(filterRecord);
-            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records, t12Records);
+            CorrelationResultResource correlationResource = m_Scene == null ? null : CorrelationResultResource.Capture(m_Scene);
+            var t13Records = new[] { new V2CorrelationCheckpointRecord(correlationResource?.Encode(), m_Scene != null && m_Scene.DisplayCorrelations) };
+            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records, t12Records, t13Records);
         }
 
         public SetSiteFilterResult CreateSiteFilterResult(OperationId jobId, ulong generation, bool[] included)
@@ -954,6 +1038,13 @@ namespace HBP.Sync.Scene
             IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
             if (included.Length != roster.Count) throw new ArgumentException("The inclusion mask does not match the prepared site roster.", nameof(included));
             return CreateSiteFilterResult(jobId, generation, included, CreateSiteFilterRosterHash(roster));
+        }
+
+        public SetCorrelationResult CreateCorrelationResult(OperationId jobId, ulong generation, byte[] resultBytes)
+        {
+            var result = new SetCorrelationResult(jobId, generation, resultBytes);
+            ValidateCorrelationResult(result);
+            return result;
         }
 
         public SetSiteFilterResult CreateSiteFilterResult(OperationId jobId, ulong generation, bool[] included, byte[] expectedRosterHash)
@@ -998,9 +1089,24 @@ namespace HBP.Sync.Scene
             ValidateSiteFilterMask(records[0].RosterHash, records[0].SiteCount);
         }
 
+        private void ValidateCorrelationCheckpoint(IReadOnlyList<V2CorrelationCheckpointRecord> records)
+        {
+            if (records == null) throw new ArgumentNullException(nameof(records));
+            if (records.Count > 1 || records.Any(record => record == null)) throw new InvalidDataException("A checkpoint can contain at most one T13 correlation result.");
+            if (records.Count == 0 || !records[0].HasResult) return;
+            CorrelationResultResource.Decode(records[0].ResultBytes).ValidateFor(m_Scene, m_Scene.Columns.SelectMany(column => column.Sites).Select(site => site.Information.FullID).ToArray());
+        }
+
         private void ValidateSiteFilterResult(SetSiteFilterResult result)
         {
             ValidateSiteFilterMask(result.RosterHash, result.SiteCount);
+        }
+
+        private void ValidateCorrelationResult(SetCorrelationResult result)
+        {
+            if (m_Scene == null) throw new InvalidOperationException("Correlation results require a prepared scene.");
+            CorrelationResultResource resource = CorrelationResultResource.Decode(result.ResultBytes);
+            resource.ValidateFor(m_Scene, m_Scene.Columns.SelectMany(column => column.Sites).Select(site => site.Information.FullID).ToArray());
         }
 
         private void ValidateSiteFilterMask(byte[] rosterHash, int siteCount)
@@ -1030,6 +1136,13 @@ namespace HBP.Sync.Scene
                 Module3DMain.OnRequestUpdateInSiteList.Invoke();
             }
 
+            return true;
+        }
+
+        private bool ApplyCorrelationResult(SetCorrelationResult result)
+        {
+            CorrelationResultResource.Decode(result.ResultBytes).Apply(m_Scene);
+            m_Scene.DisplayCorrelations = true;
             return true;
         }
 
@@ -1468,6 +1581,7 @@ namespace HBP.Sync.Scene
             ValidateCheckpointT10Records(checkpoint.T10Records);
             ValidateCheckpointT11Records(checkpoint.T11Records);
             ValidateSiteFilterCheckpoint(checkpoint.T12Records);
+            ValidateCorrelationCheckpoint(checkpoint.T13Records);
             ValidateCheckpointT09Records(checkpoint.T09Records, checkpoint.T10Records);
             var stagedRoiIds = new HashSet<string>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
             bool hasRoiRoster = checkpoint.T10Records.Any(record => record.Value is SetActiveRoi);
@@ -1489,6 +1603,15 @@ namespace HBP.Sync.Scene
                 ApplyCheckpointT11Records(checkpoint.T11Records);
                 foreach (V2T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value);
                 if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
+                if (checkpoint.T13Records.Count == 1)
+                {
+                    V2CorrelationCheckpointRecord correlationRecord = checkpoint.T13Records[0];
+                    if (correlationRecord.HasResult)
+                        CorrelationResultResource.Decode(correlationRecord.ResultBytes).Apply(m_Scene);
+                    else if (m_Scene != null)
+                        m_Scene.ResetCorrelations();
+                    if (m_Scene != null) m_Scene.DisplayCorrelations = correlationRecord.DisplayCorrelations;
+                }
             }
 
             if (updateProvenance)
@@ -1505,6 +1628,9 @@ namespace HBP.Sync.Scene
         {
             if (mutation is SetSiteFilterResult filterResult)
                 return ApplySiteFilterResult(filterResult);
+
+            if (mutation is SetCorrelationResult correlationResult)
+                return ApplyCorrelationResult(correlationResult);
 
             if (mutation is SetSiteColor siteColor)
             {

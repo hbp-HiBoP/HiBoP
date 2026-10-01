@@ -33,6 +33,8 @@ namespace HBP.Quest
         private readonly Queue<DeferredRecord> m_DeferredRecords = new Queue<DeferredRecord>();
         private readonly HashSet<Guid> m_AbandonedSiteFilterTransfers = new HashSet<Guid>();
         private readonly Queue<Guid> m_AbandonedSiteFilterOrder = new Queue<Guid>();
+        private readonly HashSet<Guid> m_AbandonedCorrelationTransfers = new HashSet<Guid>();
+        private readonly Queue<Guid> m_AbandonedCorrelationOrder = new Queue<Guid>();
         private readonly SemaphoreSlim m_DeferredDrainGate = new SemaphoreSlim(1, 1);
         private readonly Func<CancellationToken, Task> m_BeforeCheckpointApply;
         private readonly Func<V2TransportRecord, CancellationToken, Task> m_AfterDeferredRecordProcessed;
@@ -45,10 +47,15 @@ namespace HBP.Quest
         private bool m_DeferredDrainPending;
         private bool m_Disposed;
         private IDisposable m_SiteFilterRequestRegistration;
+        private IDisposable m_CorrelationRequestRegistration;
         private ActiveSiteFilterJob m_ActiveSiteFilterJob;
+        private ActiveCorrelationJob m_ActiveCorrelationJob;
         private ulong m_LastDesktopSiteFilterGeneration;
+        private ulong m_LastDesktopCorrelationGeneration;
         private ulong m_OfflineSiteFilterGeneration;
+        private ulong m_OfflineCorrelationGeneration;
         private bool m_OfflineSiteFilterActive;
+        private bool m_OfflineCorrelationActive;
 
         private readonly struct DeferredRecord
         {
@@ -108,6 +115,7 @@ namespace HBP.Quest
             m_Driver.ProposalQueued += OnProposalQueued;
             m_Driver.OfflineLocalEntered += OnOfflineLocalEntered;
             m_SiteFilterRequestRegistration = V2SiteFilterRequestRouter.Register(scene, this, RequestSiteFilterAsync);
+            m_CorrelationRequestRegistration = V2CorrelationRequestRouter.Register(scene, this, RequestCorrelationAsync);
         }
 
         public bool Matches(PreparedSceneDeliveryBinding binding) => binding != null && TransferId == binding.TransferId && ManifestHash == binding.ManifestHash;
@@ -218,9 +226,12 @@ namespace HBP.Quest
                 if (!record.SessionId.Equals(m_Identity.SessionId) || record.Kind != V2TransportMessageKind.Application)
                     throw new InvalidDataException("Unexpected v2 session-control record.");
                 byte[] controlPayload = record.GetPayloadCopy();
-                if (!V2SiteFilterControlCodec.TryDecode(controlPayload, out V2SiteFilterControl filterControl))
+                if (V2CorrelationControlCodec.TryDecode(controlPayload, out V2CorrelationControl correlationControl))
+                    await ProcessCorrelationControlAsync(correlationControl, stop).ConfigureAwait(false);
+                else if (V2SiteFilterControlCodec.TryDecode(controlPayload, out V2SiteFilterControl filterControl))
+                    await ProcessSiteFilterControlAsync(filterControl, stop).ConfigureAwait(false);
+                else
                     throw new InvalidDataException("Unsupported v2 Quest session-control application message.");
-                await ProcessSiteFilterControlAsync(filterControl, stop).ConfigureAwait(false);
                 return;
             }
 
@@ -238,7 +249,7 @@ namespace HBP.Quest
 
             if (m_SceneOperationBulkReceiver.IsMutationDescriptor(record))
             {
-                if (record.MessageId != null && m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value))
+                if (record.MessageId != null && (m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value) || m_AbandonedCorrelationTransfers.Contains(record.MessageId.Value)))
                 {
                     m_SceneOperationBulkReceiver.Reset();
                     return;
@@ -277,6 +288,12 @@ namespace HBP.Quest
                 if (structuralMutation is SetSiteFilterResult filterResult)
                 {
                     await ApplySiteFilterResultAsync(record, filterResult, firstReceived, lastReceived, stop).ConfigureAwait(false);
+                    return;
+                }
+
+                if (structuralMutation is SetCorrelationResult correlationResult)
+                {
+                    await ApplyCorrelationResultAsync(record, correlationResult, firstReceived, lastReceived, stop).ConfigureAwait(false);
                     return;
                 }
 
@@ -336,7 +353,7 @@ namespace HBP.Quest
 
                 if (active == null)
                 {
-                    if (!m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope))
+                    if (m_ActiveCorrelationJob != null || !m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope))
                     {
                         SendSiteFilterControl(new V2SiteFilterControl(V2SiteFilterControlKind.Failed, control.JobId, control.Generation, failureCode: "quest_scene_busy"));
                         m_LastDesktopSiteFilterGeneration = control.Generation;
@@ -374,6 +391,251 @@ namespace HBP.Quest
 
             if (m_DeferredDrainPending)
                 await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
+        }
+
+        private async Task ProcessCorrelationControlAsync(V2CorrelationControl control, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            if (control.Kind == V2CorrelationControlKind.Started)
+            {
+                if (m_AbandonedCorrelationTransfers.Contains(control.JobId.Value))
+                {
+                    if (control.Generation > m_LastDesktopCorrelationGeneration) m_LastDesktopCorrelationGeneration = control.Generation;
+                    return;
+                }
+
+                if (control.Generation <= m_LastDesktopCorrelationGeneration)
+                {
+                    if (m_ActiveCorrelationJob?.JobId.Equals(control.JobId) == true && m_ActiveCorrelationJob.Generation == control.Generation) return;
+                    return;
+                }
+
+                ActiveCorrelationJob active = m_ActiveCorrelationJob;
+                if (active != null && !active.JobId.Equals(control.JobId))
+                {
+                    EndCorrelationJob(active, new OperationCanceledException("A newer correlation generation superseded this job."));
+                    active = null;
+                    await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
+                }
+
+                if (active == null)
+                {
+                    if (m_ActiveSiteFilterJob != null || !m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope))
+                    {
+                        SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Failed, control.JobId, control.Generation, failureCode: "quest_scene_busy"));
+                        m_LastDesktopCorrelationGeneration = control.Generation;
+                        return;
+                    }
+
+                    active = new ActiveCorrelationJob(control.JobId, control.Generation, new CancellationTokenSource(), activityScope, localRequest: false);
+                    m_ActiveCorrelationJob = active;
+                    _ = ObserveRemoteCorrelationJobAsync(active);
+                }
+                else active.Generation = control.Generation;
+
+                m_LastDesktopCorrelationGeneration = control.Generation;
+                return;
+            }
+
+            ActiveCorrelationJob current = m_ActiveCorrelationJob;
+            if (current == null || !current.JobId.Equals(control.JobId) || (current.Generation != 0 && control.Generation != 0 && current.Generation != control.Generation)) return;
+            switch (control.Kind)
+            {
+                case V2CorrelationControlKind.Cancel:
+                    EndCorrelationJob(current, new OperationCanceledException("The Desktop cancelled this correlation generation."));
+                    break;
+                case V2CorrelationControlKind.Failed:
+                    EndCorrelationJob(current, new IOException("Desktop correlation processing failed: " + control.FailureCode + "."));
+                    break;
+                default:
+                    throw new InvalidDataException("Unexpected Desktop correlation control kind.");
+            }
+
+            if (m_DeferredDrainPending) await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
+        }
+
+        private async Task ApplyCorrelationResultAsync(V2TransportRecord record, SetCorrelationResult result, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            ActiveCorrelationJob active = m_ActiveCorrelationJob;
+            if (record.CanonicalSequence == null || !result.JobId.Equals(record.MessageId) || active == null || !active.JobId.Equals(result.JobId) || active.Generation != result.Generation || active.Cancellation.IsCancellationRequested)
+            {
+                if (record.CanonicalSequence.HasValue && record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence) m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
+                return;
+            }
+
+            try
+            {
+                await ApplyTrackedMutationAsync(record, result, () => m_Driver.ReceiveCanonical(record.SceneId, record.IncarnationId, record.MessageId, record.CanonicalSequence.Value, result), firstReceived, lastReceived, stop).ConfigureAwait(false);
+                await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Ready, result.JobId, result.Generation));
+                EndCorrelationJob(active, null);
+            }
+            catch (Exception exception) when (exception is InvalidDataException || exception is ArgumentException || exception is InvalidOperationException || exception is KeyNotFoundException)
+            {
+                await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                if (record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence) m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
+                SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Failed, result.JobId, result.Generation, failureCode: "quest_apply_failed"));
+                EndCorrelationJob(active, new InvalidDataException("Quest rejected the canonical correlation result.", exception));
+            }
+        }
+
+        private Task<bool> RequestCorrelationAsync(V2CorrelationRequest request, CancellationToken stop) => RequestCorrelationCoreAsync(request, stop);
+
+        private async Task<bool> RequestCorrelationCoreAsync(V2CorrelationRequest request, CancellationToken stop)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            if (m_Driver.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
+            {
+                if (m_OfflineCorrelationActive || m_OfflineSiteFilterActive) throw new InvalidOperationException("A local site-filter or correlation job is already active for this scene.");
+                if (request.Kind == V2CorrelationCommandKind.Compute && !V2CorrelationOfflineCapabilityGate.CanCompute(RequireScene(), out string explanation)) throw new InvalidOperationException(explanation);
+                if (m_ActiveSiteFilterJob != null || m_ActiveCorrelationJob != null || !m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable offlineScope))
+                    throw new InvalidOperationException("Correlation processing cannot start while another sensitive scene job is active.");
+                m_OfflineCorrelationActive = true;
+                try
+                {
+                    using (offlineScope)
+                    {
+                        if (m_OfflineCorrelationGeneration == ulong.MaxValue) throw new InvalidOperationException("The offline correlation generation is exhausted.");
+                        ulong generation = ++m_OfflineCorrelationGeneration;
+                        OperationId jobId = CreateCorrelationOperationId();
+
+                        async UniTask Evaluate(Action<float, float, LoadingText> update, CancellationToken token)
+                        {
+                            byte[] resultBytes;
+                            if (request.Kind == V2CorrelationCommandKind.Load) resultBytes = request.ResultBytes;
+                            else
+                            {
+                                IReadOnlyList<CorrelationResultData> computed = await RequireScene().ComputeCorrelationResultsAsync(update, token);
+                                token.ThrowIfCancellationRequested();
+                                resultBytes = CorrelationResultResource.FromResults(RequireScene(), computed).Encode();
+                            }
+
+                            SetCorrelationResult result = m_Boundary.CreateCorrelationResult(jobId, generation, resultBytes);
+                            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, token);
+                            m_Boundary.Apply(result, V2MutationApplicationOrigin.Remote, jobId);
+                        }
+
+                        if (request.ExternalLoadingIndicator) await Evaluate(request.Progress, stop);
+                        else await LoadingManager.LoadDelayedAsync(Evaluate, stop, showInformations: false);
+                    }
+                }
+                finally
+                {
+                    m_OfflineCorrelationActive = false;
+                }
+
+                return true;
+            }
+
+            if (request.Kind != V2CorrelationCommandKind.Compute) throw new InvalidOperationException("Loaded correlation data may only be imported by the Desktop while online.");
+            if (m_Transport.State != V2PersistentTransportState.Connected) throw new IOException("The Quest connection is recovering; retry the correlation request after reconnection.");
+            if (m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null) throw new InvalidOperationException("A scene-wide filter or correlation job is already active.");
+            if (!m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope)) throw new InvalidOperationException("Correlation processing cannot start while the scene is updating its activity projection.");
+
+            OperationId requestId = CreateCorrelationOperationId();
+            var activeJob = new ActiveCorrelationJob(requestId, 0, CancellationTokenSource.CreateLinkedTokenSource(stop), activityScope, localRequest: true);
+            m_ActiveCorrelationJob = activeJob;
+            try
+            {
+                byte[] command = V2CorrelationRequestCodec.EncodeComputeRequest(request);
+                SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Request, requestId, 0, command));
+                if (request.ExternalLoadingIndicator) await WaitWithCancellationAsync(activeJob.Completion.Task, activeJob.Cancellation.Token);
+                else await LoadingManager.LoadDelayedAsync(async (_, token) => await WaitWithCancellationAsync(activeJob.Completion.Task, token), activeJob.Cancellation.Token, showInformations: false);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Cancel, activeJob.JobId, activeJob.Generation));
+                EndCorrelationJob(activeJob, new OperationCanceledException());
+                throw;
+            }
+            finally
+            {
+                if (ReferenceEquals(m_ActiveCorrelationJob, activeJob)) EndCorrelationJob(activeJob, null);
+            }
+        }
+
+        private async Task ObserveRemoteCorrelationJobAsync(ActiveCorrelationJob active)
+        {
+            Exception terminalFailure = null;
+            try
+            {
+                await LoadingManager.LoadDelayedAsync(async (_, token) => await WaitWithCancellationAsync(active.Completion.Task, token), active.Cancellation.Token, showInformations: false);
+            }
+            catch (Exception exception)
+            {
+                terminalFailure = exception;
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                if (ReferenceEquals(m_ActiveCorrelationJob, active))
+                {
+                    bool shouldNotifyDesktop = terminalFailure != null && !active.Cancellation.IsCancellationRequested;
+                    if (shouldNotifyDesktop)
+                    {
+                        V2CorrelationControlKind kind = terminalFailure is OperationCanceledException ? V2CorrelationControlKind.Cancel : V2CorrelationControlKind.Failed;
+                        string code = kind == V2CorrelationControlKind.Failed ? "quest_loading_failed" : null;
+                        try
+                        {
+                            SendCorrelationControl(new V2CorrelationControl(kind, active.JobId, active.Generation, failureCode: code));
+                        }
+                        catch (Exception exception)
+                        {
+                            terminalFailure = exception;
+                        }
+                    }
+
+                    EndCorrelationJob(active, terminalFailure);
+                }
+
+                if (!m_Disposed && m_Driver.ConnectionState != V2QuestMutationConnectionState.OfflineLocal && (m_CompletedCheckpoint != null || m_DeferredDrainPending))
+                    await ResumeCompletedCheckpointAndDrainAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+        }
+
+        private void EndCorrelationJob(ActiveCorrelationJob active, Exception failure)
+        {
+            if (active == null) return;
+            if (failure != null)
+            {
+                RememberAbandonedCorrelationTransfer(active.JobId);
+                if (m_SceneOperationBulkReceiver.ActiveOperationId?.Equals(active.JobId) == true)
+                {
+                    m_SceneOperationBulkReceiver.Reset();
+                    m_DeferredDrainPending = true;
+                }
+            }
+
+            if (failure is OperationCanceledException) active.Completion.TrySetCanceled();
+            else if (failure != null) active.Completion.TrySetException(failure);
+            else active.Completion.TrySetResult(true);
+            if (failure != null && !active.Cancellation.IsCancellationRequested) active.Cancellation.Cancel();
+            if (ReferenceEquals(m_ActiveCorrelationJob, active)) m_ActiveCorrelationJob = null;
+            active.Dispose();
+        }
+
+        private void RememberAbandonedCorrelationTransfer(OperationId jobId)
+        {
+            if (jobId == null || !m_AbandonedCorrelationTransfers.Add(jobId.Value)) return;
+            m_AbandonedCorrelationOrder.Enqueue(jobId.Value);
+            while (m_AbandonedCorrelationOrder.Count > 4096) m_AbandonedCorrelationTransfers.Remove(m_AbandonedCorrelationOrder.Dequeue());
+        }
+
+        private void SendCorrelationControl(V2CorrelationControl control)
+        {
+            V2EnqueueResult queued = m_Transport.EnqueueSessionControl(V2CorrelationControlCodec.Encode(control), V2DeliveryReliability.Reliable);
+            if (!queued.Accepted) throw new IOException("Quest could not retain a correlation session control: " + queued.Disposition + ".");
+        }
+
+        private static OperationId CreateCorrelationOperationId()
+        {
+            Guid value;
+            do value = Guid.NewGuid();
+            while (value == Guid.Empty);
+            return new OperationId(value);
         }
 
         private async Task ApplySiteFilterResultAsync(V2TransportRecord record, SetSiteFilterResult result, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
@@ -415,7 +677,7 @@ namespace HBP.Quest
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
             if (m_Driver.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
             {
-                if (m_OfflineSiteFilterActive) throw new InvalidOperationException("A local site-filter job is already active for this scene.");
+                if (m_OfflineSiteFilterActive || m_OfflineCorrelationActive) throw new InvalidOperationException("A local site-filter or correlation job is already active for this scene.");
                 if (!m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable offlineScope))
                     throw new InvalidOperationException("Site filtering cannot start while the scene is updating its activity projection.");
                 m_OfflineSiteFilterActive = true;
@@ -449,7 +711,7 @@ namespace HBP.Quest
 
             if (m_Transport.State != V2PersistentTransportState.Connected)
                 throw new IOException("The Quest connection is recovering; retry the filter after the session reconnects.");
-            if (m_ActiveSiteFilterJob != null) throw new InvalidOperationException("A site-filter job is already active for this scene.");
+            if (m_ActiveSiteFilterJob != null || m_ActiveCorrelationJob != null) throw new InvalidOperationException("A site-filter or correlation job is already active for this scene.");
             if (!m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope))
                 throw new InvalidOperationException("Site filtering cannot start while the scene is updating its activity projection.");
 
@@ -546,7 +808,7 @@ namespace HBP.Quest
 
         private bool IsAbandonedSiteFilterChunk(V2TransportRecord record)
         {
-            return record != null && record.Lane == V2ScheduleLane.Bulk && record.MessageId != null && m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value);
+            return record != null && record.Lane == V2ScheduleLane.Bulk && record.MessageId != null && (m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value) || m_AbandonedCorrelationTransfers.Contains(record.MessageId.Value));
         }
 
         private void SendSiteFilterControl(V2SiteFilterControl control)
@@ -581,12 +843,19 @@ namespace HBP.Quest
         private void OnOfflineLocalEntered()
         {
             CancelSiteFilterJobAfterDisconnectAsync().Forget();
+            CancelCorrelationJobAfterDisconnectAsync().Forget();
         }
 
         private async UniTaskVoid CancelSiteFilterJobAfterDisconnectAsync()
         {
             await UniTask.SwitchToMainThread();
             if (m_ActiveSiteFilterJob != null) EndSiteFilterJob(m_ActiveSiteFilterJob, new OperationCanceledException("The Quest connection grace expired."));
+        }
+
+        private async UniTaskVoid CancelCorrelationJobAfterDisconnectAsync()
+        {
+            await UniTask.SwitchToMainThread();
+            if (m_ActiveCorrelationJob != null) EndCorrelationJob(m_ActiveCorrelationJob, new OperationCanceledException("The Quest connection grace expired."));
         }
 
         private sealed class ActiveSiteFilterJob : IDisposable
@@ -599,6 +868,31 @@ namespace HBP.Quest
             public TaskCompletionSource<bool> Completion { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             public ActiveSiteFilterJob(OperationId jobId, ulong generation, CancellationTokenSource cancellation, IDisposable activityScope, bool localRequest)
+            {
+                JobId = jobId;
+                Generation = generation;
+                Cancellation = cancellation;
+                ActivityScope = activityScope;
+                LocalRequest = localRequest;
+            }
+
+            public void Dispose()
+            {
+                Cancellation.Dispose();
+                ActivityScope.Dispose();
+            }
+        }
+
+        private sealed class ActiveCorrelationJob : IDisposable
+        {
+            public OperationId JobId { get; }
+            public ulong Generation { get; set; }
+            public CancellationTokenSource Cancellation { get; }
+            public IDisposable ActivityScope { get; }
+            public bool LocalRequest { get; }
+            public TaskCompletionSource<bool> Completion { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            public ActiveCorrelationJob(OperationId jobId, ulong generation, CancellationTokenSource cancellation, IDisposable activityScope, bool localRequest)
             {
                 JobId = jobId;
                 Generation = generation;
@@ -813,7 +1107,9 @@ namespace HBP.Quest
             m_Driver.ProposalQueued -= OnProposalQueued;
             m_Driver.OfflineLocalEntered -= OnOfflineLocalEntered;
             m_SiteFilterRequestRegistration?.Dispose();
+            m_CorrelationRequestRegistration?.Dispose();
             if (m_ActiveSiteFilterJob != null) EndSiteFilterJob(m_ActiveSiteFilterJob, new OperationCanceledException("The Quest replica session was disposed."));
+            if (m_ActiveCorrelationJob != null) EndCorrelationJob(m_ActiveCorrelationJob, new OperationCanceledException("The Quest replica session was disposed."));
             m_Transport.Dispose();
             m_Driver.Dispose();
             m_Boundary.Dispose();

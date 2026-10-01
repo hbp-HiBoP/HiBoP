@@ -109,6 +109,8 @@ namespace HBP.Sync
                     }
                 case V2OperationType.SetSiteFilterResult:
                     return V2T12MutationCodec.ReadBody(reader);
+                case V2OperationType.SetCorrelationResult:
+                    return V2T13MutationCodec.ReadBody(reader);
                 default:
                     if ((ushort)operationType >= (ushort)V2OperationType.SetSiteBlacklist) return V2T11MutationCodec.ReadBody(reader, operationType);
                     return (ushort)operationType >= (ushort)V2OperationType.CreateCut ? V2T10MutationCodec.ReadBody(reader, operationType) : V2T09MutationCodec.ReadBody(reader, operationType);
@@ -157,6 +159,12 @@ namespace HBP.Sync
             if (mutation is SetSiteFilterResult)
             {
                 V2T12MutationCodec.WriteBody(writer, mutation);
+                return;
+            }
+
+            if (mutation is SetCorrelationResult)
+            {
+                V2T13MutationCodec.WriteBody(writer, mutation);
                 return;
             }
 

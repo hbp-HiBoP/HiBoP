@@ -132,18 +132,80 @@ namespace HBP.Data.Module3D
 
         private async UniTask ComputeSceneCorrelationsAsync(Action<float, float, Core.Tools.LoadingText> progress, CancellationToken cancellationToken)
         {
+            IReadOnlyList<CorrelationResultData> results = await ComputeCorrelationResultsCoreAsync(progress, cancellationToken);
+            await UniTask.SwitchToMainThread();
+            cancellationToken.ThrowIfCancellationRequested();
+            ApplyCorrelationResults(results);
+            DisplayCorrelations = true;
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
+        /// <summary>Computes every IEEG column into detached buffers and tracks the work with the scene lifetime.</summary>
+        public UniTask<IReadOnlyList<CorrelationResultData>> ComputeCorrelationResultsAsync(Action<float, float, Core.Tools.LoadingText> progress, CancellationToken cancellationToken = default)
+        {
+            if (m_DestroyRequested) throw new ObjectDisposedException(nameof(Base3DScene));
+            if (!m_CorrelationWork.Status.IsCompleted()) throw new InvalidOperationException("Correlations are already computing.");
+            var result = ComputeCorrelationResultsCoreAsync(progress, cancellationToken).ToAsyncLazy();
+            m_CorrelationWork = AwaitCorrelationResultsAsync(result.Task).ToAsyncLazy().Task;
+            return result.Task;
+        }
+
+        private async UniTask<IReadOnlyList<CorrelationResultData>> ComputeCorrelationResultsCoreAsync(Action<float, float, Core.Tools.LoadingText> progress, CancellationToken cancellationToken)
+        {
             using var stop = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             var columns = ColumnsIEEG.ToArray();
+            var results = new CorrelationResultData[columns.Length];
             for (int i = 0; i < columns.Length; i++)
             {
                 stop.Token.ThrowIfCancellationRequested();
-                await columns[i].ComputeCorrelationsAsync((value, duration, text) => progress?.Invoke((i + value) / columns.Length, duration, text), stop.Token);
+                results[i] = await columns[i].ComputeCorrelationResultAsync((value, duration, text) => progress?.Invoke(columns.Length == 0 ? 1f : (i + value) / columns.Length, duration, text), stop.Token);
             }
 
             await UniTask.SwitchToMainThread();
             stop.Token.ThrowIfCancellationRequested();
-            DisplayCorrelations = true;
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            if (m_DestroyRequested || !ColumnsIEEG.SequenceEqual(columns)) throw new OperationCanceledException("The IEEG column roster changed during correlation computation.");
+            return Array.AsReadOnly(results);
+        }
+
+        private static async UniTask AwaitCorrelationResultsAsync(UniTask<IReadOnlyList<CorrelationResultData>> results) => await results;
+
+        /// <summary>Validates all columns first, then replaces every matrix and provenance record in one main-thread turn.</summary>
+        public void ApplyCorrelationResults(IEnumerable<CorrelationResultData> results)
+        {
+            if (results == null) throw new ArgumentNullException(nameof(results));
+            if (m_DestroyRequested) throw new ObjectDisposedException(nameof(Base3DScene));
+            var columns = ColumnsIEEG.ToDictionary(column => column.ColumnData.ID, StringComparer.Ordinal);
+            CorrelationResultData[] staged = results.ToArray();
+            if (staged.Length != columns.Count || staged.Select(result => result.ColumnId).Distinct(StringComparer.Ordinal).Count() != columns.Count || staged.Any(result => !columns.ContainsKey(result.ColumnId)))
+                throw new InvalidOperationException("Correlation results do not match the prepared IEEG column roster.");
+
+            foreach (CorrelationResultData result in staged)
+            {
+                Column3DIEEG column = columns[result.ColumnId];
+                if (!StringComparer.Ordinal.Equals(result.Provenance.ColumnId, column.ColumnData.ID)) throw new InvalidOperationException("Correlation provenance does not match the prepared column.");
+                var ownedSites = new HashSet<Core.Object3D.Site>(column.Sites);
+                ValidateCorrelationMatrix(result.Correlations, ownedSites);
+                ValidateCorrelationMatrix(result.Means, ownedSites);
+            }
+
+            var matrices = staged.Select(result => (Column: columns[result.ColumnId], Correlations: result.Correlations.ToDictionary(row => row.Key, row => row.Value.ToDictionary(pair => pair.Key, pair => pair.Value)), Means: result.Means.ToDictionary(row => row.Key, row => row.Value.ToDictionary(pair => pair.Key, pair => pair.Value)), result.Provenance)).ToArray();
+            foreach (var matrix in matrices)
+            {
+                matrix.Column.CorrelationBySitePair = matrix.Correlations;
+                matrix.Column.CorrelationMeanBySitePair = matrix.Means;
+                matrix.Column.CorrelationProvenance = matrix.Provenance;
+            }
+        }
+
+        private static void ValidateCorrelationMatrix(IReadOnlyDictionary<Core.Object3D.Site, IReadOnlyDictionary<Core.Object3D.Site, float>> matrix, HashSet<Core.Object3D.Site> ownedSites)
+        {
+            foreach (var row in matrix)
+            {
+                if (!row.Key || !ownedSites.Contains(row.Key) || row.Value == null) throw new InvalidOperationException("A correlation row is outside its owning column.");
+                foreach (var pair in row.Value)
+                    if (!pair.Key || !ownedSites.Contains(pair.Key) || float.IsNaN(pair.Value) || float.IsInfinity(pair.Value))
+                        throw new InvalidOperationException("A correlation pair is invalid or outside its owning column.");
+            }
         }
 
         public void ResetCorrelations()
@@ -152,6 +214,7 @@ namespace HBP.Data.Module3D
             {
                 column.CorrelationBySitePair.Clear();
                 column.CorrelationMeanBySitePair.Clear();
+                column.CorrelationProvenance = null;
             }
 
             Module3DMain.OnRequestUpdateInToolbar.Invoke();

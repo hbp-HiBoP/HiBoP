@@ -52,6 +52,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> CorrelationMeanBySitePair { get; set; } = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
 
+        /// <summary>Source and settings for the currently applied correlation matrices.</summary>
+        public CorrelationProvenance CorrelationProvenance { get; set; }
+
         /// <summary>
         /// Are the correlations between site pairs computed ?
         /// </summary>
@@ -140,6 +143,7 @@ namespace HBP.Data.Module3D
 
             CorrelationBySitePair.Clear();
             CorrelationMeanBySitePair.Clear();
+            CorrelationProvenance = null;
         }
 
         /// <summary>
@@ -149,6 +153,15 @@ namespace HBP.Data.Module3D
         /// <param name="token">Cancellation token linked to the owning content's lifetime by the caller.</param>
         public async UniTask ComputeCorrelationsAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            CorrelationResultData result = await ComputeCorrelationResultAsync(updateProgress, token);
+            CorrelationBySitePair = result.Correlations.ToDictionary(row => row.Key, row => row.Value.ToDictionary(pair => pair.Key, pair => pair.Value));
+            CorrelationMeanBySitePair = result.Means.ToDictionary(row => row.Key, row => row.Value.ToDictionary(pair => pair.Key, pair => pair.Value));
+            CorrelationProvenance = result.Provenance;
+        }
+
+        /// <summary>Computes a detached result without publishing partial matrix state.</summary>
+        public async UniTask<CorrelationResultData> ComputeCorrelationResultAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        {
             try
             {
                 await UniTask.SwitchToMainThread();
@@ -156,7 +169,7 @@ namespace HBP.Data.Module3D
                 var correlations = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
                 var means = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
                 string columnName = Name;
-                updateProgress.Invoke(0, 0, new LoadingText("Computing correlations"));
+                updateProgress?.Invoke(0, 0, new LoadingText("Computing correlations"));
                 Dictionary<Core.Object3D.Site, List<double[]>> valuesByChannel = new();
                 foreach (var site in Sites)
                 {
@@ -180,12 +193,13 @@ namespace HBP.Data.Module3D
                 }
 
                 var names = valuesByChannel.Keys.ToDictionary(site => site, site => site.Information.Name);
+                CorrelationProvenance provenance = CaptureComputedCorrelationProvenance();
                 await UniTask.SwitchToThreadPool();
                 int siteCount = valuesByChannel.Count;
                 int progressCount = 0;
                 foreach (var kv1 in valuesByChannel)
                 {
-                    updateProgress.Invoke((float)progressCount++ / siteCount, 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", names[kv1.Key], columnName)));
+                    updateProgress?.Invoke((float)progressCount++ / Math.Max(1, siteCount), 0, new LoadingText("Computing correlations for ", string.Format("{0} in {1}", names[kv1.Key], columnName)));
                     Dictionary<Core.Object3D.Site, float> correlation = new();
                     Dictionary<Core.Object3D.Site, float> mean = new();
                     int numberOfTrials = kv1.Value.Count;
@@ -219,8 +233,7 @@ namespace HBP.Data.Module3D
                 token.ThrowIfCancellationRequested();
                 if (!this || correlations.Keys.Any(site => !site || !Sites.Contains(site)))
                     throw new OperationCanceledException("The column changed during correlation computation.");
-                CorrelationBySitePair = correlations;
-                CorrelationMeanBySitePair = means;
+                return new CorrelationResultData(ColumnData.ID, correlations, means, provenance);
             }
             catch (OperationCanceledException e)
             {
@@ -231,6 +244,13 @@ namespace HBP.Data.Module3D
                 Debug.LogException(e);
                 throw;
             }
+        }
+
+        private CorrelationProvenance CaptureComputedCorrelationProvenance()
+        {
+            Core.Data.Patient patient = Sites.Select(site => site ? site.Information.Patient : null).FirstOrDefault(value => value != null);
+            var dataInfo = patient == null || ColumnIEEGData?.Dataset == null ? null : ColumnIEEGData.Dataset.GetIEEGDataInfos().FirstOrDefault(info => info.Patient == patient && info.Name == ColumnIEEGData.DataName);
+            return new CorrelationProvenance(CorrelationResultSource.Computed, patient?.ID ?? string.Empty, patient?.Name ?? string.Empty, ColumnData.ID, ColumnIEEGData?.Dataset?.ID ?? string.Empty, ColumnIEEGData?.Dataset?.Name ?? string.Empty, ColumnIEEGData?.Dataset?.Protocol?.ID ?? string.Empty, ColumnIEEGData?.Dataset?.Protocol?.Name ?? string.Empty, ColumnIEEGData?.Bloc?.ID ?? string.Empty, ColumnIEEGData?.Bloc?.Name ?? string.Empty, dataInfo?.ID ?? string.Empty, ColumnIEEGData?.DataName ?? string.Empty, dataInfo?.Normalization ?? NormalizationType.Auto, CorrelationAlpha, BonferroniCorrection);
         }
 
         /// <summary>

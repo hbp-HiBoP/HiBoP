@@ -3,6 +3,7 @@ using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Sync.Scene;
 using HBP.Core.Preferences;
 using HBP.UI.Tools;
 using Newtonsoft.Json;
@@ -21,6 +22,11 @@ namespace HBP.UI.Toolbar
 {
     public class SiteCorrelations : Tool
     {
+        private const long MaximumLegacyMetadataBytes = 1024 * 1024;
+        private const long MaximumLegacyMatrixBytes = 64 * 1024 * 1024;
+        private const int MaximumLegacyMatrixRows = 4096;
+        private const int MaximumLegacyMatrixPairs = 100000;
+
         #region Internal Classes
 
         [JsonObject(MemberSerialization.OptIn), Preserve]
@@ -312,118 +318,108 @@ namespace HBP.UI.Toolbar
 
         private async void LoadCorrelations()
         {
-            void Load(string path)
-            {
-                try
-                {
-                    CorrelationsContainer container = ClassLoaderSaver.LoadFromJson<CorrelationsContainer>(path);
-                    // Checks
-                    if (SelectedScene.Visualization.Patients[0].ID != container.PatientID)
-                    {
-                        DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "The patient of the correlations files you are trying to load is different from the patient in the visualization.").Forget();
-                        return;
-                    }
-
-                    if (!container.Columns.All(c => SelectedScene.ColumnsIEEG.Any(col => col.Name == c.Column)))
-                    {
-                        DialogBoxManager.Open(DialogBoxType.Error, "Correlation file is not compatible", "One of the columns in the correlations files has no corresponding column in the visualization.").Forget();
-                        return;
-                    }
-
-                    // Load
-                    foreach (var column in SelectedScene.ColumnsIEEG)
-                    {
-                        column.CorrelationBySitePair.Clear();
-                    }
-
-                    string directory = new FileInfo(path).Directory.FullName;
-                    foreach (var column in SelectedScene.ColumnsIEEG)
-                    {
-                        ColumnContainer columnContainer = container.Columns.FirstOrDefault(c => c.Column == column.Name);
-                        string csvFilePath = Path.Combine(directory, columnContainer.CorrelationsFile);
-                        using (StreamReader sr = new(csvFilePath))
-                        {
-                            string firstLine = sr.ReadLine();
-                            string[] siteNames = firstLine.Split(',');
-                            string line;
-                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> correlationsBySitePair = new();
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                string[] values = line.Split(',');
-                                if (values.Length == 0) continue;
-                                Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
-                                if (site)
-                                {
-                                    Dictionary<Core.Object3D.Site, float> valueBySite = new();
-                                    for (int i = 1; i < values.Length; ++i)
-                                    {
-                                        Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
-                                        if (comparedSite)
-                                        {
-                                            if (NumberExtension.TryParseFloat(values[i], out float value))
-                                            {
-                                                valueBySite[comparedSite] = value;
-                                            }
-                                        }
-                                    }
-
-                                    correlationsBySitePair[site] = valueBySite;
-                                }
-                            }
-
-                            column.CorrelationBySitePair = correlationsBySitePair;
-                        }
-
-                        string csvMeanFilePath = Path.Combine(directory, columnContainer.CorrelationsMeanFile);
-                        using (StreamReader sr = new(csvMeanFilePath))
-                        {
-                            string firstLine = sr.ReadLine();
-                            string[] siteNames = firstLine.Split(',');
-                            string line;
-                            Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> meanByPair = new();
-                            while ((line = sr.ReadLine()) != null)
-                            {
-                                string[] values = line.Split(',');
-                                if (values.Length == 0) continue;
-                                Core.Object3D.Site site = column.Sites.FirstOrDefault(s => s.Information.Name == values[0]);
-                                if (site)
-                                {
-                                    Dictionary<Core.Object3D.Site, float> valueBySite = new();
-                                    for (int i = 1; i < values.Length; ++i)
-                                    {
-                                        Core.Object3D.Site comparedSite = column.Sites.FirstOrDefault(s => s.Information.Name == siteNames[i]);
-                                        if (comparedSite)
-                                        {
-                                            if (NumberExtension.TryParseFloat(values[i], out float value))
-                                            {
-                                                valueBySite[comparedSite] = value;
-                                            }
-                                        }
-                                    }
-
-                                    meanByPair[site] = valueBySite;
-                                }
-                            }
-
-                            column.CorrelationMeanBySitePair = meanByPair;
-                        }
-                    }
-
-                    SelectedScene.DisplayCorrelations = true;
-                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    DialogBoxManager.Open(DialogBoxType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.").Forget();
-                }
-            }
-
             string loadPath = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "json" }, "Load correlations");
-            if (!string.IsNullOrEmpty(loadPath))
+            if (string.IsNullOrEmpty(loadPath)) return;
+
+            try
             {
-                Load(loadPath);
+                Base3DScene scene = SelectedScene;
+                CorrelationResultResource resource = ReadLegacyCorrelationResult(scene, loadPath);
+                byte[] resultBytes = resource.Encode();
+                if (V2CorrelationRequestRouter.TryGetHandler(scene, out var handler))
+                {
+                    if (!await handler(V2CorrelationRequest.Load(resultBytes), CancellationToken.None)) return;
+                }
+                else
+                {
+                    resource.Apply(scene);
+                }
+
+                await UniTask.SwitchToMainThread();
+                scene.DisplayCorrelations = true;
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
             }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+                DialogBoxManager.Open(DialogBoxType.Error, "Can not load correlations", "One or multiple files are either missing or invalid.").Forget();
+            }
+        }
+
+        private static CorrelationResultResource ReadLegacyCorrelationResult(Base3DScene scene, string path)
+        {
+            if (!scene) throw new ArgumentNullException(nameof(scene));
+            if (new FileInfo(path).Length > MaximumLegacyMetadataBytes) throw new InvalidDataException("The correlation metadata file exceeds its size limit.");
+            CorrelationsContainer container = ClassLoaderSaver.LoadFromJson<CorrelationsContainer>(path);
+            Core.Data.Patient patient = scene.Visualization.Patients.FirstOrDefault();
+            if (patient == null || patient.ID != container?.PatientID)
+                throw new InvalidDataException("The patient in the correlation file differs from the patient in the visualization.");
+            if (container == null || container.Columns == null || container.Columns.Count != scene.ColumnsIEEG.Count || container.Columns.Any(column => column == null) || container.Columns.Select(column => column.Column).Distinct(StringComparer.Ordinal).Count() != scene.ColumnsIEEG.Count || !container.Columns.All(source => scene.ColumnsIEEG.Any(column => column.Name == source.Column)))
+                throw new InvalidDataException("The correlation file does not contain exactly one result for every visualization column.");
+
+            string directory = new FileInfo(path).Directory?.FullName ?? throw new InvalidDataException("The correlation file has no parent directory.");
+            var results = new List<CorrelationResultData>(scene.ColumnsIEEG.Count);
+            foreach (Column3DIEEG column in scene.ColumnsIEEG)
+            {
+                ColumnContainer source = container.Columns.Single(item => item.Column == column.Name);
+                Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> correlations = ReadLegacyMatrix(ResolveLegacyMatrixPath(directory, source.CorrelationsFile), column);
+                Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> means = ReadLegacyMatrix(ResolveLegacyMatrixPath(directory, source.CorrelationsMeanFile), column);
+                var dataset = column.ColumnIEEGData?.Dataset;
+                var protocol = dataset?.Protocol;
+                var bloc = column.ColumnIEEGData?.Bloc;
+                bool datasetMatches = dataset != null && dataset.Name == source.Dataset;
+                bool protocolMatches = datasetMatches && protocol != null && protocol.Name == source.Protocol;
+                bool blocMatches = protocolMatches && bloc != null && bloc.Name == source.Bloc;
+                IEEGDataInfo dataInfo = datasetMatches ? dataset.GetIEEGDataInfos().FirstOrDefault(info => info.Patient == patient && info.Name == source.Data) : null;
+                var provenance = new CorrelationProvenance(CorrelationResultSource.Imported, container.PatientID, container.PatientName, column.ColumnData.ID, datasetMatches ? dataset.ID : string.Empty, source.Dataset, protocolMatches ? protocol.ID : string.Empty, source.Protocol, blocMatches ? bloc.ID : string.Empty, source.Bloc, dataInfo?.ID ?? string.Empty, source.Data, container.DefaultNormalization, container.CorrelationThreshold, container.UseBonferroniCorrection);
+                results.Add(new CorrelationResultData(column.ColumnData.ID, correlations, means, provenance));
+            }
+
+            return CorrelationResultResource.FromResults(scene, results);
+        }
+
+        private static string ResolveLegacyMatrixPath(string directory, string fileName)
+        {
+            if (string.IsNullOrWhiteSpace(fileName) || Path.IsPathRooted(fileName) || !StringComparer.Ordinal.Equals(Path.GetFileName(fileName), fileName))
+                throw new InvalidDataException("Correlation matrix references must be file names in the selected folder.");
+            return Path.Combine(directory, fileName);
+        }
+
+        private static Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>> ReadLegacyMatrix(string path, Column3DIEEG column)
+        {
+            if (new FileInfo(path).Length > MaximumLegacyMatrixBytes) throw new InvalidDataException("A correlation matrix file exceeds its size limit.");
+            using StreamReader reader = new(path);
+            string firstLine = reader.ReadLine() ?? throw new InvalidDataException("A correlation matrix has no header.");
+            string[] siteNames = firstLine.Split(',');
+            if (siteNames.Length < 2 || siteNames.Length > MaximumLegacyMatrixRows + 1 || siteNames.Skip(1).Distinct(StringComparer.Ordinal).Count() != siteNames.Length - 1)
+                throw new InvalidDataException("A correlation matrix has an invalid header.");
+            var sitesByName = column.Sites.ToDictionary(site => site.Information.Name, StringComparer.Ordinal);
+            var matrix = new Dictionary<Core.Object3D.Site, Dictionary<Core.Object3D.Site, float>>();
+            int rowCount = 0;
+            int pairCount = 0;
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (++rowCount > MaximumLegacyMatrixRows) throw new InvalidDataException("A correlation matrix has too many rows.");
+                string[] values = line.Split(',');
+                if (values.Length != siteNames.Length) throw new InvalidDataException("A correlation matrix row has the wrong number of values.");
+                if (!sitesByName.TryGetValue(values[0], out Core.Object3D.Site site)) continue;
+                var valueBySite = new Dictionary<Core.Object3D.Site, float>();
+                for (int i = 1; i < values.Length; ++i)
+                {
+                    if (!sitesByName.TryGetValue(siteNames[i], out Core.Object3D.Site comparedSite)) continue;
+                    if (NumberExtension.TryParseFloat(values[i], out float value) && !float.IsNaN(value) && !float.IsInfinity(value))
+                    {
+                        if (++pairCount > MaximumLegacyMatrixPairs) throw new InvalidDataException("A correlation matrix has too many site pairs.");
+                        valueBySite[comparedSite] = value;
+                    }
+                }
+
+                matrix[site] = valueBySite;
+            }
+
+            return matrix;
         }
 
         private async void ResetCorrelations()
@@ -451,7 +447,13 @@ namespace HBP.UI.Toolbar
             UpdateInteractable();
             try
             {
-                await scene.ComputeCorrelationsAsync(updateProgress, token);
+                if (V2CorrelationRequestRouter.TryGetHandler(scene, out var handler))
+                    await handler(V2CorrelationRequest.Compute(externalLoadingIndicator: true, progress: updateProgress), token);
+                else
+                    await scene.ComputeCorrelationsAsync(updateProgress, token);
+
+                await UniTask.SwitchToMainThread();
+                scene.DisplayCorrelations = true;
             }
             finally
             {

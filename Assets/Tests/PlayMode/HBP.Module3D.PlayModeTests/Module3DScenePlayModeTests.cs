@@ -1372,6 +1372,8 @@ namespace HBP.Tests.PlayMode.Module3D
             HBP.Core.Object3D.Site targetSite = targetColumn.Sites.Single();
             sourceColumn.CorrelationBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.25f };
             sourceColumn.CorrelationMeanBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.75f };
+            var provenance = new CorrelationProvenance(CorrelationResultSource.Imported, patient.ID, patient.Name, sourceColumn.ColumnData.ID, "correlation-dataset", "Dataset", "correlation-protocol", "Protocol", "correlation-bloc", "Bloc", "correlation-data", "Data", NormalizationType.Trial, 0.025f, true);
+            sourceColumn.CorrelationProvenance = provenance;
 
             CorrelationResultResource captured = CorrelationResultResource.Capture(source);
             byte[] bytes = captured.Encode();
@@ -1381,6 +1383,7 @@ namespace HBP.Tests.PlayMode.Module3D
             decoded.Apply(target);
             Assert.That(targetColumn.CorrelationBySitePair[targetSite][targetSite], Is.EqualTo(0.25f));
             Assert.That(targetColumn.CorrelationMeanBySitePair[targetSite][targetSite], Is.EqualTo(0.75f));
+            Assert.That(targetColumn.CorrelationProvenance.Equals(provenance), Is.True);
             Assert.That(CorrelationResultResource.Capture(target).Encode(), Is.EqualTo(bytes));
             Assert.That(CorrelationResultResource.Reference(bytes), Is.EqualTo(reference));
             byte[] tampered = (byte[])bytes.Clone();
@@ -1462,7 +1465,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownComparison, 2)));
             Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
             var unknownCorrelation = created.Fields;
-            unknownCorrelation[new StateKey(EntityKind.Scene, "", "", 9)] = StateValue.Text("correlation:" + new string('b', 64) + ":1");
+            unknownCorrelation[new StateKey(EntityKind.Scene, "", "", 9)] = StateValue.Text("correlation:" + new string('b', 64) + ":2");
             Assert.Throws<InvalidDataException>(() => destination.Apply(created.WithFields(unknownCorrelation, 2)));
             Assert.That(SharedStateCodec.Encode(destination.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(created)));
             var unknownAtlas = created.Fields;

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -597,6 +598,31 @@ namespace HBP.Sync.Tests
                 return true;
             }
 
+            Assert.That(TryPublish(attemptB, "B"), Is.True);
+            Assert.That(TryPublish(attemptA, "A-late"), Is.False);
+            Assert.That(published, Is.EqualTo(new[] { "B" }));
+        }
+
+        [Test]
+        public void T13CorrelationJobGenerationFence_DropsCancelledAndStaleResultAttempts()
+        {
+            var registry = new V2JobGenerationRegistry(4, () => GuidFor(1300));
+            V2JobIdentity jobA = registry.BeginJob(Scene, Incarnation, V2JobType.Correlation, new OperationId(GuidFor(1301)));
+            V2JobAttempt attemptA = registry.BeginAttempt(jobA);
+            Assert.That(registry.Cancel(jobA), Is.True);
+
+            V2JobIdentity jobB = registry.BeginJob(Scene, Incarnation, V2JobType.Correlation, new OperationId(GuidFor(1302)));
+            V2JobAttempt attemptB = registry.BeginAttempt(jobB);
+            var published = new List<string>();
+
+            bool TryPublish(V2JobAttempt attempt, string result)
+            {
+                if (!registry.IsCurrent(attempt)) return false;
+                published.Add(result);
+                return true;
+            }
+
+            Assert.That(jobB.Generation, Is.EqualTo(jobA.Generation + 1));
             Assert.That(TryPublish(attemptB, "B"), Is.True);
             Assert.That(TryPublish(attemptA, "A-late"), Is.False);
             Assert.That(published, Is.EqualTo(new[] { "B" }));

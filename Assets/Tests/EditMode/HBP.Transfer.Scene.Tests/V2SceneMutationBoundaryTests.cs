@@ -133,6 +133,214 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void T13CorrelationResultAndControls_RoundTripBoundedJobAndSceneWideBarrier()
+        {
+            var jobId = new OperationId(Guid.Parse("13000000-0000-0000-0000-000000000001"));
+            byte[] resource = Enumerable.Repeat((byte)0xA5, 8192).ToArray();
+            var result = new SetCorrelationResult(jobId, 3, resource);
+            byte[] encoded = V2MutationPayloadCodec.Encode(result);
+            var decoded = (SetCorrelationResult)V2MutationPayloadCodec.Decode(encoded);
+            Assert.That(decoded.JobId, Is.EqualTo(jobId));
+            Assert.That(decoded.Generation, Is.EqualTo(3UL));
+            CollectionAssert.AreEqual(resource, decoded.ResultBytes);
+            Assert.That(V2MutationPayloadCodec.Encode(decoded), Is.EqualTo(encoded));
+
+            V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(SceneIdForT09, IncarnationIdForT09, result);
+            Assert.That(descriptor.BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
+            Assert.That(descriptor.TouchedKeys.Single().Kind, Is.EqualTo(V2TouchedKeyKind.CorrelationResult));
+
+            byte[] command = V2CorrelationRequestCodec.EncodeComputeRequest(V2CorrelationRequest.Compute());
+            Assert.That(command, Has.Length.EqualTo(V2CorrelationRequestCodec.MaximumEncodedBytes));
+            Assert.That(V2CorrelationRequestCodec.DecodeComputeRequest(command).Kind, Is.EqualTo(V2CorrelationCommandKind.Compute));
+            Assert.Throws<InvalidDataException>(() => V2CorrelationRequestCodec.DecodeComputeRequest(command.Concat(new byte[] { 0 }).ToArray()));
+
+            V2CorrelationControl[] controls =
+            {
+                new(V2CorrelationControlKind.Request, jobId, 0, command),
+                new(V2CorrelationControlKind.Started, jobId, 3),
+                new(V2CorrelationControlKind.Cancel, jobId, 3),
+                new(V2CorrelationControlKind.Ready, jobId, 3),
+                new(V2CorrelationControlKind.Failed, jobId, 3, failureCode: "quest_apply_failed")
+            };
+            foreach (V2CorrelationControl control in controls)
+            {
+                byte[] controlBytes = V2CorrelationControlCodec.Encode(control);
+                Assert.That(controlBytes.Length, Is.LessThanOrEqualTo(V2CorrelationControlCodec.MaximumPayloadBytes));
+                Assert.That(V2CorrelationControlCodec.TryDecode(controlBytes, out V2CorrelationControl roundTrip), Is.True);
+                Assert.That(roundTrip.Kind, Is.EqualTo(control.Kind));
+                Assert.That(roundTrip.JobId, Is.EqualTo(control.JobId));
+                Assert.That(roundTrip.Generation, Is.EqualTo(control.Generation));
+                Assert.That(roundTrip.FailureCode, Is.EqualTo(control.FailureCode));
+                CollectionAssert.AreEqual(control.Command, roundTrip.Command);
+            }
+        }
+
+        [Test]
+        public void T13CorrelationApply_RejectsInvalidLaterColumnBeforePublishingEarlierMatrices()
+        {
+            var root = new GameObject("T13 correlation atomic apply");
+            try
+            {
+                Base3DScene scene = root.AddComponent<Base3DScene>();
+                var patient = new Patient { ID = "t13-patient", Name = "T13 patient" };
+                var columns = new Column3DIEEG[2];
+                var sites = new HBP.Core.Object3D.Site[2];
+                for (int index = 0; index < columns.Length; index++)
+                {
+                    string id = "t13-column-" + index;
+                    Column3DIEEG column = root.AddComponent<Column3DIEEG>();
+                    SetAutoProperty(column, "ColumnData", new IEEGColumn(id, new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration(), id));
+                    var siteObject = new GameObject("t13-site-" + index);
+                    siteObject.transform.SetParent(root.transform, false);
+                    HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                    site.Information = new SiteInformation { Patient = patient, Name = siteObject.name };
+                    SetAutoProperty(column, "Sites", new List<HBP.Core.Object3D.Site> { site });
+                    column.CorrelationBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.1f + index };
+                    columns[index] = column;
+                    sites[index] = site;
+                    scene.Columns.Add(column);
+                }
+
+                var first = new CorrelationResultData(columns[0].ColumnData.ID, new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>> { [sites[0]] = new() { [sites[0]] = 0.9f } }, new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>>(), CorrelationProvenance.Unknown(columns[0].ColumnData.ID));
+                var invalidSecond = new CorrelationResultData(columns[1].ColumnData.ID, new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>> { [sites[0]] = new() { [sites[0]] = 0.8f } }, new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>>(), CorrelationProvenance.Unknown(columns[1].ColumnData.ID));
+
+                Assert.Throws<InvalidOperationException>(() => scene.ApplyCorrelationResults(new[] { first, invalidSecond }));
+                Assert.That(columns[0].CorrelationBySitePair[sites[0]][sites[0]], Is.EqualTo(0.1f));
+                Assert.That(columns[1].CorrelationBySitePair[sites[1]][sites[1]], Is.EqualTo(1.1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void T13CorrelationState_SurvivesTypedSceneCheckpointRoundTrip()
+        {
+            var root = new GameObject("T13 correlation checkpoint");
+            try
+            {
+                Base3DScene scene = root.AddComponent<Base3DScene>();
+                var patient = new Patient { ID = "t13-checkpoint-patient", Name = "T13 checkpoint patient" };
+                var columnData = new IEEGColumn("T13 checkpoint", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration(), "t13-checkpoint-column");
+                SetAutoProperty(scene, "Visualization", new Visualization("T13 checkpoint", new[] { patient }, new Column[] { columnData }, new VisualizationConfiguration(), SceneIdForT09.Value.ToString()));
+                Column3DIEEG column = root.AddComponent<Column3DIEEG>();
+                SetAutoProperty(column, "ColumnData", columnData);
+                var siteObject = new GameObject("T13 checkpoint site");
+                siteObject.transform.SetParent(root.transform, false);
+                HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                site.Information = new SiteInformation { Patient = patient, Name = siteObject.name };
+                site.State = new SiteState();
+                SetAutoProperty(column, "Sites", new List<HBP.Core.Object3D.Site> { site });
+                scene.Columns.Add(column);
+
+                using var boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Desktop);
+                var provenance = new CorrelationProvenance(CorrelationResultSource.Imported, patient.ID, patient.Name, columnData.ID, "t13-dataset-id", "dataset", "t13-protocol-id", "protocol", "t13-bloc-id", "bloc", "t13-data-id", "data", NormalizationType.Trial, 0.025f, true);
+                for (int visibility = 0; visibility < 2; visibility++)
+                {
+                    bool displayed = visibility == 1;
+                    column.CorrelationBySitePair.Clear();
+                    column.CorrelationMeanBySitePair.Clear();
+                    column.CorrelationBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.25f };
+                    column.CorrelationMeanBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.75f };
+                    column.CorrelationProvenance = provenance;
+                    scene.DisplayCorrelations = displayed;
+
+                    byte[] encodedCheckpoint = V2SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint());
+                    V2PublishedSceneCheckpoint published = V2SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
+                    Assert.That(published.Checkpoint.T13Records, Has.Count.EqualTo(1));
+                    Assert.That(published.Checkpoint.T13Records[0].HasResult, Is.True);
+                    Assert.That(published.Checkpoint.T13Records[0].DisplayCorrelations, Is.EqualTo(displayed));
+
+                    column.CorrelationBySitePair.Clear();
+                    column.CorrelationMeanBySitePair.Clear();
+                    column.CorrelationProvenance = null;
+                    scene.DisplayCorrelations = !displayed;
+                    boundary.ApplyCheckpoint(published.Checkpoint, new OperationId(Guid.NewGuid()));
+
+                    Assert.That(column.CorrelationBySitePair[site][site], Is.EqualTo(0.25f));
+                    Assert.That(column.CorrelationMeanBySitePair[site][site], Is.EqualTo(0.75f));
+                    Assert.That(column.CorrelationProvenance.Equals(provenance), Is.True);
+                    Assert.That(scene.DisplayCorrelations, Is.EqualTo(displayed));
+                    CollectionAssert.AreEqual(encodedCheckpoint, V2SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint()));
+                }
+
+                byte[] legacyResultBytes = CorrelationResultResource.Capture(scene).Encode();
+                byte[] legacyRecordBytes;
+                using (var legacyRecordStream = new MemoryStream())
+                using (var legacyRecordWriter = new BinaryWriter(legacyRecordStream))
+                {
+                    legacyRecordWriter.Write((ushort)0x5433);
+                    legacyRecordWriter.Write((ushort)1);
+                    legacyRecordWriter.Write((byte)1);
+                    legacyRecordWriter.Write((byte)0);
+                    legacyRecordWriter.Write(legacyResultBytes.Length);
+                    legacyRecordWriter.Write(legacyResultBytes);
+                    legacyRecordBytes = legacyRecordStream.ToArray();
+                }
+
+                V2CorrelationCheckpointRecord legacyRecord = V2CorrelationCheckpointRecord.Decode(legacyRecordBytes);
+                Assert.That(legacyRecord.HasResult, Is.True);
+                Assert.That(legacyRecord.DisplayCorrelations, Is.True);
+                CollectionAssert.AreEqual(legacyResultBytes, legacyRecord.ResultBytes);
+                V2CorrelationCheckpointRecord legacyEmptyRecord = V2CorrelationCheckpointRecord.Decode(new byte[] { 0x33, 0x54, 0x01, 0x00, 0x00, 0x00 });
+                Assert.That(legacyEmptyRecord.HasResult, Is.False);
+                Assert.That(legacyEmptyRecord.DisplayCorrelations, Is.False);
+
+                byte[] legacyOuterCheckpointBytes;
+                using (var legacyCheckpointStream = new MemoryStream())
+                using (var legacyCheckpointWriter = new BinaryWriter(legacyCheckpointStream))
+                {
+                    legacyCheckpointWriter.Write(Encoding.ASCII.GetBytes("HBCP"));
+                    legacyCheckpointWriter.Write((ushort)5);
+                    legacyCheckpointWriter.Write(9UL);
+                    for (int countIndex = 0; countIndex < 7; countIndex++) legacyCheckpointWriter.Write(0);
+                    legacyOuterCheckpointBytes = legacyCheckpointStream.ToArray();
+                }
+
+                V2SceneMutationCheckpoint legacyOuterCheckpoint = V2SceneMutationCheckpointCodec.Decode(legacyOuterCheckpointBytes).Checkpoint;
+                Assert.That(legacyOuterCheckpoint.T13Records, Is.Empty);
+                scene.DisplayCorrelations = false;
+                boundary.ApplyCheckpoint(legacyOuterCheckpoint, new OperationId(Guid.NewGuid()));
+                Assert.That(scene.DisplayCorrelations, Is.False);
+                Assert.That(column.CorrelationBySitePair[site][site], Is.EqualTo(0.25f));
+                Assert.That(column.CorrelationMeanBySitePair[site][site], Is.EqualTo(0.75f));
+                Assert.That(column.CorrelationProvenance.Equals(provenance), Is.True);
+
+                for (int visibility = 0; visibility < 2; visibility++)
+                {
+                    bool displayed = visibility == 1;
+                    column.CorrelationBySitePair.Clear();
+                    column.CorrelationMeanBySitePair.Clear();
+                    column.CorrelationProvenance = null;
+                    scene.DisplayCorrelations = displayed;
+
+                    byte[] encodedCheckpoint = V2SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint());
+                    V2PublishedSceneCheckpoint published = V2SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
+                    Assert.That(published.Checkpoint.T13Records, Has.Count.EqualTo(1));
+                    Assert.That(published.Checkpoint.T13Records[0].HasResult, Is.False);
+                    Assert.That(published.Checkpoint.T13Records[0].DisplayCorrelations, Is.EqualTo(displayed));
+
+                    column.CorrelationBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.5f };
+                    column.CorrelationMeanBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.6f };
+                    column.CorrelationProvenance = provenance;
+                    scene.DisplayCorrelations = !displayed;
+                    boundary.ApplyCheckpoint(published.Checkpoint, new OperationId(Guid.NewGuid()));
+
+                    Assert.That(column.CorrelationBySitePair, Is.Empty);
+                    Assert.That(column.CorrelationMeanBySitePair, Is.Empty);
+                    Assert.That(column.CorrelationProvenance, Is.Null);
+                    Assert.That(scene.DisplayCorrelations, Is.EqualTo(displayed));
+                    CollectionAssert.AreEqual(encodedCheckpoint, V2SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint()));
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void T12SiteFilterRequestCodec_RoundTripsSiteConditionsAndRejectsOtherFilterFamilies()
         {
             V2SiteFilterRequest source = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new NameFilterCondition("A1", true, false, false, "t12-condition") });

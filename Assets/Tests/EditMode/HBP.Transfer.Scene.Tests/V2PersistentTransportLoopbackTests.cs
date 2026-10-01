@@ -224,6 +224,169 @@ namespace HBP.Sync.Tests
 
         [Test]
         [Category("Sync.SceneFocused")]
+        public void T13CorrelationResultBulk_InterleavesInteractiveTrafficAndReassemblesOneTypedResult()
+        {
+            const int resultBytes = 64 * 1024;
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 1024, maxBulkBodyBytesPerTransfer: 1024 * 1024, maxBulkBodyBytesTotal: 2 * 1024 * 1024);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop, limits: limits);
+            var jobId = new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000074"));
+            byte[] resource = Enumerable.Range(0, resultBytes).Select(index => (byte)(index * 17)).ToArray();
+            var correlation = new SetCorrelationResult(jobId, 5, resource);
+            var interactive = new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true);
+            Assert.That(scheduler.EnqueueMutation(correlation, operationId: jobId, canonicalSequence: 1UL).Accepted, Is.True);
+            Assert.That(scheduler.EnqueueMutation(interactive, operationId: new OperationId(Guid.Parse("40000000-0000-0000-0000-000000000075")), canonicalSequence: 2UL).Accepted, Is.True);
+
+            var received = new List<V2TransportRecord>();
+            var enqueueWatch = Stopwatch.StartNew();
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt attempt))
+            {
+                V2ReliableFrame frame = attempt.Frame;
+                received.Add(new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, frame.OperationId, frame.StreamId, frame.ReliableFrameSequence ?? 0, frame.OriginSequence ?? 0, V2OriginDevice.Desktop, frame.Lane, frame.BodySchema, chunkIndex: frame.ChunkIndex, payload: frame.GetPayloadCopy(), canonicalSequence: frame.CanonicalSequence, observedCanonicalSequence: frame.ObservedCanonicalSequence, mutation: frame.Lane == V2ScheduleLane.Interactive ? V2MutationPayloadCodec.Decode(frame.GetPayloadCopy()) : null));
+                Assert.That(scheduler.Acknowledge(frame.StreamId, frame.ReliableFrameSequence.Value), Is.True);
+            }
+
+            enqueueWatch.Stop();
+
+            var receiver = new V2SceneOperationBulkReceiver();
+            var deferred = new Queue<V2TransportRecord>();
+            var applied = new List<V2Mutation>();
+            bool interactiveInterleaved = false;
+            foreach (V2TransportRecord record in received)
+            {
+                if (receiver.IsActive)
+                {
+                    if (receiver.TryAppend(record, out V2TransportRecord completed))
+                    {
+                        if (completed != null) applied.Add(V2MutationPayloadCodec.Decode(completed.GetPayloadCopy()));
+                    }
+                    else
+                    {
+                        Assert.That(record.Lane, Is.EqualTo(V2ScheduleLane.Interactive));
+                        interactiveInterleaved = true;
+                        deferred.Enqueue(record);
+                    }
+                }
+                else if (receiver.IsMutationDescriptor(record)) receiver.Begin(record);
+                else applied.Add(record.Mutation ?? V2MutationPayloadCodec.Decode(record.GetPayloadCopy()));
+
+                if (!receiver.IsActive)
+                    while (deferred.Count > 0)
+                        applied.Add(deferred.Dequeue().Mutation);
+            }
+
+            Assert.That(interactiveInterleaved, Is.True, "An independent interactive mutation should pass while the correlation body is arriving.");
+            Assert.That(receiver.IsActive, Is.False);
+            Assert.That(deferred, Is.Empty);
+            Assert.That(applied, Has.Count.EqualTo(2));
+            Assert.That(applied[0], Is.TypeOf<SetCorrelationResult>());
+            CollectionAssert.AreEqual(resource, ((SetCorrelationResult)applied[0]).ResultBytes);
+            Assert.That(V2MutationPayloadCodec.Encode(applied[1]), Is.EqualTo(V2MutationPayloadCodec.Encode(interactive)));
+            int bulkChunks = received.Count(record => record.Lane == V2ScheduleLane.Bulk);
+            Assert.That(bulkChunks, Is.GreaterThan(1));
+            TestContext.WriteLine($"HBP_SYNC_T13_CORRELATION_BULK resultBytes={resultBytes} bulkChunks={bulkChunks} enqueueMs={enqueueWatch.Elapsed.TotalMilliseconds:F3} interactiveInterleaved={interactiveInterleaved}");
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13CorrelationTransfer_AppliesTypedResultPreservesProvenanceAndSendsExactReady()
+        {
+            using var desktopFixture = new CorrelationSceneFixture(40);
+            using var questFixture = new CorrelationSceneFixture(40);
+            using var loading = new LoadingManagerFixture();
+            var limits = new V2SchedulerLimits(inlineThresholdBytes: 256, bulkChunkBytes: 512, interactiveBurst: 1, maxBulkBodyBytesPerTransfer: 2 * 1024 * 1024, maxBulkBodyBytesTotal: 4 * 1024 * 1024);
+            object questOwner = CreateQuestSession(questFixture.Scene, CreatePreparedBinding(questFixture.ColumnId));
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 55340, limits);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> questRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, new DelayedReadStream(pair.Server.GetStream(), TimeSpan.FromMilliseconds(1)), stop.Token));
+            Task<Exception> desktopRun = CaptureRunAsync(desktopPeer, pair.Client.GetStream(), stop.Token);
+            var jobId = new OperationId(GuidFor(55341));
+            const ulong generation = 23;
+            bool controlInterleaved = false;
+            bool interactiveInterleaved = false;
+            Task<Exception> rejectedFilterRequest = null;
+
+            try
+            {
+                await WaitUntilAsync(() => (V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner) == V2PersistentTransportState.Connected && desktopPeer.State == V2PersistentTransportState.Connected, "The typed correlation transfer did not finish the authenticated loopback handshake.");
+                Assert.That(V2SiteFilterRequestRouter.TryGetHandler(questFixture.Scene, out Func<V2SiteFilterRequest, CancellationToken, Task<bool>> filterHandler), Is.True);
+
+                Assert.That(desktopPeer.EnqueueSessionControl(V2CorrelationControlCodec.Encode(new V2CorrelationControl(V2CorrelationControlKind.Started, jobId, generation)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) != null, "Quest did not reserve the typed correlation result generation.");
+                object activeCorrelation = GetActiveQuestCorrelationJob(questOwner);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+
+                rejectedFilterRequest = CaptureTaskExceptionAsync(filterHandler(V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None));
+                Exception filterFailure = await AwaitGuardValueAsync(rejectedFilterRequest);
+                Assert.That(filterFailure, Is.InstanceOf<InvalidOperationException>(), "A Quest local filter request must reject while correlation is active.");
+                Assert.That(GetActiveQuestCorrelationJob(questOwner), Is.SameAs(activeCorrelation));
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+
+                byte[] resultBytes = desktopFixture.CreateResultBytes();
+                Assert.That(resultBytes.Length, Is.GreaterThan(64 * 1024), "The typed fixture must exercise bulk chunking.");
+                CorrelationProvenance expectedProvenance = desktopFixture.CreateProvenance();
+                var result = new SetCorrelationResult(jobId, generation, resultBytes);
+                byte[] mutationPayload = V2MutationPayloadCodec.Encode(result);
+                int bulkChunks = (mutationPayload.Length + limits.BulkChunkBytes - 1) / limits.BulkChunkBytes;
+                var interactive = new SetSiteColor(new ColumnId(questFixture.ColumnId), new SiteId(questFixture.Sites[0].Information.FullID), 0.2f, 0.7f, 0.4f, 1f);
+
+                using var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop);
+                SetCorrelationResult canonicalResult = desktopBoundary.CreateCorrelationResult(jobId, generation, resultBytes);
+                var transferWatch = Stopwatch.StartNew();
+                V2EnqueueResult resultEnqueue = desktopPeer.EnqueueMutation(canonicalResult, 1UL, null, coalesciblePreview: false, operationId: jobId);
+                Assert.That(resultEnqueue.Accepted, Is.True, $"The canonical result should be accepted (disposition={resultEnqueue.Disposition}).");
+                await WaitUntilAsync(() => (bool)GetQuestSceneOperationBulkReceiver(questOwner).GetType().GetProperty("IsActive").GetValue(GetQuestSceneOperationBulkReceiver(questOwner)), "Quest did not begin receiving the typed correlation body.");
+
+                Assert.That(desktopPeer.EnqueueMutation(interactive, 2UL, null, coalesciblePreview: false, operationId: new OperationId(GuidFor(55342))).Accepted, Is.True);
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count > 0 && (bool)GetQuestSceneOperationBulkReceiver(questOwner).GetType().GetProperty("IsActive").GetValue(GetQuestSceneOperationBulkReceiver(questOwner)), "Interactive scene traffic was not deferred while correlation chunks were in flight.");
+                V2TransportRecord deferredInteractive = GetDeferredRecords(questOwner).Single();
+                Assert.That(deferredInteractive.MessageId, Is.EqualTo(new OperationId(GuidFor(55342))));
+                Assert.That(deferredInteractive.Mutation, Is.TypeOf<SetSiteColor>());
+                interactiveInterleaved = true;
+
+                var competingFilter = new OperationId(GuidFor(55343));
+                Assert.That(desktopPeer.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, competingFilter, 1)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                V2SiteFilterControl filterRejection = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(filterRejection.Kind, Is.EqualTo(V2SiteFilterControlKind.Failed));
+                Assert.That(filterRejection.JobId, Is.EqualTo(competingFilter));
+                Assert.That(filterRejection.FailureCode, Is.EqualTo("quest_scene_busy"));
+                Assert.That(GetActiveQuestCorrelationJob(questOwner), Is.SameAs(activeCorrelation));
+                Assert.That(IsActiveJobCancelled(activeCorrelation), Is.False);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+                controlInterleaved = true;
+
+                V2CorrelationControl ready = ReadCorrelationControl(await ReadIncomingAsync(desktopPeer));
+                transferWatch.Stop();
+                Assert.That(ready.Kind, Is.EqualTo(V2CorrelationControlKind.Ready));
+                Assert.That(ready.JobId, Is.EqualTo(jobId));
+                Assert.That(ready.Generation, Is.EqualTo(generation), "Ready must acknowledge the exact generation whose typed result was applied.");
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) == null && GetDeferredRecords(questOwner).Count == 0 && GetDriverCanonicalWatermark(questOwner) == 2UL && questFixture.Sites[0].State.Color == new Color(0.2f, 0.7f, 0.4f, 1f), "Quest did not complete the typed result and apply interleaved traffic.");
+
+                CollectionAssert.AreEqual(resultBytes, CorrelationResultResource.Capture(questFixture.Scene).Encode());
+                Assert.That(questFixture.Column.CorrelationProvenance.Equals(expectedProvenance), Is.True);
+                Assert.That(questFixture.Scene.DisplayCorrelations, Is.True);
+                Assert.That(questRun.IsCompleted, Is.False, "The Quest transport must remain connected after applying the interleaved mutation.");
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(2UL));
+                Assert.That(questFixture.Sites[0].State.Color, Is.EqualTo(new Color(0.2f, 0.7f, 0.4f, 1f)));
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
+                Assert.That(interactiveInterleaved, Is.True);
+                Assert.That(controlInterleaved, Is.True);
+                TestContext.WriteLine($"HBP_SYNC_T13_CORRELATION_TRANSFER resultBytes={resultBytes.Length} mutationBytes={mutationPayload.Length} bulkChunks={bulkChunks} transferMs={transferWatch.Elapsed.TotalMilliseconds:F3} controlInterleaved={controlInterleaved} interactiveInterleaved={interactiveInterleaved} provenance={expectedProvenance.Source}");
+            }
+            finally
+            {
+                stop.Cancel();
+                pair.Close();
+                desktopPeer.Dispose();
+                ((IDisposable)questOwner).Dispose();
+                await AwaitGuardAsync(Task.WhenAll(questRun, desktopRun));
+                if (rejectedFilterRequest != null && !rejectedFilterRequest.IsCompleted)
+                    await AwaitGuardAsync(CaptureTaskExceptionAsync(rejectedFilterRequest));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
         public void SiteConfigurationBulk_StreamsThirtyThousandAssignmentsAroundIndependentInteractiveTraffic()
         {
             const int siteCount = 30000;
@@ -1087,6 +1250,377 @@ namespace HBP.Sync.Tests
             finally
             {
                 if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestCorrelationCancellation_ReleasesRemoteActivityScope()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var loading = new LoadingManagerFixture();
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var jobId = new OperationId(GuidFor(55301));
+            const ulong generation = 11;
+            try
+            {
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Started, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) != null && loading.LoadingCircle.gameObject.activeSelf, "Quest did not reserve the remote correlation job.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(1));
+
+                loading.CancelVisual();
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) == null, "Quest did not retire the cancelled correlation generation.");
+                V2CorrelationControl cancel = ReadNextQuestCorrelationControl(questOwner);
+                Assert.That(cancel.Kind, Is.EqualTo(V2CorrelationControlKind.Cancel));
+                Assert.That(cancel.JobId, Is.EqualTo(jobId));
+                Assert.That(cancel.Generation, Is.EqualTo(generation), "Quest loading cancellation must name the active correlation generation.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero, "Cancellation must release the scene activity scope.");
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.True, "A cancelled correlation job must not mutate unrelated scene state.");
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestCorrelationCancellation_RetiresPartialTransferAndDrainsDeferredMutation()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var jobId = new OperationId(GuidFor(55305));
+            const ulong generation = 12;
+            try
+            {
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Started, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) != null, "Quest did not reserve the partial correlation transfer.");
+
+                var limits = new V2SchedulerLimits(inlineThresholdBytes: 128, bulkChunkBytes: 8, interactiveBurst: 1);
+                int nextGuid = 55310;
+                var senderScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop, limits: limits, guidFactory: () => GuidFor(nextGuid++));
+                using var senderTransport = new V2PersistentTransport(senderScheduler, TimeSpan.FromHours(1), () => GuidFor(nextGuid++));
+                var result = new SetCorrelationResult(jobId, generation, Enumerable.Repeat((byte)0xA5, 8192).ToArray());
+                V2EnqueueResult enqueue = senderTransport.EnqueueMutation(result, 1UL, null, coalesciblePreview: false, operationId: jobId);
+                Assert.That(enqueue.Accepted, Is.True, $"The result descriptor should be accepted (disposition={enqueue.Disposition}).");
+                Assert.That(senderScheduler.TryGetNextTransmission(out V2TransmissionAttempt descriptorAttempt), Is.True);
+                V2TransportRecord descriptor = CreateTransportRecord(senderTransport, descriptorAttempt);
+                Assert.That(descriptor.Lane, Is.EqualTo(V2ScheduleLane.SceneControl));
+                Assert.That(senderScheduler.TryGetNextTransmission(out V2TransmissionAttempt chunkAttempt), Is.True);
+                V2TransportRecord firstChunk = CreateTransportRecord(senderTransport, chunkAttempt);
+                Assert.That(firstChunk.Lane, Is.EqualTo(V2ScheduleLane.Bulk));
+
+                object receiver = GetQuestSceneOperationBulkReceiver(questOwner);
+                receiver.GetType().GetMethod("Begin").Invoke(receiver, new object[] { descriptor });
+                Assert.That((bool)receiver.GetType().GetMethod("TryAppend").Invoke(receiver, new object[] { firstChunk, null }), Is.True);
+                Assert.That((bool)receiver.GetType().GetProperty("IsActive").GetValue(receiver), Is.True);
+
+                var color = new Color(0.15f, 0.75f, 0.35f, 1f);
+                var ordinaryMutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), color.r, color.g, color.b, color.a);
+                var deferredRecord = new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, new OperationId(GuidFor(55320)), new ReliableStreamId(GuidFor(55321)), 1, 1, V2OriginDevice.Desktop, V2ScheduleLane.Interactive, 1, payload: V2MutationPayloadCodec.Encode(ordinaryMutation), canonicalSequence: 2, mutation: ordinaryMutation);
+                MethodInfo defer = questOwner.GetType().GetMethod("DeferOrderedRecord", BindingFlags.Instance | BindingFlags.NonPublic);
+                Type deferredType = questOwner.GetType().GetNestedType("DeferredRecord", BindingFlags.Instance | BindingFlags.NonPublic);
+                ConstructorInfo deferredConstructor = deferredType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(V2TransportRecord) }, null);
+                defer.Invoke(questOwner, new[] { deferredConstructor.Invoke(new object[] { deferredRecord }) });
+                Assert.That(GetDeferredRecords(questOwner), Has.Count.EqualTo(1));
+
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Cancel, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 0 && GetActiveQuestCorrelationJob(questOwner) == null, "Quest did not retire the partial correlation result and drain deferred scene work.");
+
+                Assert.That((bool)receiver.GetType().GetProperty("IsActive").GetValue(receiver), Is.False, "Cancellation must discard the partial typed result.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+                Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(color), "Independent scene traffic must apply after the partial transfer is abandoned.");
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(2UL));
+                HashSet<Guid> abandoned = (HashSet<Guid>)questOwner.GetType().GetField("m_AbandonedCorrelationTransfers", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(questOwner);
+                Assert.That(abandoned.Contains(jobId.Value), Is.True);
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestFilterFirst_RejectsCorrelationStartWithoutCancellingFilterOrReleasingScope()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var loading = new LoadingManagerFixture();
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var filterJob = new OperationId(GuidFor(55330));
+            var correlationJob = new OperationId(GuidFor(55331));
+            const ulong generation = 21;
+            try
+            {
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Started, filterJob, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) != null && loading.LoadingCircle.gameObject.activeSelf, "Quest did not reserve the first site-filter job.");
+                object activeFilter = GetActiveQuestSiteFilterJob(questOwner);
+                bool wasFiltered = fixture.Sites[0].State.IsFiltered;
+                int activeScopes = GetSensitiveActivityCount(fixture.Scene);
+
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Started, correlationJob, generation), CancellationToken.None);
+                V2CorrelationControl rejection = ReadNextQuestCorrelationControl(questOwner);
+
+                Assert.That(rejection.Kind, Is.EqualTo(V2CorrelationControlKind.Failed));
+                Assert.That(rejection.JobId, Is.EqualTo(correlationJob));
+                Assert.That(rejection.Generation, Is.EqualTo(generation));
+                Assert.That(rejection.FailureCode, Is.EqualTo("quest_scene_busy"));
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.SameAs(activeFilter));
+                Assert.That(GetActiveQuestCorrelationJob(questOwner), Is.Null);
+                Assert.That(IsActiveJobCancelled(activeFilter), Is.False);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(activeScopes));
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.EqualTo(wasFiltered));
+
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Cancel, filterJob, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) == null, "Quest did not release the original site-filter job.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestCorrelationFirst_RejectsFilterStartWithoutCancellingCorrelationOrReleasingScope()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var loading = new LoadingManagerFixture();
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var correlationJob = new OperationId(GuidFor(55332));
+            var filterJob = new OperationId(GuidFor(55333));
+            const ulong generation = 22;
+            try
+            {
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Started, correlationJob, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) != null && loading.LoadingCircle.gameObject.activeSelf, "Quest did not reserve the first correlation job.");
+                object activeCorrelation = GetActiveQuestCorrelationJob(questOwner);
+                bool wasFiltered = fixture.Sites[0].State.IsFiltered;
+                int activeScopes = GetSensitiveActivityCount(fixture.Scene);
+
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Started, filterJob, generation), CancellationToken.None);
+                V2SiteFilterControl rejection = ReadNextQuestSiteFilterControl(questOwner);
+
+                Assert.That(rejection.Kind, Is.EqualTo(V2SiteFilterControlKind.Failed));
+                Assert.That(rejection.JobId, Is.EqualTo(filterJob));
+                Assert.That(rejection.Generation, Is.EqualTo(generation));
+                Assert.That(rejection.FailureCode, Is.EqualTo("quest_scene_busy"));
+                Assert.That(GetActiveQuestCorrelationJob(questOwner), Is.SameAs(activeCorrelation));
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.Null);
+                Assert.That(IsActiveJobCancelled(activeCorrelation), Is.False);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(activeScopes));
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.EqualTo(wasFiltered));
+
+                await InvokeQuestCorrelationControlAsync(questOwner, new V2CorrelationControl(V2CorrelationControlKind.Cancel, correlationJob, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestCorrelationJob(questOwner) == null, "Quest did not release the original correlation job.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestOfflineFilterAndCorrelationFlags_RejectTheOppositeJob()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            try
+            {
+                FieldInfo driverField = questOwner.GetType().GetField("m_Driver", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(driverField, Is.Not.Null);
+                object driver = driverField.GetValue(questOwner);
+                SetPrivateField(driver, "m_OfflineLocal", true);
+                FieldInfo boundaryField = questOwner.GetType().GetField("m_Boundary", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(boundaryField, Is.Not.Null);
+                var boundary = (V2SceneMutationBoundary)boundaryField.GetValue(questOwner);
+                Assert.That(boundary.TryBeginSensitiveActivityOperation(out IDisposable filterScope), Is.True);
+                try
+                {
+                    SetPrivateField(questOwner, "m_OfflineSiteFilterActive", true);
+                    Assert.That(V2CorrelationRequestRouter.TryGetHandler(fixture.Scene, out Func<V2CorrelationRequest, CancellationToken, Task<bool>> correlationHandler), Is.True);
+                    Exception correlationFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(correlationHandler(V2CorrelationRequest.Compute(externalLoadingIndicator: true), CancellationToken.None)));
+                    Assert.That(correlationFailure, Is.InstanceOf<InvalidOperationException>());
+                    StringAssert.Contains("already active", correlationFailure.Message);
+                    Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(1));
+                    Assert.That((bool)questOwner.GetType().GetField("m_OfflineSiteFilterActive", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(questOwner), Is.True);
+                    Assert.That(fixture.Sites[0].State.IsFiltered, Is.True);
+                }
+                finally
+                {
+                    SetPrivateField(questOwner, "m_OfflineSiteFilterActive", false);
+                    filterScope.Dispose();
+                }
+
+                Assert.That(boundary.TryBeginSensitiveActivityOperation(out IDisposable correlationScope), Is.True);
+                try
+                {
+                    SetPrivateField(questOwner, "m_OfflineCorrelationActive", true);
+                    Assert.That(V2SiteFilterRequestRouter.TryGetHandler(fixture.Scene, out Func<V2SiteFilterRequest, CancellationToken, Task<bool>> filterHandler), Is.True);
+                    Exception filterFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(filterHandler(V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None)));
+                    Assert.That(filterFailure, Is.InstanceOf<InvalidOperationException>());
+                    StringAssert.Contains("already active", filterFailure.Message);
+                    Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(1));
+                    Assert.That((bool)questOwner.GetType().GetField("m_OfflineCorrelationActive", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(questOwner), Is.True);
+                    Assert.That(fixture.Sites[0].State.IsFiltered, Is.True);
+                }
+                finally
+                {
+                    SetPrivateField(questOwner, "m_OfflineCorrelationActive", false);
+                    correlationScope.Dispose();
+                }
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13DesktopFilterFirst_RejectsCorrelationWithoutCancellingFilterOrReleasingScope()
+        {
+            using var fixture = new CorrelationSceneFixture(1);
+            object desktopOwner = CreateDesktopSession(fixture.Scene);
+            using var stop = new CancellationTokenSource();
+            var filterJob = new OperationId(GuidFor(55334));
+            try
+            {
+                Task<bool> filterTask = InvokeDesktopSiteFilterJobAsync(desktopOwner, filterJob, V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), stop.Token);
+                await WaitUntilAsync(() => GetDesktopActiveSiteFilterJob(desktopOwner) != null, "Desktop did not reserve the first site-filter job.");
+                object activeFilter = GetDesktopActiveSiteFilterJob(desktopOwner);
+                bool wasFiltered = fixture.Sites[0].State.IsFiltered;
+                int activeScopes = GetSensitiveActivityCount(fixture.Scene);
+
+                Exception correlationFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(InvokeDesktopCorrelationJobAsync(desktopOwner, new OperationId(GuidFor(55335)), V2CorrelationRequest.Load(new byte[] { 0x01 }, externalLoadingIndicator: true), CancellationToken.None)));
+                Assert.That(correlationFailure, Is.InstanceOf<InvalidOperationException>());
+                Assert.That(GetDesktopActiveSiteFilterJob(desktopOwner), Is.SameAs(activeFilter));
+                Assert.That(GetDesktopActiveCorrelationJob(desktopOwner), Is.Null);
+                Assert.That(IsActiveJobCancelled(activeFilter), Is.False);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(activeScopes));
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.EqualTo(wasFiltered));
+                Assert.That(fixture.Column.CorrelationBySitePair, Is.Empty);
+
+                stop.Cancel();
+                Exception originalFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(filterTask));
+                Assert.That(originalFailure, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                if (!stop.IsCancellationRequested) stop.Cancel();
+                if (desktopOwner is IDisposable disposable) disposable.Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13DesktopCorrelationFirst_RejectsFilterWithoutCancellingCorrelationOrReleasingScope()
+        {
+            using var fixture = new CorrelationSceneFixture(1);
+            object desktopOwner = CreateDesktopSession(fixture.Scene);
+            using var stop = new CancellationTokenSource();
+            var correlationJob = new OperationId(GuidFor(55336));
+            try
+            {
+                byte[] resultBytes = fixture.CreateResultBytes();
+                Task<bool> correlationTask = InvokeDesktopCorrelationJobAsync(desktopOwner, correlationJob, V2CorrelationRequest.Load(resultBytes, externalLoadingIndicator: true), stop.Token);
+                await WaitUntilAsync(() => GetDesktopActiveCorrelationJob(desktopOwner) != null, "Desktop did not reserve the first correlation job.");
+                object activeCorrelation = GetDesktopActiveCorrelationJob(desktopOwner);
+                bool wasFiltered = fixture.Sites[0].State.IsFiltered;
+                float appliedValue = fixture.Column.CorrelationBySitePair[fixture.Sites[0]][fixture.Sites[0]];
+                CorrelationProvenance appliedProvenance = fixture.Column.CorrelationProvenance;
+                int activeScopes = GetSensitiveActivityCount(fixture.Scene);
+
+                Exception filterFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(InvokeDesktopSiteFilterJobAsync(desktopOwner, new OperationId(GuidFor(55337)), V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None)));
+                Assert.That(filterFailure, Is.InstanceOf<InvalidOperationException>());
+                Assert.That(GetDesktopActiveCorrelationJob(desktopOwner), Is.SameAs(activeCorrelation));
+                Assert.That(GetDesktopActiveSiteFilterJob(desktopOwner), Is.Null);
+                Assert.That(IsActiveJobCancelled(activeCorrelation), Is.False);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(activeScopes));
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.EqualTo(wasFiltered));
+                Assert.That(fixture.Column.CorrelationBySitePair[fixture.Sites[0]][fixture.Sites[0]], Is.EqualTo(appliedValue));
+                Assert.That(fixture.Column.CorrelationProvenance.Equals(appliedProvenance), Is.True);
+
+                stop.Cancel();
+                Exception originalFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(correlationTask));
+                Assert.That(originalFailure, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                if (!stop.IsCancellationRequested) stop.Cancel();
+                if (desktopOwner is IDisposable disposable) disposable.Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13DesktopCorrelationFailure_InvalidatesGenerationAndSendsFailedControl()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object desktopOwner = constructor.Invoke(new object[] { fixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+
+            try
+            {
+                SetPrivateField(desktopOwner, "m_State", Enum.Parse(desktopOwnerType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic).FieldType, "Live"));
+                var jobId = new OperationId(GuidFor(55302));
+                MethodInfo runCorrelationJob = desktopOwnerType.GetMethod("RunCorrelationJobAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(runCorrelationJob, Is.Not.Null);
+                Task<bool> operation = (Task<bool>)runCorrelationJob.Invoke(desktopOwner, new object[] { jobId, V2CorrelationRequest.Load(new byte[] { 0x01 }, externalLoadingIndicator: true), CancellationToken.None, false });
+                Exception failure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(operation));
+
+                Assert.That(failure, Is.InstanceOf<InvalidDataException>());
+                Assert.That(GetDesktopActiveCorrelationJob(desktopOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+                var registry = (V2JobGenerationRegistry)desktopOwnerType.GetField("m_CorrelationGenerations", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                var controls = ReadDesktopCorrelationControls(desktopOwner);
+                Assert.That(controls.Select(control => control.Kind), Is.EqualTo(new[] { V2CorrelationControlKind.Started, V2CorrelationControlKind.Failed }));
+                Assert.That(controls[1].FailureCode, Is.EqualTo("desktop_correlation_failed"));
+                Assert.That(registry.TrackedScopeCount, Is.EqualTo(1));
+                object states = typeof(V2JobGenerationRegistry).GetField("m_States", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(registry);
+                object state = ((System.Collections.IDictionary)states).Values.Cast<object>().Single();
+                Assert.That((bool)state.GetType().GetField("Cancelled", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(state), Is.True, "A failed load must invalidate its generation before releasing the scene scope.");
+            }
+            finally
+            {
+                if (desktopOwner is IDisposable disposable) disposable.Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task T13QuestCorrelationResultWithStaleGeneration_IsDroppedBeforeApply()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var jobId = new OperationId(GuidFor(55303));
+            var result = new SetCorrelationResult(jobId, 1, new byte[] { 0x01 });
+            var record = new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, jobId, new ReliableStreamId(GuidFor(55304)), 1, 1, V2OriginDevice.Desktop, V2ScheduleLane.SceneControl, 1, payload: V2MutationPayloadCodec.Encode(result), canonicalSequence: 1, mutation: result);
+            try
+            {
+                MethodInfo apply = questOwner.GetType().GetMethod("ApplyCorrelationResultAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(apply, Is.Not.Null);
+                object telemetryDefault = Activator.CreateInstance(apply.GetParameters()[2].ParameterType);
+                object telemetryLastDefault = Activator.CreateInstance(apply.GetParameters()[3].ParameterType);
+                await (Task)apply.Invoke(questOwner, new[] { record, result, telemetryDefault, telemetryLastDefault, CancellationToken.None });
+
+                Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(1UL));
+                Assert.That(GetActiveQuestCorrelationJob(questOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+                Assert.That(fixture.Sites[0].State.IsFiltered, Is.True, "A result from a retired generation must not reach scene application.");
+            }
+            finally
+            {
                 ((IDisposable)questOwner).Dispose();
             }
         }
@@ -2171,6 +2705,14 @@ namespace HBP.Sync.Tests
             return control;
         }
 
+        private static V2CorrelationControl ReadCorrelationControl(V2TransportRecord record)
+        {
+            Assert.That(record, Is.Not.Null);
+            Assert.That(record.Lane, Is.EqualTo(V2ScheduleLane.SessionControl));
+            Assert.That(V2CorrelationControlCodec.TryDecode(record.GetPayloadCopy(), out V2CorrelationControl control), Is.True, "The session-control record should contain a T13 correlation message.");
+            return control;
+        }
+
         private static V2SiteFilterControl ReadNextQuestSiteFilterControl(object questOwner)
         {
             FieldInfo schedulerField = questOwner.GetType().GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic);
@@ -2206,6 +2748,20 @@ namespace HBP.Sync.Tests
             FieldInfo field = questOwner.GetType().GetField("m_ActiveSiteFilterJob", BindingFlags.Instance | BindingFlags.NonPublic);
             Assert.That(field, Is.Not.Null);
             return field.GetValue(questOwner);
+        }
+
+        private static object GetActiveQuestCorrelationJob(object questOwner)
+        {
+            FieldInfo field = questOwner.GetType().GetField("m_ActiveCorrelationJob", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(questOwner);
+        }
+
+        private static object GetDesktopActiveCorrelationJob(object desktopOwner)
+        {
+            FieldInfo field = desktopOwner.GetType().GetField("m_ActiveCorrelationJob", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(desktopOwner);
         }
 
         private static OperationId GetQuestActiveJobId(object questOwner) => GetActiveQuestSiteFilterJob(questOwner)?.GetType().GetProperty("JobId")?.GetValue(GetActiveQuestSiteFilterJob(questOwner)) as OperationId;
@@ -2251,6 +2807,66 @@ namespace HBP.Sync.Tests
             return (Task)method.Invoke(desktopOwner, new object[] { control, stop });
         }
 
+        private static Task<bool> InvokeDesktopSiteFilterJobAsync(object desktopOwner, OperationId jobId, V2SiteFilterRequest request, CancellationToken stop)
+        {
+            MethodInfo method = desktopOwner.GetType().GetMethod("RunSiteFilterJobAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (Task<bool>)method.Invoke(desktopOwner, new object[] { jobId, request, stop, false });
+        }
+
+        private static Task<bool> InvokeDesktopCorrelationJobAsync(object desktopOwner, OperationId jobId, V2CorrelationRequest request, CancellationToken stop)
+        {
+            MethodInfo method = desktopOwner.GetType().GetMethod("RunCorrelationJobAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (Task<bool>)method.Invoke(desktopOwner, new object[] { jobId, request, stop, false });
+        }
+
+        private static Task InvokeQuestCorrelationControlAsync(object questOwner, V2CorrelationControl control, CancellationToken stop)
+        {
+            MethodInfo method = questOwner.GetType().GetMethod("ProcessCorrelationControlAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (Task)method.Invoke(questOwner, new object[] { control, stop });
+        }
+
+        private static bool IsActiveJobCancelled(object activeJob)
+        {
+            Assert.That(activeJob, Is.Not.Null);
+            CancellationTokenSource cancellation = (CancellationTokenSource)activeJob.GetType().GetProperty("Cancellation").GetValue(activeJob);
+            return cancellation.IsCancellationRequested;
+        }
+
+        private static V2CorrelationControl[] ReadDesktopCorrelationControls(object desktopOwner)
+        {
+            FieldInfo field = desktopOwner.GetType().GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            var scheduler = (V2OutgoingScheduler)field.GetValue(desktopOwner);
+            var controls = new List<V2CorrelationControl>();
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt transmission))
+            {
+                if (transmission.Frame.Lane != V2ScheduleLane.SessionControl) continue;
+                Assert.That(V2CorrelationControlCodec.TryDecode(transmission.Frame.GetPayloadCopy(), out V2CorrelationControl control), Is.True);
+                controls.Add(control);
+            }
+
+            return controls.ToArray();
+        }
+
+        private static V2CorrelationControl ReadNextQuestCorrelationControl(object questOwner)
+        {
+            FieldInfo field = questOwner.GetType().GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            var scheduler = (V2OutgoingScheduler)field.GetValue(questOwner);
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt transmission))
+            {
+                if (transmission.Frame.Lane != V2ScheduleLane.SessionControl) continue;
+                Assert.That(V2CorrelationControlCodec.TryDecode(transmission.Frame.GetPayloadCopy(), out V2CorrelationControl control), Is.True);
+                return control;
+            }
+
+            Assert.Fail("Quest did not send a correlation session control.");
+            return null;
+        }
+
         private static async Task AwaitGuardAsync(Task task, int timeoutSeconds = 5)
         {
             Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
@@ -2290,6 +2906,20 @@ namespace HBP.Sync.Tests
             ConstructorInfo constructor = sessionType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(PreparedSceneDeliveryBinding), typeof(Func<CancellationToken, Task>), typeof(Func<V2TransportRecord, CancellationToken, Task>) }, null);
             Assert.That(constructor, Is.Not.Null);
             return constructor.Invoke(new object[] { scene, binding, beforeCheckpointApply, afterDeferredRecordProcessed });
+        }
+
+        private static object CreateDesktopSession(Base3DScene scene)
+        {
+            Type sessionType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(sessionType, Is.Not.Null, "Desktop's production v2 session should be loaded for this integration test.");
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = sessionType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object owner = constructor.Invoke(new object[] { scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+            FieldInfo stateField = sessionType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(stateField, Is.Not.Null);
+            SetPrivateField(owner, "m_State", Enum.Parse(stateField.FieldType, "Live"));
+            return owner;
         }
 
         private static PreparedSceneDeliveryBinding CreatePreparedBinding(params string[] columnIds)
@@ -2470,6 +3100,73 @@ namespace HBP.Sync.Tests
             }
         }
 
+        private sealed class CorrelationSceneFixture : IDisposable
+        {
+            private readonly Patient m_Patient;
+
+            public GameObject Root { get; }
+            public Base3DScene Scene { get; }
+            public Column3DIEEG Column { get; }
+            public List<HBP.Core.Object3D.Site> Sites { get; } = new();
+            public string ColumnId => "t13-correlation-column";
+
+            public CorrelationSceneFixture(int siteCount)
+            {
+                Root = new GameObject("T13 correlation scene");
+                Scene = Root.AddComponent<Base3DScene>();
+                var mriManager = Root.AddComponent<MRIManager>();
+                SetPrivateField(mriManager, "m_Scene", Scene);
+                SetPrivateField(Scene, "m_MRIManager", mriManager);
+                m_Patient = new Patient { ID = "50000000-0000-0000-0000-000000000013", Name = "T13 correlation patient" };
+                var columnData = new IEEGColumn("T13 correlation", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration(), ColumnId);
+                SetAutoProperty(Scene, "Visualization", new Visualization("T13 correlation", new[] { m_Patient }, new Column[] { columnData }, new VisualizationConfiguration(), V2PersistentTransportLoopbackTests.Scene.Value.ToString()));
+                Column = Root.AddComponent<Column3DIEEG>();
+                SetAutoProperty(Column, "ColumnData", columnData);
+                for (int index = 0; index < siteCount; index++)
+                {
+                    string name = "t13-site-" + index.ToString("D3");
+                    var siteObject = new GameObject(name);
+                    siteObject.transform.SetParent(Root.transform, false);
+                    HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                    site.Information = new SiteInformation { Patient = m_Patient, Name = name };
+                    site.State = new SiteState();
+                    Sites.Add(site);
+                }
+
+                SetAutoProperty(Column, "Sites", Sites);
+                Scene.Columns.Add(Column);
+            }
+
+            public CorrelationProvenance CreateProvenance() => new(CorrelationResultSource.Imported, m_Patient.ID, m_Patient.Name, ColumnId, "t13-dataset-id", "T13 dataset", "t13-protocol-id", "T13 protocol", "t13-bloc-id", "T13 bloc", "t13-data-info-id", "T13 data", HBP.Core.Enums.NormalizationType.Trial, 0.025f, true);
+
+            public byte[] CreateResultBytes()
+            {
+                var correlations = new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>>(Sites.Count);
+                var means = new Dictionary<HBP.Core.Object3D.Site, Dictionary<HBP.Core.Object3D.Site, float>>(Sites.Count);
+                for (int from = 0; from < Sites.Count; from++)
+                {
+                    var correlationRow = new Dictionary<HBP.Core.Object3D.Site, float>(Sites.Count);
+                    var meanRow = new Dictionary<HBP.Core.Object3D.Site, float>(Sites.Count);
+                    for (int to = 0; to < Sites.Count; to++)
+                    {
+                        correlationRow.Add(Sites[to], (from + to) / (float)Math.Max(1, Sites.Count * 2));
+                        meanRow.Add(Sites[to], (from + 2 * to) / (float)Math.Max(1, Sites.Count * 3));
+                    }
+
+                    correlations.Add(Sites[from], correlationRow);
+                    means.Add(Sites[from], meanRow);
+                }
+
+                var result = new CorrelationResultData(ColumnId, correlations, means, CreateProvenance());
+                return CorrelationResultResource.FromResults(Scene, new[] { result }).Encode();
+            }
+
+            public void Dispose()
+            {
+                if (Root) UnityEngine.Object.DestroyImmediate(Root);
+            }
+        }
+
         private sealed class LoopbackPeerPair : IDisposable
         {
             public TcpClient Client { get; }
@@ -2508,6 +3205,43 @@ namespace HBP.Sync.Tests
             }
 
             public void Dispose() => Close();
+        }
+
+        private sealed class DelayedReadStream : Stream
+        {
+            private readonly Stream m_Inner;
+            private readonly TimeSpan m_ReadDelay;
+
+            public DelayedReadStream(Stream inner, TimeSpan readDelay)
+            {
+                m_Inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                m_ReadDelay = readDelay;
+            }
+
+            public override bool CanRead => m_Inner.CanRead;
+            public override bool CanSeek => false;
+            public override bool CanWrite => m_Inner.CanWrite;
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override void Flush() => m_Inner.Flush();
+            public override int Read(byte[] buffer, int offset, int count) => m_Inner.Read(buffer, offset, count);
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+            public override void Write(byte[] buffer, int offset, int count) => m_Inner.Write(buffer, offset, count);
+
+            public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+            {
+                await Task.Delay(m_ReadDelay, cancellationToken);
+                return await m_Inner.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
+            }
+
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => m_Inner.WriteAsync(buffer, offset, count, cancellationToken);
         }
 
         private sealed class SessionSceneFixture : IDisposable
