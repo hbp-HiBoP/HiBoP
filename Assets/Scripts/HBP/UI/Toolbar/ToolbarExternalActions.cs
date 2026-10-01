@@ -104,6 +104,7 @@ namespace HBP.UI.Toolbar
             }
 
             var siteFilters = WindowsManager.Open("Site Filters window", null).GetComponent<SiteFiltersWindow>();
+            siteFilters.Scene = scene;
             siteFilters.FilteringObjects = sites;
             siteFilters.SetPreset(PersistentDataManager.FilterConditionsPresets.GetCurrentPreset(typeof(HBP.Core.Object3D.Site)));
             siteFilters.OnApplyFilters.AddListener(mask =>

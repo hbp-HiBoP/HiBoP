@@ -52,7 +52,8 @@ namespace HBP.Sync
         SetColumnResource = 36,
         SetCcepSource = 37,
         SetSiteConfigurationBatch = 38,
-        SetConfigurationTransaction = 39
+        SetConfigurationTransaction = 39,
+        SetSiteFilterResult = 40
     }
 
     public enum V2CutOrientation : byte
@@ -390,7 +391,8 @@ namespace HBP.Sync
         InfluenceDistance = 29,
         ColumnResource = 30,
         CcepSource = 31,
-        SiteConfigurationBatch = 32
+        SiteConfigurationBatch = 32,
+        SiteFilterResult = 33
     }
 
     public sealed class V2TouchedKey : IEquatable<V2TouchedKey>
@@ -547,10 +549,12 @@ namespace HBP.Sync
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.CcepSource, ccepSource.ColumnId, null, null);
             else if (mutation is SetSiteConfigurationBatch)
                 key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteConfigurationBatch, null, null, null);
+            else if (mutation is SetSiteFilterResult)
+                key = new V2TouchedKey(sceneId, incarnationId, V2TouchedKeyKind.SiteFilterResult, null, null, null);
             else
                 throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
 
-            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetSiteConfigurationBatch ? V2BarrierScope.AllScene : V2BarrierScope.None;
+            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetSiteConfigurationBatch or SetSiteFilterResult ? V2BarrierScope.AllScene : V2BarrierScope.None;
             CoalescingKey = BarrierScope == V2BarrierScope.None ? key : null;
             var keys = new List<V2TouchedKey> { key };
             if (mutation is ApplyTriangleMask triangleMasks)

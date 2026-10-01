@@ -7,6 +7,9 @@ using UnityEngine.Events;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Preferences;
+using HBP.Core.Object3D;
+using HBP.Sync.Scene;
+using HBP.UI.Module3D;
 using System;
 using HBP.Core.Tools;
 
@@ -155,19 +158,20 @@ namespace HBP.UI.Informations
 
         public void FilterChannels(ChannelStruct[] channels)
         {
-            foreach (var column in m_Scene.Columns)
-            {
-                foreach (var site in column.Sites)
-                {
-                    site.State.IsFiltered = false;
-                }
+            if (channels == null) throw new ArgumentNullException(nameof(channels));
+            V2SiteFilterChannel[] requestedChannels = channels.Where(channel => channel != null && channel.Patient != null && !string.IsNullOrEmpty(channel.Channel)).Select(channel => new V2SiteFilterChannel(channel.Channel, channel.Patient.ID)).ToArray();
+            V2SiteFilterRequest request = V2SiteFilterRequest.FromChannels(requestedChannels, externalLoadingIndicator: true);
+            if (SiteFilterUiRequestRunner.TryRun(m_Scene, request, () => ApplyChannelFilterLocally(requestedChannels))) return;
 
-                var sites = column.Sites.Where(s => channels.Any(c => c.Channel == s.name && c.Patient == s.Information.Patient));
-                foreach (var site in sites)
-                {
-                    site.State.IsFiltered = true;
-                }
-            }
+            ApplyChannelFilterLocally(requestedChannels);
+        }
+
+        private void ApplyChannelFilterLocally(V2SiteFilterChannel[] channels)
+        {
+            var selected = channels.Select(channel => (channel.PatientId, channel.Channel)).ToHashSet();
+            var assignments = m_Scene.Columns.SelectMany(column => column.Sites).Select(site => (site.State, selected.Contains((site.Information.PatientID, site.name))));
+            m_Scene.ApplySiteStateBatch(() => SiteState.ApplyFilteredStateBatch(assignments));
+            Module3DMain.OnRequestUpdateInSiteList.Invoke();
         }
 
         public void OpenGraphSettingsWindow()

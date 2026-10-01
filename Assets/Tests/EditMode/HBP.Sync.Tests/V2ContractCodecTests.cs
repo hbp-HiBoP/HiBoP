@@ -385,6 +385,41 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        public void T12SiteFilterResultAndControls_RoundTripBoundedJobIdentityAndMask()
+        {
+            var jobId = new OperationId(GuidFor(1201));
+            byte[] rosterHash = Enumerable.Range(0, 32).Select(value => (byte)value).ToArray();
+            byte[] inclusionBits = V2SiteFilterMaskCodec.EncodeBits(new[] { true, false, true });
+            var result = new SetSiteFilterResult(jobId, 7, rosterHash, 3, inclusionBits);
+
+            byte[] encodedMutation = V2MutationPayloadCodec.Encode(result);
+            SetSiteFilterResult decodedMutation = (SetSiteFilterResult)V2MutationPayloadCodec.Decode(encodedMutation);
+            Assert.That(decodedMutation.JobId, Is.EqualTo(jobId));
+            Assert.That(decodedMutation.Generation, Is.EqualTo(7));
+            Assert.That(decodedMutation.SiteCount, Is.EqualTo(3));
+            Assert.That(new[] { decodedMutation.IsIncluded(0), decodedMutation.IsIncluded(1), decodedMutation.IsIncluded(2) }, Is.EqualTo(new[] { true, false, true }));
+            Assert.That(V2MutationPayloadCodec.Encode(decodedMutation), Is.EqualTo(encodedMutation));
+
+            var checkpointRecord = new V2SiteFilterCheckpointRecord(rosterHash, 3, inclusionBits);
+            V2SiteFilterCheckpointRecord decodedCheckpoint = V2SiteFilterCheckpointRecord.Decode(checkpointRecord.Encode());
+            Assert.That(decodedCheckpoint.SiteCount, Is.EqualTo(3));
+            Assert.That(decodedCheckpoint.IsIncluded(1), Is.False);
+            Assert.Throws<ArgumentException>(() => new SetSiteFilterResult(jobId, 7, rosterHash, 1, new byte[] { 0xFE }));
+
+            var request = new V2SiteFilterControl(V2SiteFilterControlKind.Request, jobId, 0, payload: new byte[] { 1, 2, 3 });
+            Assert.That(V2SiteFilterControlCodec.TryDecode(V2SiteFilterControlCodec.Encode(request), out V2SiteFilterControl decodedRequest), Is.True);
+            Assert.That(decodedRequest.Kind, Is.EqualTo(V2SiteFilterControlKind.Request));
+            Assert.That(decodedRequest.JobId, Is.EqualTo(jobId));
+            CollectionAssert.AreEqual(new byte[] { 1, 2, 3 }, decodedRequest.Payload);
+
+            var earlyFailure = new V2SiteFilterControl(V2SiteFilterControlKind.Failed, jobId, 0, failureCode: "scene_busy");
+            Assert.That(V2SiteFilterControlCodec.TryDecode(V2SiteFilterControlCodec.Encode(earlyFailure), out V2SiteFilterControl decodedFailure), Is.True);
+            Assert.That(decodedFailure.Generation, Is.Zero);
+            Assert.That(decodedFailure.FailureCode, Is.EqualTo("scene_busy"));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new V2SiteFilterControl(V2SiteFilterControlKind.Ready, jobId, 0));
+        }
+
+        [Test]
         public void TriangleMaskEncoding_UsesSparseForSmallEditsAndBitsetForDenseMasks()
         {
             var sparseVisibility = Enumerable.Repeat(1, 512).ToArray();

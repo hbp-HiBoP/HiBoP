@@ -111,8 +111,9 @@ namespace HBP.Sync.Scene
         public IReadOnlyList<V2T09CheckpointRecord> T09Records { get; }
         public IReadOnlyList<V2T10CheckpointRecord> T10Records { get; }
         public IReadOnlyList<V2T11CheckpointRecord> T11Records { get; }
+        public IReadOnlyList<V2SiteFilterCheckpointRecord> T12Records { get; }
 
-        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null, IEnumerable<V2T11CheckpointRecord> t11Records = null)
+        internal V2SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<V2T09CheckpointRecord> t09Records = null, IEnumerable<V2T10CheckpointRecord> t10Records = null, IEnumerable<V2T11CheckpointRecord> t11Records = null, IEnumerable<V2SiteFilterCheckpointRecord> t12Records = null)
         {
             SiteColors = Array.AsReadOnly(siteColors.ToArray());
             CutDefinitions = Array.AsReadOnly(cutDefinitions.ToArray());
@@ -120,6 +121,7 @@ namespace HBP.Sync.Scene
             T09Records = Array.AsReadOnly((t09Records ?? Enumerable.Empty<V2T09CheckpointRecord>()).ToArray());
             T10Records = Array.AsReadOnly((t10Records ?? Enumerable.Empty<V2T10CheckpointRecord>()).ToArray());
             T11Records = Array.AsReadOnly((t11Records ?? Enumerable.Empty<V2T11CheckpointRecord>()).ToArray());
+            T12Records = Array.AsReadOnly((t12Records ?? Enumerable.Empty<V2SiteFilterCheckpointRecord>()).ToArray());
         }
     }
 
@@ -534,7 +536,7 @@ namespace HBP.Sync.Scene
             if (!TryRebaseTargetedSiteConfigurationRollback(currentBatch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, checkpointProvenance, out V2Mutation rebasedMutation, out rebasedProvenance)) return false;
             var records = checkpoint.T11Records.ToArray();
             records[batchIndex] = new V2T11CheckpointRecord(rebasedMutation);
-            rebased = new V2SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records);
+            rebased = new V2SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records, checkpoint.T12Records);
             return true;
         }
 
@@ -844,6 +846,7 @@ namespace HBP.Sync.Scene
         public V2Mutation ReadCurrentMutation(V2Mutation key)
         {
             if (key == null) throw new ArgumentNullException(nameof(key));
+            if (key is SetSiteFilterResult) throw new InvalidOperationException("Site-filter job results are scene-wide and cannot be optimistically corrected.");
             if (key is SetSiteColor siteColor)
             {
                 SiteState state = ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);
@@ -875,6 +878,12 @@ namespace HBP.Sync.Scene
         internal void ValidateMutation(V2Mutation mutation)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            if (mutation is SetSiteFilterResult filterResult)
+            {
+                ValidateSiteFilterResult(filterResult);
+                return;
+            }
+
             if (mutation is SetSiteColor siteColor)
             {
                 ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);
@@ -934,7 +943,161 @@ namespace HBP.Sync.Scene
             var t09Records = m_Scene == null ? new List<V2T09CheckpointRecord>() : CaptureT09Records();
             var t10Records = m_Scene == null ? new List<V2T10CheckpointRecord>() : CaptureT10Records();
             var t11Records = CaptureT11Records();
-            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records);
+            var t12Records = new List<V2SiteFilterCheckpointRecord>();
+            if (CaptureSiteFilterCheckpoint() is V2SiteFilterCheckpointRecord filterRecord) t12Records.Add(filterRecord);
+            return new V2SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records, t12Records);
+        }
+
+        public SetSiteFilterResult CreateSiteFilterResult(OperationId jobId, ulong generation, bool[] included)
+        {
+            if (included == null) throw new ArgumentNullException(nameof(included));
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            if (included.Length != roster.Count) throw new ArgumentException("The inclusion mask does not match the prepared site roster.", nameof(included));
+            return CreateSiteFilterResult(jobId, generation, included, CreateSiteFilterRosterHash(roster));
+        }
+
+        public SetSiteFilterResult CreateSiteFilterResult(OperationId jobId, ulong generation, bool[] included, byte[] expectedRosterHash)
+        {
+            if (included == null) throw new ArgumentNullException(nameof(included));
+            if (expectedRosterHash == null || expectedRosterHash.Length != 32) throw new ArgumentException("A prepared site-roster identity requires a SHA-256 hash.", nameof(expectedRosterHash));
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            if (included.Length != roster.Count) throw new InvalidOperationException("The prepared site roster changed while the filter was being evaluated.");
+            byte[] currentHash = CreateSiteFilterRosterHash(roster);
+            int difference = 0;
+            for (int i = 0; i < currentHash.Length; i++) difference |= currentHash[i] ^ expectedRosterHash[i];
+            if (difference != 0) throw new InvalidOperationException("The prepared site roster changed while the filter was being evaluated.");
+            return new SetSiteFilterResult(jobId, generation, currentHash, roster.Count, V2SiteFilterMaskCodec.EncodeBits(included));
+        }
+
+        public (int SiteCount, byte[] RosterHash) CaptureSiteFilterRosterIdentity()
+        {
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            return (roster.Count, CreateSiteFilterRosterHash(roster));
+        }
+
+        public (IReadOnlyList<(SiteState State, ColumnId ColumnId, SiteId SiteId)> Targets, byte[] RosterHash) CaptureSiteFilterRoster()
+        {
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            var targets = roster.Select(target => (target.State, target.ColumnId, target.SiteId)).ToArray();
+            return (Array.AsReadOnly(targets), CreateSiteFilterRosterHash(roster));
+        }
+
+        private V2SiteFilterCheckpointRecord CaptureSiteFilterCheckpoint()
+        {
+            var roster = CreateSiteFilterRoster();
+            if (roster.Count == 0) return null;
+            bool[] included = roster.Select(target => target.State.IsFiltered).ToArray();
+            return new V2SiteFilterCheckpointRecord(CreateSiteFilterRosterHash(roster), roster.Count, V2SiteFilterMaskCodec.EncodeBits(included));
+        }
+
+        private void ValidateSiteFilterCheckpoint(IReadOnlyList<V2SiteFilterCheckpointRecord> records)
+        {
+            if (records == null) throw new ArgumentNullException(nameof(records));
+            if (records.Count > 1) throw new InvalidDataException("A checkpoint can contain at most one T12 site-filter result.");
+            if (records.Count == 0) return;
+            ValidateSiteFilterMask(records[0].RosterHash, records[0].SiteCount);
+        }
+
+        private void ValidateSiteFilterResult(SetSiteFilterResult result)
+        {
+            ValidateSiteFilterMask(result.RosterHash, result.SiteCount);
+        }
+
+        private void ValidateSiteFilterMask(byte[] rosterHash, int siteCount)
+        {
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            if (roster.Count != siteCount)
+                throw new InvalidDataException("The site-filter result does not match the prepared site roster size.");
+            byte[] expectedHash = CreateSiteFilterRosterHash(roster);
+            int hashDifference = 0;
+            for (int i = 0; i < expectedHash.Length; i++) hashDifference |= expectedHash[i] ^ rosterHash[i];
+            if (hashDifference != 0)
+                throw new InvalidDataException("The site-filter result belongs to a different prepared site roster.");
+        }
+
+        private bool ApplySiteFilterResult(SetSiteFilterResult result)
+        {
+            ValidateSiteFilterResult(result);
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            bool changed = false;
+            for (int i = 0; i < roster.Count; i++)
+                changed |= roster[i].State.IsFiltered != result.IsIncluded(i);
+            if (changed)
+            {
+                Action apply = () => { SiteState.ApplyFilteredStateBatch(CreateFilterAssignments(roster, result.IsIncluded)); };
+                if (m_Scene != null) m_Scene.ApplySiteStateBatch(apply);
+                else apply();
+                Module3DMain.OnRequestUpdateInSiteList.Invoke();
+            }
+
+            return true;
+        }
+
+        private void ApplySiteFilterCheckpoint(V2SiteFilterCheckpointRecord record)
+        {
+            IReadOnlyList<SiteFilterTarget> roster = CreateSiteFilterRoster();
+            Action apply = () => { SiteState.ApplyFilteredStateBatch(CreateFilterAssignments(roster, record.IsIncluded)); };
+            if (m_Scene != null) m_Scene.ApplySiteStateBatch(apply);
+            else apply();
+            Module3DMain.OnRequestUpdateInSiteList.Invoke();
+        }
+
+        private static IEnumerable<(SiteState State, bool Included)> CreateFilterAssignments(IReadOnlyList<SiteFilterTarget> roster, Func<int, bool> includedAt)
+        {
+            var assignments = new Dictionary<SiteState, bool>();
+            for (int i = 0; i < roster.Count; i++)
+            {
+                SiteState state = roster[i].State;
+                bool included = includedAt(i);
+                if (assignments.TryGetValue(state, out bool previous) && previous != included)
+                    throw new InvalidDataException("The site-filter result assigns conflicting values to an aliased site state.");
+                assignments[state] = included;
+            }
+
+            return assignments.Select(assignment => (assignment.Key, assignment.Value));
+        }
+
+        private IReadOnlyList<SiteFilterTarget> CreateSiteFilterRoster()
+        {
+            return m_SitesById.OrderBy(entry => entry.Key.ColumnId.Value, StringComparer.Ordinal).ThenBy(entry => entry.Key.SiteId.Value, StringComparer.Ordinal).Select(entry => new SiteFilterTarget(entry.Key.ColumnId, entry.Key.SiteId, entry.Value)).ToArray();
+        }
+
+        private static byte[] CreateSiteFilterRosterHash(IReadOnlyList<SiteFilterTarget> roster)
+        {
+            using var stream = new MemoryStream();
+            using (var writer = new BinaryWriter(stream, Encoding.UTF8, true))
+            {
+                writer.Write(roster.Count);
+                foreach (SiteFilterTarget target in roster)
+                {
+                    WriteRosterIdentity(writer, target.ColumnId.Value);
+                    WriteRosterIdentity(writer, target.SiteId.Value);
+                }
+            }
+
+            using SHA256 sha = SHA256.Create();
+            return sha.ComputeHash(stream.ToArray());
+        }
+
+        private static void WriteRosterIdentity(BinaryWriter writer, string value)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(value);
+            writer.Write(checked((ushort)bytes.Length));
+            writer.Write(bytes);
+        }
+
+        private readonly struct SiteFilterTarget
+        {
+            public ColumnId ColumnId { get; }
+            public SiteId SiteId { get; }
+            public SiteState State { get; }
+
+            public SiteFilterTarget(ColumnId columnId, SiteId siteId, SiteState state)
+            {
+                ColumnId = columnId;
+                SiteId = siteId;
+                State = state;
+            }
         }
 
         private List<V2T10CheckpointRecord> CaptureT10Records()
@@ -1304,6 +1467,7 @@ namespace HBP.Sync.Scene
 
             ValidateCheckpointT10Records(checkpoint.T10Records);
             ValidateCheckpointT11Records(checkpoint.T11Records);
+            ValidateSiteFilterCheckpoint(checkpoint.T12Records);
             ValidateCheckpointT09Records(checkpoint.T09Records, checkpoint.T10Records);
             var stagedRoiIds = new HashSet<string>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
             bool hasRoiRoster = checkpoint.T10Records.Any(record => record.Value is SetActiveRoi);
@@ -1324,6 +1488,7 @@ namespace HBP.Sync.Scene
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
                 ApplyCheckpointT11Records(checkpoint.T11Records);
                 foreach (V2T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value);
+                if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
             }
 
             if (updateProvenance)
@@ -1338,6 +1503,9 @@ namespace HBP.Sync.Scene
 
         private bool ApplyCore(V2Mutation mutation)
         {
+            if (mutation is SetSiteFilterResult filterResult)
+                return ApplySiteFilterResult(filterResult);
+
             if (mutation is SetSiteColor siteColor)
             {
                 SiteState state = ResolveSite(siteColor.ColumnId, siteColor.FullSiteId);

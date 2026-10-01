@@ -103,6 +103,84 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void T12SiteFilterResult_AppliesWholeRosterAndSurvivesTypedCheckpoint()
+        {
+            var columnId = new ColumnId("t12-column");
+            var firstId = new SiteId("t12-site-a");
+            var secondId = new SiteId("t12-site-b");
+            var firstSource = new SiteState { IsFiltered = true };
+            var secondSource = new SiteState { IsFiltered = false };
+            using var source = new V2SceneMutationBoundary(new[] { (firstSource, columnId, firstId), (secondSource, columnId, secondId) }, Array.Empty<(SceneCut, CutId)>(), Array.Empty<(BasicTimeline, ColumnId)>(), V2OriginDevice.Desktop, new TestClock(0));
+
+            OperationId jobId = new(Guid.Parse("12000000-0000-0000-0000-000000000001"));
+            Assert.Throws<InvalidOperationException>(() => source.CreateSiteFilterResult(jobId, 1, new[] { false, true }, new byte[32]));
+            SetSiteFilterResult result = source.CreateSiteFilterResult(jobId, 1, new[] { false, true });
+            source.Apply(result, V2MutationApplicationOrigin.Remote, jobId);
+            Assert.That(firstSource.IsFiltered, Is.False);
+            Assert.That(secondSource.IsFiltered, Is.True);
+
+            byte[] encodedCheckpoint = V2SceneMutationCheckpointCodec.Encode(1, source.CaptureCheckpoint());
+            V2PublishedSceneCheckpoint publishedCheckpoint = V2SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
+            Assert.That(publishedCheckpoint.Checkpoint.T12Records, Has.Count.EqualTo(1));
+
+            var firstReplica = new SiteState { IsFiltered = true };
+            var secondReplica = new SiteState { IsFiltered = true };
+            using var replica = new V2SceneMutationBoundary(new[] { (firstReplica, columnId, firstId), (secondReplica, columnId, secondId) }, Array.Empty<(SceneCut, CutId)>(), Array.Empty<(BasicTimeline, ColumnId)>(), V2OriginDevice.Quest, new TestClock(0));
+            replica.ApplyCheckpoint(publishedCheckpoint.Checkpoint, new OperationId(Guid.Parse("12000000-0000-0000-0000-000000000002")));
+
+            Assert.That(firstReplica.IsFiltered, Is.False);
+            Assert.That(secondReplica.IsFiltered, Is.True);
+        }
+
+        [Test]
+        public void T12SiteFilterRequestCodec_RoundTripsSiteConditionsAndRejectsOtherFilterFamilies()
+        {
+            V2SiteFilterRequest source = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new NameFilterCondition("A1", true, false, false, "t12-condition") });
+            V2SiteFilterRequest decoded = V2SiteFilterRequestCodec.Decode(V2SiteFilterRequestCodec.Encode(source));
+            Assert.That(decoded.Conditions.Single(), Is.TypeOf<NameFilterCondition>());
+            Assert.That(((NameFilterCondition)decoded.Conditions.Single()).Name, Is.EqualTo("A1"));
+            Assert.Throws<ArgumentException>(() => V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new ProtocolFilterCondition() }));
+
+            V2SiteFilterRequest channels = V2SiteFilterRequest.FromChannels(new[] { new V2SiteFilterChannel("A1", "patient-1") });
+            V2SiteFilterRequest decodedChannels = V2SiteFilterRequestCodec.Decode(V2SiteFilterRequestCodec.Encode(channels));
+            Assert.That(decodedChannels.Channels.Single().PatientId, Is.EqualTo("patient-1"));
+            Assert.That(decodedChannels.Channels.Single().Channel, Is.EqualTo("A1"));
+        }
+
+        [Test]
+        public void T12OfflineCapabilityGate_UsesPreparedLocalDataAndRejectsUnavailableResources()
+        {
+            using var fixture = new BoundSceneFixture();
+            V2SiteFilterRequest nameRequest = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new NameFilterCondition("site", true, false, false) });
+            Assert.That(V2SiteFilterOfflineCapabilityGate.CanEvaluate(nameRequest, fixture.Scene, fixture.Boundary, out string nameExplanation), Is.True, nameExplanation);
+
+            V2SiteFilterRequest supportedGroup = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[]
+            {
+                new AllFilterCondition(new BaseFilterCondition[] { new NameFilterCondition("site", true, false, false), new AttributesFilterCondition() }, false)
+            });
+            Assert.That(V2SiteFilterOfflineCapabilityGate.CanEvaluate(supportedGroup, fixture.Scene, fixture.Boundary, out string groupExplanation), Is.True, groupExplanation);
+
+            V2SiteFilterRequest missingStatistics = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new ActivityFilterCondition() });
+            Assert.That(V2SiteFilterOfflineCapabilityGate.CanEvaluate(missingStatistics, fixture.Scene, fixture.Boundary, out string statisticsExplanation), Is.False);
+            StringAssert.Contains("statistics", statisticsExplanation);
+
+            V2SiteFilterRequest externalMask = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[] { new MRIMaskFilterCondition() });
+            Assert.That(V2SiteFilterOfflineCapabilityGate.CanEvaluate(externalMask, fixture.Scene, fixture.Boundary, out string maskExplanation), Is.False);
+            StringAssert.Contains(nameof(MRIMaskFilterCondition), maskExplanation);
+
+            fixture.Site.Information.SiteData = new HBP.Core.Data.Site();
+            fixture.Site.State.IsFiltered = false;
+            var unresolvedTag = new BaseTag("unavailable local tag", "t12-unresolved-offline-tag");
+            V2SiteFilterRequest unresolvedTagRequest = V2SiteFilterRequest.FromConditions(new BaseFilterCondition[]
+            {
+                new SiteTagFilterCondition(SiteTagFilterCondition.TargetType.Site, unresolvedTag, new EmptyTagFilterValue(), false)
+            });
+            Assert.That(V2SiteFilterOfflineCapabilityGate.CanEvaluate(unresolvedTagRequest, fixture.Scene, fixture.Boundary, out string tagExplanation), Is.False);
+            StringAssert.Contains("cannot resolve a tag", tagExplanation);
+            Assert.That(fixture.Site.State.IsFiltered, Is.False, "An unresolved offline tag must be rejected before the filter mask changes.");
+        }
+
+        [Test]
         public void T11Codec_ContinuesDecodingLegacySchemaSitePresentationRecords()
         {
             byte[] payload;
@@ -772,7 +850,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(target.Site.State.IsHighlighted, Is.True);
             Assert.That(target.Site.State.Color, Is.EqualTo(new Color(0.15f, 0.35f, 0.55f, 0.75f)));
             Assert.That(target.Site.State.Labels, Is.EqualTo(new[] { "reviewed", "T11" }));
-            Assert.That(target.Site.State.IsFiltered, Is.True);
+            Assert.That(target.Site.State.IsFiltered, Is.False, "The typed checkpoint restores the canonical T12 filter mask captured from Desktop.");
             Assert.That(echoes, Is.Empty);
         }
 

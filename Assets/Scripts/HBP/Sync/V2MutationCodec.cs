@@ -107,6 +107,8 @@ namespace HBP.Sync
                         V2TimelineAnchorIntent intent = schemaVersion >= 2 ? ReadTimelineAnchorIntent(reader) : playing ? V2TimelineAnchorIntent.Play : V2TimelineAnchorIntent.Pause;
                         return new SetTimelineAnchor(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, intent);
                     }
+                case V2OperationType.SetSiteFilterResult:
+                    return V2T12MutationCodec.ReadBody(reader);
                 default:
                     if ((ushort)operationType >= (ushort)V2OperationType.SetSiteBlacklist) return V2T11MutationCodec.ReadBody(reader, operationType);
                     return (ushort)operationType >= (ushort)V2OperationType.CreateCut ? V2T10MutationCodec.ReadBody(reader, operationType) : V2T09MutationCodec.ReadBody(reader, operationType);
@@ -149,6 +151,12 @@ namespace HBP.Sync
                 writer.Write(timelineAnchor.MonotonicAnchorTicks);
                 writer.Write(timelineAnchor.TickFrequency);
                 writer.Write((byte)timelineAnchor.Intent);
+                return;
+            }
+
+            if (mutation is SetSiteFilterResult)
+            {
+                V2T12MutationCodec.WriteBody(writer, mutation);
                 return;
             }
 

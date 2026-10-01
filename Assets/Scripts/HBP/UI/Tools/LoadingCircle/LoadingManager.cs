@@ -1,8 +1,10 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Events;
 using HBP.Core.Tools;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using HBP.Core.Exceptions;
 
 namespace HBP.UI.Tools
@@ -145,6 +147,63 @@ namespace HBP.UI.Tools
             {
                 m_Instance.m_LoadingCircle.Close();
                 m_Instance.m_LoadingCircle.OnCancel.RemoveListener(method.Cancel);
+            }
+        }
+
+        /// <summary>Runs a cancelable task and opens the loading visual only if it outlives the delay.</summary>
+        public static async UniTask LoadDelayedAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, CancellationToken cancellationToken, int delayMilliseconds = 200, bool showInformations = true)
+        {
+            if (taskToExecute == null) throw new ArgumentNullException(nameof(taskToExecute));
+            if (delayMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(delayMilliseconds));
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            bool visualOpened = false;
+            Action<float, float, LoadingText> update = (progress, duration, message) =>
+            {
+                if (visualOpened && m_Instance != null) m_Instance.m_LoadingCircle.ChangePercentage(progress, duration, message);
+            };
+            UnityAction cancel = linked.Cancel;
+            Task operation = taskToExecute(update, linked.Token).AsTask();
+            try
+            {
+                Task delay = Task.Delay(delayMilliseconds);
+                Task completed = await Task.WhenAny(operation, delay);
+                if (completed == delay && !operation.IsCompleted && !linked.IsCancellationRequested)
+                {
+                    await UniTask.SwitchToMainThread();
+                    if (m_Instance != null && !operation.IsCompleted && !linked.IsCancellationRequested)
+                    {
+                        m_Instance.m_LoadingCircle.Open(showInformations, true);
+                        m_Instance.m_LoadingCircle.OnCancel.AddListener(cancel);
+                        visualOpened = true;
+                    }
+                }
+
+                await operation;
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (HBPException exception)
+            {
+                Debug.LogError(exception.ToString());
+                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, exception.Title, exception.Message).Forget();
+                throw;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogError(exception.ToString());
+                DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", exception.ToString()).Forget();
+                throw;
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                if (visualOpened && m_Instance != null)
+                {
+                    m_Instance.m_LoadingCircle.OnCancel.RemoveListener(cancel);
+                    m_Instance.m_LoadingCircle.Close();
+                }
             }
         }
 

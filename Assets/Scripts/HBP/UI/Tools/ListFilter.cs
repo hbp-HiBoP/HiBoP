@@ -55,7 +55,7 @@ namespace HBP.UI.Tools
             }
         }
 
-        public void ApplyFilters()
+        public virtual void ApplyFilters()
         {
             LoadingManager.Load((update, token) => ApplyFiltersAsync(update, token), false);
         }

@@ -19,6 +19,7 @@ using HBP.Transfer.Transport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 
 namespace HBP.Sync.Tests
@@ -1038,6 +1039,385 @@ namespace HBP.Sync.Tests
 
         [Test]
         [Category("Sync.SceneFocused")]
+        public async Task QuestSiteFilterVisualCancellation_NotifiesDesktopAndReleasesBothActivityScopes()
+        {
+            using var desktopFixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            using var loading = new LoadingManagerFixture();
+            object questOwner = CreateQuestSession(questFixture.Scene, CreatePreparedBinding());
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+            Task desktopOperation = null;
+
+            try
+            {
+                SetPrivateField(desktopOwner, "m_State", Enum.Parse(desktopOwnerType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic).FieldType, "Live"));
+                var jobId = new OperationId(GuidFor(55201));
+                MethodInfo runDesktopJob = desktopOwnerType.GetMethod("RunSiteFilterJobAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(runDesktopJob, Is.Not.Null);
+                desktopOperation = (Task)runDesktopJob.Invoke(desktopOwner, new object[] { jobId, V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None, false });
+                await WaitUntilAsync(() => GetDesktopActiveSiteFilterJob(desktopOwner)?.GetType().GetProperty("Identity")?.GetValue(GetDesktopActiveSiteFilterJob(desktopOwner)) != null, "Desktop did not reserve its site-filter scope.");
+                object desktopActive = GetDesktopActiveSiteFilterJob(desktopOwner);
+                object identity = desktopActive.GetType().GetProperty("Identity").GetValue(desktopActive);
+                ulong generation = (ulong)identity.GetType().GetProperty("Generation").GetValue(identity);
+
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => loading.LoadingCircle.gameObject.activeSelf, "The Quest loading visual did not open for the remote site-filter job.");
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+                Assert.That(GetSensitiveActivityCount(desktopFixture.Scene), Is.EqualTo(1));
+
+                loading.CancelVisual();
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) == null, "Quest did not retire the cancelled remote job.");
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero, "Quest must release its activity scope after loading cancellation.");
+
+                V2SiteFilterControl cancel = ReadNextQuestSiteFilterControl(questOwner);
+                Assert.That(cancel.Kind, Is.EqualTo(V2SiteFilterControlKind.Cancel));
+                Assert.That(cancel.JobId, Is.EqualTo(jobId));
+                Assert.That(cancel.Generation, Is.EqualTo(generation), "The visual cancellation must notify Desktop for the exact active generation.");
+
+                await InvokeDesktopSiteFilterControlAsync(desktopOwner, cancel, CancellationToken.None);
+                Exception desktopFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(desktopOperation));
+                Assert.That(desktopFailure, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(GetSensitiveActivityCount(desktopFixture.Scene), Is.Zero, "Desktop must release its activity scope after Quest cancellation.");
+            }
+            finally
+            {
+                if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestRemoteSiteFilter_SurvivesTransientConnectionStopUntilTerminalControl()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            using var loading = new LoadingManagerFixture();
+            using var connectionStop = new CancellationTokenSource();
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var jobId = new OperationId(GuidFor(55203));
+            const ulong generation = 8;
+
+            try
+            {
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobId, generation), connectionStop.Token);
+                await WaitUntilAsync(() => loading.LoadingCircle.gameObject.activeSelf, "The Quest loading visual did not open for the remote site-filter job.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(1));
+
+                connectionStop.Cancel();
+                await Task.Delay(30);
+                Assert.That(GetQuestActiveJobId(questOwner), Is.EqualTo(jobId), "Ending one connection must not retire a job owned by the still-live replica session.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.EqualTo(1), "The activity scope must remain reserved during reconnect grace.");
+                Assert.That(loading.LoadingCircle.gameObject.activeSelf, Is.True, "A transient connection stop must not cancel the Quest loading visual.");
+
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Cancel, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) == null, "Quest did not release the job after its terminal Cancel control.");
+                Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestFailedControlDuringDesktopEvaluation_InvalidatesGenerationBeforeMaskPublication()
+        {
+            using var desktopFixture = new SessionSceneFixture(4096);
+            foreach (HBP.Core.Object3D.Site site in desktopFixture.Sites)
+                site.State.IsFiltered = false;
+            Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            Assert.That(desktopOwnerType, Is.Not.Null);
+            Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+            ConstructorInfo constructor = desktopOwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+            Assert.That(constructor, Is.Not.Null);
+            object desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), null });
+            Task<bool> desktopOperation = null;
+
+            try
+            {
+                SetPrivateField(desktopOwner, "m_State", Enum.Parse(desktopOwnerType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic).FieldType, "Live"));
+                var jobId = new OperationId(GuidFor(55204));
+                MethodInfo runDesktopJob = desktopOwnerType.GetMethod("RunSiteFilterJobAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(runDesktopJob, Is.Not.Null);
+                desktopOperation = (Task<bool>)runDesktopJob.Invoke(desktopOwner, new object[] { jobId, V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None, false });
+                await WaitUntilAsync(() => GetDesktopActiveSiteFilterJob(desktopOwner) != null, "Desktop did not reserve its site-filter generation.");
+                object active = GetDesktopActiveSiteFilterJob(desktopOwner);
+                object identity = active.GetType().GetProperty("Identity").GetValue(active);
+                ulong generation = (ulong)identity.GetType().GetProperty("Generation").GetValue(identity);
+                var attempt = (V2JobAttempt)active.GetType().GetProperty("Attempt").GetValue(active);
+                var registry = (V2JobGenerationRegistry)desktopOwnerType.GetField("m_SiteFilterGenerations", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                Assert.That(registry.IsCurrent(attempt), Is.True);
+
+                await InvokeDesktopSiteFilterControlAsync(desktopOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Failed, jobId, generation, failureCode: "quest_loading_failed"), CancellationToken.None);
+                Exception failure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(desktopOperation));
+
+                Assert.That(failure, Is.InstanceOf<IOException>());
+                Assert.That(registry.IsCurrent(attempt), Is.False, "A Quest failure must invalidate the Desktop generation before evaluation can publish.");
+                Assert.That(desktopFixture.Sites.All(site => !site.State.IsFiltered), Is.True, "The initially excluded mask must remain unchanged when Quest rejects the active generation.");
+                Assert.That(GetDesktopActiveSiteFilterJob(desktopOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(desktopFixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSiteFilterCancellation_RetiresPartialTransferAndDrainsDeferredMutationInOrder()
+        {
+            using var fixture = new SessionSceneFixture(1024);
+            object questOwner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            var jobId = new OperationId(GuidFor(55202));
+            const ulong generation = 7;
+            try
+            {
+                await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobId, generation), CancellationToken.None);
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) != null, "Quest did not reserve the remote site-filter scope.");
+
+                var limits = new V2SchedulerLimits(inlineThresholdBytes: 128, bulkChunkBytes: 8, interactiveBurst: 1);
+                int guid = 55210;
+                var senderScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop, limits: limits, guidFactory: () => GuidFor(guid++));
+                var senderTransport = new V2PersistentTransport(senderScheduler, TimeSpan.FromHours(1), () => GuidFor(guid++));
+                try
+                {
+                    using var senderBoundary = new V2SceneMutationBoundary(fixture.Scene, V2OriginDevice.Desktop);
+                    SetSiteFilterResult result = senderBoundary.CreateSiteFilterResult(jobId, generation, Enumerable.Repeat(false, fixture.Sites.Count).ToArray());
+                    V2EnqueueResult filterEnqueue = senderTransport.EnqueueMutation(result, 1UL, null, coalesciblePreview: false, operationId: jobId);
+                    Assert.That(filterEnqueue.Accepted, Is.True, $"The filter result should be accepted by the Desktop scheduler (disposition={filterEnqueue.Disposition}, bodyBytes={V2MutationPayloadCodec.Encode(result).Length}).");
+                    Assert.That(senderScheduler.TryGetNextTransmission(out V2TransmissionAttempt descriptorAttempt), Is.True, "The scheduler should produce a bulk descriptor for the filter result.");
+                    V2TransportRecord descriptor = CreateTransportRecord(senderTransport, descriptorAttempt);
+                    Assert.That(descriptor.Lane, Is.EqualTo(V2ScheduleLane.SceneControl));
+                    Assert.That(senderScheduler.TryGetNextTransmission(out V2TransmissionAttempt chunkAttempt), Is.True, "The bulk descriptor should be followed by a first result chunk.");
+                    V2TransportRecord firstChunk = CreateTransportRecord(senderTransport, chunkAttempt);
+                    Assert.That(firstChunk.Lane, Is.EqualTo(V2ScheduleLane.Bulk));
+
+                    object receiver = GetQuestSceneOperationBulkReceiver(questOwner);
+                    receiver.GetType().GetMethod("Begin").Invoke(receiver, new object[] { descriptor });
+                    object completed = null;
+                    Assert.That((bool)receiver.GetType().GetMethod("TryAppend").Invoke(receiver, new object[] { firstChunk, completed }), Is.True, "The receiver should append the first non-final chunk.");
+                    Assert.That((bool)receiver.GetType().GetProperty("IsActive").GetValue(receiver), Is.True, "The receiver should hold an incomplete transfer.");
+
+                    var color = new Color(0.8f, 0.2f, 0.4f, 1f);
+                    var ordinaryMutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), color.r, color.g, color.b, color.a);
+                    var deferredRecord = new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, new OperationId(GuidFor(55211)), new ReliableStreamId(GuidFor(55212)), 1, 1, V2OriginDevice.Desktop, V2ScheduleLane.Interactive, 1, payload: V2MutationPayloadCodec.Encode(ordinaryMutation), canonicalSequence: 2, mutation: ordinaryMutation);
+                    MethodInfo defer = questOwner.GetType().GetMethod("DeferOrderedRecord", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Type deferredType = questOwner.GetType().GetNestedType("DeferredRecord", BindingFlags.Instance | BindingFlags.NonPublic);
+                    ConstructorInfo deferredConstructor = deferredType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(V2TransportRecord) }, null);
+                    Assert.That(defer, Is.Not.Null);
+                    defer.Invoke(questOwner, new[] { deferredConstructor.Invoke(new object[] { deferredRecord }) });
+                    Assert.That(GetDeferredRecords(questOwner), Has.Count.EqualTo(1));
+                    Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(SiteState.DefaultColor), "The unrelated mutation must remain deferred until the partial result is abandoned.");
+
+                    await InvokeQuestSiteFilterControlAsync(questOwner, new V2SiteFilterControl(V2SiteFilterControlKind.Cancel, jobId, generation), CancellationToken.None);
+                    await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 0 && GetActiveQuestSiteFilterJob(questOwner) == null, "Quest did not finish transfer retirement and deferred-record draining.");
+
+                    Assert.That((bool)receiver.GetType().GetProperty("IsActive").GetValue(receiver), Is.False, "Cancellation must retire the partial receiver.");
+                    Assert.That(GetSensitiveActivityCount(fixture.Scene), Is.Zero, "Cancellation must release the Quest activity scope.");
+                    Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(color), "The unrelated deferred mutation must be applied after retiring the filter transfer.");
+                    Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(2UL));
+                }
+                finally
+                {
+                    senderTransport.Dispose();
+                }
+            }
+            finally
+            {
+                ((IDisposable)questOwner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSiteFilterDelayedStartedForCancelledRequest_IsIgnoredAndCannotSupersedeLaterRequest()
+        {
+            using var desktopFixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 55230);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var connectionStop = new CancellationTokenSource();
+            using var requestACancellation = new CancellationTokenSource();
+            Task<Exception> questRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, pair.Server.GetStream(), connectionStop.Token));
+            Task<Exception> desktopRun = CaptureRunAsync(desktopPeer, pair.Client.GetStream(), connectionStop.Token);
+            Task<bool> requestA = null;
+            Task<bool> requestB = null;
+
+            try
+            {
+                await WaitUntilAsync(() => (V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner) == V2PersistentTransportState.Connected && desktopPeer.State == V2PersistentTransportState.Connected, "The Quest session did not finish the authenticated loopback handshake.");
+                Assert.That(V2SiteFilterRequestRouter.TryGetHandler(questFixture.Scene, out Func<V2SiteFilterRequest, CancellationToken, Task<bool>> requestHandler), Is.True);
+                questFixture.Sites[0].State.IsFiltered = true;
+
+                requestA = requestHandler(V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), requestACancellation.Token);
+                V2SiteFilterControl requestControlA = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(requestControlA.Kind, Is.EqualTo(V2SiteFilterControlKind.Request));
+                OperationId jobA = requestControlA.JobId;
+
+                requestACancellation.Cancel();
+                Exception cancellationFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(requestA));
+                Assert.That(cancellationFailure, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
+
+                V2SiteFilterControl cancelA = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(cancelA.Kind, Is.EqualTo(V2SiteFilterControlKind.Cancel));
+                Assert.That(cancelA.JobId, Is.EqualTo(jobA));
+                Assert.That(cancelA.Generation, Is.Zero);
+
+                const ulong generationA = 1;
+                Assert.That(desktopPeer.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobA, generationA)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => GetQuestLastDesktopSiteFilterGeneration(questOwner) == generationA, "Quest did not process the delayed Started for cancelled request A.");
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.Null, "A delayed Started for a retired request must not recreate its job.");
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero, "A retired request must not reserve a replacement activity scope.");
+                using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+                {
+                    SetSiteFilterResult lateA = desktopBoundary.CreateSiteFilterResult(jobA, generationA, new[] { false });
+                    Assert.That(desktopPeer.EnqueueMutation(lateA, 1UL, null, coalesciblePreview: false, operationId: jobA).Accepted, Is.True);
+                }
+
+                await WaitUntilAsync(() => GetDriverCanonicalWatermark(questOwner) == 1UL, "Quest did not consume the inline result for retired request A.");
+                Assert.That(questFixture.Sites[0].State.IsFiltered, Is.True, "A delayed Started must not recreate the cancelled job or apply its inline result.");
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
+                using (var noReadyForCancelledA = new CancellationTokenSource(TimeSpan.FromMilliseconds(250)))
+                    Assert.That(await ReadIncomingOrNullAsync(desktopPeer, noReadyForCancelledA.Token), Is.Null, "A retired generation must not receive Ready.");
+
+                requestB = requestHandler(V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None);
+                V2SiteFilterControl requestControlB = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(requestControlB.Kind, Is.EqualTo(V2SiteFilterControlKind.Request));
+                OperationId jobB = requestControlB.JobId;
+                Assert.That(jobB, Is.Not.EqualTo(jobA));
+
+                const ulong generationB = 2;
+                Assert.That(desktopPeer.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobB, generationB)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => GetQuestActiveJobId(questOwner)?.Equals(jobB) == true && GetQuestActiveJobGeneration(questOwner) == generationB, "Quest did not register later request B.");
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+
+                Assert.That(desktopPeer.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobA, generationA)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+                {
+                    SetSiteFilterResult lateA = desktopBoundary.CreateSiteFilterResult(jobA, generationA, new[] { false });
+                    Assert.That(desktopPeer.EnqueueMutation(lateA, 2UL, null, coalesciblePreview: false, operationId: jobA).Accepted, Is.True);
+                }
+
+                await WaitUntilAsync(() => GetDriverCanonicalWatermark(questOwner) == 2UL, "Quest did not consume the second late A result.");
+                Assert.That(GetQuestActiveJobId(questOwner), Is.EqualTo(jobB), "A retired job must not supersede the later active request B.");
+                Assert.That(GetQuestActiveJobGeneration(questOwner), Is.EqualTo(generationB));
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1));
+                Assert.That(questFixture.Sites[0].State.IsFiltered, Is.True, "Late A must not change the mask while B is active.");
+                using (var noReadyForLateA = new CancellationTokenSource(TimeSpan.FromMilliseconds(250)))
+                    Assert.That(await ReadIncomingOrNullAsync(desktopPeer, noReadyForLateA.Token), Is.Null, "A retired generation must never receive Ready, including while B is active.");
+
+                using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+                {
+                    SetSiteFilterResult resultB = desktopBoundary.CreateSiteFilterResult(jobB, generationB, new[] { false });
+                    Assert.That(desktopPeer.EnqueueMutation(resultB, 3UL, null, coalesciblePreview: false, operationId: jobB).Accepted, Is.True);
+                }
+
+                V2SiteFilterControl readyB = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(readyB.Kind, Is.EqualTo(V2SiteFilterControlKind.Ready));
+                Assert.That(readyB.JobId, Is.EqualTo(jobB));
+                Assert.That(readyB.Generation, Is.EqualTo(generationB));
+                Assert.That(await AwaitGuardValueAsync(requestB), Is.True);
+                Assert.That(questFixture.Sites[0].State.IsFiltered, Is.False);
+                Assert.That(GetActiveQuestSiteFilterJob(questOwner), Is.Null);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
+            }
+            finally
+            {
+                connectionStop.Cancel();
+                pair.Close();
+                desktopPeer.Dispose();
+                ((IDisposable)questOwner).Dispose();
+                await AwaitGuardAsync(Task.WhenAll(questRun, desktopRun));
+                if (requestB != null && !requestB.IsCompleted)
+                    await AwaitGuardAsync(CaptureTaskExceptionAsync(requestB));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestSiteFilterSupersession_ReplacesPendingRequestAndRejectsLateResultFromA()
+        {
+            using var desktopFixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            var desktopPeer = CreateTransport(V2OriginDevice.Desktop, 55220);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> questRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, pair.Server.GetStream(), stop.Token));
+            Task<Exception> desktopRun = CaptureRunAsync(desktopPeer, pair.Client.GetStream(), stop.Token);
+
+            try
+            {
+                await WaitUntilAsync(() => (V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner) == V2PersistentTransportState.Connected && desktopPeer.State == V2PersistentTransportState.Connected, "The Quest session did not finish the authenticated loopback handshake.");
+                Assert.That(V2SiteFilterRequestRouter.TryGetHandler(questFixture.Scene, out Func<V2SiteFilterRequest, CancellationToken, Task<bool>> requestHandler), Is.True);
+
+                Task<bool> requestA = requestHandler(V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), CancellationToken.None);
+                V2SiteFilterControl requestControl = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(requestControl.Kind, Is.EqualTo(V2SiteFilterControlKind.Request));
+                OperationId jobA = requestControl.JobId;
+
+                var jobB = new OperationId(GuidFor(55221));
+                Assert.That(desktopPeer.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, jobB, 1)), V2DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => GetQuestActiveJobId(questOwner)?.Equals(jobB) == true && GetQuestActiveJobGeneration(questOwner) == 1, "Quest did not register the replacement Desktop generation B.");
+                Exception requestFailure = await AwaitGuardValueAsync(CaptureTaskExceptionAsync(requestA));
+                Assert.That(requestFailure, Is.InstanceOf<OperationCanceledException>(), "The original Quest request must complete as superseded.");
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.EqualTo(1), "Supersession must reserve a fresh scope for job B after releasing A.");
+
+                V2SiteFilterControl cancelA = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(cancelA.Kind, Is.EqualTo(V2SiteFilterControlKind.Cancel));
+                Assert.That(cancelA.JobId, Is.EqualTo(jobA));
+                Assert.That(cancelA.Generation, Is.Zero);
+
+                using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+                {
+                    SetSiteFilterResult resultB = desktopBoundary.CreateSiteFilterResult(jobB, 1, new[] { false });
+                    Assert.That(desktopPeer.EnqueueMutation(resultB, 1UL, null, coalesciblePreview: false, operationId: jobB).Accepted, Is.True);
+                }
+
+                V2SiteFilterControl readyB = ReadSiteFilterControl(await ReadIncomingAsync(desktopPeer));
+                Assert.That(readyB.Kind, Is.EqualTo(V2SiteFilterControlKind.Ready));
+                Assert.That(readyB.JobId, Is.EqualTo(jobB));
+                Assert.That(readyB.Generation, Is.EqualTo(1UL), "Quest must acknowledge the exact generation whose result it applied.");
+                await WaitUntilAsync(() => GetActiveQuestSiteFilterJob(questOwner) == null, "Quest did not release job B after acknowledging its result.");
+                Assert.That(questFixture.Sites[0].State.IsFiltered, Is.False);
+                Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
+
+                using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
+                {
+                    SetSiteFilterResult lateA = desktopBoundary.CreateSiteFilterResult(jobA, 1, new[] { true });
+                    Assert.That(desktopPeer.EnqueueMutation(lateA, 2UL, null, coalesciblePreview: false, operationId: jobA).Accepted, Is.True);
+                }
+
+                await WaitUntilAsync(() => GetDriverCanonicalWatermark(questOwner) == 2UL, "Quest did not observe the late canonical A result.");
+                Assert.That(questFixture.Sites[0].State.IsFiltered, Is.False, "A late A result must not overwrite B's completed mask.");
+                using var noUnexpectedAck = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
+                Assert.That(await ReadIncomingOrNullAsync(desktopPeer, noUnexpectedAck.Token), Is.Null, "A stale A result must not receive Ready.");
+            }
+            finally
+            {
+                stop.Cancel();
+                pair.Close();
+                desktopPeer.Dispose();
+                ((IDisposable)questOwner).Dispose();
+                await AwaitGuardAsync(Task.WhenAll(questRun, desktopRun));
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
         public void MissingPreparedResourceAndTopologyRejectOnlyThatQuestOperation()
         {
             using var fixture = new SessionSceneFixture(1);
@@ -1771,6 +2151,106 @@ namespace HBP.Sync.Tests
             return await transport.ReadIncomingAsync(timeout.Token);
         }
 
+        private static async Task<V2TransportRecord> ReadIncomingOrNullAsync(V2PersistentTransport transport, CancellationToken cancellationToken)
+        {
+            try
+            {
+                return await transport.ReadIncomingAsync(cancellationToken);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+        }
+
+        private static V2SiteFilterControl ReadSiteFilterControl(V2TransportRecord record)
+        {
+            Assert.That(record, Is.Not.Null);
+            Assert.That(record.Lane, Is.EqualTo(V2ScheduleLane.SessionControl));
+            Assert.That(V2SiteFilterControlCodec.TryDecode(record.GetPayloadCopy(), out V2SiteFilterControl control), Is.True, "The session-control record should contain a T12 site-filter message.");
+            return control;
+        }
+
+        private static V2SiteFilterControl ReadNextQuestSiteFilterControl(object questOwner)
+        {
+            FieldInfo schedulerField = questOwner.GetType().GetField("m_Scheduler", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(schedulerField, Is.Not.Null);
+            var scheduler = (V2OutgoingScheduler)schedulerField.GetValue(questOwner);
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt transmission))
+            {
+                if (transmission.Frame.Lane != V2ScheduleLane.SessionControl) continue;
+                Assert.That(V2SiteFilterControlCodec.TryDecode(transmission.Frame.GetPayloadCopy(), out V2SiteFilterControl control), Is.True);
+                return control;
+            }
+
+            Assert.Fail("Quest did not send a site-filter session control.");
+            return null;
+        }
+
+        private static V2TransportRecord CreateTransportRecord(V2PersistentTransport transport, V2TransmissionAttempt attempt)
+        {
+            MethodInfo create = transport.GetType().GetMethod("CreateApplicationRecord", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(create, Is.Not.Null);
+            return (V2TransportRecord)create.Invoke(transport, new object[] { attempt.Frame });
+        }
+
+        private static object GetQuestSceneOperationBulkReceiver(object questOwner)
+        {
+            FieldInfo field = questOwner.GetType().GetField("m_SceneOperationBulkReceiver", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(questOwner);
+        }
+
+        private static object GetActiveQuestSiteFilterJob(object questOwner)
+        {
+            FieldInfo field = questOwner.GetType().GetField("m_ActiveSiteFilterJob", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(questOwner);
+        }
+
+        private static OperationId GetQuestActiveJobId(object questOwner) => GetActiveQuestSiteFilterJob(questOwner)?.GetType().GetProperty("JobId")?.GetValue(GetActiveQuestSiteFilterJob(questOwner)) as OperationId;
+
+        private static ulong GetQuestActiveJobGeneration(object questOwner)
+        {
+            object active = GetActiveQuestSiteFilterJob(questOwner);
+            return active == null ? 0 : (ulong)active.GetType().GetProperty("Generation").GetValue(active);
+        }
+
+        private static ulong GetQuestLastDesktopSiteFilterGeneration(object questOwner)
+        {
+            FieldInfo field = questOwner.GetType().GetField("m_LastDesktopSiteFilterGeneration", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return (ulong)field.GetValue(questOwner);
+        }
+
+        private static object GetDesktopActiveSiteFilterJob(object desktopOwner)
+        {
+            FieldInfo field = desktopOwner.GetType().GetField("m_ActiveSiteFilterJob", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return field.GetValue(desktopOwner);
+        }
+
+        private static int GetSensitiveActivityCount(Base3DScene scene)
+        {
+            FieldInfo field = typeof(Base3DScene).GetField("m_SensitiveActivityOperationCount", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null);
+            return (int)field.GetValue(scene);
+        }
+
+        private static Task InvokeQuestSiteFilterControlAsync(object questOwner, V2SiteFilterControl control, CancellationToken stop)
+        {
+            MethodInfo method = questOwner.GetType().GetMethod("ProcessSiteFilterControlAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (Task)method.Invoke(questOwner, new object[] { control, stop });
+        }
+
+        private static Task InvokeDesktopSiteFilterControlAsync(object desktopOwner, V2SiteFilterControl control, CancellationToken stop)
+        {
+            MethodInfo method = desktopOwner.GetType().GetMethod("ProcessSiteFilterControlAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (Task)method.Invoke(desktopOwner, new object[] { control, stop });
+        }
+
         private static async Task AwaitGuardAsync(Task task, int timeoutSeconds = 5)
         {
             Task completed = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(timeoutSeconds)));
@@ -1924,6 +2404,57 @@ namespace HBP.Sync.Tests
 
             Assert.That(backingField, Is.Not.Null, $"Missing backing field for {target.GetType().Name}.{propertyName}.");
             backingField.SetValue(target, value);
+        }
+
+        private sealed class LoadingManagerFixture : IDisposable
+        {
+            private readonly bool m_OwnsRoot;
+            private readonly FieldInfo m_InstanceField;
+            private readonly object m_PreviousInstance;
+
+            public GameObject Root { get; }
+            public Component LoadingCircle { get; }
+
+            public LoadingManagerFixture()
+            {
+                Type managerType = FindLoadedType("HBP.UI.Tools.LoadingManager");
+                Type loadingCircleType = FindLoadedType("HBP.UI.Tools.LoadingCircle");
+                Assert.That(managerType, Is.Not.Null);
+                Assert.That(loadingCircleType, Is.Not.Null);
+                Type singletonType = managerType.BaseType?.BaseType;
+                Assert.That(singletonType, Is.Not.Null);
+                m_InstanceField = singletonType.GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(m_InstanceField, Is.Not.Null);
+                m_PreviousInstance = m_InstanceField.GetValue(null);
+                Root = Resources.FindObjectsOfTypeAll<GameObject>().FirstOrDefault(candidate => candidate && candidate.scene.IsValid() && candidate.GetComponent(managerType) != null);
+                if (Root == null)
+                {
+                    GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/LoadingCircle/Loading Manager.prefab");
+                    Assert.That(prefab, Is.Not.Null, "The production LoadingManager prefab is required to test cancellation through the loading visual.");
+                    Root = UnityEngine.Object.Instantiate(prefab);
+                    m_OwnsRoot = true;
+                }
+
+                LoadingCircle = Root.GetComponentInChildren(loadingCircleType, true);
+                Assert.That(LoadingCircle, Is.Not.Null);
+                m_InstanceField.SetValue(null, Root.GetComponent(managerType));
+                if (m_OwnsRoot)
+                    LoadingCircle.GetType().GetMethod("Initialize", BindingFlags.Instance | BindingFlags.Public).Invoke(LoadingCircle, null);
+                LoadingCircle.gameObject.SetActive(false);
+            }
+
+            public void CancelVisual()
+            {
+                MethodInfo cancel = LoadingCircle.GetType().GetMethod("Cancel", BindingFlags.Instance | BindingFlags.NonPublic);
+                Assert.That(cancel, Is.Not.Null);
+                cancel.Invoke(LoadingCircle, null);
+            }
+
+            public void Dispose()
+            {
+                if (m_OwnsRoot && Root) UnityEngine.Object.DestroyImmediate(Root);
+                m_InstanceField.SetValue(null, m_PreviousInstance);
+            }
         }
 
         private static async Task<Exception> CaptureTaskExceptionAsync(Task task)

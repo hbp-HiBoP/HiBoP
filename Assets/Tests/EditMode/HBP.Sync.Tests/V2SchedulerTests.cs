@@ -579,6 +579,30 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        public void T12FilterJobGenerationFence_DropsLateAAfterCancelledAAndCompletedB()
+        {
+            var registry = new V2JobGenerationRegistry(4, () => GuidFor(1250));
+            V2JobIdentity jobA = registry.BeginJob(Scene, Incarnation, V2JobType.Filter, new OperationId(GuidFor(1251)));
+            V2JobAttempt attemptA = registry.BeginAttempt(jobA);
+            Assert.That(registry.Cancel(jobA), Is.True);
+
+            V2JobIdentity jobB = registry.BeginJob(Scene, Incarnation, V2JobType.Filter, new OperationId(GuidFor(1252)));
+            V2JobAttempt attemptB = registry.BeginAttempt(jobB);
+            var published = new System.Collections.Generic.List<string>();
+
+            bool TryPublish(V2JobAttempt attempt, string result)
+            {
+                if (!registry.IsCurrent(attempt)) return false;
+                published.Add(result);
+                return true;
+            }
+
+            Assert.That(TryPublish(attemptB, "B"), Is.True);
+            Assert.That(TryPublish(attemptA, "A-late"), Is.False);
+            Assert.That(published, Is.EqualTo(new[] { "B" }));
+        }
+
+        [Test]
         public void Scheduler_TuningMeasurementReportsInlineCostsAndConfiguredFairnessBounds()
         {
             int[] payloadSizes = { 512, 2048, 4096, 4097, 16384 };

@@ -27,6 +27,7 @@ namespace HBP.Sync.Scene
         private int m_TotalLength;
 
         public bool IsActive => m_Body != null;
+        public OperationId ActiveOperationId => m_Descriptor?.MessageId;
 
         public bool IsChunkForActiveTransfer(V2TransportRecord record) => m_Body != null && record != null && record.Lane == V2ScheduleLane.Bulk && record.ChunkIndex.HasValue && record.StreamId != null && record.StreamId.Equals(m_BulkStreamId);
 

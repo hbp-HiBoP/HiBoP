@@ -282,6 +282,24 @@ namespace HBP.Core.Object3D
             NotifyStateChanged(scientificMaskChanged ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
         }
 
+        /// <summary>Stages a complete filter mask before notifying any site-state listeners.</summary>
+        public static void ApplyFilteredStateBatch(IEnumerable<(SiteState State, bool Included)> assignments)
+        {
+            if (assignments == null) throw new ArgumentNullException(nameof(assignments));
+            var staged = new List<(SiteState State, bool Included)>();
+            var seen = new HashSet<SiteState>();
+            foreach ((SiteState state, bool included) in assignments)
+            {
+                if (state == null) throw new ArgumentException("A filter-mask assignment requires a site state.", nameof(assignments));
+                if (!seen.Add(state)) throw new ArgumentException("A filter-mask batch cannot assign a site state more than once.", nameof(assignments));
+                staged.Add((state, included));
+            }
+
+            var changes = staged.Where(change => change.State.m_IsFiltered != change.Included).ToArray();
+            foreach ((SiteState state, bool included) in changes) state.m_IsFiltered = included;
+            foreach ((SiteState state, _) in changes) state.NotifyStateChanged(SiteStateChangeKind.ScientificMask);
+        }
+
         public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
         {
             bool previousBlacklisted = m_IsBlackListed;

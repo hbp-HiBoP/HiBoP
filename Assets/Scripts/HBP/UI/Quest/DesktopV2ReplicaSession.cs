@@ -4,11 +4,13 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Sync;
 using HBP.Sync.Scene;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
+using HBP.UI.Tools;
 using UnityEngine;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
@@ -42,6 +44,8 @@ namespace HBP.Quest.Desktop
         private readonly CancellationTokenSource m_Lifetime = new CancellationTokenSource();
         private readonly CancellationTokenSource m_PublicationAbort = new CancellationTokenSource();
         private readonly TaskCompletionSource<OperationId> m_InitialApplyAcknowledged = new TaskCompletionSource<OperationId>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly V2JobGenerationRegistry m_SiteFilterGenerations = new V2JobGenerationRegistry();
+        private readonly System.Collections.Generic.HashSet<Task> m_SiteFilterTasks = new System.Collections.Generic.HashSet<Task>();
         private readonly System.Collections.Generic.List<V2CanonicalMutation> m_AfterCheckpoint = new System.Collections.Generic.List<V2CanonicalMutation>();
         private PublicationState m_State = PublicationState.Capturing;
         private bool m_AbortRequiresRestart;
@@ -52,6 +56,8 @@ namespace HBP.Quest.Desktop
         private Task m_IncomingTask;
         private CancellationTokenSource m_ConnectionLifetime;
         private string m_FailureReason;
+        private IDisposable m_SiteFilterRequestRegistration;
+        private ActiveSiteFilterJob m_ActiveSiteFilterJob;
 
         public CancellationToken PublicationAbortToken => m_PublicationAbort.Token;
 
@@ -122,6 +128,7 @@ namespace HBP.Quest.Desktop
             if (m_Scene.MeshManager != null) m_Scene.MeshManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
             if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
             Module3DMain.OnRemoveScene.AddListener(OnSceneRemoved);
+            m_SiteFilterRequestRegistration = V2SiteFilterRequestRouter.Register(scene, this, HandleLocalSiteFilterRequestAsync);
         }
 
         public async Task StartAfterPublicationAsync(PreparedSceneDeliveryBinding binding, string host, byte[] pin, byte[] credential, CancellationToken stop)
@@ -288,6 +295,12 @@ namespace HBP.Quest.Desktop
             {
                 V2TransportRecord record = await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
                 if (record == null) continue;
+                if (record.Lane == V2ScheduleLane.SessionControl)
+                {
+                    await ProcessIncomingApplicationRecordAsync(record, stop).ConfigureAwait(false);
+                    continue;
+                }
+
                 if (m_SceneOperationBulkReceiver.IsActive)
                 {
                     if (m_SceneOperationBulkReceiver.TryAppend(record, out V2TransportRecord completedMutation))
@@ -335,9 +348,15 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == V2ScheduleLane.SessionControl)
             {
-                if (!V2PublicationControlCodec.TryDecodeAcknowledgement(payload, out OperationId barrierId))
+                if (V2PublicationControlCodec.TryDecodeAcknowledgement(payload, out OperationId barrierId))
+                {
+                    m_InitialApplyAcknowledged.TrySetResult(barrierId);
+                    return;
+                }
+
+                if (!V2SiteFilterControlCodec.TryDecode(payload, out V2SiteFilterControl control))
                     throw new InvalidDataException("Unsupported v2 session-control application message.");
-                m_InitialApplyAcknowledged.TrySetResult(barrierId);
+                await ProcessSiteFilterControlAsync(control, stop).ConfigureAwait(false);
                 return;
             }
 
@@ -361,6 +380,231 @@ namespace HBP.Quest.Desktop
                 throw new InvalidDataException("Unexpected v2 Quest application record.");
 
             await AcceptQuestMutationAsync(record, record.Mutation, stop).ConfigureAwait(false);
+        }
+
+        private Task<bool> HandleLocalSiteFilterRequestAsync(V2SiteFilterRequest request, CancellationToken stop)
+        {
+            return RunSiteFilterJobAsync(CreateOperationId(), request, stop, questRequested: false);
+        }
+
+        private async Task ProcessSiteFilterControlAsync(V2SiteFilterControl control, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            if (control.Kind == V2SiteFilterControlKind.Request)
+            {
+                V2SiteFilterRequest request = V2SiteFilterRequestCodec.Decode(control.Payload);
+                Task<bool> operation = RunSiteFilterJobAsync(control.JobId, request, stop, questRequested: true);
+                TrackSiteFilterTask(operation);
+                return;
+            }
+
+            ActiveSiteFilterJob active = m_ActiveSiteFilterJob;
+            if (active == null || !active.Identity.JobId.Equals(control.JobId) || (control.Generation != 0 && active.Identity.Generation != control.Generation))
+                return;
+
+            switch (control.Kind)
+            {
+                case V2SiteFilterControlKind.Cancel:
+                    active.Cancellation.Cancel();
+                    break;
+                case V2SiteFilterControlKind.Ready:
+                    active.QuestReady.TrySetResult(true);
+                    break;
+                case V2SiteFilterControlKind.Failed:
+                    active.QuestFailure = new IOException("Quest could not apply the site-filter result: " + control.FailureCode + ".");
+                    m_SiteFilterGenerations.Cancel(active.Identity);
+                    m_Transport.CancelBulk(active.Identity.JobId);
+                    active.Cancellation.Cancel();
+                    break;
+                default:
+                    throw new InvalidDataException("Unexpected Quest site-filter control kind.");
+            }
+        }
+
+        private void TrackSiteFilterTask(Task<bool> task)
+        {
+            lock (m_Gate) m_SiteFilterTasks.Add(task);
+            _ = ObserveSiteFilterTaskAsync(task);
+        }
+
+        private async Task ObserveSiteFilterTaskAsync(Task<bool> task)
+        {
+            try
+            {
+                await task.ConfigureAwait(false);
+            }
+            catch
+            {
+                // RunSiteFilterJobAsync sends the typed terminal failure before it completes.
+            }
+            finally
+            {
+                lock (m_Gate) m_SiteFilterTasks.Remove(task);
+            }
+        }
+
+        private async Task<bool> RunSiteFilterJobAsync(OperationId jobId, V2SiteFilterRequest request, CancellationToken requestStop, bool questRequested)
+        {
+            if (jobId == null) throw new ArgumentNullException(nameof(jobId));
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, requestStop);
+            if (!IsLive || IsClosed)
+            {
+                if (questRequested)
+                {
+                    SendSiteFilterFailure(jobId, 0, "desktop_not_live");
+                    return false;
+                }
+
+                throw new IOException("The Desktop scene session is not live yet; retry the filter when synchronization is ready.");
+            }
+
+            if (m_ActiveSiteFilterJob != null)
+            {
+                if (questRequested) SendSiteFilterFailure(jobId, 0, "site_filter_busy");
+                throw new InvalidOperationException("A site-filter job is already active for this scene.");
+            }
+
+            if (!m_Boundary.TryBeginSensitiveActivityOperation(out IDisposable activityScope))
+            {
+                if (questRequested) SendSiteFilterFailure(jobId, 0, "scene_busy");
+                throw new InvalidOperationException("Site filtering cannot start while the scene is updating its activity projection.");
+            }
+
+            V2JobIdentity identity = m_SiteFilterGenerations.BeginJob(m_Identity.SceneId, m_Identity.IncarnationId, V2JobType.Filter, jobId);
+            if (identity == null)
+            {
+                activityScope.Dispose();
+                if (questRequested) SendSiteFilterFailure(jobId, 0, "generation_unavailable");
+                throw new InvalidOperationException("The Desktop could not allocate a new site-filter generation.");
+            }
+
+            V2JobAttempt attempt = m_SiteFilterGenerations.BeginAttempt(identity);
+            if (attempt == null)
+            {
+                activityScope.Dispose();
+                if (questRequested) SendSiteFilterFailure(jobId, identity.Generation, "attempt_unavailable");
+                throw new InvalidOperationException("The Desktop could not start the site-filter generation.");
+            }
+
+            var cancellation = CancellationTokenSource.CreateLinkedTokenSource(requestStop, m_Lifetime.Token);
+            var active = new ActiveSiteFilterJob(identity, attempt, cancellation, activityScope);
+            m_ActiveSiteFilterJob = active;
+            V2EnqueueResult started = m_Transport.EnqueueSessionControl(V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Started, identity.JobId, identity.Generation)), V2DeliveryReliability.Reliable);
+            if (!started.Accepted)
+            {
+                m_ActiveSiteFilterJob = null;
+                active.Dispose();
+                if (questRequested) SendSiteFilterFailure(jobId, identity.Generation, "start_control_rejected");
+                throw new IOException("Desktop could not notify Quest that site filtering started.");
+            }
+
+            try
+            {
+                Func<Action<float, float, LoadingText>, CancellationToken, UniTask> evaluate = async (update, token) =>
+                {
+                    V2SiteFilterEvaluationResult evaluation = await V2SiteFilterEvaluator.EvaluateAsync(m_Scene, m_Boundary, request, progress => update?.Invoke(progress, 0f, new LoadingText("Filtering sites")), token);
+                    token.ThrowIfCancellationRequested();
+                    if (!m_SiteFilterGenerations.IsCurrent(attempt)) throw new OperationCanceledException(token);
+                    V2Mutation result = m_Boundary.CreateSiteFilterResult(identity.JobId, identity.Generation, evaluation.Included, evaluation.RosterHash);
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, token);
+                    if (!m_SiteFilterGenerations.IsCurrent(attempt)) throw new OperationCanceledException(token);
+                    m_Boundary.Apply(result, V2MutationApplicationOrigin.LocalDesktop, identity.JobId);
+                    await WaitWithCancellationAsync(active.QuestReady.Task, token);
+                };
+                if (request.ExternalLoadingIndicator) await evaluate(null, cancellation.Token);
+                else await LoadingManager.LoadDelayedAsync(evaluate, cancellation.Token, showInformations: false);
+                return true;
+            }
+            catch (OperationCanceledException)
+            {
+                m_SiteFilterGenerations.Cancel(identity);
+                m_Transport.CancelBulk(identity.JobId);
+                if (active.QuestFailure != null) throw active.QuestFailure;
+                SendSiteFilterTerminalControl(V2SiteFilterControlKind.Cancel, identity, null);
+                throw;
+            }
+            catch
+            {
+                m_SiteFilterGenerations.Cancel(identity);
+                m_Transport.CancelBulk(identity.JobId);
+                if (active.QuestFailure != null) throw active.QuestFailure;
+                SendSiteFilterTerminalControl(V2SiteFilterControlKind.Failed, identity, "desktop_filter_failed");
+                throw;
+            }
+            finally
+            {
+                if (ReferenceEquals(m_ActiveSiteFilterJob, active))
+                {
+                    m_ActiveSiteFilterJob = null;
+                    active.Dispose();
+                }
+            }
+        }
+
+        private static async Task WaitWithCancellationAsync(Task task, CancellationToken stop)
+        {
+            Task cancelled = Task.Delay(Timeout.Infinite, stop);
+            Task completed = await Task.WhenAny(task, cancelled).ConfigureAwait(false);
+            if (completed == task || task.IsCompleted)
+            {
+                await task.ConfigureAwait(false);
+                return;
+            }
+
+            stop.ThrowIfCancellationRequested();
+        }
+
+        private void SendSiteFilterTerminalControl(V2SiteFilterControlKind kind, V2JobIdentity identity, string failureCode)
+        {
+            if (IsClosed) return;
+            try
+            {
+                byte[] payload = V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(kind, identity.JobId, identity.Generation, failureCode: failureCode));
+                m_Transport.EnqueueSessionControl(payload, V2DeliveryReliability.Reliable);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        private void SendSiteFilterFailure(OperationId jobId, ulong generation, string failureCode)
+        {
+            if (IsClosed) return;
+            try
+            {
+                byte[] payload = V2SiteFilterControlCodec.Encode(new V2SiteFilterControl(V2SiteFilterControlKind.Failed, jobId, generation, failureCode: failureCode));
+                m_Transport.EnqueueSessionControl(payload, V2DeliveryReliability.Reliable);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+        }
+
+        private sealed class ActiveSiteFilterJob : IDisposable
+        {
+            public V2JobIdentity Identity { get; }
+            public V2JobAttempt Attempt { get; }
+            public CancellationTokenSource Cancellation { get; }
+            public IDisposable ActivityScope { get; }
+            public TaskCompletionSource<bool> QuestReady { get; } = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            public Exception QuestFailure { get; set; }
+
+            public ActiveSiteFilterJob(V2JobIdentity identity, V2JobAttempt attempt, CancellationTokenSource cancellation, IDisposable activityScope)
+            {
+                Identity = identity;
+                Attempt = attempt;
+                Cancellation = cancellation;
+                ActivityScope = activityScope;
+            }
+
+            public void Dispose()
+            {
+                Cancellation.Cancel();
+                Cancellation.Dispose();
+                ActivityScope.Dispose();
+                QuestReady.TrySetCanceled();
+            }
         }
 
         private async Task AcceptQuestMutationAsync(V2TransportRecord record, V2Mutation mutation, CancellationToken stop)
@@ -591,6 +835,17 @@ namespace HBP.Quest.Desktop
             m_Lifetime.Cancel();
             m_PublicationAbort.Cancel();
             m_ConnectionLifetime?.Cancel();
+            m_SiteFilterRequestRegistration?.Dispose();
+            if (m_ActiveSiteFilterJob != null)
+            {
+                ActiveSiteFilterJob active = m_ActiveSiteFilterJob;
+                m_ActiveSiteFilterJob = null;
+                m_SiteFilterGenerations.Cancel(active.Identity);
+                m_Transport.CancelBulk(active.Identity.JobId);
+                SendSiteFilterTerminalControl(V2SiteFilterControlKind.Cancel, active.Identity, null);
+                active.Dispose();
+            }
+
             m_Transport.Dispose();
             m_SceneOperationBulkReceiver.Reset();
             m_DeferredIncoming.Clear();
