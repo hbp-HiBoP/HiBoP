@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Core.Preferences;
 using HBP.Data.Module3D;
 using HBP.Sync;
 using HBP.Sync.Scene;
@@ -33,6 +34,7 @@ namespace HBP.Quest.Desktop
         private const int MaximumMutationsDuringCheckpointEncoding = 256;
         private readonly object m_Gate = new object();
         private readonly Base3DScene m_Scene;
+        private readonly UserPreferences m_UserPreferences;
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly V2SceneMutationBoundary m_Boundary;
         private readonly V2TimelineClockEstimator m_TimelineClock;
@@ -48,6 +50,7 @@ namespace HBP.Quest.Desktop
         private readonly TaskCompletionSource<OperationId> m_InitialApplyAcknowledged = new TaskCompletionSource<OperationId>(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly V2JobGenerationRegistry m_SiteFilterGenerations = new V2JobGenerationRegistry();
         private readonly V2JobGenerationRegistry m_CorrelationGenerations = new V2JobGenerationRegistry();
+        private readonly V2JobGenerationRegistry m_ActivityProjectionGenerations = new V2JobGenerationRegistry();
         private readonly System.Collections.Generic.HashSet<Task> m_SiteFilterTasks = new System.Collections.Generic.HashSet<Task>();
         private readonly System.Collections.Generic.HashSet<Task> m_CorrelationTasks = new System.Collections.Generic.HashSet<Task>();
         private readonly System.Collections.Generic.List<V2CanonicalMutation> m_AfterCheckpoint = new System.Collections.Generic.List<V2CanonicalMutation>();
@@ -64,6 +67,10 @@ namespace HBP.Quest.Desktop
         private IDisposable m_CorrelationRequestRegistration;
         private ActiveSiteFilterJob m_ActiveSiteFilterJob;
         private ActiveCorrelationJob m_ActiveCorrelationJob;
+        private ActiveActivityProjectionJob m_ActiveActivityProjectionJob;
+        private bool m_ProjectionEventsRemoved;
+        private bool m_ApplyingRemoteProjectionRequest;
+        private readonly System.Collections.Generic.HashSet<Guid> m_CancelledActivityProjectionRequests = new System.Collections.Generic.HashSet<Guid>();
 
         public CancellationToken PublicationAbortToken => m_PublicationAbort.Token;
 
@@ -115,6 +122,7 @@ namespace HBP.Quest.Desktop
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
+            m_UserPreferences = PersistentDataManager.IsInitialized ? PersistentDataManager.UserPreferences : null;
             m_Identity = V2PreparedSceneIdentity.Create(globalContextId, scene.Visualization.ID, transferId);
             m_TimelineClock = new V2TimelineClockEstimator(StopwatchMonotonicClock.Instance);
             m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Desktop, timelineTimingEstimate: anchor => m_TimelineClock.TryEstimate(anchor.MonotonicAnchorTicks, anchor.TickFrequency, anchor.Step, out V2TimelineAnchorTimingEstimate estimate) ? estimate : (V2TimelineAnchorTimingEstimate?)null);
@@ -134,6 +142,11 @@ namespace HBP.Quest.Desktop
             if (m_Scene.MeshManager != null) m_Scene.MeshManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
             if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
             Module3DMain.OnRemoveScene.AddListener(OnSceneRemoved);
+            m_Scene.ActivityProjectionStartHandler = HandleLocalActivityProjectionStart;
+            m_Scene.OnActivityProjectionCompleted.AddListener(OnActivityProjectionCompleted);
+            m_Scene.OnProgressUpdateGenerator.AddListener(OnActivityProjectionProgress);
+            m_Scene.OnProjectionRequestedChanged.AddListener(OnProjectionRequestedChanged);
+            m_UserPreferences?.OnSavePreferences.AddListener(OnDesktopPreferencesSaved);
             m_SiteFilterRequestRegistration = V2SiteFilterRequestRouter.Register(scene, this, HandleLocalSiteFilterRequestAsync);
             m_CorrelationRequestRegistration = V2CorrelationRequestRouter.Register(scene, this, HandleLocalCorrelationRequestAsync);
         }
@@ -243,6 +256,8 @@ namespace HBP.Quest.Desktop
                     throw new InvalidDataException("Quest acknowledged a different initial publication barrier.");
                 m_State = PublicationState.Live;
             }
+
+            PublishActivityProjectionPolicy();
         }
 
         private void ValidateBinding(PreparedSceneDeliveryBinding binding)
@@ -365,6 +380,8 @@ namespace HBP.Quest.Desktop
                     await ProcessCorrelationControlAsync(correlationControl, stop).ConfigureAwait(false);
                 else if (V2SiteFilterControlCodec.TryDecode(payload, out V2SiteFilterControl control))
                     await ProcessSiteFilterControlAsync(control, stop).ConfigureAwait(false);
+                else if (V2ActivityProjectionControlCodec.TryDecode(payload, out V2ActivityProjectionControl projectionControl))
+                    await ProcessActivityProjectionControlAsync(projectionControl, stop).ConfigureAwait(false);
                 else
                     throw new InvalidDataException("Unsupported v2 session-control application message.");
                 return;
@@ -466,6 +483,303 @@ namespace HBP.Quest.Desktop
                     throw new InvalidDataException("Unexpected Quest site-filter control kind.");
             }
         }
+
+        private bool HandleLocalActivityProjectionStart()
+        {
+            if (IsClosed) return false;
+            if (!IsLive || m_ActiveActivityProjectionJob != null) return true;
+            BeginDesktopActivityProjection(CreateOperationId(), m_Scene.ExplicitProjectionRequestPending);
+            return true;
+        }
+
+        private async Task ProcessActivityProjectionControlAsync(V2ActivityProjectionControl control, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            switch (control.Kind)
+            {
+                case V2ActivityProjectionControlKind.Request:
+                    _ = ObserveRemoteActivityProjectionRequestAsync(control, stop);
+                    return;
+                case V2ActivityProjectionControlKind.RemoveRequest:
+                    ApplyQuestActivityProjectionRemoval(control);
+                    return;
+                case V2ActivityProjectionControlKind.Progress:
+                    if (MatchesActiveActivityProjection(control))
+                        m_Scene.OnRemoteActivityProjectionProgress.Invoke(control.Progress, control.Message ?? string.Empty);
+                    return;
+                case V2ActivityProjectionControlKind.Cancel:
+                    if (MatchesActiveActivityProjection(control))
+                    {
+                        m_ApplyingRemoteProjectionRequest = true;
+                        try
+                        {
+                            m_Scene.SetProjectionEnabled(false);
+                        }
+                        finally
+                        {
+                            m_ApplyingRemoteProjectionRequest = false;
+                        }
+
+                        CancelDesktopActivityProjection(m_ActiveActivityProjectionJob, notifyPeer: false);
+                    }
+                    else m_CancelledActivityProjectionRequests.Add(control.JobId.Value);
+
+                    return;
+                case V2ActivityProjectionControlKind.Ready:
+                case V2ActivityProjectionControlKind.Cancelled:
+                case V2ActivityProjectionControlKind.Failed:
+                    ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+                    if (!MatchesActiveActivityProjection(control)) return;
+                    active.Terminals.MarkRemoteTerminal();
+                    if (control.Kind == V2ActivityProjectionControlKind.Failed)
+                    {
+                        m_ActivityProjectionGenerations.Cancel(active.Identity);
+                        CancelDesktopActivityProjection(active, notifyPeer: false);
+                    }
+
+                    TryFinishDesktopActivityProjection(active);
+                    return;
+                case V2ActivityProjectionControlKind.Policy:
+                    throw new InvalidDataException("Quest cannot set the Desktop-owned activity-projection policy.");
+                default:
+                    throw new InvalidDataException("Unexpected activity-projection control kind.");
+            }
+        }
+
+        private async Task ObserveRemoteActivityProjectionRequestAsync(V2ActivityProjectionControl request, CancellationToken stop)
+        {
+            try
+            {
+                while (!stop.IsCancellationRequested && m_Authority.CanonicalSequence < request.CanonicalSequence)
+                {
+                    if (m_CancelledActivityProjectionRequests.Remove(request.JobId.Value))
+                    {
+                        SendActivityProjectionTerminal(request.JobId, 1, request.InputGeneration, V2ActivityProjectionControlKind.Cancelled);
+                        return;
+                    }
+
+                    await UniTask.Yield(PlayerLoopTiming.Initialization, stop);
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                }
+
+                await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                if (m_CancelledActivityProjectionRequests.Remove(request.JobId.Value))
+                {
+                    SendActivityProjectionTerminal(request.JobId, 1, request.InputGeneration, V2ActivityProjectionControlKind.Cancelled);
+                    return;
+                }
+
+                if (!IsLive || IsClosed)
+                {
+                    SendActivityProjectionTerminal(request.JobId, 1, request.InputGeneration, V2ActivityProjectionControlKind.Failed, "desktop_not_live");
+                    return;
+                }
+
+                if (m_ActiveActivityProjectionJob != null)
+                {
+                    SendActivityProjectionTerminal(request.JobId, 1, request.InputGeneration, V2ActivityProjectionControlKind.Failed, "activity_projection_busy");
+                    return;
+                }
+
+                BeginDesktopActivityProjection(request.JobId, request.ExplicitRequest, questRequested: true, requestedInputGeneration: request.InputGeneration);
+            }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
+            {
+                // A reconnect replays the reliable request after the canonical watermark is available.
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                SendActivityProjectionTerminal(request.JobId, 1, request.InputGeneration, V2ActivityProjectionControlKind.Failed, "desktop_projection_start_failed");
+            }
+        }
+
+        private void BeginDesktopActivityProjection(OperationId jobId, bool explicitRequest, bool questRequested = false, ulong requestedInputGeneration = 0)
+        {
+            if (m_ActiveActivityProjectionJob != null || !m_Scene.TryBeginCoordinatedActivityProjection(out IDisposable activityScope))
+            {
+                if (questRequested)
+                    SendActivityProjectionTerminal(jobId, 1, requestedInputGeneration, V2ActivityProjectionControlKind.Failed, "activity_projection_busy");
+                return;
+            }
+
+            ulong inputGeneration = m_Scene.ActivityInputGeneration;
+            V2JobIdentity identity = m_ActivityProjectionGenerations.BeginJob(m_Identity.SceneId, m_Identity.IncarnationId, V2JobType.ActivityProjection, jobId, inputGeneration);
+            if (identity == null)
+            {
+                activityScope.Dispose();
+                SendActivityProjectionTerminal(jobId, 1, inputGeneration, V2ActivityProjectionControlKind.Failed, "projection_generation_exhausted");
+                return;
+            }
+
+            var active = new ActiveActivityProjectionJob(identity, activityScope);
+            m_ActiveActivityProjectionJob = active;
+            try
+            {
+                bool automatic = AutomaticProjectionPolicyEnabled;
+                SendActivityProjectionControl(new V2ActivityProjectionControl(V2ActivityProjectionControlKind.Started, identity.JobId, identity.Generation, identity.InputGeneration, m_Authority.CanonicalSequence, projectionRequested: true, automaticPolicyEnabled: automatic, explicitRequest: explicitRequest), V2DeliveryReliability.Reliable);
+                m_Scene.SetCoordinatedAutomaticRecomputePolicy(automatic);
+                if (!m_Scene.ProjectionRequested) m_Scene.RequestActivityProjection();
+                if (!m_Scene.StartCoordinatedActivityProjection(explicitRequest))
+                    CompleteLocalActivityProjection(active, ActivityProjectionCompletionKind.Failed);
+                else
+                    active.LocalProjectionGeneration = m_Scene.ProjectionGeneration;
+            }
+            catch (Exception exception)
+            {
+                Debug.LogException(exception);
+                CompleteLocalActivityProjection(active, ActivityProjectionCompletionKind.Failed);
+            }
+        }
+
+        private void OnActivityProjectionCompleted(ulong projectionGeneration, ActivityProjectionCompletionKind completion)
+        {
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            if (active == null || active.LocalProjectionGeneration != projectionGeneration || active.Terminals.LocalTerminal) return;
+            CompleteLocalActivityProjection(active, completion);
+        }
+
+        private void CompleteLocalActivityProjection(ActiveActivityProjectionJob active, ActivityProjectionCompletionKind completion)
+        {
+            if (!ReferenceEquals(active, m_ActiveActivityProjectionJob) || active.Terminals.LocalTerminal) return;
+            active.Terminals.MarkLocalTerminal();
+            V2ActivityProjectionControlKind kind = completion switch
+            {
+                ActivityProjectionCompletionKind.Ready => V2ActivityProjectionControlKind.Ready,
+                ActivityProjectionCompletionKind.Cancelled => V2ActivityProjectionControlKind.Cancelled,
+                _ => V2ActivityProjectionControlKind.Failed
+            };
+            string failureCode = kind == V2ActivityProjectionControlKind.Failed ? "desktop_projection_failed" : null;
+            SendActivityProjectionTerminal(active.Identity.JobId, active.Identity.Generation, active.Identity.InputGeneration, kind, failureCode);
+            TryFinishDesktopActivityProjection(active);
+        }
+
+        private void CancelDesktopActivityProjection(ActiveActivityProjectionJob active, bool notifyPeer)
+        {
+            if (active == null || !ReferenceEquals(active, m_ActiveActivityProjectionJob)) return;
+            if (notifyPeer && active.Identity.Generation != 0)
+            {
+                try
+                {
+                    SendActivityProjectionControl(new V2ActivityProjectionControl(V2ActivityProjectionControlKind.Cancel, active.Identity.JobId, active.Identity.Generation, active.Identity.InputGeneration), V2DeliveryReliability.Reliable);
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("Desktop could not retain the activity-projection cancellation: " + exception.Message);
+                }
+            }
+
+            m_Scene.CancelActivityProjection();
+            if (!m_Scene.IsActivityProjectionComputing)
+                CompleteLocalActivityProjection(active, ActivityProjectionCompletionKind.Cancelled);
+        }
+
+        private bool MatchesActiveActivityProjection(V2ActivityProjectionControl control)
+        {
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            return active != null && active.Identity.JobId.Equals(control.JobId) && active.Identity.Generation == control.Generation;
+        }
+
+        private void TryFinishDesktopActivityProjection(ActiveActivityProjectionJob active)
+        {
+            if (!ReferenceEquals(active, m_ActiveActivityProjectionJob) || !active.Terminals.IsComplete) return;
+            m_ActivityProjectionGenerations.Cancel(active.Identity);
+            m_ActiveActivityProjectionJob = null;
+            active.Dispose();
+            if (IsClosed) RemoveActivityProjectionListeners();
+        }
+
+        private void OnActivityProjectionProgress(float progress, string message)
+        {
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            if (active == null || active.Terminals.LocalTerminal) return;
+            SendActivityProjectionControl(new V2ActivityProjectionControl(V2ActivityProjectionControlKind.Progress, active.Identity.JobId, active.Identity.Generation, active.Identity.InputGeneration, progress: progress, message: message), V2DeliveryReliability.Ephemeral);
+        }
+
+        private void OnProjectionRequestedChanged(bool requested)
+        {
+            if (requested) return;
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            if (active != null)
+            {
+                CancelDesktopActivityProjection(active, notifyPeer: !m_ApplyingRemoteProjectionRequest);
+                return;
+            }
+
+            // Idle removal is still shared state. Desktop remains authoritative, so Quest receives
+            // the same bounded policy control used at session start and preference changes.
+            if (!m_ApplyingRemoteProjectionRequest)
+                PublishActivityProjectionPolicy();
+        }
+
+        private void ApplyQuestActivityProjectionRemoval(V2ActivityProjectionControl control)
+        {
+            if (!IsLive || IsClosed) return;
+            if (control.CanonicalSequence > m_Authority.CanonicalSequence)
+                throw new InvalidDataException("A Quest activity-projection removal references a future canonical watermark.");
+
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            m_ApplyingRemoteProjectionRequest = true;
+            try
+            {
+                m_Scene.SetProjectionEnabled(false);
+            }
+            finally
+            {
+                m_ApplyingRemoteProjectionRequest = false;
+            }
+
+            if (active != null)
+            {
+                // A generation-free removal means Quest has no active projection job. Treat that
+                // peer as terminal, but retain the scope until Desktop's native work also ends.
+                active.Terminals.MarkRemoteTerminal();
+                CancelDesktopActivityProjection(active, notifyPeer: false);
+                TryFinishDesktopActivityProjection(active);
+            }
+
+            PublishActivityProjectionPolicy();
+        }
+
+        private void PublishActivityProjectionPolicy()
+        {
+            if (!IsLive || IsClosed) return;
+            bool automatic = AutomaticProjectionPolicyEnabled;
+            m_Scene.SetCoordinatedAutomaticRecomputePolicy(automatic);
+            SendActivityProjectionControl(new V2ActivityProjectionControl(V2ActivityProjectionControlKind.Policy, CreateOperationId(), 0, projectionRequested: m_Scene.ProjectionRequested, automaticPolicyEnabled: automatic), V2DeliveryReliability.Reliable);
+            // Base3DScene starts a stale projection from Update once its geometry and resources are ready.
+            // Starting directly here can emit a false failure for a ready projection or unfinished geometry.
+        }
+
+        private void SendActivityProjectionTerminal(OperationId jobId, ulong generation, ulong inputGeneration, V2ActivityProjectionControlKind kind, string failureCode = null)
+        {
+            if (IsClosed) return;
+            try
+            {
+                SendActivityProjectionControl(new V2ActivityProjectionControl(kind, jobId, generation, inputGeneration, failureCode: failureCode), V2DeliveryReliability.Reliable);
+            }
+            catch (ObjectDisposedException)
+            {
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Desktop could not retain an activity-projection terminal control: " + exception.Message);
+            }
+        }
+
+        private void SendActivityProjectionControl(V2ActivityProjectionControl control, V2DeliveryReliability reliability)
+        {
+            V2EnqueueResult queued = m_Transport.EnqueueSessionControl(V2ActivityProjectionControlCodec.Encode(control), reliability);
+            if (!queued.Accepted && reliability == V2DeliveryReliability.Reliable)
+                throw new IOException("The Desktop could not retain an activity-projection session control: " + queued.Disposition + ".");
+        }
+
+        private void OnDesktopPreferencesSaved()
+        {
+            PublishActivityProjectionPolicy();
+        }
+
+        private bool AutomaticProjectionPolicyEnabled => m_UserPreferences?.Visualization?._3D?.AutomaticEEGUpdate ?? false;
 
         private void TrackSiteFilterTask(Task<bool> task)
         {
@@ -832,6 +1146,22 @@ namespace HBP.Quest.Desktop
             }
         }
 
+        private sealed class ActiveActivityProjectionJob : IDisposable
+        {
+            public V2JobIdentity Identity { get; }
+            public IDisposable ActivityScope { get; }
+            public V2ActivityProjectionTerminalBarrier Terminals { get; } = new V2ActivityProjectionTerminalBarrier();
+            public ulong LocalProjectionGeneration { get; set; }
+
+            public ActiveActivityProjectionJob(V2JobIdentity identity, IDisposable activityScope)
+            {
+                Identity = identity;
+                ActivityScope = activityScope;
+            }
+
+            public void Dispose() => ActivityScope.Dispose();
+        }
+
         private async Task AcceptQuestMutationAsync(V2TransportRecord record, V2Mutation mutation, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
@@ -985,11 +1315,25 @@ namespace HBP.Quest.Desktop
                 if (m_State == PublicationState.AwaitingQuestApply || m_State == PublicationState.Live)
                     AbortLocked(false, reason);
             }
+
+            CancelActivityProjectionAfterDisconnectAsync().Forget();
         }
 
         private void OnAuthorityFailure(string reason)
         {
             lock (m_Gate) AbortLocked(false, "The v2 Desktop authority stopped: " + reason + ".");
+            CancelActivityProjectionAfterDisconnectAsync().Forget();
+        }
+
+        private async UniTaskVoid CancelActivityProjectionAfterDisconnectAsync()
+        {
+            await UniTask.SwitchToMainThread();
+            m_Scene.ClearCoordinatedAutomaticRecomputePolicy();
+            ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+            if (active == null) return;
+            active.Terminals.MarkRemoteTerminal();
+            CancelDesktopActivityProjection(active, notifyPeer: false);
+            TryFinishDesktopActivityProjection(active);
         }
 
         private void OnCutTopologyChanged(Core.Object3D.Cut cut) => AbortForUnsupportedMutation("Cut membership changed during initial publication.");
@@ -1057,6 +1401,19 @@ namespace HBP.Quest.Desktop
             RemoveTopologyListeners();
             m_Authority.CanonicalReady -= OnCanonicalReady;
             m_Authority.SessionMustDisconnect -= OnAuthorityFailure;
+            m_UserPreferences?.OnSavePreferences.RemoveListener(OnDesktopPreferencesSaved);
+            if (m_Scene.ActivityProjectionStartHandler == HandleLocalActivityProjectionStart)
+                m_Scene.ActivityProjectionStartHandler = null;
+            m_Scene.ClearCoordinatedAutomaticRecomputePolicy();
+            if (m_ActiveActivityProjectionJob != null)
+            {
+                ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
+                active.Terminals.MarkRemoteTerminal();
+                CancelDesktopActivityProjection(active, notifyPeer: false);
+                TryFinishDesktopActivityProjection(active);
+            }
+
+            if (m_ActiveActivityProjectionJob == null) RemoveActivityProjectionListeners();
             m_Lifetime.Cancel();
             m_PublicationAbort.Cancel();
             m_ConnectionLifetime?.Cancel();
@@ -1090,6 +1447,15 @@ namespace HBP.Quest.Desktop
             m_Lifetime.Dispose();
             m_PublicationAbort.Dispose();
             m_ConnectionLifetime?.Dispose();
+        }
+
+        private void RemoveActivityProjectionListeners()
+        {
+            if (m_ProjectionEventsRemoved) return;
+            m_ProjectionEventsRemoved = true;
+            m_Scene.OnActivityProjectionCompleted.RemoveListener(OnActivityProjectionCompleted);
+            m_Scene.OnProgressUpdateGenerator.RemoveListener(OnActivityProjectionProgress);
+            m_Scene.OnProjectionRequestedChanged.RemoveListener(OnProjectionRequestedChanged);
         }
 
         internal sealed class V2PublicationRestartException : OperationCanceledException

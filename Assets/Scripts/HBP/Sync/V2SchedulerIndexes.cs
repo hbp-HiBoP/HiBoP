@@ -594,4 +594,167 @@ namespace HBP.Sync
             public bool Cancelled;
         }
     }
+
+    public enum V2ActivityProjectionControlKind : byte
+    {
+        Request = 1,
+        Started = 2,
+        Progress = 3,
+        Ready = 4,
+        Cancel = 5,
+        Cancelled = 6,
+        Failed = 7,
+        Policy = 8,
+        RemoveRequest = 9
+    }
+
+    /// <summary>Bounded controls for one locally computed activity-projection generation.</summary>
+    public sealed class V2ActivityProjectionControl
+    {
+        public V2ActivityProjectionControlKind Kind { get; }
+        public OperationId JobId { get; }
+        public ulong Generation { get; }
+        public ulong InputGeneration { get; }
+        public ulong CanonicalSequence { get; }
+        public bool ProjectionRequested { get; }
+        public bool AutomaticPolicyEnabled { get; }
+        public bool ExplicitRequest { get; }
+        public float Progress { get; }
+        public string Message { get; }
+        public string FailureCode { get; }
+
+        public V2ActivityProjectionControl(V2ActivityProjectionControlKind kind, OperationId jobId, ulong generation, ulong inputGeneration = 0, ulong canonicalSequence = 0, bool projectionRequested = false, bool automaticPolicyEnabled = false, bool explicitRequest = false, float progress = 0f, string message = null, string failureCode = null)
+        {
+            if (kind < V2ActivityProjectionControlKind.Request || kind > V2ActivityProjectionControlKind.RemoveRequest)
+                throw new ArgumentOutOfRangeException(nameof(kind));
+            JobId = jobId ?? throw new ArgumentNullException(nameof(jobId));
+            if (kind is V2ActivityProjectionControlKind.Request or V2ActivityProjectionControlKind.Policy or V2ActivityProjectionControlKind.RemoveRequest or V2ActivityProjectionControlKind.Cancel)
+            {
+                if (generation != 0 && (kind == V2ActivityProjectionControlKind.Request || kind == V2ActivityProjectionControlKind.Policy || kind == V2ActivityProjectionControlKind.RemoveRequest))
+                    throw new ArgumentOutOfRangeException(nameof(generation));
+            }
+            else if (generation == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(generation));
+            }
+
+            if (kind != V2ActivityProjectionControlKind.Policy && inputGeneration == 0)
+                throw new ArgumentOutOfRangeException(nameof(inputGeneration));
+            if (float.IsNaN(progress) || float.IsInfinity(progress) || progress < 0f || progress > 1f)
+                throw new ArgumentOutOfRangeException(nameof(progress));
+            if (kind != V2ActivityProjectionControlKind.Progress && (progress != 0f || message != null))
+                throw new ArgumentException("Only progress controls carry progress values and messages.");
+            if (kind == V2ActivityProjectionControlKind.Failed)
+            {
+                if (string.IsNullOrWhiteSpace(failureCode)) throw new ArgumentException("A failed projection requires a failure code.", nameof(failureCode));
+                if (V2ActivityProjectionControlCodec.Utf8.GetByteCount(failureCode) > V2ActivityProjectionControlCodec.MaximumFailureCodeBytes)
+                    throw new ArgumentOutOfRangeException(nameof(failureCode));
+            }
+            else if (failureCode != null)
+            {
+                throw new ArgumentException("Only failed controls carry a failure code.", nameof(failureCode));
+            }
+
+            if (message != null && V2ActivityProjectionControlCodec.Utf8.GetByteCount(message) > V2ActivityProjectionControlCodec.MaximumMessageBytes)
+                throw new ArgumentOutOfRangeException(nameof(message));
+            if (kind != V2ActivityProjectionControlKind.Progress && message != null)
+                throw new ArgumentException("Only progress controls carry a message.", nameof(message));
+
+            Kind = kind;
+            Generation = generation;
+            InputGeneration = inputGeneration;
+            CanonicalSequence = canonicalSequence;
+            ProjectionRequested = projectionRequested;
+            AutomaticPolicyEnabled = automaticPolicyEnabled;
+            ExplicitRequest = explicitRequest;
+            Progress = progress;
+            Message = message;
+            FailureCode = failureCode;
+        }
+    }
+
+    /// <summary>Releases a coordinated projection busy scope only after both local and remote work are terminal.</summary>
+    public sealed class V2ActivityProjectionTerminalBarrier
+    {
+        public bool LocalTerminal { get; private set; }
+        public bool RemoteTerminal { get; private set; }
+        public bool IsComplete => LocalTerminal && RemoteTerminal;
+        public void MarkLocalTerminal() => LocalTerminal = true;
+        public void MarkRemoteTerminal() => RemoteTerminal = true;
+    }
+
+    public static class V2ActivityProjectionControlCodec
+    {
+        public const int MaximumMessageBytes = 256;
+        public const int MaximumFailureCodeBytes = 128;
+        public const int MaximumPayloadBytes = 512;
+        private const ushort SchemaVersion = 1;
+        private const int FixedHeaderBytes = 56;
+        private static readonly byte[] Magic = Encoding.ASCII.GetBytes("HBAP");
+        internal static readonly UTF8Encoding Utf8 = new(false, true);
+
+        public static byte[] Encode(V2ActivityProjectionControl control)
+        {
+            if (control == null) throw new ArgumentNullException(nameof(control));
+            byte[] message = control.Message == null ? Array.Empty<byte>() : Utf8.GetBytes(control.Message);
+            byte[] failure = control.FailureCode == null ? Array.Empty<byte>() : Utf8.GetBytes(control.FailureCode);
+            using var stream = new MemoryStream(FixedHeaderBytes + message.Length + failure.Length);
+            using var writer = new BinaryWriter(stream, Utf8, true);
+            writer.Write(Magic);
+            writer.Write(SchemaVersion);
+            writer.Write((byte)control.Kind);
+            writer.Write(control.JobId.ToByteArray());
+            writer.Write(control.Generation);
+            writer.Write(control.InputGeneration);
+            writer.Write(control.CanonicalSequence);
+            writer.Write(control.Progress);
+            byte flags = 0;
+            if (control.ProjectionRequested) flags |= 1;
+            if (control.AutomaticPolicyEnabled) flags |= 2;
+            if (control.ExplicitRequest) flags |= 4;
+            writer.Write(flags);
+            writer.Write(checked((ushort)message.Length));
+            writer.Write(checked((ushort)failure.Length));
+            writer.Write(message);
+            writer.Write(failure);
+            writer.Flush();
+            if (stream.Length > MaximumPayloadBytes) throw new InvalidDataException("Activity-projection control exceeds its session-control bound.");
+            return stream.ToArray();
+        }
+
+        public static bool TryDecode(byte[] bytes, out V2ActivityProjectionControl control)
+        {
+            control = null;
+            if (bytes == null || bytes.Length < FixedHeaderBytes || bytes.Length > MaximumPayloadBytes) return false;
+            using var stream = new MemoryStream(bytes, false);
+            using var reader = new BinaryReader(stream, Utf8, true);
+            try
+            {
+                if (!reader.ReadBytes(Magic.Length).AsSpan().SequenceEqual(Magic) || reader.ReadUInt16() != SchemaVersion) return false;
+                byte kindValue = reader.ReadByte();
+                if (kindValue < (byte)V2ActivityProjectionControlKind.Request || kindValue > (byte)V2ActivityProjectionControlKind.RemoveRequest) return false;
+                byte[] jobBytes = reader.ReadBytes(16);
+                if (jobBytes.Length != 16) return false;
+                ulong generation = reader.ReadUInt64();
+                ulong inputGeneration = reader.ReadUInt64();
+                ulong canonicalSequence = reader.ReadUInt64();
+                float progress = reader.ReadSingle();
+                byte flags = reader.ReadByte();
+                if ((flags & ~7) != 0) return false;
+                ushort messageLength = reader.ReadUInt16();
+                ushort failureLength = reader.ReadUInt16();
+                if (messageLength > MaximumMessageBytes || failureLength > MaximumFailureCodeBytes || messageLength + failureLength != stream.Length - stream.Position)
+                    return false;
+                string message = messageLength == 0 ? null : Utf8.GetString(reader.ReadBytes(messageLength));
+                string failure = failureLength == 0 ? null : Utf8.GetString(reader.ReadBytes(failureLength));
+                if (stream.Position != stream.Length) return false;
+                control = new V2ActivityProjectionControl((V2ActivityProjectionControlKind)kindValue, new OperationId(new Guid(jobBytes)), generation, inputGeneration, canonicalSequence, (flags & 1) != 0, (flags & 2) != 0, (flags & 4) != 0, progress, message, failure);
+                return true;
+            }
+            catch (Exception exception) when (exception is EndOfStreamException || exception is ArgumentException || exception is DecoderFallbackException || exception is OverflowException)
+            {
+                return false;
+            }
+        }
+    }
 }

@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
+using HBP.Core.Preferences;
 using HBP.Data.Module3D;
 using HBP.Sync;
 using HBP.Sync.Scene;
@@ -21,6 +22,7 @@ using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Sync.Tests
 {
@@ -71,6 +73,377 @@ namespace HBP.Sync.Tests
             quest.Dispose();
             pair.Close();
             await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+        }
+
+        [Category("Sync.SceneFocused")]
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task ReadyActivityProjectionRemoval_ConvergesFromEitherPeerWithoutClosingTransport(bool removeFromQuest)
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+            PrepareReadyActivityProjection(desktopFixture.Scene);
+            PrepareReadyActivityProjection(questFixture.Scene);
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            var desktopRemovalObserved = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var questRemovalObserved = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            UnityAction<bool> desktopListener = requested =>
+            {
+                if (!requested) desktopRemovalObserved.TrySetResult(true);
+            };
+            UnityAction<bool> questListener = requested =>
+            {
+                if (!requested) questRemovalObserved.TrySetResult(true);
+            };
+            desktopFixture.Scene.OnProjectionRequestedChanged.AddListener(desktopListener);
+            questFixture.Scene.OnProjectionRequestedChanged.AddListener(questListener);
+
+            try
+            {
+                if (removeFromQuest)
+                {
+                    questFixture.Scene.SetProjectionEnabled(false);
+                    await AwaitGuardAsync(desktopRemovalObserved.Task);
+                }
+                else
+                {
+                    desktopFixture.Scene.SetProjectionEnabled(false);
+                    await AwaitGuardAsync(questRemovalObserved.Task);
+                }
+
+                await WaitUntilAsync(() => !desktopFixture.Scene.ProjectionRequested && !questFixture.Scene.ProjectionRequested, "The ready activity-projection removal did not converge between the live sessions.");
+
+                Assert.That(desktopFixture.Scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Absent));
+                Assert.That(questFixture.Scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Absent));
+                Assert.That(desktopFixture.Scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(questFixture.Scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(desktopFixture.Scene.BrainMaterials.BrainMaterial.GetInt("_Activity"), Is.Zero, "Desktop must remove the displayed activity projection.");
+                Assert.That(questFixture.Scene.BrainMaterials.BrainMaterial.GetInt("_Activity"), Is.Zero, "Quest must remove the displayed activity projection.");
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+            }
+            finally
+            {
+                desktopFixture.Scene.OnProjectionRequestedChanged.RemoveListener(desktopListener);
+                questFixture.Scene.OnProjectionRequestedChanged.RemoveListener(questListener);
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task ActivityProjectionRemovalDuringComputation_RetainsBusyScopeUntilBothTerminals()
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+            PrepareReadyActivityProjection(desktopFixture.Scene);
+            PrepareReadyActivityProjection(questFixture.Scene);
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            var desktopBusyReleased = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var questBusyReleased = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            UnityAction<bool> desktopBusyListener = busy =>
+            {
+                if (!busy) desktopBusyReleased.TrySetResult(true);
+            };
+            UnityAction<bool> questBusyListener = busy =>
+            {
+                if (!busy) questBusyReleased.TrySetResult(true);
+            };
+            desktopFixture.Scene.OnActivityProjectionBusyChanged.AddListener(desktopBusyListener);
+            questFixture.Scene.OnActivityProjectionBusyChanged.AddListener(questBusyListener);
+
+            try
+            {
+                OperationId jobId = new OperationId(Guid.Parse("65000000-0000-0000-0000-000000000014"));
+                object desktopActive = InstallSyntheticActiveActivityProjectionJob(sessions.DesktopOwner, desktopFixture.Scene, jobId, 101);
+                object questActive = InstallSyntheticActiveActivityProjectionJob(sessions.QuestOwner, questFixture.Scene, jobId, 202);
+                questFixture.Scene.SetProjectionEnabled(false);
+
+                await WaitUntilAsync(() => !desktopFixture.Scene.ProjectionRequested && !questFixture.Scene.ProjectionRequested, "The in-flight removal did not reach both peers.");
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True);
+
+                // Quest finishes first. Its local terminal must not release either peer while Desktop is still computing.
+                SetPrivateField(questFixture.Scene, "m_UpdatingGenerators", false);
+                questFixture.Scene.OnActivityProjectionCompleted.Invoke(202, ActivityProjectionCompletionKind.Cancelled);
+                await WaitUntilAsync(() => GetTerminalFlag(desktopActive, "RemoteTerminal"), "Desktop did not receive Quest's first terminal.");
+                Assert.That(GetTerminalFlag(questActive, "LocalTerminal"), Is.True);
+                Assert.That(GetTerminalFlag(questActive, "RemoteTerminal"), Is.False);
+                Assert.That(GetTerminalFlag(desktopActive, "LocalTerminal"), Is.False);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True, "Desktop's local computation still owns the busy scope.");
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True, "Quest must retain its scope until Desktop's terminal arrives.");
+
+                SetPrivateField(desktopFixture.Scene, "m_UpdatingGenerators", false);
+                desktopFixture.Scene.OnActivityProjectionCompleted.Invoke(101, ActivityProjectionCompletionKind.Cancelled);
+                await AwaitGuardAsync(Task.WhenAll(desktopBusyReleased.Task, questBusyReleased.Task));
+                await WaitUntilAsync(() => GetSessionActivityProjectionJob(sessions.DesktopOwner) == null && GetSessionActivityProjectionJob(sessions.QuestOwner) == null, "The paired cancellation terminals did not release both activity-projection jobs.");
+
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.False);
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.False);
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+            }
+            finally
+            {
+                desktopFixture.Scene.OnActivityProjectionBusyChanged.RemoveListener(desktopBusyListener);
+                questFixture.Scene.OnActivityProjectionBusyChanged.RemoveListener(questBusyListener);
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task ActivityProjectionBusyScope_QuestDriverAllowsSafeMutationAndCorrectsSensitiveMutationUntilBothTerminals()
+        {
+            using var desktopFixture = new SessionSceneFixture(1);
+            using var questFixture = new SessionSceneFixture(1);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+            PrepareReadyActivityProjection(desktopFixture.Scene);
+            PrepareReadyActivityProjection(questFixture.Scene);
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            V2QuestMutationDriver questDriver = GetPrivateField<V2QuestMutationDriver>(sessions.QuestOwner, "m_Driver");
+            var safeConfirmed = new TaskCompletionSource<OperationId>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var sensitiveCorrected = new TaskCompletionSource<(OperationId OperationId, V2Mutation Mutation)>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var sensitiveConfirmed = new TaskCompletionSource<OperationId>(TaskCreationOptions.RunContinuationsAsynchronously);
+            OperationId safeOperation = new OperationId(GuidFor(55414));
+            OperationId blockedOperation = new OperationId(GuidFor(55415));
+            OperationId acceptedOperation = new OperationId(GuidFor(55416));
+            Action<OperationId> confirmationListener = operationId =>
+            {
+                if (operationId.Equals(safeOperation)) safeConfirmed.TrySetResult(operationId);
+                if (operationId.Equals(acceptedOperation)) sensitiveConfirmed.TrySetResult(operationId);
+            };
+            Action<OperationId, V2Mutation> correctionListener = (operationId, mutation) =>
+            {
+                if (operationId.Equals(blockedOperation)) sensitiveCorrected.TrySetResult((operationId, mutation));
+            };
+            questDriver.ProposalConfirmed += confirmationListener;
+            questDriver.AuthoritativeCorrectionApplied += correctionListener;
+
+            try
+            {
+                OperationId jobId = new OperationId(GuidFor(55417));
+                object desktopActive = InstallSyntheticActiveActivityProjectionJob(sessions.DesktopOwner, desktopFixture.Scene, jobId, 505);
+                object questActive = InstallSyntheticActiveActivityProjectionJob(sessions.QuestOwner, questFixture.Scene, jobId, 606);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True);
+
+                var expectedColor = new Color(0.18f, 0.54f, 0.82f, 1f);
+                var safeMutation = new SetSiteColor(new ColumnId(questFixture.ColumnId), new SiteId(questFixture.SiteIds[0]), expectedColor.r, expectedColor.g, expectedColor.b, expectedColor.a);
+                Assert.That(V2ActivityProjectionAdmission.RequiresSensitiveAdmission(safeMutation), Is.False);
+                V2QuestMutationProposal safeProposal = questDriver.ApplyOptimistic(safeMutation, safeOperation);
+                Assert.That(safeProposal, Is.Not.Null, "The safe Quest mutation should be queued through the live session driver.");
+                await AwaitGuardAsync(safeConfirmed.Task);
+                await WaitUntilAsync(() => desktopFixture.Sites[0].State.Color == expectedColor && questFixture.Sites[0].State.Color == expectedColor, "The safe mutation did not apply on both peers while the paired generation was busy.");
+
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+
+                var sensitiveMutation = new SetSiteBlacklist(new ColumnId(questFixture.ColumnId), new SiteId(questFixture.SiteIds[0]), true);
+                Assert.That(V2ActivityProjectionAdmission.RequiresSensitiveAdmission(sensitiveMutation), Is.True);
+                V2QuestMutationProposal blockedProposal = questDriver.ApplyOptimistic(sensitiveMutation, blockedOperation);
+                Assert.That(blockedProposal, Is.Not.Null, "The sensitive mutation should be optimistically submitted through the Quest driver.");
+                (OperationId OperationId, V2Mutation Mutation) correction = await AwaitGuardValueAsync(sensitiveCorrected.Task);
+
+                Assert.That(correction.OperationId, Is.EqualTo(blockedOperation));
+                Assert.That(correction.Mutation, Is.TypeOf<SetSiteBlacklist>());
+                Assert.That(((SetSiteBlacklist)correction.Mutation).Blacklisted, Is.False, "Quest should apply Desktop's authoritative blacklist correction.");
+                Assert.That(desktopFixture.Sites[0].State.IsBlackListed, Is.False);
+                Assert.That(questFixture.Sites[0].State.IsBlackListed, Is.False);
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+
+                V2DesktopMutationAuthority authority = GetPrivateField<V2DesktopMutationAuthority>(sessions.DesktopOwner, "m_Authority");
+                V2DesktopProposalResult blockedDecision = authority.AcceptQuestProposal(blockedProposal);
+                Assert.That(blockedDecision.Outcome, Is.EqualTo(V2ProposalOutcome.Duplicate));
+                Assert.That(blockedDecision.RejectionCode, Is.EqualTo("activity_projection_busy"));
+                Assert.That(blockedDecision.Correction.RejectionCode, Is.EqualTo("activity_projection_busy"));
+                Assert.That(questDriver.PendingProposalCount, Is.Zero);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True, "Sensitive rejection must not release Desktop's active projection scope.");
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True, "Sensitive rejection must not release Quest's active projection scope.");
+
+                questFixture.Scene.SetProjectionEnabled(false);
+                await WaitUntilAsync(() => !desktopFixture.Scene.ProjectionRequested && !questFixture.Scene.ProjectionRequested, "The paired generation cancellation did not reach both peers.");
+                SetPrivateField(questFixture.Scene, "m_UpdatingGenerators", false);
+                questFixture.Scene.OnActivityProjectionCompleted.Invoke(606, ActivityProjectionCompletionKind.Cancelled);
+                await WaitUntilAsync(() => GetTerminalFlag(desktopActive, "RemoteTerminal"), "Desktop did not receive Quest's first terminal.");
+                Assert.That(GetTerminalFlag(questActive, "LocalTerminal"), Is.True);
+                Assert.That(GetTerminalFlag(questActive, "RemoteTerminal"), Is.False);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True, "Desktop must retain its scope until its local worker is terminal.");
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True, "Quest must retain its scope until Desktop's terminal arrives.");
+
+                SetPrivateField(desktopFixture.Scene, "m_UpdatingGenerators", false);
+                desktopFixture.Scene.OnActivityProjectionCompleted.Invoke(505, ActivityProjectionCompletionKind.Cancelled);
+                await WaitUntilAsync(() => GetSessionActivityProjectionJob(sessions.DesktopOwner) == null && GetSessionActivityProjectionJob(sessions.QuestOwner) == null, "Both activity-projection terminals did not release the paired jobs.");
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.False);
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.False);
+
+                Assert.That(questDriver.ApplyOptimistic(sensitiveMutation, acceptedOperation), Is.Not.Null, "The sensitive mutation should be accepted after the paired scope releases.");
+                await AwaitGuardAsync(sensitiveConfirmed.Task);
+                await WaitUntilAsync(() => desktopFixture.Sites[0].State.IsBlackListed && questFixture.Sites[0].State.IsBlackListed, "The released sensitive mutation did not apply on both peers.");
+                Assert.That(questDriver.PendingProposalCount, Is.Zero);
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+            }
+            finally
+            {
+                questDriver.ProposalConfirmed -= confirmationListener;
+                questDriver.AuthoritativeCorrectionApplied -= correctionListener;
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task ActivityProjectionDesktopConnectionLoss_QuestOfflineAndLocalTerminalsGateScopeRelease()
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+            PrepareReadyActivityProjection(desktopFixture.Scene);
+            PrepareReadyActivityProjection(questFixture.Scene);
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            try
+            {
+                OperationId jobId = new OperationId(Guid.Parse("65000000-0000-0000-0000-000000000015"));
+                object desktopActive = InstallSyntheticActiveActivityProjectionJob(sessions.DesktopOwner, desktopFixture.Scene, jobId, 303);
+                object questActive = InstallSyntheticActiveActivityProjectionJob(sessions.QuestOwner, questFixture.Scene, jobId, 404);
+                object desktopLease = GetPrivateField<object>(desktopFixture.Scene, "m_ActiveActivityProjection");
+                object questLease = GetPrivateField<object>(questFixture.Scene, "m_ActiveActivityProjection");
+                Assert.That(IsCurrentActivityProjection(desktopFixture.Scene, desktopLease), Is.True);
+                Assert.That(IsCurrentActivityProjection(questFixture.Scene, questLease), Is.True);
+
+                ((IDisposable)sessions.DesktopOwner).Dispose();
+                await WaitUntilAsync(() => (V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner) == V2PersistentTransportState.DisconnectedGrace, "Quest did not observe Desktop's lost connection.");
+                ForceQuestOfflineTransition(sessions.QuestOwner);
+                await WaitUntilAsync(() => GetTerminalFlag(desktopActive, "RemoteTerminal") && GetTerminalFlag(questActive, "RemoteTerminal"), "Both sessions did not cancel the disconnected projection.");
+
+                Assert.That(IsCurrentActivityProjection(desktopFixture.Scene, desktopLease), Is.False, "Desktop must invalidate the cancelled worker's publication lease immediately.");
+                Assert.That(IsCurrentActivityProjection(questFixture.Scene, questLease), Is.False, "Quest must invalidate the cancelled worker's publication lease immediately.");
+                Assert.That(GetTerminalFlag(desktopActive, "LocalTerminal"), Is.False);
+                Assert.That(GetTerminalFlag(questActive, "LocalTerminal"), Is.False);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True, "Desktop must retain its scope while its local worker is running.");
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.True, "Quest must retain its scope while its local worker is running.");
+                Assert.That(desktopFixture.Scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(questFixture.Scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(desktopFixture.Scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+                Assert.That(questFixture.Scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+                Assert.That(desktopFixture.Scene.BrainMaterials.BrainMaterial.GetInt("_Activity"), Is.Zero);
+                Assert.That(questFixture.Scene.BrainMaterials.BrainMaterial.GetInt("_Activity"), Is.Zero);
+
+                // Quest's terminal cannot release Desktop's still-running local worker scope.
+                SetPrivateField(questFixture.Scene, "m_UpdatingGenerators", false);
+                questFixture.Scene.OnActivityProjectionCompleted.Invoke(404, ActivityProjectionCompletionKind.Cancelled);
+                await WaitUntilAsync(() => GetSessionActivityProjectionJob(sessions.QuestOwner) == null, "Quest did not release its scope after its local worker became terminal.");
+                Assert.That(questFixture.Scene.IsActivityProjectionBusy, Is.False);
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(GetTerminalFlag(desktopActive, "LocalTerminal"), Is.False);
+
+                SetPrivateField(desktopFixture.Scene, "m_UpdatingGenerators", false);
+                desktopFixture.Scene.OnActivityProjectionCompleted.Invoke(303, ActivityProjectionCompletionKind.Cancelled);
+                await WaitUntilAsync(() => GetSessionActivityProjectionJob(sessions.DesktopOwner) == null, "Desktop did not release its scope after its local worker became terminal.");
+                Assert.That(desktopFixture.Scene.IsActivityProjectionBusy, Is.False);
+                Assert.That(desktopFixture.Scene.IsGeneratorUpToDate, Is.False, "A cancelled worker must not publish stale projection output.");
+                Assert.That(questFixture.Scene.IsGeneratorUpToDate, Is.False, "A cancelled worker must not publish stale projection output.");
+            }
+            finally
+            {
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task ActivityProjectionAutomaticPolicy_IsSynchronizedAndGatesStaleAutoStart(bool automaticEnabled)
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+            PrepareAutomaticProjectionInputs(desktopFixture.Scene);
+            PrepareAutomaticProjectionInputs(questFixture.Scene);
+            InvokePrivateMethod(desktopFixture.Scene, "InitializeAutomaticActivityProjection", automaticEnabled);
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            FieldInfo preferencesField = sessions.DesktopOwner.GetType().GetField("m_UserPreferences", BindingFlags.Instance | BindingFlags.NonPublic);
+            object originalPreferences = preferencesField.GetValue(sessions.DesktopOwner);
+            try
+            {
+                var preferences = new UserPreferences();
+                preferences.Visualization._3D.AutomaticEEGUpdate = automaticEnabled;
+                preferencesField.SetValue(sessions.DesktopOwner, preferences);
+                InvokePrivateMethod(sessions.DesktopOwner, "OnDesktopPreferencesSaved");
+
+                await WaitUntilAsync(() => questFixture.Scene.ProjectionRequested == automaticEnabled && questFixture.Scene.AutomaticRecomputeEnabled == automaticEnabled, "Quest did not apply Desktop's automatic projection policy and requested state.");
+                Assert.That(desktopFixture.Scene.ProjectionRequested, Is.EqualTo(automaticEnabled));
+                Assert.That(questFixture.Scene.ProjectionRequested, Is.EqualTo(automaticEnabled));
+                Assert.That(desktopFixture.Scene.AutomaticRecomputeEnabled, Is.EqualTo(automaticEnabled));
+                Assert.That(questFixture.Scene.AutomaticRecomputeEnabled, Is.EqualTo(automaticEnabled));
+                Assert.That(ShouldStartActivityProjection(desktopFixture.Scene, automaticEnabled), Is.EqualTo(automaticEnabled));
+                Assert.That(ShouldStartActivityProjection(questFixture.Scene, automaticEnabled), Is.EqualTo(automaticEnabled));
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+            }
+            finally
+            {
+                preferencesField.SetValue(sessions.DesktopOwner, originalPreferences);
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestExplicitRequest_StartsPairedGenerationWhenAutomaticRecomputeIsDisabled()
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            desktopFixture.InitializeProjectionMaterials();
+            questFixture.InitializeProjectionMaterials();
+
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            FieldInfo preferencesField = sessions.DesktopOwner.GetType().GetField("m_UserPreferences", BindingFlags.Instance | BindingFlags.NonPublic);
+            object originalPreferences = preferencesField.GetValue(sessions.DesktopOwner);
+            try
+            {
+                var preferences = new UserPreferences();
+                preferences.Visualization._3D.AutomaticEEGUpdate = false;
+                preferencesField.SetValue(sessions.DesktopOwner, preferences);
+                InvokePrivateMethod(sessions.DesktopOwner, "OnDesktopPreferencesSaved");
+                await WaitUntilAsync(() => !questFixture.Scene.AutomaticRecomputeEnabled, "Quest did not receive the disabled automatic policy.");
+
+                Assert.That(desktopFixture.Scene.ProjectionRequested, Is.False);
+                Assert.That(questFixture.Scene.ProjectionRequested, Is.False);
+                Assert.That(GetPrivateField<V2JobGenerationRegistry>(sessions.DesktopOwner, "m_ActivityProjectionGenerations").TrackedScopeCount, Is.Zero);
+                Assert.That((ulong)sessions.QuestOwner.GetType().GetField("m_LastDesktopActivityProjectionGeneration", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sessions.QuestOwner), Is.Zero);
+
+                questFixture.Scene.RequestActivityProjection();
+                Assert.That((bool)InvokePrivateMethod(sessions.QuestOwner, "HandleLocalActivityProjectionStart"), Is.True, "The explicit Quest start callback should be consumed by the session.");
+                await WaitUntilAsync(() => GetPrivateField<V2JobGenerationRegistry>(sessions.DesktopOwner, "m_ActivityProjectionGenerations").TrackedScopeCount > 0 && (ulong)sessions.QuestOwner.GetType().GetField("m_LastDesktopActivityProjectionGeneration", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sessions.QuestOwner) > 0, "The explicit Quest request did not start a paired activity-projection generation.");
+
+                Assert.That(desktopFixture.Scene.AutomaticRecomputeEnabled, Is.False);
+                Assert.That(questFixture.Scene.AutomaticRecomputeEnabled, Is.False);
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That((V2PersistentTransportState)sessions.QuestOwner.GetType().GetProperty("TransportState").GetValue(sessions.QuestOwner), Is.EqualTo(V2PersistentTransportState.Connected));
+            }
+            finally
+            {
+                preferencesField.SetValue(sessions.DesktopOwner, originalPreferences);
+                await sessions.CloseAsync();
+            }
         }
 
         [Test]
@@ -2922,6 +3295,111 @@ namespace HBP.Sync.Tests
             return owner;
         }
 
+        private static void PrepareReadyActivityProjection(Base3DScene scene)
+        {
+            SetPrivateField(scene, "m_ProjectionRequested", true);
+            scene.IsGeneratorUpToDate = true;
+            scene.SceneInformation.GeneratorNeedsUpdate = false;
+            scene.SceneInformation.GeneratorUpdateRequested = false;
+        }
+
+        private static void PrepareAutomaticProjectionInputs(Base3DScene scene)
+        {
+            scene.SceneInformation.GeometryNeedsUpdate = false;
+            scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+        }
+
+        private static object InstallSyntheticActiveActivityProjectionJob(object session, Base3DScene scene, OperationId jobId, ulong localProjectionGeneration)
+        {
+            Assert.That(scene.TryBeginCoordinatedActivityProjection(out IDisposable activityScope), Is.True);
+            scene.IsGeneratorUpToDate = false;
+            SetPrivateField(scene, "m_ProjectionGeneration", localProjectionGeneration);
+            SetPrivateField(scene, "m_ProjectionState", Enum.Parse(typeof(ActivityProjectionState), "Computing"));
+            SetPrivateField(scene, "m_UpdatingGenerators", true);
+            Type leaseType = typeof(Base3DScene).Assembly.GetType("HBP.Data.Module3D.ActivityProjectionInputLease");
+            ConstructorInfo leaseConstructor = leaseType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(ulong), typeof(ulong), typeof(Column3D[]) }, null);
+            Assert.That(leaseConstructor, Is.Not.Null);
+            object lease = leaseConstructor.Invoke(new object[] { localProjectionGeneration, scene.ActivityInputGeneration, Array.Empty<Column3D>() });
+            SetPrivateField(scene, "m_ActiveActivityProjection", lease);
+
+            Type sessionType = session.GetType();
+            Type activeType = sessionType.GetNestedType("ActiveActivityProjectionJob", BindingFlags.NonPublic);
+            Assert.That(activeType, Is.Not.Null);
+            object active;
+            if (sessionType.FullName == "HBP.Quest.Desktop.DesktopV2ReplicaSession")
+            {
+                var registry = (V2JobGenerationRegistry)sessionType.GetField("m_ActivityProjectionGenerations", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
+                V2JobIdentity identity = registry.BeginJob(Scene, Incarnation, V2JobType.ActivityProjection, jobId, scene.ActivityInputGeneration);
+                Assert.That(identity, Is.Not.Null);
+                ConstructorInfo constructor = activeType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(V2JobIdentity), typeof(IDisposable) }, null);
+                Assert.That(constructor, Is.Not.Null);
+                active = constructor.Invoke(new object[] { identity, activityScope });
+            }
+            else
+            {
+                ConstructorInfo constructor = activeType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(OperationId), typeof(ulong), typeof(ulong), typeof(IDisposable) }, null);
+                Assert.That(constructor, Is.Not.Null);
+                active = constructor.Invoke(new object[] { jobId, (ulong)1, scene.ActivityInputGeneration, activityScope });
+                activeType.GetProperty("LocalStarted").SetValue(active, true);
+            }
+
+            activeType.GetProperty("LocalProjectionGeneration").SetValue(active, localProjectionGeneration);
+            sessionType.GetField("m_ActiveActivityProjectionJob", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(session, active);
+            return active;
+        }
+
+        private static bool IsCurrentActivityProjection(Base3DScene scene, object lease)
+        {
+            MethodInfo method = typeof(Base3DScene).GetMethod("IsCurrentActivityProjection", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (bool)method.Invoke(scene, new[] { lease });
+        }
+
+        private static bool ShouldStartActivityProjection(Base3DScene scene, bool automaticPolicyEnabled)
+        {
+            MethodInfo method = typeof(Base3DScene).GetMethod("ShouldStartActivityProjection", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null);
+            return (bool)method.Invoke(scene, new object[] { automaticPolicyEnabled });
+        }
+
+        private static object InvokePrivateMethod(object target, string methodName, params object[] arguments)
+        {
+            MethodInfo method = target.GetType().GetMethod(methodName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            Assert.That(method, Is.Not.Null, $"Missing method {target.GetType().Name}.{methodName}.");
+            return method.Invoke(target, arguments);
+        }
+
+        private static T GetPrivateField<T>(object target, string fieldName)
+        {
+            FieldInfo field = target.GetType().GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(field, Is.Not.Null, $"Missing field {target.GetType().Name}.{fieldName}.");
+            return (T)field.GetValue(target);
+        }
+
+        private static void ForceQuestOfflineTransition(object questOwner)
+        {
+            object driver = GetPrivateField<object>(questOwner, "m_Driver");
+            Type driverType = driver.GetType();
+            driverType.GetMethod("BeginDisconnectGrace").Invoke(driver, null);
+            object scheduler = GetPrivateField<object>(driver, "m_Scheduler");
+            // The real transport has already entered its reconnect grace. Expire its monotonic deadline
+            // deterministically so the driver's public ConnectionState transition raises OfflineLocalEntered.
+            SetPrivateField(scheduler, "m_GraceDeadline", 0L);
+            Assert.That((V2QuestMutationConnectionState)driverType.GetProperty("ConnectionState").GetValue(driver), Is.EqualTo(V2QuestMutationConnectionState.OfflineLocal));
+        }
+
+        private static object GetSessionActivityProjectionJob(object session)
+        {
+            return session.GetType().GetField("m_ActiveActivityProjectionJob", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
+        }
+
+        private static bool GetTerminalFlag(object active, string propertyName)
+        {
+            object terminals = active.GetType().GetProperty("Terminals").GetValue(active);
+            return (bool)terminals.GetType().GetProperty(propertyName).GetValue(terminals);
+        }
+
         private static PreparedSceneDeliveryBinding CreatePreparedBinding(params string[] columnIds)
         {
             if (columnIds == null || columnIds.Length == 0)
@@ -3207,6 +3685,148 @@ namespace HBP.Sync.Tests
             public void Dispose() => Close();
         }
 
+        private sealed class LiveActivityProjectionSessionPair
+        {
+            private readonly LoopbackPeerPair m_Pair;
+            private readonly Task m_Publication;
+            private readonly Task<Exception> m_DesktopRun;
+            private readonly Task<Exception> m_QuestRun;
+            private int m_Closed;
+
+            public object DesktopOwner { get; }
+            public object QuestOwner { get; }
+            public V2PersistentTransport DesktopTransport { get; }
+
+            private LiveActivityProjectionSessionPair(LoopbackPeerPair pair, Task publication, Task<Exception> desktopRun, Task<Exception> questRun, object desktopOwner, object questOwner, V2PersistentTransport desktopTransport)
+            {
+                m_Pair = pair;
+                m_Publication = publication;
+                m_DesktopRun = desktopRun;
+                m_QuestRun = questRun;
+                DesktopOwner = desktopOwner;
+                QuestOwner = questOwner;
+                DesktopTransport = desktopTransport;
+            }
+
+            public static async Task<LiveActivityProjectionSessionPair> ConnectAsync(Base3DScene desktopScene, Base3DScene questScene, PreparedSceneDeliveryBinding binding)
+            {
+                LoopbackPeerPair pair = await LoopbackPeerPair.ConnectAsync();
+                object questOwner = CreateQuestSession(questScene, binding);
+                Type desktopType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+                Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+                ConstructorInfo constructor = desktopType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+                Assert.That(constructor, Is.Not.Null);
+                Task<Exception> desktopRun = null;
+                Task<Exception> questRun = null;
+                Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> openReplica = (host, pin, credential, connectionStop, transport) =>
+                {
+                    questRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, pair.Server.GetStream(), connectionStop));
+                    Task connection = transport.RunConnectionAsync(pair.Client.GetStream(), connectionStop);
+                    desktopRun = CaptureTaskExceptionAsync(connection);
+                    return connection;
+                };
+
+                object desktopOwner = null;
+                Task publication = null;
+                try
+                {
+                    desktopOwner = constructor.Invoke(new object[] { desktopScene, Session.Value.ToString(), Incarnation.Value.ToString(), openReplica });
+                    MethodInfo start = desktopType.GetMethod("StartAfterPublicationAsync", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    Assert.That(start, Is.Not.Null);
+                    publication = (Task)start.Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
+                    await AwaitGuardAsync(publication);
+
+                    V2PersistentTransport desktopTransport = (V2PersistentTransport)desktopType.GetField("m_Transport", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                    await WaitUntilAsync(() => (V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner) == V2PersistentTransportState.Connected && desktopTransport.State == V2PersistentTransportState.Connected, "The paired activity-projection sessions did not connect.");
+                    await WaitUntilAsync(() => GetPrivateField<object>(questScene, "m_CoordinatedAutomaticRecomputePolicy") != null, "Quest did not apply Desktop's initial activity-projection policy.");
+                    Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
+                    return new LiveActivityProjectionSessionPair(pair, publication, desktopRun, questRun, desktopOwner, questOwner, desktopTransport);
+                }
+                catch
+                {
+                    if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+                    if (publication != null)
+                    {
+                        try
+                        {
+                            await AwaitGuardAsync(publication);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    if (desktopRun != null)
+                    {
+                        try
+                        {
+                            await AwaitGuardAsync(desktopRun);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    if (questRun != null)
+                    {
+                        try
+                        {
+                            await AwaitGuardAsync(questRun);
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    ((IDisposable)questOwner).Dispose();
+                    pair.Close();
+                    throw;
+                }
+            }
+
+            public async Task CloseAsync()
+            {
+                if (Interlocked.Exchange(ref m_Closed, 1) != 0) return;
+                if (DesktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
+
+                if (m_Publication != null && !m_Publication.IsCompleted)
+                {
+                    try
+                    {
+                        await AwaitGuardAsync(m_Publication);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                if (m_DesktopRun != null)
+                {
+                    try
+                    {
+                        await AwaitGuardAsync(m_DesktopRun);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                if (m_QuestRun != null)
+                {
+                    try
+                    {
+                        await AwaitGuardAsync(m_QuestRun);
+                    }
+                    catch (Exception)
+                    {
+                    }
+                }
+
+                ((IDisposable)QuestOwner).Dispose();
+                m_Pair.Close();
+            }
+        }
+
         private sealed class DelayedReadStream : Stream
         {
             private readonly Stream m_Inner;
@@ -3247,6 +3867,7 @@ namespace HBP.Sync.Tests
         private sealed class SessionSceneFixture : IDisposable
         {
             private const string FixturePatientId = "50000000-0000-0000-0000-000000000005";
+            private BrainMaterials m_ProjectionMaterials;
             public GameObject Root { get; }
             public Base3DScene Scene { get; }
             public Column3DAnatomy Column { get; }
@@ -3283,6 +3904,12 @@ namespace HBP.Sync.Tests
                 Scene.Columns.Add(Column);
             }
 
+            public void InitializeProjectionMaterials()
+            {
+                m_ProjectionMaterials = new BrainMaterials();
+                SetAutoProperty(Scene, "BrainMaterials", m_ProjectionMaterials);
+            }
+
             public TestTimeline AddTimeline(string columnId)
             {
                 var timeline = new TestTimeline(64);
@@ -3296,6 +3923,17 @@ namespace HBP.Sync.Tests
             public void Dispose()
             {
                 if (Root) UnityEngine.Object.DestroyImmediate(Root);
+                if (m_ProjectionMaterials != null)
+                {
+                    foreach (string fieldName in new[] { "m_Brain", "m_TransparentBrain", "m_Cut", "m_TransparentCut" })
+                    {
+                        FieldInfo field = typeof(BrainMaterials).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+                        UnityEngine.Object material = field?.GetValue(m_ProjectionMaterials) as UnityEngine.Object;
+                        if (material) UnityEngine.Object.DestroyImmediate(material);
+                    }
+
+                    m_ProjectionMaterials = null;
+                }
             }
         }
 

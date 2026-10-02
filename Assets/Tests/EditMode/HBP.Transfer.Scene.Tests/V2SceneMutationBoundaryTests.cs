@@ -492,6 +492,46 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void CancelledProjectionLease_RemainsStaleAfterANewerGenerationStarts()
+        {
+            GameObject root = new("stale activity projection lease test");
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            BrainMaterials brainMaterials = null;
+            try
+            {
+                brainMaterials = InitializeTestBrainMaterials(scene);
+                scene.SceneInformation.GeometryNeedsUpdate = false;
+                scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+                scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+                scene.RequestActivityProjection();
+
+                Assert.That(scene.TryBeginActivityProjection(out ActivityProjectionInputLease leaseA), Is.True);
+                scene.CancelActivityProjection();
+                Assert.That(scene.IsCurrentActivityProjection(leaseA), Is.False);
+                Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+                Assert.That(scene.ExplicitProjectionRequestPending, Is.False);
+                SetPrivateField(scene, "m_UpdatingGenerators", false);
+
+                scene.RequestActivityProjection();
+                Assert.That(scene.TryBeginActivityProjection(out ActivityProjectionInputLease leaseB), Is.True);
+                Assert.That(leaseB.ProjectionGeneration, Is.GreaterThan(leaseA.ProjectionGeneration));
+                Assert.That(scene.IsCurrentActivityProjection(leaseB), Is.True);
+                Assert.That(scene.IsCurrentActivityProjection(leaseA), Is.False, "A late native completion cannot publish after B starts.");
+
+                scene.CancelActivityProjection();
+                Assert.That(scene.IsCurrentActivityProjection(leaseB), Is.False);
+            }
+            finally
+            {
+                SetPrivateField(scene, "m_UpdatingGenerators", false);
+                SetPrivateField(scene, "m_ActiveActivityProjection", null);
+                if (brainMaterials != null) DestroyTestBrainMaterials(brainMaterials);
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void AutomaticStartupProjectionRequest_IsReadyAfterPreparationAndExplicitRemovalStaysRemoved()
         {
             GameObject root = new("automatic startup projection request test");

@@ -330,36 +330,64 @@ namespace HBP.Sync.Scene
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
             }
 
-            ulong acceptedSequence = m_CanonicalSequence + 1;
-            V2OperationAdmission admission = m_Ledger.Accept(operationId, descriptor, observedCanonicalSequence, acceptedSequence, payload);
-            if (admission == V2OperationAdmission.Accepted)
+            Func<V2Mutation, V2Mutation> transactionCurrentValue = mutation is SetConfigurationTransaction ? child =>
             {
-                m_Boundary.Apply(mutation, V2MutationApplicationOrigin.Remote, operationId);
-                m_CanonicalSequence = acceptedSequence;
-                var canonical = new V2CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation, V2OriginDevice.Quest);
-                var result = Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Accepted, canonical));
-                CanonicalReady?.Invoke(canonical);
-                return result;
-            }
-
-            if (admission == V2OperationAdmission.Conflicting)
+                try
+                {
+                    return m_Boundary.ReadCurrentMutation(child);
+                }
+                catch (Exception exception) when (exception is KeyNotFoundException || exception is InvalidOperationException || exception is ArgumentOutOfRangeException)
+                {
+                    return null;
+                }
+            } : null;
+            IDisposable sensitiveScope = null;
+            if (V2ActivityProjectionAdmission.RequiresSensitiveAdmission(mutation, current, transactionCurrentValue) && !m_Boundary.TryBeginSensitiveActivityOperation(out sensitiveScope))
             {
                 if (current == null)
-                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "stale_sequence"));
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "activity_projection_busy"));
                 ulong keySequence = GetLastAcceptedSequence(descriptor);
-                var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
+                var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "activity_projection_busy");
                 return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
             }
 
-            if (admission == V2OperationAdmission.OperationIdReused)
-                return new V2DesktopProposalResult(V2ProposalOutcome.OperationIdReused, rejectionCode: "operation_id_reused");
-            if (admission == V2OperationAdmission.Overflow)
+            try
             {
-                FaultAuthority("operation_history_full");
-                return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Overflow, rejectionCode: "operation_history_full"));
-            }
+                ulong acceptedSequence = m_CanonicalSequence + 1;
+                V2OperationAdmission admission = m_Ledger.Accept(operationId, descriptor, observedCanonicalSequence, acceptedSequence, payload);
+                if (admission == V2OperationAdmission.Accepted)
+                {
+                    m_Boundary.Apply(mutation, V2MutationApplicationOrigin.Remote, operationId);
+                    m_CanonicalSequence = acceptedSequence;
+                    var canonical = new V2CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation, V2OriginDevice.Quest);
+                    var result = Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Accepted, canonical));
+                    CanonicalReady?.Invoke(canonical);
+                    return result;
+                }
 
-            return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "invalid_proposal"));
+                if (admission == V2OperationAdmission.Conflicting)
+                {
+                    if (current == null)
+                        return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "stale_sequence"));
+                    ulong keySequence = GetLastAcceptedSequence(descriptor);
+                    var correction = new V2MutationCorrection(m_SceneId, m_IncarnationId, operationId, keySequence, current, "stale_sequence");
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, correction: correction, rejectionCode: correction.RejectionCode));
+                }
+
+                if (admission == V2OperationAdmission.OperationIdReused)
+                    return new V2DesktopProposalResult(V2ProposalOutcome.OperationIdReused, rejectionCode: "operation_id_reused");
+                if (admission == V2OperationAdmission.Overflow)
+                {
+                    FaultAuthority("operation_history_full");
+                    return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Overflow, rejectionCode: "operation_history_full"));
+                }
+
+                return Remember(operationId, payload, new V2DesktopProposalResult(V2ProposalOutcome.Rejected, rejectionCode: "invalid_proposal"));
+            }
+            finally
+            {
+                sensitiveScope?.Dispose();
+            }
         }
 
         private V2Mutation ReadCurrentMutationForCorrection(V2Mutation mutation)
@@ -1075,6 +1103,48 @@ namespace HBP.Sync.Scene
                 Mutation = mutation;
                 IsOptimistic = isOptimistic;
             }
+        }
+    }
+
+    /// <summary>Classifies canonical mutations that cannot overlap a frozen projection input lease.</summary>
+    public static class V2ActivityProjectionAdmission
+    {
+        public static bool RequiresSensitiveAdmission(V2Mutation mutation, V2Mutation currentValue = null, Func<V2Mutation, V2Mutation> currentValueResolver = null)
+        {
+            if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            if (mutation is SetConfigurationTransaction transaction)
+            {
+                foreach (V2Mutation child in transaction.Mutations)
+                {
+                    V2Mutation childCurrentValue = null;
+                    if (currentValueResolver != null && (child is SetSceneBoolean || child is SetSiteConfigurationBatch))
+                        childCurrentValue = currentValueResolver(child);
+                    if (RequiresSensitiveAdmission(child, childCurrentValue, currentValueResolver)) return true;
+                }
+
+                return false;
+            }
+
+            if (mutation is SetSceneBoolean sceneBoolean)
+                return sceneBoolean.Property == V2SceneBooleanProperty.ShowAllSites && currentValue is SetSceneBoolean currentBoolean && currentBoolean.Value != sceneBoolean.Value;
+
+            if (mutation is SetSiteConfigurationBatch siteBatch)
+                return BlacklistChanged(siteBatch, currentValue as SetSiteConfigurationBatch);
+
+            return mutation is SetSiteBlacklist or SetActiveRoi or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or SetRoiSphereDefinition or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetInfluenceDistance or SetColumnResource or SetCcepSource or SetSiteFilterResult;
+        }
+
+        private static bool BlacklistChanged(SetSiteConfigurationBatch proposed, SetSiteConfigurationBatch current)
+        {
+            if (current == null) return true;
+            var currentBySite = new Dictionary<(string ColumnId, string SiteId), bool>();
+            foreach (V2SiteConfigurationAssignment assignment in current.Assignments)
+                currentBySite[(assignment.ColumnId.Value, assignment.SiteId.Value)] = assignment.Blacklisted;
+
+            foreach (V2SiteConfigurationAssignment assignment in proposed.Assignments)
+                if (!currentBySite.TryGetValue((assignment.ColumnId.Value, assignment.SiteId.Value), out bool blacklisted) || blacklisted != assignment.Blacklisted)
+                    return true;
+            return false;
         }
     }
 }
