@@ -4,7 +4,7 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-#include "../HBP/Includes/HBPLighting.hlsl"
+#include "Assets/Shaders/HBP/Includes/HBPLighting.hlsl"
 TEXTURE2D(_ColorTex);
 SAMPLER(sampler_ColorTex);
 TEXTURE2D(_AoTex);
