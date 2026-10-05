@@ -33,6 +33,437 @@ namespace HBP.Tests.SceneTransfer
 {
     public class SceneRestorationPlayModeTests
     {
+        [TestCase("multi-no-preload")]
+        [TestCase("multi-cold-cache")]
+        [TestCase("multi-loaded-cache")]
+        [TestCase("single")]
+        [Timeout(180000)]
+        public async Task DesktopCaptureTransfersOnlyCurrentSceneAnatomy(string scenario)
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("CurrentSceneAnatomyTransfer");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            var token = timeout.Token;
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization = scenario.Contains("cache");
+            await PrepareReferencesAsync();
+            using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
+            ScenePayload payload = CreateFixture(source);
+            bool single = scenario == "single";
+            if (!single) payload.Visualization.Patients.Add(new Patient { Name = "Other" });
+            var patient = payload.Visualization.Patients[0];
+            var meshData = new SingleMesh("individual mesh", "", Path.GetFullPath("Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/synthetic-patient_Lhemi.gii"), "");
+            var mriData = new MRI("individual MRI", Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/mri_t1.nii"));
+            patient.Meshes.Add(meshData);
+            patient.MRIs.Add(mriData);
+            string fixture = Path.Combine(temp.Path, "fixture.hbscene");
+            source.Write(payload, fixture);
+            var desktopArchive = new SceneArchive(Path.Combine(temp.Path, "desktop"), true, source.Globals);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D Content.prefab").GetComponent<Base3DScene>();
+            RestoredScene desktop = null, quest = null;
+            try
+            {
+                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(fixture), desktopArchive, prefab, scope.Root.transform, token);
+                var scene = desktop.Scene;
+                patient = scene.Visualization.Patients[0];
+                SingleMesh3D individualMesh = null;
+                MRI3D individualMRI = null;
+                if (single || scenario.Contains("cache"))
+                {
+                    individualMesh = new SingleMesh3D(meshData, MeshType.Patient, false);
+                    individualMRI = new MRI3D(mriData, false);
+                    if (single)
+                    {
+                        scene.MeshManager.Meshes.Add(individualMesh);
+                        scene.MRIManager.MRIs.Add(individualMRI);
+                    }
+                    else
+                    {
+                        scene.MeshManager.PreloadedMeshes.Add(patient, new List<Mesh3D> { individualMesh });
+                        scene.MRIManager.PreloadedMRIs.Add(patient, new List<MRI3D> { individualMRI });
+                    }
+
+                    if (scenario == "multi-loaded-cache")
+                        await Task.Run(() =>
+                        {
+                            individualMesh.Load();
+                            individualMRI.Load();
+                        });
+                    await UniTask.SwitchToMainThread();
+                }
+
+                using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(scene, "current-scene", "current-anatomy", 1, source.Globals, token);
+                var manifest = delivery.RequirePreparedManifest();
+                Assert.That(manifest.Meshes.Count, Is.EqualTo(single ? 2 : 1));
+                Assert.That(manifest.MRIs.Count, Is.EqualTo(single ? 2 : 1));
+                Assert.That(manifest.Meshes.All(resource => resource.PatientId == null), Is.True);
+                Assert.That(manifest.MRIs.All(resource => resource.PatientId == null), Is.True);
+                if (scenario == "multi-no-preload")
+                {
+                    Assert.That(scene.MeshManager.PreloadedMeshes, Is.Empty);
+                    Assert.That(scene.MRIManager.PreloadedMRIs, Is.Empty);
+                }
+
+                if (scenario == "multi-cold-cache")
+                    Assert.That(!individualMesh.IsLoaded && !individualMRI.IsLoaded, Is.True, "Unused caches must not be loaded for export.");
+                if (single)
+                    Assert.That(individualMesh.IsLoaded && individualMRI.IsLoaded, Is.True, "Single-patient scene anatomy must still be prepared.");
+
+                string file = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
+                var questArchive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, source.Globals);
+                quest = await SceneRestoration.PrepareAsync(questArchive.Read(file), questArchive, prefab, scope.Root.transform, token);
+                Assert.That(quest.Scene.MeshManager.Meshes.Select(mesh => mesh.Name), Is.EqualTo(scene.MeshManager.Meshes.Select(mesh => mesh.Name)));
+                Assert.That(quest.Scene.MRIManager.MRIs.Select(mri => mri.Name), Is.EqualTo(scene.MRIManager.MRIs.Select(mri => mri.Name)));
+                Assert.That(quest.Scene.MeshManager.PreloadedMeshes, Is.Empty);
+                Assert.That(quest.Scene.MRIManager.PreloadedMRIs, Is.Empty);
+                Assert.That(quest.Scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                Assert.That(((Column3DIEEG)quest.Scene.Columns[1]).ActivityValues, Is.EqualTo(((Column3DIEEG)scene.Columns[1]).ActivityValues));
+            }
+            finally
+            {
+                if (quest != null) await quest.CloseAsync();
+                if (desktop != null) await desktop.CloseAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
+        [Test, Category("Sync.SceneFocused"), Timeout(480000)]
+        public Task M2_AutomaticCutsAndPreparedInflation_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null);
+
+        [Test, Explicit("Requires the local M2 equivalent project and its scientific resources."), Timeout(1200000)]
+        public Task M2_LocalProjectAutomaticCuts_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"));
+
+        [Test, Explicit("Requires a corrected Quest APK, authorized USB and a remembered pairing or .test-results/m2-fixes/pair-code.txt."), Timeout(1200000)]
+        public Task M2_PhysicalQuestUsb_ReceivesCorrectedLocalProjectAndLiveGestures() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"), true);
+
+        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false)
+        {
+            string protocolsFolder = Path.Combine(ApplicationState.DatabasePath, "Protocols");
+            using var temp = new PlayModeTempDirectoryScope();
+            if (localProject != null)
+                foreach (string path in new[] { TagCollection.PATH, AliasCollection.PATH })
+                    if (File.Exists(path))
+                        File.Copy(path, Path.Combine(temp.Path, Path.GetFileName(path)));
+            using var app = new PlayModeApplicationStateScope(temp.Path);
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Public | BindingFlags.Static).SetValue(null, Path.GetFullPath("Assets/Data"));
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("M2ProductionGeometry");
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(localProject == null ? 6 : 15));
+            CancellationToken token = timeout.Token;
+            if (physicalQuest)
+            {
+                foreach (string path in new[] { ".test-results/m2-fixes/physical-ready.txt", ".test-results/m2-fixes/physical-observer-ready.txt" })
+                    if (File.Exists(path))
+                        File.Delete(path);
+                var pairing = await GetM2PhysicalPairingAsync(temp.Path, token);
+                PairingStorage.Write(Path.Combine(temp.Path, "physical.pair"), pairing.Credential);
+                Array.Clear(pairing.Credential, 0, pairing.Credential.Length);
+            }
+
+            await PrepareReferencesAsync();
+            RestoredScene desktop = null;
+            Base3DScene localDesktop = null;
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            IDisposable desktopSession = null, questSession = null;
+            Task desktopRun = null, questRun = null;
+            using var client = new TcpClient { NoDelay = true };
+            TcpClient server = null;
+            try
+            {
+                using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
+                string transferId = Guid.NewGuid().ToString("N");
+                Base3DScene desktopScene;
+                if (localProject == null)
+                {
+                    ScenePayload payload = CreateFixture(source);
+                    payload.Visualization.Columns.RemoveRange(3, 3);
+                    payload.Columns.RemoveRange(3, 3);
+                    var ieeg = (IEEGColumn)payload.Visualization.Columns[1];
+                    ieeg.Data.ProcessedValuesByChannel["patient_A2"] = new[] { 2f, 3f, 4f, 5f };
+                    ieeg.Data.UnitByChannelID["patient_A2"] = "uV";
+                    ieeg.Data.DataByChannelID["patient_A2"] = ieeg.Data.DataByChannelID["patient_A1"];
+                    var ccep = (CCEPColumn)payload.Visualization.Columns[2];
+                    ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID["patient_A1"]["patient_A2"] = new[] { 3f, 5f, 7f, 9f };
+                    ccep.Data.UnityByChannelIDByStimulatedChannelID["patient_A1"]["patient_A2"] = "uV";
+                    ccep.Data.DataByChannelIDByStimulatedChannelID["patient_A1"]["patient_A2"] = ieeg.Data.DataByChannelID["patient_A1"];
+                    payload.GlobalContextId = source.Globals.Id;
+                    payload.TransferId = transferId;
+                    string file = Path.Combine(temp.Path, "fixture.hbscene");
+                    source.Write(payload, file);
+                    var desktopArchive = new SceneArchive(Path.Combine(temp.Path, "desktop"), true, source.Globals);
+                    desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
+                    desktopScene = desktop.Scene;
+                }
+                else
+                {
+                    Assert.That(File.Exists(localProject), Is.True, "The local equivalent project must be available.");
+                    var protocols = Directory.GetFiles(protocolsFolder, "*.prov").Select(path => ClassLoaderSaver.LoadFromJson<Protocol>(path)).ToArray();
+                    Core.Database.DatabaseManager.Database.SetProtocols(protocols);
+                    var info = new ProjectInfo(localProject);
+                    var project = new Project(info.Name, new ProjectPreferences("M2 local validation"));
+                    ApplicationState.LoadedProject = project;
+                    ApplicationState.LoadedProjectLocation = Path.GetDirectoryName(localProject);
+                    await project.LoadAsync(info, (_, _, _) => { }, token);
+                    await project.CurrentLoadingOperation.EnsureValidatedAsync(token);
+                    var model = project.Visualizations.Single(visualization => visualization.Name == "Unknown(2)");
+                    Assert.That(model.IsVisualizable, Is.True);
+                    await model.LoadAsync((_, _, _) => { }, token);
+                    await UniTask.SwitchToMainThread();
+                    localDesktop = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
+                    localDesktop.Initialize(model);
+                    await localDesktop.InitializeAsync(model, (_, _, _) => { }, token);
+                    await localDesktop.CompleteInitializationAsync(null, null, token);
+                    desktopScene = localDesktop;
+                    source.Globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = PersistentDataManager.Tags, Protocols = protocols.ToList(), Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
+                    TestContext.WriteLine($"M2 local project={Path.GetFileName(localProject)} visualization={model.Name} columns={desktopScene.Columns.Count} selectableSites={desktopScene.Columns.Sum(column => column.Sites.Count(site => !site.State.IsMasked))}");
+                }
+
+                var options = Core.DLL.SurfaceInflationOptions.Inflated;
+                options.IterationCount = 4;
+                await desktopScene.MeshManager.SelectedMesh.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options), cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktopScene, transferId, Guid.NewGuid().ToString("N"), 1, source.Globals, token);
+                string capturedFile = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
+                var questArchive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, source.Globals);
+                await view.ApplyAsync(questArchive.Read(capturedFile), questArchive, token);
+                Assert.That(view.Scene.MeshManager.SelectedMesh.HasInflatedRepresentation, Is.True, "Inflation must be restored before live changes.");
+                var digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
+                var receipt = new DeliveryReceipt(digest, DeliveryStatus.Published);
+                var sent = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
+                var published = PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene);
+                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestV2ReplicaSession", true);
+                questSession = (IDisposable)Activator.CreateInstance(questType, new object[] { view.Scene, published });
+                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+                var listener = new TcpListener(IPAddress.Loopback, 0);
+                listener.Start();
+                try
+                {
+                    Task<TcpClient> accepted = listener.AcceptTcpClientAsync();
+                    await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+                    server = await accepted;
+                    server.NoDelay = true;
+                }
+                finally
+                {
+                    listener.Stop();
+                }
+
+                Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> connect = (_, _, _, stop, transport) =>
+                {
+                    questRun = (Task)questType.GetMethod("RunConnectionAsync").Invoke(questSession, new object[] { server.GetStream(), stop });
+                    desktopRun = transport.RunConnectionAsync(client.GetStream(), stop);
+                    return desktopRun;
+                };
+                desktopSession = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { desktopScene, source.Globals.Id, transferId, connect }, null);
+                await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopSession, new object[] { sent, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), token });
+                Vector3 localPlacement = new Vector3(0.4f, 0.2f, -0.3f);
+                view.Columns[0].transform.localPosition = localPlacement;
+                int[] mask = (int[])view.Scene.MeshManager.ReferenceSurface.VisibilityMask.Clone();
+                desktopScene.AutomaticCutAroundSelectedSite = true;
+                foreach (Column3D column in desktopScene.Columns)
+                {
+                    foreach (Core.Object3D.Site site in column.Sites.Where(site => !site.State.IsMasked))
+                    {
+                        desktopScene.SelectSite(column, site);
+                        await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.ColumnData.ID == column.ColumnData.ID && view.Scene.SelectedColumn.SelectedSite?.Information.FullID == site.Information.FullID, cancellationToken: token);
+                        await desktopScene.PrepareRenderingAsync(token);
+                        await view.Scene.PrepareRenderingAsync(token);
+                        AssertM2AutomaticCuts(desktopScene, view.Scene, site.transform.localPosition);
+                    }
+                }
+
+                Column3D last = desktopScene.Columns.Last();
+                var firstSites = desktopScene.Columns[0].Sites.Where(site => !site.State.IsMasked).ToArray();
+                var lastSites = last.Sites.Where(site => !site.State.IsMasked).ToArray();
+                Assert.That(lastSites.Length, Is.GreaterThanOrEqualTo(2));
+                desktopScene.SelectSite(desktopScene.Columns[0], firstSites[0]);
+                desktopScene.SelectSite(last, lastSites[0]);
+                desktopScene.SelectSite(last, lastSites[1]);
+                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[1].Information.FullID && view.Scene.SelectedColumn.ColumnData.ID == last.ColumnData.ID, cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                AssertM2AutomaticCuts(desktopScene, view.Scene, lastSites[1].transform.localPosition);
+                desktopScene.SelectSite(last, null);
+                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite == null, cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(view.Scene.Cuts, Is.Empty);
+                desktopScene.AutomaticCutAroundSelectedSite = false;
+                desktopScene.AutomaticCutAroundSelectedSite = true;
+                desktopScene.SelectSite(last, lastSites[0]);
+                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[0].Information.FullID, cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                AssertM2AutomaticCuts(desktopScene, view.Scene, lastSites[0].transform.localPosition);
+                foreach (SurfaceRepresentation representation in new[] { SurfaceRepresentation.Inflated, SurfaceRepresentation.Anatomical })
+                {
+                    await desktopScene.SetSurfaceRepresentationAsync(representation, cancellationToken: token, animate: false);
+                    await UniTask.WaitUntil(() => view.Scene.MeshManager.SelectedMesh.Representation == representation, cancellationToken: token);
+                    await view.Scene.PrepareRenderingAsync(token);
+                    Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices), "The displayed meshes must follow the accepted representation.");
+                    Assert.That(view.Scene.MeshManager.ReferenceSurface.VisibilityMask, Is.EqualTo(mask));
+                    Assert.That(view.Columns[0].transform.localPosition, Is.EqualTo(localPlacement));
+                }
+
+                Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(desktopSession), Is.True);
+                if (physicalQuest)
+                {
+                    desktopSession.Dispose();
+                    questSession.Dispose();
+                    desktopSession = questSession = null;
+                    client.Close();
+                    server.Close();
+                    foreach (Task run in new[] { desktopRun, questRun })
+                    {
+                        try
+                        {
+                            await run;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                        }
+                        catch (IOException)
+                        {
+                        }
+                        catch (ObjectDisposedException)
+                        {
+                        }
+                    }
+
+                    desktopRun = questRun = null;
+                    await VerifyM2PhysicalQuestAsync(desktopScene, source.Globals, temp.Path, token);
+                }
+            }
+            finally
+            {
+                desktopSession?.Dispose();
+                questSession?.Dispose();
+                client.Close();
+                server?.Close();
+                foreach (Task run in new[] { desktopRun, questRun })
+                {
+                    if (run == null) continue;
+                    try
+                    {
+                        await run;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                    }
+                    catch (IOException)
+                    {
+                    }
+                    catch (ObjectDisposedException)
+                    {
+                    }
+                }
+
+                await UniTask.SwitchToMainThread();
+                await view.ClearAsync();
+                if (desktop != null) await desktop.CloseAsync();
+                if (localDesktop != null) await localDesktop.CleanAsync();
+                Object.Destroy(view.gameObject);
+            }
+        }
+
+        private static async Task<(QuestDevice Device, byte[] Credential)> GetM2PhysicalPairingAsync(string directory, CancellationToken token)
+        {
+            Type discoveryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.UI.Quest.QuestUsbDiscovery")).First(type => type != null);
+            object discovery = Activator.CreateInstance(discoveryType, new object[] { Path.Combine(Environment.GetEnvironmentVariable("ANDROID_HOME") ?? @"C:\Android\Sdk", "platform-tools", "adb.exe") });
+            var devices = await (Task<List<QuestDevice>>)discoveryType.GetMethod("FindAsync").Invoke(discovery, new object[] { token });
+            Assert.That(devices.Count, Is.EqualTo(1), "Exactly one running HiBoP Quest USB receiver is required.");
+            QuestDevice device = devices[0];
+            string pairingFile = Path.Combine(Application.persistentDataPath, "QuestPairings", BitConverter.ToString(device.Pin).Replace("-", "") + ".pair");
+            byte[] credential = PairingStorage.Read(Path.Combine(directory, "physical.pair")) ?? PairingStorage.Read(pairingFile);
+            if (credential == null)
+            {
+                string codeFile = Path.GetFullPath(".test-results/m2-fixes/pair-code.txt");
+                Assert.That(File.Exists(codeFile), Is.True, "Enter the code displayed on Quest in the ignored pair-code.txt file.");
+                credential = await QuestPairing.AuthenticateAsync(device.Host, device.Pin, File.ReadAllText(codeFile).Trim(), true, token);
+                PairingStorage.Write(pairingFile, credential);
+            }
+
+            return (device, credential);
+        }
+
+        private static async Task VerifyM2PhysicalQuestAsync(Base3DScene scene, PairingContext globals, string directory, CancellationToken token)
+        {
+            var pairing = await GetM2PhysicalPairingAsync(directory, token);
+            QuestDevice device = pairing.Device;
+            byte[] credential = pairing.Credential;
+            using var archive = new SceneArchive(Path.Combine(directory, "physical-globals"), globals: globals);
+            string globalFile = Path.Combine(directory, "globals.hbglobal");
+            globals.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
+            archive.WriteGlobalData(globals.Data, globalFile);
+            using var globalDelivery = new SceneDelivery(globalFile, globals.Id, globals.Id, null);
+            await QuestPairing.ResumeAsync(device.Host, device.Pin, credential, globals.Id, token, (stream, stop) => globalDelivery.SendAsync(stream, stop));
+            await UniTask.SwitchToMainThread();
+            scene.RequestActivityProjection();
+            await scene.PrepareRenderingAsync(token);
+            Assert.That(scene.IsGeneratorUpToDate, Is.True, "The physical opacity/timeline gestures require computed activity.");
+            string readyFile = Path.GetFullPath(".test-results/m2-fixes/physical-ready.txt");
+            string observerFile = Path.GetFullPath(".test-results/m2-fixes/physical-observer-ready.txt");
+            File.WriteAllText(readyFile, "Scientific activity prepared; waiting for the headset observer.");
+            await UniTask.WaitUntil(() => File.Exists(observerFile), cancellationToken: token);
+            string transferId = Guid.NewGuid().ToString("N");
+            Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+            using var session = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { scene, globals.Id, transferId }, null);
+            using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token);
+            DeliveryReceipt receipt = await QuestPairing.SendAsync(device.Host, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
+            Assert.That(receipt.Status, Is.EqualTo(DeliveryStatus.Published));
+            await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(session, new object[] { PreparedSceneDeliveryBinding.FromSent(delivery, receipt), device.Host, device.Pin, credential, token });
+            await UniTask.SwitchToMainThread();
+            var changes = scene.Columns.SelectMany(column => column.Sites.Where(site => !site.State.IsMasked).Take(300).Select(site => new SiteConfigurationChange(column, site.Information.FullID, site.State, new SiteConfiguration(false, true, Color.magenta, new[] { "m2", "usb" })))).ToArray();
+            scene.ApplySiteConfigurationBatch(changes);
+            scene.Columns[0].Sites.First(site => !site.State.IsMasked).State.Color = Color.cyan;
+            foreach (Column3D column in scene.Columns)
+            {
+                for (int i = 0; i < 100; i++) column.ActivityAlpha = i / 99f;
+                column.ActivityAlpha = 0.65f;
+                if (column.NavigationTimeline is { Length: > 1 } timeline)
+                {
+                    timeline.IsPlaying = false;
+                    for (int i = 0; i < 100; i++) scene.SetTimelineIndex(column, i * (timeline.Length - 1) / 99);
+                    scene.SetTimelineIndex(column, timeline.Length / 3);
+                    timeline.IsPlaying = true;
+                    timeline.IsPlaying = false;
+                }
+            }
+
+            foreach (Column3D column in scene.Columns)
+            foreach (var site in column.Sites.Where(site => !site.State.IsMasked).Take(5))
+            {
+                scene.SelectSite(column, site);
+                await UniTask.NextFrame(cancellationToken: token);
+            }
+
+            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: false);
+            await UniTask.Delay(2000, cancellationToken: token);
+            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: false);
+            await UniTask.Delay(2000, cancellationToken: token);
+            Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(session), Is.True);
+            Assert.That(await QuestPairing.PingAsync(device.Host, device.Pin, credential, token), Is.True);
+            string evidence = Path.GetFullPath(".test-results/m2-fixes/physical-desktop.json");
+            File.WriteAllText(evidence, Newtonsoft.Json.JsonConvert.SerializeObject(new { scene = scene.Visualization.Name, columns = scene.Columns.Count, changedSites = changes.Length, receipt = receipt.Status.ToString(), live = true, utc = DateTime.UtcNow, note = "Transport/publishing smoke only; visible parity needs headset observation." }, Newtonsoft.Json.Formatting.Indented));
+            TestContext.WriteLine("M2 Quest USB published; batch, later color, alpha/seek bursts, selection and anatomical/inflated sent; session remains live. Visible parity requires observation.");
+            Array.Clear(credential, 0, credential.Length);
+        }
+
+        private static void AssertM2AutomaticCuts(Base3DScene expected, Base3DScene actual, Vector3 sitePosition)
+        {
+            Assert.That(actual.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "hbp:auto-cut:axial", "hbp:auto-cut:coronal", "hbp:auto-cut:sagittal" }));
+            Assert.That(expected.Cuts.Count, Is.EqualTo(3));
+            for (int i = 0; i < 3; i++)
+            {
+                Assert.That(actual.Cuts[i].Normal, Is.EqualTo(expected.Cuts[i].Normal));
+                Assert.That(actual.Cuts[i].Position, Is.EqualTo(expected.Cuts[i].Position).Within(0.00001f));
+                Assert.That(actual.Cuts[i].Flip, Is.EqualTo(expected.Cuts[i].Flip));
+                Assert.That(Mathf.Abs(Vector3.Dot(sitePosition - actual.Cuts[i].Point, actual.Cuts[i].Normal)), Is.LessThan(0.001f), "The derived plane must pass through the selected site.");
+            }
+        }
+
         [Test]
         [Timeout(180000)]
         public Task S2_PreparedMeshManifestBindsAfterTwoSceneOpening() => VerifyPreparedMeshAndConfigurationAsync(false);

@@ -146,20 +146,20 @@ namespace HBP.UI.Toolbar
             });
             m_ROIName.onEndEdit.AddListener((value) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || !SelectedScene.ROIManager.SelectedROI) return;
 
                 SelectedScene.ROIManager.SelectedROI.Name = value;
                 UpdateROIDropdownOptions();
             });
             m_SphereSelector.onValueChanged.AddListener((value) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || !SelectedScene.ROIManager.SelectedROI) return;
 
                 SelectedScene.ROIManager.SelectedROI.SelectSphere(value - 1);
             });
             m_RemoveSphere.onClick.AddListener(() =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || !SelectedScene.ROIManager.SelectedROI) return;
 
                 SelectedScene.ROIManager.SelectedROI.RemoveSelectedSphere();
             });
@@ -185,6 +185,7 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             bool hasROI = SelectedScene.ROIManager.ROIs.Count > 0;
+            bool hasSelectedROI = SelectedScene.ROIManager.SelectedROI;
             bool hasVolume = false;
             if (hasROI && SelectedScene.ROIManager.SelectedROI)
             {
@@ -192,8 +193,8 @@ namespace HBP.UI.Toolbar
             }
 
             m_AddROI.interactable = true;
-            m_RemoveROI.interactable = hasROI;
-            m_ROIName.interactable = hasROI;
+            m_RemoveROI.interactable = hasSelectedROI;
+            m_ROIName.interactable = hasSelectedROI;
             m_ROISelector.interactable = hasROI;
             m_SphereSelector.interactable = hasVolume;
             m_RemoveSphere.interactable = hasVolume;

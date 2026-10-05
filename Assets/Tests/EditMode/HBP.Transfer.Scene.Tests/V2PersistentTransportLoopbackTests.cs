@@ -35,6 +35,49 @@ namespace HBP.Sync.Tests
         private static readonly IncarnationId Incarnation = new IncarnationId(Guid.Parse("30000000-0000-0000-0000-000000000003"));
 
         [Test]
+        public async Task PreviewFrameWait_DoesNotBlockControlTrafficAndFlushesFinalValue()
+        {
+            var frame = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var waiting = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop);
+            using var desktop = new V2PersistentTransport(scheduler, previewFrameWaiter: _ =>
+            {
+                waiting.TrySetResult(true);
+                return frame.Task;
+            });
+            using var quest = CreateTransport(V2OriginDevice.Quest, 91000);
+            using var pair = await LoopbackPeerPair.ConnectAsync();
+            using var stop = new CancellationTokenSource();
+            Task<Exception> desktopRun = CaptureRunAsync(desktop, pair.Client.GetStream(), stop.Token);
+            Task<Exception> questRun = CaptureRunAsync(quest, pair.Server.GetStream(), stop.Token);
+            try
+            {
+                desktop.EnqueueMutation(Color("preview-site"), 1, null, true);
+                await ReadIncomingAsync(quest);
+                desktop.EnqueueMutation(new SetSiteColor(new ColumnId("column"), new SiteId("preview-site"), 0.8f, 0, 0, 1), 2, null, true);
+                await AwaitGuardAsync(waiting.Task);
+                desktop.EnqueueMutation(new SetSiteColor(new ColumnId("column"), new SiteId("preview-site"), 0.9f, 0, 0, 1), 3, null, true);
+                desktop.EnqueueSessionControl(new byte[] { 0x42 }, V2DeliveryReliability.Reliable);
+                V2TransportRecord control = await ReadIncomingAsync(quest);
+                Assert.That(control.Lane, Is.EqualTo(V2ScheduleLane.SessionControl));
+                Assert.That(frame.Task.IsCompleted, Is.False, "Network controls must advance with the PlayerLoop blocked.");
+                frame.TrySetResult(true);
+                V2TransportRecord final = await ReadIncomingAsync(quest);
+                Assert.That(((SetSiteColor)final.Mutation).Red, Is.EqualTo(0.9f));
+                Assert.That(final.CanonicalSequence, Is.EqualTo(3UL));
+            }
+            finally
+            {
+                frame.TrySetResult(true);
+                stop.Cancel();
+                desktop.Dispose();
+                quest.Dispose();
+                pair.Close();
+                await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+            }
+        }
+
+        [Test]
         public async Task AuthenticatedStreamPeers_ExchangeReliableRecordsInBothDirections()
         {
             var desktop = CreateTransport(V2OriginDevice.Desktop, 1000);

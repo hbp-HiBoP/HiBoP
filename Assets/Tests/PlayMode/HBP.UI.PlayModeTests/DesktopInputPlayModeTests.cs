@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -413,8 +414,89 @@ namespace HBP.Tests.PlayMode.UI
         }
 
         private static void Set(object target, string name, object value) => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+
+        [TestCase(2), TestCase(600), Category("Sync.SceneFocused")]
+        public void MultiSiteKeyboardGestures_PublishOneAtomicConfigurationBatch(int siteCount)
+        {
+            var root = new GameObject("Shortcut scene");
+            root.transform.SetParent(m_Scene.Root.transform, false);
+            root.SetActive(false);
+            var scene = root.AddComponent<Base3DScene>();
+            var column = root.AddComponent<ShortcutTestColumn>();
+            column.Prepare();
+            scene.Columns.Add(column);
+            var electrode = new GameObject("Electrode");
+            electrode.transform.SetParent(root.transform, false);
+            var patient = new HBP.Core.Data.Patient { ID = "shortcut-patient" };
+            for (int i = 0; i < siteCount; i++)
+            {
+                var go = new GameObject("Site " + i);
+                go.transform.SetParent(electrode.transform, false);
+                var site = go.AddComponent<HBP.Core.Object3D.Site>();
+                site.Information = new HBP.Core.Object3D.SiteInformation { Patient = patient, Name = "S" + i };
+                site.State = new HBP.Core.Object3D.SiteState();
+                site.State.IsFiltered = true;
+                column.Sites.Add(site);
+            }
+
+            typeof(Column3D).GetField("<SelectedSite>k__BackingField", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(column, column.Sites[0]);
+            typeof(Base3DScene).GetField("m_IsSelected", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(scene, true);
+            var moduleField = typeof(HBP.Core.Tools.Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            object previous = moduleField.GetValue(null);
+            var module = root.AddComponent<Module3DMain>();
+            Set(module, "m_Scenes", new System.Collections.Generic.List<Base3DScene> { scene });
+            moduleField.SetValue(null, module);
+            Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.V2SceneMutationBoundary")).First(type => type != null);
+            Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.V2OriginDevice")).First(type => type != null);
+            var boundary = (IDisposable)Activator.CreateInstance(boundaryType, new object[] { scene, Enum.Parse(originType, "Desktop"), null, null, null });
+            var mutations = new System.Collections.Generic.List<object>();
+            EventInfo proposed = boundaryType.GetEvent("MutationProposed");
+            ParameterExpression[] args = proposed.EventHandlerType.GetMethod("Invoke").GetParameters().Select(parameter => Expression.Parameter(parameter.ParameterType)).ToArray();
+            Delegate listener = Expression.Lambda(proposed.EventHandlerType, Expression.Call(Expression.Constant(mutations), typeof(System.Collections.Generic.List<object>).GetMethod("Add"), Expression.Convert(args[1], typeof(object))), args).Compile();
+            proposed.AddEventHandler(boundary, listener);
+            try
+            {
+                Keys(Key.LeftCtrl, Key.LeftShift, Key.H);
+                Invoke(m_Shortcuts, "ChangeSelectedSiteState");
+                Assert.That(mutations, Has.Count.EqualTo(1));
+                Assert.That(mutations[0].GetType().Name, Is.EqualTo("SetSiteConfigurationBatch"));
+                Assert.That(column.Sites.All(site => site.State.IsHighlighted), Is.True);
+                Keys();
+                Keys(Key.LeftCtrl, Key.LeftAlt, Key.B);
+                Invoke(m_Shortcuts, "ChangeSelectedSiteState");
+                Assert.That(mutations, Has.Count.EqualTo(2));
+                Assert.That(column.Sites.All(site => site.State.IsBlackListed), Is.True);
+                Keys();
+                Keys(Key.LeftCtrl, Key.LeftShift, Key.H);
+                Invoke(m_Shortcuts, "ChangeSelectedSiteState");
+                Assert.That(mutations, Has.Count.EqualTo(3));
+                Assert.That(column.Sites.All(site => !site.State.IsHighlighted), Is.True);
+            }
+            finally
+            {
+                Keys();
+                proposed.RemoveEventHandler(boundary, listener);
+                boundary.Dispose();
+                moduleField.SetValue(null, previous);
+            }
+        }
+
         private static T Property<T>(object target, string name) => (T)target.GetType().GetProperty(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
         private static void Invoke(object target, string name) => target.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic).Invoke(target, null);
+    }
+
+    public class ShortcutTestColumn : Column3D
+    {
+        public void Prepare()
+        {
+            ColumnData = new HBP.Core.Data.AnatomicColumn("shortcuts", new HBP.Core.Data.BaseConfiguration(), new HBP.Core.Data.AnatomicConfiguration(), "shortcuts");
+            Sites = new System.Collections.Generic.List<HBP.Core.Object3D.Site>();
+            IsSelected = true;
+        }
+
+        public override void ComputeSurfaceBrainUVWithActivity()
+        {
+        }
     }
 
     public class DesktopPointerProbe : MonoBehaviour, IPointerClickHandler, IPointerDownHandler, IBeginDragHandler, IDragHandler, IScrollHandler, ICancelHandler

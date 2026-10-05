@@ -161,3 +161,43 @@ Contournement nécessaire, par exemple renvoi complet :
 ```
 
 Références : [matrice des opérations](operation-matrix.md), [contrat de vérification](07-verification.md), [périmètre des milestones](06-implementation-stages.md#milestones). Les résultats de cette recette concernent Small et les variantes effectivement essayées ; ils ne ferment pas les lignes exclues ou non observables.
+
+## Reprise des corrections
+
+Les corrections, reports et résultats supplémentaires sont consignés dans [M2-corrections-et-reports.md](M2-corrections-et-reports.md). Les verdicts et observations originaux ci-dessus sont conservés.
+
+### Retour manuel — 5 octobre 2026 : première publication
+
+| Repère | Résultat supplémentaire | Observation |
+| --- | --- | --- |
+| Départ / préparation des ressources | KO — essai interrompu | Au premier envoi de la visualisation de reprise, la phase « Preparing visualization resources » est jugée anormalement longue. Durée non mesurée : l’utilisateur a arrêté le processus avant la fin pour signaler le problème. Les envois suivants sans modification ne sont pas encore testés. Cette tentative ne qualifie pas les corrections qui nécessitent une session publiée. |
+
+Le verdict original « Départ : OK » reste inchangé. Le retour et le correctif supplémentaires ci-dessous précisent désormais la cause principale identifiée.
+
+
+### Retour et correctif supplémentaires — 5 octobre 2026 : anatomies de la scène multi
+
+L’utilisateur identifie le chargement inutile des maillages et IRM individuels des patients de la visualisation multi, alors que le préchargement Desktop est décoché. Ces ressources servent à de futures scènes single ; leur ouverture sur Quest est prévue à un jalon ultérieur. La visualisation envoyée ne contient aucune coupe.
+
+Le chemin d’envoi prépare et transfère désormais uniquement l’anatomie de la scène courante, sans ajouter les caches individuels déjà présents sur Desktop. Les logs temporaires du diagnostic sont retirés. Le transfert d’une scène single conserve son anatomie. Résultats automatisés détaillés dans [le document des corrections](M2-corrections-et-reports.md#correctif--anatomies-individuelles-hors-du-périmètre-dun-envoi-multi).
+
+Nouvelle reprise physique du premier envoi et mesure de sa durée : **non exécutées** à ce stade. Le KO de l’essai interrompu et les verdicts originaux restent conservés.
+
+
+### Reprise manuelle confirmée — 5 octobre 2026
+
+Retour du propriétaire après reprise des corrections sur la visualisation locale équivalente. Ces verdicts supplémentaires complètent les observations originales sans les remplacer. Le succès des essais nécessitant la synchronisation confirme qu’une session publiée a pu être utilisée ; la durée du premier envoi n’a pas été communiquée.
+
+| Correction reprise | Résultat manuel | Observation |
+| --- | --- | --- |
+| D11a/D11b/D12 — actions multi-sites | OK | Toutes les corrections d’actions multi-sites sont confirmées. L’affichage des labels dans le casque reste dans les reports précédents. |
+| D21 et curseurs apparentés | OK | Corrections des valeurs continues confirmées. |
+| D27 — timeline | OK | Corrections de timeline confirmées. |
+| D6 — coupes automatiques | OK | Fonctionnement des coupes automatiques confirmé. |
+| D7 Desktop — ROI « None » | OK | Protection de la sélection « None » confirmée. Les aides visuelles ROI Quest restent reportées. |
+| D22/D24 — textures pendant recalcul | OK avec réserve | Fonctionnement global confirmé, avec l’anomalie projection/suppression/reprojection décrite ci-dessous. |
+| Site Actions / export CSV | OK | Correction de l’export confirmée. |
+
+D16/inflated reste à reprendre dans le chantier convenu. Ce retour ne qualifie pas les lignes NT/NA ni les modalités exclues de Small.
+
+Anomalie résiduelle : une première projection s’affiche normalement ; après suppression de l’activité puis nouvelle projection, l’activité ne s’affiche plus **sur Desktop et sur Quest**. La réinitialisation des configurations permet de projeter à nouveau. Occurrence rapportée, fréquence et cause non déterminées ; aucune erreur console ni heure précise communiquée. Reprise : répéter projection → suppression → projection sans modifier les paramètres, distinguer calcul terminé et affichage, puis comparer les états avant/après reset. Critère de fermeture : activité de nouveau visible des deux côtés sans reset, y compris après plusieurs cycles.

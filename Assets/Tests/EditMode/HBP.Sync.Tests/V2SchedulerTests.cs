@@ -16,6 +16,50 @@ namespace HBP.Sync.Tests
         private static readonly IncarnationId Incarnation = new IncarnationId(GuidFor(2));
 
         [Test]
+        public void PreviewFrames_RetainLastValueAndLeaveWrittenRetriesImmutable()
+        {
+            var clock = new FakeMonotonicClock();
+            var scheduler = CreateScheduler(clock);
+            scheduler.PreviewFramePacingEnabled = true;
+            scheduler.EnqueueMutation(SiteColor("column-A", "site-A", 0.1f));
+            V2ReliableFrame written = Next(scheduler).Frame;
+            for (int i = 2; i <= 100; i++)
+                scheduler.EnqueueMutation(SiteColor("column-A", "site-A", i / 100f));
+            Assert.That(scheduler.NeedsPreviewFrame, Is.True);
+            Assert.That(scheduler.TryGetNextTransmission(out _), Is.False);
+            Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(1));
+            scheduler.BeginPreviewFrame();
+            V2ReliableFrame final = Next(scheduler).Frame;
+            Assert.That(((SetSiteColor)V2MutationPayloadCodec.Decode(final.GetPayloadCopy())).Red, Is.EqualTo(1f));
+            scheduler.BeginDisconnectGrace();
+            clock.Advance(TimeSpan.FromMilliseconds(250));
+            Assert.That(scheduler.TryResume(), Is.True);
+            Assert.That(Next(scheduler).Frame, Is.SameAs(written));
+            Assert.That(((SetSiteColor)V2MutationPayloadCodec.Decode(written.GetPayloadCopy())).Red, Is.EqualTo(0.1f));
+        }
+
+        [Test]
+        public void TimelineActions_BoundSeekCoalescingAndPreserveTheirOrder()
+        {
+            var scheduler = CreateScheduler(new FakeMonotonicClock());
+            var column = new ColumnId("timeline");
+            SetTimelineAnchor Anchor(int index, V2TimelineAnchorIntent intent) => new SetTimelineAnchor(column, index, intent == V2TimelineAnchorIntent.Play, false, 1, 0, 1000, intent);
+            scheduler.EnqueueMutation(Anchor(1, V2TimelineAnchorIntent.Seek));
+            scheduler.EnqueueMutation(Anchor(2, V2TimelineAnchorIntent.Seek));
+            scheduler.EnqueueMutation(Anchor(2, V2TimelineAnchorIntent.Play));
+            scheduler.EnqueueMutation(Anchor(3, V2TimelineAnchorIntent.Seek));
+            scheduler.EnqueueMutation(Anchor(4, V2TimelineAnchorIntent.Seek));
+            scheduler.EnqueueMutation(Anchor(4, V2TimelineAnchorIntent.Pause));
+            scheduler.EnqueueMutation(Anchor(5, V2TimelineAnchorIntent.Step));
+            scheduler.EnqueueMutation(Anchor(5, V2TimelineAnchorIntent.Loop));
+            var values = new List<SetTimelineAnchor>();
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt attempt))
+                values.Add((SetTimelineAnchor)V2MutationPayloadCodec.Decode(attempt.Frame.GetPayloadCopy()));
+            Assert.That(values.Select(value => value.Index), Is.EqualTo(new[] { 2, 2, 4, 4, 5, 5 }));
+            Assert.That(values.Select(value => value.Intent), Is.EqualTo(new[] { V2TimelineAnchorIntent.Seek, V2TimelineAnchorIntent.Play, V2TimelineAnchorIntent.Seek, V2TimelineAnchorIntent.Pause, V2TimelineAnchorIntent.Step, V2TimelineAnchorIntent.Loop }));
+        }
+
+        [Test]
         public void Scheduler_PreservesSceneOrderAndSeparatesReliableSequences()
         {
             var scheduler = CreateScheduler(new FakeMonotonicClock());

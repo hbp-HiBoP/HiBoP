@@ -49,7 +49,7 @@ namespace HBP.Data.Module3D
             if (IsClosing || !SceneInformation.Initialized)
                 throw new InvalidOperationException("The visualization is closing or has not finished initialization.");
             {
-                m_AnatomyWork = LoadMissingAnatomyAsync(includeAllPatients: true).ToAsyncLazy().Task;
+                m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
                 await m_AnatomyWork;
             }
 

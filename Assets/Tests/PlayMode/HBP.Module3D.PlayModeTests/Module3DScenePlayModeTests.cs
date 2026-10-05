@@ -1230,6 +1230,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.ActivityProjectionGrid, Is.SameAs(projectionGrid));
             Assert.That(baseScene.IsGeneratorUpToDate, Is.False);
             for (int i = 0; i < 10; ++i) await UniTask.Yield();
+            Assert.That(column.CutTextures.BrainCutTextures[0].GetPixels32(), Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].GetPixels32()), "Invalid activity must leave the cuts displaying their anatomical textures.");
             Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(activityFieldVersion), "Automatic projection must wait silently while surface coverage is incompatible.");
 
             int incompatibleSurfaceProjectionVersion = baseScene.SurfaceProjectionVersion;

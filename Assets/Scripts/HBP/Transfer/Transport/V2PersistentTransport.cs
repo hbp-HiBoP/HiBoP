@@ -37,6 +37,7 @@ namespace HBP.Transfer.Transport
         private readonly TimeSpan m_LivenessInterval;
         private readonly TimeSpan m_ClockProbeInterval;
         private readonly Func<bool> m_ShouldProbeClock;
+        private readonly Func<CancellationToken, Task> m_PreviewFrameWaiter;
         private readonly CancellationTokenSource m_DisposeSource = new CancellationTokenSource();
         private readonly SemaphoreSlim m_WriterSignal = new SemaphoreSlim(0, 1);
         private readonly SemaphoreSlim m_IncomingAvailable = new SemaphoreSlim(0);
@@ -101,9 +102,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public V2PersistentTransport(V2OutgoingScheduler scheduler, TimeSpan? livenessInterval = null, Func<Guid> guidFactory = null, Func<bool> shouldProbeClock = null, TimeSpan? clockProbeInterval = null)
+        public V2PersistentTransport(V2OutgoingScheduler scheduler, TimeSpan? livenessInterval = null, Func<Guid> guidFactory = null, Func<bool> shouldProbeClock = null, TimeSpan? clockProbeInterval = null, Func<CancellationToken, Task> previewFrameWaiter = null)
         {
             m_Scheduler = scheduler ?? throw new ArgumentNullException(nameof(scheduler));
+            m_PreviewFrameWaiter = previewFrameWaiter;
+            m_Scheduler.PreviewFramePacingEnabled = previewFrameWaiter != null;
             m_LivenessInterval = livenessInterval ?? TimeSpan.FromSeconds(15);
             if (m_LivenessInterval <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException(nameof(livenessInterval));
@@ -432,6 +435,19 @@ namespace HBP.Transfer.Transport
             }
         }
 
+        /// <summary>Drains an already retained record without waiting or changing reliable transport history.</summary>
+        public bool TryReadIncoming(out V2TransportRecord record)
+        {
+            lock (m_Gate)
+            {
+                record = null;
+                if (m_Incoming.Count == 0 || !m_IncomingAvailable.Wait(0)) return false;
+                record = m_Incoming.Dequeue();
+                m_IncomingBytes -= checked(V2TransportFrameCodec.HeaderLength + record.PayloadLength);
+                return true;
+            }
+        }
+
         private async Task ReadLoopAsync(Stream stream, TaskCompletionSource<bool> handshakeReady, CancellationToken cancellationToken)
         {
             bool receivedHello = false;
@@ -481,9 +497,19 @@ namespace HBP.Transfer.Transport
 
         private async Task WriteLoopAsync(Stream stream, CancellationToken cancellationToken)
         {
+            Task previewFrame = null;
+            Task writerWake = null;
             while (true)
             {
+                if (previewFrame?.IsCompleted == true)
+                {
+                    await previewFrame.ConfigureAwait(false);
+                    lock (m_Gate) m_Scheduler.BeginPreviewFrame();
+                    previewFrame = null;
+                }
+
                 bool wroteAny = false;
+                bool needsPreviewFrame = false;
                 while (true)
                 {
                     V2TransportRecord record;
@@ -526,13 +552,28 @@ namespace HBP.Transfer.Transport
                     }
 
                     if (record == null)
+                    {
+                        lock (m_Gate) needsPreviewFrame = m_Scheduler.NeedsPreviewFrame;
                         break;
+                    }
+
                     await V2TransportFrameCodec.WriteAsync(stream, record, cancellationToken).ConfigureAwait(false);
                     wroteAny = true;
                 }
 
+                if (needsPreviewFrame && previewFrame == null)
+                    previewFrame = m_PreviewFrameWaiter(cancellationToken);
                 if (!wroteAny)
-                    await m_WriterSignal.WaitAsync(cancellationToken).ConfigureAwait(false);
+                {
+                    writerWake ??= m_WriterSignal.WaitAsync(cancellationToken);
+                    if (previewFrame == null) await writerWake.ConfigureAwait(false);
+                    else await Task.WhenAny(previewFrame, writerWake).ConfigureAwait(false);
+                    if (writerWake.IsCompleted)
+                    {
+                        await writerWake.ConfigureAwait(false);
+                        writerWake = null;
+                    }
+                }
             }
         }
 

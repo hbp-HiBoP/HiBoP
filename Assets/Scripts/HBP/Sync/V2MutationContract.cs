@@ -448,7 +448,7 @@ namespace HBP.Sync
         public V2TouchedKey CoalescingKey { get; }
         public IReadOnlyList<V2TouchedKey> TouchedKeys { get; }
         public V2BarrierScope BarrierScope { get; }
-        public bool SupportsLatestUnsentCoalescing => true;
+        public bool SupportsLatestUnsentCoalescing => BarrierScope == V2BarrierScope.None;
 
         public static V2MutationDescriptor Create(SceneId sceneId, IncarnationId incarnationId, V2Mutation mutation) => new V2MutationDescriptor(sceneId, incarnationId, mutation);
 
@@ -559,7 +559,9 @@ namespace HBP.Sync
                 throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
 
             BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetSiteConfigurationBatch or SetSiteFilterResult or SetCorrelationResult ? V2BarrierScope.AllScene : V2BarrierScope.None;
-            CoalescingKey = BarrierScope == V2BarrierScope.None ? key : null;
+            if (mutation is SetTimelineAnchor anchor && anchor.Intent != V2TimelineAnchorIntent.Seek)
+                BarrierScope = V2BarrierScope.TouchedKeys;
+            CoalescingKey = key;
             var keys = new List<V2TouchedKey> { key };
             if (mutation is ApplyTriangleMask triangleMasks)
                 foreach (V2TriangleMask mask in triangleMasks.Masks.Skip(1))

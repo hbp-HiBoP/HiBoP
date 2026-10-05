@@ -259,11 +259,11 @@ namespace HBP.Sync.Tests
             Assert.That(cutEnvelope.Descriptor.CoalescingKey.ColumnId, Is.Null);
             Assert.That(cutEnvelope.Descriptor.CoalescingKey, Is.Not.EqualTo(CreateDesktopEnvelope(new SetCutDefinition(new CutId("other-cut"), V2CutOrientation.Custom, false, 1, 0.5f, 0f, 1f, 0f), 15).Descriptor.CoalescingKey));
 
-            V2MutationEnvelope timelineEnvelope = CreateDesktopEnvelope(NewTimeline(4, 3, 10), 14);
+            V2MutationEnvelope timelineEnvelope = CreateDesktopEnvelope(new SetTimelineAnchor(new ColumnId("column"), 4, true, false, 3, 123456789L, 10, V2TimelineAnchorIntent.Seek), 14);
             AssertDescriptor(timelineEnvelope.Descriptor, timelineEnvelope, V2TouchedKeyKind.TimelineAnchor);
             Assert.That(timelineEnvelope.Descriptor.CoalescingKey.ColumnId.Value, Is.EqualTo("column"));
             Assert.That(timelineEnvelope.Descriptor.CoalescingKey.SiteId, Is.Null);
-            Assert.That(timelineEnvelope.Descriptor.CoalescingKey, Is.Not.EqualTo(CreateDesktopEnvelope(new SetTimelineAnchor(new ColumnId("other-column"), 4, true, false, 3, 123456789L, 10), 16).Descriptor.CoalescingKey));
+            Assert.That(timelineEnvelope.Descriptor.CoalescingKey, Is.Not.EqualTo(CreateDesktopEnvelope(new SetTimelineAnchor(new ColumnId("other-column"), 4, true, false, 3, 123456789L, 10, V2TimelineAnchorIntent.Seek), 16).Descriptor.CoalescingKey));
         }
 
         [Test]

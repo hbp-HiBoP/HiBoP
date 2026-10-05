@@ -32,6 +32,22 @@ namespace HBP.Tests.Transfer.Scene
         private static readonly SessionId SessionIdForT09 = new(Guid.Parse("30000000-0000-0000-0000-000000000009"));
 
         [Test]
+        public void ReceivedActivityAlphaBurst_AppliesOnlyTheLastValue()
+        {
+            using var fixture = new BoundSceneFixture();
+            fixture.Column.ActivityAlpha = 0.1f;
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, fixture.Boundary, scheduler);
+            int changes = 0;
+            fixture.Column.OnUpdateActivityAlpha.AddListener(() => changes++);
+            var burst = Enumerable.Range(1, 100).Select(index => new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, new OperationId(Guid.NewGuid()), (ulong)index, new SetActivityAlpha(new ColumnId(fixture.Column.ColumnData.ID), index / 100f))).ToArray();
+            driver.ReceiveCanonicalBatch(burst);
+            Assert.That(fixture.Column.ActivityAlpha, Is.EqualTo(1f));
+            Assert.That(changes, Is.EqualTo(1));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(100UL));
+        }
+
+        [Test]
         public void SiteColor_UsesConstantTimeTargetLookupAcrossThirtyThousandSites()
         {
             const int siteCount = 30000;

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AssetDatabase = UnityEditor.AssetDatabase;
+using Object = UnityEngine.Object;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -13,6 +15,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Tests.PlayMode.Utilities;
 using HBP.UI.Toolbar;
+using HBP.UI.Tools;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -30,6 +33,143 @@ namespace HBP.Tests.PlayMode.Toolbar
 {
     public class ToolbarCoveragePlayModeTests
     {
+        [TestCase(2), TestCase(300), Category("Sync.SceneFocused")]
+        public async Task SiteActions_ProductionPrefabPublishesOneBatchAcrossColumns(int siteCount)
+        {
+            using var scene = new PlayModeSceneScope("M2SiteActions");
+            using var harness = new ToolbarSceneHarness(scene.Scene);
+            using var peerScene = new PlayModeSceneScope("M2SiteActionsPeer");
+            using var peer = new ToolbarSceneHarness(peerScene.Scene);
+            for (int c = 0; c < 3; c++)
+            {
+                var column = harness.CreateColumn("batch-" + c, selected: c == 0);
+                var peerColumn = peer.CreateColumn("batch-" + c, selected: c == 0);
+                column.ColumnData.ID = peerColumn.ColumnData.ID = "batch-" + c;
+                for (int i = 0; i < siteCount; i++)
+                {
+                    harness.CreateSite("batch-site-" + i, i, Vector3.zero, column).State.IsFiltered = true;
+                    peer.CreateSite("batch-site-" + i, i, Vector3.zero, peerColumn).State.IsFiltered = true;
+                }
+            }
+
+            using var boundary = new ReflectedMutationBoundary(harness.Scene, peer.Scene);
+            using var ui = new SiteToolsPrefabScope();
+            ui.Window.Scene = harness.Scene;
+            var section = ui.Window.GetComponentInChildren<HBP.UI.Module3D.ChangeSitesAttributesSection>(true);
+            section.ApplyFor = HBP.UI.Module3D.ApplyFor.FilteredSites;
+            GetField<Dropdown>(section, "m_ScopeDropdown").SetValueWithoutNotify(1);
+            GetField<Toggle>(section, "m_HighlightToggle").isOn = true;
+            GetField<Toggle>(section, "m_ColorToggle").isOn = true;
+            GetField<Image>(section, "m_ColorPickedImage").color = Color.magenta;
+            GetField<Toggle>(section, "m_AddLabelToggle").isOn = true;
+            GetField<InputField>(section, "m_AddLabelInputField").text = "first, second, first";
+            await section.ApplyAsync();
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1));
+            Assert.That(boundary.Mutations[0].GetType().Name, Is.EqualTo("SetSiteConfigurationBatch"));
+            foreach (ObjectSite site in peer.Scene.Columns.SelectMany(column => column.Sites))
+            {
+                Assert.That(site.State.Color, Is.EqualTo(Color.magenta));
+                Assert.That(site.State.IsHighlighted, Is.True);
+                Assert.That(site.State.Labels, Is.EqualTo(new[] { "first", "second" }));
+            }
+
+            await section.ApplyAsync();
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1), "Repeated unchanged assignments must publish nothing.");
+            harness.Scene.Columns[0].Sites[0].State.Color = Color.cyan;
+            Assert.That(peer.Scene.Columns[0].Sites[0].State.Color, Is.EqualTo(Color.cyan), "Synchronization must remain usable after the bulk gesture.");
+        }
+
+        [TestCase("success"), TestCase("cancel"), TestCase("error"), Category("Sync.SceneFocused")]
+        public async Task SiteActions_ExportIsSingleFlightAndCapturesOptionsBeforeDialog(string outcome)
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var scene = new PlayModeSceneScope("M2SiteExport");
+            using var harness = new ToolbarSceneHarness(scene.Scene);
+            var column = harness.CreateColumn("export", selected: true);
+            ObjectSite site = harness.CreateSite("ExportSite", 0, Vector3.one, column);
+            site.State.IsFiltered = true;
+            site.State.Color = Color.magenta;
+            using var ui = new SiteToolsPrefabScope();
+            ui.Window.Scene = harness.Scene;
+            var section = ui.Window.GetComponentInChildren<HBP.UI.Module3D.ExportToCSVSection>(true);
+            section.ApplyFor = HBP.UI.Module3D.ApplyFor.AllSites;
+            foreach (string field in new[] { "m_ExportHighlighted", "m_ExportBlacklisted", "m_ExportColor", "m_ExportLabels", "m_ExportPosition", "m_ExportData", "m_ExportTags" }) GetField<Toggle>(section, field).isOn = field == "m_ExportColor";
+            GetField<Dropdown>(section, "m_ExportModeDropdown").SetValueWithoutNotify(0);
+            var sections = GetField<HBP.UI.Module3D.SiteToolSection[]>(ui.Window, "m_SiteToolSections");
+            GetField<Dropdown>(ui.Window, "m_SelectToolDropdown").SetValueWithoutNotify(Array.IndexOf(sections, section));
+            Button applyButton = GetField<Button>(ui.Window, "m_ApplyChangesButton");
+            var dialog = new UniTaskCompletionSource<string>();
+            int dialogs = 0;
+            string path = Path.Combine(temp.Path, "sites.csv");
+            var previous = ToolbarExternalActions.GetSavedFileNameAsync;
+            ToolbarExternalActions.GetSavedFileNameAsync = (_, _) =>
+            {
+                dialogs++;
+                return dialog.Task;
+            };
+            try
+            {
+                Task first = ui.Window.ApplyAsync().AsTask();
+                Assert.That(applyButton.interactable, Is.False);
+                await ui.Window.ApplyAsync();
+                Assert.That(dialogs, Is.EqualTo(1));
+                site.State.Color = Color.cyan;
+                GetField<Toggle>(section, "m_ExportColor").isOn = false;
+                if (outcome == "error") dialog.TrySetException(new IOException("fixture dialog error"));
+                else dialog.TrySetResult(outcome == "cancel" ? string.Empty : path);
+                Exception failure = null;
+                try
+                {
+                    await first;
+                }
+                catch (IOException exception)
+                {
+                    failure = exception;
+                }
+
+                Assert.That(failure != null, Is.EqualTo(outcome == "error"));
+                Assert.That(applyButton.interactable, Is.True);
+                Assert.That(dialogs, Is.EqualTo(1));
+                Assert.That(File.Exists(path), Is.EqualTo(outcome == "success"));
+                if (outcome == "success")
+                {
+                    string csv = File.ReadAllText(path);
+                    Assert.That(csv, Does.Contain("Color"));
+                    Assert.That(csv, Does.Contain(Color.magenta.ToHexString()));
+                    Assert.That(csv, Does.Not.Contain(Color.cyan.ToHexString()));
+                }
+            }
+            finally
+            {
+                ToolbarExternalActions.GetSavedFileNameAsync = previous;
+            }
+        }
+
+        private static T GetField<T>(object target, string name) => (T)target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
+
+        private sealed class SiteToolsPrefabScope : IDisposable
+        {
+            private readonly List<GameObject> m_Owned = new();
+            public HBP.UI.Module3D.SiteToolsWindow Window { get; }
+
+            public SiteToolsPrefabScope()
+            {
+                if (!Object.FindFirstObjectByType<SelectionManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Selection Manager.prefab")));
+                if (!Object.FindFirstObjectByType<LoadingManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/LoadingCircle/Loading Manager.prefab")));
+                if (!Object.FindFirstObjectByType<DialogBoxManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab")));
+                GameObject window = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UI/Windows/Site Tools window"));
+                m_Owned.Add(window);
+                Window = window.GetComponent<HBP.UI.Module3D.SiteToolsWindow>();
+            }
+
+            public void Dispose()
+            {
+                foreach (GameObject root in m_Owned.AsEnumerable().Reverse())
+                    if (root)
+                        Object.DestroyImmediate(root);
+            }
+        }
+
         [Test]
         [Category("PlayMode.Toolbar")]
         public void DisplayToolbarTools_UpdateSceneRotationCameraAndResetEvents()
@@ -388,6 +528,18 @@ namespace HBP.Tests.PlayMode.Toolbar
             Assert.That(harness.Scene.ROIManager.SelectedROI.Name, Is.EqualTo("Synthetic ROI"));
             Assert.That(roiSelector.options, Has.Count.EqualTo(2));
             Assert.That(remove.interactable, Is.True);
+
+            roiSelector.onValueChanged.Invoke(0);
+            roiTool.UpdateStatus();
+            Assert.That(harness.Scene.ROIManager.SelectedROI, Is.Null);
+            Assert.That(roiName.interactable, Is.False);
+            Assert.That(remove.interactable, Is.False);
+            AssertNoException("Stale rename callback with None selected", () => roiName.onEndEdit.Invoke("Must be ignored"));
+            AssertNoException("Stale sphere callback with None selected", () => sphereSelector.onValueChanged.Invoke(1));
+            AssertNoException("Stale sphere removal with None selected", removeSphere.onClick.Invoke);
+            Assert.That(harness.Scene.ROIManager.ROIs[0].Name, Is.EqualTo("Synthetic ROI"));
+            roiSelector.onValueChanged.Invoke(1);
+            roiTool.UpdateStatus();
 
             AssertNoException("Remove ROI toolbar click", remove.onClick.Invoke);
             AssertNoException("Update ROI toolbar status after removal", roiTool.UpdateStatus);

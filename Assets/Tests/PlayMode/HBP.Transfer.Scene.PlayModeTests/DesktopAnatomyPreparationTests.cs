@@ -1,7 +1,6 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -24,6 +23,7 @@ namespace HBP.Tests.SceneTransfer
             internal readonly ManualResetEventSlim Finish = new();
             internal readonly TaskCompletionSource<bool> Started = new(TaskCreationOptions.RunContinuationsAsynchronously);
             internal int LoadThread;
+            internal int LoadCount;
             internal bool Cleaned;
 
             internal GatedMesh(SingleMesh data) : base(data, MeshType.Patient, false)
@@ -32,6 +32,7 @@ namespace HBP.Tests.SceneTransfer
 
             public override void Load()
             {
+                LoadCount++;
                 LoadThread = Thread.CurrentThread.ManagedThreadId;
                 Started.TrySetResult(true);
                 // Only the worker blocks, to deterministically exercise close/cancel.
@@ -50,7 +51,7 @@ namespace HBP.Tests.SceneTransfer
         [TestCase("cancel")]
         [TestCase("close")]
         [Timeout(60000)]
-        public async Task ColdPreparationKeepsUnityRunningAndPublishesOnlyFinishedResources(string action)
+        public async Task CurrentScenePreparationKeepsUnityRunningAndRetainsResourcesUntilFinished(string action)
         {
             using var temp = new PlayModeTempDirectoryScope();
             using var settings = new PlayModePersistentDataScope(temp.Path);
@@ -73,6 +74,8 @@ namespace HBP.Tests.SceneTransfer
             scene.MeshManager.Meshes.Add(gate);
             var meshes = scene.MeshManager;
             var mris = scene.MRIManager;
+            var currentMRI = new MRI3D(patient.MRIs[0], false);
+            mris.MRIs.Add(currentMRI);
 
             int mainThread = Thread.CurrentThread.ManagedThreadId, captured = 0;
             Task<int> preparation = null, concurrent = null;
@@ -87,7 +90,7 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(Time.frameCount, Is.GreaterThan(frame));
                 Assert.That(gate.LoadThread, Is.Not.EqualTo(mainThread));
                 Assert.That(preparation.IsCompleted, Is.False);
-                Assert.That(meshes.PreloadedMeshes, Is.Empty, "Incomplete batches must stay private.");
+                Assert.That(meshes.PreloadedMeshes, Is.Empty, "Sending a multi scene must not prepare single-patient anatomy.");
                 Assert.That(mris.PreloadedMRIs, Is.Empty);
                 if (action == "cancel") cancel.Cancel();
                 if (action == "close")
@@ -117,12 +120,12 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(failure, Is.Null);
                     await concurrent;
                     Assert.That(captured, Is.EqualTo(2));
-                    var preparedMesh = meshes.PreloadedMeshes[patient].Single();
-                    var preparedMRI = mris.PreloadedMRIs[patient].Single();
-                    Assert.That(preparedMesh.IsLoaded && preparedMRI.IsLoaded, Is.True);
+                    Assert.That(gate.IsLoaded && currentMRI.IsLoaded, Is.True);
+                    Assert.That(meshes.PreloadedMeshes, Is.Empty);
+                    Assert.That(mris.PreloadedMRIs, Is.Empty);
                     await scene.CapturePreparedAsync(() => 0, cancel.Token);
-                    Assert.That(meshes.PreloadedMeshes[patient].Single(), Is.SameAs(preparedMesh));
-                    Assert.That(mris.PreloadedMRIs[patient].Single(), Is.SameAs(preparedMRI));
+                    Assert.That(gate.LoadCount, Is.EqualTo(1), "A second send must reuse the current scene's loaded anatomy.");
+                    Assert.That(mris.MRIs, Does.Contain(currentMRI));
                 }
                 else
                 {

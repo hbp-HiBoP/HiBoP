@@ -44,23 +44,24 @@ namespace HBP.UI.Module3D
 
         public override async UniTask ApplyAsync()
         {
-            if (m_ExportModeDropdown.value == 0)
+            var request = new ExportRequest(this);
+            if (!request.Merge)
             {
                 // Create new file mode
-                string csvPath = await FileBrowser.GetSavedFileNameAsync(new string[] { "csv" }, "Save sites to");
+                string csvPath = await HBP.UI.Toolbar.ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "csv" }, "Save sites to");
                 if (!string.IsNullOrEmpty(csvPath))
                 {
-                    await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(Sites, csvPath, update, token));
+                    await LoadingManager.LoadAsync((update, token) => ExportSitesAsync(request, csvPath, update, token));
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites exported", "The filtered sites have been sucessfully exported to " + csvPath).Forget();
                 }
             }
             else
             {
                 // Merge with existing file mode
-                string csvPath = await FileBrowser.GetExistingFileNameAsync(new string[] { "csv" }, "Select CSV file to merge with");
+                string csvPath = await HBP.UI.Toolbar.ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "csv" }, "Select CSV file to merge with");
                 if (!string.IsNullOrEmpty(csvPath))
                 {
-                    await LoadingManager.LoadAsync((update, token) => MergeSitesWithExistingCSVAsync(Sites, csvPath, update, token));
+                    await LoadingManager.LoadAsync((update, token) => MergeSitesWithExistingCSVAsync(request, csvPath, update, token));
                     DialogBoxManager.Open(Core.Enums.DialogBoxType.Informational, "Sites merged", "The filtered sites have been successfully merged with " + csvPath).Forget();
                 }
             }
@@ -94,10 +95,10 @@ namespace HBP.UI.Module3D
 
         #region Private Methods
 
-        private async UniTask ExportSitesAsync(List<Core.Object3D.Site> sites, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask ExportSitesAsync(ExportRequest request, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             // Prepare data and generate CSV file
-            System.Text.StringBuilder csvBuilder = await PrepareCSVContentAsync(sites, updateProgress, token);
+            System.Text.StringBuilder csvBuilder = await PrepareCSVContentAsync(request, updateProgress, token);
 
             // Write the CSV file
             token.ThrowIfCancellationRequested();
@@ -105,36 +106,36 @@ namespace HBP.UI.Module3D
             sw.Write(csvBuilder.ToString());
         }
 
-        private async UniTask<System.Text.StringBuilder> PrepareCSVContentAsync(List<Core.Object3D.Site> sites, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask<System.Text.StringBuilder> PrepareCSVContentAsync(ExportRequest request, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
-            int length = sites.Count;
+            int length = request.Sites.Length;
             float progress = 0;
 
             // Prepare DataInfo by Patient for performance increase
             await UniTask.SwitchToThreadPool();
             Dictionary<Patient, DataInfo> dataInfoByPatient = new();
 
-            if (m_ExportData.isOn)
+            if (request.Data)
             {
                 for (int i = 0; i < length; i++)
                 {
                     token.ThrowIfCancellationRequested();
-                    Core.Object3D.Site site = sites[i];
+                    ExportSite site = request.Sites[i];
                     if (!dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
-                        if (Scene.SelectedColumn is Column3DIEEG columnIEEG)
+                        if (request.Column is IEEGColumn columnIEEG)
                         {
-                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnIEEG.ColumnIEEGData);
+                            DataInfo dataInfo = request.Visualization.GetDataInfo(site.Information.Patient, columnIEEG);
                             dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                         }
-                        else if (Scene.SelectedColumn is Column3DCCEP columnCCEP)
+                        else if (request.Column is CCEPColumn columnCCEP)
                         {
-                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnCCEP.ColumnCCEPData);
+                            DataInfo dataInfo = request.Visualization.GetDataInfo(site.Information.Patient, columnCCEP);
                             dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                         }
-                        else if (Scene.SelectedColumn is Column3DStatic columnStatic)
+                        else if (request.Column is StaticColumn columnStatic)
                         {
-                            DataInfo dataInfo = Scene.Visualization.GetDataInfo(site.Information.Patient, columnStatic.ColumnStaticData);
+                            DataInfo dataInfo = request.Visualization.GetDataInfo(site.Information.Patient, columnStatic);
                             dataInfoByPatient.Add(site.Information.Patient, dataInfo);
                         }
                     }
@@ -150,15 +151,15 @@ namespace HBP.UI.Module3D
 
             // Generate header
             System.Text.StringBuilder headerBuilder = new("Site");
-            if (m_ExportHighlighted.isOn) headerBuilder.Append(",Highlighted");
-            if (m_ExportBlacklisted.isOn) headerBuilder.Append(",Blacklisted");
-            if (m_ExportColor.isOn) headerBuilder.Append(",Color");
-            if (m_ExportLabels.isOn) headerBuilder.Append(",Labels");
-            if (m_ExportPosition.isOn) headerBuilder.Append(",X,Y,Z,CoordSystem");
-            if (m_ExportData.isOn) headerBuilder.Append(",DataType,DataFiles");
-            if (m_ExportTags.isOn)
+            if (request.Highlighted) headerBuilder.Append(",Highlighted");
+            if (request.Blacklisted) headerBuilder.Append(",Blacklisted");
+            if (request.Color) headerBuilder.Append(",Color");
+            if (request.Labels) headerBuilder.Append(",Labels");
+            if (request.Position) headerBuilder.Append(",X,Y,Z,CoordSystem");
+            if (request.Data) headerBuilder.Append(",DataType,DataFiles");
+            if (request.Tags)
             {
-                List<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
+                List<BaseTag> tags = request.TagDefinitions;
                 if (tags.Count != 0)
                 {
                     headerBuilder.Append(",");
@@ -169,36 +170,33 @@ namespace HBP.UI.Module3D
             csvBuilder.AppendLine(headerBuilder.ToString());
 
             // Prepare sites positions for performance increase
-            await UniTask.SwitchToMainThread();
-            List<Vector3> sitePositions = m_ExportPosition.isOn ? sites.Select(s => s.transform.localPosition).ToList() : new List<Vector3>();
-            await UniTask.SwitchToThreadPool();
 
             for (int i = 0; i < length; i++)
             {
                 token.ThrowIfCancellationRequested();
 
                 // Get required values
-                Core.Object3D.Site site = sites[i];
-                Vector3 sitePosition = m_ExportPosition.isOn ? sitePositions[i] : Vector3.zero;
+                ExportSite site = request.Sites[i];
+                Vector3 sitePosition = site.Position;
 
                 // Build row
                 System.Text.StringBuilder rowBuilder = new();
                 rowBuilder.Append(site.Information.FullID);
 
                 // Append site state data based on export flags
-                if (m_ExportHighlighted.isOn) rowBuilder.AppendFormat(",{0}", site.State.IsHighlighted);
-                if (m_ExportBlacklisted.isOn) rowBuilder.AppendFormat(",{0}", site.State.IsBlackListed);
-                if (m_ExportColor.isOn) rowBuilder.AppendFormat(",{0}", site.State.Color.ToHexString());
-                if (m_ExportLabels.isOn) rowBuilder.AppendFormat(",{0}", string.Join(";", site.State.Labels));
-                if (m_ExportPosition.isOn)
+                if (request.Highlighted) rowBuilder.AppendFormat(",{0}", site.State.IsHighlighted);
+                if (request.Blacklisted) rowBuilder.AppendFormat(",{0}", site.State.IsBlacklisted);
+                if (request.Color) rowBuilder.AppendFormat(",{0}", site.State.Color.ToHexString());
+                if (request.Labels) rowBuilder.AppendFormat(",{0}", string.Join(";", site.State.Labels));
+                if (request.Position)
                 {
-                    rowBuilder.AppendFormat(",{0},{1},{2},{3}", sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), Scene.ImplantationManager.SelectedImplantation.Name);
+                    rowBuilder.AppendFormat(",{0},{1},{2},{3}", sitePosition.x.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.y.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), sitePosition.z.ToString("N2", System.Globalization.CultureInfo.InvariantCulture), request.ImplantationName);
                 }
 
-                if (m_ExportData.isOn)
+                if (request.Data)
                 {
                     DataInfo dataInfo = null;
-                    if ((Scene.SelectedColumn is Column3DDynamic || Scene.SelectedColumn is Column3DStatic) && dataInfoByPatient.ContainsKey(site.Information.Patient))
+                    if ((request.Column is IEEGColumn || request.Column is CCEPColumn || request.Column is StaticColumn) && dataInfoByPatient.ContainsKey(site.Information.Patient))
                     {
                         dataInfo = dataInfoByPatient[site.Information.Patient];
                     }
@@ -236,9 +234,9 @@ namespace HBP.UI.Module3D
                     rowBuilder.AppendFormat(",{0},{1}", dataType, dataFiles);
                 }
 
-                if (m_ExportTags.isOn)
+                if (request.Tags)
                 {
-                    List<BaseTag> tags = PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList();
+                    List<BaseTag> tags = request.TagDefinitions;
                     IEnumerable<BaseTagValue> tagValues = tags.Select(t => site.Information.SiteData.Tags.FirstOrDefault(tv => tv.Tag == t));
                     foreach (var tagValue in tagValues)
                     {
@@ -266,7 +264,7 @@ namespace HBP.UI.Module3D
             return csvBuilder;
         }
 
-        private async UniTask MergeSitesWithExistingCSVAsync(List<Core.Object3D.Site> sites, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
+        private async UniTask MergeSitesWithExistingCSVAsync(ExportRequest request, string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
             await UniTask.SwitchToThreadPool();
 
@@ -316,7 +314,7 @@ namespace HBP.UI.Module3D
             updateProgress(0.3f, 0, new LoadingText("Preparing new data..."));
 
             // Prepare new data
-            System.Text.StringBuilder newCsvContent = await PrepareCSVContentAsync(sites, (p, _, t) => updateProgress(0.3f + p * 0.5f, 0, t), token);
+            System.Text.StringBuilder newCsvContent = await PrepareCSVContentAsync(request, (p, _, t) => updateProgress(0.3f + p * 0.5f, 0, t), token);
 
             token.ThrowIfCancellationRequested();
             if (newCsvContent == null) throw new HBPException("Export error", "No data to export. Please check the selected sites and try again.");
@@ -459,6 +457,45 @@ namespace HBP.UI.Module3D
             // Write the merged file
             using StreamWriter sw = new(csvPath);
             sw.Write(mergedCsvContent.ToString());
+        }
+
+        private sealed class ExportRequest
+        {
+            public bool Merge, Highlighted, Blacklisted, Color, Labels, Position, Data, Tags;
+            public Column Column;
+            public Visualization Visualization;
+            public string ImplantationName;
+            public List<BaseTag> TagDefinitions;
+            public ExportSite[] Sites;
+
+            public ExportRequest(ExportToCSVSection section)
+            {
+                Merge = section.m_ExportModeDropdown.value != 0;
+                Highlighted = section.m_ExportHighlighted.isOn;
+                Blacklisted = section.m_ExportBlacklisted.isOn;
+                Color = section.m_ExportColor.isOn;
+                Labels = section.m_ExportLabels.isOn;
+                Position = section.m_ExportPosition.isOn;
+                Data = section.m_ExportData.isOn;
+                Tags = section.m_ExportTags.isOn;
+                Column = section.Scene.SelectedColumn.ColumnData;
+                Visualization = section.Scene.Visualization;
+                ImplantationName = Position ? section.Scene.ImplantationManager.SelectedImplantation.Name : string.Empty;
+                TagDefinitions = Tags ? PersistentDataManager.Tags.GeneralTags.Concat(PersistentDataManager.Tags.SitesTags).ToList() : new();
+                Sites = section.Sites.Select(site => new ExportSite
+                {
+                    Information = site.Information,
+                    State = new SiteConfiguration(site.State.IsBlackListed, site.State.IsHighlighted, site.State.Color, site.State.Labels),
+                    Position = Position ? site.transform.localPosition : Vector3.zero
+                }).ToArray();
+            }
+        }
+
+        private sealed class ExportSite
+        {
+            public Core.Object3D.SiteInformation Information;
+            public SiteConfiguration State;
+            public Vector3 Position;
         }
 
         #endregion

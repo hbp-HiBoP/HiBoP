@@ -185,16 +185,8 @@ namespace HBP.Transfer.Scene
 
         private static ScenePayload Capture(Base3DScene scene, SceneArchive archive, string transferId, string sessionId, ulong revision, Dictionary<string, string> standardFiles)
         {
-            // Preload caches must already be ready. Check before accessing resource getters,
-            // which can otherwise trigger an implicit load during capture.
-            foreach (var group in scene.MeshManager.PreloadedMeshes)
-            foreach (var mesh in group.Value)
-                if (!mesh.IsLoaded)
-                    throw new InvalidOperationException($"Preloaded mesh '{mesh.Name}' for patient '{group.Key.Name}' is not loaded. Cannot export the visualization.");
-            foreach (var group in scene.MRIManager.PreloadedMRIs)
-            foreach (var mri in group.Value)
-                if (!mri.IsLoaded)
-                    throw new InvalidOperationException($"Preloaded MRI '{mri.Name}' for patient '{group.Key.Name}' is not loaded. Cannot export the visualization.");
+            // Only anatomy belonging to this scene is transferable. Desktop preload
+            // caches serve future single-patient scenes, outside the current Quest contract.
             Visualization model;
             model = (Visualization)scene.Visualization.Clone();
             model.Configuration = scene.CaptureConfiguration();
@@ -209,14 +201,8 @@ namespace HBP.Transfer.Scene
             payload.StandardFiles = standardFiles;
             foreach (var mesh in scene.MeshManager.Meshes)
                 payload.Meshes.Add(CaptureMesh(mesh, null, archive));
-            foreach (var group in scene.MeshManager.PreloadedMeshes)
-            foreach (var mesh in group.Value)
-                payload.Meshes.Add(CaptureMesh(mesh, group.Key.ID, archive));
             foreach (var mri in scene.MRIManager.MRIs)
                 payload.MRIs.Add(CaptureMRI(mri, null, archive));
-            foreach (var group in scene.MRIManager.PreloadedMRIs)
-            foreach (var mri in group.Value)
-                payload.MRIs.Add(CaptureMRI(mri, group.Key.ID, archive));
             for (int i = 0; i < scene.Columns.Count; i++)
             {
                 Column3D column = scene.Columns[i];

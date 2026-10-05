@@ -854,6 +854,7 @@ namespace HBP.Data.Module3D
             else if (m_ProjectionState != ActivityProjectionState.Computing)
                 m_ProjectionState = ProjectionRequested ? ActivityProjectionState.Stale : ActivityProjectionState.Absent;
             BrainMaterials.SetActivity(value);
+            if (!value) SceneInformation.BaseCutTexturesNeedUpdate = true;
             if (!value && !preserveTimelineState)
             {
                 foreach (Column3DDynamic column in ColumnsDynamic)
@@ -2426,7 +2427,7 @@ namespace HBP.Data.Module3D
                 throw new OperationCanceledException("The source scene is no longer available.", token);
 
             Mesh3D sourceMesh = m_MeshManager.SelectedMesh;
-            if (representation == SurfaceRepresentation.Inflated)
+            if (representation == SurfaceRepresentation.Inflated && !sourceMesh.HasInflatedRepresentation)
             {
                 await sourceMesh.GenerateInflatedRepresentationAsync(progress, token);
             }
@@ -2953,110 +2954,34 @@ namespace HBP.Data.Module3D
         /// Load missing anatomy if not preloaded
         /// </summary>
         /// <returns>Coroutine return</returns>
-        private async UniTask LoadMissingAnatomyAsync(bool includeAllPatients = false)
+        private async UniTask LoadMissingAnatomyAsync()
         {
             await UniTask.SwitchToMainThread();
-            // Snapshot metadata and collection membership before leaving Unity. Pending
-            // native objects remain private until every load has completed successfully.
-            var meshRequests = new List<(Patient patient, BaseMesh data)>();
-            var mriRequests = new List<(Patient patient, MRI data)>();
-            if (includeAllPatients && Type != SceneType.SinglePatient)
-            {
-                foreach (var patient in Visualization.Patients)
-                {
-                    var meshNames = new HashSet<string>(m_MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes) ? meshes.Select(item => item.Name) : Enumerable.Empty<string>());
-                    var mriNames = new HashSet<string>(m_MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris) ? mris.Select(item => item.Name) : Enumerable.Empty<string>());
-                    foreach (var mesh in patient.Meshes.Where(mesh => mesh.IsUsable))
-                        if (meshNames.Add(mesh.Name))
-                            meshRequests.Add((patient, (BaseMesh)mesh.Clone()));
-                    foreach (var mri in patient.MRIs.Where(mri => mri.IsUsable))
-                        if (mriNames.Add(mri.Name))
-                            mriRequests.Add((patient, (MRI)mri.Clone()));
-                }
-            }
-
+            // Prepare only resources used by the current scene. Patient preload caches
+            // belong to future single-patient scenes and must not be expanded for a send.
             var existingMeshes = m_MeshManager.Meshes.Distinct().ToArray();
             var existingMRIs = m_MRIManager.MRIs.Distinct().ToArray();
-            var preparedMeshes = new List<(Patient patient, Mesh3D mesh)>();
-            var preparedMRIs = new List<(Patient patient, MRI3D mri)>();
-            bool published = false;
-            try
+            // One sequential worker: the native GIFTI parser is not reentrant.
+            // m_AnatomyWork retains the scene until this call actually returns.
+            await System.Threading.Tasks.Task.Run(() =>
             {
-                // One sequential worker: the native GIFTI parser is not reentrant.
-                // m_AnatomyWork retains the scene until this call actually returns.
-                await System.Threading.Tasks.Task.Run(() =>
+                foreach (var mesh in existingMeshes)
                 {
-                    foreach (var request in meshRequests)
-                    {
-                        Mesh3D mesh = request.data switch
-                        {
-                            LeftRightMesh pair => new LeftRightMesh3D(pair, MeshType.Patient, false),
-                            SingleMesh single => new SingleMesh3D(single, MeshType.Patient, false),
-                            _ => throw new NotSupportedException("Unsupported patient mesh: " + request.data.GetType().Name)
-                        };
-                        preparedMeshes.Add((request.patient, mesh));
+                    if (!mesh.IsLoaded)
                         mesh.Load();
-                        if (!mesh.IsLoaded)
-                            throw new IOException($"Unable to prepare mesh '{mesh.Name}'.");
-                    }
+                    if (!mesh.IsLoaded)
+                        throw new IOException($"Unable to prepare mesh '{mesh.Name}'.");
+                }
 
-                    foreach (var request in mriRequests)
-                    {
-                        var mri = new MRI3D(request.data, false);
-                        preparedMRIs.Add((request.patient, mri));
+                foreach (var mri in existingMRIs)
+                {
+                    if (!mri.IsLoaded)
                         mri.Load();
-                        if (!mri.IsLoaded)
-                            throw new IOException($"Unable to prepare MRI '{mri.Name}'.");
-                    }
-
-                    foreach (var mesh in existingMeshes)
-                    {
-                        if (!mesh.IsLoaded)
-                            mesh.Load();
-                        if (!mesh.IsLoaded)
-                            throw new IOException($"Unable to prepare mesh '{mesh.Name}'.");
-                    }
-
-                    foreach (var mri in existingMRIs)
-                    {
-                        if (!mri.IsLoaded)
-                            mri.Load();
-                        if (!mri.IsLoaded)
-                            throw new IOException($"Unable to prepare MRI '{mri.Name}'.");
-                    }
-                });
-                await UniTask.SwitchToMainThread();
-                if (IsClosing)
-                    return;
-                {
-                    foreach (var prepared in preparedMeshes)
-                    {
-                        if (!m_MeshManager.PreloadedMeshes.TryGetValue(prepared.patient, out var meshes))
-                            m_MeshManager.PreloadedMeshes.Add(prepared.patient, meshes = new List<Mesh3D>());
-                        meshes.Add(prepared.mesh);
-                    }
-
-                    foreach (var prepared in preparedMRIs)
-                    {
-                        if (!m_MRIManager.PreloadedMRIs.TryGetValue(prepared.patient, out var mris))
-                            m_MRIManager.PreloadedMRIs.Add(prepared.patient, mris = new List<MRI3D>());
-                        mris.Add(prepared.mri);
-                    }
-
-                    published = true;
+                    if (!mri.IsLoaded)
+                        throw new IOException($"Unable to prepare MRI '{mri.Name}'.");
                 }
-            }
-            finally
-            {
-                await UniTask.SwitchToMainThread();
-                if (!published)
-                {
-                    foreach (var prepared in preparedMeshes)
-                        prepared.mesh.Clean();
-                    foreach (var prepared in preparedMRIs)
-                        prepared.mri.Clean();
-                }
-            }
+            });
+            await UniTask.SwitchToMainThread();
         }
 
         /// <summary>

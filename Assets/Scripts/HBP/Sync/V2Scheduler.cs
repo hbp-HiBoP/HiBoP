@@ -168,7 +168,7 @@ namespace HBP.Sync
             if (mutation == null)
                 throw new ArgumentNullException(nameof(mutation));
             V2MutationDescriptor descriptor = new V2MutationDescriptor(sceneId, incarnationId, mutation);
-            return new V2ScheduleDescriptor(sceneId, incarnationId, descriptor.CoalescingKey, descriptor.TouchedKeys as IList<V2TouchedKey>, descriptor.BarrierScope);
+            return new V2ScheduleDescriptor(sceneId, incarnationId, descriptor.BarrierScope == V2BarrierScope.None ? descriptor.CoalescingKey : null, descriptor.TouchedKeys as IList<V2TouchedKey>, descriptor.BarrierScope);
         }
 
         public static V2ScheduleDescriptor ForBarrier(SceneId sceneId, IncarnationId incarnationId, IEnumerable<V2ScheduleDescriptor> affectedDescriptors, V2BarrierScope scope, int maximumTouchedKeys = 128)
@@ -516,6 +516,10 @@ namespace HBP.Sync
         private readonly LinkedList<PendingRecord> m_SessionControlQueue = new LinkedList<PendingRecord>();
         private readonly LinkedList<PendingRecord> m_SceneQueue = new LinkedList<PendingRecord>();
         private readonly Dictionary<V2TouchedKey, LinkedListNode<PendingRecord>> m_CoalescingSlots = new Dictionary<V2TouchedKey, LinkedListNode<PendingRecord>>();
+        private readonly HashSet<V2TouchedKey> m_FramePreviewKeys = new();
+        public bool PreviewFramePacingEnabled { get; set; }
+        public bool NeedsPreviewFrame => PreviewFramePacingEnabled && m_SceneQueue.First?.Value.Coalescible == true && (m_FramePreviewKeys.Count >= 256 || m_FramePreviewKeys.Contains(m_SceneQueue.First.Value.Descriptor.CoalescingKey));
+        public void BeginPreviewFrame() => m_FramePreviewKeys.Clear();
         private readonly Dictionary<Guid, ReliableStreamState> m_Streams = new Dictionary<Guid, ReliableStreamState>();
         private readonly Dictionary<Guid, BulkTransferState> m_BulkByStream = new Dictionary<Guid, BulkTransferState>();
         private readonly Dictionary<Guid, BulkTransferState> m_BulkByOperation = new Dictionary<Guid, BulkTransferState>();
@@ -753,8 +757,9 @@ namespace HBP.Sync
 
             if (sceneNode != null)
             {
-                if (TryCommit(m_SceneOperationStream, sceneNode.Value, sceneNode.Value.Lane != V2ScheduleLane.Interactive, out transmission))
+                if (!NeedsPreviewFrame && TryCommit(m_SceneOperationStream, sceneNode.Value, sceneNode.Value.Lane != V2ScheduleLane.Interactive, out transmission))
                 {
+                    if (PreviewFramePacingEnabled && sceneNode.Value.Coalescible) m_FramePreviewKeys.Add(sceneNode.Value.Descriptor.CoalescingKey);
                     RemoveSceneNode(sceneNode);
                     if (transmission.Frame.Lane == V2ScheduleLane.Interactive)
                         m_InteractiveSinceBulk++;

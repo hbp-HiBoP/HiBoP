@@ -393,30 +393,28 @@ namespace HBP.UI.Tools
 
                         sites = sites.Where(s => s.State.IsFiltered).ToList();
                         Key downAction = ChangeSiteStateActions.FirstOrDefault(DesktopInput.WasPressedThisFrame);
-                        switch (downAction)
+                        var changes = new List<SiteConfigurationChange>();
+                        bool allHighlighted = sites.All(s => s.State.IsHighlighted);
+                        bool allBlacklisted = sites.All(s => s.State.IsBlackListed);
+                        foreach (var site in sites)
                         {
-                            case Key.H:
-                                {
-                                    bool allHighlighted = sites.All(s => s.State.IsHighlighted);
-                                    foreach (var site in sites) site.State.IsHighlighted = !allHighlighted;
-                                }
-                                break;
-                            case Key.B:
-                                {
-                                    bool allBlacklisted = sites.All(s => s.State.IsBlackListed);
-                                    foreach (var site in sites) site.State.IsBlackListed = !allBlacklisted;
-                                }
-                                break;
-                            default:
-                                {
-                                    int index = m_ChangeColorActions.IndexOf(downAction);
-                                    if (index == -1) break;
+                            var configuration = new Core.Data.SiteConfiguration(site.State.IsBlackListed, site.State.IsHighlighted, site.State.Color, site.State.Labels);
+                            switch (downAction)
+                            {
+                                case Key.H: configuration.IsHighlighted = !allHighlighted; break;
+                                case Key.B: configuration.IsBlacklisted = !allBlacklisted; break;
+                                default:
+                                    int colorIndex = m_ChangeColorActions.IndexOf(downAction);
+                                    if (colorIndex == -1) continue;
+                                    configuration.Color = ColorPickerManager.GetDefaultColor(colorIndex);
+                                    break;
+                            }
 
-                                    Color color = ColorPickerManager.GetDefaultColor(index);
-                                    foreach (var site in sites) site.State.Color = color;
-                                }
-                                break;
+                            if (site.State.IsBlackListed == configuration.IsBlacklisted && site.State.IsHighlighted == configuration.IsHighlighted && site.State.Color == configuration.Color) continue;
+                            changes.Add(new SiteConfigurationChange(column, site.Information.FullID, site.State, configuration));
                         }
+
+                        if (changes.Count > 0) scene.ApplySiteConfigurationBatch(changes);
                     }
                 }
             }

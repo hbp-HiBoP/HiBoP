@@ -540,6 +540,101 @@ namespace HBP.Tests.Transfer.Scene
 
         private static SetSiteColor Color(string site, float red, float green, float blue) => new SetSiteColor(new ColumnId("shared-column"), new SiteId(site), red, green, blue, 1f);
 
+        [Test]
+        public void ReceivedPreviews_ApplySurvivorsInOrderAndPreserveBarriers()
+        {
+            using var fixture = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(fixture, new TestClock());
+            var batch = new List<V2CanonicalMutation>();
+            for (int i = 1; i <= 100; i++)
+                batch.Add(new V2CanonicalMutation(Scene, Incarnation, Operation(7000 + i), (ulong)i, Cut(V2CutOrientation.Custom, false, 1, i / 100f, 1, 0, 0)));
+            batch.Add(new V2CanonicalMutation(Scene, Incarnation, Operation(7200), 101, Color("site-a", 0.7f, 0, 0)));
+            batch.Add(new V2CanonicalMutation(Scene, Incarnation, Operation(7201), 102, Cut(V2CutOrientation.Custom, false, 1, 0.2f, 1, 0, 0)));
+            batch.Add(new V2CanonicalMutation(Scene, Incarnation, Operation(7202), 103, Cut(V2CutOrientation.Custom, false, 1, 0.3f, 1, 0, 0)));
+            driver.ReceiveCanonicalBatch(batch);
+            Assert.That(fixture.CutInvalidations, Is.EqualTo(2));
+            Assert.That(fixture.Cut.Position, Is.EqualTo(0.3f));
+            Assert.That(fixture.SiteA.Color.r, Is.EqualTo(0.7f));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(103UL));
+            Assert.That(driver.ReceiveCanonical(batch[0]), Is.False);
+        }
+
+        [Test]
+        public void FailedCanonicalApplication_CanBeRetriedWithTheSameIdentity()
+        {
+            using var fixture = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(fixture, new TestClock());
+            bool fail = true;
+            fixture.CutChanged += () =>
+            {
+                if (fail) throw new InvalidOperationException("fixture apply failure");
+            };
+            var canonical = new V2CanonicalMutation(Scene, Incarnation, Operation(7300), 1, Cut(V2CutOrientation.Custom, false, 1, 0.7f, 1, 0, 0));
+            Assert.Throws<InvalidOperationException>(() => driver.ReceiveCanonical(canonical));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.Zero);
+            fail = false;
+            Assert.That(driver.ReceiveCanonical(canonical), Is.True);
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(1UL));
+        }
+
+        [Test]
+        public void TimelinePause_ProtectsItsIndexFromAnOlderSeek()
+        {
+            using var fixture = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(fixture, new TestClock());
+            var pause = new V2CanonicalMutation(Scene, Incarnation, Operation(7310), 3, new SetTimelineAnchor(fixture.ColumnId, 22, false, false, 1, 0, 1000, V2TimelineAnchorIntent.Pause));
+            var oldSeek = new V2CanonicalMutation(Scene, Incarnation, Operation(7311), 2, new SetTimelineAnchor(fixture.ColumnId, 11, false, false, 1, 0, 1000, V2TimelineAnchorIntent.Seek));
+            Assert.That(driver.ReceiveCanonical(pause), Is.True);
+            Assert.That(driver.ReceiveCanonical(oldSeek), Is.False);
+            Assert.That(fixture.Timeline.CurrentIndex, Is.EqualTo(22));
+        }
+
+        [Test]
+        public void FailedCorrection_RetainsPendingProposalUntilApplicationSucceeds()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            var proposal = driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, 0.2f, 1, 0, 0), Operation(7320));
+            desktop.Boundary.Apply(Cut(V2CutOrientation.Custom, false, 1, 0.7f, 1, 0, 0), V2MutationApplicationOrigin.LocalDesktop, Operation(7321));
+            V2MutationCorrection correction = authority.AcceptQuestProposal(proposal).Correction;
+            Assert.That(correction, Is.Not.Null);
+            bool fail = true;
+            quest.CutChanged += () =>
+            {
+                if (fail) throw new InvalidOperationException("fixture correction failure");
+            };
+            Assert.Throws<InvalidOperationException>(() => driver.ReceiveCorrection(correction));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(1));
+            Assert.That(driver.LastObservedCanonicalSequence, Is.Zero);
+            fail = false;
+            Assert.That(driver.ReceiveCorrection(correction), Is.True);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void DisjointSiteBatch_DoesNotSupersedeEarlierProposalCorrection()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            SetSiteConfigurationBatch Batch(string site, float red) => new SetSiteConfigurationBatch(new[] { new V2SiteConfigurationAssignment(quest.ColumnId, new SiteId(site), false, false, red, 0, 0, 1, Array.Empty<string>()) });
+            var canonicals = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += canonicals.Add;
+            var proposal = driver.ApplyOptimistic(Batch("site-a", 0.2f), Operation(7340));
+            desktop.Boundary.Apply(Batch("site-a", 0.7f), V2MutationApplicationOrigin.LocalDesktop, Operation(7341));
+            V2MutationCorrection correction = authority.AcceptQuestProposal(proposal).Correction;
+            Assert.That(correction, Is.Not.Null);
+            desktop.Boundary.Apply(Batch("site-b", 0.9f), V2MutationApplicationOrigin.LocalDesktop, Operation(7342));
+            driver.ReceiveCanonical(canonicals[1]);
+            Assert.That(driver.ReceiveCorrection(correction), Is.True);
+            Assert.That(quest.SiteA.Color.r, Is.EqualTo(0.7f));
+            Assert.That(quest.SiteB.Color.r, Is.EqualTo(0.9f));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
         private static SetCutDefinition Cut(V2CutOrientation orientation, bool flip, uint count, float position, float x, float y, float z) => new SetCutDefinition(new CutId("shared-cut"), orientation, flip, count, position, x, y, z);
 
         private static OperationId Operation(int value) => new OperationId(Guid.Parse($"40000000-0000-0000-0000-{value:X12}"));

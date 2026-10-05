@@ -129,7 +129,7 @@ namespace HBP.Quest.Desktop
             m_Authority = new V2DesktopMutationAuthority(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary);
             m_Journal = new V2PublicationMutationJournal(m_Identity.SceneId, m_Identity.IncarnationId);
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop);
-            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval);
+            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_OpenReplica = openReplica ?? QuestPairing.OpenV2ReplicaAsync;
             m_Authority.CanonicalReady += OnCanonicalReady;
@@ -309,6 +309,14 @@ namespace HBP.Quest.Desktop
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForBarrier(m_Identity.SceneId, m_Identity.IncarnationId, null, V2BarrierScope.AllScene);
             V2EnqueueResult queued = m_Transport.EnqueueSceneOperation(body, descriptor, structural: true, operationId: m_InitialBarrierId);
             if (!queued.Accepted) throw new IOException("The v2 transport could not retain the initial publication barrier: " + queued.Disposition + ".");
+        }
+
+        private static async Task WaitForPreviewFrameAsync(CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            if (Application.isPlaying) await UniTask.NextFrame(cancellationToken: stop);
+            else await UniTask.Yield(PlayerLoopTiming.Initialization, stop);
+            await UniTask.SwitchToThreadPool();
         }
 
         private async Task ReadIncomingAsync(CancellationToken stop)

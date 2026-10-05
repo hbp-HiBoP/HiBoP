@@ -54,7 +54,7 @@ namespace HBP.Sync.Scene
         public V2Mutation Mutation { get; }
         public V2OriginDevice OriginDevice { get; }
 
-        internal V2CanonicalMutation(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ulong canonicalSequence, V2Mutation mutation, V2OriginDevice originDevice = V2OriginDevice.Desktop)
+        public V2CanonicalMutation(SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ulong canonicalSequence, V2Mutation mutation, V2OriginDevice originDevice = V2OriginDevice.Desktop)
         {
             SceneId = sceneId;
             IncarnationId = incarnationId;
@@ -662,13 +662,15 @@ namespace HBP.Sync.Scene
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
             if (m_Pending.TryGetValue(canonical.OperationId.Value, out byte[] optimisticPayload))
             {
-                bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
+                bool keySuperseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence);
                 bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+                if (!matchesOptimistic && !keySuperseded)
+                    m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
                 RecordCanonicalForPendingTransactions(canonical, keySuperseded, matchesOptimistic);
                 RemovePendingProposal(canonical.OperationId);
                 RememberReceived(canonical.OperationId, payload);
                 m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
-                MarkKeyApplied(descriptor.CoalescingKey, canonical.CanonicalSequence);
+                MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
                 if (matchesOptimistic)
                 {
                     ProposalConfirmed?.Invoke(canonical.OperationId);
@@ -677,7 +679,6 @@ namespace HBP.Sync.Scene
 
                 if (!keySuperseded)
                 {
-                    m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
                     AuthoritativeCorrectionApplied?.Invoke(canonical.OperationId, canonical.Mutation);
                     return true;
                 }
@@ -685,14 +686,15 @@ namespace HBP.Sync.Scene
                 return false;
             }
 
+            bool superseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence);
+            if (!superseded)
+                m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
+            RecordCanonicalForPendingTransactions(canonical, superseded, preserveExistingOrder: false);
             RememberReceived(canonical.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
-            bool superseded = WasKeySuperseded(descriptor.CoalescingKey, canonical.CanonicalSequence);
-            RecordCanonicalForPendingTransactions(canonical, superseded, preserveExistingOrder: false);
             if (superseded) return false;
 
-            m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
-            MarkKeyApplied(descriptor.CoalescingKey, canonical.CanonicalSequence);
+            MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
             return true;
         }
 
@@ -703,6 +705,52 @@ namespace HBP.Sync.Scene
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             return ReceiveCanonical(new V2CanonicalMutation(sceneId, incarnationId, operationId, canonicalSequence, mutation));
+        }
+
+        private static V2TouchedKey ApplicationKey(V2ScheduleDescriptor descriptor) => descriptor.CoalescingKey ?? (descriptor.TouchedKeys.Count == 1 && descriptor.TouchedKeys[0].Kind == V2TouchedKeyKind.TimelineAnchor ? descriptor.TouchedKeys[0] : null);
+
+        public static bool IsReplaceablePreview(V2Mutation mutation) => mutation is SetActivityAlpha || mutation is SetSceneFloat || mutation is SetCutDefinition || mutation is SetColumnSpan || mutation is SetTimelineAnchor anchor && anchor.Intent == V2TimelineAnchorIntent.Seek;
+
+        /// <summary>Reduces a bounded application batch, leaving emitted frames and their retry identities intact.</summary>
+        public void ReceiveCanonicalBatch(IReadOnlyList<V2CanonicalMutation> mutations, Action<int> apply = null)
+        {
+            ThrowIfDisposed();
+            if (mutations == null) throw new ArgumentNullException(nameof(mutations));
+            if (mutations.Count > 256) throw new ArgumentOutOfRangeException(nameof(mutations));
+            var skipped = new bool[mutations.Count];
+            var latest = new Dictionary<V2TouchedKey, int>();
+            var operationIds = new HashSet<Guid>();
+            bool reduce = m_Pending.Count == 0 && m_TransactionReplayJournal.Count == 0;
+            for (int i = 0; i < mutations.Count; i++)
+            {
+                V2CanonicalMutation canonical = mutations[i] ?? throw new ArgumentException("A canonical batch cannot contain null.", nameof(mutations));
+                ValidateScope(canonical.SceneId, canonical.IncarnationId);
+                if (canonical.CanonicalSequence == 0) throw new InvalidDataException("A canonical mutation must have a nonzero sequence.");
+                if (!operationIds.Add(canonical.OperationId.Value)) reduce = false;
+                V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
+                if (!IsReplaceablePreview(canonical.Mutation) || descriptor.CoalescingKey == null)
+                {
+                    latest.Clear();
+                    continue;
+                }
+
+                if (latest.TryGetValue(descriptor.CoalescingKey, out int previous) && mutations[previous].CanonicalSequence < canonical.CanonicalSequence)
+                    skipped[previous] = true;
+                latest[descriptor.CoalescingKey] = i;
+            }
+
+            for (int i = 0; i < mutations.Count; i++)
+            {
+                if (reduce && skipped[i]) continue;
+                if (apply == null) ReceiveCanonical(mutations[i]);
+                else apply(i);
+            }
+
+            // A skipped operation is acknowledged at application level only after its replacement succeeded.
+            if (reduce)
+                for (int i = 0; i < mutations.Count; i++)
+                    if (skipped[i])
+                        ReceiveCanonical(mutations[i]);
         }
 
         public void AdvanceCanonicalWatermark(ulong canonicalSequence)
@@ -726,16 +774,17 @@ namespace HBP.Sync.Scene
             if (!m_Pending.TryGetValue(correction.OperationId.Value, out byte[] optimisticPayload)) return false;
 
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, correction.AuthoritativeMutation);
-            bool keySuperseded = WasKeySuperseded(descriptor.CoalescingKey, correction.CanonicalSequence);
+            bool keySuperseded = WasKeySuperseded(ApplicationKey(descriptor), correction.CanonicalSequence);
             bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+            if (!matchesOptimistic && !keySuperseded)
+                m_Boundary.Apply(correction.AuthoritativeMutation, V2MutationApplicationOrigin.Remote, correction.OperationId);
             RecordCanonicalForPendingTransactions(correction.OperationId, correction.AuthoritativeMutation, keySuperseded, matchesOptimistic);
             RemovePendingProposal(correction.OperationId);
             RememberReceived(correction.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, correction.CanonicalSequence);
-            MarkKeyApplied(descriptor.CoalescingKey, correction.CanonicalSequence);
+            MarkKeyApplied(ApplicationKey(descriptor), correction.CanonicalSequence);
             if (!matchesOptimistic && !keySuperseded)
             {
-                m_Boundary.Apply(correction.AuthoritativeMutation, V2MutationApplicationOrigin.Remote, correction.OperationId);
                 AuthoritativeCorrectionApplied?.Invoke(correction.OperationId, correction.AuthoritativeMutation);
                 return true;
             }

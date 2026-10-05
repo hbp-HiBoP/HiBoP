@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,7 +113,7 @@ namespace HBP.Quest
             m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest, timelineTimingEstimate: anchor => m_TimelineClock.TryEstimate(anchor.MonotonicAnchorTicks, anchor.TickFrequency, anchor.Step, out V2TimelineAnchorTimingEstimate estimate) ? estimate : (V2TimelineAnchorTimingEstimate?)null);
             m_Boundary.BindPreparedResources(binding);
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Quest);
-            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval);
+            m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_Driver = new V2QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler);
             m_BeforeCheckpointApply = beforeCheckpointApply;
@@ -161,12 +162,22 @@ namespace HBP.Quest
 
         private void OnProposalQueued(V2QuestMutationProposal proposal) => m_Transport.NotifySchedulerChanged();
 
+        private static async Task WaitForPreviewFrameAsync(CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            if (Application.isPlaying) await UniTask.NextFrame(cancellationToken: stop);
+            else await UniTask.Yield(PlayerLoopTiming.Initialization, stop);
+            await UniTask.SwitchToThreadPool();
+        }
+
         private async Task ProcessIncomingAsync(CancellationToken stop)
         {
             await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
+            V2TransportRecord retained = null;
             while (!stop.IsCancellationRequested)
             {
-                V2TransportRecord record = await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
+                V2TransportRecord record = retained ?? await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
+                retained = null;
                 if (record == null) continue;
                 if (m_DeferredDrainPending && !m_SceneOperationBulkReceiver.IsActive)
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
@@ -222,11 +233,41 @@ namespace HBP.Quest
                     continue;
                 }
 
-                await ProcessRecordAsync(record, received.FirstReceived, received.LastReceived, stop).ConfigureAwait(false);
+                if (IsCanonicalPreview(record))
+                {
+                    // Wait for one application frame, then drain only already retained records.
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                    if (Application.isPlaying) await UniTask.NextFrame(cancellationToken: stop);
+                    else await UniTask.Yield(PlayerLoopTiming.Initialization, stop);
+                    var records = new List<V2TransportRecord> { record };
+                    while (records.Count < 256 && m_Transport.TryReadIncoming(out V2TransportRecord next))
+                    {
+                        if (!IsCanonicalPreview(next))
+                        {
+                            retained = next;
+                            break;
+                        }
+
+                        ValidateScope(next);
+                        records.Add(next);
+                    }
+
+                    var canonical = records.Select(item => new V2CanonicalMutation(item.SceneId, item.IncarnationId, item.MessageId, item.CanonicalSequence.Value, item.Mutation)).ToArray();
+                    m_Driver.ReceiveCanonicalBatch(canonical, index =>
+                    {
+                        V2TransportRecord item = records[index];
+                        ApplyTrackedMutation(item, item.Mutation, () => m_Driver.ReceiveCanonical(canonical[index]), item.FirstReceived, item.LastReceived);
+                    });
+                }
+                else
+                    await ProcessRecordAsync(record, received.FirstReceived, received.LastReceived, stop).ConfigureAwait(false);
+
                 if (m_CompletedCheckpoint != null || m_DeferredDrainPending)
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
             }
         }
+
+        private static bool IsCanonicalPreview(V2TransportRecord record) => record.Kind == V2TransportMessageKind.Application && record.Lane == V2ScheduleLane.Interactive && record.OriginDevice == V2OriginDevice.Desktop && record.CanonicalSequence.HasValue && !record.ObservedCanonicalSequence.HasValue && record.Mutation != null && V2QuestMutationDriver.IsReplaceablePreview(record.Mutation);
 
         private async Task ProcessRecordAsync(V2TransportRecord record, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
         {
@@ -1371,13 +1412,18 @@ namespace HBP.Quest
 
         private async Task ApplyTrackedMutationAsync(V2TransportRecord record, V2Mutation mutation, Func<bool> apply, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
         {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            ApplyTrackedMutation(record, mutation, apply, firstReceived, lastReceived);
+        }
+
+        private void ApplyTrackedMutation(V2TransportRecord record, V2Mutation mutation, Func<bool> apply, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived)
+        {
             bool measured = SyncTelemetry.Enabled && TryGetTelemetryProfile(mutation, out _);
             SyncProfile profile = measured ? GetTelemetryProfile(mutation) : default;
             SyncTelemetryIdentity identity = measured ? CreateTelemetryIdentity(record.MessageId) : default;
             var telemetry = measured ? new SyncReceiveTelemetry(firstReceived, lastReceived, V2TransportFrameCodec.HeaderLength + record.PayloadLength) : null;
             try
             {
-                await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
                 telemetry?.CaptureApplyStart();
                 bool applied = apply();
                 telemetry?.CaptureApplyEnd();
