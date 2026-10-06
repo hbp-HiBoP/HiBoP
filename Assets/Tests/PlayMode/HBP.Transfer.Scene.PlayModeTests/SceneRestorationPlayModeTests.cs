@@ -131,13 +131,28 @@ namespace HBP.Tests.SceneTransfer
         [Test, Category("Sync.SceneFocused"), Timeout(480000)]
         public Task M2_AutomaticCutsAndPreparedInflation_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null);
 
+        [Test, Category("Sync.SceneFocused"), Timeout(480000)]
+        public Task M2_ColdInflation_ConvergesAndCancelsThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true);
+
+        [Test, Category("Sync.SceneFocused"), Timeout(480000)]
+        public Task M2_InflationWithDesktopOnlyCache_ConvergesThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true, desktopOnlyCache: true);
+
+        [Test, Category("Sync.SceneFocused"), Timeout(480000)]
+        public Task M2_TransformedSingleInflation_ConvergesWithoutSourceFilesOrPreparedResult() => VerifyM2ProductionGeometryAsync(null, coldInflation: true, nativeSingle: true);
+
+        [TestCase(MeshPart.Left), TestCase(MeshPart.Right), Category("Sync.SceneFocused"), Timeout(480000)]
+        public Task M2_HemisphereMutationDuringJob_RejectsPublication(MeshPart hemisphere) => VerifyM2ProductionGeometryAsync(null, coldInflation: true, mutatedHemisphere: hemisphere);
+
         [Test, Explicit("Requires the local M2 equivalent project and its scientific resources."), Timeout(1200000)]
         public Task M2_LocalProjectAutomaticCuts_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"));
 
         [Test, Explicit("Requires a corrected Quest APK, authorized USB and a remembered pairing or .test-results/m2-fixes/pair-code.txt."), Timeout(1200000)]
         public Task M2_PhysicalQuestUsb_ReceivesCorrectedLocalProjectAndLiveGestures() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"), true);
 
-        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false)
+        [Test, Explicit("Requires the updated Quest APK, authorized USB, remembered pairing and observer-ready file."), Timeout(1200000)]
+        public Task M2_PhysicalQuestUsb_ColdInflationUsesLocalJobWithoutResend() => VerifyM2ProductionGeometryAsync(null, physicalQuest: true, coldInflation: true, physicalInflationOnly: true);
+
+        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false, bool coldInflation = false, bool desktopOnlyCache = false, bool nativeSingle = false, bool physicalInflationOnly = false, MeshPart? mutatedHemisphere = null)
         {
             string protocolsFolder = Path.Combine(ApplicationState.DatabasePath, "Protocols");
             using var temp = new PlayModeTempDirectoryScope();
@@ -168,6 +183,7 @@ namespace HBP.Tests.SceneTransfer
             var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             IDisposable desktopSession = null, questSession = null;
             Task desktopRun = null, questRun = null;
+            GameObject ownedDialogManager = null;
             using var client = new TcpClient { NoDelay = true };
             TcpClient server = null;
             try
@@ -220,15 +236,60 @@ namespace HBP.Tests.SceneTransfer
                     TestContext.WriteLine($"M2 local project={Path.GetFileName(localProject)} visualization={model.Name} columns={desktopScene.Columns.Count} selectableSites={desktopScene.Columns.Sum(column => column.Sites.Count(site => !site.State.IsMasked))}");
                 }
 
+                if (nativeSingle)
+                {
+                    // Patient inflation uses the transformed anatomy already loaded in memory.
+                    string transform = Path.Combine(temp.Path, "nonuniform.trm");
+                    File.WriteAllText(transform, string.Join(Environment.NewLine, "5 7 11", "2 0 0", "0 1 0", "0 0 0.5"));
+                    string gifti = Path.Combine(temp.Path, "patient.gii");
+                    File.Copy(StandardData.Resolve(ApplicationState.DataPath, "Meshes/MNI_Lhemi.gii"), gifti);
+                    var nativeMesh = new SingleMesh3D(new SingleMesh("Transformed patient", transform, gifti, string.Empty), MeshType.Patient, true);
+                    desktopScene.MeshManager.Meshes.Add(nativeMesh);
+                    desktopScene.MeshManager.SelectPrepared(nativeMesh);
+                }
+
                 var options = Core.DLL.SurfaceInflationOptions.Inflated;
                 options.IterationCount = 4;
-                await desktopScene.MeshManager.SelectedMesh.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options), cancellationToken: token);
+                if (!coldInflation)
+                    await desktopScene.MeshManager.SelectedMesh.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options), cancellationToken: token);
                 await desktopScene.PrepareRenderingAsync(token);
                 using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktopScene, transferId, Guid.NewGuid().ToString("N"), 1, source.Globals, token);
                 string capturedFile = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
                 var questArchive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, source.Globals);
-                await view.ApplyAsync(questArchive.Read(capturedFile), questArchive, token);
-                Assert.That(view.Scene.MeshManager.SelectedMesh.HasInflatedRepresentation, Is.True, "Inflation must be restored before live changes.");
+                ScenePayload captured = questArchive.Read(capturedFile);
+                if (nativeSingle)
+                {
+                    MeshResource nativeResource = captured.Meshes.Single(mesh => mesh.Name == "Transformed patient");
+                    Assert.That(desktopScene.Type, Is.EqualTo(SceneType.SinglePatient));
+                    Assert.That(nativeResource.Both, Is.Not.Null);
+                    Assert.That(nativeResource.InflatedBoth, Is.Null);
+                    using (var zip = ZipFile.OpenRead(capturedFile))
+                    {
+                        Assert.That(zip.Entries.Any(entry => entry.FullName.EndsWith(".gii") || entry.FullName.EndsWith(".trm")), Is.False);
+                        using var reader = new StreamReader(zip.GetEntry("visualization.json").Open());
+                        Assert.That(reader.ReadToEnd(), Does.Not.Contain("InflationSource"));
+                    }
+
+                    // Measure the compressed resource overhead removed from the previous delivery.
+                    string previousFile = Path.Combine(temp.Path, "with-inflation-sources.hbscene");
+                    File.Copy(capturedFile, previousFile);
+                    using (var zip = ZipFile.Open(previousFile, ZipArchiveMode.Update))
+                        foreach (string path in new[] { Path.Combine(temp.Path, "patient.gii"), Path.Combine(temp.Path, "nonuniform.trm") })
+                            zip.CreateEntryFromFile(path, StandardData.HashFile(path) + Path.GetExtension(path), System.IO.Compression.CompressionLevel.Fastest);
+                    long preparedBytes = new FileInfo(capturedFile).Length;
+                    long removedResourceBytes = new FileInfo(previousFile).Length - preparedBytes;
+                    TestContext.WriteLine($"Single transformed patient mesh: prepared payload={preparedBytes} bytes, removed compressed GIFTI/TRM overhead={removedResourceBytes} bytes (metadata savings excluded).");
+                    string measurements = Path.GetFullPath(".test-results/inflation-v2");
+                    Directory.CreateDirectory(measurements);
+                    File.WriteAllText(Path.Combine(measurements, "payload-measurement.json"), $"{{\"preparedBytes\":{preparedBytes},\"removedResourceBytes\":{removedResourceBytes},\"metadataSavingsIncluded\":false}}");
+                    File.Delete(Path.Combine(temp.Path, "patient.gii"));
+                    File.Delete(Path.Combine(temp.Path, "nonuniform.trm"));
+                }
+
+                await view.ApplyAsync(captured, questArchive, token);
+                Assert.That(view.Scene.MeshManager.SelectedMesh.HasInflatedRepresentation, Is.EqualTo(!coldInflation), "Cold inflation must work without a prepared result in the delivery.");
+                if (desktopOnlyCache)
+                    await desktopScene.MeshManager.SelectedMesh.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options), cancellationToken: token);
                 var digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                 var receipt = new DeliveryReceipt(digest, DeliveryStatus.Published);
                 var sent = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
@@ -297,16 +358,212 @@ namespace HBP.Tests.SceneTransfer
                 await desktopScene.PrepareRenderingAsync(token);
                 await view.Scene.PrepareRenderingAsync(token);
                 AssertM2AutomaticCuts(desktopScene, view.Scene, lastSites[0].transform.localPosition);
-                foreach (SurfaceRepresentation representation in new[] { SurfaceRepresentation.Inflated, SurfaceRepresentation.Anatomical })
+                if (coldInflation && !desktopOnlyCache && !nativeSingle)
                 {
-                    await desktopScene.SetSurfaceRepresentationAsync(representation, cancellationToken: token, animate: false);
+                    using var cancelled = new CancellationTokenSource();
+                    Task request = desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: cancelled.Token, animate: false).AsTask();
+                    await UniTask.NextFrame();
+                    cancelled.Cancel();
+                    bool wasCancelled = false;
+                    try
+                    {
+                        await request;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        wasCancelled = true;
+                    }
+
+                    Assert.That(wasCancelled, Is.True);
+                    await UniTask.WaitUntil(() => !desktopScene.IsSurfaceRepresentationPreparing && !view.Scene.IsSurfaceRepresentationPreparing, cancellationToken: token);
+                    Assert.That(desktopScene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                    Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                }
+
+                if (mutatedHemisphere.HasValue)
+                {
+                    GameObject dialogPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab");
+                    Type dialogType = dialogPrefab.GetComponents<Component>().First(component => component.GetType().FullName == "HBP.UI.Tools.DialogBoxManager").GetType();
+                    var dialogManager = (Component)Object.FindFirstObjectByType(dialogType);
+                    if (dialogManager == null)
+                    {
+                        ownedDialogManager = Object.Instantiate(dialogPrefab);
+                        dialogManager = ownedDialogManager.GetComponent(dialogType);
+                    }
+
+                    var errorCanvas = (Canvas)dialogType.GetField("m_Canvas", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(dialogManager);
+                    var coordinator = (V2SurfaceInflationCoordinator)desktopType.GetField("m_SurfaceInflation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopSession);
+                    var originalHandler = coordinator.PreparationHandler;
+                    var hemispheres = (LeftRightMesh3D)desktopScene.MeshManager.SelectedMesh;
+                    Core.DLL.Surface surface = mutatedHemisphere == MeshPart.Left ? hemispheres.Left : hemispheres.Right;
+                    long bothVersion = hemispheres.Both.GeometryVersion;
+                    coordinator.PreparationHandler = async (prepare, stop) =>
+                    {
+                        await prepare(stop);
+                        // Leave the geometry intact while invalidating this hemisphere's version.
+                        // Both does not change: its guard alone cannot detect this mutation.
+                        surface.FlipTriangles();
+                        surface.FlipTriangles();
+                    };
+                    bool peerFailureLogged = false;
+
+                    void ObservePeerFailure(string message, string stackTrace, LogType type)
+                    {
+                        if (type == LogType.Error && message.StartsWith("System.InvalidOperationException: The other device could not prepare the inflated surface", StringComparison.Ordinal)) peerFailureLogged = true;
+                    }
+
+                    Application.logMessageReceived += ObservePeerFailure;
+                    try
+                    {
+                        UnityEngine.TestTools.LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("System.InvalidOperationException: The other device could not prepare the inflated surface"));
+                        InvalidOperationException failure = null;
+                        try
+                        {
+                            await desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: false);
+                        }
+                        catch (InvalidOperationException caught)
+                        {
+                            failure = caught;
+                        }
+
+                        Assert.That(failure, Is.Not.Null, "A changed hemisphere must fail without publishing a representation.");
+                        Assert.That(failure.Message, Does.Contain("anatomical geometry changed"));
+                        Assert.That(hemispheres.Both.GeometryVersion, Is.EqualTo(bothVersion));
+                        await UniTask.WaitUntil(() => !desktopScene.IsSurfaceRepresentationPreparing && !view.Scene.IsSurfaceRepresentationPreparing, cancellationToken: token);
+                        Assert.That(desktopScene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                        Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                        await UniTask.WaitUntil(() => peerFailureLogged, cancellationToken: token);
+                        await UniTask.WaitUntil(() => errorCanvas.GetComponentsInChildren<UnityEngine.UI.Button>().Length > 0, cancellationToken: token);
+                        errorCanvas.GetComponentsInChildren<UnityEngine.UI.Button>().Single().onClick.Invoke();
+                        await UniTask.NextFrame();
+                    }
+                    finally
+                    {
+                        Application.logMessageReceived -= ObservePeerFailure;
+                        coordinator.PreparationHandler = originalHandler;
+                    }
+                }
+
+                Mesh3DInflatedRepresentation desktopCache = null, questCache = null;
+                foreach (SurfaceRepresentation representation in new[] { SurfaceRepresentation.Inflated, SurfaceRepresentation.Anatomical, SurfaceRepresentation.Inflated, SurfaceRepresentation.Anatomical })
+                {
+                    if (coldInflation && !desktopOnlyCache && !nativeSingle && desktopCache == null)
+                    {
+                        // Exercise the authored toolbar's real Toggle listener, including delayed loading.
+                        Type toolType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.UI.Toolbar.SurfaceRepresentationToggle")).First(type => type != null);
+                        GameObject toolObject = new("Inflation toolbar test host");
+                        toolObject.transform.SetParent(scope.Root.transform);
+                        toolObject.SetActive(false);
+                        // Loading this existing prefab triggers its unrelated Editor OnValidate colormap defect.
+                        UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("UnassignedReferenceException: The variable m_ColorMap of InformationsWrapper has not been assigned"));
+                        GameObject menu = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/3D Menu.prefab"), toolObject.transform);
+                        try
+                        {
+                            Component tool = menu.GetComponentsInChildren<Component>(true).First(component => component != null && component.GetType() == toolType);
+                            toolType.GetProperty("SelectedScene").SetValue(tool, desktopScene);
+                            toolType.GetMethod("Initialize").Invoke(tool, null);
+                            var toggle = (UnityEngine.UI.Toggle)toolType.GetField("m_Toggle", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(tool);
+                            toggle.SetIsOnWithoutNotify(false);
+                            toggle.isOn = true;
+                            await UniTask.WaitUntil(() => desktopScene.IsSurfaceRepresentationTransitioning && view.Scene.IsSurfaceRepresentationTransitioning, cancellationToken: token);
+                            Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical), "Animation must not publish intermediate scientific state.");
+                            await UniTask.WaitUntil(() => desktopScene.MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated && !desktopScene.IsSurfaceRepresentationPreparing, cancellationToken: token);
+                        }
+                        finally
+                        {
+                            Object.Destroy(toolObject);
+                        }
+                    }
+                    else
+                    {
+                        SurfaceRepresentation previous = desktopScene.MeshManager.SelectedMesh.Representation;
+                        Task animated = desktopScene.SetSurfaceRepresentationAsync(representation, cancellationToken: token, animate: true).AsTask();
+                        await UniTask.WaitUntil(() => desktopScene.IsSurfaceRepresentationTransitioning && view.Scene.IsSurfaceRepresentationTransitioning, cancellationToken: token);
+                        Assert.That(desktopScene.MeshManager.SelectedMesh.Representation, Is.EqualTo(previous));
+                        Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(previous));
+                        await animated;
+                    }
+
                     await UniTask.WaitUntil(() => view.Scene.MeshManager.SelectedMesh.Representation == representation, cancellationToken: token);
                     await view.Scene.PrepareRenderingAsync(token);
                     Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.vertices), "The displayed meshes must follow the accepted representation.");
+                    if (representation == SurfaceRepresentation.Inflated)
+                    {
+                        var expectedInflated = desktopScene.MeshManager.SelectedMesh.ActiveInflatedRepresentation;
+                        var actualInflated = view.Scene.MeshManager.SelectedMesh.ActiveInflatedRepresentation;
+                        AssertPreparedSurface(expectedInflated.Both, actualInflated.Both, "inflated both");
+                        Assert.That(actualInflated.Both.VisibilityMask, Is.EqualTo(expectedInflated.Both.VisibilityMask));
+                        if (expectedInflated.Left != null)
+                        {
+                            AssertPreparedSurface(expectedInflated.Left, actualInflated.Left, "inflated left");
+                            AssertPreparedSurface(expectedInflated.Right, actualInflated.Right, "inflated right");
+                            Assert.That(actualInflated.Left.VisibilityMask, Is.EqualTo(expectedInflated.Left.VisibilityMask));
+                            Assert.That(actualInflated.Right.VisibilityMask, Is.EqualTo(expectedInflated.Right.VisibilityMask));
+                        }
+                    }
+
                     Assert.That(view.Scene.MeshManager.ReferenceSurface.VisibilityMask, Is.EqualTo(mask));
                     Assert.That(view.Columns[0].transform.localPosition, Is.EqualTo(localPlacement));
+                    Assert.That(desktopScene.IsSurfaceRepresentationPreparing, Is.False);
+                    await UniTask.WaitUntil(() => !view.Scene.IsSurfaceRepresentationPreparing, cancellationToken: token);
+                    if (desktopCache == null)
+                    {
+                        desktopCache = desktopScene.MeshManager.SelectedMesh.ActiveInflatedRepresentation;
+                        questCache = view.Scene.MeshManager.SelectedMesh.ActiveInflatedRepresentation;
+                    }
+                    else
+                    {
+                        Assert.That(desktopScene.MeshManager.SelectedMesh.ActiveInflatedRepresentation, Is.SameAs(desktopCache), "A repeated switch must reuse the Desktop cache.");
+                        Assert.That(view.Scene.MeshManager.SelectedMesh.ActiveInflatedRepresentation, Is.SameAs(questCache), "A repeated switch must reuse the Quest cache.");
+                    }
                 }
 
+                using (var cancelledAnimation = new CancellationTokenSource())
+                {
+                    Task animated = desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: cancelledAnimation.Token, animate: true).AsTask();
+                    await UniTask.WaitUntil(() => desktopScene.IsSurfaceRepresentationTransitioning && view.Scene.IsSurfaceRepresentationTransitioning, cancellationToken: token);
+                    cancelledAnimation.Cancel();
+                    bool cancelled = false;
+                    try
+                    {
+                        await animated;
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        cancelled = true;
+                    }
+
+                    Assert.That(cancelled, Is.True);
+                    await UniTask.WaitUntil(() => !desktopScene.IsSurfaceRepresentationPreparing && !view.Scene.IsSurfaceRepresentationPreparing, cancellationToken: token);
+                    Assert.That(desktopScene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                    Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Anatomical));
+                    Assert.That(view.Scene.IsSurfaceRepresentationTransitioning, Is.False);
+                    Assert.That(view.Scene.MeshManager.ReferenceSurface.VisibilityMask, Is.EqualTo(mask), "Cancelled animation must preserve erased triangles.");
+                }
+
+                if (desktopScene.MeshManager.SelectedMesh.SupportsHemispheres)
+                {
+                    // A same-frame hemisphere change must rebuild topology before the cached animation.
+                    desktopScene.MeshManager.SelectMeshPart(MeshPart.Left);
+                    await desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: true);
+                    await view.Scene.PrepareRenderingAsync(token);
+                    Assert.That(view.Scene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Left));
+                    Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.triangles, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.triangles));
+                    desktopScene.MeshManager.SelectMeshPart(MeshPart.Right);
+                    await desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: true);
+                    Assert.That(view.Scene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Right));
+                    desktopScene.MeshManager.SelectMeshPart(MeshPart.Both);
+                    await desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: true);
+                    await desktopScene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: true);
+                }
+
+                // A Quest-origin request follows the same coordinator, without a scene resend.
+                await view.Scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: true);
+                Assert.That(desktopScene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Inflated));
+                Assert.That(view.Scene.MeshManager.SelectedMesh.Representation, Is.EqualTo(SurfaceRepresentation.Inflated));
+                await view.Scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: true);
+                desktopScene.Columns[0].Sites[0].State.IsHighlighted = true;
+                await UniTask.WaitUntil(() => view.Scene.Columns[0].Sites[0].State.IsHighlighted, cancellationToken: token);
                 Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(desktopSession), Is.True);
                 if (physicalQuest)
                 {
@@ -333,7 +590,8 @@ namespace HBP.Tests.SceneTransfer
                     }
 
                     desktopRun = questRun = null;
-                    await VerifyM2PhysicalQuestAsync(desktopScene, source.Globals, temp.Path, token);
+                    if (physicalInflationOnly) desktopScene.MeshManager.SelectedMesh.ClearInflatedRepresentations();
+                    await VerifyM2PhysicalQuestAsync(desktopScene, source.Globals, temp.Path, token, physicalInflationOnly);
                 }
             }
             finally
@@ -365,6 +623,7 @@ namespace HBP.Tests.SceneTransfer
                 if (desktop != null) await desktop.CloseAsync();
                 if (localDesktop != null) await localDesktop.CleanAsync();
                 Object.Destroy(view.gameObject);
+                if (ownedDialogManager != null) Object.Destroy(ownedDialogManager);
             }
         }
 
@@ -388,7 +647,7 @@ namespace HBP.Tests.SceneTransfer
             return (device, credential);
         }
 
-        private static async Task VerifyM2PhysicalQuestAsync(Base3DScene scene, PairingContext globals, string directory, CancellationToken token)
+        private static async Task VerifyM2PhysicalQuestAsync(Base3DScene scene, PairingContext globals, string directory, CancellationToken token, bool inflationOnly = false)
         {
             var pairing = await GetM2PhysicalPairingAsync(directory, token);
             QuestDevice device = pairing.Device;
@@ -415,38 +674,52 @@ namespace HBP.Tests.SceneTransfer
             Assert.That(receipt.Status, Is.EqualTo(DeliveryStatus.Published));
             await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(session, new object[] { PreparedSceneDeliveryBinding.FromSent(delivery, receipt), device.Host, device.Pin, credential, token });
             await UniTask.SwitchToMainThread();
-            var changes = scene.Columns.SelectMany(column => column.Sites.Where(site => !site.State.IsMasked).Take(300).Select(site => new SiteConfigurationChange(column, site.Information.FullID, site.State, new SiteConfiguration(false, true, Color.magenta, new[] { "m2", "usb" })))).ToArray();
-            scene.ApplySiteConfigurationBatch(changes);
-            scene.Columns[0].Sites.First(site => !site.State.IsMasked).State.Color = Color.cyan;
-            foreach (Column3D column in scene.Columns)
+            var changes = Array.Empty<SiteConfigurationChange>();
+            if (!inflationOnly)
             {
-                for (int i = 0; i < 100; i++) column.ActivityAlpha = i / 99f;
-                column.ActivityAlpha = 0.65f;
-                if (column.NavigationTimeline is { Length: > 1 } timeline)
+                changes = scene.Columns.SelectMany(column => column.Sites.Where(site => !site.State.IsMasked).Take(300).Select(site => new SiteConfigurationChange(column, site.Information.FullID, site.State, new SiteConfiguration(false, true, Color.magenta, new[] { "m2", "usb" })))).ToArray();
+                scene.ApplySiteConfigurationBatch(changes);
+                scene.Columns[0].Sites.First(site => !site.State.IsMasked).State.Color = Color.cyan;
+                foreach (Column3D column in scene.Columns)
                 {
-                    timeline.IsPlaying = false;
-                    for (int i = 0; i < 100; i++) scene.SetTimelineIndex(column, i * (timeline.Length - 1) / 99);
-                    scene.SetTimelineIndex(column, timeline.Length / 3);
-                    timeline.IsPlaying = true;
-                    timeline.IsPlaying = false;
+                    for (int i = 0; i < 100; i++) column.ActivityAlpha = i / 99f;
+                    column.ActivityAlpha = 0.65f;
+                    if (column.NavigationTimeline is { Length: > 1 } timeline)
+                    {
+                        timeline.IsPlaying = false;
+                        for (int i = 0; i < 100; i++) scene.SetTimelineIndex(column, i * (timeline.Length - 1) / 99);
+                        scene.SetTimelineIndex(column, timeline.Length / 3);
+                        timeline.IsPlaying = true;
+                        timeline.IsPlaying = false;
+                    }
+                }
+
+                foreach (Column3D column in scene.Columns)
+                foreach (var site in column.Sites.Where(site => !site.State.IsMasked).Take(5))
+                {
+                    scene.SelectSite(column, site);
+                    await UniTask.NextFrame(cancellationToken: token);
                 }
             }
 
-            foreach (Column3D column in scene.Columns)
-            foreach (var site in column.Sites.Where(site => !site.State.IsMasked).Take(5))
+            if (inflationOnly) Assert.That(scene.MeshManager.SelectedMesh.HasInflatedRepresentation, Is.False, "Physical delivery must not already contain inflated.");
+            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: inflationOnly);
+            await UniTask.Delay(inflationOnly ? 8000 : 2000, cancellationToken: token);
+            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: inflationOnly);
+            await UniTask.Delay(inflationOnly ? 8000 : 2000, cancellationToken: token);
+            if (inflationOnly)
             {
-                scene.SelectSite(column, site);
-                await UniTask.NextFrame(cancellationToken: token);
+                Mesh3DInflatedRepresentation cached = scene.MeshManager.SelectedMesh.ActiveInflatedRepresentation;
+                await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: true);
+                Assert.That(scene.MeshManager.SelectedMesh.ActiveInflatedRepresentation, Is.SameAs(cached));
+                await UniTask.Delay(8000, cancellationToken: token);
+                await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: true);
             }
 
-            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Inflated, cancellationToken: token, animate: false);
-            await UniTask.Delay(2000, cancellationToken: token);
-            await scene.SetSurfaceRepresentationAsync(SurfaceRepresentation.Anatomical, cancellationToken: token, animate: false);
-            await UniTask.Delay(2000, cancellationToken: token);
             Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(session), Is.True);
             Assert.That(await QuestPairing.PingAsync(device.Host, device.Pin, credential, token), Is.True);
             string evidence = Path.GetFullPath(".test-results/m2-fixes/physical-desktop.json");
-            File.WriteAllText(evidence, Newtonsoft.Json.JsonConvert.SerializeObject(new { scene = scene.Visualization.Name, columns = scene.Columns.Count, changedSites = changes.Length, receipt = receipt.Status.ToString(), live = true, utc = DateTime.UtcNow, note = "Transport/publishing smoke only; visible parity needs headset observation." }, Newtonsoft.Json.Formatting.Indented));
+            File.WriteAllText(evidence, Newtonsoft.Json.JsonConvert.SerializeObject(new { scene = scene.Visualization.Name, columns = scene.Columns.Count, changedSites = changes.Length, receipt = receipt.Status.ToString(), live = true, utc = DateTime.UtcNow, inflationOnly, note = "Transport/publishing and coordinated representation ACK; visible parity needs headset observation." }, Newtonsoft.Json.Formatting.Indented));
             TestContext.WriteLine("M2 Quest USB published; batch, later color, alpha/seek bursts, selection and anatomical/inflated sent; session remains live. Visible parity requires observation.");
             Array.Clear(credential, 0, credential.Length);
         }
@@ -961,6 +1234,8 @@ namespace HBP.Tests.SceneTransfer
             Assert.That(right.Data.Vertices, Is.EqualTo(left.Data.Vertices), variant + " vertices");
             Assert.That(right.Data.Triangles, Is.EqualTo(left.Data.Triangles), variant + " triangles");
             Assert.That(right.Data.Normals, Is.EqualTo(left.Data.Normals), variant + " normals");
+            Assert.That(right.Data.UV, Is.EqualTo(left.Data.UV), variant + " UV");
+            Assert.That(right.Data.Colors, Is.EqualTo(left.Data.Colors), variant + " colors");
             Assert.That(right.Atlas, Is.EqualTo(left.Atlas), variant + " atlas capability");
         }
 

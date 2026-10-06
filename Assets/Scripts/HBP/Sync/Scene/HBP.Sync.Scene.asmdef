@@ -5,7 +5,8 @@
         "HBP.Data.Runtime",
         "HBP.Core.Runtime",
         "HBP.Transfer.Scene",
-        "HBP.Transfer.Transport"
+        "HBP.Transfer.Transport",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

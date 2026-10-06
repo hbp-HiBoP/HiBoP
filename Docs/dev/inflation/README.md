@@ -221,13 +221,13 @@ Une interpolation linéaire sommet par sommet est suffisante pour une animation 
 
 ### Cache
 
-Le cache devrait être indexé par une clé comprenant :
+Le cache en mémoire de HiBoP est indexé par une clé comprenant :
 
-- un hash des positions et des triangles de la surface source ;
+- les handles et `GeometryVersion` des surfaces anatomiques utilisées ;
 - l'identifiant et la version de l'algorithme ;
 - les paramètres d'inflation ;
 - la politique de frontière ;
-- éventuellement la précision numérique et la plateforme si les résultats ne sont pas strictement déterministes.
+- tous les autres paramètres numériques du calcul.
 
 Le cache applicatif est préférable à une écriture automatique à côté des données utilisateur. Une exportation explicite en `.surf.gii` peut être proposée séparément.
 
@@ -292,18 +292,20 @@ Le contrat proposé est :
 
 ### Ordre des opérations
 
-Ordre recommandé :
+Contrat utilisé par HiBoP depuis la version de calcul 2 :
 
 1. Charger les coordonnées natives et la topologie.
-2. Valider le maillage.
+2. Appliquer la transformation `.trm` et l'orientation attendue au chargement de l'anatomique.
 3. Séparer les composantes ou hémisphères.
-4. Calculer l'inflation dans le repère natif.
+4. Valider le maillage et calculer l'inflation depuis cette anatomique en mémoire.
 5. Recalculer les normales.
-6. Appliquer à l'anatomique et à l'inflated la même transformation vers le repère HiBoP.
+6. Conserver le repère de l'anatomique, sans nouvelle transformation ni inversion des triangles.
 7. Fusionner les hémisphères si nécessaire.
 8. Générer séparément les versions simplifiées.
 
-Il est préférable d'inflater avant une transformation affine anisotrope, qui modifierait les distances et donc le comportement de l'algorithme. Une transformation rigide ne pose pas ce problème.
+Une transformation affine anisotrope modifie les distances et donc le résultat de l'inflation. Cette différence avec l'ancien calcul dans le repère natif est acceptée pour utiliser le même chemin Desktop/Quest sans relire le GIFTI ni envoyer des fichiers supplémentaires. MNI, patients et surfaces générées depuis l'IRM utilisent `CurrentSurfaceCoordinates`. Les transformations d'affichage et le placement local Quest restent extérieurs au calcul.
+
+`Surface.InflateAsync` conserve le snapshot temporaire du job natif ; aucune copie permanente des positions natives n'est conservée. Les résultats préparés `NativeGifti` ou `NativeGiftiThenTransformed` sont rejetés avec demande de nouvelle préparation/livraison. Leurs valeurs d'enum historiques restent reconnues. Le conteneur reste en version 4 ; Desktop et Quest doivent être déployés ensemble avec la version de calcul 2.
 
 ### Chargement paresseux
 

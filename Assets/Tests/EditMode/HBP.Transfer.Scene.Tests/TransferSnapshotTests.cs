@@ -15,13 +15,13 @@ namespace HBP.Tests.Transfer
 {
     public sealed class TransferSnapshotTests
     {
-        [Test]
-        public async Task PreparedMniMeshGeometrySurvivesSurfaceArchiveRestoration()
+        [TestCase(false), TestCase(true)]
+        public async Task PreparedMniMeshGeometrySurvivesSurfaceArchiveRestorationAndInflatesFromAnatomy(bool whiteMatter)
         {
             await Object3DManager.MNI.Load();
             await UniTask.SwitchToMainThread();
             if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
-            var source = Object3DManager.MNI.GreyMatter;
+            var source = whiteMatter ? Object3DManager.MNI.WhiteMatter : Object3DManager.MNI.GreyMatter;
             using var archive = new SceneArchive(Path.Combine(Path.GetTempPath(), "hibop-mni-geometry-" + Guid.NewGuid().ToString("N")));
 
             Surface Restore(Surface surface) => archive.ReadSurface(archive.AddSurface(surface));
@@ -35,6 +35,21 @@ namespace HBP.Tests.Transfer
                 AssertSameGeometry(source.Right, halves.Right, "right");
                 AssertSameGeometry(source.SimplifiedLeft, halves.SimplifiedLeft, "simplified left");
                 AssertSameGeometry(source.SimplifiedRight, halves.SimplifiedRight, "simplified right");
+                long leftVersion = source.Left.GeometryVersion, rightVersion = source.Right.GeometryVersion, bothVersion = source.Both.GeometryVersion;
+                var options = SurfaceInflationOptions.Inflated;
+                options.IterationCount = 4;
+                var result = await restored.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options));
+                var expectedLeft = await source.Left.InflateAsync(options);
+                var expectedRight = await source.Right.InflateAsync(options);
+                using (expectedLeft.Surface) AssertSameGeometry(expectedLeft.Surface, result.Left, "inflated left");
+                using (expectedRight.Surface) AssertSameGeometry(expectedRight.Surface, result.Right, "inflated right");
+                Assert.That(result.CoordinateSpace, Is.EqualTo(SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates));
+                Assert.That(source.Left.GeometryVersion, Is.EqualTo(leftVersion));
+                Assert.That(source.Right.GeometryVersion, Is.EqualTo(rightVersion));
+                Assert.That(source.Both.GeometryVersion, Is.EqualTo(bothVersion));
+                AssertSameGeometry(source.Both, restored.Both, "unchanged anatomical both");
+                AssertSameGeometry(source.Left, halves.Left, "unchanged anatomical left");
+                AssertSameGeometry(source.Right, halves.Right, "unchanged anatomical right");
             }
             finally
             {
@@ -59,6 +74,27 @@ namespace HBP.Tests.Transfer
             var surface = new Surface();
             surface.SetBuffers(new[] { new Vector3(1, 2, 3), new Vector3(4, 5, 6), new Vector3(7, 8, 10) }, new[] { 0, 1, 2 }, new[] { Vector3.up, Vector3.up, Vector3.up }, new[] { Vector2.zero, Vector2.one, Vector2.up }, new[] { Color.red, Color.green, Color.blue });
             return surface;
+        }
+
+        [Test]
+        public void DerivedAttributeRefresh_InvalidatesSerializedColorsAndUvsWithoutChangingGeometry()
+        {
+            using Surface source = Triangle();
+            using Surface derived = (Surface)source.Clone();
+            var before = new SurfaceCapture(derived);
+            Vector3[] sourcePositions = before.Data.Vertices.Select(vertex => vertex + Vector3.one).ToArray();
+            Vector2[] changedUvs = { Vector2.one * 2, Vector2.one * 3, Vector2.one * 4 };
+            Color[] changedColors = { Color.cyan, Color.magenta, Color.yellow };
+            source.SetBuffers(sourcePositions, new[] { 0, 1, 2 }, uv: changedUvs, colors: changedColors);
+            source.UpdateVisibilityMask(new[] { 0 }).Dispose();
+            derived.CopyAnatomicalAttributesFrom(source);
+            var after = new SurfaceCapture(derived);
+            Assert.That(after.Data, Is.Not.SameAs(before.Data), "The serializer must not return the old attribute buffers.");
+            Assert.That(after.Data.Vertices, Is.EqualTo(before.Data.Vertices), "Refreshing attributes must preserve inflated coordinates.");
+            Assert.That(after.Data.UV, Is.EqualTo(changedUvs));
+            Assert.That(after.Data.Colors, Is.EqualTo(changedColors));
+            Assert.That(after.Mask, Is.EqualTo(new[] { 0 }));
+            Assert.That(before.Mask, Is.EqualTo(new[] { 1 }));
         }
 
         [Test]

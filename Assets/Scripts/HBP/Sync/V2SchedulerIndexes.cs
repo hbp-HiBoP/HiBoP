@@ -393,7 +393,8 @@ namespace HBP.Sync
     {
         Filter = 1,
         Correlation = 2,
-        ActivityProjection = 3
+        ActivityProjection = 3,
+        SurfaceInflation = 4
     }
 
     public sealed class V2JobIdentity : IEquatable<V2JobIdentity>
@@ -553,7 +554,7 @@ namespace HBP.Sync
 
         private static void ValidateJobType(V2JobType jobType)
         {
-            if (jobType != V2JobType.Filter && jobType != V2JobType.Correlation && jobType != V2JobType.ActivityProjection)
+            if (jobType != V2JobType.Filter && jobType != V2JobType.Correlation && jobType != V2JobType.ActivityProjection && jobType != V2JobType.SurfaceInflation)
                 throw new ArgumentOutOfRangeException(nameof(jobType));
         }
 

@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using HBP.Core.Enums;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HBP.Core.DLL;
@@ -30,7 +29,7 @@ namespace HBP.Core.Object3D
 
     public readonly struct Mesh3DInflationSettings
     {
-        public const int AlgorithmVersion = 1;
+        public const int AlgorithmVersion = 2;
 
         public SurfaceInflationPreset Preset { get; }
         public SurfaceInflationOptions Options { get; }
@@ -307,6 +306,9 @@ namespace HBP.Core.Object3D
         /// <summary>Takes ownership of prepared anatomical and optional inflated surfaces.</summary>
         public static Mesh3D FromPrepared(string name, MeshType type, DLL.Surface both, DLL.Surface simplifiedBoth, DLL.Surface left, DLL.Surface right, DLL.Surface simplifiedLeft, DLL.Surface simplifiedRight, DLL.Surface inflatedBoth, DLL.Surface inflatedSimplifiedBoth, DLL.Surface inflatedLeft, DLL.Surface inflatedRight, DLL.Surface inflatedSimplifiedLeft, DLL.Surface inflatedSimplifiedRight, MRI3D sourceMRI = null, DLL.PreviewSurfaceReport generationReport = default, Mesh3DInflationSettings? inflationSettings = null, SurfaceInflationCoordinateSpace coordinateSpace = SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates)
         {
+            if (inflatedBoth != null && coordinateSpace != SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates)
+                throw new InvalidOperationException("Prepared inflation uses an obsolete coordinate space. Prepare and send the visualization again.");
+
             // Prepared topology is transferred exactly: erasure masks index these triangles.
             Mesh3D mesh = sourceMRI != null ? new RuntimeSingleMesh3D(sourceMRI, both, generationReport, simplifiedBoth) : left != null ? new LeftRightMesh3D(name, type, both, simplifiedBoth, left, right, simplifiedLeft, simplifiedRight) : new SingleMesh3D { Name = name, Type = type, Both = both, SimplifiedBoth = simplifiedBoth };
             mesh.Name = name;
@@ -508,6 +510,17 @@ namespace HBP.Core.Object3D
             if (representation == SurfaceRepresentation.Inflated && !TryGetActiveInflatedRepresentation(out _))
                 throw new InvalidOperationException("An inflated representation must be generated before it can be selected.");
 
+            if (representation == SurfaceRepresentation.Inflated)
+            {
+                Mesh3DInflatedRepresentation inflated = ActiveInflatedRepresentation;
+                inflated.Both.CopyAnatomicalAttributesFrom(m_Both);
+                if (SupportsHemispheres)
+                {
+                    inflated.Left.CopyAnatomicalAttributesFrom(GetAnatomicalSurface(MeshPart.Left, false));
+                    inflated.Right.CopyAnatomicalAttributesFrom(GetAnatomicalSurface(MeshPart.Right, false));
+                }
+            }
+
             Representation = representation;
         }
 
@@ -615,14 +628,6 @@ namespace HBP.Core.Object3D
             return string.Join(":", surface.getHandle().Handle.ToInt64().ToString(CultureInfo.InvariantCulture), surface.GeometryVersion.ToString(CultureInfo.InvariantCulture), surface.NumberOfVertices.ToString(CultureInfo.InvariantCulture), surface.NumberOfTriangles.ToString(CultureInfo.InvariantCulture));
         }
 
-        protected static string CreateFileIdentity(string path)
-        {
-            if (string.IsNullOrWhiteSpace(path)) return "none";
-            string fullPath = Path.GetFullPath(path);
-            FileInfo file = new(fullPath);
-            return file.Exists ? string.Join("|", fullPath, file.Length.ToString(CultureInfo.InvariantCulture), file.LastWriteTimeUtc.Ticks.ToString(CultureInfo.InvariantCulture)) : fullPath;
-        }
-
         protected static IProgress<float> ScaleProgress(IProgress<float> progress, float offset, float scale)
         {
             return progress == null ? null : new ScaledProgress(progress, offset, scale);
@@ -685,10 +690,6 @@ namespace HBP.Core.Object3D
     /// </summary>
     public class SingleMesh3D : Mesh3D
     {
-        private string m_LoadedGiftiPath;
-        private string m_LoadedTransformationPath;
-        private string m_LoadedMarsAtlasPath;
-
         #region Constructors
 
         public SingleMesh3D(Data.SingleMesh mesh, MeshType type, bool load) : base(mesh, type, load)
@@ -728,9 +729,6 @@ namespace HBP.Core.Object3D
                     ClearInflatedRepresentations();
                     m_Both = loadedBoth;
                     m_SimplifiedBoth = loadedSimplifiedBoth;
-                    m_LoadedGiftiPath = mesh.Path;
-                    m_LoadedTransformationPath = mesh.Transformation;
-                    m_LoadedMarsAtlasPath = mesh.MarsAtlasPath;
                     loadedBoth = null;
                     loadedSimplifiedBoth = null;
                     DisposeSurfaces(previousBoth, previousSimplifiedBoth);
@@ -752,40 +750,9 @@ namespace HBP.Core.Object3D
                 Both = Both,
                 SimplifiedBoth = SimplifiedBoth,
                 m_Mesh = m_Mesh,
-                m_LoadedGiftiPath = m_LoadedGiftiPath,
-                m_LoadedTransformationPath = m_LoadedTransformationPath,
-                m_LoadedMarsAtlasPath = m_LoadedMarsAtlasPath,
                 HasBeenLoadedOutside = HasBeenLoadedOutside
             };
             return mesh;
-        }
-
-        protected override async UniTask<Mesh3DInflatedRepresentation> CreateInflatedRepresentationAsync(SurfaceInflationCacheKey cacheKey, SurfaceInflationOptions options, IProgress<float> progress, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(m_LoadedGiftiPath))
-                return await base.CreateInflatedRepresentationAsync(cacheKey, options, progress, cancellationToken);
-
-            SurfaceInflationResult result = await DLL.Surface.InflateGIIFileAsync(m_LoadedGiftiPath, m_LoadedTransformationPath, options, progress, cancellationToken);
-            try
-            {
-                result.Surface.FlipTriangles();
-                result.Surface.ComputeNormals();
-                if (m_Both.IsMarsAtlasLoaded && Object3DManager.MarsAtlas.Loaded)
-                    result.Surface.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, m_LoadedMarsAtlasPath);
-                return CreateSingleInflatedRepresentation(cacheKey, result);
-            }
-            catch
-            {
-                result.Surface.Dispose();
-                throw;
-            }
-        }
-
-        protected override string CreateSourceGeometryIdentity()
-        {
-            if (string.IsNullOrWhiteSpace(m_LoadedGiftiPath))
-                return base.CreateSourceGeometryIdentity();
-            return string.Join(";", CreateFileIdentity(m_LoadedGiftiPath), CreateFileIdentity(m_LoadedTransformationPath));
         }
 
         #endregion
@@ -933,12 +900,6 @@ namespace HBP.Core.Object3D
     /// </summary>
     public class LeftRightMesh3D : Mesh3D
     {
-        private string m_LoadedLeftGiftiPath;
-        private string m_LoadedRightGiftiPath;
-        private string m_LoadedTransformationPath;
-        private string m_LoadedLeftMarsAtlasPath;
-        private string m_LoadedRightMarsAtlasPath;
-
         #region Properties
 
         protected DLL.Surface m_Left;
@@ -1095,11 +1056,6 @@ namespace HBP.Core.Object3D
                 m_SimplifiedLeft = loadedSimplifiedLeft;
                 m_SimplifiedRight = loadedSimplifiedRight;
                 m_SimplifiedBoth = loadedSimplifiedBoth;
-                m_LoadedLeftGiftiPath = mesh.LeftHemisphere;
-                m_LoadedRightGiftiPath = mesh.RightHemisphere;
-                m_LoadedTransformationPath = mesh.Transformation;
-                m_LoadedLeftMarsAtlasPath = mesh.LeftMarsAtlasHemisphere;
-                m_LoadedRightMarsAtlasPath = mesh.RightMarsAtlasHemisphere;
                 loadedLeft = null;
                 loadedRight = null;
                 loadedBoth = null;
@@ -1144,11 +1100,6 @@ namespace HBP.Core.Object3D
                 SimplifiedLeft = SimplifiedLeft,
                 SimplifiedRight = SimplifiedRight,
                 m_Mesh = m_Mesh,
-                m_LoadedLeftGiftiPath = m_LoadedLeftGiftiPath,
-                m_LoadedRightGiftiPath = m_LoadedRightGiftiPath,
-                m_LoadedTransformationPath = m_LoadedTransformationPath,
-                m_LoadedLeftMarsAtlasPath = m_LoadedLeftMarsAtlasPath,
-                m_LoadedRightMarsAtlasPath = m_LoadedRightMarsAtlasPath,
                 HasBeenLoadedOutside = HasBeenLoadedOutside
             };
             return mesh;
@@ -1164,8 +1115,8 @@ namespace HBP.Core.Object3D
             DLL.Surface simplifiedBoth = null;
             try
             {
-                leftResult = await InflateHemisphereAsync(m_Left, m_LoadedLeftGiftiPath, m_LoadedTransformationPath, m_LoadedLeftMarsAtlasPath, options, ScaleProgress(progress, 0.0f, 0.5f), cancellationToken);
-                rightResult = await InflateHemisphereAsync(m_Right, m_LoadedRightGiftiPath, m_LoadedTransformationPath, m_LoadedRightMarsAtlasPath, options, ScaleProgress(progress, 0.5f, 0.5f), cancellationToken);
+                leftResult = await m_Left.InflateAsync(options, ScaleProgress(progress, 0.0f, 0.5f), cancellationToken);
+                rightResult = await m_Right.InflateAsync(options, ScaleProgress(progress, 0.5f, 0.5f), cancellationToken);
 
                 both = (DLL.Surface)leftResult.Surface.Clone();
                 both.Append(rightResult.Surface);
@@ -1219,33 +1170,7 @@ namespace HBP.Core.Object3D
 
         protected override string CreateSourceGeometryIdentity()
         {
-            if (!string.IsNullOrWhiteSpace(m_LoadedLeftGiftiPath) && !string.IsNullOrWhiteSpace(m_LoadedRightGiftiPath))
-            {
-                return string.Join(";", CreateFileIdentity(m_LoadedLeftGiftiPath), CreateFileIdentity(m_LoadedRightGiftiPath), CreateFileIdentity(m_LoadedTransformationPath));
-            }
-
             return string.Join(";", CreateSurfaceIdentity(m_Left), CreateSurfaceIdentity(m_Right));
-        }
-
-        private async UniTask<SurfaceInflationResult> InflateHemisphereAsync(DLL.Surface source, string giftiPath, string transformationPath, string marsAtlasPath, SurfaceInflationOptions options, IProgress<float> progress, CancellationToken cancellationToken)
-        {
-            if (string.IsNullOrWhiteSpace(giftiPath))
-                return await source.InflateAsync(options, progress, cancellationToken);
-
-            SurfaceInflationResult result = await DLL.Surface.InflateGIIFileAsync(giftiPath, transformationPath, options, progress, cancellationToken);
-            try
-            {
-                result.Surface.FlipTriangles();
-                result.Surface.ComputeNormals();
-                if (source.IsMarsAtlasLoaded && Object3DManager.MarsAtlas.Loaded)
-                    result.Surface.SearchMarsParcelFileAndUpdateColors(Object3DManager.MarsAtlas, marsAtlasPath);
-                return result;
-            }
-            catch
-            {
-                result.Surface.Dispose();
-                throw;
-            }
         }
 
         #endregion

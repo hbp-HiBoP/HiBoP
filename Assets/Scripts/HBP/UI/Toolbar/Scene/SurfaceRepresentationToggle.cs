@@ -48,7 +48,7 @@ namespace HBP.UI.Toolbar
 
             SurfaceRepresentation current = SelectedScene.MeshManager.SelectedMesh.Representation;
             bool available = SelectedScene.MeshManager.SelectedMesh.TryGetInflationAvailability(out _);
-            m_Toggle.interactable = !SelectedScene.IsSurfaceRepresentationTransitioning && (current == SurfaceRepresentation.Inflated || available);
+            m_Toggle.interactable = !SelectedScene.IsSurfaceRepresentationTransitioning && !SelectedScene.IsSurfaceRepresentationPreparing && (current == SurfaceRepresentation.Inflated || available);
         }
 
         public override void UpdateStatus()
@@ -68,20 +68,22 @@ namespace HBP.UI.Toolbar
             {
                 if (RequiresLoadingManager(scene, representation))
                 {
-                    await LoadingManager.LoadAsync(async (update, token) =>
+                    System.Threading.CancellationToken preparationCancellation = default;
+                    await LoadingManager.LoadDelayedAsync(async (update, token) =>
                     {
+                        preparationCancellation = token;
                         IProgress<float> progress = new Progress<float>(value => update(value, 0.0f, new LoadingText("Inflating surface")));
                         try
                         {
+                            await UniTask.SwitchToMainThread(token);
                             await scene.PrepareSurfaceRepresentationAsync(representation, progress, token);
                         }
                         catch (SurfaceInflationException exception)
                         {
                             throw new HBPException("Surface inflation failed", BuildInflationError(exception));
                         }
-
-                        return true;
-                    });
+                    }, System.Threading.CancellationToken.None);
+                    preparationCancellation.ThrowIfCancellationRequested();
                 }
 
                 await scene.SetSurfaceRepresentationAsync(representation, animate: true);
@@ -91,6 +93,10 @@ namespace HBP.UI.Toolbar
             }
             catch (HBPException)
             {
+            }
+            catch (Exception exception)
+            {
+                SurfaceInflationLoading.ReportFailure(exception);
             }
             finally
             {
@@ -105,7 +111,7 @@ namespace HBP.UI.Toolbar
 
         private static bool RequiresLoadingManager(Base3DScene scene, SurfaceRepresentation representation)
         {
-            return representation == SurfaceRepresentation.Inflated && !scene.MeshManager.SelectedMesh.HasInflatedRepresentation;
+            return representation == SurfaceRepresentation.Inflated && !scene.MeshManager.SelectedMesh.HasInflatedRepresentation && scene.SurfaceRepresentationRequestHandler == null;
         }
 
         private void ChangeSceneSubscription(Base3DScene scene)

@@ -15,6 +15,37 @@ namespace HBP.Sync.Tests
         private static readonly SceneId Scene = new SceneId(GuidFor(1));
         private static readonly IncarnationId Incarnation = new IncarnationId(GuidFor(2));
 
+        [TestCase(V2SurfaceInflationControlKind.Request)]
+        [TestCase(V2SurfaceInflationControlKind.Started)]
+        [TestCase(V2SurfaceInflationControlKind.Progress)]
+        [TestCase(V2SurfaceInflationControlKind.Ready)]
+        [TestCase(V2SurfaceInflationControlKind.Commit)]
+        [TestCase(V2SurfaceInflationControlKind.Committed)]
+        [TestCase(V2SurfaceInflationControlKind.Cancel)]
+        [TestCase(V2SurfaceInflationControlKind.Failed)]
+        [TestCase(V2SurfaceInflationControlKind.Transition)]
+        [TestCase(V2SurfaceInflationControlKind.Transitioned)]
+        public void InflationControls_RoundTripAndRejectMalformedBounds(V2SurfaceInflationControlKind kind)
+        {
+            var id = new OperationId(GuidFor(93));
+            byte[] parameters = kind is V2SurfaceInflationControlKind.Request or V2SurfaceInflationControlKind.Started ? new byte[] { 4, 3, 2, 1 } : null;
+            var control = new V2SurfaceInflationControl(kind, id, kind == V2SurfaceInflationControlKind.Request ? 0UL : 3UL, 42, parameters, kind == V2SurfaceInflationControlKind.Progress ? 0.75f : 0);
+            byte[] encoded = V2SurfaceInflationControlCodec.Encode(control);
+            Assert.That(V2SurfaceInflationControlCodec.TryDecode(encoded, out var decoded), Is.True);
+            Assert.That(decoded.Kind, Is.EqualTo(kind));
+            Assert.That(decoded.JobId, Is.EqualTo(id));
+            Assert.That(decoded.Generation, Is.EqualTo(control.Generation));
+            Assert.That(decoded.CanonicalSequence, Is.EqualTo(42));
+            Assert.That(decoded.Progress, Is.EqualTo(control.Progress));
+            Assert.That(decoded.Payload, Is.EqualTo(control.Payload));
+            Assert.That(V2SurfaceInflationControlCodec.TryDecode(encoded.Take(encoded.Length - 1).ToArray(), out _), Is.False);
+            Assert.That(V2SurfaceInflationControlCodec.TryDecode(encoded.Concat(new byte[] { 0 }).ToArray(), out _), Is.False);
+            encoded[4] = 2; // Incompatible protocol version.
+            Assert.That(V2SurfaceInflationControlCodec.TryDecode(encoded, out _), Is.False);
+            Assert.Throws<ArgumentOutOfRangeException>(() => new V2SurfaceInflationControl(V2SurfaceInflationControlKind.Progress, id, 1, progress: float.NaN));
+            Assert.Throws<ArgumentException>(() => new V2SurfaceInflationControl(V2SurfaceInflationControlKind.Started, id, 1, payload: new byte[V2SurfaceInflationControlCodec.MaximumPayloadBytes + 1]));
+        }
+
         [Test]
         public void PreviewFrames_RetainLastValueAndLeaveWrittenRetriesImmutable()
         {

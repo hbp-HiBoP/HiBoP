@@ -68,6 +68,7 @@ namespace HBP.Transfer.Scene
                 if (mesh.Representation == HBP.Core.Object3D.SurfaceRepresentation.Inflated && mesh.InflatedBoth == null) Fail("Missing inflated surface.");
                 if (mesh.InflatedBoth != null)
                 {
+                    if (mesh.InflatedCoordinates != HBP.Core.DLL.SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates) Fail("Prepared inflation uses an obsolete coordinate space. Prepare and send the visualization again.");
                     FileReference(mesh.InflatedSimplifiedBoth);
                     if (!Enum.IsDefined(typeof(HBP.Core.Object3D.SurfaceInflationPreset), mesh.InflationPreset) || !Enum.IsDefined(typeof(HBP.Core.DLL.SurfaceInflationCoordinateSpace), mesh.InflatedCoordinates) || !Enum.IsDefined(typeof(HBP.Core.DLL.SurfaceInflationMethod), mesh.InflationOptions.Method) || !Enum.IsDefined(typeof(HBP.Core.DLL.SurfaceInflationRescale), mesh.InflationOptions.Rescale)) Fail("Invalid prepared inflation metadata.");
                 }

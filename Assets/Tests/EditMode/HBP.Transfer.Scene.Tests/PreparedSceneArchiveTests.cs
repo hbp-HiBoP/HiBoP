@@ -156,6 +156,23 @@ namespace HBP.Tests.Transfer
             Assert.That(ccep.Data.Timeline, Is.SameAs(((IEEGColumn)restored.Visualization.Columns[1]).Data.Timeline));
         }
 
+        [TestCase(HBP.Core.DLL.SurfaceInflationCoordinateSpace.NativeGifti)]
+        [TestCase(HBP.Core.DLL.SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed)]
+        public void ObsoletePreparedInflationFailsBeforeRestoration(HBP.Core.DLL.SurfaceInflationCoordinateSpace coordinates)
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"));
+            var payload = Fixture(source);
+            var mesh = payload.Meshes[0];
+            mesh.InflatedBoth = mesh.SimplifiedBoth;
+            mesh.InflatedSimplifiedBoth = mesh.SimplifiedBoth;
+            mesh.InflatedCoordinates = coordinates;
+            string file = Path.Combine(directory, "obsolete.hbscene");
+            source.Write(payload, file);
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true, source.Globals);
+            var exception = Assert.Throws<InvalidDataException>(() => target.Read(file));
+            Assert.That(exception.Message, Does.Contain("Prepare and send"));
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public void MissingResourceAndUnknownFormatFailBeforeRestoration(bool missingResource)

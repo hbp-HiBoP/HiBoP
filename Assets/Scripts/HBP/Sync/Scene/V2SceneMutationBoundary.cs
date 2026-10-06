@@ -277,6 +277,7 @@ namespace HBP.Sync.Scene
         private string m_ResourceManifestHash;
 
         public event Action<OperationId, V2Mutation, V2OriginDevice> MutationProposed;
+        public PreparedSceneResourceCatalog ResourceCatalog => m_ResourceCatalog;
         public bool IsAnyTimelinePlaying => Volatile.Read(ref m_PlayingTimelineCount) > 0;
 
         /// <summary>Reserve a sensitive scene operation before applying its accepted value.</summary>

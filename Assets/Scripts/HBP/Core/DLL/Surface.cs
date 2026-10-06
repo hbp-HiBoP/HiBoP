@@ -37,9 +37,11 @@ namespace HBP.Core.DLL
 
     public enum SurfaceInflationCoordinateSpace
     {
-        CurrentSurfaceCoordinates,
-        NativeGifti,
-        NativeGiftiThenTransformed
+        CurrentSurfaceCoordinates = 0,
+
+        // Historical wire values retained so prepared results can be rejected explicitly.
+        NativeGifti = 1,
+        NativeGiftiThenTransformed = 2
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -165,7 +167,7 @@ namespace HBP.Core.DLL
         public SurfaceInflationReport Report { get; }
 
         /// <summary>
-        /// Identifies whether inflation used the surface's current coordinates or native GIFTI coordinates.
+        /// New results always use the anatomical surface's current coordinates.
         /// The caller owns <see cref="Surface"/> and must dispose it.
         /// </summary>
         public SurfaceInflationCoordinateSpace CoordinateSpace { get; }
@@ -326,45 +328,12 @@ namespace HBP.Core.DLL
         }
 
         /// <summary>
-        /// Inflates this surface in its current coordinate system. This is the appropriate path for
-        /// surfaces that have no persistent GIFTI source.
+        /// Inflates the complete anatomical surface in its current coordinate system without changing it.
+        /// File transformations must already have been applied during initial loading.
         /// </summary>
         public UniTask<SurfaceInflationResult> InflateAsync(SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             return InflateCoreAsync(this, options, progress, cancellationToken, SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates);
-        }
-
-        /// <summary>
-        /// Loads and inflates a GIFTI surface in native coordinates, then applies the requested
-        /// transformation to the completed inflated surface.
-        /// </summary>
-        public static async UniTask<SurfaceInflationResult> InflateGIIFileAsync(string gii, string transformation = "", SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(gii)) throw new ArgumentException("Expected a GIFTI file path.", nameof(gii));
-
-            using Surface nativeSurface = new();
-            if (!nativeSurface.LoadGIIFile(gii))
-            {
-                throw new InvalidOperationException($"Could not load GIFTI surface '{gii}': {HbpCoreRuntime.LastError}");
-            }
-
-            SurfaceInflationCoordinateSpace coordinateSpace = string.IsNullOrWhiteSpace(transformation) ? SurfaceInflationCoordinateSpace.NativeGifti : SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed;
-            SurfaceInflationResult result = await InflateCoreAsync(nativeSurface, options, progress, cancellationToken, coordinateSpace);
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(transformation))
-                {
-                    using Transformation3 transform = Transformation3.FromFile(transformation);
-                    result.Surface.ApplyTransformation(transform);
-                }
-
-                return result;
-            }
-            catch
-            {
-                result.Surface.Dispose();
-                throw;
-            }
         }
 
         public bool LoadTRIFile(string tri, string transformation = "")
@@ -525,6 +494,22 @@ namespace HBP.Core.DLL
             Vec3 nativePoint = Vec3.FromVector3(point);
             ThrowIfFailed(hbp_surface_is_point_inside(_handle.Handle, ref nativePoint, out int inside));
             return inside != 0;
+        }
+
+        /// <summary>Inflation changes vertex positions only; retain the original scientific attributes.</summary>
+        public void CopyAnatomicalAttributesFrom(Surface source)
+        {
+            ++TransferRevision;
+            if (NumberOfVertices != source.NumberOfVertices || NumberOfTriangles != source.NumberOfTriangles)
+                throw new InvalidOperationException("Inflation changed anatomical topology.");
+            using Surface snapshot = source.CloneForTransfer();
+            var buffers = snapshot.CopyTransferBuffers();
+            if (buffers.uv.Length > 0)
+                ThrowIfFailed(hbp_surface_set_uvs(_handle.Handle, buffers.uv.Select(Vec2.FromVector2).ToArray(), buffers.uv.Length));
+            if (buffers.colors.Length > 0)
+                ThrowIfFailed(hbp_surface_set_colors(_handle.Handle, buffers.colors.Select(Color4.FromColor).ToArray(), buffers.colors.Length));
+            SetPreparedAtlasAvailability(source.IsMarsAtlasLoaded);
+            UpdateVisibilityMask(source.VisibilityMask).Dispose();
         }
 
         public void SetBuffers(Vector3[] vertices, int[] triangles, Vector3[] normals = null, Vector2[] uv = null, Color[] colors = null)

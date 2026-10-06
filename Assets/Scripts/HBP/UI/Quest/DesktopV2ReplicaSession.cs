@@ -42,6 +42,7 @@ namespace HBP.Quest.Desktop
         private readonly V2PublicationMutationJournal m_Journal;
         private readonly V2OutgoingScheduler m_Scheduler;
         private readonly V2PersistentTransport m_Transport;
+        private readonly V2SurfaceInflationCoordinator m_SurfaceInflation;
         private readonly V2SceneOperationBulkReceiver m_SceneOperationBulkReceiver = new V2SceneOperationBulkReceiver();
         private readonly System.Collections.Generic.Queue<V2TransportRecord> m_DeferredIncoming = new System.Collections.Generic.Queue<V2TransportRecord>();
         private readonly Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> m_OpenReplica;
@@ -131,6 +132,9 @@ namespace HBP.Quest.Desktop
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop);
             m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
+            m_SurfaceInflation = new V2SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
+            m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
+            m_SurfaceInflation.RemoteJobStarted += completion => SurfaceInflationLoading.ObserveAsync(completion).Forget();
             m_OpenReplica = openReplica ?? QuestPairing.OpenV2ReplicaAsync;
             m_Authority.CanonicalReady += OnCanonicalReady;
             m_Authority.SessionMustDisconnect += OnAuthorityFailure;
@@ -388,10 +392,16 @@ namespace HBP.Quest.Desktop
                     await ProcessCorrelationControlAsync(correlationControl, stop).ConfigureAwait(false);
                 else if (V2SiteFilterControlCodec.TryDecode(payload, out V2SiteFilterControl control))
                     await ProcessSiteFilterControlAsync(control, stop).ConfigureAwait(false);
+                else if (V2SurfaceInflationControlCodec.TryDecode(payload, out V2SurfaceInflationControl surfaceControl))
+                {
+                    await UniTask.SwitchToMainThread(stop);
+                    m_SurfaceInflation.Receive(surfaceControl);
+                }
                 else if (V2ActivityProjectionControlCodec.TryDecode(payload, out V2ActivityProjectionControl projectionControl))
                     await ProcessActivityProjectionControlAsync(projectionControl, stop).ConfigureAwait(false);
                 else
                     throw new InvalidDataException("Unsupported v2 session-control application message.");
+
                 return;
             }
 
@@ -773,6 +783,13 @@ namespace HBP.Quest.Desktop
             {
                 Debug.LogWarning("Desktop could not retain an activity-projection terminal control: " + exception.Message);
             }
+        }
+
+        private void SendSurfaceInflationControl(V2SurfaceInflationControl control, bool ephemeral)
+        {
+            V2EnqueueResult queued = m_Transport.EnqueueSessionControl(V2SurfaceInflationControlCodec.Encode(control), ephemeral ? V2DeliveryReliability.Ephemeral : V2DeliveryReliability.Reliable);
+            if (!ephemeral && !queued.Accepted)
+                throw new IOException("The inflation control could not be queued.");
         }
 
         private void SendActivityProjectionControl(V2ActivityProjectionControl control, V2DeliveryReliability reliability)
@@ -1336,6 +1353,7 @@ namespace HBP.Quest.Desktop
         private async UniTaskVoid CancelActivityProjectionAfterDisconnectAsync()
         {
             await UniTask.SwitchToMainThread();
+            m_SurfaceInflation.Cancel();
             m_Scene.ClearCoordinatedAutomaticRecomputePolicy();
             ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;
             if (active == null) return;
@@ -1447,6 +1465,7 @@ namespace HBP.Quest.Desktop
                 active.Dispose();
             }
 
+            m_SurfaceInflation.Dispose();
             m_Transport.Dispose();
             m_SceneOperationBulkReceiver.Reset();
             m_DeferredIncoming.Clear();

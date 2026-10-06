@@ -57,6 +57,13 @@ namespace HBP.Data.Module3D
             token.ThrowIfCancellationRequested();
             if (IsClosing)
                 throw new ObjectDisposedException(Name);
+            while (IsSurfaceRepresentationPreparing)
+            {
+                token.ThrowIfCancellationRequested();
+                if (IsClosing) throw new ObjectDisposedException(Name);
+                await UniTask.Yield(PlayerLoopTiming.Update, token);
+            }
+
             await m_SurfaceRepresentationGate.WaitAsync(token);
             try
             {

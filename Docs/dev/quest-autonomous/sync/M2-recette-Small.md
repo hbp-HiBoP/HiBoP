@@ -201,3 +201,30 @@ Retour du propriétaire après reprise des corrections sur la visualisation loca
 D16/inflated reste à reprendre dans le chantier convenu. Ce retour ne qualifie pas les lignes NT/NA ni les modalités exclues de Small.
 
 Anomalie résiduelle : une première projection s’affiche normalement ; après suppression de l’activité puis nouvelle projection, l’activité ne s’affiche plus **sur Desktop et sur Quest**. La réinitialisation des configurations permet de projeter à nouveau. Occurrence rapportée, fréquence et cause non déterminées ; aucune erreur console ni heure précise communiquée. Reprise : répéter projection → suppression → projection sans modifier les paramètres, distinguer calcul terminé et affichage, puis comparer les états avant/après reset. Critère de fermeture : activité de nouveau visible des deux côtés sans reset, y compris après plusieurs cycles.
+
+
+### Nouvelle reprise D16 — inflation locale après publication
+
+Un nouveau job prépare inflated localement sur Desktop et Quest après l'envoi initial. Les deux préparations doivent réussir avant publication du changement de représentation ; les passages suivants réutilisent le cache. Les verdicts originaux de D16 restent conservés.
+
+Essai manuel à reprendre avec les deux exécutables corrigés :
+
+1. Envoyer une visualisation encore anatomical, sans avoir préparé inflated auparavant.
+2. Activer inflated ; observer la progression, puis la représentation des deux côtés, sans renvoyer la scène.
+3. Revenir à anatomical, puis réactiver inflated : le cache doit être réutilisé.
+4. Reprendre gauche/droite/deux hémisphères, et vérifier les triangles effacés, l'activité projetée et le placement du cerveau dans le casque.
+5. Sur une autre ressource sans cache, annuler pendant la préparation : l'ancien affichage doit rester utilisable et une nouvelle demande doit fonctionner.
+
+Résultats automatisés et état de la reprise physique : voir [les corrections](M2-corrections-et-reports.md#inflation-locale-coordonnée--5-octobre-2026). Cette extension ne qualifie pas les autres lignes NT/NA.
+
+Observation physique supplémentaire du 5 octobre 2026 : sur la fixture MNI envoyée sans cache inflated, le propriétaire confirme avoir vu le cerveau inflated. Il relève l'absence de la petite animation du Desktop. L'essai demandait une bascule sans animation ; la coordination a ensuite été étendue pour conserver aussi l'animation demandée par le bouton. Aucun verdict original n'est remplacé ; les critères activité/triangles/placement et l'annulation physique restent à qualifier séparément.
+
+Nouvelle reprise USB du 5 octobre 2026 : le propriétaire confirme que l'animation fonctionne pendant les allers-retours. Il demande de retirer le cercle de chargement pendant cette animation tout en le conservant pour le calcul du mesh. Une première modification masquait seulement le visuel et ne répondait pas à sa demande. Le chemin est ensuite corrigé : la préparation seule passe par LoadingManager, puis l'animation et la publication sont exécutées après son retour, sur Desktop et Quest. L'option de masquage ajoutée au LoadingManager est retirée. L'essai manuel de cette séparation reste à faire ; aucun test automatique supplémentaire n'est exécuté, conformément à sa demande. Le passthrough reste absent après relance et est reporté à un chantier ultérieur, détaillé dans [le document des reports](M2-corrections-et-reports.md#report--passthrough-quest-absent-après-relance).
+
+### Reprise D16 — coordonnées anatomiques en mémoire, version 2 (6 octobre 2026)
+
+Le propriétaire reprend lui-même l'essai matériel plus tard. La réussite des sessions Quest simulées dans l'éditeur Windows ne qualifie pas le calcul ARM. Déployer ensemble Desktop et Quest avec `AlgorithmVersion = 2`, puis envoyer une nouvelle livraison sans inflated préparé pour forcer un calcul local sur chaque appareil.
+
+Reprendre le MNI gris, le MNI blanc et une surface patient transformée, avec les mêmes options d'inflation des deux côtés. Vérifier les deux hémisphères puis leur fusion, les bascules avec cache, l'annulation, les triangles effacés, couleurs/UV/atlas et le placement local. Comparer les buffers complets dans le repère anatomique, avant les transformations d'affichage : même ordre de sommets, même topologie et attributs identiques, écart maximal de positions **0,001 mm**. Une comparaison visuelle seule ne mesure pas cette tolérance. Diagnostiquer tout dépassement (options, buffers d'entrée, rapports natifs et plateforme) sans augmenter le seuil.
+
+Les résultats préparés historiques `NativeGifti` / `NativeGiftiThenTransformed` doivent demander une nouvelle préparation/livraison. Aucune source GIFTI ou transformation dédiée à l'inflation ne doit apparaître dans le payload.

@@ -631,7 +631,7 @@ namespace HBP.Data.Module3D
         public ulong ProjectionGeneration => m_ProjectionGeneration;
         public ulong ActivityInputGeneration => m_ActivityInputGeneration;
         public bool ExplicitProjectionRequestPending => m_ExplicitProjectionRequestPending;
-        public bool IsActivityProjectionBusy => m_UpdatingGenerators || m_CoordinatedActivityProjectionBusyCount != 0;
+        public bool IsActivityProjectionBusy => m_UpdatingGenerators || m_CoordinatedActivityProjectionBusyCount != 0 || IsSurfaceRepresentationPreparing;
         public bool IsActivityProjectionComputing => m_UpdatingGenerators;
 
         /// <summary>When installed by a live session, consumes local starts until both peers are admitted.</summary>
@@ -729,7 +729,7 @@ namespace HBP.Data.Module3D
         public bool TryBeginCoordinatedActivityProjection(out IDisposable operationScope)
         {
             operationScope = null;
-            if (m_DestroyRequested || m_UpdatingGenerators || m_SensitiveActivityOperationCount != 0 || m_CoordinatedActivityProjectionBusyCount != 0)
+            if (m_DestroyRequested || m_UpdatingGenerators || m_SensitiveActivityOperationCount != 0 || m_CoordinatedActivityProjectionBusyCount != 0 || IsSurfaceRepresentationPreparing)
                 return false;
 
             ++m_CoordinatedActivityProjectionBusyCount;
@@ -761,7 +761,7 @@ namespace HBP.Data.Module3D
         public bool TryBeginSensitiveActivityOperation(out IDisposable operationScope)
         {
             operationScope = null;
-            if (m_DestroyRequested || m_UpdatingGenerators || m_ProjectionState == ActivityProjectionState.Computing || m_CoordinatedActivityProjectionBusyCount != 0)
+            if (m_DestroyRequested || m_UpdatingGenerators || m_ProjectionState == ActivityProjectionState.Computing || m_CoordinatedActivityProjectionBusyCount != 0 || IsSurfaceRepresentationPreparing && m_SurfaceRepresentationCommitDepth == 0)
                 return false;
 
             ++m_SensitiveActivityOperationCount;
@@ -779,7 +779,7 @@ namespace HBP.Data.Module3D
         internal bool TryBeginActivityProjection(out ActivityProjectionInputLease lease)
         {
             lease = null;
-            if (m_DestroyRequested || m_UpdatingGenerators || m_SensitiveActivityOperationCount != 0 || !ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled))
+            if (m_DestroyRequested || m_UpdatingGenerators || m_SensitiveActivityOperationCount != 0 || IsSurfaceRepresentationPreparing || !ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled))
                 return false;
 
             ++m_ProjectionGeneration;
@@ -903,6 +903,39 @@ namespace HBP.Data.Module3D
         /// Geometry-dependent interactions are suspended while this is true.
         /// </summary>
         public bool IsSurfaceRepresentationTransitioning { get; private set; }
+
+        public bool IsSurfaceRepresentationPreparing { get; private set; }
+        private int m_SurfaceRepresentationCommitDepth;
+        public Func<SurfaceRepresentation, IProgress<float>, CancellationToken, bool, UniTask> SurfaceRepresentationRequestHandler { get; set; }
+
+        public bool TryBeginSurfaceRepresentationPreparation(out IDisposable scope)
+        {
+            scope = null;
+            if (IsClosing || IsSurfaceRepresentationPreparing || IsSurfaceRepresentationTransitioning || IsActivityProjectionBusy || m_SensitiveActivityOperationCount != 0)
+                return false;
+            IsSurfaceRepresentationPreparing = true;
+            UpdateActivityProjectionBusyState();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            scope = new SurfacePreparationScope(this);
+            return true;
+        }
+
+        private sealed class SurfacePreparationScope : IDisposable
+        {
+            private Base3DScene m_Scene;
+            public SurfacePreparationScope(Base3DScene scene) => m_Scene = scene;
+
+            public void Dispose()
+            {
+                Base3DScene scene = m_Scene;
+                m_Scene = null;
+                if (scene == null) return;
+                scene.IsSurfaceRepresentationPreparing = false;
+                scene.UpdateActivityProjectionBusyState();
+                Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+        }
+
 
         /// <summary>
         /// Weight of the mesh loading step
@@ -1147,7 +1180,7 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            if (!m_UpdatingGenerators)
+            if (!m_UpdatingGenerators && !IsSurfaceRepresentationTransitioning)
             {
                 if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
                 else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
@@ -1427,7 +1460,7 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Update the mesh geometry (information, cuts, generators, triangle eraser and atlas)
         /// </summary>
-        private void UpdateGeometry()
+        private void UpdateGeometry(bool preserveScientificData = false)
         {
             Core.DLL.Surface previousBrainSurface = m_MeshManager.BrainSurface;
             Core.DLL.Surface previousReferenceSurface = m_MeshManager.ReferenceSurface;
@@ -1444,6 +1477,10 @@ namespace HBP.Data.Module3D
                 m_AtlasManager.UpdateAtlasColors();
                 m_FMRIManager.UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            }
+            else if (preserveScientificData)
+            {
+                m_MeshManager.UpdateMeshesFromDLL(preserveScientificData: true);
             }
             else
             {
@@ -2323,14 +2360,14 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Generates and caches a surface representation without publishing it.
         /// </summary>
-        public async UniTask PrepareSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default)
+        public async UniTask PrepareSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, Mesh3DInflationSettings? settings = null)
         {
             using CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             CancellationToken token = linkedCancellation.Token;
             await m_SurfaceRepresentationGate.WaitAsync(token);
             try
             {
-                await PrepareSurfaceRepresentationLockedAsync(representation, progress, token);
+                await PrepareSurfaceRepresentationLockedAsync(representation, progress, token, settings);
                 progress?.Report(1.0f);
             }
             finally
@@ -2342,7 +2379,30 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Generates, transitions and transactionally publishes a surface representation.
         /// </summary>
-        public async UniTask SetSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = true)
+        public UniTask SetSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = true)
+        {
+            return SurfaceRepresentationRequestHandler != null ? SurfaceRepresentationRequestHandler(representation, progress, cancellationToken, animate) : SetLocalSurfaceRepresentationAsync(representation, progress, cancellationToken, animate);
+        }
+
+        public UniTask SetLocalSurfaceRepresentationAsync(SurfaceRepresentation representation, IProgress<float> progress = null, CancellationToken cancellationToken = default, bool animate = true) => SetSurfaceRepresentationCoreAsync(representation, progress, cancellationToken, animate, publish: true);
+
+        /// <summary>Animates prepared geometry without publication. The coordinator restores the accepted display when its scope ends.</summary>
+        public UniTask PreviewSurfaceRepresentationAsync(SurfaceRepresentation representation, CancellationToken cancellationToken = default) => SetSurfaceRepresentationCoreAsync(representation, null, cancellationToken, animate: true, publish: false);
+
+        public void RestoreSurfaceRepresentationPreview()
+        {
+            if (IsClosing || m_MeshManager.Meshes.Count == 0) return;
+            Mesh3D mesh = m_MeshManager.SelectedMesh;
+            IsSurfaceRepresentationTransitioning = false;
+            UpdateGeometry(preserveScientificData: true);
+            BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, m_MeshManager.CanClipBrainSurface);
+            UpdateBrainCutMeshesVisibility();
+            SceneInformation.CollidersNeedUpdate = true;
+            MeshPart part = mesh.SupportsHemispheres ? m_MeshManager.MeshPartToDisplay : MeshPart.Both;
+            OnUpdateCameraTarget.Invoke(mesh.GetSurface(mesh.Representation, part).Center);
+        }
+
+        private async UniTask SetSurfaceRepresentationCoreAsync(SurfaceRepresentation representation, IProgress<float> progress, CancellationToken cancellationToken, bool animate, bool publish)
         {
             using CancellationTokenSource linkedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             CancellationToken token = linkedCancellation.Token;
@@ -2359,6 +2419,7 @@ namespace HBP.Data.Module3D
                 }
 
                 bool completed = false;
+                RebuildPreparedGeometryForSynchronization();
                 IsSurfaceRepresentationTransitioning = true;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
                 BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, clipBrain: false);
@@ -2390,25 +2451,38 @@ namespace HBP.Data.Module3D
 
                     token.ThrowIfCancellationRequested();
                     BrainMaterials.SetInflationBlend(endBlend);
-                    m_MeshManager.SelectRepresentation(representation);
-                    UpdateGeometry();
-                    SceneInformation.CollidersNeedUpdate = true;
+                    if (publish)
+                    {
+                        ++m_SurfaceRepresentationCommitDepth;
+                        try
+                        {
+                            m_MeshManager.SelectRepresentation(representation);
+                        }
+                        finally
+                        {
+                            --m_SurfaceRepresentationCommitDepth;
+                        }
+
+                        UpdateGeometry();
+                        SceneInformation.CollidersNeedUpdate = true;
+                    }
+
                     completed = true;
                     progress?.Report(1.0f);
-                    OnSurfaceRepresentationChanged.Invoke(representation);
+                    if (publish) OnSurfaceRepresentationChanged.Invoke(representation);
                 }
                 finally
                 {
                     if (!completed && this != null && !m_DestroyRequested)
                     {
-                        BrainMaterials.SetInflationBlend(0.0f);
+                        BrainMaterials.SetInflationBlend(previousRepresentation == SurfaceRepresentation.Inflated ? 1.0f : 0.0f);
                         SceneInformation.GeometryNeedsUpdate = true;
                     }
 
-                    IsSurfaceRepresentationTransitioning = false;
+                    IsSurfaceRepresentationTransitioning = !publish;
                     if (this != null && !m_DestroyRequested)
                     {
-                        BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, m_MeshManager.CanClipBrainSurface);
+                        BrainMaterials.SetCuts(Cuts, 1.0f, Quaternion.identity, (publish || !completed) && m_MeshManager.CanClipBrainSurface);
                         UpdateBrainCutMeshesVisibility();
                         Module3DMain.OnRequestUpdateInToolbar.Invoke();
                     }
@@ -2420,16 +2494,16 @@ namespace HBP.Data.Module3D
             }
         }
 
-        private async UniTask<Mesh3D> PrepareSurfaceRepresentationLockedAsync(SurfaceRepresentation representation, IProgress<float> progress, CancellationToken token)
+        private async UniTask<Mesh3D> PrepareSurfaceRepresentationLockedAsync(SurfaceRepresentation representation, IProgress<float> progress, CancellationToken token, Mesh3DInflationSettings? settings = null)
         {
             token.ThrowIfCancellationRequested();
             if (m_DestroyRequested || m_MeshManager.Meshes.Count == 0)
                 throw new OperationCanceledException("The source scene is no longer available.", token);
 
             Mesh3D sourceMesh = m_MeshManager.SelectedMesh;
-            if (representation == SurfaceRepresentation.Inflated && !sourceMesh.HasInflatedRepresentation)
+            if (representation == SurfaceRepresentation.Inflated && (settings.HasValue || !sourceMesh.HasInflatedRepresentation))
             {
-                await sourceMesh.GenerateInflatedRepresentationAsync(progress, token);
+                await sourceMesh.GenerateInflatedRepresentationAsync(settings ?? Mesh3DInflationSettings.Inflated, progress, token);
             }
 
             await UniTask.SwitchToMainThread();

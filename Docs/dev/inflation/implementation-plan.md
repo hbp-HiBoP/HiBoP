@@ -24,11 +24,11 @@ Deux contrats structurants doivent guider toute l'implémentation :
 ## Architecture cible
 
 ```text
-GIFTI natif
-   ├── surface anatomique ── transformation HiBoP ── affichage/référence scientifique
-   └── inflation native
-         └── mêmes triangles et mêmes indices
-               └── transformation HiBoP ── représentation inflated
+GIFTI / surface générée depuis l'IRM
+   └── surface anatomique ── transformation HiBoP au chargement
+         ├── affichage / référence scientifique
+         └── inflation depuis l'anatomique en mémoire
+               └── mêmes triangles et mêmes indices ── représentation inflated
 ```
 
 Chaque `Mesh3D` concerné conserve :
@@ -252,23 +252,22 @@ Ajouter dans `Assets/Scripts/HBP/Core/DLL/Surface.cs` :
 - une méthode asynchrone de haut niveau retournant la surface et son rapport ;
 - une méthode publique permettant d'appliquer un `Transformation3` à une surface déjà chargée.
 
-### Inflation avant transformation
+### Inflation depuis les coordonnées anatomiques courantes (version 2)
 
-`Surface.LoadGIIFile` applique actuellement immédiatement la transformation `.trm`. Une transformation anisotrope modifierait les distances et le comportement de l'algorithme.
+`Surface.LoadGIIFile` applique immédiatement la transformation `.trm`. Le calcul utilise ensuite exclusivement `Surface.InflateAsync` sur cette anatomique en mémoire, pour le MNI, les patients et les surfaces générées depuis l'IRM. Le changement de résultat lié aux transformations anisotropes est accepté.
 
-Pour les surfaces GIFTI persistantes, la génération paresseuse doit donc :
+La génération paresseuse doit :
 
-1. recharger temporairement le GIFTI sans transformation ;
-2. l'inflater dans son repère natif ;
-3. appliquer ensuite la même transformation que celle de l'anatomique ;
-4. publier le résultat ;
-5. libérer la surface source temporaire dans un `finally`.
+1. utiliser `Both` anatomique pour un mesh single, ou `Left` et `Right` anatomiques séparément ;
+2. inflater la topologie complète, même si l'inflated est déjà affiché ;
+3. fusionner les hémisphères et générer les simplifiés ;
+4. publier le résultat sans réappliquer de transformation ni inverser les triangles.
 
-Pour une surface générée en mémoire sans source GIFTI, l'inflation utilise le repère courant et cette différence doit être explicitement documentée dans le rapport ou le modèle métier.
+Le snapshot temporaire du job natif protège l'anatomique pendant le calcul asynchrone. Aucune copie permanente des coordonnées natives ni aucun clone supplémentaire côté C# n'est nécessaire. `Surface.InflateGIIFileAsync` et les fichiers dédiés à l'inflation sont supprimés. Tous les nouveaux résultats portent `CurrentSurfaceCoordinates` ; les caches utilisent handle et `GeometryVersion`, avec `AlgorithmVersion = 2`.
 
 ### Critère de sortie
 
-Les tests EditMode prouvent l'ownership, la propagation des erreurs, l'annulation et l'ordre inflation puis transformation.
+Les tests EditMode prouvent l'ownership, la propagation des erreurs, l'annulation et l'inflation depuis l'anatomique transformée après suppression des fichiers source.
 
 ## Phase 4 — Représentations dérivées dans `Mesh3D`
 
@@ -474,7 +473,7 @@ Le workflow complet est utilisable depuis une visualisation sans blocage du thre
 
 - mapping ABI des structures ;
 - ownership du job et de la surface retournée ;
-- ordre inflation puis transformation ;
+- transformation au chargement puis inflation depuis l'anatomique en mémoire ;
 - compatibilité de sérialisation ;
 - valeur par défaut anatomique ;
 - cache mémoire et invalidation par paramètres ;

@@ -90,3 +90,22 @@ A user cancellation from either peer is a reliable job command and cancels both 
 - Quest apply failure: keep job failed, show error and do not claim synchronized; missing resource/roster requires full resend.
 - One-side activity failure: cancel/mark the generation failed on both and show which peer failed.
 - Obsolete completion: discard silently with telemetry.
+
+
+## Surface inflation
+
+The base mesh remains a delivery-bound prepared resource. Its inflated representation can be computed after publication, without another scene delivery.
+
+1. Either device requests the representation through the scene's representation request port. Desktop assigns a surface-inflation job generation and freezes the delivery-bound mesh resource ID, hemisphere, representation, exact options and algorithm version (2). Each local job captures the references and `GeometryVersion` of anatomical `Both`, `Left` and `Right` when present.
+2. Both devices reserve a domain busy scope. Quest first drains the preceding canonical watermark. Read/write loops and safe mutations continue.
+3. Each device computes or reuses the exact cache entry. The displayed representation remains unchanged during preparation. Progress is ephemeral; start, ready, cancellation, failure and commit controls are reliable and bounded.
+4. When both preparations are ready, an animated request starts the existing 0.6 s local GPU transition on each device. Both transition completions are acknowledged before Desktop publishes the ordinary canonical `SetMeshDisplay`; intermediate animation frames never become scientific mutations. A request without animation skips this barrier. Quest acknowledges the commit only after applying its canonical watermark and checking the selected representation. Controls unlock after completion.
+5. Cancellation or failure before publication preserves the previous display. Disconnect, closure and stale job completions release the scope after native work stops; they never turn an interrupted online calculation into an offline calculation. A cancellation received after canonical publication cannot undo that accepted display mutation. Peer/barrier waits have a ten-minute upper bound.
+
+LoadingManager wraps only mesh preparation and waiting for the peer's preparation, with its existing 200 ms delay. That operation is awaited and closed before the transition starts; animation and commit execute outside LoadingManager. Cached switches normally finish preparation before the visual appears. Offline requests retain local behavior. During reconnect grace, Quest rejects new surface jobs until connected or explicitly offline. Pending mesh/hemisphere geometry is rebuilt before a transition; automatic rebuilds are deferred until it finishes. Success and cancellation restore the accepted display without resetting triangle masks or scientific UV/colors.
+
+All meshes inflate from the transformed anatomical buffers already in memory, including MNI and MRI-generated surfaces. The delivery carries the existing prepared buffers and optional prepared inflated representations; no dedicated GIFTI/transform inflation inputs or file fingerprints are transferred. Each job checks the captured surface references/versions before and after preparation and before publication, alongside the selected mesh/hemisphere and roster checks. These guards retain no coordinate copies. Patient anatomy excluded from a multi visualization remains excluded.
+
+Prepared inflated results must use `CurrentSurfaceCoordinates`. Transfer validation and `Mesh3D.FromPrepared` explicitly reject historical `NativeGifti` and `NativeGiftiThenTransformed` markers and request preparation/delivery again, without silent recomputation. Their enum numbers and the transfer container version remain unchanged. Deploy Desktop and Quest together with algorithm version 2.
+
+Full anatomical topology, scientific colors/UVs, triangle masks and the local Quest wrapper placement are preserved. The original anatomical simplification remains the reference for scientific masks; an independently simplified inflated surface does not redefine its topology identity.
