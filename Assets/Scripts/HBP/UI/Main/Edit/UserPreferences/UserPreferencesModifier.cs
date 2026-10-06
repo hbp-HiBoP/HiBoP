@@ -6,6 +6,7 @@ using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Quest.Desktop;
 
 namespace HBP.UI.Main
 {
@@ -90,7 +91,17 @@ namespace HBP.UI.Main
                 return;
             }
 
-            NormalizationType requestedNormalization = m_ObjectTemp.Data.EEG.Normalization;
+            NormalizationType requestedNormalization = m_EEGPreferencesSubModifier.RequestedNormalization;
+            if (QuestManager.IsInitialized)
+            {
+                string blocked = await QuestManager.Instance.ValidatePreferencesChangeAsync(requestedNormalization);
+                if (blocked != null)
+                {
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Close shared visualizations", blocked, "OK");
+                    return;
+                }
+            }
+
             bool normalizationChanged = requestedNormalization != m_InitialNormalization;
             bool memoryLimitChanged = m_ObjectTemp.General.System.MemoryCacheLimit != m_InitialMemoryCacheLimit;
 
@@ -105,6 +116,14 @@ namespace HBP.UI.Main
                 }
             }
 
+            string currentBlock = QuestManager.IsInitialized ? QuestManager.Instance.ValidatePreferencesChangeNow(requestedNormalization) : null;
+            if (currentBlock != null)
+            {
+                await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Close shared visualizations", currentBlock, "OK");
+                return;
+            }
+
+            m_ObjectTemp.Data.EEG.Normalization = requestedNormalization;
             base.OK();
             PersistentDataManager.UserPreferences.Save();
 

@@ -115,6 +115,7 @@ namespace HBP.UI.Informations
 
                     try
                     {
+                        using var atlasUsage = ResourceRetention.Retain("localizer:" + protocolItem.Name);
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
                         var times = GetTimes(bloc);
@@ -150,6 +151,7 @@ namespace HBP.UI.Informations
                     }
                     finally
                     {
+                        await UniTask.SwitchToMainThread();
                         // Clean up this bloc immediately if we loaded it and protocol wasn't loaded externally
                         if (!protocolWasLoadedExternally && !blocWasLoadedExternally && newlyLoadedBlocs.Contains(blocItem.Name))
                         {
@@ -229,6 +231,7 @@ namespace HBP.UI.Informations
 
                     try
                     {
+                        using var atlasUsage = ResourceRetention.Retain("localizer:" + protocolItem.Name);
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
                         var times = GetTimes(bloc);
@@ -268,6 +271,7 @@ namespace HBP.UI.Informations
                     }
                     finally
                     {
+                        await UniTask.SwitchToMainThread();
                         // Clean up this bloc immediately if we loaded it and protocol wasn't loaded externally
                         if (!protocolWasLoadedExternally && !blocWasLoadedExternally && newlyLoadedBlocs.Contains(blocItem.Name))
                         {
@@ -385,6 +389,7 @@ namespace HBP.UI.Informations
 
                     try
                     {
+                        using var atlasUsage = ResourceRetention.Retain("localizer:" + protocolItem.Name);
                         // Extract all the data we need from this bloc
                         await UniTask.SwitchToThreadPool();
                         var times = GetTimes(bloc);
@@ -467,6 +472,7 @@ namespace HBP.UI.Informations
                     }
                     finally
                     {
+                        await UniTask.SwitchToMainThread();
                         // Clean up this bloc immediately if we loaded it and protocol wasn't loaded externally
                         if (!protocolWasLoadedExternally && !blocWasLoadedExternally && newlyLoadedBlocs.Contains(blocItem.Name))
                         {

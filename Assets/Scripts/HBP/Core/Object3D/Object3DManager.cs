@@ -1,4 +1,5 @@
 using HBP.Core.DLL;
+using HBP.Core.Tools;
 using UnityEngine;
 
 namespace HBP.Core.Object3D
@@ -20,6 +21,7 @@ namespace HBP.Core.Object3D
 
         public static void Clean()
         {
+            foreach (var atlas in AtlasResources.Definitions) ResourceRetention.EnsureCanRelease(atlas.Id);
             MNI?.Clean();
             IBC?.Clean();
             DiFuMo?.Clean();
@@ -30,23 +32,18 @@ namespace HBP.Core.Object3D
 
         public static void Reset()
         {
-            try
-            {
-                Clean();
-            }
-            finally
-            {
-                MarsAtlas = new MarsAtlas();
-                JuBrain = new JuBrainAtlas();
-                MNI = new MNIObjects();
-                DiFuMo = new DiFuMoObjects();
-                IBC = new IBCObjects();
-                Localizers = new LocalizersObjects();
-            }
+            Clean();
+            MarsAtlas = new MarsAtlas();
+            JuBrain = new JuBrainAtlas();
+            MNI = new MNIObjects();
+            DiFuMo = new DiFuMoObjects();
+            IBC = new IBCObjects();
+            Localizers = new LocalizersObjects();
         }
 
         public static void UnloadMarsAtlas()
         {
+            ResourceRetention.EnsureCanRelease("mars");
             if (MarsAtlas.Loaded)
             {
                 MarsAtlas.Dispose();
@@ -56,6 +53,7 @@ namespace HBP.Core.Object3D
 
         public static void UnloadJuBrain()
         {
+            ResourceRetention.EnsureCanRelease("jubrain");
             if (JuBrain.Loaded)
             {
                 JuBrain.Dispose();
@@ -65,6 +63,7 @@ namespace HBP.Core.Object3D
 
         public static void UnloadIBC()
         {
+            ResourceRetention.EnsureCanRelease("ibc");
             if (IBC.Loaded)
             {
                 IBC.Clean();

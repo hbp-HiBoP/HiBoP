@@ -23,9 +23,6 @@ foreach ($name in @('hbp_core', 'hbp_math')) {
         throw "$Target $name is missing or does not match NativePlugins.lock.json."
     }
 }
-if ($Target -eq 'Android') {
-    & "$PSScriptRoot/Sign-QuestApk.ps1" -ValidateOnly
-}
 
 try {
     if ($Target -eq 'Android') {
@@ -40,8 +37,10 @@ try {
     $process = Start-Process -FilePath $unity -ArgumentList $arguments -Wait -PassThru -WindowStyle Hidden
     if ($process.ExitCode -ne 0) { throw "Unity $Target build failed with exit $($process.ExitCode). See $log" }
     if ($Target -eq 'Android') {
-        & "$PSScriptRoot/Sign-QuestApk.ps1" -Apk "$repo/.artifacts/$EvidenceId/Android/HiBoP.Quest.apk"
-        & "$PSScriptRoot/Test-QuestApk.ps1" -Apk "$repo/.artifacts/$EvidenceId/Android/HiBoP.Quest.apk" -ReportPath "$repo/.test-results/$EvidenceId/apk-content.json"
+        $dataSettings = Join-Path $repo 'Assets/Settings/QuestStandardData.asset'
+        $includeLocalizers = (Test-Path -LiteralPath $dataSettings) -and
+            [bool](Select-String -LiteralPath $dataSettings -Pattern '^\s*IncludeLocalizers:\s*1\s*$' -Quiet)
+        & "$PSScriptRoot/Test-QuestApk.ps1" -Apk "$repo/.artifacts/$EvidenceId/Android/HiBoP.Quest.apk" -ReportPath "$repo/.test-results/$EvidenceId/apk-content.json" -IncludeLocalizers:$includeLocalizers
     }
 }
 finally { $env:JDK_JAVA_OPTIONS = $previousJavaOptions }

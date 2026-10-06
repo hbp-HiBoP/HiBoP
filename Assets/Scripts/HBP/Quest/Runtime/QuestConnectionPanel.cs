@@ -92,7 +92,7 @@ namespace HBP.Quest
                             await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
                             {
                                 if (!stop.IsCancellationRequested) status = message;
-                            }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync);
+                            }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync);
                         }
                         finally
                         {

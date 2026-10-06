@@ -307,3 +307,7 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 - **M4 single-scene reconnect product:** T16.
 - **M5 multi-scene lifecycle:** T17.
 - **M6 cleanup/release qualification:** T18.
+
+## Dedicated milestone — Préférences et atlas de session
+
+See [session preferences and installed atlases](tasks/SessionPreferencesAndAtlases.md). This milestone is distinct from T15: all Desktop preferences are applied in memory on Quest, with scene-independent authenticated request/response control. Installed atlas content can become ready during a session after agreement on its fingerprint. Resources that require file transfer still require full delivery. T16 owns future post-disconnection preference reconciliation; T17 owns the full close/reload/retransfer cycle for reload-requiring changes.

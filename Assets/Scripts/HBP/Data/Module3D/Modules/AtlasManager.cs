@@ -33,6 +33,7 @@ namespace HBP.Data.Module3D
             get { return m_DisplayMarsAtlas; }
             set
             {
+                if (value) m_Scene.EnsureAtlasCanBeUsed("mars");
                 m_DisplayMarsAtlas = value && Object3DManager.MarsAtlas.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMarsAtlas;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();
@@ -50,6 +51,7 @@ namespace HBP.Data.Module3D
             get { return m_DisplayJuBrainAtlas; }
             set
             {
+                if (value) m_Scene.EnsureAtlasCanBeUsed("jubrain");
                 m_DisplayJuBrainAtlas = value && Object3DManager.JuBrain.Loaded && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 m_Scene.BrainMaterials.SetDisplayAtlas(DisplayAtlas);
                 UpdateAtlasIndices();

@@ -297,6 +297,7 @@ namespace HBP.Sync.Scene
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
+            m_Scene.AtlasUseAdmission += SessionAtlasCatalog.Require;
             BindSceneTargets(scene);
         }
 
@@ -315,6 +316,7 @@ namespace HBP.Sync.Scene
             catalog.AssertDeliveryManifest(binding.Manifest);
             m_ResourceCatalog = catalog;
             m_ResourceManifestHash = binding.ManifestHash;
+            ObserveFmriPresentation();
             foreach (Column3D column in m_Scene.Columns)
                 BindColumnResourceObservers(column, m_ColumnListeners[column]);
             if (m_Scene.MeshManager != null)
@@ -2207,7 +2209,7 @@ namespace HBP.Sync.Scene
 
         private void ObserveFmriPresentation()
         {
-            if (m_Scene == null || m_Scene.FMRIManager == null || m_Disposed) return;
+            if (m_Scene == null || m_Scene.FMRIManager == null || m_ResourceCatalog == null || m_Disposed) return;
             ObserveT09(ref m_LastSceneIbcDifumo, CreateIbcDifumoDisplay());
             ObserveT09(ref m_LastSceneLocalizer, CreateLocalizerDisplay());
             ObserveT09(ref m_LastSceneFmriCalibration, CreateFmriAtlasCalibration());
@@ -2772,6 +2774,7 @@ namespace HBP.Sync.Scene
             }
 
             if (value.MarsAtlasLabel < 0) return;
+            SessionAtlasCatalog.Require("mars");
             Mesh3D selectedMesh = m_Scene.MeshManager?.SelectedMesh;
             bool implantationHasMarsAtlas = m_Scene.ImplantationManager?.SelectedImplantation?.SiteInfos.Any(info => info.SiteData?.Tags?.Any(tagValue => tagValue.Tag is StringTag tag && tag.Name == "MarsAtlas") == true) == true;
             if (selectedMesh == null || !selectedMesh.SupportsMarsAtlas || !Object3DManager.MarsAtlas.Loaded || !Object3DManager.MarsAtlas.Labels().Contains(value.MarsAtlasLabel) || !implantationHasMarsAtlas)
@@ -3444,11 +3447,13 @@ namespace HBP.Sync.Scene
             {
                 if (m_Scene.AtlasManager == null) throw new InvalidOperationException("Atlas display is unavailable in the prepared scene.");
                 Mesh3D selectedMesh = GetSelectedMeshOrNull();
+                if (value.Value) SessionAtlasCatalog.Require("mars");
                 if (value.Value && (selectedMesh == null || !Object3DManager.MarsAtlas.Loaded || !selectedMesh.SupportsMarsAtlas)) throw new InvalidOperationException("Mars atlas is not prepared for the selected mesh.");
             }
 
             if (value.Property == V2SceneBooleanProperty.DisplayJuBrainAtlas)
             {
+                if (value.Value) SessionAtlasCatalog.Require("jubrain");
                 if (m_Scene.AtlasManager == null) throw new InvalidOperationException("Atlas display is unavailable in the prepared scene.");
                 Mesh3D selectedMesh = GetSelectedMeshOrNull();
                 if (value.Value && (selectedMesh == null || !Object3DManager.JuBrain.Loaded || !selectedMesh.SupportsMNIResources)) throw new InvalidOperationException("JuBrain atlas is not prepared for the selected mesh.");
@@ -3457,24 +3462,21 @@ namespace HBP.Sync.Scene
 
         private void ValidateIbcDifumoDisplay(SetIbcDifumoDisplay value)
         {
+            if (!string.IsNullOrEmpty(value.IbcContrastReference) || !string.IsNullOrEmpty(value.DifumoAtlasReference)) RequireResourceCatalog();
             RequireFmriManager();
             Mesh3D selectedMesh = GetSelectedMeshOrNull();
-            bool hasIbcReference = value.IbcContrastReference.Length > 0;
-            int contrast = 0;
-            if (hasIbcReference && (!int.TryParse(value.IbcContrastReference, NumberStyles.None, CultureInfo.InvariantCulture, out contrast) || contrast < 0))
-                throw new InvalidOperationException("IBC contrast reference must identify a prepared nonnegative contrast.");
             if (value.IbcEnabled)
             {
-                bool contrastPrepared = hasIbcReference && Object3DManager.IBC.Loaded && contrast < Object3DManager.IBC.FMRI.Volumes.Count;
-                if (!contrastPrepared || selectedMesh == null || !selectedMesh.SupportsMNIResources)
-                    throw new InvalidOperationException("IBC contrast is not present in the prepared resources for this mesh.");
+                RequireResourceCatalog();
+                int contrast = m_ResourceCatalog.ResolveIbcContrast(value.IbcContrastReference);
+                if (contrast < 0 || selectedMesh == null || !selectedMesh.SupportsMNIResources) throw new InvalidOperationException("IBC contrast is not prepared for this mesh.");
             }
 
             if (value.DifumoEnabled)
             {
-                bool atlasPrepared = Object3DManager.DiFuMo.IsLoaded(value.DifumoAtlasReference) && Object3DManager.DiFuMo.FMRIs.TryGetValue(value.DifumoAtlasReference, out var atlas) && value.DifumoArea < atlas.Volumes.Count;
-                if (!atlasPrepared || selectedMesh == null || !selectedMesh.SupportsMNIResources)
-                    throw new InvalidOperationException("DiFuMo atlas area is not present in the prepared resources for this mesh.");
+                RequireResourceCatalog();
+                string atlas = m_ResourceCatalog.ResolveDifumo(value.DifumoAtlasReference);
+                if (atlas.Length == 0 || value.DifumoArea >= m_ResourceCatalog.DifumoVolumeCount(atlas) || selectedMesh == null || !selectedMesh.SupportsMNIResources) throw new InvalidOperationException("DiFuMo area is not prepared for this mesh.");
             }
         }
 
@@ -3482,9 +3484,10 @@ namespace HBP.Sync.Scene
         {
             RequireFmriManager();
             if (!value.Enabled) return;
+            RequireResourceCatalog();
             Mesh3D selectedMesh = GetSelectedMeshOrNull();
             if (selectedMesh == null || !selectedMesh.SupportsMNIResources) throw new InvalidOperationException("Localizers are not supported by the selected mesh.");
-            var fmri = Object3DManager.Localizers.GetCurrentFMRI(value.ProtocolReference, value.DataReference, value.BlocReference);
+            var fmri = m_ResourceCatalog.ResolveLocalizer(value.ProtocolReference, value.DataReference, value.BlocReference);
             if (fmri == null || !fmri.Loaded || value.TimelineIndex >= fmri.Volumes.Count) throw new InvalidOperationException("Localizer source or timeline index is absent from the prepared resources.");
         }
 
@@ -3508,14 +3511,23 @@ namespace HBP.Sync.Scene
 
         private void ApplyIbcDifumoDisplay(SetIbcDifumoDisplay value)
         {
-            int contrast = value.IbcContrastReference.Length == 0 ? m_Scene.FMRIManager.SelectedIBCContrastID : int.Parse(value.IbcContrastReference, CultureInfo.InvariantCulture);
-            string atlas = value.DifumoAtlasReference.Length == 0 && !value.DifumoEnabled ? string.Empty : value.DifumoAtlasReference;
+            int contrast = !value.IbcEnabled ? m_Scene.FMRIManager.SelectedIBCContrastID : m_ResourceCatalog.ResolveIbcContrast(value.IbcContrastReference);
+            string atlas = !value.DifumoEnabled ? m_Scene.FMRIManager.SelectedDiFuMoAtlas ?? string.Empty : m_ResourceCatalog.ResolveDifumo(value.DifumoAtlasReference);
             m_Scene.FMRIManager.ApplySynchronizedAtlasSources(value.IbcEnabled, contrast, value.DifumoEnabled, atlas, value.DifumoArea);
         }
 
         private void ApplyLocalizerDisplay(SetLocalizerDisplay value)
         {
-            m_Scene.FMRIManager.ApplySynchronizedLocalizer(value.Enabled, value.ProtocolReference, value.DataReference, value.BlocReference, value.TimelineIndex, value.Minimum, value.Middle, value.Maximum);
+            if (!value.Enabled)
+            {
+                var manager = m_Scene.FMRIManager;
+                manager.ApplySynchronizedLocalizer(false, manager.SelectedLocalizersProtocol, manager.SelectedLocalizersData, manager.SelectedLocalizersBloc, value.TimelineIndex, value.Minimum, value.Middle, value.Maximum);
+                return;
+            }
+
+            var names = m_ResourceCatalog.ResolveLocalizerNames(value.ProtocolReference, value.DataReference);
+            string bloc = m_ResourceCatalog.ResolveLocalizerBlocName(value.ProtocolReference, value.DataReference, value.BlocReference);
+            m_Scene.FMRIManager.ApplySynchronizedLocalizer(value.Enabled, names.Protocol, names.Data, bloc, value.TimelineIndex, value.Minimum, value.Middle, value.Maximum);
         }
 
         private void WriteSceneBoolean(SetSceneBoolean value)
@@ -3597,16 +3609,20 @@ namespace HBP.Sync.Scene
         private SetIbcDifumoDisplay CreateIbcDifumoDisplay()
         {
             FMRIManager manager = RequireFmriManager();
-            string ibcReference = Object3DManager.IBC.Loaded ? manager.SelectedIBCContrastID.ToString(CultureInfo.InvariantCulture) : string.Empty;
+            string ibcReference = m_ResourceCatalog != null && SessionAtlasCatalog.CanUse("ibc") ? m_ResourceCatalog.IbcContrastReference(manager.SelectedIBCContrastID) : string.Empty;
             string selectedDiFuMoAtlas = manager.SelectedDiFuMoAtlas;
-            string difumoReference = !string.IsNullOrWhiteSpace(selectedDiFuMoAtlas) && Object3DManager.DiFuMo.IsLoaded(selectedDiFuMoAtlas) ? selectedDiFuMoAtlas : string.Empty;
+            string difumoReference = m_ResourceCatalog != null && !string.IsNullOrWhiteSpace(selectedDiFuMoAtlas) && SessionAtlasCatalog.CanUse("difumo:" + selectedDiFuMoAtlas) ? m_ResourceCatalog.DifumoReference(selectedDiFuMoAtlas) : string.Empty;
             return new SetIbcDifumoDisplay(manager.DisplayIBCContrasts, ibcReference, manager.DisplayDiFuMo, difumoReference, Math.Max(0, manager.SelectedDiFuMoArea));
         }
 
         private SetLocalizerDisplay CreateLocalizerDisplay()
         {
             FMRIManager manager = RequireFmriManager();
-            return new SetLocalizerDisplay(manager.DisplayLocalizers, manager.SelectedLocalizersProtocol ?? string.Empty, manager.SelectedLocalizersData ?? string.Empty, manager.SelectedLocalizersBloc ?? string.Empty, Math.Max(0, manager.SelectedLocalizersTimelineIndex), manager.LocalizersMin, manager.LocalizersMiddle, manager.LocalizersMax);
+            bool ready = m_ResourceCatalog != null && !string.IsNullOrEmpty(manager.SelectedLocalizersProtocol) && SessionAtlasCatalog.CanUse("localizer:" + manager.SelectedLocalizersProtocol);
+            string protocol = ready ? m_ResourceCatalog.LocalizerProtocolReference(manager.SelectedLocalizersProtocol) : string.Empty;
+            string data = ready ? m_ResourceCatalog.LocalizerDataReference(manager.SelectedLocalizersProtocol, manager.SelectedLocalizersData) : string.Empty;
+            string bloc = ready ? m_ResourceCatalog.LocalizerBlocReference(manager.SelectedLocalizersProtocol, manager.SelectedLocalizersData, manager.SelectedLocalizersBloc) : string.Empty;
+            return new SetLocalizerDisplay(manager.DisplayLocalizers, protocol, data, bloc, Math.Max(0, manager.SelectedLocalizersTimelineIndex), manager.LocalizersMin, manager.LocalizersMiddle, manager.LocalizersMax);
         }
 
         private SetFmriAtlasCalibration CreateFmriAtlasCalibration()
@@ -4006,6 +4022,7 @@ namespace HBP.Sync.Scene
             m_Cuts.Clear();
             m_CutDefinitionSnapshots.Clear();
             m_Timelines.Clear();
+            if (m_Scene != null) m_Scene.AtlasUseAdmission -= SessionAtlasCatalog.Require;
             m_ResourceCatalog = null;
         }
 

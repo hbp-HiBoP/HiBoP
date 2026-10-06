@@ -458,40 +458,12 @@ namespace HBP.Data.Module3D
 
         private async UniTask LoadConfiguredResourcesAsync(CancellationToken token)
         {
-            var state = Visualization.Configuration.AtlasConfiguration;
-            token.ThrowIfCancellationRequested();
-            await UniTask.SwitchToThreadPool();
-            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
-            if (state == null)
+            foreach (string id in RequiredAtlasIds())
             {
-                await UniTask.SwitchToMainThread();
-                return;
+                var result = await AtlasResources.LoadAsync(id, token);
+                if (!result.Succeeded) throw new System.IO.InvalidDataException(result.Error);
             }
 
-            if (state.JuBrain && !Object3DManager.JuBrain.Loaded) Object3DManager.JuBrain.Load();
-            if (state.IBC)
-            {
-                if (Object3DManager.IBC.FMRI == null) Object3DManager.IBC.Load();
-                await Object3DManager.IBC.FMRI.LoadAsync();
-                await Object3DManager.IBC.Information.LoadCompletion;
-            }
-
-            if (!string.IsNullOrEmpty(state.DiFuMoAtlas))
-            {
-                if (!Object3DManager.DiFuMo.FMRIs.ContainsKey(state.DiFuMoAtlas)) Object3DManager.DiFuMo.Load(state.DiFuMoAtlas);
-                await Object3DManager.DiFuMo.FMRIs[state.DiFuMoAtlas].LoadAsync();
-                await Object3DManager.DiFuMo.Information[state.DiFuMoAtlas].LoadCompletion;
-            }
-
-            if (!string.IsNullOrEmpty(state.LocalizerProtocol))
-            {
-                if (!Object3DManager.Localizers.Protocols.Any(p => p.Name == state.LocalizerProtocol) && !Object3DManager.Localizers.TryLoad(state.LocalizerProtocol)) throw new System.IO.InvalidDataException("Localizer protocol is unavailable.");
-                var fmri = Object3DManager.Localizers.GetCurrentFMRI(state.LocalizerProtocol, state.LocalizerData, state.LocalizerBloc);
-                if (fmri == null) throw new System.IO.InvalidDataException("Localizer resource is unavailable.");
-                await fmri.LoadAsync();
-            }
-
-            await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
         }
     }

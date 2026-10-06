@@ -18,6 +18,7 @@ namespace HBP.UI.Main
         [SerializeField] Dropdown m_TemporalSamplingDropdown;
         [SerializeField] InputField m_CorrelationAlphaInputField;
         [SerializeField] Toggle m_BonferroniCorrectionToggle;
+        public NormalizationType RequestedNormalization { get; private set; }
         private readonly NormalizationType[] m_UserNormalizationTypes = ((NormalizationType[])Enum.GetValues(typeof(NormalizationType))).Where(value => value != NormalizationType.Auto).ToArray();
 
         public override bool Interactable
@@ -43,7 +44,7 @@ namespace HBP.UI.Main
         {
             base.Initialize();
 
-            m_EEGNormalizationDropdown.onValueChanged.AddListener(value => Object.Normalization = m_UserNormalizationTypes[value]);
+            m_EEGNormalizationDropdown.onValueChanged.AddListener(value => RequestedNormalization = m_UserNormalizationTypes[value]);
             m_EEGAveragingDropdown.onValueChanged.AddListener(value => Object.Averaging = (AveragingType)value);
             m_TemporalSamplingDropdown.onValueChanged.AddListener(value => Object.TemporalSampling = (TemporalSamplingPolicy)value);
             m_CorrelationAlphaInputField.onEndEdit.AddListener((value) =>
@@ -69,7 +70,8 @@ namespace HBP.UI.Main
             base.SetFields(objectToDisplay);
 
             m_EEGNormalizationDropdown.options = m_UserNormalizationTypes.Select(value => new Dropdown.OptionData(value.ToString().CamelCaseToWords())).ToList();
-            m_EEGNormalizationDropdown.SetValue(Array.IndexOf(m_UserNormalizationTypes, objectToDisplay.Normalization));
+            RequestedNormalization = objectToDisplay.Normalization;
+            m_EEGNormalizationDropdown.SetValueWithoutNotify(Array.IndexOf(m_UserNormalizationTypes, RequestedNormalization));
             m_EEGNormalizationDropdown.RefreshShownValue();
             m_EEGAveragingDropdown.Set(typeof(AveragingType), (int)objectToDisplay.Averaging);
             m_TemporalSamplingDropdown.Set(typeof(TemporalSamplingPolicy), (int)objectToDisplay.TemporalSampling);

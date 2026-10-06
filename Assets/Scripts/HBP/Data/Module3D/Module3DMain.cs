@@ -417,22 +417,7 @@ namespace HBP.Data.Module3D
 
             // Objects 3D
             Base3DScene.TrackStandardPreparation(Object3DManager.MNI.Load());
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerAUDI) Object3DManager.Localizers.TryLoad("AUDI");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC1) Object3DManager.Localizers.TryLoad("LEC1");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC2) Object3DManager.Localizers.TryLoad("LEC2");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMCSE) Object3DManager.Localizers.TryLoad("MCSE");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMOTO) Object3DManager.Localizers.TryLoad("MOTO");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.TryLoad("MVEB");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.TryLoad("MVIS");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.TryLoad("VISU");
+            AtlasResources.PreloadAsync(PersistentDataManager.UserPreferences.Data.Atlases).Forget();
         }
 
         #endregion

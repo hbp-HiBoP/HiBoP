@@ -32,6 +32,8 @@ namespace HBP.Data.Module3D
         internal static void ResetStandardResourcesWhenUnused()
         {
             s_ResetStandardResourcesWhenUnused = true;
+            AtlasResources.Changed -= StandardAtlasAvailabilityChanged;
+            AtlasResources.Changed += StandardAtlasAvailabilityChanged;
             FinishStandardResourceResetAsync().Forget();
         }
 
@@ -64,9 +66,13 @@ namespace HBP.Data.Module3D
         private static void TryResetStandardResources()
         {
             if (!s_ResetStandardResourcesWhenUnused || s_LiveScenes.Count != 0 || !s_StandardPreparation.Status.IsCompleted()) return;
+            if (AtlasResources.Definitions.Any(atlas => Core.Tools.ResourceRetention.GetReleaseBlockReason(atlas.Id) != null)) return;
             s_ResetStandardResourcesWhenUnused = false;
+            AtlasResources.Changed -= StandardAtlasAvailabilityChanged;
             Object3DManager.Reset();
         }
+
+        private static void StandardAtlasAvailabilityChanged(AtlasLoadResult result) => TryResetStandardResources();
 
         private void PreferencesChanged()
         {

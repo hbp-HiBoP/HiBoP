@@ -14,7 +14,7 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 - Both directions use the same business setters and targeted invalidations. Remote application suppresses re-emission without bypassing domain behavior.
 - Filter and correlation jobs run only on Desktop while online; Quest waits for the canonical result. Activity projection runs locally on both devices.
 - A 500 ms disconnection grace queues and retries operations. Beyond it, both peers continue locally. Reconnection chooses one whole state—Desktop or Quest—rather than merging.
-- Heavy resources are transferred only with the initial/full scene delivery. Incremental messages reference a verified manifest. A missing resource requires a full resend.
+- Source resource files are transferred only with a full scene delivery. Installed atlases may become available during the pairing session after both peers load identical verified content. Other missing source resources require a full resend.
 - Local camera, Quest wrapper pose/scale, tracked poses, hover and UI layout remain local. Scientific selections and parameters are shared.
 - Future multi-scene support is designed into identifiers and envelopes now, but implemented after the online single-scene core.
 - Automated tests are a development-loop feature: the fast sync suite must stay deterministic and short. Real sockets, sleeps, full scene loads and device tests do not belong in the per-edit tier.
@@ -52,3 +52,5 @@ M1 cut-ID fix retest (2026-09-28): [editor-signed build and physical result](M1-
 These documents supersede the previous S1 state codec, S2 live adapter and S3 active-session plans as well as future-sync assumptions in `../05-state-command-and-sync-model.md`. Historical task records remain useful evidence, not requirements.
 
 If code and these documents disagree during the refactor, the documented v2 behavior is the target. An agent must record a genuine blocker or request a specification decision rather than silently preserving legacy behavior.
+
+Session policy milestone: [Préférences et atlas de session](tasks/SessionPreferencesAndAtlases.md). All preferences are Desktop-authoritative; connected saves apply in memory on Quest without writing its preferences file.

@@ -22,13 +22,13 @@ namespace HBP.Sync.Scene
         private readonly string[] m_MeshRefs;
         private readonly string[] m_MriRefs;
         private readonly string[] m_ImplantationRefs;
-        private readonly FMRI m_Ibc;
-        private readonly string[] m_IbcContrastRefs;
-        private readonly KeyValuePair<string, FMRI>[] m_DifumoAtlases;
-        private readonly string[] m_DifumoRefs;
-        private readonly (LocalizerProtocol Resource, string Reference)[] m_LocalizerProtocols;
-        private readonly (LocalizerProtocol Protocol, LocalizerData Resource, string Reference)[] m_LocalizerDatas;
-        private readonly (LocalizerProtocol Protocol, LocalizerData Data, LocalizerBloc Resource, string Reference)[] m_LocalizerBlocs;
+        private FMRI m_Ibc;
+        private string[] m_IbcContrastRefs;
+        private KeyValuePair<string, FMRI>[] m_DifumoAtlases;
+        private string[] m_DifumoRefs;
+        private (LocalizerProtocol Resource, string Reference)[] m_LocalizerProtocols;
+        private (LocalizerProtocol Protocol, LocalizerData Resource, string Reference)[] m_LocalizerDatas;
+        private (LocalizerProtocol Protocol, LocalizerData Data, LocalizerBloc Resource, string Reference)[] m_LocalizerBlocs;
         private readonly Dictionary<string, (Column3D Column, object[] Resources, string[] References)> m_ColumnResources = new();
 
         public PreparedSceneResourceCatalog(Base3DScene scene, string manifestHash)
@@ -43,6 +43,19 @@ namespace HBP.Sync.Scene
             m_MeshRefs = MakeReferences("mesh", manifestHash, m_Meshes.Length);
             m_MriRefs = MakeReferences("mri", manifestHash, m_Mris.Length);
             m_ImplantationRefs = m_Implantations.Select(ComputeImplantationReference).ToArray();
+            RefreshAtlases();
+            foreach (Column3D column in scene.Columns)
+            {
+                string id = column.ColumnData.ID;
+                object[] resources = ColumnResources(column);
+                string kind = column is Column3DStatic ? "static" : "functional";
+                string[] references = column is Column3DStatic staticColumn ? staticColumn.Labels.Select(label => ContentReference("static", id, label, StaticLabelFingerprint(staticColumn, label))).ToArray() : MakeReferences(kind, manifestHash + ":" + id, resources.Length);
+                m_ColumnResources.Add(id, (column, resources, references));
+            }
+        }
+
+        private void RefreshAtlases()
+        {
             m_Ibc = Object3DManager.IBC.Loaded ? Object3DManager.IBC.FMRI : null;
             string ibcLabels = m_Ibc == null ? null : IbcLabelsFingerprint();
             m_IbcContrastRefs = m_Ibc == null ? Array.Empty<string>() : Enumerable.Range(0, m_Ibc.Volumes.Count).Select(index => ContentReference("ibc", index.ToString(CultureInfo.InvariantCulture), m_Ibc.SourceHash, ibcLabels)).ToArray();
@@ -54,14 +67,6 @@ namespace HBP.Sync.Scene
             m_LocalizerBlocs = blocs.Select(entry => (entry.Protocol, entry.Data, entry.Resource, ContentReference("localizer-bloc", entry.Protocol.Name, entry.Data.Name, entry.Resource.Name, entry.Resource.FMRI.SourceHash, entry.Resource.FMRI.SourceCompanionHash, entry.Resource.FMRI.MaskHash, entry.Resource.FMRI.MaskCompanionHash))).ToArray();
             m_LocalizerDatas = datas.Select(entry => (entry.Protocol, entry.Resource, ContentReference("localizer-data", entry.Protocol.Name, entry.Resource.Name, string.Join("|", m_LocalizerBlocs.Where(bloc => ReferenceEquals(bloc.Data, entry.Resource)).Select(bloc => bloc.Reference))))).ToArray();
             m_LocalizerProtocols = protocols.Select(resource => (resource, ContentReference("localizer-protocol", resource.Name, string.Join("|", m_LocalizerDatas.Where(data => ReferenceEquals(data.Protocol, resource)).Select(data => data.Reference))))).ToArray();
-            foreach (Column3D column in scene.Columns)
-            {
-                string id = column.ColumnData.ID;
-                object[] resources = ColumnResources(column);
-                string kind = column is Column3DStatic ? "static" : "functional";
-                string[] references = column is Column3DStatic staticColumn ? staticColumn.Labels.Select(label => ContentReference("static", id, label, StaticLabelFingerprint(staticColumn, label))).ToArray() : MakeReferences(kind, manifestHash + ":" + id, resources.Length);
-                m_ColumnResources.Add(id, (column, resources, references));
-            }
         }
 
         public void AssertPreparedRoster()
@@ -70,26 +75,6 @@ namespace HBP.Sync.Scene
                 throw new InvalidDataException("Prepared scene resource roster changed during the synchronization epoch.");
             if (!m_Implantations.Select(ComputeImplantationReference).SequenceEqual(m_ImplantationRefs))
                 throw new InvalidDataException("Prepared implantation data changed during the synchronization epoch.");
-            if (m_Ibc != null && (!Object3DManager.IBC.Loaded || !ReferenceEquals(Object3DManager.IBC.FMRI, m_Ibc)) || m_Ibc == null && Object3DManager.IBC.Loaded)
-                throw new InvalidDataException("Prepared IBC resource changed.");
-            if (m_Ibc != null)
-            {
-                string ibcLabels = IbcLabelsFingerprint();
-                if (!Enumerable.Range(0, m_IbcContrastRefs.Length).Select(index => ContentReference("ibc", index.ToString(CultureInfo.InvariantCulture), m_Ibc.SourceHash, ibcLabels)).SequenceEqual(m_IbcContrastRefs))
-                    throw new InvalidDataException("Prepared IBC labels changed.");
-            }
-
-            var difumo = Object3DManager.DiFuMo.FMRIs.Where(entry => Object3DManager.DiFuMo.IsLoaded(entry.Key)).OrderBy(entry => entry.Key, StringComparer.Ordinal);
-            if (!m_DifumoAtlases.SequenceEqual(difumo))
-                throw new InvalidDataException("Prepared DiFuMo resources changed.");
-            if (!m_DifumoAtlases.Select(entry => ContentReference("difumo", entry.Key, entry.Value.SourceHash, DifumoLabelsFingerprint(entry.Key))).SequenceEqual(m_DifumoRefs))
-                throw new InvalidDataException("Prepared DiFuMo labels changed.");
-            LocalizerProtocol[] protocols = PreparedLocalizerProtocols();
-            if (!m_LocalizerProtocols.Select(entry => entry.Resource).SequenceEqual(protocols)) throw new InvalidDataException("Prepared localizer protocols changed.");
-            var datas = protocols.SelectMany(protocol => protocol.Datas.Where(data => data.Blocs.Count > 0 && data.Loaded).OrderBy(data => data.Name, StringComparer.Ordinal).Select(data => (Protocol: protocol, Resource: data)));
-            if (!m_LocalizerDatas.Select(entry => (entry.Protocol, entry.Resource)).SequenceEqual(datas)) throw new InvalidDataException("Prepared localizer data changed.");
-            var blocs = datas.SelectMany(entry => entry.Resource.Blocs.Where(bloc => bloc.Loaded).OrderBy(bloc => bloc.Name, StringComparer.Ordinal).Select(bloc => (entry.Protocol, Data: entry.Resource, Resource: bloc)));
-            if (!m_LocalizerBlocs.Select(entry => (entry.Protocol, entry.Data, entry.Resource)).SequenceEqual(blocs)) throw new InvalidDataException("Prepared localizer blocs changed.");
             if (!m_ColumnResources.Keys.OrderBy(id => id, StringComparer.Ordinal).SequenceEqual(m_Scene.Columns.Select(column => column.ColumnData.ID).OrderBy(id => id, StringComparer.Ordinal)))
                 throw new InvalidDataException("Prepared column resource roster changed.");
             foreach (var entry in m_ColumnResources.Values)
@@ -191,11 +176,18 @@ namespace HBP.Sync.Scene
         public MRI3D ResolveMri(string reference) => Resolve(m_Mris, m_MriRefs, reference, mri => mri.IsLoaded);
         public Implantation3D ResolveImplantation(string reference) => Resolve(m_Implantations, m_ImplantationRefs, reference, implantation => implantation.IsLoaded);
 
-        public string IbcContrastReference(int index) => m_Ibc != null && index >= 0 && index < m_IbcContrastRefs.Length ? m_IbcContrastRefs[index] : "";
+        public string IbcContrastReference(int index)
+        {
+            RefreshAtlases();
+            SessionAtlasCatalog.Require("ibc");
+            return m_Ibc != null && index >= 0 && index < m_IbcContrastRefs.Length ? m_IbcContrastRefs[index] : "";
+        }
 
         public int ResolveIbcContrast(string reference)
         {
+            RefreshAtlases();
             if (reference.Length == 0) return -1;
+            SessionAtlasCatalog.Require("ibc");
             int index = Array.IndexOf(m_IbcContrastRefs, reference);
             if (index < 0 || m_Ibc == null || !Object3DManager.IBC.Loaded) throw new InvalidDataException("IBC contrast is absent from the prepared atlas.");
             return index;
@@ -203,6 +195,8 @@ namespace HBP.Sync.Scene
 
         public string DifumoReference(string atlas)
         {
+            RefreshAtlases();
+            SessionAtlasCatalog.Require("difumo:" + atlas);
             for (int i = 0; i < m_DifumoAtlases.Length; i++)
                 if (m_DifumoAtlases[i].Key == atlas)
                     return m_DifumoRefs[i];
@@ -211,46 +205,73 @@ namespace HBP.Sync.Scene
 
         public string ResolveDifumo(string reference)
         {
+            RefreshAtlases();
             if (reference.Length == 0) return "";
             int index = Array.IndexOf(m_DifumoRefs, reference);
             if (index < 0 || !Object3DManager.DiFuMo.IsLoaded(m_DifumoAtlases[index].Key)) throw new InvalidDataException("DiFuMo atlas is absent from the prepared resources.");
+            SessionAtlasCatalog.Require("difumo:" + m_DifumoAtlases[index].Key);
             return m_DifumoAtlases[index].Key;
         }
 
-        public int DifumoVolumeCount(string atlas) => m_DifumoAtlases.Single(entry => entry.Key == atlas).Value.Volumes.Count;
+        public int DifumoVolumeCount(string atlas)
+        {
+            RefreshAtlases();
+            return m_DifumoAtlases.Single(entry => entry.Key == atlas).Value.Volumes.Count;
+        }
 
-        public string LocalizerProtocolReference(string name) => m_LocalizerProtocols.FirstOrDefault(entry => entry.Resource.Name == name).Reference ?? "";
+        public string LocalizerProtocolReference(string name)
+        {
+            RefreshAtlases();
+            SessionAtlasCatalog.Require("localizer:" + name);
+            return m_LocalizerProtocols.FirstOrDefault(entry => entry.Resource.Name == name).Reference ?? "";
+        }
 
-        public string LocalizerDataReference(string protocolName, string dataName) => m_LocalizerDatas.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Resource.Name == dataName).Reference ?? "";
+        public string LocalizerDataReference(string protocolName, string dataName)
+        {
+            RefreshAtlases();
+            SessionAtlasCatalog.Require("localizer:" + protocolName);
+            return m_LocalizerDatas.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Resource.Name == dataName).Reference ?? "";
+        }
 
-        public string LocalizerBlocReference(string protocolName, string dataName, string blocName) => m_LocalizerBlocs.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Data.Name == dataName && entry.Resource.Name == blocName).Reference ?? "";
+        public string LocalizerBlocReference(string protocolName, string dataName, string blocName)
+        {
+            RefreshAtlases();
+            SessionAtlasCatalog.Require("localizer:" + protocolName);
+            return m_LocalizerBlocs.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Data.Name == dataName && entry.Resource.Name == blocName).Reference ?? "";
+        }
 
         public FMRI ResolveLocalizer(string protocolReference, string dataReference, string blocReference)
         {
+            RefreshAtlases();
             if (protocolReference.Length == 0 && dataReference.Length == 0 && blocReference.Length == 0) return null;
             var protocol = m_LocalizerProtocols.FirstOrDefault(entry => entry.Reference == protocolReference).Resource;
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             var bloc = m_LocalizerBlocs.FirstOrDefault(entry => entry.Reference == blocReference && ReferenceEquals(entry.Protocol, protocol) && ReferenceEquals(entry.Data, data)).Resource;
             if (protocol == null || data == null || bloc == null || !bloc.Loaded) throw new InvalidDataException("Localizer selection is absent from the prepared atlas.");
+            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
             return bloc.FMRI;
         }
 
         public (string Protocol, string Data) ResolveLocalizerNames(string protocolReference, string dataReference)
         {
+            RefreshAtlases();
             if (protocolReference.Length == 0 && dataReference.Length == 0) return ("", "");
             var protocol = m_LocalizerProtocols.FirstOrDefault(entry => entry.Reference == protocolReference).Resource;
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             if (protocol == null || data == null) throw new InvalidDataException("Localizer source is absent from the prepared atlas.");
+            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
             return (protocol.Name, data.Name);
         }
 
         public string ResolveLocalizerBlocName(string protocolReference, string dataReference, string blocReference)
         {
+            RefreshAtlases();
             if (protocolReference.Length == 0 && dataReference.Length == 0 && blocReference.Length == 0) return "";
             var protocol = m_LocalizerProtocols.FirstOrDefault(entry => entry.Reference == protocolReference).Resource;
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             var bloc = m_LocalizerBlocs.FirstOrDefault(entry => entry.Reference == blocReference && ReferenceEquals(entry.Protocol, protocol) && ReferenceEquals(entry.Data, data)).Resource;
             if (bloc == null || !bloc.Loaded) throw new InvalidDataException("Localizer bloc is absent from the prepared atlas.");
+            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
             return bloc.Name;
         }
 

@@ -2197,6 +2197,7 @@ namespace HBP.Data.Module3D
             Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
             Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
 
+            RegisterAtlasUsage();
             s_LiveScenes.Add(this);
             SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
             if (m_DesktopPresentation) m_DesktopPresentation.Initialize();

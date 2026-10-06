@@ -25,16 +25,19 @@ namespace HBP.Core.Object3D
             }
         }
 
-        public void Load(string atlas)
+        public void Load(string atlas, bool loadInBackground = true)
         {
+            if (FMRIs.ContainsKey(atlas)) return;
+            ResourceRetention.EnsureCanUse("difumo:" + atlas);
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, string.Format("labels_{0}_dictionary.csv", atlas));
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, "3mm", "maps.nii.gz");
-            FMRIs.Add(atlas, new FMRI(atlas, file));
+            FMRIs.Add(atlas, new FMRI(atlas, file, loadInBackground: loadInBackground));
             Information.Add(atlas, new DiFuMoInformation(csvFile));
         }
 
         public void Unload(string atlas)
         {
+            ResourceRetention.EnsureCanRelease("difumo:" + atlas);
             if (FMRIs.TryGetValue(atlas, out FMRI fmri))
             {
                 fmri?.Clean();

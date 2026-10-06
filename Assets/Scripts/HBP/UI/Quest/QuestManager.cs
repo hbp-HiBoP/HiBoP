@@ -7,6 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Core.Object3D;
+using HBP.Core.Preferences;
+using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
@@ -39,6 +42,54 @@ namespace HBP.Quest.Desktop
         private DesktopReplicaSession replica;
         private DesktopV2ReplicaSession publicationReplica;
         private PairingSnapshot globals;
+        private DesktopSessionPreferences sessionPreferences;
+        private readonly SemaphoreSlim sessionOperations = new(1, 1);
+        private long sessionGeneration;
+        public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
+        public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
+        public bool HasSharedScene => publicationReplica != null && !publicationReplica.IsClosed || replica != null && !replica.IsClosed;
+        public Task<string> ValidatePreferencesChangeAsync(NormalizationType requested) => IsPaired && sessionPreferences != null ? sessionPreferences.ValidateNormalizationAsync(requested, HasSharedScene) : Task.FromResult(ValidatePreferencesChangeNow(requested));
+        public string ValidatePreferencesChangeNow(NormalizationType requested) => requested != PersistentDataManager.UserPreferences.Data.EEG.Normalization && (HasSharedScene || IsBusy || sessionPreferences?.QuestHasSharedScene == true) ? "Close shared visualizations and wait for the Quest operation to finish before changing EEG normalization." : null;
+
+        public async Task SetAtlasLoadedAsync(string id, bool loaded)
+        {
+            await sessionOperations.WaitAsync(lifetime.Token);
+            try
+            {
+                if (IsPaired && sessionPreferences != null) await sessionPreferences.SetAtlasLoadedAsync(id, loaded);
+                else if (loaded)
+                {
+                    var result = await AtlasResources.LoadAsync(id, lifetime.Token);
+                    if (!result.Succeeded) throw new InvalidOperationException(result.Error);
+                }
+                else AtlasResources.Unload(id);
+            }
+            finally
+            {
+                sessionOperations.Release();
+            }
+        }
+
+        public async Task RetryAtlasAsync()
+        {
+            await sessionOperations.WaitAsync(lifetime.Token);
+            try
+            {
+                if (sessionPreferences != null) await sessionPreferences.RetryAtlasAsync();
+            }
+            finally
+            {
+                sessionOperations.Release();
+            }
+        }
+
+        private void SessionConnectionLost()
+        {
+            connected = false;
+            sessionPreferences?.Dispose();
+            SetStatus("Quest disconnected. Pending preference and atlas operations were abandoned.");
+        }
+
         private CancellationTokenSource operation;
         private readonly CancellationTokenSource lifetime = new();
         private Task running = Task.CompletedTask, discovering = Task.CompletedTask;
@@ -181,8 +232,23 @@ namespace HBP.Quest.Desktop
             await UniTask.NextFrame(cancellationToken: token);
             globals ??= PairingSnapshot.Capture();
             SetStatus("Connecting to paired Quest...");
-            await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, (stream, stop) => globals.Delivery.SendAsync(stream, stop));
-            connected = true;
+            sessionPreferences?.Dispose();
+            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
+            sessionPreferences = controls;
+            controls.Changed += () => Changed?.Invoke();
+            controls.ConnectionLost += SessionConnectionLost;
+            try
+            {
+                await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, (stream, stop) => globals.Delivery.SendAsync(stream, stop));
+                await controls.StartAsync();
+                connected = true;
+            }
+            catch
+            {
+                controls.Dispose();
+                throw;
+            }
+
             nextHeartbeat = Time.unscaledTime + 5;
             SetStatus("Quest paired and ready for a visualization.");
         }
@@ -209,6 +275,7 @@ namespace HBP.Quest.Desktop
                     if (!IsPaired && reconnect && credential != null) await RestoreAsync(token);
                     if (!IsPaired) throw new InvalidOperationException("Pair a Quest first.");
                     if (retry && !CanRetry) throw new InvalidOperationException("No prepared visualization is available to retry.");
+                    if (sessionPreferences != null) await sessionPreferences.FlushPreferencesAsync();
                     failedDelivery = false;
                     var context = SynchronizationContext.Current;
                     bool retryCurrent = retry && publicationReplica?.CanRetryTransfer == true;
@@ -237,6 +304,11 @@ namespace HBP.Quest.Desktop
                                         publicationReplica?.Dispose();
                                         publicationReplica = null;
                                         Report(0.02f, "Preparing visualization");
+                                        await UniTask.SwitchToMainThread(stop);
+                                        var sceneToSend = sourceScene != null ? sourceScene : Module3DMain.IsInitialized ? Module3DMain.SelectedScene : null;
+                                        if (sceneToSend != null && sessionPreferences != null)
+                                            foreach (string atlas in sceneToSend.RequiredAtlasIds())
+                                                await sessionPreferences.EnsureAtlasReadyAsync(atlas);
                                         offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene, requestedTransferId, captureGeneration, (scene, transferId, sessionId) => { publicationReplica = new DesktopV2ReplicaSession(scene, sessionId, transferId); });
                                         Report(0.20f, "Connecting to Quest");
                                     }
@@ -343,6 +415,7 @@ namespace HBP.Quest.Desktop
         {
             using var attempt = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             operation = attempt;
+            await sessionOperations.WaitAsync(lifetime.Token);
             try
             {
                 await action(attempt.Token);
@@ -351,6 +424,7 @@ namespace HBP.Quest.Desktop
             {
                 await UniTask.SwitchToMainThread();
                 connected = false;
+                sessionPreferences?.Dispose();
                 if (exception is AuthenticationException)
                 {
                     reconnect = false;
@@ -368,6 +442,7 @@ namespace HBP.Quest.Desktop
             finally
             {
                 await UniTask.SwitchToMainThread();
+                sessionOperations.Release();
                 operation = null;
                 busy = false;
                 Changed?.Invoke();
@@ -443,6 +518,8 @@ namespace HBP.Quest.Desktop
 
         private void ClearPairing()
         {
+            sessionPreferences?.Dispose();
+            sessionPreferences = null;
             replica?.Dispose();
             replica = null;
             publicationReplica?.Dispose();

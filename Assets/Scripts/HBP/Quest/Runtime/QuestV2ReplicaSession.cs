@@ -25,6 +25,7 @@ namespace HBP.Quest
 
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly Base3DScene m_Scene;
+        private readonly HBP.Core.Preferences.UserPreferences m_SessionPreferences;
         private readonly V2SceneMutationBoundary m_Boundary;
         private readonly V2TimelineClockEstimator m_TimelineClock;
         private readonly V2OutgoingScheduler m_Scheduler;
@@ -108,6 +109,8 @@ namespace HBP.Quest
             if (binding == null) throw new ArgumentNullException(nameof(binding));
             m_Identity = binding.CreateV2Identity();
             m_Scene = scene;
+            m_SessionPreferences = HBP.Core.Preferences.PersistentDataManager.IsInitialized ? HBP.Core.Preferences.PersistentDataManager.UserPreferences : null;
+            m_SessionPreferences?.OnSavePreferences.AddListener(OnSessionPreferencesApplied);
             TransferId = binding.TransferId;
             ManifestHash = binding.ManifestHash;
             m_TimelineClock = new V2TimelineClockEstimator(StopwatchMonotonicClock.Instance);
@@ -162,6 +165,11 @@ namespace HBP.Quest
                 {
                 }
             }
+        }
+
+        private void OnSessionPreferencesApplied()
+        {
+            if (!m_Disposed && SessionAtlasCatalog.Active) m_Scene.SetCoordinatedAutomaticRecomputePolicy(m_SessionPreferences.Visualization._3D.AutomaticEEGUpdate);
         }
 
         private void OnProposalQueued(V2QuestMutationProposal proposal) => m_Transport.NotifySchedulerChanged();
@@ -490,7 +498,7 @@ namespace HBP.Quest
             switch (control.Kind)
             {
                 case V2ActivityProjectionControlKind.Policy:
-                    m_Scene.SetCoordinatedAutomaticRecomputePolicy(control.AutomaticPolicyEnabled);
+                    m_Scene.SetCoordinatedAutomaticRecomputePolicy(SessionAtlasCatalog.Active && m_SessionPreferences != null ? m_SessionPreferences.Visualization._3D.AutomaticEEGUpdate : control.AutomaticPolicyEnabled);
                     m_ApplyingRemoteProjectionRequest = true;
                     try
                     {
@@ -1566,6 +1574,7 @@ namespace HBP.Quest
             m_CorrelationRequestRegistration?.Dispose();
             if (m_ActiveSiteFilterJob != null) EndSiteFilterJob(m_ActiveSiteFilterJob, new OperationCanceledException("The Quest replica session was disposed."));
             if (m_ActiveCorrelationJob != null) EndCorrelationJob(m_ActiveCorrelationJob, new OperationCanceledException("The Quest replica session was disposed."));
+            m_SessionPreferences?.OnSavePreferences.RemoveListener(OnSessionPreferencesApplied);
             m_SurfaceInflation.Dispose();
             m_Transport.Dispose();
             m_Driver.Dispose();

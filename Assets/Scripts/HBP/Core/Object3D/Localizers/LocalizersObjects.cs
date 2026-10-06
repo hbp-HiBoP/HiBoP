@@ -104,6 +104,8 @@ namespace HBP.Core.Object3D
 
         public bool TryLoad(string protocol)
         {
+            ResourceRetention.EnsureCanUse("localizer:" + protocol);
+            if (Protocols.Any(p => p.Name == protocol)) return true;
             string protocolDirectory = Path.Combine(LocalizersPath, protocol);
 
             if (Directory.Exists(protocolDirectory))
@@ -118,6 +120,7 @@ namespace HBP.Core.Object3D
 
         public void Unload(string protocolName)
         {
+            ResourceRetention.EnsureCanRelease("localizer:" + protocolName);
             var protocol = Protocols.FirstOrDefault(p => p.Name == protocolName);
             if (protocol != null)
             {
@@ -135,6 +138,7 @@ namespace HBP.Core.Object3D
         /// <returns>List of loaded bloc names that weren't previously loaded</returns>
         public async UniTask<List<string>> LoadSpecificBlocsAsync(string protocolName, string dataName, IEnumerable<string> blocNames)
         {
+            using var retained = ResourceRetention.Retain("localizer:" + protocolName);
             var loadedBlocs = new List<string>();
             if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || blocNames == null)
                 return loadedBlocs;
@@ -180,7 +184,7 @@ namespace HBP.Core.Object3D
                         data.Blocs.Add(bloc);
 
                         // Wait for the bloc to load
-                        await UniTask.WaitUntil(() => bloc.Loaded);
+                        await bloc.FMRI.LoadAsync();
                         loadedBlocs.Add(blocName);
                     }
                 }
@@ -203,6 +207,7 @@ namespace HBP.Core.Object3D
         /// <param name="blocNames">List of bloc names to unload</param>
         public void UnloadSpecificBlocs(string protocolName, string dataName, IEnumerable<string> blocNames)
         {
+            ResourceRetention.EnsureCanRelease("localizer:" + protocolName);
             if (string.IsNullOrEmpty(protocolName) || string.IsNullOrEmpty(dataName) || blocNames == null)
                 return;
 
@@ -279,17 +284,19 @@ namespace HBP.Core.Object3D
         public string Name { get; private set; }
         public List<LocalizerData> Datas { get; private set; } = new List<LocalizerData>();
         public bool Loaded => Datas.All(d => d.Loaded);
+        public bool CompleteInstallation { get; }
 
         #endregion
 
         #region Constructors
 
-        public LocalizerProtocol(string name, string protocolDirectory, bool loadBlocs = true)
+        public LocalizerProtocol(string name, string protocolDirectory, bool loadBlocs = true, bool loadInBackground = true)
         {
             Name = name;
+            CompleteInstallation = loadBlocs;
             if (loadBlocs)
             {
-                LoadDatasFromDirectory(protocolDirectory);
+                LoadDatasFromDirectory(protocolDirectory, loadInBackground);
             }
         }
 
@@ -297,7 +304,7 @@ namespace HBP.Core.Object3D
 
         #region Private Methods
 
-        private void LoadDatasFromDirectory(string directory)
+        private void LoadDatasFromDirectory(string directory, bool loadInBackground)
         {
             if (!Directory.Exists(directory))
                 return;
@@ -306,7 +313,7 @@ namespace HBP.Core.Object3D
             foreach (string dataDirectory in dataDirectories)
             {
                 string dataName = Path.GetFileName(dataDirectory);
-                LocalizerData data = new(dataName, dataDirectory);
+                LocalizerData data = new(dataName, dataDirectory, loadInBackground: loadInBackground);
                 if (data.Blocs.Count > 0)
                 {
                     Datas.Add(data);
@@ -341,12 +348,12 @@ namespace HBP.Core.Object3D
 
         #region Constructors
 
-        public LocalizerData(string name, string dataDirectory, bool loadBlocs = true)
+        public LocalizerData(string name, string dataDirectory, bool loadBlocs = true, bool loadInBackground = true)
         {
             Name = name;
             if (loadBlocs)
             {
-                LoadBlocsFromDirectory(dataDirectory);
+                LoadBlocsFromDirectory(dataDirectory, loadInBackground);
             }
         }
 
@@ -354,7 +361,7 @@ namespace HBP.Core.Object3D
 
         #region Private Methods
 
-        private void LoadBlocsFromDirectory(string directory)
+        private void LoadBlocsFromDirectory(string directory, bool loadInBackground)
         {
             if (!Directory.Exists(directory))
                 return;
@@ -366,7 +373,7 @@ namespace HBP.Core.Object3D
             {
                 string blocName = LocalizersHelpers.GetBlocNameFromFile(niftiFile);
                 string maskFile = FindMaskFileForBloc(directory, blocName, niftiExtensions);
-                LocalizerBloc bloc = new(blocName, niftiFile, maskFile);
+                LocalizerBloc bloc = new(blocName, niftiFile, maskFile, loadInBackground);
                 Blocs.Add(bloc);
             }
         }
@@ -413,10 +420,10 @@ namespace HBP.Core.Object3D
 
         #region Constructors
 
-        public LocalizerBloc(string name, string fmriFile, string maskFile = "")
+        public LocalizerBloc(string name, string fmriFile, string maskFile = "", bool loadInBackground = true)
         {
             Name = name;
-            FMRI = new FMRI(name, fmriFile, maskFile);
+            FMRI = new FMRI(name, fmriFile, maskFile, loadInBackground);
         }
 
         #endregion

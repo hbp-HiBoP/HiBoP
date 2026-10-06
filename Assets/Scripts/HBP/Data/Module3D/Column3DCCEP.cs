@@ -107,6 +107,12 @@ namespace HBP.Data.Module3D
             get { return m_SelectedSourceMarsAtlasLabel; }
             set
             {
+                if (value >= 0)
+                {
+                    Core.Tools.ResourceRetention.EnsureCanUse("mars");
+                    GetComponentInParent<Base3DScene>()?.EnsureAtlasCanBeUsed("mars");
+                }
+
                 if (m_SelectedSourceMarsAtlasLabel != value)
                 {
                     m_SelectedSourceMarsAtlasLabel = value;
@@ -119,6 +125,12 @@ namespace HBP.Data.Module3D
         /// <summary>Applies the complete synchronized source selection with one activity refresh.</summary>
         public void ApplySynchronizedSource(CCEPMode mode, Core.Object3D.Site sourceSite, int marsAtlasLabel)
         {
+            if (mode == CCEPMode.MarsAtlas && marsAtlasLabel >= 0)
+            {
+                Core.Tools.ResourceRetention.EnsureCanUse("mars");
+                GetComponentInParent<Base3DScene>()?.EnsureAtlasCanBeUsed("mars");
+            }
+
             if (mode != CCEPMode.Site && mode != CCEPMode.MarsAtlas) throw new System.ArgumentOutOfRangeException(nameof(mode));
             if (mode == CCEPMode.Site && marsAtlasLabel != -1 || mode == CCEPMode.MarsAtlas && sourceSite != null)
                 throw new System.ArgumentException("CCEP source fields do not match the selected mode.");

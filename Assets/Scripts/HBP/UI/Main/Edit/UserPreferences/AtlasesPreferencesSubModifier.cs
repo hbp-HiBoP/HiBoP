@@ -6,6 +6,8 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
 using System.Linq;
+using System;
+using HBP.Quest.Desktop;
 
 namespace HBP.UI.Main
 {
@@ -73,6 +75,9 @@ namespace HBP.UI.Main
         [SerializeField] Button m_IBCWebsite;
         [SerializeField] Button m_DiFuMoWebsite;
         [SerializeField] Button m_LocalizersWebsite;
+
+        [SerializeField] private Text m_SessionAtlasStatus;
+        [SerializeField] private Button m_RetryQuestAtlas;
 
         public override bool Interactable
         {
@@ -142,126 +147,28 @@ namespace HBP.UI.Main
             m_MVIS.onValueChanged.AddListener(value => Object.PreloadLocalizerMVIS = value);
             m_VISU.onValueChanged.AddListener(value => Object.PreloadLocalizerVISU = value);
 
-            m_LoadMarsAtlas.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.MarsAtlas.Loaded)
+            m_LoadMarsAtlas.onClick.AddListener(async () => await ToggleAtlasAsync("mars"));
+            m_LoadJuBrain.onClick.AddListener(async () => await ToggleAtlasAsync("jubrain"));
+            m_LoadIBC.onClick.AddListener(async () => await ToggleAtlasAsync("ibc"));
+            m_LoadDiFuMo64.onClick.AddListener(async () => await ToggleAtlasAsync("difumo:64"));
+            m_LoadDiFuMo128.onClick.AddListener(async () => await ToggleAtlasAsync("difumo:128"));
+            m_LoadDiFuMo256.onClick.AddListener(async () => await ToggleAtlasAsync("difumo:256"));
+            m_LoadDiFuMo512.onClick.AddListener(async () => await ToggleAtlasAsync("difumo:512"));
+            m_LoadDiFuMo1024.onClick.AddListener(async () => await ToggleAtlasAsync("difumo:1024"));
+            m_LoadAUDI.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:AUDI"));
+            m_LoadLEC1.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:LEC1"));
+            m_LoadLEC2.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:LEC2"));
+            m_LoadMCSE.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MCSE"));
+            m_LoadMOTO.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MOTO"));
+            m_LoadMVEB.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MVEB"));
+            m_LoadMVIS.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MVIS"));
+            m_LoadVISU.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:VISU"));
+            if (m_RetryQuestAtlas != null)
+                m_RetryQuestAtlas.onClick.AddListener(async () =>
                 {
-                    Object3DManager.UnloadMarsAtlas();
-                }
-                else
-                {
-                    Object3DManager.MarsAtlas.Load();
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.MarsAtlas.Loaded);
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadJuBrain.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.JuBrain.Loaded)
-                {
-                    Object3DManager.UnloadJuBrain();
-                }
-                else
-                {
-                    Object3DManager.JuBrain.Load();
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.JuBrain.Loaded);
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadIBC.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.IBC.Loaded)
-                {
-                    Object3DManager.UnloadIBC();
-                }
-                else
-                {
-                    Object3DManager.IBC.Load();
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.IBC.Loaded);
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadDiFuMo64.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.DiFuMo.IsLoaded("64"))
-                {
-                    Object3DManager.UnloadDiFuMo("64");
-                }
-                else
-                {
-                    Object3DManager.DiFuMo.Load("64");
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("64"));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadDiFuMo128.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.DiFuMo.IsLoaded("128"))
-                {
-                    Object3DManager.UnloadDiFuMo("128");
-                }
-                else
-                {
-                    Object3DManager.DiFuMo.Load("128");
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("128"));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadDiFuMo256.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.DiFuMo.IsLoaded("256"))
-                {
-                    Object3DManager.UnloadDiFuMo("256");
-                }
-                else
-                {
-                    Object3DManager.DiFuMo.Load("256");
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("256"));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadDiFuMo512.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.DiFuMo.IsLoaded("512"))
-                {
-                    Object3DManager.UnloadDiFuMo("512");
-                }
-                else
-                {
-                    Object3DManager.DiFuMo.Load("512");
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("512"));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadDiFuMo1024.onClick.AddListener(async () =>
-            {
-                if (Object3DManager.DiFuMo.IsLoaded("1024"))
-                {
-                    Object3DManager.UnloadDiFuMo("1024");
-                }
-                else
-                {
-                    Object3DManager.DiFuMo.Load("1024");
-                }
-
-                await UniTask.WaitUntil(() => Object3DManager.DiFuMo.IsLoaded("1024"));
-                Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            });
-            m_LoadAUDI.onClick.AddListener(async () => { await ToggleLocalizerAsync("AUDI"); });
-            m_LoadLEC1.onClick.AddListener(async () => { await ToggleLocalizerAsync("LEC1"); });
-            m_LoadLEC2.onClick.AddListener(async () => { await ToggleLocalizerAsync("LEC2"); });
-            m_LoadMCSE.onClick.AddListener(async () => { await ToggleLocalizerAsync("MCSE"); });
-            m_LoadMOTO.onClick.AddListener(async () => { await ToggleLocalizerAsync("MOTO"); });
-            m_LoadMVEB.onClick.AddListener(async () => { await ToggleLocalizerAsync("MVEB"); });
-            m_LoadMVIS.onClick.AddListener(async () => { await ToggleLocalizerAsync("MVIS"); });
-            m_LoadVISU.onClick.AddListener(async () => { await ToggleLocalizerAsync("VISU"); });
+                    if (QuestManager.IsInitialized) await QuestManager.Instance.RetryAtlasAsync();
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                });
 
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
@@ -276,15 +183,28 @@ namespace HBP.UI.Main
 
         protected void Update()
         {
-            UpdateButtonStatus(Object3DManager.MarsAtlas.Loaded, Object3DManager.MarsAtlas.Loading, m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
-            UpdateButtonStatus(Object3DManager.JuBrain.Loaded, Object3DManager.JuBrain.Loading, m_LoadJuBrain, m_LoadJuBrainThemeElement);
-            UpdateButtonStatus(Object3DManager.IBC.Loaded, Object3DManager.IBC.Loading, m_LoadIBC, m_LoadIBCThemeElement);
+            if (m_SessionAtlasStatus != null)
+            {
+                string status = QuestManager.IsInitialized ? QuestManager.Instance.PreferencesSyncStatus : "Atlas actions are local.";
+                if (m_SessionAtlasStatus.text != status)
+                {
+                    m_SessionAtlasStatus.text = status;
+                    var layout = m_SessionAtlasStatus.GetComponentInParent<LayoutElement>();
+                    if (layout != null) layout.preferredHeight = Math.Max(96, m_SessionAtlasStatus.preferredHeight + 16);
+                }
+            }
 
-            UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("64"), Object3DManager.DiFuMo.IsLoading("64"), m_LoadDiFuMo64, m_LoadDiFuMo64ThemeElement);
-            UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("128"), Object3DManager.DiFuMo.IsLoading("128"), m_LoadDiFuMo128, m_LoadDiFuMo128ThemeElement);
-            UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("256"), Object3DManager.DiFuMo.IsLoading("256"), m_LoadDiFuMo256, m_LoadDiFuMo256ThemeElement);
-            UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("512"), Object3DManager.DiFuMo.IsLoading("512"), m_LoadDiFuMo512, m_LoadDiFuMo512ThemeElement);
-            UpdateButtonStatus(Object3DManager.DiFuMo.IsLoaded("1024"), Object3DManager.DiFuMo.IsLoading("1024"), m_LoadDiFuMo1024, m_LoadDiFuMo1024ThemeElement);
+            if (m_RetryQuestAtlas != null) m_RetryQuestAtlas.interactable = QuestManager.IsInitialized && QuestManager.Instance.CanRetryAtlas;
+
+            UpdateButtonStatus(AtlasResources.IsLoaded("mars"), AtlasResources.Status("mars").State == AtlasLoadState.Loading, m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("jubrain"), AtlasResources.Status("jubrain").State == AtlasLoadState.Loading, m_LoadJuBrain, m_LoadJuBrainThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("ibc"), AtlasResources.Status("ibc").State == AtlasLoadState.Loading, m_LoadIBC, m_LoadIBCThemeElement);
+
+            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:64"), AtlasResources.Status("difumo:64").State == AtlasLoadState.Loading, m_LoadDiFuMo64, m_LoadDiFuMo64ThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:128"), AtlasResources.Status("difumo:128").State == AtlasLoadState.Loading, m_LoadDiFuMo128, m_LoadDiFuMo128ThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:256"), AtlasResources.Status("difumo:256").State == AtlasLoadState.Loading, m_LoadDiFuMo256, m_LoadDiFuMo256ThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:512"), AtlasResources.Status("difumo:512").State == AtlasLoadState.Loading, m_LoadDiFuMo512, m_LoadDiFuMo512ThemeElement);
+            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:1024"), AtlasResources.Status("difumo:1024").State == AtlasLoadState.Loading, m_LoadDiFuMo1024, m_LoadDiFuMo1024ThemeElement);
 
             UpdateLocalizerButtonStatus("AUDI", m_LoadAUDI, m_LoadAUDIThemeElement);
             UpdateLocalizerButtonStatus("LEC1", m_LoadLEC1, m_LoadLEC1ThemeElement);
@@ -318,31 +238,32 @@ namespace HBP.UI.Main
             m_VISU.isOn = objectToDisplay.PreloadLocalizerVISU;
         }
 
-        private async UniTask ToggleLocalizerAsync(string protocolName)
+        private async UniTask ToggleAtlasAsync(string id)
         {
-            var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
-            if (protocol != null)
+            try
             {
-                Object3DManager.UnloadLocalizer(protocolName);
+                bool load = !AtlasResources.IsLoaded(id);
+                if (QuestManager.IsInitialized) await QuestManager.Instance.SetAtlasLoadedAsync(id, load);
+                else if (load)
+                {
+                    var result = await AtlasResources.LoadAsync(id);
+                    if (!result.Succeeded) throw new InvalidOperationException(result.Error);
+                }
+                else AtlasResources.Unload(id);
+
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                return;
             }
-
-            if (!Object3DManager.Localizers.TryLoad(protocolName))
+            catch (Exception exception)
             {
-                DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, "Can not load localizer", $"The localizer {protocolName} could not be loaded. Please make sure you downloaded it and put it in the right folder.").Forget();
-                return;
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Atlas operation failed", exception.Message, "OK");
             }
-
-            await UniTask.WaitUntil(() => Object3DManager.Localizers.Protocols.Any(p => p.Name == protocolName && p.Loaded));
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         private void UpdateButtonStatus(bool loaded, bool loading, Button button, Theme.ThemeElement element)
         {
             if (loaded)
             {
-                button.interactable = true;
+                button.interactable = m_Interactable;
                 button.GetComponentInChildren<Text>().text = "Unload";
                 element.Set(m_LoadedState);
             }
@@ -354,7 +275,7 @@ namespace HBP.UI.Main
             }
             else
             {
-                button.interactable = true;
+                button.interactable = m_Interactable;
                 button.GetComponentInChildren<Text>().text = "Load";
                 element.Set(m_NotLoadedState);
             }
@@ -363,9 +284,15 @@ namespace HBP.UI.Main
         private void UpdateLocalizerButtonStatus(string protocolName, Button button, Theme.ThemeElement element)
         {
             var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
-            if (protocol != null && protocol.Loaded)
+            if (AtlasResources.Status("localizer:" + protocolName).State == AtlasLoadState.Loading)
             {
-                button.interactable = true;
+                button.interactable = false;
+                button.GetComponentInChildren<Text>().text = "Loading...";
+                element.Set(m_LoadingState);
+            }
+            else if (protocol != null && protocol.Loaded)
+            {
+                button.interactable = m_Interactable;
                 button.GetComponentInChildren<Text>().text = "Unload";
                 element.Set(m_LoadedState);
             }
@@ -377,7 +304,7 @@ namespace HBP.UI.Main
             }
             else if (Object3DManager.Localizers.IsAvailable(protocolName))
             {
-                button.interactable = true;
+                button.interactable = m_Interactable;
                 button.GetComponentInChildren<Text>().text = "Load";
                 element.Set(m_NotLoadedState);
             }

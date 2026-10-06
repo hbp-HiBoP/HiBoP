@@ -38,6 +38,13 @@ namespace HBP.Quest
         private Entry current;
         private bool destroyed;
         private PairingContext globals;
+        private SessionPreferencesReceiver sessionPreferences;
+
+        public Task<SessionControlResponse> ReceiveSessionControlAsync(SessionControlRequest request, CancellationToken token)
+        {
+            return sessionPreferences.HandleAsync(request, token);
+        }
+
         private SceneArchive globalArchive;
         private readonly SemaphoreSlim publicationGate = new(1, 1);
         private LiveGeometryStateAdapter replica;
@@ -136,6 +143,7 @@ namespace HBP.Quest
 
         private void Awake()
         {
+            sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing);
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
         }
@@ -226,6 +234,7 @@ namespace HBP.Quest
                     stop.ThrowIfCancellationRequested();
                     if (destroyed)
                         throw new ObjectDisposedException(nameof(QuestAnatomySession));
+                    if (sessionPreferences != null) await sessionPreferences.CloseAsync();
                     HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
                     HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;
@@ -240,6 +249,7 @@ namespace HBP.Quest
                     // Warm standard resources once when pairing, before sending a visualization.
                     stop.ThrowIfCancellationRequested();
                     await HBP.Core.Tools.StandardData.EnsureInstalledAsync();
+                    await HBP.Core.Object3D.AtlasResources.PreloadAsync(candidate.Data.Preferences.Data.Atlases, stop);
                     await HBP.Data.Module3D.Base3DScene.PrepareStandardResourcesAsync();
                     stop.ThrowIfCancellationRequested();
                 }, stop).ConfigureAwait(false);
@@ -987,10 +997,13 @@ namespace HBP.Quest
             }
         }
 
+        private void Update() => sessionPreferences?.Tick();
+
         private async Task ReleaseGlobalsAsync()
         {
             try
             {
+                if (sessionPreferences != null) await sessionPreferences.CloseAsync();
                 if (!ReferenceEquals(view, null)) await view.ClearAsync();
                 globalArchive?.Dispose();
                 globalArchive = null;

@@ -113,7 +113,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
             using var slots = new SemaphoreSlim(4, 4);
@@ -135,7 +135,7 @@ namespace HBP.Transfer.Transport
                     try
                     {
                         await slots.WaitAsync(stop).ConfigureAwait(false);
-                        handlers.Add(HandleAndReleaseAsync(peer, slots, stop, receive, state, receiveGlobals, receiveReplica));
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl));
                         handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
                     }
                     catch
@@ -152,11 +152,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica)
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
         {
             try
             {
-                await HandlePeerAsync(peer, stop, receive, state, receiveGlobals, receiveReplica).ConfigureAwait(false);
+                await HandlePeerAsync(peer, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl).ConfigureAwait(false);
             }
             finally
             {
@@ -164,7 +164,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandlePeerAsync(TcpClient peer, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica)
+        private async Task HandlePeerAsync(TcpClient peer, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
         {
             using (peer)
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -217,11 +217,11 @@ namespace HBP.Transfer.Transport
                             pairingGate.Release();
                         }
                     }
-                    else if (command == 2 || command == 12 || command == 13 || command == 14)
+                    else if (command == 2 || command == 12 || command == 13 || command == 14 || command == 15)
                     {
                         byte[] offered = new byte[32];
                         await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
-                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null);
+                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null) && (command != 15 || receiveSessionControl != null);
                         Array.Clear(offered, 0, offered.Length);
                         await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                         if (!allowed) return;
@@ -229,6 +229,29 @@ namespace HBP.Transfer.Transport
                         if (command == 12)
                         {
                             await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
+                        if (command == 15)
+                        {
+                            deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                            var request = SessionControlCodec.DecodeRequest(await SessionControlCodec.ReadAsync(tls, deadline.Token).ConfigureAwait(false));
+                            using var requestStop = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+                            using var monitorStop = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+                            Task monitor = ObserveSessionPeerAsync(tls, requestStop, monitorStop.Token);
+                            try
+                            {
+                                var response = await receiveSessionControl(request, requestStop.Token).ConfigureAwait(false);
+                                requestStop.Token.ThrowIfCancellationRequested();
+                                await SessionControlCodec.WriteAsync(tls, SessionControlCodec.Encode(response), deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                monitorStop.Cancel();
+                                peer.Close();
+                                await monitor.ConfigureAwait(false);
+                            }
+
                             return;
                         }
 
@@ -383,6 +406,32 @@ namespace HBP.Transfer.Transport
             DeliveryReceipt receipt = null;
             await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false)).ConfigureAwait(false);
             return receipt;
+        }
+
+        private static async Task ObserveSessionPeerAsync(Stream stream, CancellationTokenSource requestStop, CancellationToken monitorStop)
+        {
+            try
+            {
+                // One request per connection: EOF or additional input revokes this operation.
+                await stream.ReadAsync(new byte[1], 0, 1, monitorStop).ConfigureAwait(false);
+                if (!monitorStop.IsCancellationRequested) requestStop.Cancel();
+            }
+            catch (Exception)
+            {
+                if (!monitorStop.IsCancellationRequested) requestStop.Cancel();
+            }
+        }
+
+        public static async Task<SessionControlResponse> SendSessionControlAsync(string host, byte[] pin, byte[] credential, SessionControlRequest request, CancellationToken stop)
+        {
+            SessionControlResponse response = null;
+            await AuthorizedAsync(host, pin, credential, 15, stop, async (stream, token) =>
+            {
+                await SessionControlCodec.WriteAsync(stream, SessionControlCodec.Encode(request), token).ConfigureAwait(false);
+                response = SessionControlCodec.DecodeResponse(await SessionControlCodec.ReadAsync(stream, token).ConfigureAwait(false));
+                if (response.OperationId != request.OperationId) throw new InvalidDataException("Session response identity mismatch.");
+            }).ConfigureAwait(false);
+            return response;
         }
 
         public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, 14, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);

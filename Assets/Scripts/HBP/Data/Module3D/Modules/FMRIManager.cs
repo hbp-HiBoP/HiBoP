@@ -52,6 +52,8 @@ namespace HBP.Data.Module3D
         /// <summary>Apply prepared IBC and DiFuMo selections before recomputing their surface output.</summary>
         public void ApplySynchronizedAtlasSources(bool ibc, int ibcContrast, bool difumo, string difumoAtlas, int difumoArea)
         {
+            if (ibc) m_Scene.EnsureAtlasCanBeUsed("ibc");
+            if (difumo) m_Scene.EnsureAtlasCanBeUsed("difumo:" + difumoAtlas);
             if (m_DisplayIBCContrasts == ibc && m_SelectedIBCContrastID == ibcContrast && m_DisplayDiFuMo == difumo && m_SelectedDiFuMoAtlas == difumoAtlas && m_SelectedDiFuMoArea == difumoArea) return;
             m_SelectedIBCContrastID = ibcContrast;
             m_SelectedDiFuMoAtlas = difumoAtlas;
@@ -66,6 +68,7 @@ namespace HBP.Data.Module3D
         /// <summary>Apply the prepared localizer selection and thresholds with one surface update.</summary>
         public void ApplySynchronizedLocalizer(bool enabled, string protocol, string data, string bloc, int timelineIndex, float min, float middle, float max)
         {
+            if (enabled) m_Scene.EnsureAtlasCanBeUsed("localizer:" + protocol);
             if (m_DisplayLocalizers == enabled && m_SelectedLocalizersProtocol == protocol && m_SelectedLocalizersData == data && m_SelectedLocalizersBloc == bloc && m_SelectedLocalizersTimelineIndex == timelineIndex && m_LocalizersMin == min && m_LocalizersMiddle == middle && m_LocalizersMax == max) return;
             m_DisplayLocalizers = enabled;
             m_SelectedLocalizersProtocol = protocol;
@@ -102,6 +105,7 @@ namespace HBP.Data.Module3D
             get { return m_DisplayIBCContrasts; }
             set
             {
+                if (value) m_Scene.EnsureAtlasCanBeUsed("ibc");
                 m_DisplayIBCContrasts = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -133,6 +137,7 @@ namespace HBP.Data.Module3D
             get { return m_DisplayDiFuMo; }
             set
             {
+                if (value && !string.IsNullOrEmpty(SelectedDiFuMoAtlas)) m_Scene.EnsureAtlasCanBeUsed("difumo:" + SelectedDiFuMoAtlas);
                 m_DisplayDiFuMo = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -155,6 +160,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
+                if (m_DisplayDiFuMo && !string.IsNullOrEmpty(value)) m_Scene.EnsureAtlasCanBeUsed("difumo:" + value);
                 m_SelectedDiFuMoAtlas = value;
                 m_SelectedDiFuMoArea = 0;
                 UpdateSurfaceFMRIValues();
@@ -187,6 +193,7 @@ namespace HBP.Data.Module3D
             get { return m_DisplayLocalizers; }
             set
             {
+                if (value && !string.IsNullOrEmpty(SelectedLocalizersProtocol)) m_Scene.EnsureAtlasCanBeUsed("localizer:" + SelectedLocalizersProtocol);
                 m_DisplayLocalizers = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -212,6 +219,7 @@ namespace HBP.Data.Module3D
             }
             set
             {
+                if (m_DisplayLocalizers && !string.IsNullOrEmpty(value)) m_Scene.EnsureAtlasCanBeUsed("localizer:" + value);
                 m_SelectedLocalizersProtocol = value;
                 SelectedLocalizersData = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Datas.FirstOrDefault()?.Name;
                 SetLocalizersDefaultParameters();

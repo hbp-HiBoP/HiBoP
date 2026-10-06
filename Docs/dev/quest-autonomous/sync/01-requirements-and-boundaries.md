@@ -30,7 +30,7 @@ This is a statistical latency objective, not a promise that network and arbitrar
 | R11 | Transport remains responsive while calculations and bulk results are active. Small interactive messages can overtake bulk chunks. |
 | R12 | A transient disconnect does not destroy the Quest scene. Offline process state is not durable across application crash or close. |
 | R13 | Reconnection selects one current state; it does not merge branches. |
-| R14 | A missing/incompatible resource rejects the dependent operation visibly and requires a full scene resend. Partial application is forbidden. |
+| R14 | A missing/incompatible resource rejects the dependent operation visibly. Installed atlas content may be loaded and verified on both peers during the pairing session; other missing source resources require a full scene resend. Partial application of a dependent operation is forbidden. |
 | R15 | The implementation and its tests preserve short development cycles. Fast tests may not depend on real time, real sockets, device availability or full scene construction. |
 
 ## Scale assumptions
@@ -68,10 +68,12 @@ Confirmed canonical-result exceptions:
 - persistent recovery after either process crashes;
 - multiple simultaneous Quest devices or users;
 - live synchronization of source project, patients, protocols or imported source databases;
-- loading a new heavy resource incrementally after initial delivery;
+- transferring new source resource files incrementally after initial delivery (loading already installed atlas content is supported by the session policy milestone);
 - initial implementation of multi-scene UI lifecycle, although protocol identity must support it;
 - guaranteeing identical frame rates or shader pixels between devices.
 
 ## Release boundary
 
 The online core is not complete until every applicable D1–D34 family in `operation-matrix.md` has an explicit operation, apply path and verification result. A demonstration limited to cuts is a vertical slice, not a release.
+
+All user preferences remain Desktop-authoritative. Connected saves use the scene-independent pairing control protocol. Atlas preload flags affect only the next Desktop startup or initial installation of a new Quest pairing session; manual actions do not require saving the preferences window.

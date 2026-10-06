@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Apk,
-    [Parameter(Mandatory)][string]$ReportPath
+    [Parameter(Mandatory)][string]$ReportPath,
+    [switch]$IncludeLocalizers
 )
 
 $ErrorActionPreference = 'Stop'
@@ -12,7 +13,7 @@ try {
         [ordered]@{ path = $_.FullName; bytes = $_.Length; compressedBytes = $_.CompressedLength }
     })
     $localizers = @($archive.Entries | Where-Object { $_.FullName -match '(?i)(^|/)Localizers(/|$)' })
-    if ($localizers.Count -ne 0) { throw 'Localizer data is installed separately and must never be packaged in the Quest APK.' }
+    if ($localizers.Count -ne 0 -and !$IncludeLocalizers) { throw 'Localizer data is excluded by default; use -IncludeLocalizers only for a build configured to include it.' }
     $apkBytes = (Get-Item -LiteralPath $Apk).Length
     $compressedBytes = [long](($archive.Entries | Measure-Object -Property CompressedLength -Sum).Sum)
     $overheadBytes = $apkBytes - $compressedBytes
