@@ -34,12 +34,23 @@ namespace HBP.Quest
         private readonly V2QuestMutationDriver m_Driver;
         private readonly V2PublicationCheckpointBulkReceiver m_CheckpointBulkReceiver = new V2PublicationCheckpointBulkReceiver();
         private readonly V2SceneOperationBulkReceiver m_SceneOperationBulkReceiver = new V2SceneOperationBulkReceiver();
+
         private readonly Queue<DeferredRecord> m_DeferredRecords = new Queue<DeferredRecord>();
+
+        // Receipt ACKs precede application. These slots therefore belong to the session,
+        // including the non-preview record read ahead while optimizing a preview batch.
+        private V2TransportRecord m_ProcessingRecord;
+        private V2TransportRecord m_ReadAheadRecord;
+        private V2TransportRecord m_CompletedSceneOperation;
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+        private string m_LastIncomingFailure;
+#endif
         private readonly HashSet<Guid> m_AbandonedSiteFilterTransfers = new HashSet<Guid>();
         private readonly Queue<Guid> m_AbandonedSiteFilterOrder = new Queue<Guid>();
         private readonly HashSet<Guid> m_AbandonedCorrelationTransfers = new HashSet<Guid>();
         private readonly Queue<Guid> m_AbandonedCorrelationOrder = new Queue<Guid>();
         private readonly SemaphoreSlim m_DeferredDrainGate = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim m_IncomingPumpGate = new SemaphoreSlim(1, 1);
         private readonly Func<CancellationToken, Task> m_BeforeCheckpointApply;
         private readonly Func<V2TransportRecord, CancellationToken, Task> m_AfterDeferredRecordProcessed;
         private readonly object m_VisibilityGate = new object();
@@ -47,6 +58,13 @@ namespace HBP.Quest
         private readonly SemaphoreSlim m_VisibilityAvailable = new SemaphoreSlim(0, 1);
         private byte[] m_CompletedCheckpoint;
         private OperationId m_CompletedCheckpointOperation;
+        private readonly V2ApplicationCompletionWatermark m_ApplicationCompletion = new V2ApplicationCompletionWatermark();
+        private ulong m_CheckpointOriginSequence;
+        private ulong m_SceneBulkOriginSequence;
+        private ulong m_DesktopRetiredCanonicalThrough;
+        private ulong m_DesktopProgressOriginThrough;
+        private ulong m_DesktopProgressCanonicalSequence;
+        private ulong m_DesktopMinimumObservedSequence;
         private int m_DeferredBytes;
         private bool m_DeferredDrainPending;
         private bool m_Disposed;
@@ -119,13 +137,14 @@ namespace HBP.Quest
             m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Quest);
             m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
-            m_Driver = new V2QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler);
+            m_Driver = new V2QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler, 0, proposal => m_Transport.EnqueueMutation(proposal.Mutation, null, proposal.ObservedCanonicalSequence, coalesciblePreview: V2ScheduleDescriptor.ForMutation(m_Identity.SceneId, m_Identity.IncarnationId, proposal.Mutation).CoalescingKey != null, operationId: proposal.OperationId));
             m_SurfaceInflation = new V2SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, false, () => !m_Disposed && m_Driver.ConnectionState == V2QuestMutationConnectionState.Connected && m_Transport.State == V2PersistentTransportState.Connected, () => m_Driver.LastObservedCanonicalSequence, SendSurfaceInflationControl, () => m_Driver.ConnectionState == V2QuestMutationConnectionState.OfflineLocal);
             m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
             m_SurfaceInflation.RemoteJobStarted += completion => SurfaceInflationLoading.ObserveAsync(completion).Forget();
             m_BeforeCheckpointApply = beforeCheckpointApply;
             m_AfterDeferredRecordProcessed = afterDeferredRecordProcessed;
             m_Driver.ProposalQueued += OnProposalQueued;
+            m_Driver.RetentionProgressChanged += PublishRetentionProgress;
             m_Driver.OfflineLocalEntered += OnOfflineLocalEntered;
             m_Scene.ActivityProjectionStartHandler = HandleLocalActivityProjectionStart;
             m_Scene.OnActivityProjectionCompleted.AddListener(OnActivityProjectionCompleted);
@@ -174,6 +193,32 @@ namespace HBP.Quest
 
         private void OnProposalQueued(V2QuestMutationProposal proposal) => m_Transport.NotifySchedulerChanged();
 
+        private void PublishRetentionProgress()
+        {
+            if (m_Disposed || m_Driver.ConnectionState == V2QuestMutationConnectionState.OfflineLocal) return;
+            var progress = new V2RetentionProgress(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Quest, m_ApplicationCompletion.CompletedThrough, m_Driver.MinimumPendingObservedSequence, 0, m_Driver.LastObservedCanonicalSequence);
+            if (!m_Transport.EnqueueRetentionProgress(progress).Accepted)
+                throw new IOException("Quest could not retain application completion progress.");
+        }
+
+        private void CompleteApplicationRecord(V2TransportRecord record)
+        {
+            if (record.OriginSequence == 0) return;
+            m_Driver.RecordApplicationOrigin(record.MessageId, record.OriginSequence);
+            m_ApplicationCompletion.Complete(record.OriginSequence);
+            if (m_SceneBulkOriginSequence == record.OriginSequence) m_SceneBulkOriginSequence = 0;
+            PublishRetentionProgress();
+        }
+
+        private void ResetSceneOperationBulkReceiver()
+        {
+            m_SceneOperationBulkReceiver.Reset();
+            if (m_SceneBulkOriginSequence == 0) return;
+            m_ApplicationCompletion.Complete(m_SceneBulkOriginSequence);
+            m_SceneBulkOriginSequence = 0;
+            PublishRetentionProgress();
+        }
+
         private static async Task WaitForPreviewFrameAsync(CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
@@ -184,12 +229,42 @@ namespace HBP.Quest
 
         private async Task ProcessIncomingAsync(CancellationToken stop)
         {
+            await m_IncomingPumpGate.WaitAsync(stop).ConfigureAwait(false);
+            try
+            {
+                await ProcessIncomingCoreAsync(stop).ConfigureAwait(false);
+            }
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                string failure = exception.ToString();
+                if (failure != m_LastIncomingFailure)
+                {
+                    m_LastIncomingFailure = failure;
+                    Debug.LogWarning("Quest retained incoming application failure: " + failure);
+                }
+                throw;
+            }
+#endif
+            finally
+            {
+                m_IncomingPumpGate.Release();
+            }
+        }
+
+        private async Task ProcessIncomingCoreAsync(CancellationToken stop)
+        {
             await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
-            V2TransportRecord retained = null;
             while (!stop.IsCancellationRequested)
             {
-                V2TransportRecord record = retained ?? await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
-                retained = null;
+                if (m_ProcessingRecord == null)
+                {
+                    m_ProcessingRecord = m_ReadAheadRecord;
+                    m_ReadAheadRecord = null;
+                }
+
+                m_ProcessingRecord ??= await m_Transport.ReadIncomingAsync(stop).ConfigureAwait(false);
+                V2TransportRecord record = m_ProcessingRecord;
                 if (record == null) continue;
                 if (m_DeferredDrainPending && !m_SceneOperationBulkReceiver.IsActive)
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
@@ -198,11 +273,16 @@ namespace HBP.Quest
                 {
                     if (!record.SessionId.Equals(m_Identity.SessionId)) throw new InvalidDataException("A v2 session-control record belongs to another session.");
                     await ProcessRecordAsync(record, record.FirstReceived, record.LastReceived, stop).ConfigureAwait(false);
+                    m_ProcessingRecord = null;
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
                     continue;
                 }
 
-                if (IsAbandonedSiteFilterChunk(record)) continue;
+                if (IsAbandonedSiteFilterChunk(record))
+                {
+                    m_ProcessingRecord = null;
+                    continue;
+                }
 
                 ValidateScope(record);
                 var received = new DeferredRecord(record);
@@ -211,6 +291,7 @@ namespace HBP.Quest
                 {
                     if (m_CheckpointBulkReceiver.TryAppend(record, out byte[] completedCheckpoint, out OperationId checkpointOperation))
                     {
+                        m_ProcessingRecord = null;
                         if (completedCheckpoint != null)
                         {
                             RetainCompletedCheckpoint(completedCheckpoint, checkpointOperation);
@@ -225,6 +306,7 @@ namespace HBP.Quest
                         throw new InvalidDataException("Too many ordered records arrived during the initial v2 checkpoint transfer.");
                     m_DeferredRecords.Enqueue(received);
                     m_DeferredBytes += size;
+                    m_ProcessingRecord = null;
                     continue;
                 }
 
@@ -232,9 +314,11 @@ namespace HBP.Quest
                 {
                     if (m_SceneOperationBulkReceiver.TryAppend(record, out V2TransportRecord completedMutation))
                     {
+                        m_ProcessingRecord = null;
                         if (completedMutation != null)
                         {
-                            await ProcessRecordAsync(completedMutation, completedMutation.FirstReceived, completedMutation.LastReceived, stop).ConfigureAwait(false);
+                            m_CompletedSceneOperation = completedMutation;
+                            await ApplyCompletedSceneOperationAsync(stop).ConfigureAwait(false);
                             await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
                         }
 
@@ -242,6 +326,7 @@ namespace HBP.Quest
                     }
 
                     DeferOrderedRecord(received);
+                    m_ProcessingRecord = null;
                     continue;
                 }
 
@@ -256,7 +341,7 @@ namespace HBP.Quest
                     {
                         if (!IsCanonicalPreview(next))
                         {
-                            retained = next;
+                            m_ReadAheadRecord = next;
                             break;
                         }
 
@@ -270,9 +355,12 @@ namespace HBP.Quest
                         V2TransportRecord item = records[index];
                         ApplyTrackedMutation(item, item.Mutation, () => m_Driver.ReceiveCanonical(canonical[index]), item.FirstReceived, item.LastReceived);
                     });
+                    foreach (V2TransportRecord item in records) CompleteApplicationRecord(item);
                 }
                 else
                     await ProcessRecordAsync(record, received.FirstReceived, received.LastReceived, stop).ConfigureAwait(false);
+
+                m_ProcessingRecord = null;
 
                 if (m_CompletedCheckpoint != null || m_DeferredDrainPending)
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
@@ -281,14 +369,56 @@ namespace HBP.Quest
 
         private static bool IsCanonicalPreview(V2TransportRecord record) => record.Kind == V2TransportMessageKind.Application && record.Lane == V2ScheduleLane.Interactive && record.OriginDevice == V2OriginDevice.Desktop && record.CanonicalSequence.HasValue && !record.ObservedCanonicalSequence.HasValue && record.Mutation != null && V2QuestMutationDriver.IsReplaceablePreview(record.Mutation);
 
+        private async Task ApplyCompletedSceneOperationAsync(CancellationToken stop)
+        {
+            V2TransportRecord completed = m_CompletedSceneOperation;
+            if (completed == null) return;
+            await ProcessRecordAsync(completed, completed.FirstReceived, completed.LastReceived, stop).ConfigureAwait(false);
+            if (ReferenceEquals(m_CompletedSceneOperation, completed)) m_CompletedSceneOperation = null;
+        }
+
         private async Task ProcessRecordAsync(V2TransportRecord record, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
+        {
+            await ProcessRecordCoreAsync(record, firstReceived, lastReceived, stop).ConfigureAwait(false);
+            if (record.OriginSequence == 0) return;
+            // Once application succeeds, connection cancellation must not lose its completion.
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, CancellationToken.None);
+            if (m_Disposed) return;
+            if (m_CheckpointBulkReceiver.IsCheckpointDescriptor(record) || record.Lane == V2ScheduleLane.SceneControl && record.BodySchema == V2PublicationCheckpointBulkReceiver.BodySchema && IsCheckpointBody(record))
+            {
+                m_CheckpointOriginSequence = record.OriginSequence;
+                return;
+            }
+
+            if (m_SceneOperationBulkReceiver.IsMutationDescriptor(record) && m_SceneOperationBulkReceiver.IsActive)
+            {
+                m_SceneBulkOriginSequence = record.OriginSequence;
+                return;
+            }
+
+            CompleteApplicationRecord(record);
+        }
+
+        private async Task ProcessRecordCoreAsync(V2TransportRecord record, SyncTelemetryPoint firstReceived, SyncTelemetryPoint lastReceived, CancellationToken stop)
         {
             if (record.Lane == V2ScheduleLane.SessionControl)
             {
                 if (!record.SessionId.Equals(m_Identity.SessionId) || record.Kind != V2TransportMessageKind.Application)
                     throw new InvalidDataException("Unexpected v2 session-control record.");
                 byte[] controlPayload = record.GetPayloadCopy();
-                if (V2CorrelationControlCodec.TryDecode(controlPayload, out V2CorrelationControl correlationControl))
+                if (V2RetentionProgress.TryDecode(controlPayload, out V2RetentionProgress progress))
+                {
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                    progress.ValidateScope(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop);
+                    if (progress.AppliedOriginThrough < m_DesktopProgressOriginThrough || progress.AppliedOriginThrough > m_ApplicationCompletion.CompletedThrough || progress.RetiredCanonicalThrough < m_DesktopRetiredCanonicalThrough || progress.CurrentCanonicalSequence < m_DesktopProgressCanonicalSequence || progress.MinimumObservedCanonicalSequence < m_DesktopMinimumObservedSequence || progress.MinimumObservedCanonicalSequence > m_Driver.MinimumPendingObservedSequence)
+                        throw new InvalidDataException("Invalid Desktop application completion progression.");
+                    m_Driver.RetireCanonicalHistory(progress.RetiredCanonicalThrough, progress.AppliedOriginThrough);
+                    m_DesktopProgressOriginThrough = progress.AppliedOriginThrough;
+                    m_DesktopRetiredCanonicalThrough = progress.RetiredCanonicalThrough;
+                    m_DesktopProgressCanonicalSequence = progress.CurrentCanonicalSequence;
+                    m_DesktopMinimumObservedSequence = progress.MinimumObservedCanonicalSequence;
+                }
+                else if (V2CorrelationControlCodec.TryDecode(controlPayload, out V2CorrelationControl correlationControl))
                     await ProcessCorrelationControlAsync(correlationControl, stop).ConfigureAwait(false);
                 else if (V2SiteFilterControlCodec.TryDecode(controlPayload, out V2SiteFilterControl filterControl))
                     await ProcessSiteFilterControlAsync(filterControl, stop).ConfigureAwait(false);
@@ -321,7 +451,7 @@ namespace HBP.Quest
             {
                 if (record.MessageId != null && (m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value) || m_AbandonedCorrelationTransfers.Contains(record.MessageId.Value)))
                 {
-                    m_SceneOperationBulkReceiver.Reset();
+                    ResetSceneOperationBulkReceiver();
                     return;
                 }
 
@@ -1007,7 +1137,7 @@ namespace HBP.Quest
                 RememberAbandonedCorrelationTransfer(active.JobId);
                 if (m_SceneOperationBulkReceiver.ActiveOperationId?.Equals(active.JobId) == true)
                 {
-                    m_SceneOperationBulkReceiver.Reset();
+                    ResetSceneOperationBulkReceiver();
                     m_DeferredDrainPending = true;
                 }
             }
@@ -1188,7 +1318,7 @@ namespace HBP.Quest
                 RememberAbandonedSiteFilterTransfer(active.JobId);
                 if (m_SceneOperationBulkReceiver.ActiveOperationId?.Equals(active.JobId) == true)
                 {
-                    m_SceneOperationBulkReceiver.Reset();
+                    ResetSceneOperationBulkReceiver();
                     m_DeferredDrainPending = true;
                 }
             }
@@ -1381,6 +1511,7 @@ namespace HBP.Quest
             await m_DeferredDrainGate.WaitAsync(stop).ConfigureAwait(false);
             try
             {
+                await ApplyCompletedSceneOperationAsync(stop).ConfigureAwait(false);
                 await ApplyRetainedCheckpointAsync(stop).ConfigureAwait(false);
 
                 if (!m_DeferredDrainPending) return;
@@ -1399,7 +1530,11 @@ namespace HBP.Quest
 
                         m_DeferredBytes -= V2TransportFrameCodec.HeaderLength + buffered.Record.PayloadLength;
                         if (completedMutation != null)
-                            await ProcessRecordAsync(completedMutation, completedMutation.FirstReceived, completedMutation.LastReceived, stop).ConfigureAwait(false);
+                        {
+                            m_CompletedSceneOperation = completedMutation;
+                            await ApplyCompletedSceneOperationAsync(stop).ConfigureAwait(false);
+                        }
+
                         if (m_CompletedCheckpoint != null)
                             await ApplyRetainedCheckpointAsync(stop).ConfigureAwait(false);
                         if (m_AfterDeferredRecordProcessed != null)
@@ -1408,10 +1543,11 @@ namespace HBP.Quest
                     }
 
                     if (m_DeferredRecords.Count == 0) break;
-                    DeferredRecord pending = m_DeferredRecords.Dequeue();
+                    DeferredRecord pending = m_DeferredRecords.Peek();
+                    if (!IsAbandonedSiteFilterChunk(pending.Record))
+                        await ProcessRecordAsync(pending.Record, pending.FirstReceived, pending.LastReceived, stop).ConfigureAwait(false);
+                    m_DeferredRecords.Dequeue();
                     m_DeferredBytes -= V2TransportFrameCodec.HeaderLength + pending.Record.PayloadLength;
-                    if (IsAbandonedSiteFilterChunk(pending.Record)) continue;
-                    await ProcessRecordAsync(pending.Record, pending.FirstReceived, pending.LastReceived, stop).ConfigureAwait(false);
                     if (m_CompletedCheckpoint != null)
                         await ApplyRetainedCheckpointAsync(stop).ConfigureAwait(false);
                     if (m_AfterDeferredRecordProcessed != null)
@@ -1432,6 +1568,11 @@ namespace HBP.Quest
             if (m_BeforeCheckpointApply != null)
                 await m_BeforeCheckpointApply(stop).ConfigureAwait(false);
             await ApplyCheckpointAsync(m_CompletedCheckpoint, m_CompletedCheckpointOperation, stop).ConfigureAwait(false);
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, CancellationToken.None);
+            if (m_Disposed) return;
+            m_ApplicationCompletion.Complete(m_CheckpointOriginSequence);
+            m_CheckpointOriginSequence = 0;
+            PublishRetentionProgress();
             m_CompletedCheckpoint = null;
             m_CompletedCheckpointOperation = null;
         }
@@ -1557,6 +1698,7 @@ namespace HBP.Quest
             if (m_Disposed) return;
             m_Disposed = true;
             m_Driver.ProposalQueued -= OnProposalQueued;
+            m_Driver.RetentionProgressChanged -= PublishRetentionProgress;
             m_Driver.OfflineLocalEntered -= OnOfflineLocalEntered;
             if (m_Scene.ActivityProjectionStartHandler == HandleLocalActivityProjectionStart)
                 m_Scene.ActivityProjectionStartHandler = null;
@@ -1580,8 +1722,11 @@ namespace HBP.Quest
             m_Driver.Dispose();
             m_Boundary.Dispose();
             m_CheckpointBulkReceiver.Reset();
-            m_SceneOperationBulkReceiver.Reset();
+            ResetSceneOperationBulkReceiver();
             m_DeferredRecords.Clear();
+            m_ProcessingRecord = null;
+            m_ReadAheadRecord = null;
+            m_CompletedSceneOperation = null;
             m_DeferredBytes = 0;
             m_CompletedCheckpoint = null;
             m_CompletedCheckpointOperation = null;

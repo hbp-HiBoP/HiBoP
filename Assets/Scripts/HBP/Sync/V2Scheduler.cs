@@ -547,6 +547,56 @@ namespace HBP.Sync
         private long m_GraceExpiredRecordCount;
         private ulong m_NextBulkStreamOrdinal = 1;
         private ulong m_BulkStreamRetiredThrough;
+        private readonly Dictionary<Guid, ulong> m_ApplicationOrigins = new Dictionary<Guid, ulong>();
+        private ulong m_ApplicationCompletedThrough;
+        private LinkedListNode<PendingRecord> m_RetentionProgressPending;
+        private ulong m_RetentionProgressInFlight;
+        private byte[] m_LatestRetentionProgress;
+        private byte[] m_LastRetentionProgress;
+
+        public bool ApplicationRetentionEnabled { get; set; }
+        public ulong LastCommittedOriginSequence => m_NextOriginSequence - 1;
+        public int ApplicationRetainedCount => m_ApplicationOrigins.Count;
+
+        /// <summary>One immutable reliable progress frame in flight, plus the latest unsent value.</summary>
+        public V2EnqueueResult EnqueueRetentionProgress(byte[] payload)
+        {
+            if (payload == null || payload.Length != V2RetentionProgress.EncodedLength)
+                throw new ArgumentException("Expected a retention progress body.", nameof(payload));
+            if (!CanAdmitNewWork()) return new V2EnqueueResult(false, V2EnqueueDisposition.Rejected);
+            bool same = m_LastRetentionProgress != null;
+            for (int i = 0; same && i < payload.Length; i++) same = payload[i] == m_LastRetentionProgress[i];
+            if (same) return new V2EnqueueResult(true, V2EnqueueDisposition.Accepted);
+            m_LastRetentionProgress = (byte[])payload.Clone();
+            m_LatestRetentionProgress = m_LastRetentionProgress;
+            if (m_RetentionProgressPending != null)
+            {
+                m_RetentionProgressPending.Value = new PendingRecord(m_LatestRetentionProgress, V2DeliveryReliability.Reliable, V2ScheduleLane.SessionControl, null, false, null, null, null, 0);
+                return new V2EnqueueResult(true, V2EnqueueDisposition.ReplacedUnsent);
+            }
+
+            return m_RetentionProgressInFlight != 0 ? new V2EnqueueResult(true, V2EnqueueDisposition.Accepted) : QueueRetentionProgress();
+        }
+
+        private V2EnqueueResult QueueRetentionProgress()
+        {
+            V2EnqueueResult queued = EnqueueSessionControl(m_LatestRetentionProgress, V2DeliveryReliability.Reliable);
+            if (queued.Accepted) m_RetentionProgressPending = m_SessionControlQueue.Last;
+            return queued;
+        }
+
+        public IReadOnlyList<OperationId> RetireAppliedSceneOperations(ulong throughOriginSequence)
+        {
+            if (throughOriginSequence < m_ApplicationCompletedThrough || throughOriginSequence > LastCommittedOriginSequence)
+                throw new InvalidDataException("Application progress exceeds or regresses the committed scene stream.");
+            m_ApplicationCompletedThrough = throughOriginSequence;
+            var retired = new List<OperationId>();
+            foreach (KeyValuePair<Guid, ulong> entry in m_ApplicationOrigins)
+                if (entry.Value <= throughOriginSequence)
+                    retired.Add(new OperationId(entry.Key));
+            foreach (OperationId id in retired) m_ApplicationOrigins.Remove(id.Value);
+            return retired;
+        }
 
         public SessionId SessionId => m_SessionId;
         public SceneId SceneId => m_SceneId;
@@ -735,6 +785,13 @@ namespace HBP.Sync
 
                 if (TryCommit(m_SessionControlStream, pendingControl, true, out transmission))
                 {
+                    if (m_RetentionProgressPending == m_SessionControlQueue.First)
+                    {
+                        m_RetentionProgressPending = null;
+                        m_RetentionProgressInFlight = transmission.Frame.ReliableFrameSequence.Value;
+                        m_LatestRetentionProgress = null;
+                    }
+
                     m_SessionControlQueue.RemoveFirst();
                     m_SessionControlQueuedBytes -= pendingControl.WireBytes;
                     return true;
@@ -787,6 +844,12 @@ namespace HBP.Sync
             {
                 m_OutstandingReliableFrames--;
                 m_OutstandingReliableBytes -= removed[i].WireBytes;
+            }
+
+            if (stream == m_SessionControlStream && m_RetentionProgressInFlight != 0 && throughSequence >= m_RetentionProgressInFlight)
+            {
+                m_RetentionProgressInFlight = 0;
+                if (m_LatestRetentionProgress != null) QueueRetentionProgress();
             }
 
             if (stream.Kind == StreamKind.Bulk && stream.UnacknowledgedCount == 0 && stream.BulkTransfer != null && (stream.BulkTransfer.AllChunksCommitted || stream.BulkTransfer.Cancelled))
@@ -909,6 +972,12 @@ namespace HBP.Sync
         private bool TryCommit(ReliableStreamState stream, PendingRecord pending, bool useControlReserve, out V2TransmissionAttempt transmission)
         {
             transmission = null;
+            if (ApplicationRetentionEnabled && stream.Kind == StreamKind.SceneOperation && pending.OperationId != null && !m_ApplicationOrigins.ContainsKey(pending.OperationId.Value) && m_ApplicationOrigins.Count >= 4096 + m_Limits.MaxSceneQueuedRecords)
+            {
+                FaultSession();
+                return false;
+            }
+
             int wireBytes = checked(pending.Payload.Length + V2MutationEnvelopeCodec.HeaderLength);
             if (!CanRetainReliable(wireBytes, useControlReserve))
                 return false;
@@ -929,6 +998,8 @@ namespace HBP.Sync
                 }
 
                 originSequence = m_NextOriginSequence++;
+                if (ApplicationRetentionEnabled && pending.OperationId != null)
+                    m_ApplicationOrigins[pending.OperationId.Value] = originSequence.Value;
             }
 
             var frame = new V2ReliableFrame(stream.StreamId, sequence, originSequence, pending.OperationId, pending.Lane, V2DeliveryReliability.Reliable, pending.Payload, pending.BulkDescriptor, pending.ChunkIndex, pending.ChunkCount, pending.ChunkOffset, pending.CanonicalSequence, pending.ObservedCanonicalSequence, pending.BodySchema);

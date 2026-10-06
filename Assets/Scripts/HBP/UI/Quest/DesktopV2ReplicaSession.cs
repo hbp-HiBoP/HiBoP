@@ -60,6 +60,10 @@ namespace HBP.Quest.Desktop
         private bool m_InitialPublicationStarted;
         private bool m_PostCheckpointOverflow;
         private OperationId m_InitialBarrierId;
+        private ulong m_InitialBarrierSequence;
+        private ulong m_PeerAppliedOriginThrough;
+        private ulong m_PeerMinimumObservedSequence;
+        private ulong m_PeerCurrentCanonicalSequence;
         private Task m_ConnectionTask;
         private Task m_IncomingTask;
         private CancellationTokenSource m_ConnectionLifetime;
@@ -129,7 +133,7 @@ namespace HBP.Quest.Desktop
             m_Boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Desktop, timelineTimingEstimate: anchor => m_TimelineClock.TryEstimate(anchor.MonotonicAnchorTicks, anchor.TickFrequency, anchor.Step, out V2TimelineAnchorTimingEstimate estimate) ? estimate : (V2TimelineAnchorTimingEstimate?)null);
             m_Authority = new V2DesktopMutationAuthority(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary);
             m_Journal = new V2PublicationMutationJournal(m_Identity.SceneId, m_Identity.IncarnationId);
-            m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop);
+            m_Scheduler = new V2OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop) { ApplicationRetentionEnabled = true };
             m_Transport = new V2PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: V2TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_SurfaceInflation = new V2SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
@@ -304,11 +308,39 @@ namespace HBP.Quest.Desktop
             V2EnqueueResult queued = m_Transport.EnqueueMutation(mutation.Mutation, mutation.CanonicalSequence, null, coalesciblePreview: mutation.OriginDevice == V2OriginDevice.Desktop, operationId: mutation.OperationId);
             if (!queued.Accepted)
                 AbortLocked(false, "The v2 transport could not retain an accepted Desktop mutation: " + queued.Disposition + ".");
+            else if (queued.ReplacedOperationId != null && !queued.ReplacedOperationId.Equals(mutation.OperationId))
+            {
+                m_Authority.RetireOperation(queued.ReplacedOperationId);
+                PublishRetentionProgress();
+            }
+        }
+
+        private void PublishRetentionProgress()
+        {
+            if (m_State == PublicationState.Disposed || m_State == PublicationState.Aborted) return;
+            var progress = new V2RetentionProgress(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Desktop, m_PeerAppliedOriginThrough, m_PeerMinimumObservedSequence, m_Authority.RetiredCanonicalThrough, m_Authority.CanonicalSequence);
+            if (!m_Transport.EnqueueRetentionProgress(progress).Accepted)
+                throw new IOException("Desktop could not retain application completion progress.");
+        }
+
+        private async Task ProcessRetentionProgressAsync(V2RetentionProgress progress, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            progress.ValidateScope(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, V2OriginDevice.Quest);
+            if (progress.AppliedOriginThrough < m_PeerAppliedOriginThrough || progress.MinimumObservedCanonicalSequence < m_PeerMinimumObservedSequence || progress.CurrentCanonicalSequence < m_PeerCurrentCanonicalSequence || progress.CurrentCanonicalSequence > m_Authority.CanonicalSequence)
+                throw new InvalidDataException("Invalid Quest application completion progression.");
+            foreach (OperationId id in m_Transport.RetireAppliedSceneOperations(progress.AppliedOriginThrough)) m_Authority.RetireOperation(id);
+            m_Authority.AdvanceConflictFloor(progress.MinimumObservedCanonicalSequence);
+            m_PeerAppliedOriginThrough = progress.AppliedOriginThrough;
+            m_PeerMinimumObservedSequence = progress.MinimumObservedCanonicalSequence;
+            m_PeerCurrentCanonicalSequence = progress.CurrentCanonicalSequence;
+            PublishRetentionProgress();
         }
 
         private void EnqueueInitialBarrierLocked(ulong canonicalSequence)
         {
             m_InitialBarrierId = CreateOperationId();
+            m_InitialBarrierSequence = canonicalSequence;
             byte[] body = V2PublicationControlCodec.EncodeLiveBarrier(canonicalSequence);
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForBarrier(m_Identity.SceneId, m_Identity.IncarnationId, null, V2BarrierScope.AllScene);
             V2EnqueueResult queued = m_Transport.EnqueueSceneOperation(body, descriptor, structural: true, operationId: m_InitialBarrierId);
@@ -382,8 +414,18 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == V2ScheduleLane.SessionControl)
             {
+                if (V2RetentionProgress.TryDecode(payload, out V2RetentionProgress progress))
+                {
+                    await ProcessRetentionProgressAsync(progress, stop).ConfigureAwait(false);
+                    return;
+                }
+
                 if (V2PublicationControlCodec.TryDecodeAcknowledgement(payload, out OperationId barrierId))
                 {
+                    if (!barrierId.Equals(m_InitialBarrierId)) throw new InvalidDataException("Unexpected initial publication acknowledgement.");
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                    m_Authority.RetirePublishedCheckpoint(m_InitialBarrierSequence);
+                    PublishRetentionProgress();
                     m_InitialApplyAcknowledged.TrySetResult(barrierId);
                     return;
                 }
@@ -1190,7 +1232,8 @@ namespace HBP.Quest.Desktop
         private async Task AcceptQuestMutationAsync(V2TransportRecord record, V2Mutation mutation, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
-            V2DesktopProposalResult result = m_Authority.AcceptQuestProposal(record.SceneId, record.IncarnationId, record.MessageId, mutation, record.ObservedCanonicalSequence.Value);
+            if (!record.SceneId.Equals(m_Identity.SceneId) || !record.IncarnationId.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong Quest proposal incarnation.");
+            V2DesktopProposalResult result = m_Authority.AcceptQuestProposal(record.MessageId, mutation, record.ObservedCanonicalSequence.Value, record.OriginSequence);
             if (result.Correction != null)
                 EnqueueQuestProposalDecision(record, mutation, V2QuestProposalDecisionCodec.EncodeCorrection(result.Correction));
             else if (result.CanonicalMutation == null && result.Outcome != V2ProposalOutcome.Duplicate)

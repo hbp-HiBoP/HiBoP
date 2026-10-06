@@ -1700,6 +1700,157 @@ namespace HBP.Tests.PlayMode.Module3D
             }
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(6)]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        public async Task V2TriangleMask_SurvivesPreparedMeshOrdering(int scenario)
+        {
+            bool optimisticRoundTrip = scenario != 0;
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope sceneScope = new("V2TriangleMaskOrdering");
+            SingleMesh patientMesh = new("Patient mesh", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "v2-mask-mesh");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, sceneScope, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            Base3DScene scene = initialized.BaseScene;
+            try
+            {
+                await scene.PrepareRenderingAsync(CancellationToken.None);
+                if (scenario == 6)
+                {
+                    List<int[]> initialMasks = scene.TriangleEraser.CurrentMasks;
+                    initialMasks[0][0] = initialMasks[1][0] = 0;
+                    scene.TriangleEraser.CurrentMasks = initialMasks;
+                }
+
+                using V2SceneMutationBoundary boundary = new(scene, V2OriginDevice.Quest);
+                PreparedSceneResourceCatalog catalog = new(scene, new string('c', 64));
+                SetPrivateField(boundary, "m_ResourceCatalog", catalog);
+                Action maskObserver = (Action)Delegate.CreateDelegate(typeof(Action), boundary, typeof(V2SceneMutationBoundary).GetMethod("ObserveTriangleMask", BindingFlags.Instance | BindingFlags.NonPublic));
+                scene.TriangleEraser.VisibilityMaskChanged += maskObserver;
+                int publications = 0;
+                boundary.MutationProposed += (_, _, _) => publications++;
+                SceneId sceneId = new(Guid.NewGuid());
+                IncarnationId incarnation = new(Guid.NewGuid());
+                V2OutgoingScheduler scheduler = new(new SessionId(Guid.NewGuid()), sceneId, incarnation, V2OriginDevice.Quest);
+                using V2QuestMutationDriver driver = new(sceneId, incarnation, boundary, scheduler);
+                Mesh3D original = scene.MeshManager.SelectedMesh;
+                Mesh3D alternate = scene.MeshManager.Meshes.First(mesh => mesh != original && mesh.IsLoaded);
+                SetMeshDisplay Display(Mesh3D mesh) => new(new ResourceId(catalog.MeshReference(mesh)), V2MeshPart.Both, V2SurfaceRepresentation.Anatomical);
+
+                ApplyTriangleMask Mask(Mesh3D mesh, int hidden = 0) =>
+                    new(new[]
+                    {
+                        new V2TriangleMask(new TopologyId("surface:" + catalog.MeshReference(mesh) + ":both:complete"), mesh.GetSurface(SurfaceRepresentation.Anatomical).NumberOfTriangles, new[] { hidden }),
+                        new V2TriangleMask(new TopologyId("surface:" + catalog.MeshReference(mesh) + ":both:simplified"), mesh.GetSurface(SurfaceRepresentation.Anatomical, simplified: true).NumberOfTriangles, new[] { hidden })
+                    });
+
+                OperationId switchId = new(Guid.NewGuid());
+                OperationId restoreId = new(Guid.NewGuid());
+                OperationId optimisticMaskId = new(Guid.NewGuid());
+                if (optimisticRoundTrip)
+                {
+                    driver.ApplyOptimistic(Display(alternate), switchId);
+                    if (scenario == 4) driver.ApplyOptimistic(Mask(alternate, 1), optimisticMaskId);
+                    driver.ApplyOptimistic(Display(original), restoreId);
+                }
+
+                if (scenario == 4)
+                {
+                    driver.ReceiveRejection(restoreId, "unavailable");
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(alternate));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][1], Is.Zero, "Rollback must restore the earlier pending mask exposed by the rejected selection.");
+                    driver.ReceiveCanonical(sceneId, incarnation, switchId, 1, Display(alternate));
+                    driver.ReceiveCanonical(sceneId, incarnation, optimisticMaskId, 2, Mask(alternate, 1));
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][1], Is.Zero);
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    Assert.That(publications, Is.EqualTo(3));
+                    return;
+                }
+
+                if (scenario == 6)
+                {
+                    driver.ReceiveRejection(switchId, "unavailable");
+                    driver.ReceiveRejection(restoreId, "unavailable");
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(original));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Rejected selections must preserve nonempty publication masks even at canonical sequence zero.");
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    Assert.That(publications, Is.EqualTo(2));
+                    return;
+                }
+
+                driver.ReceiveCanonical(sceneId, incarnation, switchId, 1, Display(alternate));
+                ApplyTriangleMask masks = Mask(alternate);
+                driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 2, masks);
+                Assert.That(alternate.GetSurface(SurfaceRepresentation.Anatomical).VisibilityMask[0], Is.Zero);
+                Assert.That(alternate.GetSurface(SurfaceRepresentation.Anatomical, simplified: true).VisibilityMask[0], Is.Zero);
+                Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(optimisticRoundTrip ? original : alternate));
+                Assert.That(publications, Is.EqualTo(optimisticRoundTrip ? 2 : 0), "Remote rebuild/mask must not emit proposals.");
+                if (optimisticRoundTrip)
+                {
+                    OperationId laterRestoreId = new(Guid.NewGuid());
+                    if (scenario == 3) driver.ApplyOptimistic(Display(original), laterRestoreId);
+                    if (scenario == 5) driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 3, Display(alternate));
+                    // A correction can reference the mesh version preceding the newer mask.
+                    V2MutationCorrection correction = (V2MutationCorrection)Activator.CreateInstance(typeof(V2MutationCorrection), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { sceneId, incarnation, restoreId, scenario == 5 ? 3UL : 1UL, Display(alternate), "stale" }, CultureInfo.InvariantCulture);
+                    if (scenario == 2) driver.ReceiveCanonical(sceneId, incarnation, restoreId, 3, Display(original));
+                    else driver.ReceiveCorrection(correction);
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(scenario is 1 or 5 ? alternate : original));
+                    if (scenario is 1 or 5) Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Older correction or unchanged original topology must preserve its mask.");
+                    if (scenario == 3)
+                    {
+                        driver.ReceiveRejection(laterRestoreId, "unavailable");
+                        Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(alternate), "Replayed optimistic rollback must use the corrected base.");
+                        Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                        OperationId echoedRestoreId = new(Guid.NewGuid());
+                        driver.ApplyOptimistic(Display(original), echoedRestoreId);
+                        driver.ReceiveCanonical(sceneId, incarnation, echoedRestoreId, 3, Display(original));
+                        Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(original));
+                    }
+
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    // A genuinely new selection retains the normal eraser reset behavior.
+                    driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 4, Display(original));
+                    driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 5, Display(alternate));
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0].All(value => value == 1), Is.True);
+                }
+                else
+                {
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Rendering must not reset an already applied mask.");
+                    // Invalid topology/count must fail before any geometry or mask mutation.
+                    Assert.Throws<InvalidOperationException>(() => boundary.Apply(Mask(original), V2MutationApplicationOrigin.LocalQuest, new OperationId(Guid.NewGuid())));
+                    ApplyTriangleMask wrongCount = new(new[]
+                    {
+                        new V2TriangleMask(masks.Masks[0].TopologyId, masks.Masks[0].TriangleCount + 1, new[] { 0 }), masks.Masks[1]
+                    });
+                    Assert.Throws<InvalidOperationException>(() => driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 3, wrongCount));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                }
+
+                scene.TriangleEraser.VisibilityMaskChanged -= maskObserver;
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(scene);
+            }
+        }
+
         [Test]
         [Category("PlayMode.Module3DScene")]
         public void BasicTimeline_RestoresSynchronizedPlaybackAnchor()

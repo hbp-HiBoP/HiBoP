@@ -226,7 +226,9 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<Guid, V2SceneMutationCheckpoint> m_OptimisticCheckpointRollbacks = new();
         private readonly Dictionary<Guid, SiteConfigurationProvenanceSnapshot> m_OptimisticCheckpointProvenanceRollbacks = new();
         private readonly Dictionary<(string ColumnId, string SiteId), SiteConfigurationFieldOwners> m_SiteConfigurationFieldOwners = new();
-        private readonly Queue<Guid> m_OptimisticRollbackOrder = new();
+        private readonly LinkedList<Guid> m_OptimisticRollbackOrder = new();
+        private readonly Dictionary<Guid, LinkedListNode<Guid>> m_OptimisticRollbackNodes = new();
+        public int OptimisticRollbackOrderCount => m_OptimisticRollbackOrder.Count;
         private readonly Dictionary<Column3D, List<(UnityEvent Event, UnityAction Listener)>> m_ColumnListeners = new();
         private readonly Dictionary<Column3D, UnityAction<Core.Object3D.Site>> m_ColumnSelectionListeners = new();
         private V2Mutation m_LastSceneStrongCuts;
@@ -425,6 +427,13 @@ namespace HBP.Sync.Scene
             }
         }
 
+        internal void ApplyCorrection(V2Mutation mutation, OperationId operationId)
+        {
+            // An authoritative absence can already be satisfied by a later optimistic deletion.
+            if (mutation is DeleteCut deleted && !m_Cuts.ContainsKey(deleted.CutId)) return;
+            Apply(mutation, V2MutationApplicationOrigin.Remote, operationId);
+        }
+
         internal void ApplyOptimisticReplay(V2Mutation mutation, OperationId operationId)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
@@ -454,6 +463,7 @@ namespace HBP.Sync.Scene
                 ApplyCheckpointRollback(checkpoint, operationId, checkpointProvenance);
                 m_OptimisticCheckpointRollbacks.Remove(operationId.Value);
                 m_OptimisticCheckpointProvenanceRollbacks.Remove(operationId.Value);
+                RemoveOptimisticRollbackOrder(operationId.Value);
                 return true;
             }
 
@@ -470,10 +480,12 @@ namespace HBP.Sync.Scene
             }
             else
             {
-                Apply(rollback, V2MutationApplicationOrigin.Remote, operationId);
+                if (rollback is ApplyTriangleMask triangleMask && m_LocalOrigin == V2OriginDevice.Quest) ApplyPreparedTriangleMask(triangleMask, operationId);
+                else Apply(rollback, V2MutationApplicationOrigin.Remote, operationId);
                 if (forward != null) RebasePendingSiteConfigurationRollbacks(operationId, forward, rollback, rollbackProvenance);
             }
 
+            RemoveOptimisticRollbackOrder(operationId.Value);
             return true;
         }
 
@@ -870,11 +882,26 @@ namespace HBP.Sync.Scene
         public void ForgetOptimisticOperation(OperationId operationId)
         {
             if (operationId == null) return;
+            RemoveOptimisticRollbackOrder(operationId.Value);
             m_OptimisticRollbacks.Remove(operationId.Value);
             m_OptimisticForwardMutations.Remove(operationId.Value);
             m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(operationId.Value);
             m_OptimisticCheckpointRollbacks.Remove(operationId.Value);
             m_OptimisticCheckpointProvenanceRollbacks.Remove(operationId.Value);
+        }
+
+        private void RemoveOptimisticRollbackOrder(Guid id)
+        {
+            if (!m_OptimisticRollbackNodes.TryGetValue(id, out LinkedListNode<Guid> node)) return;
+            m_OptimisticRollbackOrder.Remove(node);
+            m_OptimisticRollbackNodes.Remove(id);
+        }
+
+        private Guid RemoveOldestOptimisticRollback()
+        {
+            Guid id = m_OptimisticRollbackOrder.First.Value;
+            RemoveOptimisticRollbackOrder(id);
+            return id;
         }
 
         private void RememberOptimisticRollback(OperationId operationId, V2Mutation rollback, V2Mutation forward = null, SiteConfigurationProvenanceSnapshot provenanceRollback = null)
@@ -885,7 +912,7 @@ namespace HBP.Sync.Scene
             else
             {
                 m_OptimisticRollbacks.Add(id, rollback);
-                m_OptimisticRollbackOrder.Enqueue(id);
+                if (!m_OptimisticRollbackNodes.ContainsKey(id)) m_OptimisticRollbackNodes.Add(id, m_OptimisticRollbackOrder.AddLast(id));
             }
 
             if (forward != null) m_OptimisticForwardMutations[id] = forward;
@@ -893,7 +920,7 @@ namespace HBP.Sync.Scene
 
             while (m_OptimisticRollbacks.Count + m_OptimisticCheckpointRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
             {
-                Guid oldest = m_OptimisticRollbackOrder.Dequeue();
+                Guid oldest = RemoveOldestOptimisticRollback();
                 m_OptimisticRollbacks.Remove(oldest);
                 m_OptimisticForwardMutations.Remove(oldest);
                 m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(oldest);
@@ -907,7 +934,7 @@ namespace HBP.Sync.Scene
             if (m_LocalOrigin != V2OriginDevice.Quest || operationId == null || checkpoint == null) return;
             Guid id = operationId.Value;
             if (!m_OptimisticRollbacks.ContainsKey(id) && !m_OptimisticCheckpointRollbacks.ContainsKey(id))
-                m_OptimisticRollbackOrder.Enqueue(id);
+                m_OptimisticRollbackNodes.Add(id, m_OptimisticRollbackOrder.AddLast(id));
             m_OptimisticRollbacks.Remove(id);
             m_OptimisticForwardMutations.Remove(id);
             m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(id);
@@ -915,7 +942,7 @@ namespace HBP.Sync.Scene
             if (provenanceRollback != null) m_OptimisticCheckpointProvenanceRollbacks[id] = provenanceRollback;
             while (m_OptimisticRollbacks.Count + m_OptimisticCheckpointRollbacks.Count > V2QuestMutationDriver.MaximumRememberedOperations)
             {
-                Guid oldest = m_OptimisticRollbackOrder.Dequeue();
+                Guid oldest = RemoveOldestOptimisticRollback();
                 m_OptimisticRollbacks.Remove(oldest);
                 m_OptimisticForwardMutations.Remove(oldest);
                 m_OptimisticSiteConfigurationProvenanceRollbacks.Remove(oldest);
@@ -937,7 +964,7 @@ namespace HBP.Sync.Scene
             }
 
             if (key is SetCutDefinition cutDefinition)
-                return CreateCutDefinition(ResolveCut(cutDefinition.CutId), cutDefinition.CutId);
+                return m_Cuts.TryGetValue(cutDefinition.CutId, out SceneCut cut) ? CreateCutDefinition(cut, cutDefinition.CutId) : new DeleteCut(cutDefinition.CutId);
 
             if (key is SetTimelineAnchor timelineAnchor)
             {
@@ -3066,6 +3093,7 @@ namespace HBP.Sync.Scene
                     m_Scene.ImplantationManager.SelectPrepared(m_ResourceCatalog.ResolveImplantation(value.ResourceId.Value));
                     return true;
                 case ApplyTriangleMask value:
+                    m_Scene.RebuildPreparedGeometryForSynchronization();
                     m_Scene.TriangleEraser.CurrentMasks = value.Masks.Select(mask => mask.ToVisibilityMask()).ToList();
                     return true;
                 default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
@@ -3246,6 +3274,16 @@ namespace HBP.Sync.Scene
             return new SetMeshDisplay(new ResourceId(m_ResourceCatalog.MeshReference(mesh)), part, representation);
         }
 
+        internal bool TryReadPreparedGeometry(out SetMeshDisplay display, out ApplyTriangleMask mask)
+        {
+            display = null;
+            mask = null;
+            if (m_ResourceCatalog == null || m_Scene?.MeshManager?.BrainSurface == null || m_Scene.MeshManager.SimplifiedMeshToUse == null || m_Scene.TriangleEraser == null) return false;
+            display = CreateMeshDisplayMutation();
+            mask = CreateTriangleMaskMutation();
+            return true;
+        }
+
         private SetSelectedMri CreateSelectedMriMutation()
         {
             RequireResourceCatalog();
@@ -3294,12 +3332,60 @@ namespace HBP.Sync.Scene
         {
             if (m_Scene.TriangleEraser == null || m_Scene.MeshManager?.SelectedMesh == null) throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
             (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
-            List<int[]> current = m_Scene.TriangleEraser.CurrentMasks;
             TopologyId[] expectedIds = { complete, simplified };
-            if (current.Count != 2 || mutation.Masks.Count != 2) throw new InvalidOperationException("Both original topology masks are required.");
+            Mesh3D mesh = m_Scene.MeshManager.SelectedMesh;
+            MeshPart part = m_Scene.MeshManager.MeshPartToDisplay;
             for (int i = 0; i < 2; i++)
-                if (!mutation.Masks[i].TopologyId.Equals(expectedIds[i]) || mutation.Masks[i].TriangleCount != current[i].Length)
+                if (!mutation.Masks[i].TopologyId.Equals(expectedIds[i]) || mutation.Masks[i].TriangleCount != mesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, part, i == 1).NumberOfTriangles)
                     throw new InvalidOperationException("Triangle mask topology does not match the prepared original surface.");
+        }
+
+        internal bool IsSelectedTriangleTopology(ApplyTriangleMask mutation)
+        {
+            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
+            return mutation.Masks[0].TopologyId.Equals(complete) && mutation.Masks[1].TopologyId.Equals(simplified);
+        }
+
+        internal void RebuildSynchronizedGeometry(OperationId operationId)
+        {
+            using (V2MutationApplicationContext.EnterRemote(operationId))
+                m_Scene.RebuildPreparedGeometryForSynchronization();
+        }
+
+        // Canonical masks may address a prepared topology hidden by a later optimistic selection.
+        // Desktop proposal admission and local edits still use ValidateTriangleMask above.
+        internal void ApplyPreparedTriangleMask(ApplyTriangleMask mutation, OperationId operationId)
+        {
+            RequireResourceCatalog();
+            Mesh3D target = null;
+            MeshPart targetPart = MeshPart.Both;
+            foreach (Mesh3D mesh in m_Scene.MeshManager.Meshes)
+            foreach (MeshPart part in new[] { MeshPart.Both, MeshPart.Left, MeshPart.Right })
+            {
+                if (part != MeshPart.Both && !mesh.SupportsHemispheres) continue;
+                string prefix = "surface:" + m_ResourceCatalog.MeshReference(mesh) + ":" + part.ToString().ToLowerInvariant();
+                if (mutation.Masks[0].TopologyId.Value != prefix + ":complete" || mutation.Masks[1].TopologyId.Value != prefix + ":simplified") continue;
+                target = mesh;
+                targetPart = part;
+            }
+
+            if (target == null || !target.IsLoaded) throw new InvalidOperationException("Triangle mask topology is not present in the prepared roster.");
+            for (int i = 0; i < 2; i++)
+                if (mutation.Masks[i].TriangleCount != target.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, targetPart, i == 1).NumberOfTriangles)
+                    throw new InvalidOperationException("Triangle mask size does not match the prepared original surface.");
+            using (V2MutationApplicationContext.EnterRemote(operationId))
+            {
+                if (IsSelectedTriangleTopology(mutation))
+                {
+                    m_Scene.RebuildPreparedGeometryForSynchronization();
+                    m_Scene.TriangleEraser.CurrentMasks = mutation.Masks.Select(mask => mask.ToVisibilityMask()).ToList();
+                }
+                else
+                {
+                    target.GetSurface(target.Representation, targetPart).UpdateVisibilityMask(mutation.Masks[0].ToVisibilityMask()).Dispose();
+                    target.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, targetPart, true).UpdateVisibilityMask(mutation.Masks[1].ToVisibilityMask()).Dispose();
+                }
+            }
         }
 
         private void ValidateT09Mutation(V2Mutation mutation)

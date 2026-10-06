@@ -20,6 +20,158 @@ namespace HBP.Tests.Transfer.Scene
         private static readonly SessionId Session = new SessionId(Guid.Parse("30000000-0000-0000-0000-000000000003"));
 
         [Test]
+        public void ApplicationRetirement_ConvergesFor100000OperationsInEachDirection()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary, maximumOperations: 8, maximumKeys: 8);
+            var desktopScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop) { ApplicationRetentionEnabled = true };
+            var questScheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, quest.Boundary, questScheduler);
+            authority.CanonicalReady += canonical => desktopScheduler.EnqueueMutation(canonical.Mutation, false, canonical.OperationId, canonical.CanonicalSequence);
+
+            for (int i = 0; i < 100000; i++)
+            {
+                float value = (i % 251) / 251f;
+                desktop.Boundary.Apply(Color("site-a", value, 0.25f, 0.5f), V2MutationApplicationOrigin.LocalDesktop, Operation(100000 + i * 2));
+                DrainCanonical();
+                var proposal = driver.ApplyOptimistic(Color("site-b", value, 0.5f, 0.25f), Operation(100001 + i * 2));
+                Assert.That(questScheduler.TryGetNextTransmission(out V2TransmissionAttempt proposed), Is.True);
+                var decision = authority.AcceptQuestProposal(proposal.OperationId, proposal.Mutation, proposal.ObservedCanonicalSequence, proposed.Frame.OriginSequence.Value);
+                Assert.That(decision.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                questScheduler.Acknowledge(proposed.Frame.StreamId, proposed.Frame.ReliableFrameSequence.Value);
+                DrainCanonical();
+            }
+
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(200000UL));
+            Assert.That(authority.State, Is.EqualTo(V2DesktopMutationAuthorityState.Active));
+            Assert.That(authority.RetainedDecisionCount, Is.Zero);
+            Assert.That(authority.IndexedKeyCount, Is.Zero);
+            Assert.That(driver.ReceivedOperationCount, Is.Zero);
+            Assert.That(driver.AppliedKeyCount, Is.Zero);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(quest.Boundary.OptimisticRollbackOrderCount, Is.Zero);
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+            Assert.That(quest.SiteB.Color, Is.EqualTo(desktop.SiteB.Color));
+            TestContext.WriteLine("HBP_SYNC_RETENTION desktop=100000 quest=100000 retainedDecisions=0 retainedKeys=0 retainedReceived=0 retainedRollbackOrder=0");
+
+            void DrainCanonical()
+            {
+                Assert.That(desktopScheduler.TryGetNextTransmission(out V2TransmissionAttempt sent), Is.True);
+                V2ReliableFrame frame = sent.Frame;
+                driver.ReceiveCanonical(Scene, Incarnation, frame.OperationId, frame.CanonicalSequence.Value, V2MutationPayloadCodec.Decode(frame.GetPayloadCopy()));
+                driver.RecordApplicationOrigin(frame.OperationId, frame.OriginSequence.Value);
+                desktopScheduler.Acknowledge(frame.StreamId, frame.ReliableFrameSequence.Value);
+                Assert.That(authority.RetainedDecisionCount, Is.EqualTo(1), "Receipt ACK alone must not retire a decision.");
+                foreach (OperationId id in desktopScheduler.RetireAppliedSceneOperations(frame.OriginSequence.Value)) authority.RetireOperation(id);
+                authority.AdvanceConflictFloor(driver.MinimumPendingObservedSequence);
+                driver.RetireCanonicalHistory(authority.RetiredCanonicalThrough, frame.OriginSequence.Value);
+            }
+        }
+
+        [Test]
+        public void CorrectionAtMatchingEchoVersion_ResolvesLaterPreviewAndRetainsIdentityUntilApplicationEcho()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, quest.Boundary, scheduler);
+            var first = driver.ApplyOptimistic(Color("site-a", 0.1f, 0.2f, 0.3f), Operation(90021));
+            Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt sent), Is.True);
+            var latest = driver.ApplyOptimistic(Color("site-a", 0.8f, 0.7f, 0.6f), Operation(90022));
+            var accepted = authority.AcceptQuestProposal(first);
+            driver.ReceiveCanonical(accepted.CanonicalMutation);
+            driver.RetireCanonicalHistory(1);
+            var rejected = authority.AcceptQuestProposal(latest);
+            Assert.That(rejected.Correction.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.ReceiveCorrection(rejected.Correction), Is.True);
+            Assert.That(quest.SiteA.Color, Is.EqualTo(desktop.SiteA.Color));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            driver.RecordApplicationOrigin(latest.OperationId, 2);
+            driver.RetireCanonicalHistory(1, 1);
+            Assert.That(driver.ReceivedOperationCount, Is.EqualTo(1));
+            authority.RetireOperation(latest.OperationId);
+            desktop.Boundary.Apply(Color("site-a", 0.4f, 0.5f, 0.6f), V2MutationApplicationOrigin.LocalDesktop, Operation(90023));
+            V2MutationCorrection reused = authority.AcceptQuestProposal(latest).Correction;
+            Assert.Throws<System.IO.InvalidDataException>(() => driver.ReceiveCorrection(reused));
+            driver.RetireCanonicalHistory(1, 2);
+            Assert.That(driver.ReceivedOperationCount, Is.Zero);
+            scheduler.Acknowledge(sent.Frame.StreamId, sent.Frame.ReliableFrameSequence.Value);
+        }
+
+        [Test]
+        public void RetiredProposalOrigin_IsRejectedWithoutApplyingAgain()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary, maximumOperations: 1);
+            V2Mutation mutation = Color("site-a", 0.2f, 0.3f, 0.4f);
+            var accepted = authority.AcceptQuestProposal(Operation(90001), mutation, 0, 1);
+            authority.RetireOperation(Operation(90001));
+            authority.AdvanceConflictFloor(1);
+            var retry = authority.AcceptQuestProposal(Operation(90001), mutation, 0, 1);
+            Assert.That(retry.RejectionCode, Is.EqualTo("retired_proposal"));
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(authority.AcceptQuestProposal(Operation(90002), mutation, 1, 2).Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+        }
+
+        [Test]
+        public void DeferredProposal_PreventsConflictFloorAdvancingPastItsObservation()
+        {
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            var limits = new V2SchedulerLimits(maxSceneQueuedRecords: 2, reservedSceneControlRecords: 1);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest, limits: limits);
+            using var driver = new V2QuestMutationDriver(Scene, Incarnation, quest.Boundary, scheduler);
+            var first = driver.ApplyOptimistic(Color("site-a", 0.1f, 0.2f, 0.3f), Operation(90011));
+            driver.ApplyOptimistic(Color("site-b", 0.2f, 0.3f, 0.4f), Operation(90012));
+            Assert.That(driver.DeferredProposalCount, Is.EqualTo(1));
+            driver.AdvanceCanonicalWatermark(10);
+            driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, first.OperationId, 1, first.Mutation));
+            Assert.That(driver.MinimumPendingObservedSequence, Is.Zero);
+            Assert.That(driver.LastObservedCanonicalSequence, Is.EqualTo(10UL));
+        }
+
+        [Test]
+        public void RejectionOnlyTraffic_RetiresDecisionsWithoutCanonicalAdvance()
+        {
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary, maximumOperations: 2);
+            for (int i = 0; i < 10000; i++)
+            {
+                OperationId id = Operation(500000 + i);
+                var result = authority.AcceptQuestProposal(id, Color("missing-site", 0.1f, 0.2f, 0.3f), 0, (ulong)i + 1);
+                Assert.That(result.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+                authority.RetireOperation(id);
+            }
+
+            Assert.That(authority.RetainedDecisionCount, Is.Zero);
+            Assert.That(authority.CanonicalSequence, Is.Zero);
+            Assert.That(authority.State, Is.EqualTo(V2DesktopMutationAuthorityState.Active));
+        }
+
+        [Test]
+        public void RetiredCanonicalFloor_PreservesCorrectionForPendingOptimisticValue()
+        {
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            using var desktop = new Fixture(V2OriginDevice.Desktop, new TestClock());
+            using var authority = new V2DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            var original = Color("site-a", 0.8f, 0.2f, 0.3f);
+            desktop.Boundary.Apply(original, V2MutationApplicationOrigin.LocalDesktop, Operation(91000));
+            driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, Operation(91000), 10, Color("site-b", 0.4f, 0.2f, 0.3f)));
+            var pending = driver.ApplyOptimistic(Color("site-a", 0.1f, 0.2f, 0.3f), Operation(91001));
+            driver.RetireCanonicalHistory(10);
+            Assert.That(driver.MinimumPendingObservedSequence, Is.EqualTo(10UL));
+            var decision = authority.AcceptQuestProposal(pending.OperationId, pending.Mutation, 0);
+            Assert.That(decision.Correction.CanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(driver.ReceiveCorrection(decision.Correction), Is.True);
+            Assert.That(quest.SiteA.Color.r, Is.EqualTo(0.8f));
+            driver.RetireCanonicalHistory(10);
+            Assert.That(driver.ReceivedOperationCount, Is.Zero);
+            Assert.That(driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, Operation(91000), 10, original)), Is.False);
+        }
+
+        [Test]
         public void DesktopCanonicalMutations_ConvergeForColorCutAndTimeline()
         {
             var stopwatch = Stopwatch.StartNew();

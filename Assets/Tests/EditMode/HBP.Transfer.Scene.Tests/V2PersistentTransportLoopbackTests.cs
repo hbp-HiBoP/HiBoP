@@ -35,6 +35,240 @@ namespace HBP.Sync.Tests
         private static readonly IncarnationId Incarnation = new IncarnationId(Guid.Parse("30000000-0000-0000-0000-000000000003"));
 
         [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestApplicationCompletion_MatchingEchoCompletesEvenWhenItsCallbackCancelsTheConnection()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            object owner = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            using var stop = new CancellationTokenSource();
+            try
+            {
+                var driver = GetPrivateField<V2QuestMutationDriver>(owner, "m_Driver");
+                var operation = new OperationId(GuidFor(201001));
+                var mutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.25f, 0.5f, 0.75f, 1);
+                driver.ApplyOptimistic(mutation, operation);
+                driver.ProposalConfirmed += _ => stop.Cancel();
+                var record = new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, operation, new ReliableStreamId(GuidFor(201002)), 1, 1, V2OriginDevice.Desktop, V2ScheduleLane.Interactive, payload: V2MutationPayloadCodec.Encode(mutation), canonicalSequence: 1, mutation: mutation);
+                await (Task)InvokePrivateMethod(owner, "ProcessRecordAsync", record, default(SyncTelemetryPoint), default(SyncTelemetryPoint), stop.Token);
+                Assert.That(stop.IsCancellationRequested, Is.True);
+                Assert.That(driver.PendingProposalCount, Is.Zero);
+                Assert.That(GetPrivateField<V2ApplicationCompletionWatermark>(owner, "m_ApplicationCompletion").CompletedThrough, Is.EqualTo(1));
+            }
+            finally
+            {
+                ((IDisposable)owner).Dispose();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestPreviewLookahead_ReceivedFollowingRecordSurvivesConnectionCancellation()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            fixture.AddTimeline("preview-timeline");
+            object owner = CreateQuestSession(fixture.Scene, CreatePreparedBinding(fixture.ColumnId, "preview-timeline"));
+            var desktop = CreateTransport(V2OriginDevice.Desktop, 201010);
+            using var firstPair = await LoopbackPeerPair.ConnectAsync();
+            using var firstStop = new CancellationTokenSource();
+            using var resumedStop = new CancellationTokenSource();
+            Task<Exception> questRun = null, desktopRun = null, receiveRun = null, resumedQuest = null, resumedDesktop = null;
+            try
+            {
+                var driver = GetPrivateField<V2QuestMutationDriver>(owner, "m_Driver");
+                var operation = new OperationId(GuidFor(301011));
+                var preview = new SetTimelineAnchor(new ColumnId("preview-timeline"), 3, false, false, 1, 0, 1000, V2TimelineAnchorIntent.Seek);
+                driver.ApplyOptimistic(preview, operation);
+                V2TransportRecord retainedAtCancellation = null;
+                driver.ProposalConfirmed += id =>
+                {
+                    if (!id.Equals(operation)) return;
+                    retainedAtCancellation = GetPrivateField<V2TransportRecord>(owner, "m_ReadAheadRecord");
+                    firstStop.Cancel();
+                };
+                var following = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.8f, 0.2f, 0.4f, 1);
+                Assert.That(desktop.EnqueueMutation(preview, 1, null, operationId: operation).Accepted, Is.True);
+                Assert.That(desktop.EnqueueMutation(following, 2, null, operationId: new OperationId(GuidFor(301012))).Accepted, Is.True);
+                // Receive and ACK both records before starting application, so the preview drain reads ahead.
+                var questTransport = GetPrivateField<V2PersistentTransport>(owner, "m_Transport");
+                desktopRun = CaptureRunAsync(desktop, firstPair.Client.GetStream(), firstStop.Token);
+                receiveRun = CaptureRunAsync(questTransport, firstPair.Server.GetStream(), firstStop.Token);
+                try
+                {
+                    await WaitUntilAsync(() => GetPrivateField<ulong>(questTransport, "m_LastOriginSequence") == 2, "Quest did not receive both records.");
+                }
+                catch (TimeoutException)
+                {
+                    Assert.Fail($"Quest origin={GetPrivateField<ulong>(questTransport, "m_LastOriginSequence")} fault={GetPrivateField<Exception>(questTransport, "m_FaultException")} Desktop fault={GetPrivateField<Exception>(desktop, "m_FaultException")}");
+                }
+
+                questRun = CaptureTaskExceptionAsync((Task)InvokePrivateMethod(owner, "ProcessIncomingAsync", firstStop.Token));
+                await AwaitGuardAsync(questRun);
+                await AwaitGuardAsync(receiveRun);
+                await AwaitGuardAsync(desktopRun);
+                Assert.That(retainedAtCancellation, Is.Not.Null);
+                Assert.That(GetPrivateField<V2TransportRecord>(owner, "m_ReadAheadRecord"), Is.SameAs(retainedAtCancellation));
+
+                using var resumedPair = await LoopbackPeerPair.ConnectAsync();
+                resumedQuest = CaptureTaskExceptionAsync(RunQuestSession(owner, resumedPair.Server.GetStream(), resumedStop.Token));
+                resumedDesktop = CaptureRunAsync(desktop, resumedPair.Client.GetStream(), resumedStop.Token);
+                await WaitUntilAsync(() => GetPrivateField<V2ApplicationCompletionWatermark>(owner, "m_ApplicationCompletion").CompletedThrough == 2, "The ACKed lookahead record was lost across connection restart.");
+                Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(new Color(0.8f, 0.2f, 0.4f, 1)));
+                Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+                resumedStop.Cancel();
+                resumedPair.Close();
+                await AwaitGuardAsync(resumedQuest);
+                await AwaitGuardAsync(resumedDesktop);
+            }
+            finally
+            {
+                firstStop.Cancel();
+                resumedStop.Cancel();
+                firstPair.Close();
+                ((IDisposable)owner).Dispose();
+                desktop.Dispose();
+                foreach (Task task in new Task[] { questRun, desktopRun, receiveRun, resumedQuest, resumedDesktop })
+                    if (task != null)
+                        await AwaitGuardAsync(task);
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task ApplicationRetention_ProductionSessionsConvergeBeyond4096InBothDirections()
+        {
+            using var desktopFixture = new SessionSceneFixture(2);
+            using var questFixture = new SessionSceneFixture(2);
+            LiveActivityProjectionSessionPair sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktopFixture.Scene, questFixture.Scene, CreatePreparedBinding());
+            var authority = GetPrivateField<V2DesktopMutationAuthority>(sessions.DesktopOwner, "m_Authority");
+            var desktopBoundary = GetPrivateField<V2SceneMutationBoundary>(sessions.DesktopOwner, "m_Boundary");
+            var driver = GetPrivateField<V2QuestMutationDriver>(sessions.QuestOwner, "m_Driver");
+            // EditMode does not advance the render PlayerLoop reliably. Supply a
+            // test frame clock while retaining production preview pacing and sessions.
+            using var desktopFrames = new SemaphoreSlim(0);
+            using var questFrames = new SemaphoreSlim(0);
+            SetPrivateField(sessions.DesktopTransport, "m_PreviewFrameWaiter", new Func<CancellationToken, Task>(stop => desktopFrames.WaitAsync(stop)));
+            SetPrivateField(GetPrivateField<V2PersistentTransport>(sessions.QuestOwner, "m_Transport"), "m_PreviewFrameWaiter", new Func<CancellationToken, Task>(stop => questFrames.WaitAsync(stop)));
+            try
+            {
+                for (int batch = 0; batch < 32; batch++)
+                {
+                    float red = (batch + 1) / 33f;
+                    for (int site = 0; site < 256; site++)
+                    {
+                        var desktopMutation = new SetSiteColor(new ColumnId(desktopFixture.ColumnId), new SiteId(desktopFixture.SiteIds[0]), red, site / 257f, 0.3f, 1);
+                        desktopBoundary.Apply(desktopMutation, V2MutationApplicationOrigin.LocalDesktop, new OperationId(GuidFor(200000 + batch * 512 + site)));
+                        var questMutation = new SetSiteColor(new ColumnId(questFixture.ColumnId), new SiteId(questFixture.SiteIds[1]), red, 0.3f, site / 257f, 1);
+                        driver.ApplyOptimistic(questMutation, new OperationId(GuidFor(200000 + batch * 512 + site + 256)));
+                    }
+
+                    desktopFrames.Release();
+                    questFrames.Release();
+                    try
+                    {
+                        await WaitForApplicationProgressAsync(() =>
+                        {
+                            if (desktopFrames.CurrentCount == 0) desktopFrames.Release();
+                            if (questFrames.CurrentCount == 0) questFrames.Release();
+                            return driver.PendingProposalCount == 0 && questFixture.Sites[0].State.Color.r == red && desktopFixture.Sites[1].State.Color.r == red;
+                        }, "Production peers stopped converging during sustained synchronization.", timeoutSeconds: 15);
+                    }
+                    catch (TimeoutException)
+                    {
+                        string status = $"batch={batch} canonical={authority.CanonicalSequence} observed={driver.LastObservedCanonicalSequence} pending={driver.PendingProposalCount} decisions={authority.RetainedDecisionCount} keys={authority.IndexedKeyCount}";
+                        await sessions.CloseAsync();
+                        Exception failure = await GetPrivateField<Task<Exception>>(sessions, "m_QuestRun");
+                        Assert.Fail(status + " Quest session failure=" + failure);
+                    }
+                }
+
+                await WaitForApplicationProgressAsync(() => authority.RetainedDecisionCount == 0 && authority.IndexedKeyCount == 0 && driver.ReceivedOperationCount == 0, "Completed histories were not released by application progress.");
+                Assert.That(authority.CanonicalSequence, Is.InRange(8224UL, 16384UL));
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(V2PersistentTransportState.Connected));
+                Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+                Assert.That(GetPrivateField<V2SceneMutationBoundary>(sessions.QuestOwner, "m_Boundary").OptimisticRollbackOrderCount, Is.Zero);
+                for (int site = 0; site < 2; site++) Assert.That(questFixture.Sites[site].State.Color, Is.EqualTo(desktopFixture.Sites[site].State.Color));
+            }
+            catch (Exception exception)
+            {
+                var questTransport = GetPrivateField<V2PersistentTransport>(sessions.QuestOwner, "m_Transport");
+                throw new AssertionException($"{exception} desktopFault={GetPrivateField<Exception>(sessions.DesktopTransport, "m_FaultException")} questFault={GetPrivateField<Exception>(questTransport, "m_FaultException")}");
+            }
+            finally
+            {
+                await sessions.CloseAsync();
+            }
+
+            async Task WaitForApplicationProgressAsync(Func<bool> condition, string message, int timeoutSeconds = 15)
+            {
+                var elapsed = Stopwatch.StartNew();
+                while (!condition())
+                {
+                    if (elapsed.Elapsed.TotalSeconds >= timeoutSeconds) throw new TimeoutException(message);
+                    await Cysharp.Threading.Tasks.UniTask.Yield(Cysharp.Threading.Tasks.PlayerLoopTiming.Initialization);
+                }
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public void ApplicationRetention_SameIdPreviewRepublishCannotRetireItsUnsentCanonical()
+        {
+            using var fixture = new SessionSceneFixture(1);
+            object owner = CreateDesktopSession(fixture.Scene);
+            try
+            {
+                var authority = GetPrivateField<V2DesktopMutationAuthority>(owner, "m_Authority");
+                var boundary = GetPrivateField<V2SceneMutationBoundary>(owner, "m_Boundary");
+                var scheduler = GetPrivateField<V2OutgoingScheduler>(owner, "m_Scheduler");
+                var id = new OperationId(GuidFor(999001));
+                var mutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.2f, 0.3f, 0.4f, 1);
+                boundary.Apply(mutation, V2MutationApplicationOrigin.LocalDesktop, id);
+                Assert.That(authority.AcceptQuestProposal(id, mutation, 0).Outcome, Is.EqualTo(V2ProposalOutcome.Duplicate));
+                Assert.That(authority.RetainedDecisionCount, Is.EqualTo(1));
+                Assert.That(authority.RetiredCanonicalThrough, Is.Zero);
+                Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt sent), Is.True);
+                Assert.That(sent.Frame.OperationId, Is.EqualTo(id));
+                Assert.That(sent.Frame.CanonicalSequence, Is.EqualTo(1UL));
+            }
+            finally
+            {
+                ((IDisposable)owner).Dispose();
+            }
+        }
+
+        [Test]
+        public void RetentionProgress_ReceiptBurstsRetainOnlyLatestNotificationAndValidateSkippedFrames()
+        {
+            using var transport = CreateTransport(V2OriginDevice.Desktop, 980000);
+            // This fixture isolates notification retention after the scene sender
+            // has assigned the origin range covered by these confirmations.
+            SetPrivateField(GetPrivateField<V2OutgoingScheduler>(transport, "m_Scheduler"), "m_NextOriginSequence", 10003UL);
+            MethodInfo enqueue = typeof(V2PersistentTransport).GetMethod("EnqueueIncoming", BindingFlags.Instance | BindingFlags.NonPublic);
+            for (ulong i = 1; i <= 10000; i++) enqueue.Invoke(transport, new object[] { Progress(i) });
+            Assert.That(GetPrivateField<ICollection>(transport, "m_Incoming").Count, Is.EqualTo(1));
+            Assert.That(transport.TryReadIncoming(out V2TransportRecord latest), Is.True);
+            Assert.That(V2RetentionProgress.TryDecode(latest.GetPayloadCopy(), out V2RetentionProgress decoded), Is.True);
+            Assert.That(decoded.AppliedOriginThrough, Is.EqualTo(10000UL));
+            Assert.That(transport.TryReadIncoming(out _), Is.False);
+            var invalid = Assert.Throws<TargetInvocationException>(() => enqueue.Invoke(transport, new object[] { Progress(9999) }));
+            Assert.That(invalid.InnerException, Is.TypeOf<InvalidDataException>());
+            enqueue.Invoke(transport, new object[] { Progress(10001) });
+            Assert.That(transport.TryReadIncoming(out _), Is.True);
+            Assert.That(Assert.Throws<TargetInvocationException>(() => enqueue.Invoke(transport, new object[] { Progress(10003) })).InnerException, Is.TypeOf<InvalidDataException>());
+            Assert.That(Assert.Throws<TargetInvocationException>(() => enqueue.Invoke(transport, new object[] { Progress(0) })).InnerException, Is.TypeOf<InvalidDataException>());
+            for (int i = 0; i < 256; i++) enqueue.Invoke(transport, new object[] { IncomingMutation(new ReliableStreamId(GuidFor(980003)), i + 1) });
+            Assert.That(Assert.Throws<TargetInvocationException>(() => enqueue.Invoke(transport, new object[] { Progress(10002) })).InnerException, Is.TypeOf<V2TransportBackpressureException>());
+            Assert.That(transport.TryReadIncoming(out _), Is.True);
+            enqueue.Invoke(transport, new object[] { Progress(10002) });
+            V2TransportRecord last = null;
+            while (transport.TryReadIncoming(out V2TransportRecord next)) last = next;
+            Assert.That(V2RetentionProgress.TryDecode(last.GetPayloadCopy(), out decoded), Is.True);
+            Assert.That(decoded.AppliedOriginThrough, Is.EqualTo(10002UL), "A failed queue admission must not consume the progress notification or its retry identity.");
+
+            V2TransportRecord Progress(ulong value) => new V2TransportRecord(V2TransportMessageKind.Application, Session, messageId: new OperationId(GuidFor(980001)), streamId: new ReliableStreamId(GuidFor(980002)), reliableFrameSequence: value, originDevice: V2OriginDevice.Quest, lane: V2ScheduleLane.SessionControl, payload: new V2RetentionProgress(Session, Scene, Incarnation, V2OriginDevice.Quest, value, value, 0, value).Encode());
+        }
+
+        [Test]
         public async Task PreviewFrameWait_DoesNotBlockControlTrafficAndFlushesFinalValue()
         {
             var frame = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -1180,6 +1414,7 @@ namespace HBP.Sync.Tests
                 Assert.That(acknowledgedBarrier, Is.EqualTo(barrierId));
                 Assert.That(fixture.Sites[0].State.Color, Is.EqualTo(appliedColor));
                 Assert.That(matchingColorApplications, Is.EqualTo(1), "The retained interleaved canonical mutation must apply once after checkpoint replay.");
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 0 && GetPrivateField<V2ApplicationCompletionWatermark>(questOwner, "m_ApplicationCompletion").CompletedThrough >= 3, "Checkpoint replay did not complete application retirement.");
                 Assert.That(GetDeferredRecords(questOwner), Is.Empty);
                 Assert.That(GetDeferredByteCount(questOwner), Is.Zero);
                 Assert.That(GetCheckpointReceiverActive(questOwner), Is.False);
@@ -1257,6 +1492,7 @@ namespace HBP.Sync.Tests
                 V2TransportRecord acknowledgement = await ReadIncomingAsync(desktopPeer, timeoutSeconds: 60);
                 Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
                 Assert.That(acknowledgedBarrier, Is.EqualTo(barrierOperation));
+                await WaitUntilAsync(() => GetDeferredRecords(questOwner).Count == 0 && GetPrivateField<V2ApplicationCompletionWatermark>(questOwner, "m_ApplicationCompletion").CompletedThrough >= 3, "The checkpoint barrier did not finish application retirement.");
                 Assert.That(GetCheckpointReceiverActive(questOwner), Is.False);
                 Assert.That(GetDeferredRecords(questOwner), Is.Empty);
                 Assert.That(GetDriverCanonicalWatermark(questOwner), Is.EqualTo(1UL));
@@ -1360,6 +1596,7 @@ namespace HBP.Sync.Tests
                 Assert.That(V2PublicationControlCodec.TryDecodeAcknowledgement(acknowledgement.GetPayloadCopy(), out OperationId acknowledgedBarrier), Is.True);
                 Assert.That(acknowledgedBarrier, Is.EqualTo(barrierId));
                 Assert.That(checkpointApplyAttempts, Is.EqualTo(2), "The retained checkpoint is resumed once on reconnect.");
+                await WaitUntilAsync(() => !GetDeferredDrainPending(questOwner), "The publication acknowledgement must be followed by completion of the deferred drain.");
                 Assert.That(GetCompletedCheckpoint(questOwner), Is.Null);
                 Assert.That(GetDeferredDrainPending(questOwner), Is.False);
                 Assert.That(GetDeferredRecords(questOwner), Is.Empty);
@@ -1588,11 +1825,12 @@ namespace HBP.Sync.Tests
                 Assert.That(openCount, Is.EqualTo(2), "Reconnect should reuse the existing Desktop owner and transport.");
                 Assert.That(connectionTransports, Has.Count.EqualTo(2));
                 Assert.That(ReferenceEquals(connectionTransports[0], connectionTransports[1]), Is.True, "Both production connection attempts must use the same persistent Desktop transport.");
-                Assert.That(questAckCount.SessionControlApplicationWrites, Is.EqualTo(1), "The retained Quest session must apply and acknowledge the replayed barrier once.");
+                Assert.That(questAckCount.PublicationAcknowledgementWrites, Is.EqualTo(1), "The retained Quest session must apply and acknowledge the replayed barrier once.");
                 Assert.That((V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner), Is.EqualTo(V2PersistentTransportState.Connected));
                 Assert.That(resumedPair, Is.SameAs(connectionPairs[1]));
 
                 var desktopTransport = (V2PersistentTransport)desktopOwnerType.GetField("m_Transport", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
+                await WaitUntilAsync(() => desktopTransport.SnapshotMetrics().OutstandingReliableFrames == 0, "Retained initial-publication controls were not acknowledged.");
                 Assert.That(desktopTransport.SnapshotMetrics().OutstandingReliableFrames, Is.Zero, "The initial barrier is acknowledged before the owner reports the scene live.");
             }
             finally
@@ -2433,6 +2671,12 @@ namespace HBP.Sync.Tests
                 Assert.That(scheduler.SnapshotMetrics().PendingSceneRecords, Is.EqualTo(1));
                 Assert.That(scheduler.SnapshotMetrics().CoalescedPreviewCount, Is.EqualTo(1));
                 Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt transmission), Is.True);
+                if (transmission.Frame.Lane == V2ScheduleLane.SessionControl)
+                {
+                    Assert.That(V2RetentionProgress.TryDecode(transmission.Frame.GetPayloadCopy(), out _), Is.True);
+                    Assert.That(scheduler.TryGetNextTransmission(out transmission), Is.True);
+                }
+
                 Assert.That(transmission.Frame.OperationId, Is.EqualTo(canonical[1].OperationId));
                 Assert.That(transmission.Frame.CanonicalSequence, Is.EqualTo(canonical[1].CanonicalSequence));
                 Assert.That(transmission.Frame.ReliableFrameSequence, Is.EqualTo(1UL));
@@ -3098,14 +3342,22 @@ namespace HBP.Sync.Tests
         private static async Task<V2TransportRecord> ReadIncomingAsync(V2PersistentTransport transport, int timeoutSeconds = 5)
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-            return await transport.ReadIncomingAsync(timeout.Token);
+            while (true)
+            {
+                V2TransportRecord record = await transport.ReadIncomingAsync(timeout.Token);
+                if (record.Lane != V2ScheduleLane.SessionControl || !V2RetentionProgress.TryDecode(record.GetPayloadCopy(), out _)) return record;
+            }
         }
 
         private static async Task<V2TransportRecord> ReadIncomingOrNullAsync(V2PersistentTransport transport, CancellationToken cancellationToken)
         {
             try
             {
-                return await transport.ReadIncomingAsync(cancellationToken);
+                while (true)
+                {
+                    V2TransportRecord record = await transport.ReadIncomingAsync(cancellationToken);
+                    if (record.Lane != V2ScheduleLane.SessionControl || !V2RetentionProgress.TryDecode(record.GetPayloadCopy(), out _)) return record;
+                }
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -4055,7 +4307,9 @@ namespace HBP.Sync.Tests
         private sealed class CountingSessionControlWriteStream
         {
             private int m_SessionControlApplicationWrites;
+            private int m_PublicationAcknowledgementWrites;
             public int SessionControlApplicationWrites => Volatile.Read(ref m_SessionControlApplicationWrites);
+            public int PublicationAcknowledgementWrites => Volatile.Read(ref m_PublicationAcknowledgementWrites);
 
             public Stream Wrap(Stream stream) => new CountingStream(this, stream);
 
@@ -4069,7 +4323,10 @@ namespace HBP.Sync.Tests
                 Buffer.BlockCopy(buffer, offset, frame, 0, count);
                 V2TransportRecord record = V2TransportFrameCodec.Decode(frame);
                 if (record.Lane == V2ScheduleLane.SessionControl)
+                {
                     Interlocked.Increment(ref m_SessionControlApplicationWrites);
+                    if (V2PublicationControlCodec.TryDecodeAcknowledgement(record.GetPayloadCopy(), out _)) Interlocked.Increment(ref m_PublicationAcknowledgementWrites);
+                }
             }
 
             private sealed class CountingStream : Stream

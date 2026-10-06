@@ -18,7 +18,8 @@ namespace HBP.Sync
 
     /// <summary>
     /// Bounded idempotency and per-key accepted-watermark index for one live
-    /// synchronization session. Entries live for the owning incarnation.
+    /// synchronization session. Application confirmations retire identities and
+    /// conflict keys; scoped sequence fences remain for the owning incarnation.
     /// </summary>
     public sealed class V2OperationLedger
     {
@@ -32,6 +33,32 @@ namespace HBP.Sync
         public int OperationCount => m_Operations.Count;
         public int IndexedKeyCount => m_LastAccepted.Count;
         public int SceneWatermarkCount => m_SceneWatermarks.Count;
+
+        public void RetireOperation(OperationId operationId)
+        {
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+            m_Operations.Remove(operationId.Value);
+        }
+
+        /// <summary>All future proposals must observe at least this floor, including deferred proposals.</summary>
+        public void AdvanceConflictFloor(SceneId sceneId, IncarnationId incarnationId, ulong minimumObservedSequence)
+        {
+            if (sceneId == null || incarnationId == null) throw new ArgumentNullException(nameof(sceneId));
+            if (!m_SceneWatermarks.TryGetValue(new SceneIncarnationScope(sceneId, incarnationId), out SceneWatermark watermark))
+            {
+                if (minimumObservedSequence != 0) throw new InvalidDataException("Unknown conflict retention scope.");
+                return;
+            }
+
+            if (minimumObservedSequence < watermark.MinimumObservedSequence || minimumObservedSequence > watermark.LatestAcceptedSequence)
+                throw new InvalidDataException("Invalid conflict retention floor.");
+            watermark.MinimumObservedSequence = minimumObservedSequence;
+            var retired = new List<V2TouchedKey>();
+            foreach (KeyValuePair<V2TouchedKey, ulong> entry in m_LastAccepted)
+                if (entry.Key.SceneId.Equals(sceneId) && entry.Key.IncarnationId.Equals(incarnationId) && entry.Value <= minimumObservedSequence)
+                    retired.Add(entry.Key);
+            foreach (V2TouchedKey key in retired) m_LastAccepted.Remove(key);
+        }
 
         public V2OperationLedger(int maximumOperations = 4096, int maximumKeys = 65536, int maximumSceneWatermarks = 4096)
         {
@@ -63,6 +90,7 @@ namespace HBP.Sync
 
             var sceneScope = new SceneIncarnationScope(descriptor.SceneId, descriptor.IncarnationId);
             bool hasSceneWatermark = m_SceneWatermarks.TryGetValue(sceneScope, out SceneWatermark sceneWatermark);
+            if (hasSceneWatermark && observedCanonicalSequence < sceneWatermark.MinimumObservedSequence) return V2OperationAdmission.Conflicting;
             bool isAllSceneBarrier = descriptor.BarrierScope == V2BarrierScope.AllScene;
             if (hasSceneWatermark && (isAllSceneBarrier ? sceneWatermark.LatestAcceptedSequence > observedCanonicalSequence : sceneWatermark.LatestAllSceneBarrierSequence > observedCanonicalSequence))
                 return V2OperationAdmission.Conflicting;
@@ -197,6 +225,7 @@ namespace HBP.Sync
 
         private sealed class SceneWatermark
         {
+            public ulong MinimumObservedSequence;
             public ulong LatestAcceptedSequence;
             public ulong LatestAllSceneBarrierSequence;
         }

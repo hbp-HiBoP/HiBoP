@@ -48,6 +48,9 @@ namespace HBP.Transfer.Transport
         private readonly Queue<Guid> m_PendingPingOrder = new Queue<Guid>();
         private readonly Dictionary<Guid, PendingPing> m_PendingPings = new Dictionary<Guid, PendingPing>();
         private readonly Queue<V2TransportRecord> m_Incoming = new Queue<V2TransportRecord>();
+        private V2TransportRecord m_IncomingProgressPlaceholder;
+        private V2TransportRecord m_LatestIncomingProgress;
+        private V2RetentionProgress m_LastReceivedProgress;
         private readonly Func<Guid> m_GuidFactory;
         private ulong m_LastOriginSequence;
         private int m_OutOfOrderRecordCount;
@@ -191,6 +194,27 @@ namespace HBP.Transfer.Transport
             if (result.Accepted)
                 SignalWriter();
             return result;
+        }
+
+        public V2EnqueueResult EnqueueRetentionProgress(V2RetentionProgress progress)
+        {
+            V2EnqueueResult result;
+            bool faulted;
+            lock (m_Gate)
+            {
+                ThrowIfUnavailable();
+                result = m_Scheduler.EnqueueRetentionProgress(progress.Encode());
+                faulted = MarkSchedulerFaultedLocked();
+            }
+
+            if (faulted) StopFaultedSession();
+            if (result.Accepted) SignalWriter();
+            return result;
+        }
+
+        public IReadOnlyList<OperationId> RetireAppliedSceneOperations(ulong throughOriginSequence)
+        {
+            lock (m_Gate) return m_Scheduler.RetireAppliedSceneOperations(throughOriginSequence);
         }
 
         public bool CancelBulk(OperationId operationId)
@@ -424,7 +448,7 @@ namespace HBP.Transfer.Transport
                 {
                     if (m_Incoming.Count > 0)
                     {
-                        V2TransportRecord record = m_Incoming.Dequeue();
+                        V2TransportRecord record = DequeueIncoming();
                         m_IncomingBytes -= checked(V2TransportFrameCodec.HeaderLength + record.PayloadLength);
                         return record;
                     }
@@ -442,7 +466,7 @@ namespace HBP.Transfer.Transport
             {
                 record = null;
                 if (m_Incoming.Count == 0 || !m_IncomingAvailable.Wait(0)) return false;
-                record = m_Incoming.Dequeue();
+                record = DequeueIncoming();
                 m_IncomingBytes -= checked(V2TransportFrameCodec.HeaderLength + record.PayloadLength);
                 return true;
             }
@@ -832,12 +856,48 @@ namespace HBP.Transfer.Transport
 
         private void EnqueueIncoming(V2TransportRecord record)
         {
+            V2RetentionProgress progress = null;
+            if (record.Lane == V2ScheduleLane.SessionControl && V2RetentionProgress.TryDecode(record.GetPayloadCopy(), out progress))
+            {
+                ulong knownOrigin = m_Scheduler.OriginDevice == V2OriginDevice.Desktop ? m_Scheduler.LastCommittedOriginSequence : m_LastOriginSequence;
+                if (record.ReliableFrameSequence == 0 || progress.AppliedOriginThrough > knownOrigin)
+                    throw new InvalidDataException("Application retention progress acknowledges an unknown origin or is unreliable.");
+                progress.ValidateScope(m_Scheduler.SessionId, m_Scheduler.SceneId, m_Scheduler.IncarnationId, m_Scheduler.OriginDevice == V2OriginDevice.Desktop ? V2OriginDevice.Quest : V2OriginDevice.Desktop);
+                if (m_LastReceivedProgress != null && (progress.AppliedOriginThrough < m_LastReceivedProgress.AppliedOriginThrough || progress.MinimumObservedCanonicalSequence < m_LastReceivedProgress.MinimumObservedCanonicalSequence || progress.RetiredCanonicalThrough < m_LastReceivedProgress.RetiredCanonicalThrough || progress.CurrentCanonicalSequence < m_LastReceivedProgress.CurrentCanonicalSequence))
+                    throw new InvalidDataException("Application retention progress regressed on the receive stream.");
+                // Network ACKs can outrun main-thread consumption. Keep one queued
+                // notification with the latest cumulative value, validating every frame.
+                if (m_IncomingProgressPlaceholder != null)
+                {
+                    m_LastReceivedProgress = progress;
+                    m_LatestIncomingProgress = record;
+                    return;
+                }
+            }
+
             int bytes = checked(V2TransportFrameCodec.HeaderLength + record.PayloadLength);
             if (m_Incoming.Count >= MaximumIncomingRecords || bytes > MaximumIncomingBytes - m_IncomingBytes)
                 throw new V2TransportBackpressureException("The bounded incoming-record queue is full.");
+            if (progress != null)
+            {
+                m_LastReceivedProgress = progress;
+                m_LatestIncomingProgress = record;
+                m_IncomingProgressPlaceholder = record;
+            }
+
             m_Incoming.Enqueue(record);
             m_IncomingBytes += bytes;
             m_IncomingAvailable.Release();
+        }
+
+        private V2TransportRecord DequeueIncoming()
+        {
+            V2TransportRecord record = m_Incoming.Dequeue();
+            if (!ReferenceEquals(record, m_IncomingProgressPlaceholder)) return record;
+            record = m_LatestIncomingProgress;
+            m_IncomingProgressPlaceholder = null;
+            m_LatestIncomingProgress = null;
+            return record;
         }
 
         private void QueueAcknowledgement(ReliableStreamId streamId, ulong throughSequence)

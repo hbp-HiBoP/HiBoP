@@ -15,6 +15,101 @@ namespace HBP.Sync.Tests
         private static readonly SceneId Scene = new SceneId(GuidFor(1));
         private static readonly IncarnationId Incarnation = new IncarnationId(GuidFor(2));
 
+        [Test]
+        public void RetentionProgress_KeepsOneImmutableFrameAndLatestPendingValue()
+        {
+            var scheduler = CreateScheduler(new FakeMonotonicClock());
+            byte[] Progress(ulong value) => new V2RetentionProgress(scheduler.SessionId, Scene, Incarnation, V2OriginDevice.Quest, value, value, 0, value).Encode();
+            scheduler.EnqueueRetentionProgress(Progress(1));
+            scheduler.EnqueueRetentionProgress(Progress(2));
+            var first = Next(scheduler);
+            V2RetentionProgress.TryDecode(first.Frame.GetPayloadCopy(), out V2RetentionProgress initial);
+            Assert.That(initial.AppliedOriginThrough, Is.EqualTo(2UL));
+            for (ulong value = 3; value <= 10000; value++) scheduler.EnqueueRetentionProgress(Progress(value));
+            Assert.That(scheduler.SnapshotMetrics().PendingSessionControlRecords, Is.Zero);
+            Assert.That(scheduler.TryGetNextTransmission(out _), Is.False);
+            scheduler.BeginDisconnectGrace();
+            Assert.That(scheduler.TryResume(), Is.True);
+            var replay = Next(scheduler);
+            Assert.That(replay.IsReplay, Is.True);
+            Assert.That(replay.Frame.GetPayloadCopy(), Is.EqualTo(first.Frame.GetPayloadCopy()));
+            scheduler.Acknowledge(first.Frame.StreamId, first.Frame.ReliableFrameSequence.Value);
+            var latest = Next(scheduler);
+            V2RetentionProgress.TryDecode(latest.Frame.GetPayloadCopy(), out V2RetentionProgress final);
+            Assert.That(final.AppliedOriginThrough, Is.EqualTo(10000UL));
+        }
+
+        [Test]
+        public void ApplicationCompletion_HoldsBulkAndBatchGapsUntilAllPrecedingWorkCompletes()
+        {
+            var completion = new V2ApplicationCompletionWatermark(maximumGaps: 2);
+            completion.Complete(3);
+            completion.Complete(2);
+            Assert.That(completion.CompletedThrough, Is.Zero);
+            Assert.Throws<System.IO.InvalidDataException>(() => completion.Complete(4));
+            completion.Complete(1);
+            Assert.That(completion.CompletedThrough, Is.EqualTo(3UL));
+            completion.Complete(2);
+            Assert.That(completion.CompletedThrough, Is.EqualTo(3UL));
+            Assert.That(completion.GapCount, Is.Zero);
+        }
+
+        [Test]
+        public void ApplicationRetirement_LateDuplicateCommitDoesNotLeakItsMetadata()
+        {
+            var scheduler = CreateScheduler(new FakeMonotonicClock());
+            scheduler.ApplicationRetentionEnabled = true;
+            var id = new OperationId(GuidFor(900001));
+            var mutation = new SetSiteColor(new ColumnId("column"), new SiteId("site"), 0.1f, 0.2f, 0.3f, 1);
+            scheduler.EnqueueMutation(mutation, false, id, 1);
+            var first = Next(scheduler);
+            scheduler.Acknowledge(first.Frame.StreamId, first.Frame.ReliableFrameSequence.Value);
+            scheduler.EnqueueMutation(mutation, false, id, 1);
+            Assert.That(scheduler.RetireAppliedSceneOperations(first.Frame.OriginSequence.Value), Has.Count.EqualTo(1));
+            var duplicate = Next(scheduler);
+            Assert.That(scheduler.ApplicationRetainedCount, Is.EqualTo(1));
+            Assert.Throws<System.IO.InvalidDataException>(() => scheduler.RetireAppliedSceneOperations(3));
+            scheduler.RetireAppliedSceneOperations(duplicate.Frame.OriginSequence.Value);
+            Assert.That(scheduler.ApplicationRetainedCount, Is.Zero);
+            Assert.Throws<System.IO.InvalidDataException>(() => scheduler.RetireAppliedSceneOperations(1));
+        }
+
+        [Test]
+        public void RetentionProgress_RejectsMalformedBoundsVersionAndScope()
+        {
+            var scheduler = CreateScheduler(new FakeMonotonicClock());
+            var progress = new V2RetentionProgress(scheduler.SessionId, Scene, Incarnation, V2OriginDevice.Desktop, 10, 3, 5, 7);
+            byte[] encoded = progress.Encode();
+            Assert.That(encoded.Length, Is.EqualTo(V2RetentionProgress.EncodedLength));
+            Assert.That(V2RetentionProgress.TryDecode(encoded, out V2RetentionProgress decoded), Is.True);
+            decoded.ValidateScope(scheduler.SessionId, Scene, Incarnation, V2OriginDevice.Desktop);
+            Assert.Throws<System.IO.InvalidDataException>(() => decoded.ValidateScope(scheduler.SessionId, Scene, new IncarnationId(GuidFor(22)), V2OriginDevice.Desktop));
+            encoded[4] = 2;
+            Assert.Throws<System.IO.InvalidDataException>(() => V2RetentionProgress.TryDecode(encoded, out _));
+            Assert.Throws<System.IO.InvalidDataException>(() => new V2RetentionProgress(scheduler.SessionId, Scene, Incarnation, V2OriginDevice.Quest, 1, 8, 0, 7));
+            Assert.Throws<System.IO.InvalidDataException>(() => new V2RetentionProgress(scheduler.SessionId, Scene, Incarnation, V2OriginDevice.Desktop, 1, 0, 8, 7));
+        }
+
+        [Test]
+        public void LedgerRetirement_RecyclesDistinctDeletedEntityKeysAndRejectsStaleProposals()
+        {
+            var ledger = new V2OperationLedger(maximumOperations: 2, maximumKeys: 2);
+            for (int i = 0; i < 70000; i++)
+            {
+                var id = new OperationId(GuidFor(100000 + i));
+                var mutation = new DeleteCut(new CutId("retired-cut-" + i));
+                var descriptor = V2ScheduleDescriptor.ForMutation(Scene, Incarnation, mutation);
+                Assert.That(ledger.Accept(id, descriptor, (ulong)i, (ulong)i + 1, V2MutationPayloadCodec.Encode(mutation)), Is.EqualTo(V2OperationAdmission.Accepted));
+                ledger.RetireOperation(id);
+                ledger.AdvanceConflictFloor(Scene, Incarnation, (ulong)i + 1);
+            }
+
+            Assert.That(ledger.OperationCount, Is.Zero);
+            Assert.That(ledger.IndexedKeyCount, Is.Zero);
+            var old = new DeleteCut(new CutId("retired-cut-0"));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(999999)), V2ScheduleDescriptor.ForMutation(Scene, Incarnation, old), 0, 70001, V2MutationPayloadCodec.Encode(old)), Is.EqualTo(V2OperationAdmission.Conflicting));
+        }
+
         [TestCase(V2SurfaceInflationControlKind.Request)]
         [TestCase(V2SurfaceInflationControlKind.Started)]
         [TestCase(V2SurfaceInflationControlKind.Progress)]

@@ -28,6 +28,98 @@ namespace HBP.Tests.Transfer.Scene
     public class V2SceneMutationBoundaryTests
     {
         private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
+
+        [Test]
+        public void RejectedOptimisticCutCreateEditDelete_ResolvesAbsenceWithoutGhostOrCompletionGap()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, configureCutCreation: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, configureCutCreation: true);
+            desktop.Scene.Columns.Clear();
+            quest.Scene.Columns.Clear();
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            authority.CanonicalReady += canonical => driver.ReceiveCanonical(canonical);
+            var cut = new CutId("rejected-optimistic-cut");
+            var proposals = new[]
+            {
+                driver.ApplyOptimistic(new CreateCut(cut, new SetCutDefinition(cut, V2CutOrientation.Custom, false, 1, 0, 1, 0, 0), 0), T09Operation(2100000)),
+                driver.ApplyOptimistic(new SetCutDefinition(cut, V2CutOrientation.Custom, true, 2, 0.5f, 0, 1, 0), T09Operation(2100001)),
+                driver.ApplyOptimistic(new DeleteCut(cut), T09Operation(2100002))
+            };
+            Assert.That(quest.Scene.Cuts, Is.Empty);
+            desktop.Boundary.Apply(new SetConfigurationTransaction(new V2Mutation[] { new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, !desktop.Scene.ShowAllSites) }), V2MutationApplicationOrigin.LocalDesktop, T09Operation(2100003));
+            var completion = new V2ApplicationCompletionWatermark();
+            ulong origin = 0;
+            foreach (V2QuestMutationProposal proposal in proposals)
+            {
+                V2DesktopProposalResult result = authority.AcceptQuestProposal(proposal);
+                Assert.That(result.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+                Assert.That(result.Correction?.AuthoritativeMutation, Is.TypeOf<DeleteCut>());
+                driver.ReceiveCorrection(result.Correction);
+                completion.Complete(++origin);
+                Assert.That(quest.Scene.Cuts, Is.Empty);
+                authority.RetireOperation(proposal.OperationId);
+            }
+
+            Assert.That(completion.CompletedThrough, Is.EqualTo(3UL));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(quest.Boundary.OptimisticRollbackOrderCount, Is.Zero);
+            Assert.That(desktop.Scene.Cuts, Is.Empty);
+            Assert.Throws<KeyNotFoundException>(() => quest.Boundary.Apply(new DeleteCut(cut), V2MutationApplicationOrigin.LocalQuest, T09Operation(2100004)), "A local deletion still requires an existing cut.");
+        }
+
+        [Test]
+        public void ApplicationRetirement_RepeatedCutCreationDeletionKeepsBothScenesAndHistoriesBounded()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, configureCutCreation: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, configureCutCreation: true);
+            desktop.Scene.Columns.Clear();
+            quest.Scene.Columns.Clear();
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary, maximumOperations: 8, maximumKeys: 8);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            authority.CanonicalReady += canonical => driver.ReceiveCanonical(canonical);
+            int nextOperation = 2000000;
+            for (int i = 0; i < 2048; i++)
+            {
+                var desktopCut = new CutId("retired-desktop-cut-" + i);
+                var questCut = new CutId("retired-quest-cut-" + i);
+                Apply(new CreateCut(desktopCut, new SetCutDefinition(desktopCut, V2CutOrientation.Custom, false, 1, 0, 1, 0, 0), 0), false);
+                Apply(new DeleteCut(desktopCut), false);
+                Apply(new CreateCut(questCut, new SetCutDefinition(questCut, V2CutOrientation.Custom, false, 1, 0, 1, 0, 0), 0), true);
+                Apply(new DeleteCut(questCut), true);
+                Assert.That(desktop.Scene.Cuts, Is.Empty);
+                Assert.That(quest.Scene.Cuts, Is.Empty);
+                Assert.That(authority.IndexedKeyCount, Is.Zero);
+                Assert.That(driver.AppliedKeyCount, Is.Zero);
+            }
+
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(8192UL));
+            Assert.That(authority.State, Is.EqualTo(V2DesktopMutationAuthorityState.Active));
+            Assert.That(authority.RetainedDecisionCount, Is.Zero);
+            Assert.That(driver.ReceivedOperationCount, Is.Zero);
+            Assert.That(quest.Boundary.OptimisticRollbackOrderCount, Is.Zero);
+
+            void Apply(V2Mutation mutation, bool fromQuest)
+            {
+                OperationId id = T09Operation(nextOperation++);
+                if (fromQuest)
+                {
+                    V2QuestMutationProposal proposal = driver.ApplyOptimistic(mutation, id);
+                    Assert.That(scheduler.TryGetNextTransmission(out V2TransmissionAttempt sent), Is.True);
+                    Assert.That(authority.AcceptQuestProposal(id, mutation, proposal.ObservedCanonicalSequence, sent.Frame.OriginSequence.Value).Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                    scheduler.Acknowledge(sent.Frame.StreamId, sent.Frame.ReliableFrameSequence.Value);
+                }
+                else desktop.Boundary.Apply(mutation, V2MutationApplicationOrigin.LocalDesktop, id);
+
+                authority.RetireOperation(id);
+                authority.AdvanceConflictFloor(driver.MinimumPendingObservedSequence);
+                driver.RetireCanonicalHistory(authority.RetiredCanonicalThrough);
+            }
+        }
+
         private static readonly IncarnationId IncarnationIdForT09 = new(Guid.Parse("20000000-0000-0000-0000-000000000009"));
         private static readonly SessionId SessionIdForT09 = new(Guid.Parse("30000000-0000-0000-0000-000000000009"));
 
