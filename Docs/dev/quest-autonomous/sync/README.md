@@ -39,6 +39,8 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 
 Operator-only aid: [recommended model for each implementation task](model-selection.md). This guide is non-normative and does not change task scope or acceptance criteria.
 
+Approved Quest product controls: [Interfaces et interactions Quest HiBoP](../quest-controls-ux-plan.md), with the first T15 slice split into ordered implementation lots. Automatic scene/column context selection remains in T17.
+
 Implementation evidence: [T00 baseline instrumentation and provisional budgets](T00-baseline-and-budgets.md).
 
 M1 physical test: [Windows/Quest procedure and evidence collection](M1-physical-test.md).
