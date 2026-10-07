@@ -135,7 +135,7 @@ namespace HBP.Tests.PlatformConfiguration
             foreach (var tracker in trackers.Where(t => t.Role != QuestDevicePoseTracker.DeviceRole.Head))
             {
                 Assert.That(tracker.transform.parent, Is.EqualTo(origin.CameraFloorOffsetObject.transform));
-                Assert.That(tracker.GetComponent<Renderer>().enabled, Is.False, "Hide the marker until a complete pose is available.");
+                Assert.That(tracker.GetComponent<Renderer>(), Is.Null, "Controller diagnostics are removed; pose tracking remains.");
             }
         }
     }

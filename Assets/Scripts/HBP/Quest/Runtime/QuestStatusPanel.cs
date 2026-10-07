@@ -31,14 +31,17 @@ namespace HBP.Quest
             });
             newAssociation.onClick.AddListener(() =>
             {
-                if (confirming) { confirming = false; NewAssociationRequested?.Invoke(); }
+                if (confirming)
+                {
+                    confirming = false;
+                    NewAssociationRequested?.Invoke();
+                }
                 else confirming = true;
             });
         }
 
         public void ShowPairing(PairingStatus state, string ip)
         {
-            gameObject.SetActive(true);
             heading.text = "Pair with Desktop";
             bool available = state.Phase == PairingPhase.Available;
             code.text = available ? state.Code.Substring(0, 3) + " " + state.Code.Substring(3) : "";
@@ -71,7 +74,6 @@ namespace HBP.Quest
 
         public void ShowWaiting()
         {
-            gameObject.SetActive(true);
             heading.text = "Quest paired";
             code.text = "";
             address.text = "";
@@ -83,7 +85,6 @@ namespace HBP.Quest
 
         public void ShowUnavailable(string details)
         {
-            gameObject.SetActive(true);
             heading.text = "Quest connection unavailable";
             code.text = "";
             address.text = "";
@@ -93,6 +94,20 @@ namespace HBP.Quest
             Actions(true, false);
         }
 
-        public void Hide() { confirming = false; gameObject.SetActive(false); }
+        public void Hide()
+        {
+            confirming = false;
+            GetComponent<QuestWindow>()?.Close();
+        }
+
+        public void ShowSession(bool connected, bool receiving)
+        {
+            heading.text = receiving ? "Receiving visualization" : connected ? "Desktop connected" : "Available offline";
+            code.text = address.text = "";
+            message.text = receiving ? "Please wait..." : connected ? "Visualization synchronized with Desktop" : "Connection interrupted. Your visualization remains available.";
+            countdown.gameObject.SetActive(false);
+            lifetimeGauge.gameObject.SetActive(false);
+            Actions(false, false);
+        }
     }
 }

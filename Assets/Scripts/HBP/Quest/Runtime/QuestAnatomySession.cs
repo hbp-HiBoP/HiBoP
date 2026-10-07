@@ -60,6 +60,7 @@ namespace HBP.Quest
         public ulong VisibleRevision { get; private set; }
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
+        public bool IsSynchronizationConnected => v2Replica != null && v2Replica.TransportState == V2PersistentTransportState.Connected;
         public bool IsReady => current != null && view != null && view.Scene != null;
         public string TransferId => current?.TransferId;
         public string ContentHash => current?.ContentHash;

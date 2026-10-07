@@ -12,8 +12,11 @@ GameObject:
   - component: {fileID: 102}
   - component: {fileID: 103}
   m_Layer: 0
-  m_Name: Quest Column
+  m_Name: QuestColumn
   m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &101
 Transform:
@@ -26,10 +29,12 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 111}
   - {fileID: 201}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &102
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40,12 +45,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ae591c6f7e3246509097d6a17df4b137, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
-  roiPrefab: {fileID: 103, guid: 3eef05dbc66c45c58c11e0adfc5bb2fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   scientificFrame: {fileID: 111}
   label: {fileID: 203}
   manipulator: {fileID: 103}
+  roiPrefab: {fileID: 103, guid: 3eef05dbc66c45c58c11e0adfc5bb2fc, type: 3}
 --- !u!114 &103
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -56,11 +61,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1e339133b29f4c518806020a9566778e, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rayTarget: {fileID: 209215420478295569}
   minimumScale: 0.25
   maximumScale: 4
-  grabPaddingMeters: 0.12
   minimumHandDistanceMeters: 0.08
   recenterDistanceMeters: 0.8
   recenterHeightMeters: -0.12
@@ -77,6 +82,9 @@ GameObject:
   m_Layer: 0
   m_Name: Scientific Frame (mm)
   m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &111
 Transform:
@@ -89,8 +97,11 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 0.001, y: 0.001, z: 0.001}
-  m_Children: []
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 8160823959596372629}
   m_Father: {fileID: 101}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &200
 GameObject:
   m_ObjectHideFlags: 0
@@ -195,3 +206,57 @@ TextMesh:
   m_Color:
     serializedVersion: 2
     rgba: 4294967295
+--- !u!1 &295144427790451736
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8160823959596372629}
+  - component: {fileID: 209215420478295569}
+  m_Layer: 0
+  m_Name: Anatomy Ray Target
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8160823959596372629
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 295144427790451736}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 111}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!64 &209215420478295569
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 295144427790451736}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 0}

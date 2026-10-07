@@ -45,7 +45,7 @@ namespace HBP.Quest
             if (statusText != null)
             {
                 statusText.color = failed ? new Color(1f, 0.35f, 0.25f) : Color.white;
-                statusText.text = $"HiBoP Quest | {state}\n" + (problem == null ? "Room visibility: confirm in headset\n" : problem + "\n") + $"Head: {State(head)}\nLeft (blue): {State(leftController)}\nRight (orange): {State(rightController)}";
+                statusText.text = $"HiBoP Quest | {state}\n" + (problem == null ? "Room visibility: confirm in headset\n" : problem + "\n") + $"Head: {State(head)}\nLeft: {State(leftController)}\nRight: {State(rightController)}";
             }
 
             if (failed && problem != previousProblem) Debug.LogError("QUEST-004 passthrough fault: " + problem, this);

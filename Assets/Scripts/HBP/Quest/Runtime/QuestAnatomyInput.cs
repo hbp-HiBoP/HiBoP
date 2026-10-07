@@ -10,7 +10,8 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker head;
         [SerializeField] private QuestDevicePoseTracker left;
         [SerializeField] private QuestDevicePoseTracker right;
-        private InputAction leftTrigger, rightTrigger, recenter, toggleSurface, recalculate;
+        [SerializeField] private QuestPointerInput pointer;
+        private InputAction leftTrigger, rightTrigger, recenter;
         private HBP.Data.Module3D.Base3DScene previousScene;
         private bool placed;
         private bool focused = true;
@@ -21,13 +22,9 @@ namespace HBP.Quest
             leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
             rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
             recenter = new InputAction("Recenter columns (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
-            toggleSurface = new InputAction("Hide/show brain (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
-            recalculate = new InputAction("Recalculate projection", InputActionType.Button, "<XRController>{RightHand}/thumbstickClicked");
-            recalculate.Enable();
             leftTrigger.Enable();
             rightTrigger.Enable();
             recenter.Enable();
-            toggleSurface.Enable();
         }
 
         private void LateUpdate()
@@ -46,19 +43,9 @@ namespace HBP.Quest
                 placed = false;
             }
 
-            if (right.IsTracked && recalculate.WasPressedThisFrame()) view.RecalculateProjection();
-            if (right.IsTracked && toggleSurface.WasPressedThisFrame()) view.ToggleSurface();
-
             if (view.Scene != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
             {
-                int index = 0;
-                foreach (var column in view.Columns)
-                {
-                    column.Manipulator.Recenter(ReadPose(head));
-                    column.transform.position += head.transform.right * (index++ - (view.Columns.Count - 1) * 0.5f) * 0.35f;
-                }
-
-                placed = true;
+                RecenterBrains();
                 return;
             }
 
@@ -72,9 +59,26 @@ namespace HBP.Quest
                     continue;
                 }
 
-                column.Manipulator.Step(ReadPose(left), left.IsTracked, leftTrigger.IsPressed(), ReadPose(right), right.IsTracked, rightTrigger.IsPressed());
+                Pose leftPose = ReadPose(left), rightPose = ReadPose(right);
+                bool leftDistant = false, rightDistant = false;
+                bool leftGrab = pointer != null && pointer.TryGetAnatomyPose(true, column.Manipulator, out leftPose, out leftDistant);
+                bool rightGrab = pointer != null && pointer.TryGetAnatomyPose(false, column.Manipulator, out rightPose, out rightDistant);
+                column.Manipulator.Step(leftPose, left.IsTracked, leftTrigger.IsPressed() && leftGrab, rightPose, right.IsTracked, rightTrigger.IsPressed() && rightGrab, leftDistant, rightDistant);
                 if (column.Manipulator.IsGrabbed) grabbed = column;
             }
+        }
+
+        public void RecenterBrains()
+        {
+            if (view == null || head == null || !head.IsTracked) return;
+            int index = 0;
+            foreach (var column in view.Columns)
+            {
+                column.Manipulator.Recenter(ReadPose(head));
+                column.transform.position += head.transform.right * (index++ - (view.Columns.Count - 1) * 0.5f) * 0.35f;
+            }
+
+            placed = true;
         }
 
         private void CancelGrabs()
@@ -103,9 +107,7 @@ namespace HBP.Quest
             leftTrigger?.Dispose();
             rightTrigger?.Dispose();
             recenter?.Dispose();
-            toggleSurface?.Dispose();
-            recalculate?.Dispose();
-            leftTrigger = rightTrigger = recenter = toggleSurface = null;
+            leftTrigger = rightTrigger = recenter = null;
             if (view != null) CancelGrabs();
         }
     }

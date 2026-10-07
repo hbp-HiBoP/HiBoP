@@ -1,6 +1,6 @@
 # Interfaces et interactions Quest HiBoP
 
-Décisions produit validées le 7 octobre 2026. Implémentation à réaliser par étapes.
+Décisions produit validées le 7 octobre 2026. Lots 01 à 05 implémentés ; recette dans le casque encore à réaliser. Les autres lots restent à implémenter.
 
 Le Quest dispose d'un système de fenêtres réutilisable, d'une toolbar horizontale persistante et d'un curseur universel. La sélection des sites utilise une petite sonde activée par maintien de A. Les coupes sont toutes accessibles dans une fenêtre et manipulables par des poignées de proximité, sans sélection préalable d'une coupe.
 
@@ -66,7 +66,7 @@ Le gestionnaire ne construit pas les objets UI à la volée : il utilise des pre
 Créer un `QuestWindowsManager` propre au Quest dès le lot 03. Cette responsabilité est nécessaire pour centraliser ouverture/rappel sans doublon, registre des fenêtres et recentrage depuis la toolbar ; chaque bouton ou contenu ne doit pas réimplémenter ces comportements. Le gestionnaire Desktop sert de référence de responsabilités, sans réutilisation ni héritage de ses classes, de son registre statique ou de ses conteneurs d'écran.
 
 - Référencer explicitement les prefabs et éventuelles instances déjà présentes dans les prefabs Quest. La fenêtre de connexion initiale est enregistrée dans le même registre que les fenêtres ouvertes ensuite, sans seconde instance créée par un autre chemin.
-- Associer chaque fenêtre à une clé explicite ; la première tranche conserve une instance ouverte par fonction. Centraliser ouvrir, retrouver, rappeler et fermer, puis retirer du registre les instances fermées ou détruites.
+- Associer chaque fenêtre à une clé explicite ; la première tranche conserve une instance par fonction, y compris fermée, pour garder son contenu et ses références. Centraliser ouvrir, retrouver, rappeler et fermer ; retirer les instances détruites du registre. Les fenêtres fermées sont exclues du rappel global et des interactions.
 - Coordonner le placement initial et le rappel des fenêtres ouvertes, en déléguant la pose aux composants spatiaux concernés et en respectant les gestes en cours.
 - Fournir les événements locaux d'ouverture/fermeture et l'état d'ouverture nécessaires à la toolbar, sans dépendre d'elle ni du contenu de pairing ou de coupes.
 
@@ -206,7 +206,7 @@ Les composants et prefabs de démonstration restent dans les outils ou fixtures 
 
 **Livraison :** `QuestWindow`, `QuestWindowsManager`, prefab de fenêtre, barre/poignée et déplacement ; migration du pairing vers la fenêtre de connexion, avec séparation état/contenu/visibilité et enregistrement de son instance initiale. Une seconde fixture de contenu vérifie la réutilisation sans dépendance au pairing. La fermeture manuelle reste désactivée dans l'interface livrée tant que la toolbar du lot 05 ne fournit pas sa réouverture ; le cycle fermeture/réouverture est déjà vérifiable dans la fixture.
 
-**Vérification :** fermeture maintenue pendant les rafraîchissements de connexion, réouverture avec état actuel, consultation après arrivée de la scène, absence de doublon et conservation des confirmations métier. Vérifier ouverture répétée via le gestionnaire, enregistrement de l'instance initiale, nettoyage du registre après fermeture/destruction et absence de dépendance aux classes Desktop. Dans le casque, déplacer la fenêtre sans action du contenu ni saisie d'un cerveau. L'accès de production pour rouvrir arrive au lot 05 ; la fixture vérifie déjà le cycle complet.
+**Vérification :** fermeture maintenue pendant les rafraîchissements de connexion, réouverture avec état actuel, consultation après arrivée de la scène, absence de doublon et conservation des confirmations métier. Vérifier ouverture répétée via le gestionnaire, enregistrement de l'instance initiale, exclusion des instances fermées du rappel/interactions, nettoyage du registre après destruction et absence de dépendance aux classes Desktop. Dans le casque, déplacer la fenêtre sans action du contenu ni saisie d'un cerveau. L'accès de production pour rouvrir arrive au lot 05 ; la fixture vérifie déjà le cycle complet.
 
 ### Lot 04 Suivi différé et épinglage
 
@@ -292,3 +292,138 @@ Les noms finaux des assets et composants, la politique du prefab de démonstrati
 ## Références de conception
 
 Les conventions spatiales Meta inspirent la barre et les poignées, sans remplacer la charte HiBoP ni imposer une migration de SDK : [fenêtres](https://developers.meta.com/vr/design/windows/), [boutons et rangées d'accès](https://developers.meta.com/vr/documentation/spatial-sdk/spatial-sdk-ui-button/), [UI dans une scène 3D interactive](https://developers.meta.com/vr/design/hands-3d-best-practices/) et [détection au rayon et feedback](https://developers.meta.com/vr/design/raycasting_specs/).
+
+
+## Livraison des lots 01 à 05 — 7 octobre 2026
+
+Implémentation et qualification ciblée dans Unity 6000.5.2f1, sans casque connecté. Les rendus de fixtures ont été inspectés dans l'éditeur ; ils ne qualifient pas le contraste en passthrough ni le confort réel. Aucun APK construit ou déployé pendant cette passe. T15 reste partiellement livré : sonde, coupes et qualification de leurs opérations restent aux lots suivants.
+
+### Assets et composants livrés
+
+| Lot | Résultat concret |
+| --- | --- |
+| 01 | `Assets/Resources/Themes/Quest/` contient les Elements/états Quest, typographies et dimensions propres, couleurs HiBoP partagées et icônes via Settings Image. `Assets/Prefabs/Quest/UI/` contient bouton, toggle, slider, dropdown, champ texte et galerie de thème. Aucun Element/état Desktop référencé par les compositions Quest. |
+| 02 | `QuestPointerInput`, `QuestInteractionPolicy`, capture par main : gâchettes universelles, feedback bleu contextuel, priorité de proximité configurable, annulation au tracking perdu/interruption/fermeture. Le popup du dropdown possède sa caméra et son raycaster pour manettes. |
+| 03 | `QuestWindow`, `QuestWindowsManager`, `QuestWindowDragger`, prefab générique, fenêtre Connexion et seconde fenêtre Affichage. Références sérialisées dans `QuestBootstrap.prefab`. Fenêtres indépendantes de la caméra, fermeture sans arrêter la connexion, réouverture sans doublon, déplacement capturé par une seule main. |
+| 04 | `QuestWindowFollower` : suivi différé, hystérésis, suspension au ciblage/manipulation, épinglage et rappel explicite. Placement initial repris lorsque le suivi du casque devient disponible. |
+| 05 | Toolbar Connexion/Coupes/Affichage/Recentrer, état de connexion, suivi horizontal ; fermeture du pairing disponible. Actions Affichage raccordées aux entrées existantes. Pavés de contrôleurs et ancien `QuestPairingUIInput` retirés. Coupes désactivé jusqu'au lot 09. |
+
+Les instances fermées restent enregistrées et leur racine reste active ; Canvas, contenu et raycaster sont désactivés. Cela conserve le rafraîchissement de connexion, ferme les popups et annule les poignées, sans fenêtre invisible interactive. La destruction retire l'instance du registre. Le catalogue permet d'ajouter d'autres prefabs de fenêtres.
+
+L'icône Connexion est une silhouette de lien blanche sur la grille Material 24 dp utilisée par HiBoP, avec SVG source et PNG dans `Assets/Sprites/Google Material/`. Les autres icônes reprennent la bibliothèque existante. Le Setting Image Quest porte le sprite ; aucun sprite n'est imposé par le comportement de toolbar.
+
+### Commandes conservées et chemins d'exécution
+
+| Contrôle | Chemin et portée |
+| --- | --- |
+| Gâchettes gauche/droite | UI ou manipulation du cerveau selon la capture ; déplacement/rotation/échelle à deux mains conservés, transformations de présentation locales. |
+| X gauche | Recentrage des cerveaux conservé comme commande de manipulation ; également accessible dans Affichage. |
+| Ancien A et clic du joystick droit | Raccourcis visibilité/recalcul retirés. A est libre pour la future sonde du lot 08. |
+| Affichage : visibilité | `QuestAnatomyView.ToggleSurface()` ; masque local du rendu de surface, sans mutation scientifique partagée. |
+| Affichage : recalcul | `QuestAnatomyView.RecalculateProjection()` → `Scene.InvalidateActivityField()` et `Scene.UpdateGenerator()` ; chemin existant du job, pas de calcul alternatif ni nouvelle opération. |
+| Affichage : recentrer les cerveaux | `QuestAnatomyInput.RecenterBrains()` ; placement local. |
+| Toolbar : Recentrer | `QuestWindowsManager.RecenterOpen()` ; rappelle les seules fenêtres ouvertes, y compris épinglées, ignore celles en manipulation. |
+| Connexion | Réessayer/remplacer l'association gardent leurs confirmations et restrictions existantes. Fermer/rouvrir ne change ni l'identité ni le code. |
+
+Les actions d'Affichage sont désactivées sans scène ou pendant sa préparation. L'état Connected/Offline utilise le transport de synchronisation V2, distinct de la fin d'un transfert de publication.
+
+### Vérifications automatiques exécutées
+
+Derniers runs ciblés : **18 EditMode + 18 PlayMode réussis, 0 échec, 0 test ignoré**. Ce n'est pas une exécution de toute la suite du dépôt.
+
+- EditMode : `HBP.Tests.PlatformConfiguration.QuestBootstrapTests`, `HBP.Tests.PlatformConfiguration.QuestUIAssetTests` et les deux tests `HBP.Tests.Transfer.Scene.V2SceneMutationBoundaryTests.ExplicitGeneratorUpdate_RequestsProjectionWhileAutomaticStaleStateRemainsGated` / `QuestRecalculateProjection_RequestsAnExplicitUpdateWhenAutomaticPolicyIsDisabled`.
+- PlayMode : `HBP.Tests.Quest.QuestWindowInteractionTests`, `HBP.Tests.Quest.QuestUniversalPointerTests`, les quatre tests de prefab/carte/initialisation/géométrie de `QuestPairingTests`, et `HBP.Tests.PlayMode.Module3D.Module3DScenePlayModeTests.PrepareRendering_WaitsForExplicitProjectionRequestedFromReadyUntilItCompletes`.
+- Les tests vérifient les références des prefabs, l'isolation des compositions Quest, les captures et priorités, le clic UI réel et la manipulation à deux mains avec contrôleurs simulés, l'absence de mutation du mesh scientifique, le retour de tracking sans reprise, le déplacement/fermeture de fenêtre, le suivi et l'épinglage, la toolbar sans doublon et un choix de dropdown au rayon.
+- `Tools/check-assembly-dependencies.ps1` réussit : 44 assemblies HBP, 158 dépendances directes. Quest dépend du moteur Theme commun, sans dépendance inverse de Core ni ajout de composants UI Desktop.
+- Console Unity inspectée après les tests : aucune erreur.
+
+Résultats JSON des derniers runs : `Logs/QuestUI/EditMode-results.json`, `Logs/QuestUI/PlayMode-results.json`. Captures de fixtures inspectées : `Logs/QuestUI/Quest Theme Gallery Runtime.png` et `Logs/QuestUI/Quest Windows and Toolbar.png`. Ces fichiers de preuve sont locaux, dans le répertoire de logs ignoré par Git.
+
+Pour rejouer, utiliser Unity Test Runner avec les classes/méthodes ci-dessus, ou les filtres MCP correspondants, puis inspecter les résultats et la console. Exécuter le contrôle de dépendances après une modification d'asmdef. La galerie de thème est une fixture, pas une fenêtre de production ; la saisie numérique avec manettes reste à livrer au lot 09.
+
+### Réglages initiaux à qualifier dans le casque
+
+Les valeurs sont sérialisées et modifiables dans les assets/prefabs, sans modifier les contenus des fenêtres.
+
+| Réglage | Valeur initiale |
+| --- | --- |
+| Fenêtres : seuil de retour / seuil d'arrêt / délai / vitesse exponentielle | 45° / 15° / 0,8 s / 2,5 s⁻¹, autour de leur emplacement relatif souhaité |
+| Toolbar : mêmes paramètres, suivi horizontal | 35° / 10° / 1 s / 2 s⁻¹ |
+| Placement Connexion / Affichage | (-0,47 ; 0,05 ; 1,15) m / (0,47 ; 0,05 ; 1,15) m par rapport au casque |
+| Placement toolbar | (0 ; -0,5 ; 1,15) m, rotation horizontale indépendante de l'inclinaison du casque |
+| Échelle UI / textes Body, Small, Title, Code | 0,0015 m par unité / 28, 22, 36, 58 |
+| Politique de rayon | portée 3 m, largeur 2 mm, préférence au cerveau proche activée, couleur partagée HiBoP |
+
+### Recette manuelle dans le Quest
+
+Installer une build intégrant ces changements lorsque le casque sera reconnecté ; aucune présence du casque n'est nécessaire pour poursuivre la revue du code ou les tests ci-dessus.
+
+1. **Démarrage et charte** : Connexion et toolbar visibles, Affichage fermé ; vérifier lisibilité du code, labels/icônes, tailles des cibles et contraste sur plusieurs fonds réels. Aucun pavé de contrôleur. Ouvrir la galerie en fixture séparée si nécessaire pour vérifier toggle, slider, dropdown et états des boutons ; vérifier également que le Desktop garde son apparence.
+2. **Connexion complète** : fermer la fenêtre, laisser expirer/renouveler le code puis rouvrir via toolbar ; son contenu doit être actuel. Associer depuis Desktop et publier une scène avec la fenêtre fermée ; rouvrir après réception. Vérifier les confirmations de remplacement et le Retry dans les états où ils sont autorisés. Couper/rétablir la connexion : statut Offline/Connected sans réouverture imposée ni arrêt de la visualisation.
+3. **Fenêtres** : ouvrir/rappeler plusieurs fois sans doublon ; déplacer par la poignée avec chaque gâchette, sortir de la poignée en gardant l'appui, relâcher. La seconde main ne déplace pas la même fenêtre. Fermer ne clique pas le contenu ou le cerveau derrière ; rappeler une fenêtre épinglée doit rester possible.
+4. **Suivi** : petits mouvements de tête sans poursuite instantanée ; rotation prolongée déclenchant un retour doux ; pas d'oscillation près du seuil. Pointer une fenêtre doit arrêter son mouvement. Tester Pin/Follow. Regarder la toolbar vers le bas ne doit pas la faire descendre ; tourner durablement doit la ramener.
+5. **Curseur et cerveaux** : aucun rayon sans cible ; feedback annoncé avant pression, UI utilisable avec chaque main. Cerveau proche prioritaire sur une UI distante. Déplacement/rotation/échelle à deux mains conservés. Traverser un bouton pendant une saisie ne le clique pas. Masquer un contrôleur puis le retrouver en maintenant la gâchette : pas de reprise avant relâchement/nouvel appui. Tester aussi veille/reprise et menu système.
+6. **Affichage et recentrage** : boutons désactivés sans scène ; après publication, visibilité locale sans modification du Desktop, recalcul de projection aboutissant par le job existant, recentrage des cerveaux. X reste disponible ; A et clic joystick droit ne déclenchent plus ces actions. Recentrer dans la toolbar ne déplace aucun cerveau, ne rouvre aucune fenêtre fermée et ne déplace pas celle en cours de manipulation. Coupes reste désactivé.
+
+Noter les réglages à ajuster après cette recette, surtout placement/tailles, délais et priorité de proximité. Les lots 06 et suivants ne sont pas livrés par cette passe.
+
+## Ajustements après première recette dans le casque — 7 octobre 2026
+
+- Suppression du feedback sphérique autour des cerveaux proches et pendant leur saisie. La petite cible de rayon UI reste disponible sur les interfaces ; la saisie distante du cerveau affiche uniquement le rayon.
+- Les surfaces raycastables des fenêtres gérées maintiennent le feedback entre les boutons, comme la toolbar.
+- Saisie distante activée dans `Quest Interaction Policy` (`EnableDistantAnatomy`, désactivable). Une pression de gâchette capture le cerveau visé ; le point de saisie suit le rayon à la profondeur initiale jusqu'au relâchement. Une fenêtre devant le cerveau a priorité. La cible reste identique pendant l'appui ; tracking perdu/interruption demande un relâchement avant une nouvelle saisie. Les gestes proches à deux mains restent disponibles ; rejoindre un geste distant exige de viser le cerveau capturé ou de s'en approcher réellement.
+- Le prefab `QuestColumn` porte un collider de ciblage propre au Quest, raccordé au mesh de la colonne. Le remplacement du mesh et le changement de représentation invalident cette cible. Aucun collider ajouté aux prefabs scientifiques Desktop.
+- Première proposition de chargement remplacée après recette : conserver le design original cercle/cerveau et sa bande de statut, avec des dimensions adaptées au Quest (voir correction ci-dessous). `ILoadingPresenter` permet au `LoadingManager` existant de garder les mêmes tâches et la même annulation, avec le présentateur Desktop inchangé.
+- Chargement placé au centre à 1,15 m à son ouverture ; petits mouvements de tête sans poursuite instantanée. Retour doux après une déviation supérieure à 25° pendant 0,4 s, arrêt dans 8°, vitesse exponentielle 3 s⁻¹ ; gel sans tracking. Aucun pin ni contrôle de fenêtre.
+
+Qualification ciblée : **17 EditMode + 15 PlayMode réussis**, console sans erreur, contrôle des dépendances réussi (44 assemblies, 158 dépendances). Classes `QuestUIAssetTests`, `QuestBootstrapTests`, `QuestUniversalPointerTests`, `QuestWindowInteractionTests`, `QuestLoadingTests`. Couverture : références Quest/Desktop, charte indépendante, fond de fenêtre ciblable, vraie capture distante de mesh, jonction de seconde main, non-mutation scientifique, priorité de fenêtre, tracking perdu, invalidation de géométrie en place, progression/annulation et suivi différé. Rendu du chargement inspecté dans `Logs/QuestUI/Quest Loading.png`.
+
+Recette complémentaire dans le casque :
+
+1. Approcher puis saisir un cerveau : aucune sphère bleue. Vérifier les gestes proches de déplacement/rotation/échelle avec les deux gâchettes.
+2. Pointer les espaces entre les boutons d'Affichage : rayon continu ; appuyer dans le fond ne déclenche aucune action.
+3. À distance, viser un cerveau puis maintenir la gâchette ; déplacer/orienter la manette, sortir du mesh en gardant l'appui, relâcher. Vérifier l'absence de saut, la capture stable et la précision. Une fenêtre devant lui doit bloquer cette saisie. La seconde manette ne rejoint pas le geste distant si elle ne vise pas le cerveau ; tester aussi une jonction volontaire.
+4. Tester perte/reprise de tracking avec gâchette maintenue, changement de représentation anatomique/gonflée et nouvelle publication de scène ; la cible doit suivre le mesh actuel.
+5. Pendant transfert/recalcul suffisamment long : vérifier statut lisible, cercle et cerveau progressifs, annulation si proposée. Petites rotations de tête sans suivi immédiat ; tourner durablement pour constater le retour doux au centre. Qualifier la fluidité sur un cerveau dense et le confort du déplacement distant.
+
+Build de cette recette : `.artifacts/quest-feedback-20261007/HiBoP.Quest.apk`, Unity 6000.5.2f1, build Development réussie (0 erreur, 48 avertissements), APK vérifié par `Tools/Test-QuestApk.ps1` (353 574 537 octets, 9 bibliothèques ARM64). Déploiement initialement différé, puis installation USB demandée et réussie, sans effacer les données d'association. Profil DesktopWindows réactivé dans l'éditeur pour la recette avec synchronisation.
+
+## Correction du chargement et des volumes de saisie — 7 octobre 2026
+
+- Le chargement Quest reprend le prefab original : cercle avec cerveau animé par les mêmes images de progression, bande de statut séparée et petite croix ronde pour annuler. Le cercle passe de 200 à 260 unités, la bande à 780 × 110 et les textes à 28. Aucun pourcentage ajouté ni panneau de fenêtre. Le suivi différé reste à 25° / 8° / 0,4 s / 3 s⁻¹, sans pin.
+- Les ThemeElements et Settings Image/Text/Layout de cette présentation sont propres au Quest ; seules les couleurs sont partagées. Les prefabs et compositions Desktop d'origine restent inchangés.
+- La saisie proche utilise exactement `Mesh.bounds` dans le repère du mesh du cerveau, sans marge, en tenant compte de sa rotation et de son échelle. Parmi les volumes contenant la manette, le centre de mesh le plus proche gagne, indépendamment de l'ordre des colonnes. La cible reste capturée pendant l'appui. Le ciblage distant conserve l'intersection du rayon avec le mesh.
+
+Qualification ciblée : **9 EditMode + 4 PlayMode réussis**, classes `QuestUIAssetTests`, `QuestLoadingTests` et `QuestUniversalPointerTests`. Les tests couvrent notamment les dimensions et références du chargement, ses images de progression et son annulation, le suivi différé, les limites exactes d'un mesh transformé et le choix du centre le plus proche après inversion de l'ordre des colonnes. Contrôle des dépendances réussi (44 assemblies, 158 dépendances). Rendu réel de fixture inspecté dans `Logs/QuestUI/Quest Loading.png` ; la lisibilité et le confort restent à qualifier dans le casque.
+
+Recette complémentaire : vérifier le design d'origine et le statut agrandi pendant un transfert/recalcul ; bouger légèrement la tête puis tourner durablement pour comparer immobilité et retour doux. Approcher une manette juste à l'extérieur puis à l'intérieur des limites du cerveau ; dans une zone de chevauchement, saisir alternativement près du centre de chaque cerveau. Relâcher entre les essais pour acquérir une nouvelle cible, puis vérifier les gestes à deux mains et la saisie distante déjà livrés.
+
+Build corrigée : `.artifacts/quest-loading-bounds-20261007/HiBoP.Quest.apk`, Development, 0 erreur et 45 avertissements. APK vérifié (353 544 241 octets, 9 bibliothèques ARM64), installation USB réussie avec conservation des données. Profil DesktopWindows réactivé, éditeur hors Play Mode, scène inchangée et console sans erreur après le retour au profil Desktop.
+
+Contrôle de démarrage matériel incomplet : la demande de lancement est interceptée par l'écran système Quest « contrôleurs requis » ; aucun processus HiBoP n'est lancé lors du contrôle. Réveiller les manettes et lancer l'application pour la recette. Trace locale : `.artifacts/quest-loading-bounds-20261007/startup-logcat.txt`.
+
+### Feedback du rayon à portée de saisie directe
+
+Le rayon et son réticule sont masqués lorsqu'un cerveau peut être saisi directement avec la manette, y compris si le rayon était capturé pour une saisie distante. Ce masquage ne change ni la cible capturée ni le geste ; le feedback distant revient en sortant de portée. Une interaction UI déjà capturée conserve son feedback jusqu'au relâchement. La préférence UI/anatomie continue de déterminer l'action de la gâchette.
+
+Qualification : les deux tests de `QuestUniversalPointerTests` réussissent, console sans erreur. Le test d'interaction vérifie le masquage proche, la conservation de la capture et le retour du feedback distant ; résultat XML local dans `Logs/QuestUI/NearGrabRay-PlayMode-results.xml`. Recette : viser un cerveau à distance, entrer dans sa bounding box puis en sortir, saisir directement avec chaque main et vérifier les interactions UI.
+
+Build : `.artifacts/quest-near-grab-ray-20261007/HiBoP.Quest.apk`, Development, 0 erreur et 45 avertissements ; APK vérifié (9 bibliothèques ARM64) et installation USB réussie sans effacement des données. Profil DesktopWindows réactivé, hors Play Mode, scène inchangée et console sans erreur.
+
+La demande de lancement reste interceptée par l'écran système « contrôleurs requis » ; le contrôle du comportement dans le casque attend le réveil des manettes.
+
+### Diagnostic du contact après nouvelle recette
+
+Le problème persiste dans le casque, avec et sans appui sur la gâchette. L'utilisateur confirme la règle souhaitée : rayon visible à distance, masqué en contact. La capture récupérée (`Logs/QuestUI/fr.crnl.hibop.quest-20261007-173744.jpg`) montre un rayon court devant le cerveau de la colonne 2 ; elle ne permet pas de déterminer les coordonnées du point de saisie.
+
+La revue relève deux origines distinctes : la détection proche utilise `devicePosition` (grip), le rayon utilise `pointerPosition` (aim), dans le même repère de tracking. Un relevé ponctuel dans la build Android Development, demandé via `pointer-status`, enregistre les deux mains sur une même frame de `QuestPointerInput.Process` : positions/contrôles, coordonnées locales et `Contains` de chaque mesh, candidat, capture, décision UI et feedback. Aucun relevé par frame hors demande, aucun changement supplémentaire de règle ni élargissement des bounds. La cause reste à confirmer par la mesure dans le casque avant une nouvelle correction.
+
+Build de diagnostic : `.artifacts/quest-pointer-diagnostic-20261007/HiBoP.Quest.apk`, compilation Android Development réussie (0 erreur, 45 avertissements), APK vérifié (9 bibliothèques ARM64) et installation USB réussie. Profil DesktopWindows restauré, hors Play Mode, scène inchangée et console sans erreur. Le système Quest réclame les manettes au lancement ; la mesure attend la reproduction de la position dans l'application.
+
+Mesure obtenue dans `Logs/QuestUI/pointer-contact-01.json` : gâchette gauche relâchée, grip à 1,25 mm hors des bounds du cerveau repositionné, aim à l'intérieur ; aucune capture ni cible UI, candidat distant à 4,63 cm et rayon visible. Le décalage de pose explique donc le classement distant à cette position.
+
+Correction : considérer les deux points grip/aim contre les mêmes bounds exacts. Le candidat est toujours départagé par la distance entre grip et centre du mesh. Si seul aim est dedans au début de la capture, son origine devient le point de déplacement direct pour toute la durée du geste ; sinon, le comportement grip reste inchangé. Le choix ne bascule pas pendant l'appui et est effacé au relâchement/annulation. Le mode distant reste indépendant, sans marge autour du cerveau.
+
+Les deux tests de `QuestUniversalPointerTests` passent avec poses grip/aim distinctes et repère de tracking réel de la fixture ; console sans erreur. Ils couvrent contact aim seul, capture directe effective sans rayon, origine stable lorsque grip entre ensuite, gestes à deux mains, capture distante et perte de tracking. La fixture précédente n'avait pas de repère de tracking et utilisait uniquement la pose grip, ce qui masquait cette distinction.
+
+Build corrigée : `.artifacts/quest-contact-aim-20261007/HiBoP.Quest.apk`, Development, compilation réussie en 222,84 s (0 erreur, 45 avertissements). APK vérifié (353 589 649 octets, 9 bibliothèques ARM64), installation USB réussie avec conservation des données. Profil DesktopWindows restauré, éditeur hors Play Mode, scène inchangée et console sans erreur. Le système demande de réveiller les manettes au lancement ; validation matérielle de la nouvelle règle encore à effectuer.

@@ -17,7 +17,9 @@ namespace HBP.Quest
 
         public void Bind(Base3DScene source, Column3D column)
         {
+            if (scene != null) scene.OnSurfaceRepresentationChanged.RemoveListener(OnRepresentationChanged);
             scene = source;
+            scene.OnSurfaceRepresentationChanged.AddListener(OnRepresentationChanged);
             Column = column;
             column.transform.SetParent(scientificFrame, false);
             column.transform.localPosition = Vector3.zero;
@@ -25,6 +27,13 @@ namespace HBP.Quest
             column.transform.localScale = Vector3.one;
             label.text = column.Name;
             manipulator.Bind(column);
+        }
+
+        private void OnRepresentationChanged(HBP.Core.Object3D.SurfaceRepresentation value) => manipulator.InvalidateRayTarget();
+
+        private void OnDestroy()
+        {
+            if (scene != null) scene.OnSurfaceRepresentationChanged.RemoveListener(OnRepresentationChanged);
         }
 
         public void Hide()

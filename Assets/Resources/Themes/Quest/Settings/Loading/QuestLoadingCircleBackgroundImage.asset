@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3302277ad6c2f614b824d956b858dbd1, type: 3}
+  m_Name: QuestLoadingCircleBackgroundImage
+  m_EditorClassIdentifier: 
+  SourceImage: {fileID: 21300000, guid: 213bfe306dc270f4daaf0d7087092af4, type: 3}
+  Material: {fileID: 0}
+  ImageType: 0
+  FillMethod: 4
+  PreserveAspect: 0
+  FillCenter: 0
+  Clockwise: 1
+  FillOrigin: 0
+  FillAmount: 0

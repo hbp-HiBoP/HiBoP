@@ -151,12 +151,14 @@ namespace HBP.Quest
             }
         }
 
+        public string Summary => session == null ? "Connection unavailable" : session.ReceptionState != AnatomyReceptionState.Idle ? "Receiving..." : session.IsReady ? session.IsSynchronizationConnected ? "Connected" : "Offline" : pairing?.IsPaired == true ? "Paired" : "Pairing";
+
         private void Update()
         {
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
             if (session.ReceptionState != AnatomyReceptionState.Idle || pairing?.IsPreparing == true)
-                statusPanel.Hide();
+                statusPanel.ShowSession(session.IsSynchronizationConnected, true);
             else if (pairing == null)
                 statusPanel.ShowUnavailable(status);
             else if (!pairing.IsPaired)
@@ -164,7 +166,7 @@ namespace HBP.Quest
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
             else
-                statusPanel.Hide();
+                statusPanel.ShowSession(session.IsSynchronizationConnected, false);
         }
 
         private void OnApplicationPause(bool paused)

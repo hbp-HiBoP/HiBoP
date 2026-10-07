@@ -7,6 +7,8 @@
         "HBP.Transfer.Transport",
         "HBP.Transfer.Anatomy.Delivery",
         "HBP.Quest.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Theme.Runtime",
         "HBP.Transfer.Projection",
         "HBP.Core.Runtime",
         "Unity.InputSystem",

@@ -23,6 +23,11 @@ namespace HBP.Quest
 
         public bool IsTracked { get; private set; }
         public DeviceRole Role => role;
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+        internal string DiagnosticPositionControl => positionAction?.activeControl?.path;
+        internal Vector3 DiagnosticPositionValue => positionAction != null ? positionAction.ReadValue<Vector3>() : default;
+        internal int DiagnosticPoseFrame { get; private set; }
+#endif
 
         public void Configure(DeviceRole configuredRole, Transform target, Renderer marker)
         {
@@ -67,6 +72,9 @@ namespace HBP.Quest
 
         private void UpdatePose()
         {
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            DiagnosticPoseFrame = Time.frameCount;
+#endif
             // Require both position and rotation: a stale or partially tracked marker is misleading.
             IsTracked = trackedAction != null && trackedAction.ReadValue<float>() > 0.5f && (trackingStateAction.ReadValue<int>() & 3) == 3;
             if (diagnosticRenderer != null) diagnosticRenderer.enabled = IsTracked;

@@ -21,9 +21,19 @@ namespace HBP.Quest
         {
             string request = Path.Combine(Application.persistentDataPath, "scene008-qualify");
             string retentionRequest = Path.Combine(Application.persistentDataPath, "retention-status");
+            string pointerRequest = Path.Combine(Application.persistentDataPath, "pointer-status");
             while (!stop.IsCancellationRequested)
             {
                 await UniTask.Delay(1000, cancellationToken: stop);
+                if (File.Exists(pointerRequest))
+                {
+                    var pointer = UnityEngine.Object.FindAnyObjectByType<QuestPointerInput>();
+                    if (pointer != null)
+                    {
+                        File.Delete(pointerRequest);
+                        pointer.RequestPointerDiagnostic(Path.Combine(Application.persistentDataPath, "pointer-status.json"));
+                    }
+                }
                 if (File.Exists(retentionRequest))
                 {
                     File.Delete(retentionRequest);

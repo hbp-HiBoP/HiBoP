@@ -6,17 +6,27 @@ namespace HBP.Quest
     public sealed class QuestAnatomyManipulator : MonoBehaviour
     {
         private HBP.Data.Module3D.Column3D column;
+        [SerializeField] private MeshCollider rayTarget;
+        private bool rayTargetDirty;
+        public void InvalidateRayTarget() => rayTargetDirty = true;
         public Mesh SharedMesh => column != null && column.BrainMesh != null ? column.BrainMesh.GetComponent<MeshFilter>().sharedMesh : null;
 
         public void Bind(HBP.Data.Module3D.Column3D value)
         {
             column = value;
+            if (rayTarget != null && column != null && column.BrainMesh != null)
+            {
+                rayTarget.transform.SetParent(column.BrainMesh.transform, false);
+                rayTarget.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                rayTarget.transform.localScale = Vector3.one;
+                rayTarget.sharedMesh = SharedMesh;
+            }
+
             CancelGrab();
         }
 
         [SerializeField, Min(0.01f)] private float minimumScale = 0.25f;
         [SerializeField, Min(0.01f)] private float maximumScale = 4f;
-        [SerializeField, Min(0)] private float grabPaddingMeters = 0.12f;
         [SerializeField, Min(0.01f)] private float minimumHandDistanceMeters = 0.08f;
         [SerializeField, Min(0.1f)] private float recenterDistanceMeters = 0.65f;
         [SerializeField] private float recenterHeightMeters = -0.12f;
@@ -35,7 +45,6 @@ namespace HBP.Quest
         {
             minimumScale = Mathf.Max(0.01f, minimumScale);
             maximumScale = Mathf.Max(minimumScale, maximumScale);
-            grabPaddingMeters = Mathf.Max(0, grabPaddingMeters);
             minimumHandDistanceMeters = Mathf.Max(0.01f, minimumHandDistanceMeters);
             recenterDistanceMeters = Mathf.Max(0.1f, recenterDistanceMeters);
         }
@@ -49,7 +58,7 @@ namespace HBP.Quest
         private void OnDisable() => CancelGrab();
 
         /// <summary>Sample once after tracking. A new press near the surface starts a grab.</summary>
-        public void Step(Pose left, bool leftTracked, bool leftGrip, Pose right, bool rightTracked, bool rightGrip)
+        public void Step(Pose left, bool leftTracked, bool leftGrip, Pose right, bool rightTracked, bool rightGrip, bool leftDistant = false, bool rightDistant = false)
         {
             if (!leftTracked) leftBlocked = true;
             else if (!leftGrip) leftBlocked = false;
@@ -68,8 +77,8 @@ namespace HBP.Quest
             int next = hands;
             if (!leftTracked || !leftGrip) next &= ~1;
             if (!rightTracked || !rightGrip) next &= ~2;
-            if (leftPress && (next != 0 || IsNear(left.position))) next |= 1;
-            if (rightPress && (next != 0 || IsNear(right.position))) next |= 2;
+            if (leftPress && (next != 0 || leftDistant || IsNear(left.position))) next |= 1;
+            if (rightPress && (next != 0 || rightDistant || IsNear(right.position))) next |= 2;
             if (next != hands)
             {
                 hands = next;
@@ -115,12 +124,39 @@ namespace HBP.Quest
             pairReady = anchorSpan.magnitude >= minimumHandDistanceMeters;
         }
 
+        public bool CanGrab(Vector3 position) => SharedMesh != null && IsNear(position);
+        public Vector3 GrabCenter => column.BrainMesh.transform.TransformPoint(SharedMesh.bounds.center);
+
+        public bool Raycast(Ray ray, float maximumDistance, out float distance)
+        {
+            distance = maximumDistance;
+            if (column == null || column.BrainMesh == null || !column.BrainMesh.activeInHierarchy) return false;
+            var renderer = column.BrainMesh.GetComponent<Renderer>();
+            if (renderer != null && (!renderer.enabled || renderer.forceRenderingOff)) return false;
+            var collider = rayTarget;
+            if (collider != null && (rayTargetDirty || collider.sharedMesh != SharedMesh))
+            {
+                collider.sharedMesh = null;
+                collider.sharedMesh = SharedMesh;
+                rayTargetDirty = false;
+            }
+
+            if (collider == null || !collider.enabled || !collider.Raycast(ray, out var hit, maximumDistance)) return false;
+            distance = hit.distance;
+            return true;
+        }
+
         private bool IsNear(Vector3 position)
         {
-            // The bounds stay in prepared millimeters; only presentation-space points are converted.
-            Vector3 local = transform.InverseTransformPoint(position) * 1000f;
-            Vector3 closest = SharedMesh.bounds.ClosestPoint(local) * 0.001f;
-            return Vector3.Distance(position, transform.TransformPoint(closest)) <= grabPaddingMeters;
+            return SharedMesh.bounds.Contains(column.BrainMesh.transform.InverseTransformPoint(position));
+        }
+
+        public Vector3 ClosestGrabPoint(Vector3 position)
+        {
+            if (SharedMesh == null) return position;
+            // Use the mesh's actual transform, including presentation rotation and scale.
+            var frame = column.BrainMesh.transform;
+            return frame.TransformPoint(SharedMesh.bounds.ClosestPoint(frame.InverseTransformPoint(position)));
         }
 
         public void Recenter(Pose head)

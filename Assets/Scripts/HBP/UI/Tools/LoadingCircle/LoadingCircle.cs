@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Tools
 {
-    public class LoadingCircle : MonoBehaviour
+    public class LoadingCircle : MonoBehaviour, ILoadingPresenter
     {
         #region Properties
 

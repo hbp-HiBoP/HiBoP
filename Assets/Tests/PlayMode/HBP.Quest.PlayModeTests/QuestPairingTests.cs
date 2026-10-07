@@ -74,10 +74,10 @@ namespace HBP.Tests.Quest
             var statusFields = new SerializedObject(status);
             foreach (string name in new[] { "countdown", "lifetimeGauge", "retry", "newAssociation", "retryLabel", "newAssociationLabel" })
                 Assert.That(statusFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
-            var input = prefab.GetComponentInChildren<QuestPairingUIInput>(true);
+            var input = prefab.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(input, Is.Not.Null);
             var inputFields = new SerializedObject(input);
-            foreach (string name in new[] { "module", "trackingOrigin", "pairingCard", "pointer", "rightController" })
+            foreach (string name in new[] { "policy", "trackingOrigin", "head", "left", "right", "leftRay", "rightRay", "leftReticle", "rightReticle" })
                 Assert.That(inputFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
             Assert.That(input.GetComponent<LineRenderer>().sharedMaterial, Is.Not.Null);
             Assert.That(status.GetComponent<Canvas>().worldCamera, Is.Not.Null);
@@ -87,20 +87,24 @@ namespace HBP.Tests.Quest
         public void PairingControllerActionsInitializeAndReenableFromAuthoredPrefab()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
-            var ui = Object.Instantiate(prefab.GetComponentInChildren<QuestPairingUIInput>(true).gameObject);
+            var ui = Object.Instantiate(prefab.GetComponentInChildren<QuestPointerInput>(true).gameObject);
             try
             {
-                var module = ui.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
-                Assert.That(module.trackedDevicePosition.action.actionMap.asset, Is.Not.Null);
-                Assert.That(module.trackedDeviceOrientation.action.actionMap.asset, Is.SameAs(module.trackedDevicePosition.action.actionMap.asset));
-                Assert.That(module.leftClick.action.actionMap.asset, Is.SameAs(module.trackedDevicePosition.action.actionMap.asset));
+                var module = ui.GetComponent<QuestPointerInput>();
+                Assert.That(module.enabled, Is.True);
+                Assert.That(module.AllowsAnatomy(true), Is.False);
+                Assert.That(module.AllowsAnatomy(false), Is.False);
                 ui.SetActive(false);
-                Assert.That(module.enabled, Is.False);
+                Assert.That(ui.GetComponent<LineRenderer>().enabled, Is.False);
                 ui.SetActive(true);
-                Assert.That(module.trackedDevicePosition.action.actionMap.asset, Is.Not.Null);
-                Assert.That(module.leftClick.action.enabled, Is.True);
+                Assert.That(module.isActiveAndEnabled, Is.True);
+                Assert.That(module.AllowsAnatomy(true), Is.False);
+                Assert.That(module.AllowsAnatomy(false), Is.False);
             }
-            finally { Object.DestroyImmediate(ui); }
+            finally
+            {
+                Object.DestroyImmediate(ui);
+            }
         }
 
         [Test]
@@ -140,9 +144,14 @@ namespace HBP.Tests.Quest
                 replace.onClick.Invoke();
                 Assert.That(replacements, Is.EqualTo(1));
                 card.Hide();
-                Assert.That(ui.activeSelf, Is.False);
+                Assert.That(ui.GetComponent<QuestWindow>().IsOpen, Is.False);
+                card.ShowWaiting();
+                Assert.That(ui.GetComponent<QuestWindow>().IsOpen, Is.False, "Connection refresh must not reopen a closed window.");
             }
-            finally { Object.DestroyImmediate(ui); }
+            finally
+            {
+                Object.DestroyImmediate(ui);
+            }
         }
 
         [Test]
@@ -167,6 +176,7 @@ namespace HBP.Tests.Quest
                         Assert.That(local.y, Is.InRange(background.rect.yMin, background.rect.yMax), rect.name);
                     }
                 }
+
                 var gauge = (Image)new SerializedObject(card).FindProperty("lifetimeGauge").objectReferenceValue;
                 var populate = typeof(Image).GetMethod("OnPopulateMesh", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new[] { typeof(VertexHelper) }, null);
                 float fullWidth = GaugeMeshWidth(gauge, populate, 1);
@@ -174,7 +184,10 @@ namespace HBP.Tests.Quest
                 Assert.That(GaugeMeshWidth(gauge, populate, 0.5f), Is.EqualTo(fullWidth / 2).Within(0.01f));
                 Assert.That(gauge.color, Is.EqualTo(new Color(59f / 255, 122f / 255, 194f / 255, 1)));
             }
-            finally { Object.DestroyImmediate(ui); }
+            finally
+            {
+                Object.DestroyImmediate(ui);
+            }
         }
 
         private static float GaugeMeshWidth(Image gauge, System.Reflection.MethodInfo populate, float amount)
@@ -190,6 +203,7 @@ namespace HBP.Tests.Quest
                 min = Mathf.Min(min, vertex.position.x);
                 max = Mathf.Max(max, vertex.position.x);
             }
+
             return max - min;
         }
 
