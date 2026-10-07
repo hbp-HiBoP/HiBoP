@@ -228,6 +228,36 @@ namespace HBP.Dev
                 file.CopyTo(Path.Combine(target.FullName, file.Name), true);
         }
 
+        internal static bool IsQuestUIDemoBuild { get; private set; }
+
+        /// <summary>Standalone UI sandbox; production scene and player settings are restored even if the build fails.</summary>
+        public static void BuildQuestUIDemo(string buildsDirectory)
+        {
+            var profile = HBPBuildProfiles.Load(true);
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android || BuildProfile.GetActiveBuildProfile() != profile)
+                throw new BuildFailedException("Activate the Quest Build Profile before building the UI demo.");
+            var scenes = profile.scenes;
+            string identifier = PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android);
+            string product = PlayerSettings.productName;
+            try
+            {
+                IsQuestUIDemoBuild = true;
+                profile.scenes = new[] { new EditorBuildSettingsScene(HBPBuildProfiles.QuestUIDemoScene, true) };
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, HBPBuildProfiles.QuestUIDemoIdentifier);
+                PlayerSettings.productName = "HiBoP UI Demo";
+                BuildQuest(buildsDirectory, true);
+            }
+            finally
+            {
+                IsQuestUIDemoBuild = false;
+                profile.scenes = scenes;
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, identifier);
+                PlayerSettings.productName = product;
+                EditorUtility.SetDirty(profile);
+                AssetDatabase.SaveAssets();
+            }
+        }
+
         public static void BuildQuest(string buildsDirectory, bool development = false)
         {
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)

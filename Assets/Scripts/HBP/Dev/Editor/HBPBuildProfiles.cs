@@ -21,6 +21,8 @@ namespace HBP.Dev
         public const string DesktopScene = "Assets/_Scenes/HiBoP.unity";
 
         public const string QuestScene = "Assets/_Scenes/QuestBootstrap.unity";
+        public const string QuestUIDemoScene = "Assets/_Scenes/QuestUIDemo.unity";
+        public const string QuestUIDemoIdentifier = "fr.crnl.hibop.quest.uidemo";
 
         // XRBuildHelper preloads settings at order 0 even when no loader is used.
         public int callbackOrder => 1000;
@@ -158,6 +160,8 @@ namespace HBP.Dev
 
         public void OnPreprocessBuild(BuildReport report)
         {
+            if (HBPBuilder.IsQuestUIDemoBuild && (report.summary.platform != BuildTarget.Android || (report.summary.options & BuildOptions.Development) == 0))
+                throw new BuildFailedException("The Quest UI demo must be an Android Development build.");
             if (report.summary.platform == BuildTarget.Android || report.summary.platform == BuildTarget.StandaloneWindows64)
             {
                 Validate(report.summary.platform);
@@ -181,7 +185,10 @@ namespace HBP.Dev
             string expectedVersion = ReadProductVersion();
             if (PlayerSettings.bundleVersion != expectedVersion)
                 throw new BuildFailedException($"{profile.name} uses bundle version '{PlayerSettings.bundleVersion}', but codemeta.json declares '{expectedVersion}'. Build through HBPBuilder to synchronize it.");
-            string scene = quest ? QuestScene : DesktopScene;
+            bool demo = quest && HBPBuilder.IsQuestUIDemoBuild;
+            if (demo && PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android) != QuestUIDemoIdentifier)
+                throw new BuildFailedException("The Quest UI demo requires its own application identifier.");
+            string scene = quest ? demo ? QuestUIDemoScene : QuestScene : DesktopScene;
             if (!profile.overrideGlobalScenes || !profile.GetScenesForBuild().Where(s => s.enabled).Select(s => s.path).SequenceEqual(new[] { scene }))
                 throw new BuildFailedException($"{profile.name} must build only {scene}.");
             string expectedDefine = quest ? "HIBOP_QUEST" : "HIBOP_DESKTOP";

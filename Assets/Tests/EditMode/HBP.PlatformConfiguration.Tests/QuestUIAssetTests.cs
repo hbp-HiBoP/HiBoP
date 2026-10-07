@@ -12,6 +12,30 @@ namespace HBP.Tests.PlatformConfiguration
     public class QuestUIAssetTests
     {
         [Test]
+        public void ResizeDemo_WiresOptionalHandleWithoutChangingExistingWindows()
+        {
+            const string demoPath = "Assets/Prefabs/Quest/UI/Quest Resizable Window Demo.prefab";
+            var demo = AssetDatabase.LoadAssetAtPath<GameObject>(demoPath);
+            var handles = demo.GetComponentsInChildren<QuestWindowResizer>(true);
+            Assert.That(handles.Select(h => h.Edge), Is.EquivalentTo(System.Enum.GetValues(typeof(QuestWindowResizer.WindowEdge))));
+            foreach (var resizer in handles)
+            {
+                var fields = new SerializedObject(resizer);
+                Assert.That(fields.FindProperty("window").objectReferenceValue, Is.EqualTo(demo.GetComponent<QuestWindow>()));
+                Assert.That(fields.FindProperty("minimumSize").vector2Value, Is.EqualTo(new Vector2(500, 350)));
+                Assert.That(fields.FindProperty("maximumSize").vector2Value, Is.EqualTo(new Vector2(1200, 1000)));
+                Assert.That(resizer.GetComponent<UnityEngine.UI.Image>().raycastTarget, Is.True);
+                Assert.That(AssetDatabase.GetAssetPath(resizer.GetComponent<ThemeElement>().Element), Is.EqualTo("Assets/Resources/Themes/Quest/Elements/QuestResizeHandle.asset"));
+            }
+
+            foreach (string path in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Quest" }).Select(AssetDatabase.GUIDToAssetPath))
+            {
+                if (path == demoPath) continue;
+                Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentInChildren<QuestWindowResizer>(true), Is.Null, path);
+            }
+        }
+
+        [Test]
         public void LoadingPrefabs_KeepDesktopPresenterAndWireIndependentQuestPresentation()
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
