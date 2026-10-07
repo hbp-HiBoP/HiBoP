@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HBP.Transfer.Transport;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace HBP.Quest
 {
@@ -16,7 +15,6 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private QuestAnatomyView view;
         [SerializeField] private QuestStatusPanel statusPanel;
-        private InputAction restart;
         private CancellationTokenSource lifetime;
         private Task running = Task.CompletedTask;
         private QuestPairing pairing;
@@ -40,9 +38,26 @@ namespace HBP.Quest
 
         private void OnEnable()
         {
-            restart = new InputAction("Restart pairing (Y)", binding: "<XRController>{LeftHand}/secondaryButton");
-            restart.Enable();
+            statusPanel.RetryRequested += Retry;
+            statusPanel.NewAssociationRequested += NewAssociation;
+            PairingTiming.Measured += LogTiming;
             _ = RestartAsync(); // All failures observed by RestartAsync/RunAsync.
+        }
+
+        private static void LogTiming(string message) => Debug.Log(message);
+
+        private bool CanChangePairing => !restarting && !session.IsReady && session.ReceptionState == AnatomyReceptionState.Idle && pairing?.IsPreparing != true && pairing?.GetStatus().Phase != PairingPhase.Authenticating;
+
+        private void Retry()
+        {
+            if (!CanChangePairing) return;
+            if (pairing == null) _ = RestartAsync();
+            else pairing.RearmCode();
+        }
+
+        private void NewAssociation()
+        {
+            if (CanChangePairing) _ = RestartAsync(true);
         }
 
         public async Task RestartAsync(bool renew = false)
@@ -115,7 +130,7 @@ namespace HBP.Quest
             }
             catch (Exception exception)
             {
-                status = "Connection unavailable. Check Wi-Fi, then press Y to retry.";
+                status = "Connection unavailable. Check Wi-Fi, then select Retry.";
                 Debug.LogWarning("QUEST-011 listener failed: " + exception.GetType().Name + ": " + exception.Message);
             }
             finally
@@ -138,7 +153,6 @@ namespace HBP.Quest
 
         private void Update()
         {
-            if (restart.WasPressedThisFrame()) _ = RestartAsync(true);
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
             if (session.ReceptionState != AnatomyReceptionState.Idle || pairing?.IsPreparing == true)
@@ -146,7 +160,7 @@ namespace HBP.Quest
             else if (pairing == null)
                 statusPanel.ShowUnavailable(status);
             else if (!pairing.IsPaired)
-                statusPanel.ShowPairing(pairing.Code, address, pairing.IsLocked);
+                statusPanel.ShowPairing(pairing.GetStatus(), address);
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
             else
@@ -161,7 +175,9 @@ namespace HBP.Quest
 
         private void OnDisable()
         {
-            restart?.Dispose();
+            statusPanel.RetryRequested -= Retry;
+            statusPanel.NewAssociationRequested -= NewAssociation;
+            PairingTiming.Measured -= LogTiming;
             lifetime?.Cancel();
         }
     }

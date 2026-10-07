@@ -49,6 +49,17 @@ namespace HBP.Tests.Quest
                 Assert.That(loads, Is.EqualTo(1));
                 Assert.That(Object3DManager.Localizers.Protocols.Count, Is.EqualTo(1));
                 Assert.That(AtlasResources.IsLoaded(id), Is.True);
+                var native = Object3DManager.Localizers.Protocols[0];
+                string volume = Path.Combine(directory, "bloc.nii");
+                using (var changed = new FileStream(volume, FileMode.Open, FileAccess.Write))
+                {
+                    changed.Position = 352;
+                    changed.WriteByte(99);
+                }
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed));
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed), "A failed verification must not relabel the old native atlas on retry.");
+                Assert.That(AtlasResources.Status(id).Fingerprint, Is.Null);
+                Assert.That(Object3DManager.Localizers.Protocols[0], Is.SameAs(native));
                 using (ResourceRetention.Retain(id)) Assert.Throws<InvalidOperationException>(() => AtlasResources.Unload(id));
                 Assert.That(AtlasResources.Unload(id).State, Is.EqualTo(AtlasLoadState.Unloaded));
                 Assert.That(AtlasResources.IsLoaded(id), Is.False);

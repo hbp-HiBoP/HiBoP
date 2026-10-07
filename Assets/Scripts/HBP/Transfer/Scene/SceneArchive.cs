@@ -461,6 +461,37 @@ namespace HBP.Transfer.Scene
 
         public void WriteGlobalData(GlobalDataPayload payload, string output) => WritePackage(payload, output, "globals.json", true);
 
+        internal byte[] CaptureGlobalMetadata(GlobalDataPayload payload)
+        {
+            EnsureWritable();
+            if (!deferResourceWrites) throw new InvalidOperationException("Pairing metadata requires deferred resource capture.");
+            using var memory = new MemoryStream();
+            using (var writer = new JsonTextWriter(new StreamWriter(memory, new UTF8Encoding(false), 8192, true)))
+                Serializer(true).Serialize(writer, payload);
+            return memory.ToArray();
+        }
+
+        internal void WriteCapturedGlobals(byte[] metadata, string output)
+        {
+            EnsureWritable();
+            cancellationToken.ThrowIfCancellationRequested();
+            foreach (var buffer in capturedBuffers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                File.WriteAllBytes(Resolve(buffer.Key), buffer.Value);
+            }
+            foreach (var file in capturedFiles)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                string target = Resolve(file.Key);
+                File.Copy(file.Value, target);
+                if (StandardData.HashFile(target) != file.Key.Substring(0, 64)) throw new IOException("A pairing resource changed during capture.");
+            }
+            if (metadata.Length > MaximumMetadataBytes) throw new InvalidDataException("Pairing metadata exceeds the transfer budget.");
+            File.WriteAllBytes(Path.Combine(directory, "globals.json"), metadata);
+            WritePackageFiles(output);
+        }
+
         private void WritePackage(object payload, string output, string metadataName, bool globalData)
         {
             EnsureWritable();
@@ -469,11 +500,19 @@ namespace HBP.Transfer.Scene
                 Serializer(globalData).Serialize(writer, payload);
             if (new FileInfo(metadata).Length > MaximumMetadataBytes)
                 throw new InvalidDataException("Visualization metadata exceeds the transfer budget.");
+            WritePackageFiles(output);
+        }
+
+        private void WritePackageFiles(string output)
+        {
             if (Directory.EnumerateFiles(directory).Sum(path => new FileInfo(path).Length) > MaximumExpandedBytes)
                 throw new InvalidDataException("Visualization exceeds the expanded content budget.");
             using var zip = ZipFile.Open(output, ZipArchiveMode.Create);
             foreach (string path in Directory.EnumerateFiles(directory).OrderBy(p => p, StringComparer.Ordinal))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 zip.CreateEntryFromFile(path, Path.GetFileName(path), CompressionLevel.Fastest);
+            }
         }
 
         public string[] ReadNativePair(string name)

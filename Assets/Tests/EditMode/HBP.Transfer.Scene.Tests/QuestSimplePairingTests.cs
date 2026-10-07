@@ -20,11 +20,13 @@ namespace HBP.Tests.Transfer
         private int installations;
         private bool failReplicaWithProtocol;
         private TaskCompletionSource<bool> replicaEntered, releaseReplica;
+        private double clockSeconds;
 
         [SetUp]
         public void SetUp()
         {
             installations = 0;
+            clockSeconds = 0;
             failReplicaWithProtocol = false;
             replicaEntered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             releaseReplica = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -35,7 +37,7 @@ namespace HBP.Tests.Transfer
 
         private void Start()
         {
-            receiver = new QuestPairing(statePath, "Test Quest");
+            receiver = new QuestPairing(statePath, "Test Quest", false, () => TimeSpan.FromSeconds(Volatile.Read(ref clockSeconds)));
             Listen();
         }
 
@@ -86,6 +88,69 @@ namespace HBP.Tests.Transfer
 
         private Task<byte[]> Pair(string code = null) => QuestPairing.AuthenticateAsync("127.0.0.1", receiver.Pin, code ?? receiver.Code, true, stop.Token);
         private Task Resume(byte[] secret, string id) => QuestPairing.ResumeAsync("127.0.0.1", receiver.Pin, secret, id, stop.Token, Globals);
+
+        [Test]
+        public async Task ExpirationRotatesOnlyCodeAndRejectsThePreviousCode()
+        {
+            string previous = receiver.Code;
+            byte[] pin = receiver.Pin;
+            clockSeconds = 301;
+            Assert.That(receiver.Code, Is.Not.EqualTo(previous));
+            Assert.That(receiver.Pin, Is.EqualTo(pin));
+            Assert.That(receiver.GetStatus().Remaining, Is.EqualTo(QuestPairing.CodeLifetime));
+            Assert.That(await Capture(() => Pair(previous)), Is.TypeOf<AuthenticationException>());
+            byte[] credential = await Pair();
+            await Resume(credential, Guid.NewGuid().ToString("N"));
+            clockSeconds = 1200;
+            Assert.That(await QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token), Is.True);
+            Assert.That(receiver.RearmCode(), Is.False);
+        }
+
+        [Test]
+        public async Task ExpirationDuringAdmittedPakeDoesNotChangeTheChallenge()
+        {
+            string code = receiver.Code;
+            clockSeconds = 299;
+            using var peer = new TcpClient { NoDelay = true };
+            using var close = stop.Token.Register(peer.Close);
+            await peer.ConnectAsync(IPAddress.Loopback, QuestPairing.Port);
+            using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => TransportIdentity.Matches(certificate, receiver.Pin));
+            await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false);
+            await tls.WriteAsync(new byte[] { 11 }, 0, 1, stop.Token);
+            var accepted = new byte[1];
+            await PinnedTlsTransfer.ReadExactAsync(tls, accepted, 0, 1, stop.Token);
+            Assert.That(accepted[0], Is.EqualTo(1));
+            clockSeconds = 301;
+            Assert.That(receiver.GetStatus().Phase, Is.EqualTo(PairingPhase.Authenticating));
+            Assert.That(receiver.Code, Is.EqualTo(code));
+            Assert.That(receiver.RearmCode(), Is.False);
+            await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, receiver.Pin, false, stop.Token));
+            var credential = new byte[32];
+            await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, 32, stop.Token);
+            await Resume(credential, Guid.NewGuid().ToString("N"));
+            Assert.That(receiver.IsPaired, Is.True);
+        }
+
+        [Test]
+        public async Task TimedRotationPreservesAttemptBudgetUntilLocalRearm()
+        {
+            byte[] pin = receiver.Pin;
+            for (int i = 0; i < 5; i++)
+            {
+                string wrong = receiver.Code == "000000" ? "000001" : "000000";
+                Assert.That(await Capture(() => Pair(wrong)), Is.TypeOf<AuthenticationException>());
+                clockSeconds += 301;
+                Assert.That(receiver.GetStatus().AttemptsRemaining, Is.EqualTo(4 - i));
+            }
+            Assert.That(receiver.GetStatus().Phase, Is.EqualTo(PairingPhase.AttemptsExhausted));
+            string previous = receiver.Code;
+            Assert.That(receiver.RearmCode(), Is.True);
+            Assert.That(receiver.GetStatus().AttemptsRemaining, Is.EqualTo(5));
+            Assert.That(receiver.Code, Is.Not.EqualTo(previous));
+            Assert.That(receiver.Pin, Is.EqualTo(pin));
+            byte[] credential = await Pair();
+            await Resume(credential, Guid.NewGuid().ToString("N"));
+        }
 
         [Test]
         public async Task CorrectCodeThenRepeatedResume_PreservesGlobals()

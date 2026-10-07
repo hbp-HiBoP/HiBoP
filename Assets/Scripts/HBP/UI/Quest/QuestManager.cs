@@ -32,6 +32,8 @@ namespace HBP.Quest.Desktop
         public string Status { get; private set; } = "Select a Quest to pair.";
         public string SelectedId { get; private set; }
         public bool IsBusy => busy;
+        public bool LastOperationCancelled { get; private set; }
+        private IDisposable pairingTiming;
         public bool IsPaired => connected && credential != null;
         public bool CanRetry => offer?.CanRetry == true && failedDelivery && IsPaired;
         public bool HasRetryableDelivery => offer?.CanRetry == true && failedDelivery;
@@ -45,6 +47,7 @@ namespace HBP.Quest.Desktop
         private DesktopSessionPreferences sessionPreferences;
         private readonly SemaphoreSlim sessionOperations = new(1, 1);
         private long sessionGeneration;
+        private long discoveryGeneration;
         public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
         public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
         public bool HasSharedScene => publicationReplica != null && !publicationReplica.IsClosed || replica != null && !replica.IsClosed;
@@ -110,7 +113,10 @@ namespace HBP.Quest.Desktop
             adb = Path.Combine(sdk, "platform-tools", "adb.exe");
 #endif
             usb = new QuestUsbDiscovery(adb);
+            PairingTiming.Measured += LogPairingTiming;
         }
+
+        private static void LogPairingTiming(string message) => Debug.Log(message);
 
         private void Update()
         {
@@ -133,7 +139,7 @@ namespace HBP.Quest.Desktop
                 discovering = DiscoverAsync();
             }
 
-            if (!busy && !scanning && reconnect && credential != null && Time.unscaledTime >= nextHeartbeat)
+            if (!busy && reconnect && credential != null && Time.unscaledTime >= nextHeartbeat)
             {
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>
@@ -222,6 +228,8 @@ namespace HBP.Quest.Desktop
             if (answer.Value == null || answer.Value.Length != 6 || !answer.Value.All(char.IsDigit))
                 throw new ArgumentException("Enter the six-digit code shown in your Quest.");
             SetStatus("Checking the Quest code...");
+            pairingTiming?.Dispose();
+            pairingTiming = PairingTiming.Measure("desktop.pairing-total");
             credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, token);
             PairingStorage.Write(CredentialPath(pin), credential);
         }
@@ -230,7 +238,7 @@ namespace HBP.Quest.Desktop
         {
             SetStatus("Preparing Quest pairing...");
             await UniTask.NextFrame(cancellationToken: token);
-            globals ??= PairingSnapshot.Capture();
+            globals ??= await PairingSnapshot.CaptureAsync(token);
             SetStatus("Connecting to paired Quest...");
             sessionPreferences?.Dispose();
             var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
@@ -239,7 +247,10 @@ namespace HBP.Quest.Desktop
             controls.ConnectionLost += SessionConnectionLost;
             try
             {
-                await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, (stream, stop) => globals.Delivery.SendAsync(stream, stop));
+                SetStatus("Applying shared preferences and definitions on Quest...");
+                using (PairingTiming.Measure("desktop.globals-resume"))
+                    await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, SendGlobalsAsync);
+                SetStatus("Opening the Quest session...");
                 await controls.StartAsync();
                 connected = true;
             }
@@ -251,6 +262,21 @@ namespace HBP.Quest.Desktop
 
             nextHeartbeat = Time.unscaledTime + 5;
             SetStatus("Quest paired and ready for a visualization.");
+        }
+
+        private async Task<DeliveryReceipt> SendGlobalsAsync(Stream stream, CancellationToken token)
+        {
+            var transfer = PairingTiming.Measure("desktop.globals-transfer");
+            try
+            {
+                return await globals.Delivery.SendAsync(stream, token, null, (sent, total) =>
+                {
+                    if (sent < total) return;
+                    transfer?.Dispose();
+                    transfer = null;
+                });
+            }
+            finally { transfer?.Dispose(); }
         }
 
         public async Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
@@ -407,6 +433,7 @@ namespace HBP.Quest.Desktop
         {
             if (busy || !isActiveAndEnabled) return Task.CompletedTask;
             busy = true;
+            LastOperationCancelled = false;
             Changed?.Invoke();
             return running = ExecuteAsync(action);
         }
@@ -433,15 +460,20 @@ namespace HBP.Quest.Desktop
                     SetStatus("Pairing refused. Check the Quest code and try again.");
                 }
                 else if (exception is OperationCanceledException || attempt.IsCancellationRequested)
+                {
+                    LastOperationCancelled = true;
                     SetStatus("Operation cancelled.");
+                }
                 else
-                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? exception.Message : reconnect ? "Quest disconnected. Reconnecting automatically..." : "Quest unreachable. Check USB or Wi-Fi.");
+                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? exception.Message : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association..." : "Quest unreachable. Check USB or Wi-Fi.");
 
                 Debug.LogWarning("Quest operation failed: " + exception.Message);
             }
             finally
             {
                 await UniTask.SwitchToMainThread();
+                pairingTiming?.Dispose();
+                pairingTiming = null;
                 sessionOperations.Release();
                 operation = null;
                 busy = false;
@@ -456,34 +488,35 @@ namespace HBP.Quest.Desktop
             Changed?.Invoke();
             try
             {
-                Task<List<QuestDevice>> wifi = QuestDiscovery.FindAsync(lifetime.Token);
-                Task<List<QuestDevice>> wired = usb.FindAsync(lifetime.Token);
+                long generation = ++discoveryGeneration;
+                var context = SynchronizationContext.Current;
                 var found = new List<QuestDevice>();
+                void Discovered(QuestDevice device) => context.Post(_ =>
+                {
+                    if (!this || lifetime.IsCancellationRequested || !scanning || generation != discoveryGeneration) return;
+                    found.Add(device);
+                    PublishDiscovery(found, false);
+                }, null);
+                var pending = new Dictionary<Task<List<QuestDevice>>, string>
+                {
+                    [QuestDiscovery.FindAsync(lifetime.Token, Discovered)] = "Wi-Fi",
+                    [usb.FindAsync(lifetime.Token, Discovered)] = "USB"
+                };
                 var messages = new List<string>();
-                try
+                while (pending.Count > 0)
                 {
-                    found.AddRange(await wired);
+                    var completed = await Task.WhenAny(pending.Keys);
+                    string source = pending[completed];
+                    pending.Remove(completed);
+                    try { found.AddRange(await completed); }
+                    catch (Exception) when (!lifetime.IsCancellationRequested) { messages.Add(source + " discovery unavailable"); }
+                    if (!this || lifetime.IsCancellationRequested) return;
+                    PublishDiscovery(found, pending.Count == 0);
                 }
-                catch (Exception)
-                {
-                    messages.Add("USB discovery unavailable");
-                }
-
-                try
-                {
-                    found.AddRange(await wifi);
-                }
-                catch (Exception)
-                {
-                    messages.Add("Wi-Fi discovery unavailable");
-                }
-
-                if (!this || lifetime.IsCancellationRequested || busy) return;
-                devices = found.GroupBy(x => x.Id).Select(g => g.First()).OrderBy(x => x.Label).ToList();
                 if (!manualSelected && SelectedId != null)
                 {
                     QuestDevice selected = devices.FirstOrDefault(x => x.Id == SelectedId);
-                    if (selected != null) endpoint = selected.Host;
+                    if (selected != null && !busy) endpoint = selected.Host;
                 }
 
                 if (!manualSelected && SelectedId == null && devices.Count > 0) Select(devices[0]);
@@ -496,6 +529,14 @@ namespace HBP.Quest.Desktop
                 scanning = false;
                 if (this) nextDiscovery = Time.unscaledTime + 5;
             }
+        }
+
+        private void PublishDiscovery(List<QuestDevice> found, bool complete)
+        {
+            devices = (complete ? found : found.Concat(devices)).GroupBy(x => x.Id)
+                .Select(g => g.OrderBy(x => x.UsbSerial == null).First()).OrderBy(x => x.Label).ToList();
+            if (!manualSelected && !busy && SelectedId == null && devices.Count > 0) Select(devices[0]);
+            Changed?.Invoke();
         }
 
         private string CredentialPath(byte[] identity) => Path.Combine(store, BitConverter.ToString(identity).Replace("-", "") + ".pair");
@@ -543,6 +584,7 @@ namespace HBP.Quest.Desktop
 
         private async void OnDestroy()
         {
+            PairingTiming.Measured -= LogPairingTiming;
             replica?.Dispose();
             publicationReplica?.Dispose();
             lifetime.Cancel();

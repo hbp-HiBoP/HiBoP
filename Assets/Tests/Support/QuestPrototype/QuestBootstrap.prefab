@@ -565,14 +565,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5152566366030477196}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b7a911de57fd7524dabaed1f1fbf50df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestConnectionPanel
-  session: {fileID: 3281140389832051285}
-  view: {fileID: 2346278702263725147}
-  statusText: {fileID: 5744230379228509052}
+  session: {fileID: 0}
+  view: {fileID: 0}
+  statusPanel: {fileID: 0}
 --- !u!1 &5841452900093565188
 GameObject:
   m_ObjectHideFlags: 0
@@ -1025,7 +1025,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9571701c858144a1be8649c9d346a401, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: HBP.Quest.Prototype.Tests::HBP.Quest.Legacy.QuestAnatomyManipulator
+  m_EditorClassIdentifier: 
 --- !u!114 &2346278702263725147 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 510045443892623503, guid: 3c2395b5f46e4d428d0f21c54bbd7d0f,
@@ -1037,22 +1037,10 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5fdb08943ab14b5e9090714f39cf6f16, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: HBP.Quest.Prototype.Tests::HBP.Quest.Legacy.QuestAnatomyView
+  m_EditorClassIdentifier: 
 --- !u!4 &3013486224225401841 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1029545776034098981, guid: 3c2395b5f46e4d428d0f21c54bbd7d0f,
     type: 3}
   m_PrefabInstance: {fileID: 2854054750397715668}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &3281140389832051285 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 726012340010000001, guid: 3c2395b5f46e4d428d0f21c54bbd7d0f,
-    type: 3}
-  m_PrefabInstance: {fileID: 2854054750397715668}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f739fff37cb40dfb27db1bcaefd6440, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

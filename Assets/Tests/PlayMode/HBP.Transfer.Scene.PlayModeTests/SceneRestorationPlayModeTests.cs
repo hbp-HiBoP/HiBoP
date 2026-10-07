@@ -929,7 +929,7 @@ namespace HBP.Tests.SceneTransfer
             using var scope = new PlayModeSceneScope("S2MeshBinding");
             var clock = System.Diagnostics.Stopwatch.StartNew();
             await PrepareReferencesAsync();
-            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
+            Assert.That((await AtlasResources.LoadAsync("mars")).Succeeded, Is.True);
             Debug.Log($"S2 mesh binding: references {clock.Elapsed.TotalSeconds:F1}s");
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
             var token = timeout.Token;
@@ -1249,7 +1249,7 @@ namespace HBP.Tests.SceneTransfer
             using var scope = new PlayModeSceneScope("S2SixModalityReplay");
             PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
             await PrepareReferencesAsync();
-            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
+            Assert.That((await AtlasResources.LoadAsync("mars")).Succeeded, Is.True);
             Assert.That(Object3DManager.MarsAtlas.Labels().Length, Is.GreaterThan(1));
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(8));
             var token = timeout.Token;

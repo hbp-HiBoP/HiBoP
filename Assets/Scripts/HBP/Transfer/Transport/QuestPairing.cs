@@ -14,6 +14,23 @@ using System.Threading.Tasks;
 
 namespace HBP.Transfer.Transport
 {
+    public enum PairingPhase { Available, Authenticating, AttemptsExhausted, InstallingGlobals, Paired }
+
+    public readonly struct PairingStatus
+    {
+        public string Code { get; }
+        public TimeSpan Remaining { get; }
+        public int AttemptsRemaining { get; }
+        public PairingPhase Phase { get; }
+        public PairingStatus(string code, TimeSpan remaining, int attemptsRemaining, PairingPhase phase)
+        {
+            Code = code;
+            Remaining = remaining;
+            AttemptsRemaining = attemptsRemaining;
+            Phase = phase;
+        }
+    }
+
     /// <summary>Serialized authenticated receiver. Discovery is never an authentication decision.</summary>
     public sealed class QuestPairing : IDisposable
     {
@@ -23,21 +40,32 @@ namespace HBP.Transfer.Transport
         private readonly string storagePath;
         private readonly string deviceName;
         private readonly Stopwatch age = Stopwatch.StartNew();
+        private readonly object codeGate = new();
+        private readonly Func<TimeSpan> clock;
+        private TimeSpan codeExpires;
+        private string code;
+        private bool authenticating;
+        public static readonly TimeSpan CodeLifetime = TimeSpan.FromMinutes(5);
         private readonly SemaphoreSlim pairingGate = new(1, 1);
         private long lastContact;
         private int attempts, paired, ownerClaimed, preparing, receiving;
         private string globalsId;
-        public string Code { get; }
+        public string Code => GetStatus().Code;
         public byte[] Pin => TransportIdentity.Hash(identity.RawData);
         public string Fingerprint => FormatPin(Pin);
         public string Announcement => QuestDiscovery.Encode(Pin, deviceName);
         public bool IsPaired => Volatile.Read(ref paired) != 0;
         public bool IsConnected => IsPaired && (Volatile.Read(ref receiving) != 0 || DateTime.UtcNow.Ticks - Interlocked.Read(ref lastContact) < TimeSpan.FromSeconds(15).Ticks);
         public bool IsPreparing => Volatile.Read(ref preparing) != 0;
-        public bool IsLocked => Volatile.Read(ref ownerClaimed) != 0 || Volatile.Read(ref attempts) >= 5 || age.Elapsed >= TimeSpan.FromMinutes(5);
+        public bool IsLocked => GetStatus().Phase is PairingPhase.AttemptsExhausted or PairingPhase.InstallingGlobals or PairingPhase.Paired;
 
-        public QuestPairing(string storagePath = null, string deviceName = "Quest", bool renew = false)
+        public QuestPairing(string storagePath = null, string deviceName = "Quest", bool renew = false) : this(storagePath, deviceName, renew, null)
         {
+        }
+
+        public QuestPairing(string storagePath, string deviceName, bool renew, Func<TimeSpan> clock)
+        {
+            this.clock = clock ?? (() => age.Elapsed);
             this.storagePath = storagePath;
             this.deviceName = deviceName;
             byte[] stored = storagePath == null ? null : PairingStorage.Read(storagePath);
@@ -79,13 +107,41 @@ namespace HBP.Transfer.Transport
                 Save();
             }
 
-            uint value;
+            RotateCode();
+        }
+
+        private void RotateCode()
+        {
+            string previous = code;
             do
             {
-                value = BitConverter.ToUInt32(RandomBytes(4), 0);
-            } while (value >= 4294000000u);
+                uint value;
+                do { value = BitConverter.ToUInt32(RandomBytes(4), 0); } while (value >= 4294000000u);
+                code = (value % 1000000).ToString("D6");
+            } while (code == previous);
+            codeExpires = clock() + CodeLifetime;
+        }
 
-            Code = (value % 1000000).ToString("D6");
+        public PairingStatus GetStatus()
+        {
+            lock (codeGate)
+            {
+                if (!authenticating && Volatile.Read(ref ownerClaimed) == 0 && attempts < 5 && clock() >= codeExpires) RotateCode();
+                var phase = IsPaired ? PairingPhase.Paired : Volatile.Read(ref ownerClaimed) != 0 ? PairingPhase.InstallingGlobals : authenticating ? PairingPhase.Authenticating : attempts >= 5 ? PairingPhase.AttemptsExhausted : PairingPhase.Available;
+                var remaining = codeExpires - clock();
+                return new(code, remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, Math.Max(0, 5 - attempts), phase);
+            }
+        }
+
+        public bool RearmCode()
+        {
+            lock (codeGate)
+            {
+                if (authenticating || Volatile.Read(ref ownerClaimed) != 0 || IsPaired) return false;
+                attempts = 0;
+                RotateCode();
+                return true;
+            }
         }
 
         private void Save()
@@ -175,7 +231,8 @@ namespace HBP.Transfer.Transport
                 try
                 {
                     using var tls = new SslStream(peer.GetStream(), false);
-                    await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
+                    using (PairingTiming.Measure("quest.tls"))
+                        await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
                     int command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
                     if (command == 0) return;
                     if (command == 20)
@@ -197,12 +254,19 @@ namespace HBP.Transfer.Transport
                         await pairingGate.WaitAsync(deadline.Token).ConfigureAwait(false);
                         try
                         {
-                            bool allowed = !IsLocked && !IsPaired && ((command == 11) == (receiveGlobals != null));
-                            if (allowed) Interlocked.Increment(ref attempts); // Includes abandoned/malformed exchanges.
+                            bool allowed;
+                            string admittedCode;
+                            lock (codeGate)
+                            {
+                                var snapshot = GetStatus();
+                                allowed = snapshot.Phase == PairingPhase.Available && ((command == 11) == (receiveGlobals != null));
+                                admittedCode = snapshot.Code;
+                                if (allowed) { attempts++; authenticating = true; } // Includes abandoned/malformed exchanges.
+                            }
                             await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                             if (!allowed) return;
-                            await Task.Run(() => PairingPake.AuthenticateAsync(tls, Code, Pin, true, deadline.Token), deadline.Token).ConfigureAwait(false);
-                            if (age.Elapsed >= TimeSpan.FromMinutes(5)) throw new AuthenticationException("Pairing code expired.");
+                            using (PairingTiming.Measure("quest.pake"))
+                                await Task.Run(() => PairingPake.AuthenticateAsync(tls, admittedCode, Pin, true, deadline.Token), deadline.Token).ConfigureAwait(false);
                             Interlocked.Exchange(ref ownerClaimed, 1);
                             Array.Clear(secret, 0, secret.Length);
                             secret = RandomBytes(32);
@@ -214,6 +278,7 @@ namespace HBP.Transfer.Transport
                         }
                         finally
                         {
+                            lock (codeGate) authenticating = false;
                             pairingGate.Release();
                         }
                     }
@@ -370,7 +435,8 @@ namespace HBP.Transfer.Transport
                 {
                     await tls.WriteAsync(new[] { (byte)(globals ? 11 : 10) }, 0, 1, token).ConfigureAwait(false);
                     await AcceptedAsync(tls, token).ConfigureAwait(false);
-                    await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()), false, token), token).ConfigureAwait(false);
+                    using (PairingTiming.Measure("desktop.pake"))
+                        await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()), false, token), token).ConfigureAwait(false);
                     await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, credential.Length, token).ConfigureAwait(false);
                 }).ConfigureAwait(false);
                 return credential;
@@ -396,7 +462,9 @@ namespace HBP.Transfer.Transport
             {
                 byte[] id = Encoding.ASCII.GetBytes(contextId);
                 await tls.WriteAsync(id, 0, id.Length, token).ConfigureAwait(false);
-                if (await ReadByteAsync(tls, token).ConfigureAwait(false) == 1) await sendGlobals(tls, token).ConfigureAwait(false);
+                if (await ReadByteAsync(tls, token).ConfigureAwait(false) == 1)
+                    using (PairingTiming.Measure("desktop.globals-transfer-and-apply"))
+                        await sendGlobals(tls, token).ConfigureAwait(false);
                 await AcceptedAsync(tls, token).ConfigureAwait(false);
             });
         }
@@ -483,7 +551,8 @@ namespace HBP.Transfer.Transport
             using var cancellation = deadline.Token.Register(peer.Close);
             await peer.ConnectAsync(address, port).ConfigureAwait(false);
             using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => pin == null || TransportIdentity.Matches(certificate, pin));
-            await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+            using (PairingTiming.Measure("desktop.tls"))
+                await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
             deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
             await action(tls, deadline.Token).ConfigureAwait(false);
         }
@@ -499,7 +568,7 @@ namespace HBP.Transfer.Transport
 
         private static async Task AcceptedAsync(Stream stream, CancellationToken stop)
         {
-            if (await ReadByteAsync(stream, stop).ConfigureAwait(false) != 1) throw new AuthenticationException("Pairing refused. Check the code; Y on Quest renews pairing.");
+            if (await ReadByteAsync(stream, stop).ConfigureAwait(false) != 1) throw new AuthenticationException("Pairing refused. Check the current code and connection panel in Quest.");
         }
 
         private static void RequirePin(byte[] pin)

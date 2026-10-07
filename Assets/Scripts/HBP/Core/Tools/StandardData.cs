@@ -128,24 +128,34 @@ namespace HBP.Core.Tools
 #if UNITY_ANDROID && !UNITY_EDITOR
             await UniTask.SwitchToMainThread();
             string source = Application.streamingAssetsPath + "/ScientificData/";
+            string root = ApplicationState.DataPath;
             using var manifestRequest = UnityWebRequest.Get(source + ManifestName);
             await manifestRequest.SendWebRequest();
+            if (manifestRequest.result != UnityWebRequest.Result.Success) throw new IOException("Scientific manifest unavailable: " + manifestRequest.error);
             foreach (string line in manifestRequest.downloadHandler.text.Split('\n'))
             {
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 string hash = line.Substring(0, 64), relative = line.Substring(65).TrimEnd('\r');
-                string path = Resolve(ApplicationState.DataPath, relative);
-                if (File.Exists(path) && HashFile(path) == hash) continue;
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
+                string path = Resolve(root, relative);
+                bool installed = await UniTask.RunOnThreadPool(() => File.Exists(path) && HashFile(path) == hash);
+                await UniTask.SwitchToMainThread();
+                if (installed) continue;
+                await UniTask.RunOnThreadPool(() => Directory.CreateDirectory(Path.GetDirectoryName(path)));
+                await UniTask.SwitchToMainThread();
                 string temporary = path + ".installing";
                 try
                 {
                     using var request = UnityWebRequest.Get(source + PackagedPath(relative));
                     request.downloadHandler = new DownloadHandlerFile(temporary);
                     await request.SendWebRequest();
-                    if (HashFile(temporary) != hash) throw new InvalidDataException($"Installed reference checksum mismatch: {relative}");
-                    if (File.Exists(path)) File.Delete(path);
-                    File.Move(temporary, path);
+                    if (request.result != UnityWebRequest.Result.Success) throw new IOException("Scientific file unavailable: " + relative + ": " + request.error);
+                    await UniTask.RunOnThreadPool(() =>
+                    {
+                        if (HashFile(temporary) != hash) throw new InvalidDataException($"Installed reference checksum mismatch: {relative}");
+                        if (File.Exists(path)) File.Delete(path);
+                        File.Move(temporary, path);
+                    });
+                    await UniTask.SwitchToMainThread();
                 }
                 finally { if (File.Exists(temporary)) File.Delete(temporary); }
             }

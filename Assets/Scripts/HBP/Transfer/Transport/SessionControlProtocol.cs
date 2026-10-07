@@ -15,7 +15,8 @@ namespace HBP.Transfer.Transport
         CommitUnload = 5,
         AbortUnload = 6,
         ConfirmAtlas = 7,
-        Inspect = 8
+        Inspect = 8,
+        AtlasInventory = 9
     }
 
     public enum SessionControlStatus : byte
@@ -79,6 +80,7 @@ namespace HBP.Transfer.Transport
     /// <summary>Bounded request/response framing, carried only by the authenticated pairing endpoint.</summary>
     public static class SessionControlCodec
     {
+        public const string AtlasInventoryCapability = "HiBoP-atlas-inventory-v1";
         public const int MaximumBodyBytes = 1024 * 1024;
         private const int Version = 1;
 

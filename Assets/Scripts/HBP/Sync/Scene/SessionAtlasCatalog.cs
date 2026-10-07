@@ -29,7 +29,7 @@ namespace HBP.Sync.Scene
 
         public static void SetReady(string id, string fingerprint)
         {
-            if (fingerprint == null || fingerprint.Length != 64 || !AtlasResources.IsLoaded(id)) throw new InvalidDataException("Atlas is not ready: " + id);
+            if (fingerprint == null || fingerprint.Length != 64 || AtlasResources.Status(id).Fingerprint != fingerprint) throw new InvalidDataException("Atlas is not ready: " + id);
             s_Ready[id] = fingerprint;
             Changed?.Invoke();
         }
@@ -40,7 +40,7 @@ namespace HBP.Sync.Scene
             Changed?.Invoke();
         }
 
-        public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.ContainsKey(id));
+        public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.TryGetValue(id, out var fingerprint) && AtlasResources.Status(id).Fingerprint == fingerprint);
 
         public static void Require(string id)
         {

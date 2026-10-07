@@ -110,6 +110,13 @@ namespace HBP.UI.Quest
         public override async void OK()
         {
             await PairAsync();
+            if (!connection.IsPaired)
+            {
+                Refresh();
+                if (!connection.LastOperationCancelled)
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", connection.Status);
+                return;
+            }
             bool paired = connection.IsPaired;
             string result = connection.Status;
             base.OK();

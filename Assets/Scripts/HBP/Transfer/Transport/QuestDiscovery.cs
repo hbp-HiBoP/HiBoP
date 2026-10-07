@@ -66,7 +66,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public static async Task<List<QuestDevice>> FindAsync(CancellationToken stop)
+        public static async Task<List<QuestDevice>> FindAsync(CancellationToken stop, Action<QuestDevice> discovered = null)
         {
             using var socket = new UdpClient(new IPEndPoint(IPAddress.Any, 0)) { EnableBroadcast = true };
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
@@ -100,7 +100,11 @@ namespace HBP.Transfer.Transport
                     var packet = await socket.ReceiveAsync().ConfigureAwait(false);
                     if (packet.Buffer.Length > 512) continue;
                     var candidate = Decode(Encoding.UTF8.GetString(packet.Buffer), packet.RemoteEndPoint.Address.ToString());
-                    if (candidate != null && found.Count < 64) found[candidate.Id + "|" + candidate.Host] = candidate;
+                    if (candidate != null && found.Count < 64)
+                    {
+                        found[candidate.Id + "|" + candidate.Host] = candidate;
+                        discovered?.Invoke(candidate);
+                    }
                 }
             }
             catch (Exception) when (deadline.IsCancellationRequested && !stop.IsCancellationRequested)

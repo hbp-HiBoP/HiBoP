@@ -5,6 +5,10 @@ using HBP.Core.Database;
 using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using UnityEngine;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using HBP.Transfer.Transport;
 
 namespace HBP.Transfer.Scene
 {
@@ -47,6 +51,48 @@ namespace HBP.Transfer.Scene
                 var context = new PairingContext(archive.LoadGlobalData());
                 context.RestoreFilterPresets(archive);
                 return new PairingSnapshot(archive, context, new SceneDelivery(file, context.Id, context.Id, null));
+            }
+            catch
+            {
+                archive.Dispose();
+                if (File.Exists(file)) File.Delete(file);
+                if (Directory.Exists(folder)) Directory.Delete(folder);
+                throw;
+            }
+        }
+
+        public static async Task<PairingSnapshot> CaptureAsync(CancellationToken token)
+        {
+            using var timing = PairingTiming.Measure("desktop.globals-capture");
+            await UniTask.SwitchToMainThread();
+            if (!PersistentDataManager.IsInitialized || !DatabaseManager.IsInitialized || !DatabaseManager.Database.IsLoaded)
+                throw new InvalidOperationException("Wait for the Desktop database to finish loading before pairing.");
+            string folder = Path.Combine(Application.temporaryCachePath, "PairingCapture", Guid.NewGuid().ToString("N"));
+            var archive = new SceneArchive(Path.Combine(folder, "resources"), deferResourceWrites: true, cancellationToken: token);
+            string file = Path.Combine(folder, "globals.hbglobal");
+            try
+            {
+                var data = new GlobalDataPayload
+                {
+                    Preferences = PersistentDataManager.UserPreferences,
+                    Tags = PersistentDataManager.Tags,
+                    Protocols = DatabaseManager.Database.Protocols.ToList(),
+                    Aliases = PersistentDataManager.Aliases,
+                    Grid = ActivityProjectionSettings.VolumeGridDimension,
+                    Interpolation = ActivityProjectionSettings.VolumeInterpolation
+                };
+                var source = new PairingContext(data);
+                source.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
+                // Serialization freezes all managed data and image bytes on Unity's thread.
+                byte[] metadata = archive.CaptureGlobalMetadata(data);
+                return await Task.Run(() =>
+                {
+                    archive.WriteCapturedGlobals(metadata, file);
+                    var context = new PairingContext(archive.LoadGlobalData());
+                    context.RestoreFilterPresets(archive);
+                    token.ThrowIfCancellationRequested();
+                    return new PairingSnapshot(archive, context, new SceneDelivery(file, context.Id, context.Id, null));
+                }, token);
             }
             catch
             {

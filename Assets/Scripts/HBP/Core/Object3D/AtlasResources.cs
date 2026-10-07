@@ -72,6 +72,7 @@ namespace HBP.Core.Object3D
 
         private static readonly Dictionary<string, LoadOperation> s_Loads = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, AtlasLoadResult> s_Results = new(StringComparer.Ordinal);
+        private static readonly Dictionary<string, (object Identity, string Fingerprint)> s_LoadedIdentities = new(StringComparer.Ordinal);
         public static IReadOnlyList<Definition> Definitions => s_Definitions;
         public static event Action<AtlasLoadResult> Changed;
 
@@ -101,7 +102,15 @@ namespace HBP.Core.Object3D
                 _ => id.StartsWith("difumo:", StringComparison.Ordinal) ? Object3DManager.DiFuMo.IsLoaded(id.Substring(7)) : Object3DManager.Localizers.Protocols.Any(p => "localizer:" + p.Name == id && p.CompleteInstallation && p.Datas.Count > 0 && p.Loaded)
             };
 
-        public static AtlasLoadResult Status(string id) => s_Loads.ContainsKey(id) ? new(id, AtlasLoadState.Loading) : IsLoaded(id) ? new(id, AtlasLoadState.Loaded, s_Results.TryGetValue(id, out var loaded) ? loaded.Fingerprint : null) : s_Results.TryGetValue(id, out var result) && !result.Succeeded ? result : new(id, AtlasLoadState.Unloaded);
+        private static object LoadedIdentity(string id) => id switch
+        {
+            "mars" => Object3DManager.MarsAtlas,
+            "jubrain" => Object3DManager.JuBrain,
+            "ibc" => Object3DManager.IBC,
+            _ => id.StartsWith("difumo:", StringComparison.Ordinal) ? Object3DManager.DiFuMo.FMRIs.GetValueOrDefault(id.Substring(7)) : Object3DManager.Localizers.Protocols.FirstOrDefault(p => "localizer:" + p.Name == id)
+        };
+
+        public static AtlasLoadResult Status(string id) => s_Loads.ContainsKey(id) ? new(id, AtlasLoadState.Loading) : IsLoaded(id) ? new(id, AtlasLoadState.Loaded, s_Results.TryGetValue(id, out var loaded) && loaded.State == AtlasLoadState.Loaded && s_LoadedIdentities.TryGetValue(id, out var identity) && ReferenceEquals(identity.Identity, LoadedIdentity(id)) ? identity.Fingerprint : null) : s_Results.TryGetValue(id, out var result) && !result.Succeeded ? result : new(id, AtlasLoadState.Unloaded);
 
         public static string Fingerprint(string id, string root = null)
         {
@@ -152,12 +161,14 @@ namespace HBP.Core.Object3D
                 operation.CheckCancellation();
                 Changed?.Invoke(new(id, AtlasLoadState.Loading));
                 string root = ApplicationState.DataPath;
+                if (IsLoaded(id) && (!s_LoadedIdentities.TryGetValue(id, out var identity) || !ReferenceEquals(identity.Identity, LoadedIdentity(id)))) throw new IOException("Loaded atlas has no verified resource identity. Unload and reload it: " + id);
                 string fingerprint = await UniTask.RunOnThreadPool(() => Fingerprint(id, root));
                 await UniTask.SwitchToMainThread();
-                if (IsLoaded(id) && s_Results.TryGetValue(id, out var previous) && previous.Fingerprint != null && previous.Fingerprint != fingerprint) throw new IOException("Installed atlas files differ from the loaded resource: " + id);
+                if (IsLoaded(id) && s_LoadedIdentities[id].Fingerprint != fingerprint) throw new IOException("Installed atlas files differ from the loaded resource: " + id);
                 if (!IsLoaded(id)) await PrepareAsync(id, root, fingerprint, operation);
                 if (!IsLoaded(id)) throw new InvalidDataException("Atlas could not be loaded: " + id);
                 result = new(id, AtlasLoadState.Loaded, fingerprint);
+                s_LoadedIdentities[id] = (LoadedIdentity(id), fingerprint);
             }
             catch (Exception exception)
             {
@@ -328,6 +339,7 @@ namespace HBP.Core.Object3D
             }
 
             var result = new AtlasLoadResult(id, AtlasLoadState.Unloaded);
+            s_LoadedIdentities.Remove(id);
             s_Results[id] = result;
             Changed?.Invoke(result);
             return result;

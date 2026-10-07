@@ -22,6 +22,7 @@ namespace HBP.Sync.Scene
         private readonly Func<Guid> m_Context;
         private readonly Func<UserPreferences> m_Preferences;
         private readonly Func<bool> m_HasScene;
+        private readonly Func<SessionAtlasInventory> m_Inventory;
         private readonly SemaphoreSlim m_Gate = new(1, 1);
         private CancellationTokenSource m_Epoch = new();
         private readonly Dictionary<string, PendingRelease> m_Releases = new(StringComparer.Ordinal);
@@ -38,11 +39,12 @@ namespace HBP.Sync.Scene
             public double Expires;
         }
 
-        public SessionPreferencesReceiver(Func<Guid> context, Func<UserPreferences> preferences, Func<bool> hasScene)
+        public SessionPreferencesReceiver(Func<Guid> context, Func<UserPreferences> preferences, Func<bool> hasScene, Func<SessionAtlasInventory> inventory = null)
         {
             m_Context = context;
             m_Preferences = preferences;
             m_HasScene = hasScene;
+            m_Inventory = inventory;
         }
 
         public void Tick()
@@ -130,12 +132,15 @@ namespace HBP.Sync.Scene
                         foreach (var definition in AtlasResources.Definitions)
                             if (AtlasResources.IsLoaded(definition.Id))
                             {
-                                var result = await AtlasResources.LoadAsync(definition.Id, token);
-                                if (result.Succeeded) loaded.Add(definition.Id, result.Fingerprint);
+                                var result = AtlasResources.Status(definition.Id);
+                                if (result.State == AtlasLoadState.Loaded && result.Fingerprint != null) loaded.Add(definition.Id, result.Fingerprint);
                             }
 
-                        await UniTask.SwitchToMainThread();
-                        response = Reply(request, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
+                        response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
+                        break;
+                    case SessionControlKind.AtlasInventory:
+                        var inventory = m_Inventory?.Invoke() ?? new SessionAtlasInventory();
+                        response = Reply(request, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(inventory)));
                         break;
                     case SessionControlKind.Preferences:
                         if (request.Revision <= m_Revision) return Reply(request, SessionControlStatus.Stale, "A newer preferences revision is already applied.");

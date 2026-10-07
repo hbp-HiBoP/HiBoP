@@ -70,6 +70,127 @@ namespace HBP.Tests.Quest
             Assert.That(serialized.FindProperty("statusPanel").objectReferenceValue, Is.Not.Null);
             Assert.That(serialized.FindProperty("session").objectReferenceValue, Is.SameAs(prefab.GetComponentInChildren<HBP.Quest.QuestAnatomySession>(true)));
             Assert.That(prefab.GetComponentInChildren<QuestAnatomyDiagnostic>(true), Is.Null);
+            var status = prefab.GetComponentInChildren<QuestStatusPanel>(true);
+            var statusFields = new SerializedObject(status);
+            foreach (string name in new[] { "countdown", "lifetimeGauge", "retry", "newAssociation", "retryLabel", "newAssociationLabel" })
+                Assert.That(statusFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
+            var input = prefab.GetComponentInChildren<QuestPairingUIInput>(true);
+            Assert.That(input, Is.Not.Null);
+            var inputFields = new SerializedObject(input);
+            foreach (string name in new[] { "module", "trackingOrigin", "pairingCard", "pointer", "rightController" })
+                Assert.That(inputFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
+            Assert.That(input.GetComponent<LineRenderer>().sharedMaterial, Is.Not.Null);
+            Assert.That(status.GetComponent<Canvas>().worldCamera, Is.Not.Null);
+        }
+
+        [Test]
+        public void PairingControllerActionsInitializeAndReenableFromAuthoredPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var ui = Object.Instantiate(prefab.GetComponentInChildren<QuestPairingUIInput>(true).gameObject);
+            try
+            {
+                var module = ui.GetComponent<UnityEngine.InputSystem.UI.InputSystemUIInputModule>();
+                Assert.That(module.trackedDevicePosition.action.actionMap.asset, Is.Not.Null);
+                Assert.That(module.trackedDeviceOrientation.action.actionMap.asset, Is.SameAs(module.trackedDevicePosition.action.actionMap.asset));
+                Assert.That(module.leftClick.action.actionMap.asset, Is.SameAs(module.trackedDevicePosition.action.actionMap.asset));
+                ui.SetActive(false);
+                Assert.That(module.enabled, Is.False);
+                ui.SetActive(true);
+                Assert.That(module.trackedDevicePosition.action.actionMap.asset, Is.Not.Null);
+                Assert.That(module.leftClick.action.enabled, Is.True);
+            }
+            finally { Object.DestroyImmediate(ui); }
+        }
+
+        [Test]
+        public void PairingCardShowsCountdownRetryAndConfirmedReplacement()
+        {
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            try
+            {
+                var card = ui.GetComponent<QuestStatusPanel>();
+                var fields = new SerializedObject(card);
+                var countdown = (Text)fields.FindProperty("countdown").objectReferenceValue;
+                var gauge = (Image)fields.FindProperty("lifetimeGauge").objectReferenceValue;
+                var retry = (Button)fields.FindProperty("retry").objectReferenceValue;
+                var replace = (Button)fields.FindProperty("newAssociation").objectReferenceValue;
+                int retries = 0, replacements = 0;
+                card.RetryRequested += () => retries++;
+                card.NewAssociationRequested += () => replacements++;
+                card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "");
+                Assert.That(countdown.text, Does.Contain("01:30"));
+                Assert.That(((Text)fields.FindProperty("code").objectReferenceValue).text, Is.EqualTo("123 456"));
+                Assert.That(gauge.fillAmount, Is.EqualTo(0.3f).Within(0.001));
+                Assert.That(retry.gameObject.activeSelf, Is.False);
+                Assert.That(replace.gameObject.activeSelf, Is.True);
+                card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Authenticating), "");
+                Assert.That(replace.gameObject.activeSelf, Is.False);
+                card.ShowPairing(new PairingStatus("123456", TimeSpan.Zero, 0, PairingPhase.AttemptsExhausted), "");
+                retry.onClick.Invoke();
+                Assert.That(retries, Is.EqualTo(1));
+                card.ShowWaiting();
+                replace.onClick.Invoke();
+                card.ShowWaiting();
+                Assert.That(replacements, Is.Zero);
+                retry.onClick.Invoke(); // Cancel confirmation.
+                card.ShowWaiting();
+                replace.onClick.Invoke();
+                card.ShowWaiting();
+                replace.onClick.Invoke();
+                Assert.That(replacements, Is.EqualTo(1));
+                card.Hide();
+                Assert.That(ui.activeSelf, Is.False);
+            }
+            finally { Object.DestroyImmediate(ui); }
+        }
+
+        [Test]
+        public void PairingCardContentFitsBackgroundAndGaugeGeometryShrinks()
+        {
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            try
+            {
+                var card = ui.GetComponent<QuestStatusPanel>();
+                card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(150), 5, PairingPhase.Available), "192.168.1.18");
+                Canvas.ForceUpdateCanvases();
+                var background = (RectTransform)ui.transform.Find("Background");
+                foreach (var rect in ui.GetComponentsInChildren<RectTransform>(true))
+                {
+                    if (rect == ui.transform || rect == background) continue;
+                    var corners = new Vector3[4];
+                    rect.GetWorldCorners(corners);
+                    foreach (var corner in corners)
+                    {
+                        Vector3 local = background.InverseTransformPoint(corner);
+                        Assert.That(local.x, Is.InRange(background.rect.xMin, background.rect.xMax), rect.name);
+                        Assert.That(local.y, Is.InRange(background.rect.yMin, background.rect.yMax), rect.name);
+                    }
+                }
+                var gauge = (Image)new SerializedObject(card).FindProperty("lifetimeGauge").objectReferenceValue;
+                var populate = typeof(Image).GetMethod("OnPopulateMesh", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, new[] { typeof(VertexHelper) }, null);
+                float fullWidth = GaugeMeshWidth(gauge, populate, 1);
+                Assert.That(fullWidth, Is.GreaterThan(0));
+                Assert.That(GaugeMeshWidth(gauge, populate, 0.5f), Is.EqualTo(fullWidth / 2).Within(0.01f));
+                Assert.That(gauge.color, Is.EqualTo(new Color(59f / 255, 122f / 255, 194f / 255, 1)));
+            }
+            finally { Object.DestroyImmediate(ui); }
+        }
+
+        private static float GaugeMeshWidth(Image gauge, System.Reflection.MethodInfo populate, float amount)
+        {
+            gauge.fillAmount = amount;
+            using var vertices = new VertexHelper();
+            populate.Invoke(gauge, new object[] { vertices });
+            float min = float.PositiveInfinity, max = float.NegativeInfinity;
+            for (int index = 0; index < vertices.currentVertCount; index++)
+            {
+                var vertex = new UIVertex();
+                vertices.PopulateUIVertex(ref vertex, index);
+                min = Mathf.Min(min, vertex.position.x);
+                max = Mathf.Max(max, vertex.position.x);
+            }
+            return max - min;
         }
 
         [Test]

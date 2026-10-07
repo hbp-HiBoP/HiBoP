@@ -20,7 +20,7 @@ namespace HBP.UI.Quest
             this.adb = adb;
         }
 
-        public async Task<List<QuestDevice>> FindAsync(CancellationToken stop)
+        public async Task<List<QuestDevice>> FindAsync(CancellationToken stop, Action<QuestDevice> discovered = null)
         {
             var result = new List<QuestDevice>();
             if (!File.Exists(adb)) return result;
@@ -49,6 +49,7 @@ namespace HBP.UI.Quest
                     var candidate = await QuestPairing.DescribeAsync("127.0.0.1:" + port, timeout.Token).ConfigureAwait(false);
                     candidate.UsbSerial = serial;
                     result.Add(candidate);
+                    discovered?.Invoke(candidate);
                 }
                 catch (Exception) when (!stop.IsCancellationRequested)
                 {

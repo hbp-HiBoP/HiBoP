@@ -20,7 +20,7 @@ namespace HBP.Tests.Transfer
         {
             await Object3DManager.MNI.Load();
             await UniTask.SwitchToMainThread();
-            if (!Object3DManager.MarsAtlas.Loaded) Object3DManager.MarsAtlas.Load();
+            Assert.That((await AtlasResources.LoadAsync("mars")).Succeeded, Is.True);
             var source = whiteMatter ? Object3DManager.MNI.WhiteMatter : Object3DManager.MNI.GreyMatter;
             using var archive = new SceneArchive(Path.Combine(Path.GetTempPath(), "hibop-mni-geometry-" + Guid.NewGuid().ToString("N")));
 

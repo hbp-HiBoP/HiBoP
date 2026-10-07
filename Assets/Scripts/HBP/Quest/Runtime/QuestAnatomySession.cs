@@ -39,6 +39,9 @@ namespace HBP.Quest
         private bool destroyed;
         private PairingContext globals;
         private SessionPreferencesReceiver sessionPreferences;
+        private SessionAtlasPreparation atlasPreparation;
+        private Task standardInstallation = Task.CompletedTask;
+        private Task standardPreparation = Task.CompletedTask;
 
         public Task<SessionControlResponse> ReceiveSessionControlAsync(SessionControlRequest request, CancellationToken token)
         {
@@ -143,9 +146,35 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing);
+            sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing, () => atlasPreparation?.Snapshot() ?? new SessionAtlasInventory());
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
+        }
+
+        private void Start()
+        {
+            standardInstallation = InstallStandardAsync();
+            standardPreparation = PrepareStandardAsync();
+        }
+
+        private async Task InstallStandardAsync()
+        {
+            using var timing = PairingTiming.Measure("quest.standard-installation");
+            await StandardData.EnsureInstalledAsync();
+        }
+
+        private async Task PrepareStandardAsync()
+        {
+            using var timing = PairingTiming.Measure("quest.mni-preparation");
+            try
+            {
+                await standardInstallation;
+                if (!destroyed) await HBP.Data.Module3D.Base3DScene.PrepareStandardResourcesAsync();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning("Quest background resources: " + exception.Message);
+            }
         }
 
         /// <summary>Accept an authenticated incoming stream using the same publication and cancellation owner.</summary>
@@ -157,6 +186,7 @@ namespace HBP.Quest
 
         private async Task<DeliveryReceipt> ReceiveWithLoadingAsync(Stream stream, CancellationToken stop, bool globalsTransfer)
         {
+            using var timing = PairingTiming.Measure(globalsTransfer ? "quest.globals-reception" : "quest.scene-reception-and-preparation");
             ReceiveResult result = await LoadingManager.LoadAsync<ReceiveResult>(async update =>
             {
                 try
@@ -208,6 +238,7 @@ namespace HBP.Quest
 
         private async Task<DeliveryStatus> InstallGlobalsAsync(string file, string hash, CancellationToken stop)
         {
+            using var timing = PairingTiming.Measure("quest.globals-application");
             await OnUnityThreadAsync(() =>
             {
                 ReceptionState = AnatomyReceptionState.Preparing;
@@ -235,6 +266,7 @@ namespace HBP.Quest
                     if (destroyed)
                         throw new ObjectDisposedException(nameof(QuestAnatomySession));
                     if (sessionPreferences != null) await sessionPreferences.CloseAsync();
+                    if (atlasPreparation != null) await atlasPreparation.CloseAsync();
                     HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
                     HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;
@@ -246,11 +278,8 @@ namespace HBP.Quest
                     current = null;
                     deliveries.Clear();
                     previous?.Dispose();
-                    // Warm standard resources once when pairing, before sending a visualization.
-                    stop.ThrowIfCancellationRequested();
-                    await HBP.Core.Tools.StandardData.EnsureInstalledAsync();
-                    await HBP.Core.Object3D.AtlasResources.PreloadAsync(candidate.Data.Preferences.Data.Atlases, stop);
-                    await HBP.Data.Module3D.Base3DScene.PrepareStandardResourcesAsync();
+                    atlasPreparation = new SessionAtlasPreparation(candidate.Data.Preferences.Data.Atlases, () => standardInstallation);
+                    atlasPreparation.Start();
                     stop.ThrowIfCancellationRequested();
                 }, stop).ConfigureAwait(false);
                 await installation.ConfigureAwait(false);
@@ -1004,6 +1033,8 @@ namespace HBP.Quest
             try
             {
                 if (sessionPreferences != null) await sessionPreferences.CloseAsync();
+                if (atlasPreparation != null) await atlasPreparation.CloseAsync();
+                await standardPreparation;
                 if (!ReferenceEquals(view, null)) await view.ClearAsync();
                 globalArchive?.Dispose();
                 globalArchive = null;

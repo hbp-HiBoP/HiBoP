@@ -33,6 +33,9 @@ namespace HBP.UI.Quest
         private int m_QueuedSaves;
         public const int MaximumQueuedSaves = 64;
         private bool m_Started, m_Disposed;
+        private Task m_InventoryWork = Task.CompletedTask;
+        private long m_AtlasChanges;
+        private readonly Dictionary<string, string> m_ConfirmedAtlases = new(StringComparer.Ordinal);
         public bool QuestHasSharedScene { get; private set; }
         public string Status { get; private set; } = "Quest session is connecting.";
         private readonly Dictionary<string, string> m_AtlasStates = new(StringComparer.Ordinal);
@@ -66,23 +69,84 @@ namespace HBP.UI.Quest
 
         public async Task StartAsync()
         {
+            using var timing = PairingTiming.Measure("desktop.session-open");
             var response = await SendAsync(Request(SessionControlKind.Open));
             if (!response.Applied) throw new InvalidOperationException(response.Message);
+            if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
             SessionAtlasCatalog.Begin();
-            var loaded = JsonConvert.DeserializeObject<Dictionary<string, string>>(Encoding.UTF8.GetString(response.GetBody())) ?? new();
-            foreach (var entry in loaded)
-            {
-                SetAtlasState(entry.Key, AtlasResources.IsLoaded(entry.Key) ? "loaded" : "unloaded", "loaded");
-                if (AtlasResources.IsLoaded(entry.Key))
-                {
-                    var local = await AtlasResources.LoadAsync(entry.Key, m_Stop.Token);
-                    if (local.Succeeded && local.Fingerprint == entry.Value) await ConfirmAsync(entry.Key, local.Fingerprint);
-                }
-            }
-
             m_Started = true;
             m_Opened.TrySetResult(true);
             SetStatus("Quest connected. Preferences and manual atlas actions are synchronized.");
+            AtlasResources.Changed += AtlasChanged;
+            m_InventoryWork = RefreshInventoryAsync();
+        }
+
+        private void AtlasChanged(AtlasLoadResult result)
+        {
+            if (!m_Started || m_Disposed) return;
+            m_AtlasChanges++;
+            if (result.State == AtlasLoadState.Unloaded)
+            {
+                m_ConfirmedAtlases.Remove(result.Id);
+                SessionAtlasCatalog.Remove(result.Id);
+            }
+            if (m_InventoryWork.IsCompleted) m_InventoryWork = RefreshInventoryAsync();
+        }
+
+        private async Task RefreshInventoryAsync()
+        {
+            // Give StartAsync and pending saves their completion boundary before background requests.
+            await UniTask.NextFrame();
+            try
+            {
+                bool preparing, changed;
+                do
+                {
+                    m_Stop.Token.ThrowIfCancellationRequested();
+                    await m_Gate.WaitAsync(m_Stop.Token);
+                    long observedChanges = m_AtlasChanges;
+                    try
+                    {
+                        var response = await SendAsync(Request(SessionControlKind.AtlasInventory));
+                        if (!response.Applied) throw new InvalidOperationException(response.Message);
+                        var inventory = JsonConvert.DeserializeObject<SessionAtlasInventory>(Encoding.UTF8.GetString(response.GetBody())) ?? throw new InvalidDataException("Missing Quest atlas inventory.");
+                        preparing = inventory.Preparing;
+                        foreach (var entry in inventory.Atlases)
+                        {
+                            var local = AtlasResources.Status(entry.Key);
+                            var remote = entry.Value;
+                            if (m_ConfirmedAtlases.TryGetValue(entry.Key, out var confirmed) && (local.State != AtlasLoadState.Loaded || remote.State != AtlasLoadState.Loaded || local.Fingerprint != confirmed || remote.Fingerprint != confirmed))
+                            {
+                                m_ConfirmedAtlases.Remove(entry.Key);
+                                SessionAtlasCatalog.Remove(entry.Key);
+                            }
+                            if (remote.Preload || remote.State != AtlasLoadState.Unloaded || local.State != AtlasLoadState.Unloaded)
+                                SetAtlasState(entry.Key, local.State.ToString(), remote.Error ?? remote.State.ToString());
+                            if (remote.State != AtlasLoadState.Loaded || remote.Fingerprint == null)
+                            {
+                                if (m_ConfirmedAtlases.Remove(entry.Key)) SessionAtlasCatalog.Remove(entry.Key);
+                                if (remote.State == AtlasLoadState.Failed) { RetryAtlasId = entry.Key; m_RetryLoad = true; }
+                                continue;
+                            }
+                            if (local.State == AtlasLoadState.Loaded && local.Fingerprint != remote.Fingerprint)
+                            {
+                                RetryAtlasId = entry.Key;
+                                m_RetryLoad = true;
+                                SetAtlasState(entry.Key, local.State.ToString(), "incompatible content; unload and reload this atlas before using it");
+                                continue;
+                            }
+                            if (local.State == AtlasLoadState.Loaded && local.Fingerprint != null && local.Fingerprint == remote.Fingerprint && m_ConfirmedAtlases.GetValueOrDefault(entry.Key) != remote.Fingerprint)
+                                await ConfirmAsync(entry.Key, local.Fingerprint);
+                        }
+                    }
+                    finally { m_Gate.Release(); }
+                    if (preparing) await Task.Delay(2000, m_Stop.Token);
+                    await UniTask.SwitchToMainThread();
+                    changed = observedChanges != m_AtlasChanges;
+                } while ((preparing || changed) && !m_Disposed);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception exception) { await FailedAsync("Quest atlas preparation: " + exception.Message, exception); }
         }
 
         private void OnPreferencesSaved()
@@ -267,9 +331,12 @@ namespace HBP.UI.Quest
 
         private async Task ConfirmAsync(string id, string fingerprint)
         {
+            using var retention = ResourceRetention.Retain(id);
+            if (AtlasResources.Status(id).Fingerprint != fingerprint) throw new InvalidOperationException("Desktop atlas changed before confirmation: " + id);
             var response = await SendAsync(Request(SessionControlKind.ConfirmAtlas, id, fingerprint));
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             SessionAtlasCatalog.SetReady(id, fingerprint);
+            m_ConfirmedAtlases[id] = fingerprint;
         }
 
         private void SetAtlasState(string id, string desktop, string quest)
@@ -312,6 +379,7 @@ namespace HBP.UI.Quest
             m_Disposed = true;
             m_Started = false;
             m_Preferences.OnSavePreferences.RemoveListener(OnPreferencesSaved);
+            AtlasResources.Changed -= AtlasChanged;
             m_Stop.Cancel();
             SessionAtlasCatalog.End();
             m_Opened.TrySetCanceled();

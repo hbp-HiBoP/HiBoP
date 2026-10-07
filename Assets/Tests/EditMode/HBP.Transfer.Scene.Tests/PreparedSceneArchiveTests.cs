@@ -386,6 +386,31 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public async System.Threading.Tasks.Task CapturedGlobalsKeepDefinitionsPreferencesAndImagesDuringWorkerEncoding()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
+            Fixture(source);
+            var data = source.Globals.Data;
+            string image = Path.Combine(directory, "image.png");
+            File.WriteAllBytes(image, new byte[] { 1, 2, 3 });
+            data.Protocols[0].Blocs[0].IllustrationPath = image;
+            source.Globals.CaptureFilterPresets(new FilterConditionsPresetCollection(), source);
+            data.Preferences.General.Project.DefaultName = "Captured";
+            byte[] metadata = source.CaptureGlobalMetadata(data);
+            data.Preferences.General.Project.DefaultName = "Changed";
+            data.Protocols.Clear();
+            File.Delete(image);
+            string file = Path.Combine(directory, "globals.hbglobal");
+            await System.Threading.Tasks.Task.Run(() => source.WriteCapturedGlobals(metadata, file));
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true);
+            var restored = new PairingContext(target.ReadGlobalData(file));
+            restored.RestoreFilterPresets(target);
+            Assert.That(restored.Data.Preferences.General.Project.DefaultName, Is.EqualTo("Captured"));
+            Assert.That(restored.Data.Protocols.Count, Is.EqualTo(1));
+            Assert.That(File.ReadAllBytes(restored.Data.Protocols[0].Blocs[0].IllustrationPath), Is.EqualTo(new byte[] { 1, 2, 3 }));
+        }
+
+        [Test]
         public void RepeatedGlobalValidationStillRejectsDifferentObjectWithSameIdentity()
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);
