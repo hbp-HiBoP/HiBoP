@@ -261,6 +261,8 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 
 ## T15 — Product Quest controls
 
+**Status (2026-10-08): CLOSED.** All acceptance criteria for T15's approved scope, UX lots 01–11, are met, including final user headset acceptance and explicit closure. See [T15 completion report](tasks/T15.md) and the [UX plan](../quest-controls-ux-plan.md). T15 does not require controls for every operation family; T16 and automatic brain-driven context selection in T17 remain separate.
+
 **Depends on:** T09–T14.
 
 **Goal:** connect actual requested Quest interactions to the already-tested shared operations without changing protocol semantics.

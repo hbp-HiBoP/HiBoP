@@ -150,6 +150,55 @@ namespace HBP.Tests.Quest
             Assert.That(f.Handles.IsCaptured(0), Is.False);
         }
 
+        [Test]
+        public async Task IntegratedGestures_CloseCutsGrabBrainLoseTrackingAndReturnToUIWithoutTransferringAHeldTrigger()
+        {
+            using var f = new Fixture();
+            f.Window.Open();
+            f.Panel.Refresh();
+            using var input = new PointerFixture(f);
+            await UniTask.NextFrame();
+            f.Handles.Refresh();
+            var gizmo = f.Handles.Gizmos.First();
+            input.Track(gizmo.PlaneCenter);
+            input.Press(false);
+            input.Press(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+            Assert.That(input.AnatomyCaptured, Is.False);
+
+            f.Window.Close();
+            input.Track(gizmo.Column.Manipulator.GrabCenter);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            Assert.That(input.AnatomyCaptured, Is.False, "Closing cut aids cannot transfer the held trigger to the brain.");
+            input.Press(false);
+            input.Press(true);
+            Assert.That(input.AnatomyCaptured, Is.True);
+
+            f.Window.Open();
+            input.Track(gizmo.PlaneCenter);
+            Assert.That(input.AnatomyCaptured, Is.True, "Opening cut aids cannot replace an existing brain capture.");
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.LoseTracking();
+            Assert.That(input.AnatomyCaptured, Is.False);
+            input.Track(gizmo.PlaneCenter);
+            Assert.That(f.Handles.IsCaptured(0), Is.False, "Tracking recovery requires a fresh trigger press.");
+            input.Press(false);
+            input.Press(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+
+            var plus = f.Panel.Rows.First(r => r.Cut == gizmo.Cut).transform.Find("Plus");
+            await UniTask.NextFrame(); // Reopened Canvas graphics must register before testing their ray hits.
+            input.AimAt((RectTransform)plus);
+            Assert.That(f.Handles.IsCaptured(0), Is.True, "A cut capture stays a cut when its ray reaches UI.");
+            input.Press(false);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            Assert.That(input.Target != null ? input.Target.GetComponentInParent<Button>() : null, Is.SameAs(plus.GetComponent<Button>()));
+            float before = gizmo.Cut.Position;
+            input.Click((RectTransform)plus);
+            Assert.That(gizmo.Cut.Position, Is.EqualTo(before + .002f).Within(1e-6));
+            Assert.That(input.AnatomyCaptured, Is.False);
+        }
+
         private sealed class PointerFixture : IDisposable
         {
             private readonly GameObject root = new("Production cut pointer fixture");
@@ -160,6 +209,7 @@ namespace HBP.Tests.Quest
             private readonly InputSettings.BackgroundBehavior background;
             private readonly InputSettings.EditorInputBehaviorInPlayMode editor;
             public GameObject Target => Data.pointerCurrentRaycast.gameObject;
+            public bool AnatomyCaptured => pointer.AllowsAnatomy(true);
 
             private QuestPointerEventData Data
             {
@@ -231,6 +281,13 @@ namespace HBP.Tests.Quest
             public void Press(bool pressed)
             {
                 InputSystem.QueueDeltaStateEvent(controller.GetChildControl<ButtonControl>("triggerPressed"), pressed ? 1f : 0f);
+                Tick();
+            }
+
+            public void LoseTracking()
+            {
+                InputSystem.QueueDeltaStateEvent(controller.isTracked, 0f);
+                InputSystem.QueueDeltaStateEvent(controller.trackingState, 0);
                 Tick();
             }
 

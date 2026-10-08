@@ -1,8 +1,8 @@
 # Interfaces et interactions Quest HiBoP
 
-Décisions produit validées le 7 octobre 2026. Lots 01 à 06 implémentés et validés dans le casque. Lots 07 et 08 implémentés le 8 octobre ; recette de la sonde encore à réaliser. Les lots 09 et suivants restent à implémenter.
+Décisions produit validées le 7 octobre 2026 et ajustées pendant la recette du 8 octobre. Lots 01 à 11 implémentés, qualifiés et acceptés par l'utilisateur. La recette intégrée du lot 11 est validée le 8 octobre ; l'utilisateur demande ensuite explicitement la clôture de T15. **T15 est entièrement clôturé dans son périmètre approuvé**, ainsi que ce jalon de rework UI Quest. Voir le rapport de lot 11 en fin de document pour les preuves, les réglages retenus et la validation finale. T16 et T17 restent des tâches distinctes.
 
-Le Quest dispose d'un système de fenêtres réutilisable, d'une toolbar horizontale persistante et d'un curseur universel. La sélection des sites utilise une petite sonde activée par maintien de A. Les coupes sont toutes accessibles dans une fenêtre et manipulables par des poignées de proximité, sans sélection préalable d'une coupe.
+Le Quest dispose d'un système de fenêtres réutilisable, d'une toolbar horizontale persistante et d'un curseur universel. La sélection des sites utilise une petite sonde activée par maintien de A, au départ du rayon. Les coupes sont toutes accessibles dans une fenêtre et manipulables par contact avec leur surface de plan bornée, sans sélection préalable d'une coupe.
 
 La charte HiBoP constitue le premier lot. Les interactions spatiales restent locales ; les changements scientifiques utilisent les opérations communes et leur synchronisation existante. La sélection automatique de scène et colonne après interaction avec un cerveau est explicitement reportée à [T17](sync/tasks/T17.md).
 
@@ -124,7 +124,7 @@ Supprimer les pavés bleus et oranges de diagnostic des contrôleurs sans suppri
 
 ## Sélection immédiate des sites
 
-Le maintien de A affiche une toute petite sphère près du contrôleur droit, bien plus petite qu'un site. Son chevauchement avec la sphère d'un site éligible sélectionne immédiatement ce site. Il n'existe ni préselection, ni délai de validation, ni verrouillage jusqu'au relâchement.
+Le maintien de A affiche une toute petite sphère au départ exact du rayon du contrôleur droit, bien plus petite qu'un site. Son chevauchement avec la sphère d'un site visible sélectionne immédiatement ce site et sa colonne. Les mêmes règles de visibilité que Desktop s'appliquent, y compris aux sites blacklistés affichés et aux sites hors ROI lorsque tous les sites sont affichés. Il n'existe ni préselection, ni délai de validation, ni verrouillage jusqu'au relâchement.
 
 L'utilisateur peut parcourir successivement les sites d'une électrode pendant le même maintien. Sortir d'un site ou relâcher A conserve la dernière sélection. Un bref retour haptique accompagne chaque changement effectif ; rester dans le même site ne republie pas la sélection et ne répète pas la vibration.
 
@@ -148,19 +148,19 @@ Les coupes sont des objets de scène : manipuler leur représentation sur une co
 
 ### Poignées et gizmos de proximité
 
-Toutes les coupes sont accessibles lorsque les aides sont actives. Chaque coupe possède un contour de plan, un rail suivant sa normale et une poignée extérieure saisissable. Le plan entier n'est pas une poignée. Aucune flèche supplémentaire ni sélection persistante de coupe n'est requise.
+Toutes les coupes sont accessibles lorsque les aides sont actives. Chaque coupe possède un contour anatomiquement aligné et un rail passant par son centre suivant sa normale. La surface bornée du plan est saisissable depuis ses deux faces ; aucune poignée extérieure ni flèche supplémentaire n'est ajoutée. Cette décision, validée dans le casque le 8 octobre, remplace le modèle initial de poignées extérieures conservé dans les comptes rendus historiques. Aucune sélection persistante de coupe n'est requise.
 
 - Les aides restent masquées ou discrètes à distance, puis deviennent visibles près de la manette. Des seuils distincts d'apparition/disparition évitent le clignotement.
-- Le feedback annonce la poignée qui recevra la pression. Approcher ou survoler ne change pas une sélection scientifique.
-- La gâchette engage la poignée et capture la coupe, la scène et la représentation utilisée pour convertir le geste.
+- Le feedback annonce le plan qui recevra la pression. Approcher ou survoler ne change pas une sélection scientifique.
+- La gâchette engage le contact et capture la coupe, la scène et la représentation utilisée pour convertir le geste.
 - Le déplacement est contraint le long de la normale du plan. Déplacer tangentiellement la manette ne décale pas la coupe sur un autre axe.
-- Le gizmo demeure visible pendant le geste. Il est possible de relâcher une poignée et d'en saisir immédiatement une autre, sans revenir à la fenêtre.
-- Les poignées extérieures et leur feedback permettent de distinguer les coupes qui se croisent. Plusieurs aides peuvent être visibles ; une main ne capture qu'une cible.
+- Le gizmo demeure visible pendant le geste. Il est possible de relâcher un plan et d'en saisir immédiatement un autre, sans revenir à la fenêtre.
+- Au croisement de plusieurs plans, le contact le plus proche puis le centre le plus proche et les identités stables départagent les cibles ; un seul candidat par main reçoit le feedback de survol. Plusieurs contours peuvent être visibles ; une main ne capture qu'une cible.
 - Les deux mains ne modifient pas simultanément la même coupe. La cible occupée est signalée. Une fermeture de scène ou une suppression distante de coupe termine le geste sans le réorienter.
 
 Pendant une saisie de coupe, la représentation de cerveau qui sert de référence n'est pas manipulable simultanément par l'autre main. Réciproquement, une poignée de coupe ne démarre pas un geste sur une représentation déjà déplacée à la main. Cette exclusion conserve une conversion stable entre déplacement de manette et position anatomique ; elle ne désactive pas toutes les interactions de l'autre main.
 
-La présentation des gizmos, leur proximité et leurs poses sont locales. Position, orientation et flip utilisent une définition scientifique complète, identifiée par un `CutId` stable. Le déplacement applique localement les setters communs ; les aperçus sont regroupés selon le contrat existant et la dernière valeur valide est publiée de manière fiable à la fin. Une interruption clôt le flux avec la dernière valeur valide tant que la cible existe ; une cible invalidée ne reçoit pas une nouvelle mutation.
+La présentation des gizmos, leur proximité et leurs poses sont locales. Position, orientation et flip utilisent une définition scientifique complète, identifiée par un `CutId` stable. Chaque position effectivement appliquée utilise les setters communs et la voie fiable remplaçable `SetCutDefinition` existante. Le relâchement ou l'interruption ne republie pas de copie figée : la dernière valeur valide est déjà dans cette voie. Une cible invalidée ne reçoit pas de nouvelle mutation.
 
 ## Frontière entre présentation et mutations
 
@@ -260,7 +260,7 @@ Les composants et prefabs de démonstration restent dans les outils ou fixtures 
 
 **Dépendances :** lots 02, 07 et 09.
 
-**Livraison :** contour/rail/poignée extérieure pour chaque coupe, feedback par proximité, capture sur gâchette et déplacement suivant la normale. Pas de surface de plan entièrement saisissable, de flèche supplémentaire ni de coupe sélectionnée persistante.
+**Livraison :** contour aligné et rail central pour chaque coupe, feedback par proximité, capture au contact de la surface bornée du plan par gâchette et déplacement suivant la normale. Pas de poignée extérieure, de flèche supplémentaire ni de coupe sélectionnée persistante. Cette livraison reprend l'ajustement accepté pendant la recette du 8 octobre.
 
 **Vérification :** passer entre plusieurs coupes sans retour au menu ; différencier des plans croisés ; déplacer une coupe oblique sur sa normale ; conserver la bonne conversion sous rotation/échelle du cerveau ; garder le gizmo pendant le geste. Tester l'exclusion d'une saisie concurrente de cerveau ou de la même coupe par l'autre main, la suppression distante et la fermeture de fenêtre/scène. Vérifier les aperçus et la dernière valeur fiable Quest vers Desktop, sans mutation pour un simple survol.
 
@@ -658,3 +658,53 @@ Vérification ciblée : **13 EditMode et 2 PlayMode réussis**, sans test ignor�
 Build Android Development prête : `.artifacts/quest-cuts-no-paging-20261008/HiBoP.Quest.apk`, réussie en **207,40 s**, **0 erreur** et **32 avertissements** des catégories déjà connues, messages inspectés et archivés dans `build-warnings.json`. APK vérifiée : **353 732 965 octets**, **9 bibliothèques ARM64**, identité `fr.crnl.hibop.quest` 6.2.0, seule scène QuestBootstrap ; SHA-256 `9160ed35a2e58c538b592ed3e07f69eb2c89f91bec27f62121cc3ae5b55f8153`. **Non déployée** : aucun Quest détecté en USB ; reconnexion via `Tools/Connect-QuestAdbWifi.ps1` tentée sans succès sur l'adresse mémorisée et par mDNS. L'installation attend la reconnexion du casque. Profil DesktopWindows restauré et sauvegardé, scène propre, hors Play Mode et Prefab Stage, compilation terminée et console sans erreur ; BuildInfo restauré à l'identique.
 
 **Déploiement après reconnexion :** installation USB avec conservation des données réussie sur le Quest 3 `2G0YC5ZHB20370`. Le package installé indique la version **6.2.0** et une dernière mise à jour à **2026-10-08 15:37:49**. La build sans les boutons Up / Down est disponible pour vérification dans le casque.
+
+## Lot 11 — Recette intégrée et consolidation — 8 octobre 2026
+
+**Résultat : qualification technique réussie et recette intégrée casque validée par l'utilisateur le 8 octobre 2026. Lot 11 clôturé.** Les lots 01 à 10 ont déjà reçu les validations utilisateur consignées plus haut, y compris la sonde au départ du rayon, le contact courant sans balayage, le rayon masqué au contact du cerveau et la saisie directe des plans de coupe. Le lot 11 conserve ces comportements et leurs réglages. Aucun défaut de runtime supplémentaire n'a été reproduit pendant cette qualification et aucun seuil n'est modifié sans observation ergonomique le justifiant.
+
+Cette passe ajoute un test d'enchaînement au pointeur de production dans `QuestCutControlsTests` : saisir un plan, fermer la fenêtre pendant le maintien, relâcher et saisir le cerveau, rouvrir les aides pendant cette capture, perdre puis retrouver le tracking, relâcher puis reprendre le plan et revenir à un bouton de ligne. Les assertions vérifient l'exclusion cerveau/coupe, l'absence de transfert d'une gâchette maintenue, la nécessité d'un nouvel appui après tracking perdu et le fonctionnement du bouton après libération. La fixture attend l'enregistrement des Graphics après réouverture du Canvas avant de tester ses raycasts.
+
+Le début du présent plan est actualisé pour décrire les décisions effectivement acceptées : lots livrés, sonde au départ du rayon, visibilité Desktop et saisie de la surface bornée des plans avec rail central. Les comptes rendus historiques gardent la provenance des essais précédents. La charte et les compositions Quest restent indépendantes du Desktop ; icônes via Settings Image et couleurs partagées restent couvertes par les tests d'assets.
+
+### Réglages retenus et points de modification
+
+Valeurs lues dans les assets livrés, conservées à l'issue des retours utilisateur. Les distances ci-dessous sont dans l'espace de présentation Unity en mètres ; les vitesses de suivi sont des coefficients de lissage exponentiel, pas des vitesses linéaires en m/s.
+
+| Élément | Réglages actuels | Où ajuster |
+| --- | --- | --- |
+| Pointeur | Portée 3 m, largeur 2 mm ; priorité au cerveau proche, saisie distante active. Rayon absent au contact, conservé pendant une saisie distante. | `Assets/Resources/Themes/Quest/Quest Interaction Policy.asset` et arbitrage `QuestPointerInput`. |
+| Sonde | Rayon 0,5 mm, départ exact du rayon ; impulsion haptique amplitude 0,2 pendant 25 ms. Contact courant uniquement. | Même policy ; contact dans `QuestSiteContactPolicy`, publication dans `QuestSiteSelection`. |
+| Coupes | Contact à 3,5 cm de la surface bornée ; apparition à 18 cm et disparition à 24 cm des bornes du cerveau. Un ensemble cohérent de guides par colonne proche, un candidat de survol par main. | Même policy ; `QuestCutHandles` et `QuestCutGizmo`. |
+| Fenêtres | Seuil sortie 45°, retour 15°, délai 0,8 s, lissage 2,5. Suivi suspendu au ciblage, à la manipulation et à l'épinglage. | `QuestWindowFollower` sérialisé dans chaque prefab Quest. |
+| Toolbar | Placement `(0, -0,5, 1,15)` ; suivi horizontal, seuils 35°/10°, délai 1 s, lissage 2. | `Assets/Prefabs/Quest/UI/Quest Toolbar.prefab`. |
+| Chargement | Distance 1,15 m, seuils 25°/8°, délai 0,4 s, lissage 3 ; design initial agrandi et adapté au Quest. | `Assets/Prefabs/Quest/Quest Loading Manager.prefab`. |
+
+### Opérations et preuves automatisées de cette passe
+
+Exécution dans l'éditeur HiBoP **6000.5.2f1**, via MCP, sur `feature/xr-autonomous`, base `7aae1d3d9`, avec le test ajouté non commité. Aucun changement de protocole, de calcul scientifique, d'assembly ou de prefab dans ce lot. Les résultats JSON détaillés sont conservés dans `Logs/QuestUI/`.
+
+| Vérification | Exécution inspectée | Preuve |
+| --- | --- | --- |
+| Assets Quest, frontières métier, drivers bidirectionnels | **156 EditMode réussis**, 0 échec, 0 ignoré ; 14,05 s de tests. Suites `HBP.Tests.PlatformConfiguration.QuestUIAssetTests`, `HBP.Tests.Transfer.Scene.V2SceneMutationBoundaryTests`, `V2OnlineMutationDriverTests`. | `Lot11-EditMode-results.json`, job `ab900c21cf9a40e99438d9ee4f183764`. |
+| UI, pairing TLS, captures, tracking, suivi, sonde, coupes et démo de resize | **58 PlayMode réussis**, 0 échec, 0 ignoré ; 13,95 s de tests. Classes `HBP.Tests.Quest.QuestWindowInteractionTests`, `QuestWindowResizeTests`, `QuestUniversalPointerTests`, `QuestSiteProbeTests`, `QuestCutControlsTests`, `QuestManipulationInputTests`, `QuestTrackingTests`, `QuestLoadingTests`, `QuestPairingTests`. | `Lot11-PlayMode-results.json`, job `1cdbd833d9974d0da0384f9f65011f72`. |
+| Coupes préexistantes et remplacement d'une visualisation | **1 PlayMode réussi**, 0 échec, 0 ignoré ; 3,52 s. `HBP.Tests.SceneTransfer.SceneRestorationPlayModeTests.QuestCutHandles_EditCutsPresentInTransferredVisualizationBeforeAndAfterReplacement`, archive MNI réelle et préparation du rendu. | `Lot11-Transferred-Cuts-results.json`, job `b4bb9b61e2a84fdaba84b4a42924a12d`. |
+| Dépendances et état final | `Tools/check-assembly-dependencies.ps1` : **44 assemblies, 158 dépendances**, code 0. Console inspectée sans erreur. Profil DesktopWindows, scène HiBoP propre, hors Play Mode et Prefab Stage, compilation terminée ; option d'entrée Play Mode restaurée. | Sorties inspectées pendant la passe ; aucun `.asmdef` modifié. |
+
+Les contrôles de fenêtre, toolbar, rayon, guides et transformations de cerveau restent locaux. La sonde passe par `Base3DScene.SelectSite` pour sélectionner colonne et site ; les tests de frontière/driver vérifient convergence, corrections et absence d'écho. Ajout/suppression passent par les commandes communes `CreateCut`/`DeleteCut` ; slider, pas fins, orientation, flip, normale custom et déplacement du plan passent par `SetCutDefinition`, en conservant les champs courants non édités. Les tests couvrent les identités après suppression non finale, les champs distants, les rejets, les reconnexions et les checkpoints. Affichage conserve ses chemins existants : visibilité de surface et recentrage locaux, recalcul par `InvalidateActivityField`/`UpdateGenerator`.
+
+### Recette intégrée casque validée
+
+**Build de référence :** `.artifacts/quest-cuts-no-paging-20261008/HiBoP.Quest.apk`, SHA-256 `9160ed35a2e58c538b592ed3e07f69eb2c89f91bec27f62121cc3ae5b55f8153`, déjà installée. Ce lot ne changeant aucun code Player, aucune nouvelle build ni installation n'est nécessaire. La recette proposée utilise Desktop connecté, au moins deux colonnes, une électrode dense et plusieurs coupes dont une custom. Les cinq scénarios ci-dessous complètent les validations antérieures ; leur statut est **VALIDÉ PAR L'UTILISATEUR**. Après présentation de cette liste, l'utilisateur confirme : « J'ai déjà eu l'occasion de tester tout ça, je valide ». Cette confirmation constitue l'acceptation manuelle ; aucun nouveau relevé instrumenté, durée de parcours ou chiffre de performance n'est attribué à cette validation.
+
+1. **Fenêtres et connexion.** Fermer Connexion, la rappeler depuis la toolbar, déplacer puis épingler Affichage. Tourner la tête et rappeler les fenêtres : pas de doublon, de suivi pendant l'utilisation ni de mouvement d'une fenêtre épinglée sans rappel. Fermer Connexion puis interrompre/reprendre la connexion Desktop : statut actualisé sans réouverture intrusive.
+2. **Cerveau → sites → coupes.** Déplacer un cerveau au contact puis à distance ; vérifier le rayon absent au contact et présent à distance. Relâcher, maintenir A et parcourir les quinze sites d'une électrode, puis relâcher et ouvrir Coupes. La dernière sélection doit rester stable et les gestes suivants répondre immédiatement. Tester aussi deux colonnes superposées et un site blacklisté effectivement affiché.
+3. **Captures croisées.** Saisir un plan et viser un bouton pendant le maintien : le bouton ne s'active pas. Fermer/suspendre les aides pendant une saisie : aucun cerveau ne doit être attrapé par la même gâchette maintenue. Relâcher puis reprendre le cerveau ; rouvrir les aides ne doit pas remplacer ce geste. Avec l'autre main, le même cerveau et la même coupe restent protégés contre les saisies incompatibles.
+4. **Interruption réelle.** Pendant une saisie, masquer la manette pour perdre son tracking puis la ramener en maintenant la gâchette : geste arrêté, aucun redémarrage avant relâchement/nouvel appui. Refaire avec A maintenu : sonde masquée, aucun site sélectionné à son retour avant un nouvel appui. Une brève veille/reprise du casque ne doit pas laisser de rayon, de survol ou de capture bloqué.
+5. **Desktop pendant l'édition.** Modifier depuis Desktop orientation/flip d'une coupe et visibilité d'un site ; vérifier le rafraîchissement Quest sans réouverture de fenêtre ni annulation du champ distant par le prochain geste local. Supprimer depuis Desktop une coupe en cours de saisie : annulation sans saut sur une autre. Terminer par ajout/suppression, normale custom, plusieurs plans croisés puis déplacement du cerveau après masquage des guides. Observer lisibilité, tremblements et fluidité avec la visualisation dense.
+
+### Limites et suite
+
+La qualification technique et l'acceptation manuelle du lot 11 sont acquises. Les lots 01 à 11 et cette tranche produit T15 sont clôturés ; cette validation remplace les mentions historiques de recette en attente. Les résultats automatisés restent ceux de la passe précédente : 156 EditMode et 59 PlayMode réussis, sans erreur console, et gate des dépendances réussi. La présente clôture documentaire ne relance aucun test et ne modifie aucun comportement. Les tests Editor ne mesurent pas lisibilité physique, fatigue, performances Android ou qualité du tracking réel ; la validation utilisateur ne constitue pas une mesure instrumentée de ces paramètres.
+
+T17 conserve le routage multi-scène et la sélection automatique du contexte au démarrage d'une manipulation de cerveau ; la sélection de colonne nécessaire à une sélection de site est déjà réalisée et qualifiée dans cette tranche. Le lot 11 n'étend pas le catalogue de contrôles aux autres familles T09–T14 et n'annonce pas leur qualification globale.
