@@ -20,3 +20,6 @@ MonoBehaviour:
   SiteProbeRadius: 0.0005
   SiteHapticAmplitude: 0.2
   SiteHapticDuration: 0.025
+  CutContactDistance: 0.035
+  CutShowDistance: 0.18
+  CutHideDistance: 0.24

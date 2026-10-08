@@ -2056,27 +2056,23 @@ namespace HBP.Data.Module3D
 
             if (changedByUser) LastPlaneModifiedIndex = cut.Index;
 
-            // Cuts base on the mesh
-            Core.DLL.BBox bbox = new();
-            float offset;
-            if (MeshManager.ReferenceSurface != null)
-            {
-                using Core.DLL.Plane plane = new(new Vector3(0, 0, 0), new Vector3(1, 0, 0));
-                m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
-                bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
-                offset = bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
-                //offset = MeshManager.BrainSurface.BoundingBox.SizeOffsetCutPlane(plane, cut.NumberOfCuts);
-                //offset *= 1.05f; // upsize a little bit the bbox for planes
-            }
-            else
-                offset = 0.1f;
-
-            cut.Point = bbox.Center + cut.Normal.normalized * (cut.Position - 0.5f) * offset * cut.NumberOfCuts;
+            var geometry = GetCutPositionGeometry(cut);
+            cut.Point = geometry.Center + cut.Normal.normalized * (cut.Position - 0.5f) * geometry.Span;
 
             SceneInformation.CutsNeedUpdate = true;
 
             // update cameras cuts display
             OnModifyPlanesCuts.Invoke();
+        }
+
+        /// <summary>Anatomical origin and travel for the normalized cut position, shared with spatial controls.</summary>
+        public (Vector3 Center, float Span) GetCutPositionGeometry(Core.Object3D.Cut cut)
+        {
+            if (MeshManager.ReferenceSurface == null) return (Vector3.zero, 0.1f * cut.NumberOfCuts);
+            using Core.DLL.Plane plane = new(Vector3.zero, Vector3.right);
+            m_MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, cut.Orientation, false);
+            using var bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
+            return (bbox.Center, bbox.SizeOffsetCutPlane(plane, cut.NumberOfCuts) * cut.NumberOfCuts);
         }
 
         /// <summary>

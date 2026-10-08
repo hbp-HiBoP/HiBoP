@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
 
 namespace HBP.Quest
 {
@@ -23,6 +24,7 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker head, left, right;
         [SerializeField] private QuestAnatomyView anatomy;
         [SerializeField] private QuestSiteProbe siteProbe;
+        [SerializeField] private QuestCutHandles cuts;
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
@@ -56,6 +58,15 @@ namespace HBP.Quest
         }
 
         public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
+        public bool IsAnatomyCaptured(QuestAnatomyManipulator target) => System.Array.Exists(hands, hand => hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.AnatomyTarget == target);
+
+        public void CancelCutGrabs()
+        {
+            foreach (var hand in hands)
+                if (hand.Capture.Owner == QuestInteractionOwner.Cut)
+                    Cancel(hand);
+            if (cuts != null) cuts.CancelAll();
+        }
 
         public bool TryGetAnatomyPose(bool leftHand, QuestAnatomyManipulator target, out Pose pose, out bool distant)
         {
@@ -93,6 +104,7 @@ namespace HBP.Quest
 #endif
             // Presentation wrappers can move after the last physics tick.
             if (policy.EnableDistantAnatomy) Physics.SyncTransforms();
+            if (cuts != null) cuts.Refresh();
             ProcessHand(0, left, leftRay, leftReticle);
             ProcessHand(1, right, rightRay, rightReticle);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
@@ -122,6 +134,8 @@ namespace HBP.Quest
                     data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
             }
 
+            if (cuts != null) cuts.SetHand(index, valid, tracker != null ? tracker.transform.position : Vector3.zero, data.Ray.origin);
+
             if (index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
                 Cancel(hand);
@@ -139,16 +153,16 @@ namespace HBP.Quest
             var capturedWindow = data.pointerDrag != null ? data.pointerDrag.GetComponentInParent<QuestWindow>() : data.pointerPress != null ? data.pointerPress.GetComponentInParent<QuestWindow>() : null;
             if (hand.Capture.Owner == QuestInteractionOwner.UI && capturedWindow != null && !capturedWindow.IsOpen) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && !HasAnatomyTarget(hand.AnatomyTarget)) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.Cut && (cuts == null || !cuts.IsCaptured(index))) Cancel(hand);
             data.trackedDevicePosition = data.Ray.origin;
             data.trackedDeviceOrientation = Quaternion.LookRotation(data.Ray.direction, tracker.transform.up);
             hits.Clear();
             eventSystem.RaycastAll(data, hits);
             data.pointerCurrentRaycast = default;
             foreach (var hit in hits)
-                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance)
+                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && IsUiHitAbove(hit, data.pointerCurrentRaycast))
                 {
                     data.pointerCurrentRaycast = hit;
-                    break;
                 }
 
             GameObject target = data.pointerCurrentRaycast.gameObject;
@@ -169,8 +183,12 @@ namespace HBP.Quest
             float distantDistance = policy.RayDistance;
             var distantCandidate = !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
+            var cutCandidate = cuts != null ? cuts.Candidate(index) : null;
             var oldOwner = hand.Capture.Owner;
-            bool began = hand.Capture.Sample(true, pressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst);
+            bool began = hand.Capture.Sample(true, pressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.Cut && !pressed) cuts.End(index);
+            if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
             {
                 hand.AnatomyTarget = near ? candidate : distantCandidate;
@@ -196,6 +214,11 @@ namespace HBP.Quest
                 if (data.pointerPress == null) data.pointerPress = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target);
                 data.rawPointerPress = target;
                 data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
+                // A click control owns its trigger gesture. Do not let an ancestor ScrollRect
+                // turn controller jitter into a scroll and cancel the button/toggle/dropdown.
+                // Sliders and explicit drag surfaces retain their own drag handler.
+                if (data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
+                    data.pointerDrag = null;
                 if (data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.initializePotentialDrag);
             }
 
@@ -220,7 +243,7 @@ namespace HBP.Quest
             bool actionable = target != null && (window != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
             bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (!near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (cutCandidate == null && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
             Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback);
@@ -228,6 +251,19 @@ namespace HBP.Quest
             if (diagnosticOutput != null)
             {
                 var brains = new List<object>();
+                var cutHandles = new List<object>();
+                if (cuts != null)
+                    foreach (var gizmo in cuts.Gizmos)
+                        cutHandles.Add(new
+                        {
+                            cut = gizmo.Cut.ID, column = gizmo.Column.Column.ColumnData.ID,
+                            gizmo.IsValid, gizmo.IsVisible, position = gizmo.Cut.Position,
+                            normal = DiagnosticVector(gizmo.Cut.Normal), point = DiagnosticVector(gizmo.Cut.Point),
+                            planeCenter = DiagnosticVector(gizmo.PlaneCenter),
+                            gripDistanceMeters = gizmo.ContactDistance(tracker.transform.position),
+                            aimDistanceMeters = gizmo.ContactDistance(data.Ray.origin),
+                            span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span
+                        });
                 if (anatomy != null)
                     foreach (var column in anatomy.Columns)
                     {
@@ -254,10 +290,34 @@ namespace HBP.Quest
                     grip = DiagnosticVector(tracker.transform.position), aim = DiagnosticVector(data.Ray.origin),
                     aimControl = hand.Position.activeControl?.path, gripControl = tracker.DiagnosticPositionControl,
                     rawGrip = DiagnosticVector(tracker.DiagnosticPositionValue), trackerFrame = tracker.DiagnosticPoseFrame,
-                    useful, lineEnabled = line != null && line.enabled, lineEnd = DiagnosticVector(end), brains
+                    useful, lineEnabled = line != null && line.enabled, lineEnd = DiagnosticVector(end), brains,
+                    cutsActive = cuts != null && cuts.Active, cutCandidate = cutCandidate?.Cut.ID,
+                    cutColumn = cutCandidate?.Column.Column.ColumnData.ID, cutHandles,
+                    uiScreen = new { data.position.x, data.position.y }, uiPressScreen = new { data.pressPosition.x, data.pressPosition.y },
+                    data.eligibleForClick, data.dragging, uiDrag = data.pointerDrag?.name,
+                    uiPress = data.pointerPress?.name
                 };
             }
 #endif
+        }
+
+        private static bool IsUiHitAbove(RaycastResult hit, RaycastResult previous)
+        {
+            if (!previous.isValid) return true;
+            var canvas = hit.module.GetComponent<Canvas>();
+            var other = previous.module.GetComponent<Canvas>();
+            // TrackedDeviceRaycaster does not fill sortingLayer/sortingOrder. EventSystem
+            // otherwise compares a popup's local graphic depth to the window underneath.
+            if (canvas != null && other != null && canvas.rootCanvas == other.rootCanvas)
+            {
+                int layer = SortingLayer.GetLayerValueFromID(canvas.sortingLayerID);
+                int otherLayer = SortingLayer.GetLayerValueFromID(other.sortingLayerID);
+                if (layer != otherLayer) return layer > otherLayer;
+                if (canvas.sortingOrder != other.sortingOrder) return canvas.sortingOrder > other.sortingOrder;
+                if (canvas == other && hit.depth != previous.depth) return hit.depth > previous.depth;
+            }
+
+            return hit.distance < previous.distance;
         }
 
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
@@ -287,7 +347,7 @@ namespace HBP.Quest
                 }
 
             foreach (var column in anatomy.Columns)
-                if (column != null && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                if (column != null && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
                 {
                     nearest = column.Manipulator;
                     distance = hitDistance;
@@ -300,7 +360,7 @@ namespace HBP.Quest
         {
             if (anatomy == null) return null;
             foreach (var column in anatomy.Columns)
-                if (column != null && column.Manipulator.IsGrabbed)
+                if (column != null && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
                 {
                     if (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))) return column.Manipulator;
                     // Preserve joining a direct gesture, but don't mix physical and remote poses accidentally.
@@ -314,7 +374,7 @@ namespace HBP.Quest
             QuestAnatomyManipulator nearest = null;
             float nearestCenter = float.PositiveInfinity;
             foreach (var column in anatomy.Columns)
-                if (column != null && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
+                if (column != null && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
                 {
                     float distance = (position - column.Manipulator.GrabCenter).sqrMagnitude;
                     if (distance < nearestCenter)
@@ -373,6 +433,7 @@ namespace HBP.Quest
 
         private void Cancel(Hand hand)
         {
+            if (cuts != null) cuts.End(hand == hands[0] ? 0 : 1);
             if (hand.Data != null)
             {
                 Release(hand, null, false);

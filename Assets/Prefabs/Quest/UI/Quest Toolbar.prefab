@@ -246,7 +246,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f5b1e188346cfad439bcf2e8d64e1802, type: 3}
+  m_Sprite: {fileID: 21300000, guid: f640e423a5e6a074895ced6db409beff, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 0
@@ -711,6 +711,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestToolbar
   windows: {fileID: 0}
   connection: {fileID: 0}
+  cuts: {fileID: 0}
   connectionButton: {fileID: 534435322591248324}
   cutsButton: {fileID: 8893777510715049441}
   displayButton: {fileID: 8672490810159888892}
@@ -1125,7 +1126,7 @@ PrefabInstance:
     - target: {fileID: 3864203000341229981, guid: 440a75cf75fb41649a32c80939df3580,
         type: 3}
       propertyPath: m_Text
-      value: Cuts (soon)
+      value: Cuts
       objectReference: {fileID: 0}
     - target: {fileID: 3864203000341229981, guid: 440a75cf75fb41649a32c80939df3580,
         type: 3}

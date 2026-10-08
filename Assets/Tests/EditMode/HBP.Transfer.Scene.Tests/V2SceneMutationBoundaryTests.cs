@@ -29,6 +29,25 @@ namespace HBP.Tests.Transfer.Scene
     {
         private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
 
+        [TestCase(V2OriginDevice.Quest)]
+        [TestCase(V2OriginDevice.Desktop)]
+        public void LocalCutDefinition_CanonicalizesNegativeZeroBeforePublishing(V2OriginDevice origin)
+        {
+            using var fixture = new BoundSceneFixture(origin, seedCuts: true, configureCutCreation: true);
+            float negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
+            var proposals = new List<V2Mutation>();
+            fixture.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+
+            fixture.Scene.SetCutDefinition(fixture.Scene.Cuts[0], CutOrientation.Custom, false, negativeZero, new Vector3(negativeZero, 1, negativeZero));
+
+            Assert.That(proposals, Has.Count.EqualTo(1));
+            var definition = (SetCutDefinition)proposals[0];
+            Assert.That(BitConverter.SingleToInt32Bits(definition.Position), Is.Zero);
+            Assert.That(BitConverter.SingleToInt32Bits(definition.NormalX), Is.Zero);
+            Assert.That(definition.NormalY, Is.EqualTo(1));
+            Assert.That(BitConverter.SingleToInt32Bits(definition.NormalZ), Is.Zero);
+        }
+
         [TestCase(true, false)]
         [TestCase(true, true)]
         [TestCase(false, false)]
@@ -501,6 +520,159 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(driver.PendingProposalCount, Is.Zero);
             Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
             Assert.That(proposals, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void QuestCutControls_DelayedConfirmationKeepsLatestPositionAndMergedNormalIntent()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            var cut = quest.Scene.Cuts[0];
+            for (int i = 1; i <= 100; i++) HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .5f + i * .003f);
+            Assert.That(HBP.Quest.QuestCutCommands.Normal(quest.Scene, cut, "1", "1", "0"), Is.True);
+            Assert.That(proposals, Has.Count.EqualTo(1), "A gesture can finish entirely before any ACK.");
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            Assert.That(cut.Position, Is.EqualTo(.8f).Within(1e-6));
+            DrainCutProposals(authority, driver, proposals);
+            Assert.That(proposals, Has.Count.EqualTo(2));
+            Assert.That(quest.Scene.Cuts[0].Position, Is.EqualTo(.8f).Within(1e-6));
+            Assert.That(desktop.Scene.Cuts[0].Position, Is.EqualTo(.8f).Within(1e-6));
+            Assert.That(desktop.Scene.Cuts[0].Normal, Is.EqualTo(new Vector3(1, 1, 0)));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void QuestCutControls_CorrectionRebasesOnlyPositionOntoRemoteDefinition()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            var cut = quest.Scene.Cuts[0];
+            HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .6f);
+            HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .7f);
+            desktop.Boundary.Apply(new SetCutDefinition(new CutId(cut.ID), V2CutOrientation.Custom, true, 17, .2f, 0, 1, 0), V2MutationApplicationOrigin.LocalDesktop, T09Operation(400080));
+            var rejected = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            driver.ReceiveCorrection(rejected.Correction);
+            Assert.That(proposals, Has.Count.EqualTo(2));
+            var latest = (SetCutDefinition)proposals[1].Mutation;
+            Assert.That(latest.Position, Is.EqualTo(.7f));
+            Assert.That(latest.Flip, Is.True);
+            Assert.That(latest.NumberOfCuts, Is.EqualTo(17));
+            Assert.That(latest.NormalY, Is.EqualTo(1));
+            var accepted = authority.AcceptQuestProposal(proposals[1]);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            driver.ReceiveCanonical(accepted.CanonicalMutation);
+            Assert.That(cut.Position, Is.EqualTo(.7f));
+            Assert.That(cut.Flip, Is.True);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestCutControls_CreateEditAndDeleteBeforeAckRespectStructuralBarriers(bool deleteBeforeAck)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, configureCutCreation: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, configureCutCreation: true);
+            desktop.Scene.Columns.Clear();
+            quest.Scene.Columns.Clear();
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            var first = quest.Scene.AddCutPlane();
+            HBP.Quest.QuestCutCommands.Position(quest.Scene, first, .8f);
+            HBP.Quest.QuestCutCommands.Flip(quest.Scene, first, true);
+            HBP.Quest.QuestCutCommands.Orientation(quest.Scene, first, HBP.Core.Enums.CutOrientation.Coronal);
+            if (deleteBeforeAck) quest.Scene.RemoveCutPlane(first);
+            var second = quest.Scene.AddCutPlane();
+            HBP.Quest.QuestCutCommands.Position(quest.Scene, second, .3f);
+            Assert.That(proposals, Has.Count.EqualTo(1));
+            DrainCutProposals(authority, driver, proposals);
+            Assert.That(desktop.Scene.Cuts.Select(c => c.ID), Is.EqualTo(quest.Scene.Cuts.Select(c => c.ID)));
+            Assert.That(desktop.Scene.Cuts.Last().Position, Is.EqualTo(.3f));
+            if (!deleteBeforeAck)
+            {
+                Assert.That(desktop.Scene.Cuts[0].Position, Is.EqualTo(.2f).Within(1e-6));
+                Assert.That(desktop.Scene.Cuts[0].Flip, Is.True);
+                Assert.That(desktop.Scene.Cuts[0].Orientation, Is.EqualTo(HBP.Core.Enums.CutOrientation.Coronal));
+            }
+
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void QuestCutControls_RemoteDefinitionDuringPendingDeletionRestoresAuthoritativeCutOnRejection()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true, configureCutCreation: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true, configureCutCreation: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            var canonical = new List<V2CanonicalMutation>();
+            driver.ProposalQueued += proposals.Add;
+            authority.CanonicalReady += canonical.Add;
+            var cut = quest.Scene.Cuts[1];
+            var id = new CutId(cut.ID);
+            quest.Scene.RemoveCutPlane(cut);
+            desktop.Boundary.Apply(new SetCutDefinition(id, V2CutOrientation.Custom, true, 17, .2f, 0, 1, 0), V2MutationApplicationOrigin.LocalDesktop, T09Operation(400081));
+            Assert.DoesNotThrow(() => driver.ReceiveCanonical(canonical[0]));
+            Assert.That(quest.Scene.Cuts.Any(c => c.ID == id.Value), Is.False);
+            var rejected = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.DoesNotThrow(() => driver.ReceiveCorrection(rejected.Correction));
+            Assert.That(quest.Scene.Cuts.Single(c => c.ID == id.Value).Position, Is.EqualTo(.2f));
+            Assert.That(quest.Scene.Cuts.Select(c => c.ID), Is.EqualTo(desktop.Scene.Cuts.Select(c => c.ID)));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [TestCase("create", false)]
+        [TestCase("delete", false)]
+        [TestCase("order", false)]
+        [TestCase("create", true)]
+        [TestCase("delete", true)]
+        [TestCase("order", true)]
+        public void QuestCutControls_CheckpointReconcilesStructuralEditsBeforeTheirConfirmation(string kind, bool queuedBehindPosition)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true, configureCutCreation: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true, configureCutCreation: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            if (queuedBehindPosition) HBP.Quest.QuestCutCommands.Position(quest.Scene, quest.Scene.Cuts[0], .6f);
+            var id = new CutId("checkpoint-new-cut");
+            V2Mutation structural = kind == "create" ? new CreateCut(id, new SetCutDefinition(id, V2CutOrientation.Custom, false, 1, .4f, 1, 0, 0), 1) : kind == "delete" ? new DeleteCut(new CutId(quest.Scene.Cuts[1].ID)) : new SetCutOrder(quest.Scene.Cuts.Select(c => new CutId(c.ID)).Reverse());
+            driver.ApplyOptimistic(structural, T09Operation(400090));
+            quest.Boundary.ApplyCheckpoint(desktop.Boundary.CaptureCheckpoint(), T09Operation(400091));
+            driver.AdvanceCanonicalWatermark(0, includesSelection: true);
+            // The checkpoint predates acceptance, so the original structural proposal remains eligible.
+            DrainCutProposals(authority, driver, proposals);
+            Assert.That(quest.Scene.Cuts.Select(c => c.ID), Is.EqualTo(desktop.Scene.Cuts.Select(c => c.ID)));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        private static void DrainCutProposals(V2DesktopMutationAuthority authority, V2QuestMutationDriver driver, List<V2QuestMutationProposal> proposals)
+        {
+            for (int i = 0; i < proposals.Count; i++)
+            {
+                Assert.That(i, Is.LessThan(20), "Bounded cut queue must drain without retries looping.");
+                var accepted = authority.AcceptQuestProposal(proposals[i]);
+                Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted), accepted.RejectionCode);
+                driver.ReceiveCanonical(accepted.CanonicalMutation);
+            }
         }
 
         [Test]

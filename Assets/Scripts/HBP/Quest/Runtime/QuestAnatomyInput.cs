@@ -71,6 +71,7 @@ namespace HBP.Quest
         public void RecenterBrains()
         {
             if (view == null || head == null || !head.IsTracked) return;
+            if (pointer != null) pointer.CancelCutGrabs();
             int index = 0;
             foreach (var column in view.Columns)
             {

@@ -456,6 +456,8 @@ namespace HBP.Sync.Scene
         }
 
         /// <summary>Restores the prepared value recorded before one rejected optimistic Quest operation.</summary>
+        internal bool TryReadOptimisticRollback(OperationId operationId, out V2Mutation mutation) => m_OptimisticRollbacks.TryGetValue(operationId.Value, out mutation);
+
         public bool TryRollbackOptimisticOperation(OperationId operationId)
         {
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
@@ -1714,6 +1716,7 @@ namespace HBP.Sync.Scene
             scene.ConfigurationMutationCompleted += CompleteConfigurationMutation;
             scene.SiteConfigurationBatchRouter = ApplySiteConfigurationBatch;
             scene.SiteSelectionRouter = ApplySiteSelection;
+            scene.CutDefinitionRouter = ApplyCutDefinition;
             foreach (Column3D column in scene.Columns)
             {
                 string id = column.ColumnData.ID;
@@ -3804,6 +3807,13 @@ namespace HBP.Sync.Scene
             }
         }
 
+        private bool ApplyCutDefinition(SceneCut cut, CutOrientation orientation, bool flip, float position, Vector3 normal)
+        {
+            if (ShouldSuppressPublication() || m_Scene.AutomaticCutAroundSelectedSite) return false;
+            Apply(new SetCutDefinition(m_CutIds[cut], (V2CutOrientation)orientation, flip, checked((uint)cut.NumberOfCuts), CanonicalZero(position), CanonicalZero(normal.x), CanonicalZero(normal.y), CanonicalZero(normal.z)), m_LocalOrigin == V2OriginDevice.Quest ? V2MutationApplicationOrigin.LocalQuest : V2MutationApplicationOrigin.LocalDesktop, new OperationId(Guid.NewGuid()));
+            return true;
+        }
+
         private void OnCutDefinitionChanged(SceneCut cut)
         {
             if (m_Disposed || !m_CutIds.TryGetValue(cut, out CutId id)) return;
@@ -4053,6 +4063,8 @@ namespace HBP.Sync.Scene
                     m_Scene.SiteConfigurationBatchRouter = null;
                 if (m_Scene.SiteSelectionRouter?.Target == this)
                     m_Scene.SiteSelectionRouter = null;
+                if (m_Scene.CutDefinitionRouter?.Target == this)
+                    m_Scene.CutDefinitionRouter = null;
                 m_Scene.OnAddCut.RemoveListener(OnCutAdded);
                 m_Scene.OnRemoveCut.RemoveListener(OnCutRemoved);
                 if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);

@@ -24,6 +24,36 @@ namespace HBP.Data.Module3D
         /// <summary>Optional prepared-scene route for one complete site-selection intent.</summary>
         public Func<Column3D, Core.Object3D.Site, bool> SiteSelectionRouter { get; set; }
 
+        /// <summary>Optional prepared-scene route for one complete cut-definition intent.</summary>
+        public Func<Core.Object3D.Cut, CutOrientation, bool, float, Vector3, bool> CutDefinitionRouter { get; set; }
+
+        public void SetCutDefinition(Core.Object3D.Cut cut, CutOrientation orientation, bool flip, float position, Vector3 normal)
+        {
+            if (IsClosing || !Cuts.Contains(cut)) throw new ArgumentException("The cut must belong to an open scene.", nameof(cut));
+            if (!Enum.IsDefined(typeof(CutOrientation), orientation) || !float.IsFinite(position) || position < 0 || position > 1)
+                throw new ArgumentOutOfRangeException(nameof(position));
+            if (orientation != CutOrientation.Custom)
+            {
+                using Core.DLL.Plane plane = new(Vector3.zero, Vector3.right);
+                MRIManager.SelectedMRI.Volume.SetPlaneWithOrientation(plane, orientation, flip);
+                normal = plane.Normal;
+            }
+
+            if (!float.IsFinite(normal.x) || !float.IsFinite(normal.y) || !float.IsFinite(normal.z) || normal == Vector3.zero)
+                throw new ArgumentException("A cut normal must be finite and nonzero.", nameof(normal));
+            if (CutDefinitionRouter?.Invoke(cut, orientation, flip, position, normal) == true)
+            {
+                LastPlaneModifiedIndex = cut.Index;
+                return;
+            }
+
+            cut.Orientation = orientation;
+            cut.Flip = flip;
+            cut.Position = position;
+            cut.Normal = normal;
+            UpdateCutPlane(cut, true, preserveDefinitionNormal: true);
+        }
+
         /// <summary>Resolve a target independently of Desktop selection. Global means the same modality.</summary>
         public List<Column3D> GetColumnGroup(Column3D target, bool allOfSameType)
         {

@@ -33,6 +33,82 @@ namespace HBP.Tests.SceneTransfer
 {
     public class SceneRestorationPlayModeTests
     {
+        [Test]
+        [Timeout(180000)]
+        public async Task QuestCutHandles_EditCutsPresentInTransferredVisualizationBeforeAndAfterReplacement()
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("TransferredQuestCuts");
+            await PrepareReferencesAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+            using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
+            var payload = CreateFixture(source);
+            payload.Visualization.Columns.RemoveRange(2, payload.Visualization.Columns.Count - 2);
+            payload.Columns.RemoveRange(2, payload.Columns.Count - 2);
+            payload.Visualization.Configuration.Cuts = new List<HBP.Core.Data.Cut>
+            {
+                new("transferred-axial", Vector3.up, CutOrientation.Axial, true, .27f),
+                new("transferred-custom", new Vector3(1, 2, 0), CutOrientation.Custom, false, .66f)
+            };
+            string file = Path.Combine(temp.Path, "cuts.hbscene");
+            source.Write(payload, file);
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var window = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cuts Window.prefab"), scope.Root.transform).GetComponent<QuestWindow>();
+            var panel = window.GetComponent<QuestCutsPanel>();
+            typeof(QuestCutsPanel).GetField("view", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(panel, view);
+            var handles = scope.Root.AddComponent<QuestCutHandles>();
+            handles.enabled = false;
+            foreach (var entry in new Dictionary<string, object>
+                     {
+                         ["view"] = view, ["panel"] = panel,
+                         ["policy"] = AssetDatabase.LoadAssetAtPath<QuestInteractionPolicy>("Assets/Resources/Themes/Quest/Quest Interaction Policy.asset"),
+                         ["gizmoPrefab"] = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>()
+                     }) typeof(QuestCutHandles).GetField(entry.Key, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(handles, entry.Value);
+            window.Open(); // The window can already be open while receiving the scene.
+            try
+            {
+                for (int cycle = 0; cycle < 2; cycle++)
+                {
+                    var archive = new SceneArchive(Path.Combine(temp.Path, "received-" + cycle), true, source.Globals);
+                    await view.ApplyAsync(archive.Read(file), archive, timeout.Token);
+                    panel.Refresh();
+                    handles.Refresh();
+                    var scene = view.Scene;
+                    using var boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest);
+                    Assert.That(scene.Cuts.Select(c => c.ID), Is.EqualTo(new[] { "transferred-axial", "transferred-custom" }));
+                    Assert.That(handles.Gizmos.Count, Is.EqualTo(4));
+                    int proposals = 0;
+                    boundary.MutationProposed += (_, _, _) => proposals++;
+                    foreach (var gizmo in handles.Gizmos)
+                    {
+                        Assert.That(gizmo.IsValid, Is.True);
+                        float span = scene.GetCutPositionGeometry(gizmo.Cut).Span;
+                        Assert.That(span, Is.GreaterThan(0));
+                        Vector3 start = gizmo.PlaneCenter;
+                        handles.SetHand(0, true, start, start);
+                        Assert.That(handles.Candidate(0), Is.SameAs(gizmo));
+                        Assert.That(handles.Begin(0, gizmo), Is.True);
+                        float before = gizmo.Cut.Position;
+                        Vector3 next = start + gizmo.Frame.TransformVector(gizmo.Cut.Normal.normalized * span * .02f);
+                        handles.SetHand(0, true, next, next);
+                        Assert.That(handles.Move(0), Is.True);
+                        Assert.That(gizmo.Cut.Position, Is.EqualTo(before + .02f).Within(1e-5), gizmo.Cut.ID);
+                        handles.End(0);
+                    }
+
+                    Assert.That(proposals, Is.EqualTo(4), "Restored cuts publish the same intents as newly created cuts.");
+                    await scene.PrepareRenderingAsync(timeout.Token);
+                    Assert.That(scene.Columns.All(column => column.BrainCutMeshes.Count == 2), Is.True);
+                }
+            }
+            finally
+            {
+                await view.ClearAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
         [TestCase("multi-no-preload")]
         [TestCase("multi-cold-cache")]
         [TestCase("multi-loaded-cache")]

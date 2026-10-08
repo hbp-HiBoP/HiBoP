@@ -684,6 +684,67 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(decoded, Is.EqualTo(barrier));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CutEdits_DisconnectPreservesLatestPoseAndEitherResumesOrAbandonsQueue(bool expire)
+        {
+            var clock = new TestClock();
+            using var quest = new Fixture(V2OriginDevice.Quest, clock);
+            using var driver = CreateQuestDriver(quest, clock);
+            var queued = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += queued.Add;
+            driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, .6f, 1, 0, 0), Operation(7400));
+            driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, .8f, 1, 0, 0), Operation(7401));
+            Assert.That(driver.TryGetNextTransmission(out var sent), Is.True);
+            driver.BeginDisconnectGrace();
+            clock.Advance(TimeSpan.FromMilliseconds(expire ? 500 : 499));
+            if (expire)
+            {
+                Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.OfflineLocal));
+                Assert.That(driver.PendingProposalCount, Is.Zero);
+                Assert.That(driver.AbandonedProposalCount, Is.EqualTo(2));
+                Assert.That(driver.TryReconnect(), Is.False);
+                driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, .9f, 1, 0, 0), Operation(7402));
+                Assert.That(quest.Cut.Position, Is.EqualTo(.9f));
+                Assert.That(driver.TryGetNextTransmission(out _), Is.False);
+            }
+            else
+            {
+                Assert.That(driver.TryReconnect(), Is.True);
+                Assert.That(driver.TryGetNextTransmission(out var retry), Is.True);
+                Assert.That(retry.Frame, Is.SameAs(sent.Frame));
+                driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, queued[0].OperationId, 1, queued[0].Mutation));
+                Assert.That(queued, Has.Count.EqualTo(2));
+                Assert.That(queued[1].ObservedCanonicalSequence, Is.EqualTo(1UL));
+                driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, queued[1].OperationId, 2, queued[1].Mutation));
+                Assert.That(quest.Cut.Position, Is.EqualTo(.8f));
+                Assert.That(driver.PendingProposalCount, Is.Zero);
+            }
+
+            Assert.That(quest.Boundary.OptimisticRollbackOrderCount, Is.Zero);
+        }
+
+        [Test]
+        public void CutEdits_CheckpointSupersedesOldEchoAndRebasesWaitingPositionOntoItsDefinition()
+        {
+            using var quest = new Fixture(V2OriginDevice.Quest, new TestClock());
+            using var driver = CreateQuestDriver(quest, new TestClock());
+            var queued = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += queued.Add;
+            driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, .6f, 1, 0, 0), Operation(7410));
+            driver.ApplyOptimistic(Cut(V2CutOrientation.Custom, false, 1, .8f, 1, 0, 0), Operation(7411));
+            // The replica applies the complete checkpoint before advancing this watermark.
+            quest.Boundary.Apply(Cut(V2CutOrientation.Custom, true, 17, .2f, 0, 1, 0), V2MutationApplicationOrigin.Remote, Operation(7412));
+            driver.AdvanceCanonicalWatermark(5, includesSelection: true);
+            driver.ReceiveCanonical(new V2CanonicalMutation(Scene, Incarnation, queued[0].OperationId, 1, queued[0].Mutation));
+            var rebased = (SetCutDefinition)queued[1].Mutation;
+            Assert.That(rebased.Position, Is.EqualTo(.8f));
+            Assert.That(rebased.Flip, Is.True);
+            Assert.That(rebased.NumberOfCuts, Is.EqualTo(17));
+            Assert.That(rebased.NormalY, Is.EqualTo(1));
+            Assert.That(queued[1].ObservedCanonicalSequence, Is.EqualTo(5UL));
+        }
+
         private static V2QuestMutationDriver CreateQuestDriver(Fixture fixture, IMonotonicClock clock)
         {
             var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Quest, clock);

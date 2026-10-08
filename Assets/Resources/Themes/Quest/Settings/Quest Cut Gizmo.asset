@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 275c5638df608c44c9bdec37e5f8026c, type: 3}
+  m_Name: Quest Cut Gizmo
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestCutGizmoSettings
+  Normal: {fileID: 11400000, guid: a7b2fa8764008ae45b4ea61439f76493, type: 2}
+  Hovered: {fileID: 11400000, guid: 15842a1529d9b964b99ca5b8f89d29e3, type: 2}
+  Occupied: {fileID: 11400000, guid: 8f1c7a40792f38041a4ad9a9c5302e87, type: 2}
+  LineWidth: 0.001

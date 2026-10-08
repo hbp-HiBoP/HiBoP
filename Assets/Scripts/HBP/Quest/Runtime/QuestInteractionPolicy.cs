@@ -15,6 +15,10 @@ namespace HBP.Quest
 
         [Range(0, 1)] public float SiteHapticAmplitude = 0.2f;
         [Min(0)] public float SiteHapticDuration = 0.025f;
+
+        [Min(.005f)] public float CutContactDistance = .035f;
+        [Min(.01f)] public float CutShowDistance = .18f;
+        [Min(.01f)] public float CutHideDistance = .24f;
     }
 
     public enum QuestInteractionOwner
@@ -22,6 +26,7 @@ namespace HBP.Quest
         None,
         UI,
         Anatomy,
+        Cut,
         Empty
     }
 
@@ -31,7 +36,7 @@ namespace HBP.Quest
         public QuestInteractionOwner Owner { get; private set; }
         private bool armed;
 
-        public bool Sample(bool valid, bool pressed, bool ui, bool anatomy, bool preferAnatomy)
+        public bool Sample(bool valid, bool pressed, bool ui, bool anatomy, bool preferAnatomy, bool cut = false)
         {
             if (!valid)
             {
@@ -48,7 +53,7 @@ namespace HBP.Quest
 
             if (!armed || Owner != QuestInteractionOwner.None) return false;
             armed = false;
-            Owner = anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
+            Owner = cut ? QuestInteractionOwner.Cut : anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
             return true;
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using HBP.Transfer.Transport;
 
@@ -610,6 +611,11 @@ namespace HBP.Sync.Scene
         private V2QuestMutationProposal m_LastCreatedProposal;
         private OperationId m_SiteSelectionInFlight;
         private V2QuestMutationProposal m_WaitingSiteSelection;
+        private OperationId m_CutEditInFlight;
+        private readonly LinkedList<V2QuestMutationProposal> m_WaitingCutEdits = new();
+        private readonly Dictionary<Guid, byte> m_CutEditFields = new();
+        private readonly Dictionary<CutId, SetCutDefinition> m_ConfirmedCuts = new();
+        private ulong m_CutCheckpointSequence;
         private ulong m_LastAppliedSelectionSequence;
         private ulong m_SelectionCheckpointSequence;
 
@@ -701,6 +707,7 @@ namespace HBP.Sync.Scene
             m_LastObservedCanonicalSequence = lastObservedCanonicalSequence;
             m_LastAppliedSelectionSequence = lastObservedCanonicalSequence;
             m_SelectionCheckpointSequence = lastObservedCanonicalSequence;
+            m_CutCheckpointSequence = lastObservedCanonicalSequence;
             if (boundary.TryReadPreparedGeometry(out SetMeshDisplay initialDisplay, out ApplyTriangleMask initialMask))
             {
                 m_CanonicalMeshDisplay = initialDisplay;
@@ -799,12 +806,12 @@ namespace HBP.Sync.Scene
             V2ScheduleDescriptor descriptor = V2ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
             if (m_Pending.TryGetValue(canonical.OperationId.Value, out byte[] optimisticPayload))
             {
-                bool keySuperseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence) || WasSelectionSuperseded(canonical.Mutation, canonical.CanonicalSequence);
+                bool keySuperseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence) || WasSelectionSuperseded(canonical.Mutation, canonical.CanonicalSequence) || WasCutCheckpointSuperseded(canonical.Mutation, canonical.CanonicalSequence);
                 bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
                 if (!keySuperseded)
                 {
                     if (IsPreparedGeometryMutation(canonical.Mutation)) ApplyCanonicalGeometry(canonical.Mutation, canonical.OperationId, canonical.CanonicalSequence);
-                    else if (!matchesOptimistic || canonical.Mutation is SetSelectedSite)
+                    else if ((!matchesOptimistic || canonical.Mutation is SetSelectedSite || canonical.Mutation is SetCutDefinition || CutStructureNeedsReplay(canonical.Mutation)) && !HasPendingCutDeletion(canonical.Mutation))
                         m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
                 }
 
@@ -814,7 +821,9 @@ namespace HBP.Sync.Scene
                 m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
                 MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
                 MarkSelectionApplied(canonical.Mutation, canonical.CanonicalSequence);
+                if (!keySuperseded) RememberConfirmedCut(canonical.Mutation);
                 CompleteSiteSelection(canonical.OperationId);
+                CompleteCutEdit(canonical.OperationId);
                 if (matchesOptimistic)
                 {
                     ProposalConfirmed?.Invoke(canonical.OperationId);
@@ -830,11 +839,11 @@ namespace HBP.Sync.Scene
                 return false;
             }
 
-            bool superseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence) || WasSelectionSuperseded(canonical.Mutation, canonical.CanonicalSequence);
+            bool superseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence) || WasSelectionSuperseded(canonical.Mutation, canonical.CanonicalSequence) || WasCutCheckpointSuperseded(canonical.Mutation, canonical.CanonicalSequence);
             if (!superseded)
             {
                 if (IsPreparedGeometryMutation(canonical.Mutation)) ApplyCanonicalGeometry(canonical.Mutation, canonical.OperationId, canonical.CanonicalSequence);
-                else m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
+                else if (!HasPendingCutDeletion(canonical.Mutation)) m_Boundary.Apply(canonical.Mutation, V2MutationApplicationOrigin.Remote, canonical.OperationId);
             }
 
             RecordCanonicalForPendingTransactions(canonical, superseded, preserveExistingOrder: false);
@@ -844,6 +853,7 @@ namespace HBP.Sync.Scene
 
             MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
             MarkSelectionApplied(canonical.Mutation, canonical.CanonicalSequence);
+            RememberConfirmedCut(canonical.Mutation);
             return true;
         }
 
@@ -978,6 +988,9 @@ namespace HBP.Sync.Scene
             {
                 m_LastAppliedSelectionSequence = Math.Max(m_LastAppliedSelectionSequence, canonicalSequence);
                 m_SelectionCheckpointSequence = Math.Max(m_SelectionCheckpointSequence, canonicalSequence);
+                // The complete scene checkpoint also replaces every cut's confirmed base.
+                m_CutCheckpointSequence = Math.Max(m_CutCheckpointSequence, canonicalSequence);
+                m_ConfirmedCuts.Clear();
             }
         }
 
@@ -998,12 +1011,12 @@ namespace HBP.Sync.Scene
             // later optimistic value still owns the visible state. Its correction
             // must resolve that value; only a newer canonical makes it obsolete.
             V2TouchedKey correctionKey = ApplicationKey(descriptor);
-            bool keySuperseded = correctionKey != null && m_LastAppliedByKey.TryGetValue(correctionKey, out ulong lastApplied) && lastApplied > correction.CanonicalSequence || WasSelectionSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence, includeEqual: false);
+            bool keySuperseded = correctionKey != null && m_LastAppliedByKey.TryGetValue(correctionKey, out ulong lastApplied) && lastApplied > correction.CanonicalSequence || WasSelectionSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence, includeEqual: false) || WasCutCheckpointSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence);
             bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
             if (!keySuperseded)
             {
                 if (IsPreparedGeometryMutation(correction.AuthoritativeMutation)) ApplyCanonicalGeometry(correction.AuthoritativeMutation, correction.OperationId, correction.CanonicalSequence);
-                else if (!matchesOptimistic || correction.AuthoritativeMutation is SetSelectedSite)
+                else if ((!matchesOptimistic || correction.AuthoritativeMutation is SetSelectedSite || correction.AuthoritativeMutation is SetCutDefinition) && !HasPendingCutDeletion(correction.AuthoritativeMutation))
                     m_Boundary.ApplyCorrection(correction.AuthoritativeMutation, correction.OperationId);
             }
 
@@ -1013,7 +1026,9 @@ namespace HBP.Sync.Scene
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, correction.CanonicalSequence);
             MarkKeyApplied(ApplicationKey(descriptor), correction.CanonicalSequence);
             MarkSelectionApplied(correction.AuthoritativeMutation, correction.CanonicalSequence);
+            if (!keySuperseded) RememberConfirmedCut(correction.AuthoritativeMutation);
             CompleteSiteSelection(correction.OperationId);
+            CompleteCutEdit(correction.OperationId);
             if (!matchesOptimistic && !keySuperseded)
             {
                 AuthoritativeCorrectionApplied?.Invoke(correction.OperationId, correction.AuthoritativeMutation);
@@ -1046,7 +1061,12 @@ namespace HBP.Sync.Scene
             RemoveDeferredProposalForOperation(operationId);
             RemovePendingProposal(operationId);
             RemoveReplayEntriesForOperation(operationId.Value);
-            if (restored) CompleteSiteSelection(operationId);
+            if (restored)
+            {
+                CompleteSiteSelection(operationId);
+                CompleteCutEdit(operationId);
+            }
+
             ProposalRejected?.Invoke(operationId, rejectionCode);
             if (!restored) EnterOfflineLocal();
             return true;
@@ -1063,6 +1083,7 @@ namespace HBP.Sync.Scene
             RefreshConnectionState();
             if (m_OfflineLocal)
             {
+                m_Boundary.ForgetOptimisticOperation(operationId);
                 RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
                 return;
             }
@@ -1076,6 +1097,7 @@ namespace HBP.Sync.Scene
             }
 
             var proposal = new V2QuestMutationProposal(m_SceneId, m_IncarnationId, operationId, m_LastObservedCanonicalSequence, mutation);
+            if (IsCutEdit(mutation)) PrepareCutEdit(ref proposal);
             if (mutation is SetSelectedSite && m_WaitingSiteSelection != null)
             {
                 RemovePendingProposal(m_WaitingSiteSelection.OperationId);
@@ -1092,11 +1114,22 @@ namespace HBP.Sync.Scene
                 return;
             }
 
-            m_Pending.Add(operationId.Value, V2MutationPayloadCodec.Encode(mutation));
+            m_Pending.Add(operationId.Value, V2MutationPayloadCodec.Encode(proposal.Mutation));
             if (IsPreparedGeometryMutation(mutation)) m_PendingGeometryOrder.Add(operationId.Value);
             m_PendingObservations.Add(operationId.Value, proposal.ObservedCanonicalSequence);
             RetentionProgressChanged?.Invoke();
             m_LastCreatedProposal = proposal;
+            if (IsCutEdit(mutation))
+            {
+                if (m_CutEditInFlight != null)
+                {
+                    m_WaitingCutEdits.AddLast(proposal);
+                    return;
+                }
+
+                m_CutEditInFlight = operationId;
+            }
+
             if (mutation is SetSelectedSite)
             {
                 if (m_SiteSelectionInFlight != null)
@@ -1111,6 +1144,118 @@ namespace HBP.Sync.Scene
             }
 
             ScheduleProposal(proposal);
+        }
+
+        private static bool IsCutEdit(V2Mutation mutation) => mutation is SetCutDefinition || mutation is CreateCut || mutation is DeleteCut || mutation is SetCutOrder;
+
+        private bool WasCutCheckpointSuperseded(V2Mutation mutation, ulong sequence) => IsCutEdit(mutation) && m_CutCheckpointSequence != 0 && sequence <= m_CutCheckpointSequence;
+
+        private bool CutStructureNeedsReplay(V2Mutation mutation)
+        {
+            if (mutation is CreateCut created)
+                return m_Boundary.ReadCurrentMutation(created) is DeleteCut && !HasPendingCutDeletion(created.Definition);
+            if (mutation is DeleteCut deleted)
+                return m_Boundary.ReadCurrentMutation(deleted) is CreateCut;
+            if (mutation is SetCutOrder desired && m_Boundary.ReadCurrentMutation(desired) is SetCutOrder current)
+                return !current.CutIds.SequenceEqual(desired.CutIds) && current.CutIds.Count == desired.CutIds.Count && current.CutIds.All(desired.CutIds.Contains);
+            return false;
+        }
+
+        private static byte ChangedCutFields(SetCutDefinition before, SetCutDefinition after)
+        {
+            if (before == null) return 31;
+            return (byte)((before.Position != after.Position ? 1 : 0) | (before.Orientation != after.Orientation ? 2 : 0) | (before.Flip != after.Flip ? 4 : 0) | (before.NormalX != after.NormalX || before.NormalY != after.NormalY || before.NormalZ != after.NormalZ ? 8 : 0) | (before.NumberOfCuts != after.NumberOfCuts ? 16 : 0));
+        }
+
+        private static SetCutDefinition MergeCut(SetCutDefinition current, SetCutDefinition desired, byte fields) => new(desired.CutId, (fields & 2) != 0 ? desired.Orientation : current.Orientation, (fields & 4) != 0 ? desired.Flip : current.Flip, (fields & 16) != 0 ? desired.NumberOfCuts : current.NumberOfCuts, (fields & 1) != 0 ? desired.Position : current.Position, (fields & 8) != 0 ? desired.NormalX : current.NormalX, (fields & 8) != 0 ? desired.NormalY : current.NormalY, (fields & 8) != 0 ? desired.NormalZ : current.NormalZ);
+
+        private void PrepareCutEdit(ref V2QuestMutationProposal proposal)
+        {
+            var definition = proposal.Mutation as SetCutDefinition;
+            m_Boundary.TryReadOptimisticRollback(proposal.OperationId, out var rollback);
+            byte fields = definition != null ? ChangedCutFields(rollback as SetCutDefinition, definition) : (byte)0;
+            if ((fields & 6) != 0) fields |= 8; // Orientation and flip carry the corresponding anatomical normal.
+            if (definition != null && !m_ConfirmedCuts.ContainsKey(definition.CutId) && rollback is SetCutDefinition previous)
+                m_ConfirmedCuts[definition.CutId] = previous;
+            var node = m_WaitingCutEdits.First;
+            while (node != null)
+            {
+                var next = node.Next;
+                if (node.Value.Mutation is SetCutDefinition waiting && (definition != null && definition.CutId.Equals(waiting.CutId) || proposal.Mutation is DeleteCut deleted && deleted.CutId.Equals(waiting.CutId)))
+                {
+                    if (definition != null)
+                    {
+                        definition = MergeCut(waiting, definition, fields);
+                        fields |= m_CutEditFields[node.Value.OperationId.Value];
+                        proposal = new V2QuestMutationProposal(m_SceneId, m_IncarnationId, proposal.OperationId, proposal.ObservedCanonicalSequence, definition);
+                    }
+
+                    m_WaitingCutEdits.Remove(node);
+                    m_CutEditFields.Remove(node.Value.OperationId.Value);
+                    RemovePendingProposal(node.Value.OperationId);
+                }
+
+                node = next;
+            }
+
+            m_CutEditFields[proposal.OperationId.Value] = fields;
+        }
+
+        private bool HasPendingCutDeletion(V2Mutation mutation)
+        {
+            if (mutation is not SetCutDefinition definition) return false;
+            bool inFlight = m_CutEditInFlight != null && m_Pending.TryGetValue(m_CutEditInFlight.Value, out var payload) && V2MutationPayloadCodec.Decode(payload) is DeleteCut deleted && deleted.CutId.Equals(definition.CutId);
+            return m_Boundary.ReadCurrentMutation(definition) is DeleteCut && (inFlight || m_WaitingCutEdits.Any(p => p.Mutation is DeleteCut waiting && waiting.CutId.Equals(definition.CutId)));
+        }
+
+        private void RememberConfirmedCut(V2Mutation mutation)
+        {
+            if (m_CutEditInFlight == null && m_WaitingCutEdits.Count == 0) return;
+            if (mutation is SetCutDefinition definition) m_ConfirmedCuts[definition.CutId] = definition;
+            else if (mutation is CreateCut created) m_ConfirmedCuts[created.CutId] = created.Definition;
+            else if (mutation is DeleteCut deleted) m_ConfirmedCuts.Remove(deleted.CutId);
+            else if (mutation is SetConfigurationTransaction) m_ConfirmedCuts.Clear();
+        }
+
+        private void CompleteCutEdit(OperationId operationId)
+        {
+            if (m_CutEditInFlight == null || !m_CutEditInFlight.Equals(operationId)) return;
+            m_CutEditInFlight = null;
+            m_CutEditFields.Remove(operationId.Value);
+            while (m_WaitingCutEdits.Count > 0 && !m_OfflineLocal)
+            {
+                var waiting = m_WaitingCutEdits.First.Value;
+                m_WaitingCutEdits.RemoveFirst();
+                if (!m_Pending.ContainsKey(waiting.OperationId.Value)) continue;
+                V2Mutation mutation = waiting.Mutation;
+                if (mutation is SetCutDefinition desired)
+                {
+                    if (m_Boundary.ReadCurrentMutation(desired) is not SetCutDefinition live)
+                    {
+                        m_CutEditFields.Remove(waiting.OperationId.Value);
+                        RemovePendingProposal(waiting.OperationId);
+                        continue;
+                    }
+
+                    var confirmed = m_ConfirmedCuts.TryGetValue(desired.CutId, out var value) ? value : live;
+                    mutation = MergeCut(confirmed, desired, m_CutEditFields[waiting.OperationId.Value]);
+                    m_Boundary.ApplyOptimisticReplay(mutation, waiting.OperationId);
+                }
+                else if (CutStructureNeedsReplay(mutation))
+                {
+                    // A complete checkpoint can replace an unsent optimistic roster edit too.
+                    m_Boundary.ApplyOptimisticReplay(mutation, waiting.OperationId);
+                }
+
+                var proposal = new V2QuestMutationProposal(m_SceneId, m_IncarnationId, waiting.OperationId, m_LastObservedCanonicalSequence, mutation);
+                m_Pending[proposal.OperationId.Value] = V2MutationPayloadCodec.Encode(mutation);
+                m_PendingObservations[proposal.OperationId.Value] = proposal.ObservedCanonicalSequence;
+                m_CutEditInFlight = proposal.OperationId;
+                ScheduleProposal(proposal);
+                return;
+            }
+
+            if (m_CutEditInFlight == null) m_ConfirmedCuts.Clear();
         }
 
         private void CompleteSiteSelection(OperationId operationId)
@@ -1365,7 +1510,12 @@ namespace HBP.Sync.Scene
             m_SiteSelectionInFlight = null;
             m_WaitingSiteSelection = null;
             m_LastAppliedSelectionSequence = 0;
+            m_CutEditInFlight = null;
+            m_WaitingCutEdits.Clear();
+            m_CutEditFields.Clear();
+            m_ConfirmedCuts.Clear();
             m_SelectionCheckpointSequence = 0;
+            m_CutCheckpointSequence = 0;
             m_DeferredProposals.Clear();
             m_DeferredByKey.Clear();
             m_Received.Clear();
@@ -1448,8 +1598,13 @@ namespace HBP.Sync.Scene
             m_PendingObservations.Clear();
             m_SiteSelectionInFlight = null;
             m_WaitingSiteSelection = null;
+            m_CutEditInFlight = null;
+            m_WaitingCutEdits.Clear();
+            m_CutEditFields.Clear();
+            m_ConfirmedCuts.Clear();
             m_LastAppliedSelectionSequence = 0;
             m_SelectionCheckpointSequence = 0;
+            m_CutCheckpointSequence = 0;
             m_DeferredProposals.Clear();
             m_Received.Clear();
             m_ReceivedSequences.Clear();

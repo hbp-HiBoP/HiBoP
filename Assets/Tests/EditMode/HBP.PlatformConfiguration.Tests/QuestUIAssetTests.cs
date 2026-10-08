@@ -177,7 +177,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
             var initial = fields.FindProperty("initialWindows");
-            Assert.That(initial.arraySize, Is.EqualTo(3));
+            Assert.That(initial.arraySize, Is.EqualTo(4));
             for (int i = 0; i < initial.arraySize; i++) Assert.That(initial.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
             var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(pointer, Is.Not.Null);
@@ -198,7 +198,36 @@ namespace HBP.Tests.PlatformConfiguration
 
             var toolbar = root.GetComponentInChildren<QuestToolbar>(true);
             Assert.That(((UnityEngine.UI.Button)new SerializedObject(toolbar).FindProperty("cutsButton").objectReferenceValue).interactable, Is.False);
+            Assert.That(((UnityEngine.UI.Button)new SerializedObject(toolbar).FindProperty("cutsButton").objectReferenceValue).GetComponentInChildren<UnityEngine.UI.Text>(true).text, Is.EqualTo("Cuts"));
+            var cuts = root.GetComponentInChildren<QuestCutsPanel>(true);
+            Assert.That(cuts.GetComponent<QuestWindow>().Key, Is.EqualTo("Cuts"));
+            Assert.That(new SerializedObject(cuts.GetComponent<QuestWindow>()).FindProperty("initiallyOpen").boolValue, Is.False);
+            Assert.That(new SerializedObject(toolbar).FindProperty("cuts").objectReferenceValue, Is.SameAs(cuts));
+            foreach (string field in new[] { "view", "window", "rowPrefab", "rows", "keypad", "add", "suspend", "suspendLabel", "status" })
+                Assert.That(new SerializedObject(cuts).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            var handles = root.GetComponent<QuestCutHandles>();
+            Assert.That(new SerializedObject(pointer).FindProperty("cuts").objectReferenceValue, Is.SameAs(handles));
+            foreach (string field in new[] { "view", "panel", "pointer", "policy", "gizmoPrefab" })
+                Assert.That(new SerializedObject(handles).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("horizontalOnly").boolValue, Is.True);
+        }
+
+        [Test]
+        public void CutPrefabs_AuthorAllControlsAndLocalGizmoWithIndependentQuestSettings()
+        {
+            var row = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Row.prefab").GetComponent<QuestCutRow>();
+            foreach (string field in new[] { "title", "positionLabel", "message", "orientation", "position", "flip", "minus", "plus", "remove", "applyNormal", "custom" })
+                Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            Assert.That(new SerializedObject(row).FindProperty("normalFields").arraySize, Is.EqualTo(3));
+            var gizmo = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>();
+            foreach (string field in new[] { "outline", "rail" })
+                Assert.That(new SerializedObject(gizmo).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            Assert.That(gizmo.GetComponentInChildren<Collider>(), Is.Null, "Bounded plane contact is geometric and must not block scientific raycasts.");
+            Assert.That(gizmo.transform.Find("Handle"), Is.Null);
+            Assert.That(gizmo.transform.Find("Stem"), Is.Null);
+            var settings = gizmo.GetComponent<ThemeElement>().Element.SettingsByState.Single().Settings.OfType<QuestCutGizmoSettings>().Single();
+            Assert.That(settings.Normal && settings.Hovered && settings.Occupied, Is.True);
+            Assert.That(AssetDatabase.GetAssetPath(settings), Does.StartWith("Assets/Resources/Themes/Quest/Settings/"));
         }
 
         [Test]
