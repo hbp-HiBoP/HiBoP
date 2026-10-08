@@ -6,6 +6,7 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Transfer.Transport;
+using HBP.Sync.Scene;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -165,6 +166,8 @@ namespace HBP.Quest
                 statusPanel.ShowPairing(pairing.GetStatus(), address);
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
+            else if (session.Reconciliation is { } record && record.Status != V2ReconciliationStatus.Synchronized)
+                statusPanel.ShowReconciliation(record);
             else
                 statusPanel.ShowSession(session.IsSynchronizationConnected, false);
         }

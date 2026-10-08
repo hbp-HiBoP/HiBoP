@@ -422,6 +422,7 @@ namespace HBP.Data.Module3D
 
         private void CaptureAdditionalConfiguration(VisualizationConfiguration configuration)
         {
+            configuration.SitePlacement = SitePlacement;
             configuration.AtlasConfiguration = m_FMRIManager.CaptureConfiguration();
             configuration.PreviewMRIName = (m_MeshManager.SelectedMesh as RuntimeSingleMesh3D)?.SourceMRIName;
             // Keep configured masks until their first application. A pending mesh change
@@ -447,6 +448,7 @@ namespace HBP.Data.Module3D
                 }
 
                 m_FMRIManager.LoadConfiguration(configuration.AtlasConfiguration);
+                RestoreSitePlacement(configuration.SitePlacement);
             }
             catch (Exception exception)
             {

@@ -872,6 +872,52 @@ namespace HBP.Sync.Tests
             }
         }
 
+        [TestCase(128)]
+        [TestCase(40000)]
+        [TestCase(400000)]
+        [Category("Sync.SceneFocused")]
+        public void QuestProposalCorrection_ReassemblesLargeAuthoritativeMasks(int triangleCount)
+        {
+            byte[] bits = Enumerable.Repeat((byte)0xAA, (triangleCount + 7) / 8).ToArray();
+            var mask = new ApplyTriangleMask(new[]
+            {
+                new V2TriangleMask(new TopologyId("surface:mesh:both:complete"), triangleCount, bits),
+                new V2TriangleMask(new TopologyId("surface:mesh:both:simplified"), triangleCount, bits)
+            });
+            var operation = new OperationId(Guid.NewGuid());
+            var correction = (V2MutationCorrection)Activator.CreateInstance(typeof(V2MutationCorrection), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { Scene, Incarnation, operation, 7UL, mask, "activity_projection_busy" }, null);
+            byte[] body = V2QuestProposalDecisionCodec.EncodeCorrection(correction);
+            var scheduler = new V2OutgoingScheduler(Session, Scene, Incarnation, V2OriginDevice.Desktop);
+            var descriptor = V2ScheduleDescriptor.ForMutation(Scene, Incarnation, mask);
+            Assert.That(scheduler.EnqueueSceneOperation(body, descriptor, bodySchema: V2QuestProposalDecisionCodec.BodySchema, operationId: operation).Accepted, Is.True);
+            var receiver = new V2SceneOperationBulkReceiver();
+            V2QuestProposalDecision decision = null;
+            int chunks = 0;
+            while (scheduler.TryGetNextTransmission(out V2TransmissionAttempt attempt))
+            {
+                V2ReliableFrame frame = attempt.Frame;
+                var record = new V2TransportRecord(V2TransportMessageKind.Application, Session, Scene, Incarnation, frame.OperationId, frame.StreamId, frame.ReliableFrameSequence ?? 0, frame.OriginSequence ?? 0, V2OriginDevice.Desktop, frame.Lane, frame.BodySchema, chunkIndex: frame.ChunkIndex, payload: frame.GetPayloadCopy());
+                if (receiver.IsMutationDescriptor(record)) receiver.Begin(record);
+                else if (receiver.IsActive)
+                {
+                    Assert.That(receiver.TryAppend(record, out V2TransportRecord completed), Is.True);
+                    chunks++;
+                    if (completed != null) decision = V2QuestProposalDecisionCodec.Decode(completed.GetPayloadCopy(), Scene, Incarnation);
+                    else Assert.That(decision, Is.Null, "An incomplete correction must not be applied.");
+                }
+                else decision = V2QuestProposalDecisionCodec.Decode(record.GetPayloadCopy(), Scene, Incarnation);
+
+                Assert.That(scheduler.Acknowledge(frame.StreamId, frame.ReliableFrameSequence.Value), Is.True);
+            }
+
+            Assert.That(receiver.IsActive, Is.False);
+            Assert.That(decision, Is.Not.Null);
+            Assert.That(decision.OperationId, Is.EqualTo(operation));
+            Assert.That(decision.Correction.CanonicalSequence, Is.EqualTo(7));
+            Assert.That(V2MutationPayloadCodec.Encode(decision.Correction.AuthoritativeMutation), Is.EqualTo(V2MutationPayloadCodec.Encode(mask)));
+            Assert.That(chunks > 0, Is.EqualTo(body.Length > V2SchedulerLimits.DefaultInlineThresholdBytes));
+        }
+
         [Test]
         [Category("Sync.SceneFocused")]
         public void T13CorrelationResultBulk_InterleavesInteractiveTrafficAndReassemblesOneTypedResult()
@@ -1715,6 +1761,77 @@ namespace HBP.Sync.Tests
                 await AwaitGuardAsync(Task.WhenAll(firstDesktopRun, firstQuestRun));
                 if (resumedDesktopRun != null && resumedQuestRun != null)
                     await AwaitGuardAsync(Task.WhenAll(resumedDesktopRun, resumedQuestRun));
+            }
+        }
+
+        [Category("Sync.SceneFocused")]
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task DesktopSession_RejectedOrSilentResumeExpiresForReconciliation(bool silentPeer)
+        {
+            using var desktopFixture = new SessionSceneFixture(0);
+            using var questFixture = new SessionSceneFixture(0);
+            PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
+            object questOwner = CreateQuestSession(questFixture.Scene, binding);
+            Type desktopType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
+            var pairs = new List<LoopbackPeerPair>();
+            var runs = new List<Task<Exception>>();
+            int opens = 0;
+            Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> connector = async (host, pin, credential, stop, transport) =>
+            {
+                int attempt = Interlocked.Increment(ref opens);
+                var pair = await LoopbackPeerPair.ConnectAsync();
+                pairs.Add(pair);
+                Task peer;
+                if (attempt == 1)
+                    peer = RunQuestSession(questOwner, pair.Server.GetStream(), stop);
+                else
+                {
+                    // An offline Quest accepts TLS but refuses the expired live owner.
+                    // Keep the socket open briefly so attachment cannot masquerade as a handshake.
+                    peer = RejectResumeAsync(pair, silentPeer, stop);
+                }
+
+                runs.Add(CaptureTaskExceptionAsync(peer));
+                await transport.RunConnectionAsync(pair.Client.GetStream(), stop);
+            };
+            object desktopOwner = null;
+            try
+            {
+                Type connectorType = typeof(Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task>);
+                ConstructorInfo constructor = desktopType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string), connectorType }, null);
+                desktopOwner = constructor.Invoke(new object[] { desktopFixture.Scene, Session.Value.ToString(), Incarnation.Value.ToString(), connector });
+                var publication = (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopOwner, new object[] { binding, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), CancellationToken.None });
+                await AwaitGuardAsync(publication);
+                Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(desktopOwner), Is.True);
+                pairs[0].Close();
+                await WaitUntilAsync(() => (bool)desktopType.GetProperty("IsClosed").GetValue(desktopOwner), "A socket without a resume handshake kept the expired live owner alive instead of allowing reconciliation.", 3);
+                Assert.That(opens, Is.GreaterThan(1));
+                Assert.That(desktopType.GetProperty("FailureReason").GetValue(desktopOwner), Does.Contain("grace expired"));
+                V2SceneReconciliationRecord record = V2SceneReconciliationRecord.Get(desktopFixture.Scene);
+                Assert.That(record, Is.Not.Null);
+                Assert.That(record.Common, Is.Not.Null, "Closing the live transport must retain the confirmed scene for reconciliation.");
+            }
+            finally
+            {
+                if (desktopOwner is IDisposable owner) owner.Dispose();
+                ((IDisposable)questOwner).Dispose();
+                if (desktopOwner != null)
+                    await AwaitGuardAsync(GetPrivateField<Task>(desktopOwner, "m_ConnectionTask"));
+                foreach (var pair in pairs) pair.Close();
+                await AwaitGuardAsync(Task.WhenAll(runs));
+            }
+        }
+
+        private static async Task RejectResumeAsync(LoopbackPeerPair pair, bool silentPeer, CancellationToken stop)
+        {
+            try
+            {
+                await Task.Delay(silentPeer ? Timeout.Infinite : 25, stop);
+            }
+            finally
+            {
+                pair.Close();
             }
         }
 
@@ -2583,6 +2700,9 @@ namespace HBP.Sync.Tests
                 Assert.That(questFixture.Sites[0].State.IsFiltered, Is.False);
                 Assert.That(GetSensitiveActivityCount(questFixture.Scene), Is.Zero);
 
+                var common = V2SceneReconciliationRecord.Get(questFixture.Scene);
+                common.InstallCommon(GetPrivateField<V2SceneMutationBoundary>(questOwner, "m_Boundary").CaptureCheckpoint(), 1);
+                Assert.That(common.Common, Is.Not.Null);
                 using (var desktopBoundary = new V2SceneMutationBoundary(desktopFixture.Scene, V2OriginDevice.Desktop))
                 {
                     SetSiteFilterResult lateA = desktopBoundary.CreateSiteFilterResult(jobA, 1, new[] { true });
@@ -2591,6 +2711,7 @@ namespace HBP.Sync.Tests
 
                 await WaitUntilAsync(() => GetDriverCanonicalWatermark(questOwner) == 2UL, "Quest did not observe the late canonical A result.");
                 Assert.That(questFixture.Sites[0].State.IsFiltered, Is.False, "A late A result must not overwrite B's completed mask.");
+                Assert.That(common.Common, Is.Null, "An ignored canonical result must not be claimed as confirmed shared state.");
                 using var noUnexpectedAck = new CancellationTokenSource(TimeSpan.FromMilliseconds(250));
                 Assert.That(await ReadIncomingOrNullAsync(desktopPeer, noUnexpectedAck.Token), Is.Null, "A stale A result must not receive Ready.");
             }
@@ -3936,6 +4057,7 @@ namespace HBP.Sync.Tests
 
             public void Dispose()
             {
+                V2SceneReconciliationRecord.Get(Scene)?.Dispose();
                 if (Root) UnityEngine.Object.DestroyImmediate(Root);
             }
         }
@@ -4217,6 +4339,7 @@ namespace HBP.Sync.Tests
 
             public void Dispose()
             {
+                V2SceneReconciliationRecord.Get(Scene)?.Dispose();
                 if (Root) UnityEngine.Object.DestroyImmediate(Root);
                 if (m_ProjectionMaterials != null)
                 {

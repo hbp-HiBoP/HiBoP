@@ -122,6 +122,7 @@ namespace HBP.Sync.Scene
         public const ushort BodySchema = 3;
         private const ushort SchemaVersion = 1;
         private const int FixedHeaderLength = 37;
+        public const int MaximumBodyBytes = V2MutationPayloadCodec.MaximumPayloadBytes;
         private const int MaximumRejectionCodeBytes = 256;
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("HBPD");
         private static readonly UTF8Encoding Utf8 = new(false, true);
@@ -142,7 +143,7 @@ namespace HBP.Sync.Scene
         {
             if (sceneId == null) throw new ArgumentNullException(nameof(sceneId));
             if (incarnationId == null) throw new ArgumentNullException(nameof(incarnationId));
-            if (bytes == null || bytes.Length < FixedHeaderLength || bytes.Length > V2TransportFrameCodec.MaximumPayloadBytes)
+            if (bytes == null || bytes.Length < FixedHeaderLength || bytes.Length > MaximumBodyBytes)
                 throw new InvalidDataException("Invalid Quest proposal decision length.");
 
             using var stream = new MemoryStream(bytes, false);
@@ -159,7 +160,7 @@ namespace HBP.Sync.Scene
                 ulong canonicalSequence = reader.ReadUInt64();
                 ushort rejectionLength = reader.ReadUInt16();
                 int mutationLength = reader.ReadInt32();
-                if (rejectionLength == 0 || rejectionLength > MaximumRejectionCodeBytes || mutationLength < 0 || mutationLength > V2MutationEnvelopeCodec.MaximumPayloadBytes || mutationLength != stream.Length - stream.Position - rejectionLength)
+                if (rejectionLength == 0 || rejectionLength > MaximumRejectionCodeBytes || mutationLength < 0 || mutationLength > V2MutationPayloadCodec.MaximumPayloadBytes || mutationLength != stream.Length - stream.Position - rejectionLength)
                     throw new InvalidDataException("Invalid Quest proposal decision fields.");
                 string rejectionCode = Utf8.GetString(reader.ReadBytes(rejectionLength));
                 if (hasCorrection == 0)
@@ -197,7 +198,7 @@ namespace HBP.Sync.Scene
             if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
             byte[] text = Utf8.GetBytes(rejectionCode);
             if (text.Length > MaximumRejectionCodeBytes) throw new InvalidDataException("Quest proposal rejection code exceeds its bound.");
-            if (mutation == null || mutation.Length > V2MutationEnvelopeCodec.MaximumPayloadBytes)
+            if (mutation == null || mutation.Length > V2MutationPayloadCodec.MaximumPayloadBytes)
                 throw new InvalidDataException("Quest proposal correction exceeds its payload bound.");
 
             using var stream = new MemoryStream(FixedHeaderLength + text.Length + mutation.Length);
@@ -212,8 +213,8 @@ namespace HBP.Sync.Scene
             writer.Write(text);
             writer.Write(mutation);
             writer.Flush();
-            if (stream.Length > V2TransportFrameCodec.MaximumPayloadBytes)
-                throw new InvalidDataException("Quest proposal decision exceeds the inline transport bound.");
+            if (stream.Length > MaximumBodyBytes)
+                throw new InvalidDataException("Quest proposal decision exceeds its payload bound.");
             return stream.ToArray();
         }
     }

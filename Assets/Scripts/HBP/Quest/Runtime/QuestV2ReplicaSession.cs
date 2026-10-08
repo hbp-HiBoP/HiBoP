@@ -25,6 +25,7 @@ namespace HBP.Quest
 
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly Base3DScene m_Scene;
+        private readonly V2SceneReconciliationRecord m_Reconciliation;
         private readonly HBP.Core.Preferences.UserPreferences m_SessionPreferences;
         private readonly V2SceneMutationBoundary m_Boundary;
         private readonly V2TimelineClockEstimator m_TimelineClock;
@@ -126,7 +127,9 @@ namespace HBP.Quest
             if (!scene) throw new ArgumentNullException(nameof(scene));
             if (binding == null) throw new ArgumentNullException(nameof(binding));
             m_Identity = binding.CreateV2Identity();
+            V2SceneReconciliationRecord.Get(scene)?.ReleaseReconciliationGuard();
             m_Scene = scene;
+            m_Reconciliation = V2SceneReconciliationRecord.Retain(scene, binding);
             m_SessionPreferences = HBP.Core.Preferences.PersistentDataManager.IsInitialized ? HBP.Core.Preferences.PersistentDataManager.UserPreferences : null;
             m_SessionPreferences?.OnSavePreferences.AddListener(OnSessionPreferencesApplied);
             TransferId = binding.TransferId;
@@ -204,6 +207,13 @@ namespace HBP.Quest
         private void CompleteApplicationRecord(V2TransportRecord record)
         {
             if (record.OriginSequence == 0) return;
+            if (record.CanonicalSequence.HasValue)
+            {
+                V2Mutation applied = record.Mutation;
+                if (applied == null && record.BodySchema == V2SceneOperationBulkReceiver.BodySchema && !m_SceneOperationBulkReceiver.IsMutationDescriptor(record)) applied = V2MutationPayloadCodec.Decode(record.GetPayloadCopy());
+                if (applied != null) m_Reconciliation.ApplyCanonical(record.CanonicalSequence.Value, applied);
+            }
+
             m_Driver.RecordApplicationOrigin(record.MessageId, record.OriginSequence);
             m_ApplicationCompletion.Complete(record.OriginSequence);
             if (m_SceneBulkOriginSequence == record.OriginSequence) m_SceneBulkOriginSequence = 0;
@@ -451,11 +461,13 @@ namespace HBP.Quest
             {
                 if (record.MessageId != null && (m_AbandonedSiteFilterTransfers.Contains(record.MessageId.Value) || m_AbandonedCorrelationTransfers.Contains(record.MessageId.Value)))
                 {
+                    await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                    m_Reconciliation.InvalidateCommon();
                     ResetSceneOperationBulkReceiver();
                     return;
                 }
 
-                if (record.OriginDevice != V2OriginDevice.Desktop || !record.CanonicalSequence.HasValue || record.ObservedCanonicalSequence.HasValue)
+                if (record.OriginDevice != V2OriginDevice.Desktop || (record.BodySchema == V2SceneOperationBulkReceiver.BodySchema) != record.CanonicalSequence.HasValue || record.ObservedCanonicalSequence.HasValue)
                     throw new InvalidDataException($"A structural Quest mutation descriptor must carry a Desktop canonical sequence (origin={record.OriginDevice}, canonical={record.CanonicalSequence?.ToString() ?? "none"}, observed={record.ObservedCanonicalSequence?.ToString() ?? "none"}, schema={record.BodySchema}, length={record.PayloadLength}).");
                 m_SceneOperationBulkReceiver.Begin(record);
                 m_DeferredDrainPending = true;
@@ -473,6 +485,7 @@ namespace HBP.Quest
                 await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
                 if (m_Driver.LastObservedCanonicalSequence != barrierSequence)
                     throw new InvalidDataException("Quest reached the initial live barrier at a different canonical watermark.");
+                m_Reconciliation.SetStatus(V2ReconciliationStatus.Synchronized);
                 byte[] acknowledgement = V2PublicationControlCodec.EncodeAcknowledgement(record.MessageId);
                 V2EnqueueResult queued = m_Transport.EnqueueSessionControl(acknowledgement, V2DeliveryReliability.Reliable);
                 if (!queued.Accepted)
@@ -993,6 +1006,7 @@ namespace HBP.Quest
             ActiveCorrelationJob active = m_ActiveCorrelationJob;
             if (record.CanonicalSequence == null || !result.JobId.Equals(record.MessageId) || active == null || !active.JobId.Equals(result.JobId) || active.Generation != result.Generation || active.Cancellation.IsCancellationRequested)
             {
+                m_Reconciliation.InvalidateCommon();
                 if (record.CanonicalSequence.HasValue && record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence) m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
                 return;
             }
@@ -1007,6 +1021,7 @@ namespace HBP.Quest
             catch (Exception exception) when (exception is InvalidDataException || exception is ArgumentException || exception is InvalidOperationException || exception is KeyNotFoundException)
             {
                 await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                m_Reconciliation.InvalidateCommon();
                 if (record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence) m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
                 SendCorrelationControl(new V2CorrelationControl(V2CorrelationControlKind.Failed, result.JobId, result.Generation, failureCode: "quest_apply_failed"));
                 EndCorrelationJob(active, new InvalidDataException("Quest rejected the canonical correlation result.", exception));
@@ -1177,6 +1192,7 @@ namespace HBP.Quest
             ActiveSiteFilterJob active = m_ActiveSiteFilterJob;
             if (record.CanonicalSequence == null || !result.JobId.Equals(record.MessageId) || active == null || !active.JobId.Equals(result.JobId) || active.Generation != result.Generation || active.Cancellation.IsCancellationRequested)
             {
+                m_Reconciliation.InvalidateCommon();
                 if (record.CanonicalSequence.HasValue && record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence)
                     m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
                 return;
@@ -1192,6 +1208,7 @@ namespace HBP.Quest
             catch (Exception exception) when (exception is InvalidDataException || exception is ArgumentException || exception is InvalidOperationException || exception is KeyNotFoundException)
             {
                 await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+                m_Reconciliation.InvalidateCommon();
                 if (record.CanonicalSequence.Value > m_Driver.LastObservedCanonicalSequence)
                     m_Driver.AdvanceCanonicalWatermark(record.CanonicalSequence.Value);
                 SendSiteFilterControl(new V2SiteFilterControl(V2SiteFilterControlKind.Failed, result.JobId, result.Generation, failureCode: "quest_apply_failed"));
@@ -1375,6 +1392,7 @@ namespace HBP.Quest
 
         private void OnOfflineLocalEntered()
         {
+            m_Reconciliation.SetStatus(V2ReconciliationStatus.Local, "Connection interrupted; your local changes are preserved.");
             CancelSiteFilterJobAfterDisconnectAsync().Forget();
             CancelCorrelationJobAfterDisconnectAsync().Forget();
             CancelActivityProjectionAfterDisconnectAsync().Forget();
@@ -1672,6 +1690,7 @@ namespace HBP.Quest
             V2PublishedSceneCheckpoint checkpoint = await Task.Run(() => V2SceneMutationCheckpointCodec.Decode(encodedCheckpoint), stop).ConfigureAwait(false);
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
             m_Boundary.ApplyCheckpoint(checkpoint.Checkpoint, operationId);
+            m_Reconciliation.InstallCommon(checkpoint.Checkpoint, checkpoint.CanonicalSequence);
             m_Driver.AdvanceCanonicalWatermark(checkpoint.CanonicalSequence, includesSelection: true);
         }
 

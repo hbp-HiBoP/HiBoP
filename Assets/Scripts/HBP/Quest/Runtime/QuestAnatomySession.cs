@@ -60,6 +60,7 @@ namespace HBP.Quest
         public ulong VisibleRevision { get; private set; }
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
+        public V2SceneReconciliationRecord Reconciliation => view != null && view.Scene != null ? V2SceneReconciliationRecord.Get(view.Scene) : null;
         public bool IsSynchronizationConnected => v2Replica != null && v2Replica.TransportState == V2PersistentTransportState.Connected;
         public bool IsReady => current != null && view != null && view.Scene != null;
         public string TransferId => current?.TransferId;
@@ -471,6 +472,7 @@ namespace HBP.Quest
                     replica = null;
                     acceptedReplica = null;
                     telemetry?.Trace.CaptureApplyStart();
+                    Reconciliation?.Dispose();
                     await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
                     telemetry?.Trace.CaptureApplyEnd();
                     if (telemetry != null)
@@ -522,11 +524,35 @@ namespace HBP.Quest
                         if (retainedSession.CanResumeConnection)
                             StartV2ReplicaGraceExpiry(retainedSession);
                         else if (retainedSession.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
-                            MarkV2ReplicaOffline("The Quest replica reconnect grace expired; publish the scene again to resume synchronization.");
+                            MarkV2ReplicaOffline("The Quest replica reconnect grace expired; reconnect on Desktop to reunite the local changes.");
                     }
 
                     return 0;
                 }, CancellationToken.None).ConfigureAwait(false);
+                return;
+            }
+
+            if (HasTransportMagic(prefix, V2SceneReconciliationProtocol.Magic))
+            {
+                await publicationGate.WaitAsync(stop).ConfigureAwait(false);
+                try
+                {
+                    var record = await OnUnityThreadAsync(() =>
+                    {
+                        if (!IsReady) throw new InvalidOperationException("No retained Quest scene is available for reconciliation.");
+                        CancelV2ReplicaGraceExpiry();
+                        v2Replica?.Dispose();
+                        v2Replica = null;
+                        var binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(ParseContentHash(current.ContentHash), DeliveryStatus.Published), view.PublishedScene);
+                        return V2SceneReconciliationRecord.Retain(view.Scene, binding);
+                    }, stop).ConfigureAwait(false);
+                    await V2SceneReconciliationProtocol.ReceiveQuestAsync(stream, record, stop).ConfigureAwait(false);
+                }
+                finally
+                {
+                    publicationGate.Release();
+                }
+
                 return;
             }
 
@@ -628,7 +654,7 @@ namespace HBP.Quest
                     v2ReplicaGraceLifetime = null;
                     lifetime.Dispose();
                     if (session.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
-                        MarkV2ReplicaOffline("The Quest replica reconnect grace expired; publish the scene again to resume synchronization.");
+                        MarkV2ReplicaOffline("The Quest replica reconnect grace expired; reconnect on Desktop to reunite the local changes.");
                     return 0;
                 }, CancellationToken.None).ConfigureAwait(false);
             }
@@ -896,6 +922,7 @@ namespace HBP.Quest
         {
             RequireMainThread();
             pendingInitialTelemetry = null;
+            Reconciliation?.Dispose();
             v2Replica?.Dispose();
             v2Replica = null;
             replica = null;

@@ -1,4 +1,4 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using UnityEngine;
@@ -37,6 +37,14 @@ namespace HBP.UI.Tools
         public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, params string[] buttons)
         {
             return await OpenAsync(m_Instance.m_ScrollableDialogBoxPrefab, type, title, message, buttons);
+        }
+
+        public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, CancellationToken token, params string[] buttons)
+        {
+            await UniTask.SwitchToMainThread(token);
+            GameObject dialog = Instantiate(m_Instance.m_ScrollableDialogBoxPrefab, m_Instance.m_Canvas.transform);
+            dialog.transform.SetAsLastSibling();
+            return await dialog.GetComponent<DialogBox>().OpenAsync(type, title, message, buttons, token);
         }
 
         public static async UniTask<InputDialogResult> OpenInputAsync(string title, string message, string placeholder, string confirmLabel, string cancelLabel, CancellationToken token = default)

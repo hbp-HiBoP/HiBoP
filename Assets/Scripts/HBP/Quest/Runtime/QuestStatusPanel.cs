@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System;
 using HBP.Transfer.Transport;
+using HBP.Sync.Scene;
 
 namespace HBP.Quest
 {
@@ -98,6 +99,22 @@ namespace HBP.Quest
         {
             confirming = false;
             GetComponent<QuestWindow>()?.Close();
+        }
+
+        public void ShowReconciliation(V2SceneReconciliationRecord record)
+        {
+            heading.text = record.Status switch
+            {
+                V2ReconciliationStatus.Reconciling => "Reconnecting",
+                V2ReconciliationStatus.OutOfSync => "Synchronization incomplete",
+                V2ReconciliationStatus.Orphan => "Local scene",
+                _ => "Available offline"
+            };
+            code.text = address.text = "";
+            message.text = record.Message ?? "Reconnect Desktop to merge your changes.";
+            countdown.gameObject.SetActive(false);
+            lifetimeGauge.gameObject.SetActive(false);
+            Actions(false, false);
         }
 
         public void ShowSession(bool connected, bool receiving)

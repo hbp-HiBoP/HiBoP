@@ -97,6 +97,15 @@ namespace HBP.Transfer.Transport
             }
         }
 
+        /// <summary>True only after the peer has confirmed this connection's resume handshake.</summary>
+        public bool IsConnectionReady
+        {
+            get
+            {
+                lock (m_Gate) return m_State == V2PersistentTransportState.Connected && m_HandshakeComplete;
+            }
+        }
+
         public TimeSpan? LastRoundTrip
         {
             get

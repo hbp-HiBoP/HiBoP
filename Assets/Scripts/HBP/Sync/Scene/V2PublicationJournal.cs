@@ -106,7 +106,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        public V2PublicationJournalResult Complete(Func<V2SceneMutationCheckpoint> captureCheckpoint)
+        public V2PublicationJournalResult Complete(Func<V2SceneMutationCheckpoint> captureCheckpoint, bool forceCheckpoint = false)
         {
             if (captureCheckpoint == null) throw new ArgumentNullException(nameof(captureCheckpoint));
             bool overflowed;
@@ -119,7 +119,7 @@ namespace HBP.Sync.Scene
                 mutations = m_Mutations.ToArray();
             }
 
-            if (!overflowed) return new V2PublicationJournalResult(mutations);
+            if (!overflowed && !forceCheckpoint) return new V2PublicationJournalResult(mutations);
             V2SceneMutationCheckpoint checkpoint = captureCheckpoint();
             if (checkpoint == null) throw new InvalidOperationException("The initial-publication checkpoint is unavailable.");
             return new V2PublicationJournalResult(checkpoint);
@@ -141,7 +141,7 @@ namespace HBP.Sync.Scene
     /// <summary>Versioned bounded composition of typed scene-mutation checkpoint records.</summary>
     public static class V2SceneMutationCheckpointCodec
     {
-        private const ushort SchemaVersion = 6;
+        private const ushort SchemaVersion = 7;
         private const int MinimumHeaderLength = 26;
         private const int HeaderLength = 46;
         private const int MaximumRecordLength = V2MutationPayloadCodec.MaximumPayloadBytes + 8;
@@ -331,7 +331,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private static bool IsCheckpointT10Type(V2OperationType type) => type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask;
+        private static bool IsCheckpointT10Type(V2OperationType type) => type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask or V2OperationType.MoveSites;
     }
 
     public static class V2PublicationControlCodec

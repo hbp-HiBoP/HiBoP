@@ -21,6 +21,8 @@ namespace HBP.Data.Module3D
         /// <summary>Reports a completed command that changes the positions of scene sites.</summary>
         public event Action<SitePositionCommand> SitePositionCommandExecuted;
 
+        public SitePlacementMode SitePlacement { get; private set; }
+
         /// <summary>Optional prepared-scene route for one complete site-selection intent.</summary>
         public Func<Column3D, Core.Object3D.Site, bool> SiteSelectionRouter { get; set; }
 
@@ -134,6 +136,7 @@ namespace HBP.Data.Module3D
             Vector3 normal = MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, right);
             Vector3 center = MeshManager.MeshCenter;
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
+            SitePlacement = right ? SitePlacementMode.Right : SitePlacementMode.Left;
             OnSharedStateChanged.Invoke();
             SitePositionCommandExecuted?.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
         }
@@ -141,8 +144,27 @@ namespace HBP.Data.Module3D
         public void ResetSitesPositions()
         {
             foreach (var column in Columns) column.ResetSitesPositions();
+            SitePlacement = SitePlacementMode.Original;
             OnSharedStateChanged.Invoke();
             SitePositionCommandExecuted?.Invoke(SitePositionCommand.Reset);
+        }
+
+        internal void RestoreSitePlacement(SitePlacementMode placement)
+        {
+            SitePlacementMode previous = SitePlacement;
+            if (placement == SitePlacementMode.Original)
+                foreach (var column in Columns)
+                    column.ResetSitesPositions();
+            else if (placement is SitePlacementMode.Left or SitePlacementMode.Right)
+            {
+                Vector3 normal = MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, placement == SitePlacementMode.Right);
+                foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(MeshManager.MeshCenter, normal);
+            }
+            else throw new ArgumentOutOfRangeException(nameof(placement));
+
+            SitePlacement = placement;
+            if (previous != placement)
+                SitePositionCommandExecuted?.Invoke(placement == SitePlacementMode.Left ? SitePositionCommand.MoveLeft : placement == SitePlacementMode.Right ? SitePositionCommand.MoveRight : SitePositionCommand.Reset);
         }
 
         public void ResetSiteFilters(bool included = true)
@@ -153,6 +175,8 @@ namespace HBP.Data.Module3D
                 site.State.IsFiltered = included;
             Module3DMain.OnRequestUpdateInSiteList.Invoke();
         }
+
+        public void CancelPendingSiteFilters() => ++m_FilterRequest;
 
         private int m_FilterRequest;
 

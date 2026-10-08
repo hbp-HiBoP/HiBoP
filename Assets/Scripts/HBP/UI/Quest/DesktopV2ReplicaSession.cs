@@ -34,6 +34,9 @@ namespace HBP.Quest.Desktop
         private const int MaximumMutationsDuringCheckpointEncoding = 256;
         private readonly object m_Gate = new object();
         private readonly Base3DScene m_Scene;
+        private V2SceneReconciliationRecord m_Reconciliation;
+        private V2SceneMutationCheckpoint m_InitialCommon;
+        private ulong m_InitialCommonSequence;
         private readonly UserPreferences m_UserPreferences;
         private readonly V2PreparedSceneIdentity m_Identity;
         private readonly V2SceneMutationBoundary m_Boundary;
@@ -76,6 +79,8 @@ namespace HBP.Quest.Desktop
         private bool m_ProjectionEventsRemoved;
         private bool m_ApplyingRemoteProjectionRequest;
         private readonly System.Collections.Generic.HashSet<Guid> m_CancelledActivityProjectionRequests = new System.Collections.Generic.HashSet<Guid>();
+
+        internal Base3DScene Scene => m_Scene;
 
         public CancellationToken PublicationAbortToken => m_PublicationAbort.Token;
 
@@ -126,6 +131,7 @@ namespace HBP.Quest.Desktop
         internal DesktopV2ReplicaSession(Base3DScene scene, string globalContextId, string transferId, Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> openReplica)
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
+            V2SceneReconciliationRecord.Get(scene)?.ReleaseReconciliationGuard();
             m_Scene = scene;
             m_UserPreferences = PersistentDataManager.IsInitialized ? PersistentDataManager.UserPreferences : null;
             m_Identity = V2PreparedSceneIdentity.Create(globalContextId, scene.Visualization.ID, transferId);
@@ -172,8 +178,12 @@ namespace HBP.Quest.Desktop
                 m_InitialPublicationStarted = true;
             }
 
-            V2PublicationJournalResult journalResult = m_Journal.Complete(m_Boundary.CaptureCheckpoint);
+            V2PublicationJournalResult journalResult = m_Journal.Complete(m_Boundary.CaptureCheckpoint, forceCheckpoint: true);
             ulong checkpointSequence = m_Authority.CanonicalSequence;
+            m_Reconciliation = V2SceneReconciliationRecord.Retain(m_Scene, binding);
+            m_Reconciliation.BeginPublication();
+            m_InitialCommon = journalResult.Checkpoint;
+            m_InitialCommonSequence = checkpointSequence;
 
             if (journalResult.Disposition == V2PublicationJournalDisposition.Replay)
             {
@@ -280,6 +290,7 @@ namespace HBP.Quest.Desktop
             lock (m_Gate)
             {
                 if (m_State == PublicationState.Disposed || m_State == PublicationState.Aborted) return;
+                m_Reconciliation?.QueueCanonical(mutation.CanonicalSequence, mutation.Mutation);
                 if (m_State == PublicationState.Capturing)
                 {
                     m_Journal.TryRecord(mutation);
@@ -334,6 +345,7 @@ namespace HBP.Quest.Desktop
             m_PeerAppliedOriginThrough = progress.AppliedOriginThrough;
             m_PeerMinimumObservedSequence = progress.MinimumObservedCanonicalSequence;
             m_PeerCurrentCanonicalSequence = progress.CurrentCanonicalSequence;
+            m_Reconciliation?.ConfirmThrough(progress.CurrentCanonicalSequence);
             PublishRetentionProgress();
         }
 
@@ -425,6 +437,9 @@ namespace HBP.Quest.Desktop
                     if (!barrierId.Equals(m_InitialBarrierId)) throw new InvalidDataException("Unexpected initial publication acknowledgement.");
                     await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
                     m_Authority.RetirePublishedCheckpoint(m_InitialBarrierSequence);
+                    m_Reconciliation.InstallCommon(m_InitialCommon, m_InitialCommonSequence);
+                    m_Reconciliation.ConfirmThrough(m_InitialBarrierSequence);
+                    m_Reconciliation.SetStatus(V2ReconciliationStatus.Synchronized);
                     PublishRetentionProgress();
                     m_InitialApplyAcknowledged.TrySetResult(barrierId);
                     return;
@@ -1235,7 +1250,7 @@ namespace HBP.Quest.Desktop
             if (!record.SceneId.Equals(m_Identity.SceneId) || !record.IncarnationId.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong Quest proposal incarnation.");
             V2DesktopProposalResult result = m_Authority.AcceptQuestProposal(record.MessageId, mutation, record.ObservedCanonicalSequence.Value, record.OriginSequence);
             if (result.Correction != null)
-                EnqueueQuestProposalDecision(record, mutation, V2QuestProposalDecisionCodec.EncodeCorrection(result.Correction));
+                EnqueueQuestProposalDecision(record, result.Correction.AuthoritativeMutation, V2QuestProposalDecisionCodec.EncodeCorrection(result.Correction));
             else if (result.CanonicalMutation == null && result.Outcome != V2ProposalOutcome.Duplicate)
                 EnqueueQuestProposalDecision(record, mutation, V2QuestProposalDecisionCodec.EncodeRejection(record.MessageId, result.RejectionCode ?? "proposal_rejected"));
         }
@@ -1339,7 +1354,9 @@ namespace HBP.Quest.Desktop
             Task connection = m_OpenReplica(host, pin, credential, m_ConnectionLifetime.Token, m_Transport);
             while (!connection.IsCompleted)
             {
-                if (m_Transport.State == V2PersistentTransportState.Connected)
+                // A TLS socket can open while Quest has already retired this live owner.
+                // Only a confirmed resume may end this attempt's bounded grace period.
+                if (m_Transport.IsConnectionReady && !connection.IsCompleted)
                 {
                     m_ConnectionLifetime.CancelAfter(Timeout.InfiniteTimeSpan);
                     return connection;
@@ -1363,7 +1380,7 @@ namespace HBP.Quest.Desktop
                 await incoming.ConfigureAwait(false);
                 if (!m_Lifetime.IsCancellationRequested) MarkConnectionClosed("The Quest v2 mutation receiver ended.");
             }
-            catch (OperationCanceledException) when (m_Lifetime.IsCancellationRequested)
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
             {
             }
             catch (ObjectDisposedException) when (stop.IsCancellationRequested)
@@ -1396,6 +1413,7 @@ namespace HBP.Quest.Desktop
         private async UniTaskVoid CancelActivityProjectionAfterDisconnectAsync()
         {
             await UniTask.SwitchToMainThread();
+            if (m_Reconciliation?.Status == V2ReconciliationStatus.Synchronized) m_Reconciliation.SetStatus(V2ReconciliationStatus.Local, "Connection interrupted; local changes will be merged on reconnection.");
             m_SurfaceInflation.Cancel();
             m_Scene.ClearCoordinatedAutomaticRecomputePolicy();
             ActiveActivityProjectionJob active = m_ActiveActivityProjectionJob;

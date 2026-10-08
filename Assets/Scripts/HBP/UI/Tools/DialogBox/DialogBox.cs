@@ -1,6 +1,7 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using System.Linq;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,12 +27,19 @@ namespace HBP.UI.Tools
             await OpenAsync(type, title, message, buttons);
         }
 
-        public async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, string[] buttons)
+        public async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, string[] buttons, CancellationToken token = default)
         {
             m_Icon.sprite = m_Icons.FirstOrDefault(i => i.type == type).icon;
             SetRect();
             SetMessages(title, message);
-            return await SetButtons(buttons);
+            try
+            {
+                return await SetButtons(buttons, token);
+            }
+            finally
+            {
+                if (this) Close();
+            }
         }
 
         public void Close()
@@ -59,7 +67,7 @@ namespace HBP.UI.Tools
                 layoutElement.preferredWidth = Mathf.Min(Mathf.Max(m_Title.preferredWidth, m_Message.preferredWidth), layoutElement.preferredWidth);
         }
 
-        async UniTask<int> SetButtons(string[] buttons)
+        async UniTask<int> SetButtons(string[] buttons, CancellationToken token)
         {
             int result = -1;
             foreach (string button in buttons)
@@ -73,7 +81,7 @@ namespace HBP.UI.Tools
                 });
             }
 
-            await UniTask.WaitUntil(() => result != -1);
+            await UniTask.WaitUntil(() => result != -1, cancellationToken: token);
             return result;
         }
 

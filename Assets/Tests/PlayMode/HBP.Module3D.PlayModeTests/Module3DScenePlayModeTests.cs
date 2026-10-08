@@ -1154,6 +1154,10 @@ namespace HBP.Tests.PlayMode.Module3D
             }
 
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);

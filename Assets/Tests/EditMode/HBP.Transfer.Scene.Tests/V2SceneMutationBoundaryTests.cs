@@ -29,6 +29,27 @@ namespace HBP.Tests.Transfer.Scene
     {
         private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
 
+        [Test]
+        public void ReconciliationLock_SuspendsSiteEditsAndDirectMutationButPreservesLocalPlacement()
+        {
+            using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop);
+            Color before = fixture.Site.State.Color;
+            using (fixture.Boundary.LockForReconciliation())
+            {
+                fixture.Site.State.Color = Color.yellow;
+                fixture.Site.State.IsFiltered = false;
+                fixture.Boundary.Apply(new SetSiteLabels(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), new[] { "blocked" }), V2MutationApplicationOrigin.LocalDesktop, T09Operation(777));
+                fixture.Column.transform.localPosition = new Vector3(1, 2, 3);
+                Assert.That(fixture.Site.State.Color, Is.EqualTo(before));
+                Assert.That(fixture.Site.State.IsFiltered, Is.True);
+                Assert.That(fixture.Site.State.Labels, Is.Empty);
+                Assert.That(fixture.Column.transform.localPosition, Is.EqualTo(new Vector3(1, 2, 3)));
+            }
+
+            fixture.Site.State.Color = Color.yellow;
+            Assert.That(fixture.Site.State.Color, Is.EqualTo(Color.yellow));
+        }
+
         [TestCase(V2OriginDevice.Quest)]
         [TestCase(V2OriginDevice.Desktop)]
         public void LocalCutDefinition_CanonicalizesNegativeZeroBeforePublishing(V2OriginDevice origin)
@@ -1881,7 +1902,7 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
-        public void T11ConfigurationTransaction_RejectsNonReversibleMovementAndTimelineChildrenBeforeApplying()
+        public void T11ConfigurationTransaction_RejectsMovementWithoutPreparedAnatomyAndTimelineChildrenBeforeApplying()
         {
             using var fixture = new BoundSceneFixture(V2OriginDevice.Desktop);
             var moveSites = new SetConfigurationTransaction(new V2Mutation[]

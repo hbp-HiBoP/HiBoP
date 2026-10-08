@@ -25,7 +25,7 @@ The 86-byte, little-endian body contains magic `HBRP` (4 bytes), schema version 
 
 Reliable receive-stream fences survive the existing 500 ms reconnect grace. The authority additionally fences retired Quest origin identities, and Quest suppresses canonicals behind its retirement floor. New logical mutations require fresh operation IDs; retries preserve their immutable frame identity. Changed-payload UUID reuse is detected within the active retention window; unlimited lifetime UUID auditing is not retained.
 
-Optimistic rollback order contains only live entries and removes confirmed/rejected/replaced identities. Memory therefore follows live scene state and unresolved work, rather than elapsed session duration. Reconciliation after grace expiry remains T16/T17 work and adds no persistent offline journal here.
+Optimistic rollback order contains only live entries and removes confirmed/rejected/replaced identities. Memory therefore follows live scene state and unresolved work, rather than elapsed session duration. T16 reconciles the retained single scene after grace expiry and adds no persistent offline journal; multi-scene behavior remains T17 work.
 
 ## Connection state machine
 
@@ -55,20 +55,23 @@ The Quest visualization remains usable indefinitely until the user closes it or 
 
 ## Reconnection handshake
 
-Peers exchange session/scene/incarnation identity and an incrementally maintained lightweight checkpoint identity; the handshake never captures/hashes the whole scene. For all common incarnations:
+The implemented T16 flow reconciles one retained session/scene/incarnation and prepared-manifest identity. It runs after fresh Desktop-authoritative session preferences are restored. It never transfers atlas files or heavy source resources; both builds must include their atlases.
 
-- equal checkpoint identities reconnect automatically;
-- divergent state opens one global choice for the reconnection, not one choice per scene;
-- affected shared scenes are locked while the choice is open;
-- “Keep Desktop” validates every selected checkpoint, then commits each common scene under an interaction lock on Quest;
-- “Keep Quest” validates every selected checkpoint, then commits each common scene under an interaction lock on Desktop;
-- heavy resources are never included.
+Each peer retains the last confirmed common typed state in memory while its incarnation exists. Online confirmations update its semantic digest incrementally. A bounded confirmation undo window allows peers to recover a shared base when the last application-progress message was lost. This is transient confirmation bookkeeping, not a persistent offline operation journal.
 
-“Atomic” here means no partial validated batch is intentionally exposed inside one scene. It is not a transactional rollback across several Unity scenes. If a setter unexpectedly fails after validation, mark that scene reconciliation failed/out-of-sync, keep the UI locked for that scene and require retry or full resend; do not claim that all scenes committed.
+At reconnect, the peers capture their current typed checkpoints after pending scientific/resource work settles. Local scene/column pose is excluded. They find a retained common base, ignore natural playback advancement when there was no explicit timeline edit, and perform a semantic three-way merge:
 
-Checkpoint transfer is bounded, chunked, cancelable before commit and displayed with progress after 200 ms. If the connection drops during transfer/staging, discard the incomplete staging buffer, remain offline and offer reconciliation again after the next connection. Once a per-scene Unity commit begins it runs to completion or enters the explicit failed state.
+- equal changes are silent;
+- independent attributes and independent entities combine;
+- conflicting fields, deletion versus dependent edits/selections, and changed resources versus their dependent values form coherent choice groups;
+- each conflict group requires a Desktop or Quest choice using the existing authored dialog, with no Cancel button; the English message explains which version each button keeps and that independent changes are preserved;
+- if no common base remains, one explicit whole-scene choice is required.
 
-The discarded state is not retained as a conflict branch. There is no property-level merge, wall-clock “last writer” algorithm or three-way merge engine.
+Capture and reconciliation may traverse the current scene once at reconnect. They are not ordinary interaction change detectors. Performance is assessed by feel for now; the user explicitly deferred precise instrumentation and numerical gates on 8 October 2026.
+
+Both peers hold an interaction guard while choosing, staging and applying. They validate the complete merged checkpoint and prepare missing locally computed representations before commit. The authenticated replica connection carries bounded, cancelable packets with a candidate identity/digest; full typed checkpoint bytes are allowed, source files are not. Existing delayed loading UI covers preparation/application after conflict choices.
+
+Cancellation or a connection failure before commit applies nothing and returns to local use. Once commit begins, failure leaves the scene explicitly out of sync and guarded. A retry retains the exact candidate and guard, including if that retry fails before staging again. A completed handshake establishes a fresh common base, then fresh live owners restore ordinary bidirectional synchronization. There is no cross-process recovery or transaction spanning multiple scenes; T17 remains separate.
 
 ## Missing and orphaned incarnations
 
@@ -78,7 +81,7 @@ If Desktop closed it while offline, reconnection reports that the visualization 
 
 A scene opened on Desktop while offline has no prepared counterpart on Quest. After reconnection it requires the normal full-scene delivery before live synchronization can start.
 
-Orphaned/missing incarnations are excluded from the global Desktop/Quest state choice.
+Orphaned/missing incarnations are excluded from reconciliation choices.
 
 ## Online rejection and retry
 

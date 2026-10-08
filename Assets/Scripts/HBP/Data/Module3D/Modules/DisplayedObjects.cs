@@ -216,6 +216,7 @@ namespace HBP.Data.Module3D
             }
 
             m_Scene.ROIManager.UpdateROIMasks();
+            m_Scene.RestoreSitePlacement(m_Scene.SitePlacement);
         }
 
         /// <summary>

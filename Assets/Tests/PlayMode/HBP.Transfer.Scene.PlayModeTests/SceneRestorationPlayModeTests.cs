@@ -228,7 +228,12 @@ namespace HBP.Tests.SceneTransfer
         [Test, Explicit("Requires the updated Quest APK, authorized USB, remembered pairing and observer-ready file."), Timeout(1200000)]
         public Task M2_PhysicalQuestUsb_ColdInflationUsesLocalJobWithoutResend() => VerifyM2ProductionGeometryAsync(null, physicalQuest: true, coldInflation: true, physicalInflationOnly: true);
 
-        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false, bool coldInflation = false, bool desktopOnlyCache = false, bool nativeSingle = false, bool physicalInflationOnly = false, MeshPart? mutatedHemisphere = null)
+        [TestCase(false)]
+        [TestCase(true)]
+        [Timeout(300000)]
+        public Task SharedState_ReconnectMergesOfflineChangesAndPreservesLocalPose(bool interruptCommit) => VerifyM2ProductionGeometryAsync(null, reconciliationScenario: interruptCommit);
+
+        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false, bool coldInflation = false, bool desktopOnlyCache = false, bool nativeSingle = false, bool physicalInflationOnly = false, MeshPart? mutatedHemisphere = null, bool? reconciliationScenario = null)
         {
             string protocolsFolder = Path.Combine(ApplicationState.DatabasePath, "Protocols");
             using var temp = new PlayModeTempDirectoryScope();
@@ -328,6 +333,7 @@ namespace HBP.Tests.SceneTransfer
                 options.IterationCount = 4;
                 if (!coldInflation)
                     await desktopScene.MeshManager.SelectedMesh.GenerateInflatedRepresentationAsync(Mesh3DInflationSettings.Custom(options), cancellationToken: token);
+                if (reconciliationScenario.HasValue) desktopScene.MoveSitesToHemisphere(true);
                 await desktopScene.PrepareRenderingAsync(token);
                 using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktopScene, transferId, Guid.NewGuid().ToString("N"), 1, source.Globals, token);
                 string capturedFile = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
@@ -395,13 +401,32 @@ namespace HBP.Tests.SceneTransfer
                 };
                 desktopSession = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { desktopScene, source.Globals.Id, transferId, connect }, null);
                 await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopSession, new object[] { sent, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), token });
+                if (reconciliationScenario.HasValue)
+                {
+                    Assert.That(view.Scene.SitePlacement, Is.EqualTo(SitePlacementMode.Right), "Initial publication must retain hemisphere placement.");
+                    desktopSession.Dispose();
+                    questSession.Dispose();
+                    client.Close();
+                    server.Close();
+                    await CaptureReconciliationErrorAsync(() => desktopRun);
+                    await CaptureReconciliationErrorAsync(() => questRun);
+                    await VerifyOfflineReconciliationAsync(desktopScene, view.Scene, sent, published, reconciliationScenario.Value, token);
+                    return;
+                }
+
                 Vector3 localPlacement = new Vector3(0.4f, 0.2f, -0.3f);
                 view.Columns[0].transform.localPosition = localPlacement;
                 int[] mask = (int[])view.Scene.MeshManager.ReferenceSurface.VisibilityMask.Clone();
+                // Geometry scenarios deliberately exercise every prepared contact. Make
+                // those contacts visible using the same controls as a real user.
+                desktopScene.ShowAllSites = true;
+                desktopScene.HideBlacklistedSites = false;
+                desktopScene.ResetSiteFilters();
                 desktopScene.AutomaticCutAroundSelectedSite = true;
+                await UniTask.WaitUntil(() => view.Scene.AutomaticCutAroundSelectedSite && view.Scene.ShowAllSites && !view.Scene.HideBlacklistedSites, cancellationToken: token);
                 foreach (Column3D column in desktopScene.Columns)
                 {
-                    foreach (Core.Object3D.Site site in column.Sites.Where(site => !site.State.IsMasked))
+                    foreach (Core.Object3D.Site site in column.Sites.Where(site => IsSelectableSite(desktopScene, site)))
                     {
                         desktopScene.SelectSite(column, site);
                         await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.ColumnData.ID == column.ColumnData.ID && view.Scene.SelectedColumn.SelectedSite?.Information.FullID == site.Information.FullID, cancellationToken: token);
@@ -412,10 +437,11 @@ namespace HBP.Tests.SceneTransfer
                 }
 
                 Column3D last = desktopScene.Columns.Last();
-                var firstSites = desktopScene.Columns[0].Sites.Where(site => !site.State.IsMasked).ToArray();
-                var lastSites = last.Sites.Where(site => !site.State.IsMasked).ToArray();
+                var firstSites = desktopScene.Columns[0].Sites.Where(site => IsSelectableSite(desktopScene, site)).ToArray();
+                var lastSites = last.Sites.Where(site => IsSelectableSite(desktopScene, site)).ToArray();
                 Assert.That(lastSites.Length, Is.GreaterThanOrEqualTo(2));
                 desktopScene.SelectSite(desktopScene.Columns[0], firstSites[0]);
+                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.ColumnData.ID == desktopScene.Columns[0].ColumnData.ID && view.Scene.SelectedColumn.SelectedSite?.Information.FullID == firstSites[0].Information.FullID, cancellationToken: token);
                 desktopScene.SelectSite(last, lastSites[0]);
                 desktopScene.SelectSite(last, lastSites[1]);
                 await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[1].Information.FullID && view.Scene.SelectedColumn.ColumnData.ID == last.ColumnData.ID, cancellationToken: token);
@@ -695,6 +721,8 @@ namespace HBP.Tests.SceneTransfer
                 }
 
                 await UniTask.SwitchToMainThread();
+                V2SceneReconciliationRecord.Get(view.Scene)?.Dispose();
+                if (desktop?.Scene != null) V2SceneReconciliationRecord.Get(desktop.Scene)?.Dispose();
                 await view.ClearAsync();
                 if (desktop != null) await desktop.CloseAsync();
                 if (localDesktop != null) await localDesktop.CleanAsync();
@@ -702,6 +730,260 @@ namespace HBP.Tests.SceneTransfer
                 if (ownedDialogManager != null) Object.Destroy(ownedDialogManager);
             }
         }
+
+        private static async Task VerifyOfflineReconciliationAsync(Base3DScene desktop, Base3DScene quest, PreparedSceneDeliveryBinding sent, PreparedSceneDeliveryBinding published, bool interruptCommit, CancellationToken stop)
+        {
+            var desktopRecord = V2SceneReconciliationRecord.Get(desktop);
+            var questRecord = V2SceneReconciliationRecord.Get(quest);
+            Assert.That(desktopRecord.CommonHash, Is.Not.Empty);
+            Assert.That(questRecord.CommonHash, Is.EqualTo(desktopRecord.CommonHash));
+            var desktopColumn = desktop.Columns.OfType<Column3DIEEG>().First();
+            var questColumn = quest.Columns.Single(column => column.ColumnData.ID == desktopColumn.ColumnData.ID);
+            var dSite = desktopColumn.Sites[0];
+            var qSite = questColumn.Sites.Single(site => site.Information.FullID == dSite.Information.FullID);
+            desktopColumn.transform.localPosition = new Vector3(1, 2, 3);
+            questColumn.transform.localPosition = new Vector3(4, 5, 6);
+            // Simulate the last canonical having applied on Quest while its progress ACK was lost.
+            desktop.StrongCuts = true;
+            quest.StrongCuts = true;
+            desktopRecord.QueueCanonical(1, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true));
+            questRecord.ApplyCanonical(1, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true));
+            Assert.That(questRecord.CommonHash, Is.Not.EqualTo(desktopRecord.CommonHash));
+            desktop.ResetSitesPositions();
+            dSite.State.Color = Color.red;
+            qSite.State.Color = Color.blue;
+            qSite.State.AddLabel("offline-quest");
+            int choices = 0;
+
+            Task<V2ConflictChoice> Choose(V2CheckpointConflict conflict, CancellationToken token)
+            {
+                choices++;
+                return Task.FromResult(V2ConflictChoice.Quest);
+            }
+
+            var cancelled = await ReconcileRoundTripAsync(desktopRecord, questRecord, (_, _) => throw new OperationCanceledException(), false, stop);
+            Assert.That(cancelled.Desktop, Is.TypeOf<OperationCanceledException>());
+            Assert.That(dSite.State.Color, Is.EqualTo(Color.red));
+            Assert.That(qSite.State.Color, Is.EqualTo(Color.blue));
+            Assert.That(desktopRecord.PendingCommit, Is.Null);
+            if (interruptCommit)
+            {
+                var interrupted = await ReconcileRoundTripAsync(desktopRecord, questRecord, Choose, true, stop);
+                Assert.That(interrupted.Desktop, Is.Not.Null);
+                Assert.That(interrupted.Quest, Is.Not.Null);
+                Assert.That(desktopRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Assert.That(desktopRecord.PendingCommit, Is.Not.Null);
+                var retryInterrupted = await ReconcileRoundTripAsync(desktopRecord, questRecord, Choose, false, stop, failBeforeStage: true);
+                Assert.That(retryInterrupted.Desktop, Is.TypeOf<IOException>());
+                Assert.That(desktopRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Color held = dSite.State.Color;
+                dSite.State.Color = Color.yellow;
+                Assert.That(dSite.State.Color, Is.EqualTo(held), "An incomplete commit must keep shared edits suspended.");
+            }
+
+            var result = await ReconcileRoundTripAsync(desktopRecord, questRecord, Choose, false, stop);
+            Assert.That(result.Desktop, Is.Null, result.Desktop?.ToString());
+            Assert.That(result.Quest, Is.Null, result.Quest?.ToString());
+            Assert.That(choices, Is.EqualTo(1), "A retained commit must retry the already chosen candidate.");
+            Assert.That(dSite.State.Color, Is.EqualTo(Color.blue));
+            Assert.That(qSite.State.Color, Is.EqualTo(Color.blue));
+            Assert.That(dSite.State.Labels, Does.Contain("offline-quest"));
+            Assert.That(desktop.SitePlacement, Is.EqualTo(SitePlacementMode.Original));
+            Assert.That(quest.SitePlacement, Is.EqualTo(SitePlacementMode.Original));
+            Assert.That(desktopColumn.transform.localPosition, Is.EqualTo(new Vector3(1, 2, 3)));
+            Assert.That(questColumn.transform.localPosition, Is.EqualTo(new Vector3(4, 5, 6)));
+            Assert.That(desktopRecord.CommonHash, Is.EqualTo(questRecord.CommonHash));
+            Assert.That(desktopRecord.PendingCommit, Is.Null);
+            Assert.That(questRecord.PendingCommit, Is.Null);
+            await VerifyReconciledLiveSessionAsync(desktop, quest, sent, published, dSite, qSite, stop);
+            if (!interruptCommit)
+            {
+                await desktop.CleanAsync();
+                var orphan = await ReconcileRoundTripAsync(desktopRecord, questRecord, (_, _) => throw new AssertionException("A closed Desktop scene must not request a merge choice."), false, stop);
+                Assert.That(orphan.Desktop, Is.Null, orphan.Desktop?.ToString());
+                Assert.That(orphan.Quest, Is.Null, orphan.Quest?.ToString());
+                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.Orphan));
+                qSite.State.Color = Color.magenta;
+                Assert.That(qSite.State.Color, Is.EqualTo(Color.magenta), "The orphaned Quest scene must remain usable locally.");
+            }
+        }
+
+        private static async Task VerifyReconciledLiveSessionAsync(Base3DScene desktop, Base3DScene quest, PreparedSceneDeliveryBinding sent, PreparedSceneDeliveryBinding published, Core.Object3D.Site desktopSite, Core.Object3D.Site questSite, CancellationToken stop)
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            using var client = new TcpClient { NoDelay = true };
+            TcpClient server;
+            try
+            {
+                var accepted = listener.AcceptTcpClientAsync();
+                await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+                server = await accepted;
+            }
+            finally
+            {
+                listener.Stop();
+            }
+
+            using (server)
+            {
+                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestV2ReplicaSession", true);
+                using var questOwner = (IDisposable)Activator.CreateInstance(questType, new object[] { quest, published });
+                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+                Task desktopRun = null, questRun = null;
+                Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> connect = (_, _, _, token, transport) =>
+                {
+                    questRun = (Task)questType.GetMethod("RunConnectionAsync").Invoke(questOwner, new object[] { server.GetStream(), token });
+                    return desktopRun = transport.RunConnectionAsync(client.GetStream(), token);
+                };
+                using var desktopOwner = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { desktop, sent.GlobalContextId, sent.TransferId, connect }, null);
+                try
+                {
+                    await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopOwner, new object[] { sent, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), stop });
+                    Assert.That(V2SceneReconciliationRecord.Get(desktop).Status, Is.EqualTo(V2ReconciliationStatus.Synchronized));
+                    Assert.That(V2SceneReconciliationRecord.Get(quest).Status, Is.EqualTo(V2ReconciliationStatus.Synchronized));
+                    desktopSite.State.Color = Color.cyan;
+                    await UniTask.WaitUntil(() => questSite.State.Color == Color.cyan, cancellationToken: stop);
+                    questSite.State.IsHighlighted = true;
+                    await UniTask.WaitUntil(() => desktopSite.State.IsHighlighted, cancellationToken: stop);
+                }
+                finally
+                {
+                    desktopOwner.Dispose();
+                    questOwner.Dispose();
+                    client.Close();
+                    server.Close();
+                    if (desktopRun != null) await CaptureReconciliationErrorAsync(() => desktopRun);
+                    if (questRun != null) await CaptureReconciliationErrorAsync(() => questRun);
+                }
+            }
+        }
+
+        private static async Task<(Exception Desktop, Exception Quest)> ReconcileRoundTripAsync(V2SceneReconciliationRecord desktop, V2SceneReconciliationRecord quest, Func<V2CheckpointConflict, CancellationToken, Task<V2ConflictChoice>> choose, bool interruptCommit, CancellationToken stop, bool failBeforeStage = false)
+        {
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            using var client = new TcpClient { NoDelay = true };
+            TcpClient server;
+            try
+            {
+                var accepted = listener.AcceptTcpClientAsync();
+                await client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
+                server = await accepted;
+            }
+            finally
+            {
+                listener.Stop();
+            }
+
+            using (server)
+            {
+                async Task Receive()
+                {
+                    try
+                    {
+                        Stream stream = server.GetStream();
+                        byte[] magic = new byte[4];
+                        int offset = 0;
+                        while (offset < 4)
+                        {
+                            int count = await stream.ReadAsync(magic, offset, 4 - offset, stop);
+                            if (count == 0) throw new EndOfStreamException();
+                            offset += count;
+                        }
+
+                        Assert.That(System.Text.Encoding.ASCII.GetString(magic), Is.EqualTo(V2SceneReconciliationProtocol.Magic));
+                        if (interruptCommit) stream = new InterruptAppliedReconciliationStream(stream);
+                        await V2SceneReconciliationProtocol.ReceiveQuestAsync(stream, quest, stop);
+                    }
+                    finally
+                    {
+                        server.Close();
+                    }
+                }
+
+                async Task Send()
+                {
+                    try
+                    {
+                        await V2SceneReconciliationProtocol.ReconcileDesktopAsync(client.GetStream(), desktop, choose, stop, failBeforeStage ? (_, _) => throw new IOException("Injected retry interruption before staging.") : null);
+                    }
+                    finally
+                    {
+                        client.Close();
+                    }
+                }
+
+                var receive = CaptureReconciliationErrorAsync(Receive);
+                var send = CaptureReconciliationErrorAsync(Send);
+                await Task.WhenAll(receive, send);
+                return (await send, await receive);
+            }
+        }
+
+        private static async Task<Exception> CaptureReconciliationErrorAsync(Func<Task> action)
+        {
+            try
+            {
+                await action();
+                return null;
+            }
+            catch (Exception error)
+            {
+                return error;
+            }
+        }
+
+        private sealed class InterruptAppliedReconciliationStream : Stream
+        {
+            private readonly Stream m_Inner;
+
+            public InterruptAppliedReconciliationStream(Stream inner)
+            {
+                m_Inner = inner;
+            }
+
+            public override bool CanRead => true;
+            public override bool CanWrite => true;
+            public override bool CanSeek => false;
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override void Flush() => m_Inner.Flush();
+            public override Task FlushAsync(CancellationToken token) => m_Inner.FlushAsync(token);
+            public override int Read(byte[] buffer, int offset, int count) => m_Inner.Read(buffer, offset, count);
+            public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token) => m_Inner.ReadAsync(buffer, offset, count, token);
+            public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+            public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken token)
+            {
+                if (count == 5 && buffer[offset] == 6)
+                {
+                    m_Inner.Dispose();
+                    throw new IOException("Injected disconnect after Quest applied reconciliation.");
+                }
+
+                return m_Inner.WriteAsync(buffer, offset, count, token);
+            }
+
+            public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
+            public override void SetLength(long value) => throw new NotSupportedException();
+
+            protected override void Dispose(bool disposing)
+            {
+                if (disposing) m_Inner.Dispose();
+                base.Dispose(disposing);
+            }
+        }
+
+        private static bool IsSelectableSite(Base3DScene scene, Core.Object3D.Site site) => Core.Object3D.SiteAppearance.IsVisible(site.State.IsMasked, site.State.IsOutOfROI, site.State.IsFiltered, site.State.IsBlackListed, scene.ShowAllSites, scene.HideBlacklistedSites);
 
         private static async Task<(QuestDevice Device, byte[] Credential)> GetM2PhysicalPairingAsync(string directory, CancellationToken token)
         {
@@ -802,12 +1084,12 @@ namespace HBP.Tests.SceneTransfer
 
         private static void AssertM2AutomaticCuts(Base3DScene expected, Base3DScene actual, Vector3 sitePosition)
         {
-            Assert.That(actual.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "hbp:auto-cut:axial", "hbp:auto-cut:coronal", "hbp:auto-cut:sagittal" }));
+            Assert.That(actual.Cuts.Select(cut => cut.ID).ToArray(), Is.EqualTo(new[] { "hbp:auto-cut:axial", "hbp:auto-cut:coronal", "hbp:auto-cut:sagittal" }), "Desktop=" + string.Join(",", expected.Cuts.Select(cut => cut.ID)) + "; Quest=" + string.Join(",", actual.Cuts.Select(cut => cut.ID)));
             Assert.That(expected.Cuts.Count, Is.EqualTo(3));
             for (int i = 0; i < 3; i++)
             {
                 Assert.That(actual.Cuts[i].Normal, Is.EqualTo(expected.Cuts[i].Normal));
-                Assert.That(actual.Cuts[i].Position, Is.EqualTo(expected.Cuts[i].Position).Within(0.00001f));
+                Assert.That(actual.Cuts[i].Position, Is.EqualTo(expected.Cuts[i].Position).Within(0.00001f), $"axis={i}, selected={expected.SelectedColumn?.SelectedSite?.Information.FullID}/{actual.SelectedColumn?.SelectedSite?.Information.FullID}, points={expected.SelectedColumn?.SelectedSite?.transform.localPosition}/{actual.SelectedColumn?.SelectedSite?.transform.localPosition}, bounds MRI={expected.MRIManager.SelectedMRI.Volume.BoundingBox}/{actual.MRIManager.SelectedMRI.Volume.BoundingBox}, mesh={expected.MeshManager.ReferenceSurface.BoundingBox}/{actual.MeshManager.ReferenceSurface.BoundingBox}");
                 Assert.That(actual.Cuts[i].Flip, Is.EqualTo(expected.Cuts[i].Flip));
                 Assert.That(Mathf.Abs(Vector3.Dot(sitePosition - actual.Cuts[i].Point, actual.Cuts[i].Normal)), Is.LessThan(0.001f), "The derived plane must pass through the selected site.");
             }

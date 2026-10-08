@@ -25,6 +25,7 @@ namespace HBP.Sync.Scene
         private int m_ChunkCount;
         private int m_NextChunk;
         private int m_TotalLength;
+        private V2BarrierScope m_BarrierScope;
 
         public bool IsActive => m_Body != null;
         public OperationId ActiveOperationId => m_Descriptor?.MessageId;
@@ -67,8 +68,11 @@ namespace HBP.Sync.Scene
 
         public bool IsMutationDescriptor(V2TransportRecord record)
         {
-            if (record == null || record.Kind != V2TransportMessageKind.Application || record.Lane != V2ScheduleLane.SceneControl || record.BodySchema != BodySchema || record.ChunkIndex.HasValue || record.PayloadLength < DescriptorMagic.Length + 2)
+            if (record == null || record.Kind != V2TransportMessageKind.Application || record.ChunkIndex.HasValue || record.PayloadLength < DescriptorMagic.Length + 2)
                 return false;
+            bool mutation = record.Lane == V2ScheduleLane.SceneControl && record.BodySchema == BodySchema;
+            bool decision = record.Lane == V2ScheduleLane.Interactive && record.BodySchema == V2QuestProposalDecisionCodec.BodySchema && record.OriginDevice == V2OriginDevice.Desktop && !record.CanonicalSequence.HasValue && !record.ObservedCanonicalSequence.HasValue;
+            if (!mutation && !decision) return false;
             byte[] payload = record.GetPayloadCopy();
             for (int i = 0; i < DescriptorMagic.Length; i++)
                 if (payload[i] != DescriptorMagic[i])
@@ -103,7 +107,7 @@ namespace HBP.Sync.Scene
                 ushort touchedKeyCount = reader.ReadUInt16();
                 byte[] touchedKeyFingerprints = reader.ReadBytes(touchedKeyCount * 16);
 
-                if (digestLength != 32 || digest.Length != digestLength || bodySchema != BodySchema || totalLength == 0 || totalLength > MaximumBodyBytes || chunkSize == 0 || chunkSize > MaximumChunkBytes || chunkCount == 0 || chunkCount != (totalLength + chunkSize - 1) / chunkSize || barrierScope != V2BarrierScope.AllScene || touchedKeyCount == 0 || touchedKeyCount > 128 || touchedKeyFingerprints.Length != touchedKeyCount * 16 || stream.Position != stream.Length)
+                if (digestLength != 32 || digest.Length != digestLength || bodySchema != record.BodySchema || totalLength == 0 || totalLength > MaximumBodyBytes || chunkSize == 0 || chunkSize > MaximumChunkBytes || chunkCount == 0 || chunkCount != (totalLength + chunkSize - 1) / chunkSize || (bodySchema == BodySchema && barrierScope != V2BarrierScope.AllScene) || !Enum.IsDefined(typeof(V2BarrierScope), barrierScope) || touchedKeyCount == 0 || touchedKeyCount > 128 || touchedKeyFingerprints.Length != touchedKeyCount * 16 || stream.Position != stream.Length)
                     throw new InvalidDataException("Invalid scene-operation bulk descriptor fields.");
                 if (!record.MessageId.Equals(operationId) || !V2BulkStreamIdentityCodec.TryGetOrdinal(record.SessionId, record.OriginDevice, streamId, out _))
                     throw new InvalidDataException("Scene-operation bulk descriptor identity does not match its transport record.");
@@ -117,6 +121,7 @@ namespace HBP.Sync.Scene
                 m_ChunkSize = (int)chunkSize;
                 m_ChunkCount = (int)chunkCount;
                 m_TotalLength = (int)totalLength;
+                m_BarrierScope = barrierScope;
                 m_Body = new MemoryStream(m_TotalLength);
             }
             catch (EndOfStreamException exception)
@@ -135,7 +140,7 @@ namespace HBP.Sync.Scene
             completed = null;
             if (m_Body == null || record == null || record.Lane != V2ScheduleLane.Bulk || !record.ChunkIndex.HasValue || !record.StreamId.Equals(m_BulkStreamId))
                 return false;
-            if (!record.SessionId.Equals(m_Descriptor.SessionId) || !record.SceneId.Equals(m_Descriptor.SceneId) || !record.IncarnationId.Equals(m_Descriptor.IncarnationId) || !record.MessageId.Equals(m_Descriptor.MessageId) || record.OriginDevice != m_Descriptor.OriginDevice || record.BodySchema != BodySchema || record.ChunkIndex.Value != m_NextChunk)
+            if (!record.SessionId.Equals(m_Descriptor.SessionId) || !record.SceneId.Equals(m_Descriptor.SceneId) || !record.IncarnationId.Equals(m_Descriptor.IncarnationId) || !record.MessageId.Equals(m_Descriptor.MessageId) || record.OriginDevice != m_Descriptor.OriginDevice || record.BodySchema != m_Descriptor.BodySchema || record.ChunkIndex.Value != m_NextChunk)
                 throw new InvalidDataException("Scene-operation bulk chunk is out of order or has mismatched identity.");
 
             int expectedBytes = Math.Min(m_ChunkSize, m_TotalLength - checked(m_NextChunk * m_ChunkSize));
@@ -152,16 +157,25 @@ namespace HBP.Sync.Scene
                 if (!Equal(sha.ComputeHash(body), m_Digest))
                     throw new InvalidDataException("Scene-operation bulk body digest mismatch.");
 
-            V2Mutation mutation = V2MutationPayloadCodec.Decode(body);
+            V2Mutation mutation;
+            if (m_Descriptor.BodySchema == V2QuestProposalDecisionCodec.BodySchema)
+            {
+                V2QuestProposalDecision decision = V2QuestProposalDecisionCodec.Decode(body, m_Descriptor.SceneId, m_Descriptor.IncarnationId);
+                if (!decision.OperationId.Equals(m_Descriptor.MessageId) || decision.Correction == null)
+                    throw new InvalidDataException("A bulk proposal decision must contain its matching authoritative correction.");
+                mutation = decision.Correction.AuthoritativeMutation;
+            }
+            else mutation = V2MutationPayloadCodec.Decode(body);
+
             V2ScheduleDescriptor expected = V2ScheduleDescriptor.ForMutation(m_Descriptor.SceneId, m_Descriptor.IncarnationId, mutation);
             byte[] expectedFingerprints = expected.EncodeTouchedKeyFingerprints();
-            if (expected.BarrierScope != V2BarrierScope.AllScene || expected.TouchedKeys.Count != m_TouchedKeyFingerprints.Length / 16 || expectedFingerprints.Length != m_TouchedKeyFingerprints.Length + 2)
+            if (expected.BarrierScope != m_BarrierScope || expected.TouchedKeys.Count != m_TouchedKeyFingerprints.Length / 16 || expectedFingerprints.Length != m_TouchedKeyFingerprints.Length + 2)
                 throw new InvalidDataException("Scene-operation bulk descriptor does not match its mutation barrier.");
             for (int i = 0; i < m_TouchedKeyFingerprints.Length; i++)
                 if (expectedFingerprints[i + 2] != m_TouchedKeyFingerprints[i])
                     throw new InvalidDataException("Scene-operation bulk descriptor touched keys do not match its mutation.");
 
-            completed = new V2TransportRecord(m_Descriptor.Kind, m_Descriptor.SessionId, m_Descriptor.SceneId, m_Descriptor.IncarnationId, m_Descriptor.MessageId, m_Descriptor.StreamId, m_Descriptor.ReliableFrameSequence, m_Descriptor.OriginSequence, m_Descriptor.OriginDevice, m_Descriptor.Lane, BodySchema, payload: body, canonicalSequence: m_Descriptor.CanonicalSequence, observedCanonicalSequence: m_Descriptor.ObservedCanonicalSequence);
+            completed = new V2TransportRecord(m_Descriptor.Kind, m_Descriptor.SessionId, m_Descriptor.SceneId, m_Descriptor.IncarnationId, m_Descriptor.MessageId, m_Descriptor.StreamId, m_Descriptor.ReliableFrameSequence, m_Descriptor.OriginSequence, m_Descriptor.OriginDevice, m_Descriptor.Lane, m_Descriptor.BodySchema, payload: body, canonicalSequence: m_Descriptor.CanonicalSequence, observedCanonicalSequence: m_Descriptor.ObservedCanonicalSequence);
             completed.SetReceivePoints(m_Descriptor.FirstReceived, record.LastReceived);
             Reset();
             return true;

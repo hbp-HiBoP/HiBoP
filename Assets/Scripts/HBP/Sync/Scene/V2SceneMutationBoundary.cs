@@ -6,6 +6,8 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
@@ -251,6 +253,7 @@ namespace HBP.Sync.Scene
         private V2Mutation m_LastMeshDisplay;
         private V2Mutation m_LastSelectedMri;
         private V2Mutation m_LastMriCalibration;
+        private V2Mutation m_LastSitePlacement;
         private V2Mutation m_LastImplantation;
         private V2Mutation m_LastTriangleMask;
         private V2Mutation m_LastSelectedColumn;
@@ -299,6 +302,7 @@ namespace HBP.Sync.Scene
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
+            m_LastSitePlacement = new MoveSites(scene.SitePlacement switch { SitePlacementMode.Left => V2SiteMoveCommand.Left, SitePlacementMode.Right => V2SiteMoveCommand.Right, _ => V2SiteMoveCommand.Reset });
             m_Scene.AtlasUseAdmission += SessionAtlasCatalog.Require;
             BindSceneTargets(scene);
         }
@@ -400,6 +404,7 @@ namespace HBP.Sync.Scene
         public void Apply(V2Mutation mutation, V2MutationApplicationOrigin origin, OperationId operationId)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
+            if (origin != V2MutationApplicationOrigin.Remote && m_ReconciliationLock != null) return;
             // Canonicals and corrections can restore a retained selection whose site is now hidden.
             bool allowRetainedSiteSelection = origin == V2MutationApplicationOrigin.Remote;
             ValidateMutation(mutation, allowRetainedSiteSelection);
@@ -1252,6 +1257,8 @@ namespace HBP.Sync.Scene
             var records = new List<V2T10CheckpointRecord>();
             void Add(V2Mutation mutation) => records.Add(new V2T10CheckpointRecord(mutation));
 
+            Add(new MoveSites(m_Scene.SitePlacement switch { SitePlacementMode.Left => V2SiteMoveCommand.Left, SitePlacementMode.Right => V2SiteMoveCommand.Right, _ => V2SiteMoveCommand.Reset }));
+
             foreach (SceneCut cut in m_Scene.Cuts)
             {
                 CutId id = m_CutIds[cut];
@@ -1271,10 +1278,10 @@ namespace HBP.Sync.Scene
 
             if (m_ResourceCatalog != null)
             {
-                if (m_Scene.MeshManager?.SelectedMesh != null) Add(CreateMeshDisplayMutation());
-                if (m_Scene.MRIManager?.SelectedMRI != null) Add(CreateSelectedMriMutation());
-                if (m_Scene.ImplantationManager?.SelectedImplantation != null) Add(CreateImplantationMutation());
-                if (m_Scene.MeshManager?.SelectedMesh != null && m_Scene.TriangleEraser != null) Add(CreateTriangleMaskMutation());
+                if (m_Scene.MeshManager?.Meshes.Count > 0) Add(CreateMeshDisplayMutation());
+                if (m_Scene.MRIManager?.MRIs.Count > 0) Add(CreateSelectedMriMutation());
+                if (m_Scene.ImplantationManager?.Implantations.Count > 0) Add(CreateImplantationMutation());
+                if (m_Scene.MeshManager?.Meshes.Count > 0 && m_Scene.TriangleEraser != null) Add(CreateTriangleMaskMutation());
             }
 
             return records;
@@ -1395,7 +1402,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private static bool IsCheckpointT10Mutation(V2Mutation mutation) => mutation.Type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask;
+        private static bool IsCheckpointT10Mutation(V2Mutation mutation) => mutation.Type is V2OperationType.CreateCut or V2OperationType.SetCutOrder or V2OperationType.CreateRoi or V2OperationType.SetActiveRoi or V2OperationType.SetMeshDisplay or V2OperationType.SetSelectedMri or V2OperationType.SetMriCalibration or V2OperationType.SetImplantation or V2OperationType.ApplyTriangleMask or V2OperationType.MoveSites;
 
         private void ApplyCheckpointT10Records(IReadOnlyList<V2T10CheckpointRecord> records)
         {
@@ -1415,6 +1422,7 @@ namespace HBP.Sync.Scene
                 V2OperationType.SetMriCalibration => 6,
                 V2OperationType.SetImplantation => 7,
                 V2OperationType.ApplyTriangleMask => 8,
+                V2OperationType.MoveSites => 9,
                 _ => throw new ArgumentException("Unsupported T10 checkpoint mutation.", nameof(mutation))
             };
 
@@ -1580,11 +1588,23 @@ namespace HBP.Sync.Scene
             ApplyCheckpointCore(checkpoint, operationId, null, restoreOptimisticProvenance: false, updateProvenance: false);
         }
 
-        private void ApplyCheckpointCore(V2SceneMutationCheckpoint checkpoint, OperationId operationId, SiteConfigurationProvenanceSnapshot provenance, bool restoreOptimisticProvenance, bool updateProvenance)
+        public async Task PrepareCheckpointAsync(V2SceneMutationCheckpoint checkpoint, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(stop);
+            foreach (var display in checkpoint.T10Records.Select(record => record.Value).OfType<SetMeshDisplay>())
+            {
+                Mesh3D mesh = m_ResourceCatalog.ResolveMesh(display.MeshId.Value);
+                if (display.Representation == V2SurfaceRepresentation.Inflated && !mesh.HasInflatedRepresentation)
+                    await mesh.GenerateInflatedRepresentationAsync(cancellationToken: stop);
+            }
+
+            await UniTask.SwitchToMainThread(stop);
+            ValidateCheckpoint(checkpoint);
+        }
+
+        public void ValidateCheckpoint(V2SceneMutationCheckpoint checkpoint)
         {
             if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
-            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
-
             var siteKeys = new HashSet<(ColumnId, SiteId)>();
             foreach (SiteColorCheckpointRecord record in checkpoint.SiteColors)
             {
@@ -1626,6 +1646,102 @@ namespace HBP.Sync.Scene
                     continue;
                 ValidateMutation(record.Value, allowRetainedSiteSelection: true);
             }
+        }
+
+        private V2SceneMutationCheckpoint m_ReconciliationLock;
+        private Dictionary<SiteState, (SitePresentationSnapshot Presentation, bool Filtered)> m_ReconciliationSites;
+        private bool m_RestoringLockedSite;
+
+        public IDisposable LockForReconciliation()
+        {
+            if (m_ReconciliationLock != null) throw new InvalidOperationException("This scene is already reconciling.");
+            m_ReconciliationLock = CaptureCheckpoint();
+            RememberLockedSites();
+            return new ReconciliationLock(this);
+        }
+
+        private sealed class ReconciliationLock : IDisposable
+        {
+            private V2SceneMutationBoundary m_Owner;
+            private readonly IDisposable m_FilterRouter, m_CorrelationRouter;
+            private readonly Func<bool> m_PreviousProjectionHandler;
+            private readonly Func<Core.Object3D.SurfaceRepresentation, IProgress<float>, CancellationToken, bool, UniTask> m_PreviousRepresentationHandler;
+
+            public ReconciliationLock(V2SceneMutationBoundary owner)
+            {
+                m_Owner = owner;
+                try
+                {
+                    m_FilterRouter = V2SiteFilterRequestRouter.Register(owner.m_Scene, this, (_, _) => Task.FromResult(false));
+                    m_CorrelationRouter = V2CorrelationRequestRouter.Register(owner.m_Scene, this, (_, _) => Task.FromResult(false));
+                    m_PreviousProjectionHandler = owner.m_Scene.ActivityProjectionStartHandler;
+                    m_PreviousRepresentationHandler = owner.m_Scene.SurfaceRepresentationRequestHandler;
+                    owner.m_Scene.ActivityProjectionStartHandler = () => true;
+                    owner.m_Scene.SurfaceRepresentationRequestHandler = (_, _, _, _) => UniTask.CompletedTask;
+                    owner.m_Scene.OnChangeDisplayCorrelations.AddListener(owner.RestoreReconciliationState);
+                }
+                catch
+                {
+                    m_FilterRouter?.Dispose();
+                    m_CorrelationRouter?.Dispose();
+                    owner.m_ReconciliationLock = null;
+                    throw;
+                }
+            }
+
+            public void Dispose()
+            {
+                if (m_Owner == null) return;
+                m_Owner.m_ReconciliationLock = null;
+                m_Owner.m_ReconciliationSites = null;
+                m_FilterRouter.Dispose();
+                m_CorrelationRouter.Dispose();
+                if (m_Owner.m_Scene)
+                {
+                    m_Owner.m_Scene.ActivityProjectionStartHandler = m_PreviousProjectionHandler;
+                    m_Owner.m_Scene.SurfaceRepresentationRequestHandler = m_PreviousRepresentationHandler;
+                    m_Owner.m_Scene.OnChangeDisplayCorrelations.RemoveListener(m_Owner.RestoreReconciliationState);
+                }
+
+                m_Owner = null;
+            }
+        }
+
+        private void RememberLockedSites() => m_ReconciliationSites = m_SitePresentationStates.ToDictionary(entry => entry.Key, entry => (entry.Value, entry.Key.IsFiltered));
+
+        private void RestoreReconciliationState()
+        {
+            if (m_ReconciliationLock == null || ShouldSuppressPublication()) return;
+            ApplyCheckpoint(m_ReconciliationLock, new OperationId(Guid.NewGuid()));
+        }
+
+        private bool RestoreLockedSite(SiteState state)
+        {
+            if (m_ReconciliationLock == null || ShouldSuppressPublication() || m_RestoringLockedSite || !m_ReconciliationSites.TryGetValue(state, out var held)) return false;
+            m_RestoringLockedSite = true;
+            try
+            {
+                using (V2MutationApplicationContext.EnterRemote(new OperationId(Guid.NewGuid())))
+                {
+                    var value = held.Presentation;
+                    state.ApplySpecificState(true, value.Highlighted, true, value.Blacklisted, true, value.Color, true, value.Labels);
+                    state.IsFiltered = held.Filtered;
+                }
+
+                return true;
+            }
+            finally
+            {
+                m_RestoringLockedSite = false;
+            }
+        }
+
+        private void ApplyCheckpointCore(V2SceneMutationCheckpoint checkpoint, OperationId operationId, SiteConfigurationProvenanceSnapshot provenance, bool restoreOptimisticProvenance, bool updateProvenance)
+        {
+            if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
+            if (operationId == null) throw new ArgumentNullException(nameof(operationId));
+
+            ValidateCheckpoint(checkpoint);
 
             using (V2MutationApplicationContext.EnterRemote(operationId))
             {
@@ -1646,6 +1762,12 @@ namespace HBP.Sync.Scene
                         m_Scene.ResetCorrelations();
                     if (m_Scene != null) m_Scene.DisplayCorrelations = correlationRecord.DisplayCorrelations;
                 }
+            }
+
+            if (m_ReconciliationLock != null)
+            {
+                m_ReconciliationLock = checkpoint;
+                RememberLockedSites();
             }
 
             if (updateProvenance)
@@ -2000,7 +2122,7 @@ namespace HBP.Sync.Scene
             foreach ((V2Mutation mutation, V2Mutation rollback) in capture.Children)
             {
                 if (IsSiteConfigurationMutation(mutation)) continue;
-                if (mutation is MoveSites or SetTimelineAnchor)
+                if (mutation is SetTimelineAnchor)
                     throw new InvalidOperationException("Configuration transactions only support reversible configuration mutations.");
 
                 V2MutationDescriptor descriptor = V2MutationDescriptor.Create(validationScene, validationIncarnation, mutation);
@@ -2191,6 +2313,7 @@ namespace HBP.Sync.Scene
 
         private void OnBoundSiteStateChanged(SiteState state)
         {
+            if (RestoreLockedSite(state)) return;
             if (!m_Sites.TryGetValue(state, out List<SiteTarget> targets)) return;
             SitePresentationSnapshot previous = m_SitePresentationStates[state];
             RecordConfigurationSiteBefore(state, previous);
@@ -2547,7 +2670,7 @@ namespace HBP.Sync.Scene
                 SitePositionCommand.Reset => V2SiteMoveCommand.Reset,
                 _ => throw new ArgumentOutOfRangeException(nameof(command))
             };
-            if (!ShouldSuppressPublication()) Publish(new MoveSites(mapped));
+            ObserveT10(ref m_LastSitePlacement, new MoveSites(mapped));
         }
 
         private static SetColumnSpan CreateStaticSpan(Column3DStatic column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), V2ColumnSpanKind.Static, column.StaticParameters.SpanMin, column.StaticParameters.Middle, column.StaticParameters.SpanMax);
@@ -2643,7 +2766,7 @@ namespace HBP.Sync.Scene
                 CreateRoiSphere value => CurrentSphereMutation(value.RoiId, value.Definition.SphereId),
                 DeleteRoiSphere value => CurrentSphereCreationMutation(value.RoiId, value.SphereId),
                 SetRoiSphereDefinition value => CurrentSphereMutation(value.RoiId, value.Definition.SphereId),
-                MoveSites value => value,
+                MoveSites => new MoveSites(m_Scene.SitePlacement switch { SitePlacementMode.Left => V2SiteMoveCommand.Left, SitePlacementMode.Right => V2SiteMoveCommand.Right, _ => V2SiteMoveCommand.Reset }),
                 SetMeshDisplay => CreateMeshDisplayMutation(),
                 SetSelectedMri => CreateSelectedMriMutation(),
                 SetMriCalibration => new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor),
@@ -2707,7 +2830,6 @@ namespace HBP.Sync.Scene
         {
             switch (child)
             {
-                case MoveSites:
                 case SetTimelineAnchor:
                     throw new InvalidOperationException("Configuration transactions only support reversible configuration mutations.");
                 case CreateCut value:
@@ -2990,7 +3112,10 @@ namespace HBP.Sync.Scene
                     break;
                 case DeleteRoiSphere value: ResolveSphere(value.RoiId, value.SphereId); break;
                 case SetRoiSphereDefinition value: ResolveSphere(value.RoiId, value.Definition.SphereId); break;
-                case MoveSites: break;
+                case MoveSites value:
+                    if (value.Command != V2SiteMoveCommand.Reset && (m_Scene.MRIManager == null || m_Scene.MRIManager.MRIs.Count == 0 || m_Scene.MRIManager.SelectedMRI.Volume == null || m_Scene.MeshManager == null || m_Scene.MeshManager.Meshes.Count == 0))
+                        throw new InvalidOperationException("Hemisphere site placement requires the prepared MRI and mesh.");
+                    break;
                 case SetMeshDisplay value:
                     RequireResourceCatalog();
                     Mesh3D mesh = m_ResourceCatalog.ResolveMesh(value.MeshId.Value);
@@ -3784,6 +3909,7 @@ namespace HBP.Sync.Scene
 
         private void OnSiteColorChanged(SiteState state)
         {
+            if (RestoreLockedSite(state)) return;
             if (m_Disposed || !m_Sites.TryGetValue(state, out List<SiteTarget> targets)) return;
             if (m_SitePresentationStates.TryGetValue(state, out SitePresentationSnapshot previous))
                 RecordConfigurationSiteBefore(state, previous);
@@ -3904,6 +4030,13 @@ namespace HBP.Sync.Scene
 
         private void Publish(V2Mutation mutation, V2Mutation rollback = null)
         {
+            if (V2MutationApplicationContext.TryGetCurrent(out var currentOrigin, out _, out _, out var nested) && (currentOrigin == V2MutationApplicationOrigin.Remote || nested)) return;
+            if (m_ReconciliationLock != null)
+            {
+                ApplyCheckpoint(m_ReconciliationLock, new OperationId(Guid.NewGuid()));
+                return;
+            }
+
             if (m_ConfigurationMutationCapture != null)
             {
                 m_ConfigurationMutationCapture.Children.Add((mutation, rollback));

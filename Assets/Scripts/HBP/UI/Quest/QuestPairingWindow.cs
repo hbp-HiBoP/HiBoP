@@ -70,7 +70,7 @@ namespace HBP.UI.Quest
 
         private async UniTask PairAsync()
         {
-            if (manual.isOn) connection.SelectManual(address.text);
+            if (manual.isOn && !connection.CanRetryReconciliation) connection.SelectManual(address.text);
             await connection.PairAsync(token => DialogBoxManager.OpenInputAsync("Pair with Quest", "Enter the six-digit code displayed in your Quest.", "• • • • • •", "Pair", "Cancel", token));
         }
 
@@ -92,7 +92,8 @@ namespace HBP.UI.Quest
             devices.interactable = !connection.IsBusy && !manual.isOn && connection.Devices.Count > 0;
             address.interactable = !connection.IsBusy;
             manual.interactable = !connection.IsBusy;
-            pair.interactable = !connection.IsBusy && !connection.IsPaired && (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection);
+            pair.interactable = !connection.IsBusy && (connection.CanRetryReconciliation || !connection.IsPaired && (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection));
+            pair.GetComponentInChildren<Text>().text = connection.CanRetryReconciliation ? "Retry" : "Pair";
             status.text = connection.Status;
         }
 
@@ -117,6 +118,7 @@ namespace HBP.UI.Quest
                     await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", connection.Status);
                 return;
             }
+
             bool paired = connection.IsPaired;
             string result = connection.Status;
             base.OK();

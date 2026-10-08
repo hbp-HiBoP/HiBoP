@@ -33,6 +33,7 @@ namespace HBP.Quest.Desktop
         public string SelectedId { get; private set; }
         public bool IsBusy => busy;
         public bool LastOperationCancelled { get; private set; }
+        public bool CanRetryReconciliation => reconciliationNeedsRetry;
         private IDisposable pairingTiming;
         public bool IsPaired => connected && credential != null;
         public bool CanRetry => offer?.CanRetry == true && failedDelivery && IsPaired;
@@ -43,6 +44,8 @@ namespace HBP.Quest.Desktop
         private SceneDelivery offer;
         private DesktopReplicaSession replica;
         private DesktopV2ReplicaSession publicationReplica;
+        private V2SceneReconciliationRecord reconciliation;
+        private bool reconciliationNeedsRetry;
         private PairingSnapshot globals;
         private DesktopSessionPreferences sessionPreferences;
         private readonly SemaphoreSlim sessionOperations = new(1, 1);
@@ -50,7 +53,7 @@ namespace HBP.Quest.Desktop
         private long discoveryGeneration;
         public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
         public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
-        public bool HasSharedScene => publicationReplica != null && !publicationReplica.IsClosed || replica != null && !replica.IsClosed;
+        public bool HasSharedScene => publicationReplica != null && !publicationReplica.IsClosed || replica != null && !replica.IsClosed || reconciliation != null && reconciliation.Scene && !reconciliation.Scene.IsClosing;
         public Task<string> ValidatePreferencesChangeAsync(NormalizationType requested) => IsPaired && sessionPreferences != null ? sessionPreferences.ValidateNormalizationAsync(requested, HasSharedScene) : Task.FromResult(ValidatePreferencesChangeNow(requested));
         public string ValidatePreferencesChangeNow(NormalizationType requested) => requested != PersistentDataManager.UserPreferences.Data.EEG.Normalization && (HasSharedScene || IsBusy || sessionPreferences?.QuestHasSharedScene == true) ? "Close shared visualizations and wait for the Quest operation to finish before changing EEG normalization." : null;
 
@@ -139,13 +142,13 @@ namespace HBP.Quest.Desktop
                 discovering = DiscoverAsync();
             }
 
-            if (!busy && reconnect && credential != null && Time.unscaledTime >= nextHeartbeat)
+            if (!busy && reconnect && credential != null && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
             {
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>
                 {
                     bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
-                    if (!connected || !ready) await RestoreAsync(token);
+                    if (!connected || !ready || publicationReplica == null && reconciliation != null && !reconciliationNeedsRetry && reconciliation.Status != V2ReconciliationStatus.Orphan) await RestoreAsync(token);
                 });
             }
         }
@@ -170,6 +173,12 @@ namespace HBP.Quest.Desktop
         public void Select(QuestDevice device)
         {
             if (busy || device == null || device.Pin == null) return;
+            if (device.Id == SelectedId && pin != null && pin.SequenceEqual(device.Pin))
+            {
+                endpoint = device.Host;
+                return;
+            }
+
             ClearPairing();
             manualSelected = false;
             endpoint = device.Host;
@@ -182,6 +191,7 @@ namespace HBP.Quest.Desktop
         public void SelectManual(string address)
         {
             if (busy) return;
+            if (pin != null && string.Equals(endpoint, address?.Trim(), StringComparison.Ordinal)) return;
             ClearPairing();
             manualSelected = true;
             endpoint = address?.Trim();
@@ -192,6 +202,7 @@ namespace HBP.Quest.Desktop
         {
             return RunAsync(async token =>
             {
+                reconciliationNeedsRetry = false;
                 if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
                 if (pin == null)
                 {
@@ -261,7 +272,55 @@ namespace HBP.Quest.Desktop
             }
 
             nextHeartbeat = Time.unscaledTime + 5;
-            SetStatus("Quest paired and ready for a visualization.");
+            if (reconciliation != null && publicationReplica == null && reconciliation.Status != V2ReconciliationStatus.Orphan)
+                await ReconcileRetainedSceneAsync(token);
+            else SetStatus("Quest paired and ready for a visualization.");
+        }
+
+        private async Task ReconcileRetainedSceneAsync(CancellationToken token)
+        {
+            try
+            {
+                SetStatus("Reconnecting: comparing scene changes...");
+                await QuestPairing.OpenReplicaAsync(endpoint, pin, credential, token, (stream, stop) => V2SceneReconciliationProtocol.ReconcileDesktopAsync(stream, reconciliation, ChooseConflictAsync, stop, RunReconciliationApplyAsync));
+                await UniTask.SwitchToMainThread(token);
+                if (reconciliation.Status == V2ReconciliationStatus.Orphan)
+                {
+                    SetStatus(reconciliation.Message);
+                    return;
+                }
+
+                var binding = reconciliation.Binding;
+                publicationReplica = new DesktopV2ReplicaSession(reconciliation.Scene, binding.GlobalContextId, binding.TransferId);
+                await publicationReplica.StartAfterPublicationAsync(binding, endpoint, pin, credential, token);
+                await UniTask.SwitchToMainThread(token);
+                SetStatus("Scene synchronized with Quest.");
+            }
+            catch
+            {
+                await UniTask.SwitchToMainThread();
+                reconciliationNeedsRetry = true;
+                SetStatus(reconciliation.Message ?? "Reconnection interrupted. Select Retry to try again.");
+                throw;
+            }
+        }
+
+        private static async Task RunReconciliationApplyAsync(Func<CancellationToken, Task> apply, CancellationToken stop)
+        {
+            await LoadingManager.LoadDelayedAsync(async (update, token) =>
+            {
+                update(0.1f, 0, new LoadingText("Applying merged changes"));
+                await apply(token);
+                await UniTask.SwitchToMainThread(token);
+                update(1, 0, new LoadingText("Changes merged"));
+            }, stop);
+        }
+
+        private static async Task<V2ConflictChoice> ChooseConflictAsync(V2CheckpointConflict conflict, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(stop);
+            int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
+            return answer == 0 ? V2ConflictChoice.Desktop : V2ConflictChoice.Quest;
         }
 
         private async Task<DeliveryReceipt> SendGlobalsAsync(Stream stream, CancellationToken token)
@@ -276,7 +335,10 @@ namespace HBP.Quest.Desktop
                     transfer = null;
                 });
             }
-            finally { transfer?.Dispose(); }
+            finally
+            {
+                transfer?.Dispose();
+            }
         }
 
         public async Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
@@ -349,6 +411,9 @@ namespace HBP.Quest.Desktop
                                     }));
                                     await UniTask.SwitchToMainThread(stop);
                                     var binding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
+                                    reconciliation?.Dispose();
+                                    reconciliation = V2SceneReconciliationRecord.Retain(owner.Scene, binding);
+                                    reconciliationNeedsRetry = false;
                                     await owner.StartAfterPublicationAsync(binding, endpoint, pin, credential, publicationStop.Token);
                                     update(1, 0, new LoadingText("Visualization ready on Quest"));
                                     return (receipt, null);
@@ -459,6 +524,11 @@ namespace HBP.Quest.Desktop
                     credential = null;
                     SetStatus("Pairing refused. Check the Quest code and try again.");
                 }
+                else if (reconciliationNeedsRetry)
+                {
+                    LastOperationCancelled = exception is OperationCanceledException || attempt.IsCancellationRequested;
+                    SetStatus((reconciliation?.Message ?? "Reconnection interrupted.") + " Select Retry.");
+                }
                 else if (exception is OperationCanceledException || attempt.IsCancellationRequested)
                 {
                     LastOperationCancelled = true;
@@ -491,12 +561,15 @@ namespace HBP.Quest.Desktop
                 long generation = ++discoveryGeneration;
                 var context = SynchronizationContext.Current;
                 var found = new List<QuestDevice>();
-                void Discovered(QuestDevice device) => context.Post(_ =>
-                {
-                    if (!this || lifetime.IsCancellationRequested || !scanning || generation != discoveryGeneration) return;
-                    found.Add(device);
-                    PublishDiscovery(found, false);
-                }, null);
+
+                void Discovered(QuestDevice device) =>
+                    context.Post(_ =>
+                    {
+                        if (!this || lifetime.IsCancellationRequested || !scanning || generation != discoveryGeneration) return;
+                        found.Add(device);
+                        PublishDiscovery(found, false);
+                    }, null);
+
                 var pending = new Dictionary<Task<List<QuestDevice>>, string>
                 {
                     [QuestDiscovery.FindAsync(lifetime.Token, Discovered)] = "Wi-Fi",
@@ -508,11 +581,19 @@ namespace HBP.Quest.Desktop
                     var completed = await Task.WhenAny(pending.Keys);
                     string source = pending[completed];
                     pending.Remove(completed);
-                    try { found.AddRange(await completed); }
-                    catch (Exception) when (!lifetime.IsCancellationRequested) { messages.Add(source + " discovery unavailable"); }
+                    try
+                    {
+                        found.AddRange(await completed);
+                    }
+                    catch (Exception) when (!lifetime.IsCancellationRequested)
+                    {
+                        messages.Add(source + " discovery unavailable");
+                    }
+
                     if (!this || lifetime.IsCancellationRequested) return;
                     PublishDiscovery(found, pending.Count == 0);
                 }
+
                 if (!manualSelected && SelectedId != null)
                 {
                     QuestDevice selected = devices.FirstOrDefault(x => x.Id == SelectedId);
@@ -533,8 +614,7 @@ namespace HBP.Quest.Desktop
 
         private void PublishDiscovery(List<QuestDevice> found, bool complete)
         {
-            devices = (complete ? found : found.Concat(devices)).GroupBy(x => x.Id)
-                .Select(g => g.OrderBy(x => x.UsbSerial == null).First()).OrderBy(x => x.Label).ToList();
+            devices = (complete ? found : found.Concat(devices)).GroupBy(x => x.Id).Select(g => g.OrderBy(x => x.UsbSerial == null).First()).OrderBy(x => x.Label).ToList();
             if (!manualSelected && !busy && SelectedId == null && devices.Count > 0) Select(devices[0]);
             Changed?.Invoke();
         }
@@ -559,6 +639,9 @@ namespace HBP.Quest.Desktop
 
         private void ClearPairing()
         {
+            reconciliation?.Dispose();
+            reconciliation = null;
+            reconciliationNeedsRetry = false;
             sessionPreferences?.Dispose();
             sessionPreferences = null;
             replica?.Dispose();

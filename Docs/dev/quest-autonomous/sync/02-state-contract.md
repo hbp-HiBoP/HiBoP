@@ -61,7 +61,7 @@ Identifiers are not collection indices. Cuts, ROI, spheres, columns and resource
 
 A `SceneCheckpoint` is a detached, bounded representation of all synchronized properties for one incarnation. It exists for:
 
-- fallback initial live-state agreement when the normal capture-boundary journal cannot prove/replay continuity;
+- initial live-state agreement after prepared delivery, including shared state not represented in source geometry;
 - user-selected reconciliation after a confirmed disconnection;
 - optional diagnostics that detect missed mutation routes during development.
 
@@ -69,9 +69,9 @@ It is forbidden as the normal change detector. Creating one may be O(scene); ord
 
 The checkpoint includes current identities, collections, parameters, site state, masks, selections, timeline anchors and available canonical filter/correlation results. It excludes mesh/MRI/functional source bytes, Unity objects, derived render meshes/textures and local presentation.
 
-A checkpoint is composed from the same typed state records and validation/apply handlers that own each operation family. Each family adds its checkpoint export/apply coverage when its handler is implemented. A generic `StateKey -> byte[]` map, reflection capture, post-hoc whole-scene diff or global invalidation is forbidden. Checkpoint support must not be deferred into a second monolithic adapter at reconciliation time.
+A checkpoint is composed from the same typed state records and validation/apply handlers that own each operation family. Each family adds its checkpoint export/apply coverage when its handler is implemented. Production capture and application remain owned by the typed family handlers. T16 builds a detached semantic comparison view from those typed records solely for reconnect merging; this view never observes UI events or replaces normal mutation routing.
 
-Checkpoint identity is maintained incrementally by accepted typed handlers (for example a versioned aggregate/Merkle-style composition chosen in T03), with O(change) update cost. Reconnect handshake must not rebuild or hash a 30,000-site checkpoint by traversing the scene.
+The confirmed common-state semantic digest is maintained incrementally as online mutations are confirmed. At reconnect, capturing current local state may traverse the scene once; the user deferred numerical performance gates in favor of assessing actual responsiveness. Natural playback advancement is distinguished from explicit timeline edits. Scene and column pose remain local. Shared hemisphere placement is represented by the absolute original/left/right mode and restored after prepared resource choices.
 
 ## Atomicity and validation
 
