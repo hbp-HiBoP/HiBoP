@@ -17,3 +17,6 @@ MonoBehaviour:
   EnableDistantAnatomy: 1
   RayWidth: 0.002
   FeedbackColor: {fileID: 11400000, guid: 15842a1529d9b964b99ca5b8f89d29e3, type: 2}
+  SiteProbeRadius: 0.0005
+  SiteHapticAmplitude: 0.2
+  SiteHapticDuration: 0.025

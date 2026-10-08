@@ -400,7 +400,9 @@ namespace HBP.Sync.Scene
         public void Apply(V2Mutation mutation, V2MutationApplicationOrigin origin, OperationId operationId)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
-            ValidateMutation(mutation);
+            // Canonicals and corrections can restore a retained selection whose site is now hidden.
+            bool allowRetainedSiteSelection = origin == V2MutationApplicationOrigin.Remote;
+            ValidateMutation(mutation, allowRetainedSiteSelection);
             V2SceneMutationCheckpoint checkpointRollback = origin == V2MutationApplicationOrigin.LocalQuest && mutation is SetConfigurationTransaction ? CaptureCheckpoint() : null;
             SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
             V2Mutation rollback = origin == V2MutationApplicationOrigin.LocalQuest && mutation is not MoveSites && mutation is not SetConfigurationTransaction ? ReadCurrentMutation(mutation) : null;
@@ -408,7 +410,7 @@ namespace HBP.Sync.Scene
             bool applied;
             using (origin == V2MutationApplicationOrigin.Remote ? V2MutationApplicationContext.EnterRemote(operationId) : V2MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
             {
-                applied = ApplyCore(mutation);
+                applied = ApplyCore(mutation, allowRetainedSiteSelection);
             }
 
             if (origin == V2MutationApplicationOrigin.Remote || applied)
@@ -985,7 +987,7 @@ namespace HBP.Sync.Scene
         }
 
         /// <summary>Checks prepared targets and typed values that could fail before an authority commits a sequence.</summary>
-        internal void ValidateMutation(V2Mutation mutation)
+        internal void ValidateMutation(V2Mutation mutation, bool allowRetainedSiteSelection = false)
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             if (mutation is SetSiteFilterResult filterResult)
@@ -1032,7 +1034,7 @@ namespace HBP.Sync.Scene
 
             if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSelectedColumn)
             {
-                ValidateT09Mutation(mutation);
+                ValidateT09Mutation(mutation, allowRetainedSiteSelection);
                 return;
             }
 
@@ -1620,7 +1622,7 @@ namespace HBP.Sync.Scene
                 if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty T09 record.", nameof(checkpoint));
                 if (record.Value is SetSelectedRoiSphere selectedSphere && (hasRoiRoster || stagedRoiIds.Contains(selectedSphere.RoiId)))
                     continue;
-                ValidateMutation(record.Value);
+                ValidateMutation(record.Value, allowRetainedSiteSelection: true);
             }
 
             using (V2MutationApplicationContext.EnterRemote(operationId))
@@ -1631,7 +1633,7 @@ namespace HBP.Sync.Scene
                 foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions) ApplyCore(record.Value);
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
                 ApplyCheckpointT11Records(checkpoint.T11Records);
-                foreach (V2T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value);
+                foreach (V2T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value, allowRetainedSiteSelection: true);
                 if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
                 if (checkpoint.T13Records.Count == 1)
                 {
@@ -1654,7 +1656,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private bool ApplyCore(V2Mutation mutation)
+        private bool ApplyCore(V2Mutation mutation, bool allowRetainedSiteSelection = false)
         {
             if (mutation is SetSiteFilterResult filterResult)
                 return ApplySiteFilterResult(filterResult);
@@ -1701,7 +1703,7 @@ namespace HBP.Sync.Scene
                 return ApplyT10Mutation(mutation);
 
             if ((ushort)mutation.Type >= (ushort)V2OperationType.SetSelectedColumn)
-                return ApplyT09Mutation(mutation);
+                return ApplyT09Mutation(mutation, allowRetainedSiteSelection);
 
             throw new ArgumentException("Unsupported v2 scene mutation.", nameof(mutation));
         }
@@ -1711,6 +1713,7 @@ namespace HBP.Sync.Scene
             scene.ConfigurationMutationStarted += BeginConfigurationMutation;
             scene.ConfigurationMutationCompleted += CompleteConfigurationMutation;
             scene.SiteConfigurationBatchRouter = ApplySiteConfigurationBatch;
+            scene.SiteSelectionRouter = ApplySiteSelection;
             foreach (Column3D column in scene.Columns)
             {
                 string id = column.ColumnData.ID;
@@ -1859,6 +1862,14 @@ namespace HBP.Sync.Scene
 
                 throw;
             }
+        }
+
+        private bool ApplySiteSelection(Column3D column, Core.Object3D.Site site)
+        {
+            if (ShouldSuppressPublication() || m_ConfigurationMutationCapture != null) return false;
+            // The common setter still fires every UI callback, but only its final intent is published.
+            Apply(new SetSelectedSite(new ColumnId(column.ColumnData.ID), new SiteId(site.Information.FullID)), m_LocalOrigin == V2OriginDevice.Quest ? V2MutationApplicationOrigin.LocalQuest : V2MutationApplicationOrigin.LocalDesktop, new OperationId(Guid.NewGuid()));
+            return true;
         }
 
         private bool ApplySiteConfigurationBatch(IReadOnlyList<SiteConfigurationChange> changes, Action apply)
@@ -3388,7 +3399,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private void ValidateT09Mutation(V2Mutation mutation)
+        private void ValidateT09Mutation(V2Mutation mutation, bool allowRetainedSiteSelection = false)
         {
             RequireScene();
             switch (mutation)
@@ -3402,7 +3413,8 @@ namespace HBP.Sync.Scene
                         if (selected.SiteId != null)
                         {
                             SiteState site = ResolveSite(selected.ColumnId, selected.SiteId);
-                            if (site.IsEffectivelyMasked(m_Scene.ROIManager != null && m_Scene.ROIManager.SelectedROI != null)) throw new InvalidOperationException("A site masked in the prepared scene cannot become the shared selection.");
+                            if (!allowRetainedSiteSelection && !SiteAppearance.IsVisible(site.IsMasked, site.IsOutOfROI, site.IsFiltered, site.IsBlackListed, m_Scene.ShowAllSites, m_Scene.HideBlacklistedSites))
+                                throw new InvalidOperationException("A site hidden in the prepared scene cannot become a new shared selection.");
                         }
 
                         if (column == null) throw new KeyNotFoundException("Selected column is absent.");
@@ -3444,10 +3456,11 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private bool ApplyT09Mutation(V2Mutation mutation)
+        private bool ApplyT09Mutation(V2Mutation mutation, bool allowRetainedSiteSelection = false)
         {
-            ValidateT09Mutation(mutation);
-            if (mutation is not SetSelectedColumn && V2MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(V2MutationPayloadCodec.Encode(mutation))) return false;
+            ValidateT09Mutation(mutation, allowRetainedSiteSelection);
+            bool selectsDifferentColumn = mutation is SetSelectedSite selectedSite && selectedSite.SiteId != null && m_Scene.SelectedColumn != ResolveColumn(selectedSite.ColumnId);
+            if (mutation is not SetSelectedColumn && !selectsDifferentColumn && V2MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(V2MutationPayloadCodec.Encode(mutation))) return false;
             switch (mutation)
             {
                 case SetSelectedColumn selected:
@@ -4038,6 +4051,8 @@ namespace HBP.Sync.Scene
                 m_Scene.ConfigurationMutationCompleted -= CompleteConfigurationMutation;
                 if (m_Scene.SiteConfigurationBatchRouter?.Target == this)
                     m_Scene.SiteConfigurationBatchRouter = null;
+                if (m_Scene.SiteSelectionRouter?.Target == this)
+                    m_Scene.SiteSelectionRouter = null;
                 m_Scene.OnAddCut.RemoveListener(OnCutAdded);
                 m_Scene.OnRemoveCut.RemoveListener(OnCutRemoved);
                 if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);

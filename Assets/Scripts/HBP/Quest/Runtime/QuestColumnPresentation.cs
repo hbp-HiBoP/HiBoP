@@ -10,6 +10,7 @@ namespace HBP.Quest
         [SerializeField] private TextMesh label;
         [SerializeField] private QuestAnatomyManipulator manipulator;
         [SerializeField] private MeshRenderer roiPrefab;
+        [SerializeField] private QuestSiteSelectionRing selectionRing;
         private Base3DScene scene;
         private readonly List<MeshRenderer> spheres = new();
         public Column3D Column { get; private set; }
@@ -27,6 +28,7 @@ namespace HBP.Quest
             column.transform.localScale = Vector3.one;
             label.text = column.Name;
             manipulator.Bind(column);
+            if (selectionRing != null) selectionRing.Bind(source, column);
         }
 
         private void OnRepresentationChanged(HBP.Core.Object3D.SurfaceRepresentation value) => manipulator.InvalidateRayTarget();
@@ -38,11 +40,13 @@ namespace HBP.Quest
 
         public void Hide()
         {
+            if (selectionRing != null) selectionRing.SetHidden(true);
             foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.forceRenderingOff = true;
         }
 
         public void Show()
         {
+            if (selectionRing != null) selectionRing.SetHidden(false);
             foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.forceRenderingOff = false;
         }
 

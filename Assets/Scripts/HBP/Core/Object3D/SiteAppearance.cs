@@ -31,9 +31,11 @@ namespace HBP.Core.Object3D
 
         /// <summary>Rendering exclusions differ from projection masks: a blacklisted contact can
         /// remain visible, at unit scale, although it contributes no projected activity.</summary>
+        public static bool IsVisible(bool masked, bool outOfRoi, bool filtered, bool blacklisted, bool showAllSites, bool hideBlacklistedSites) => !masked && (!outOfRoi || showAllSites) && filtered && (!blacklisted || !hideBlacklistedSites);
+
         public static SiteAppearance Resolve(float activityScale, bool positive, bool masked, bool outOfRoi, bool filtered, bool blacklisted, bool showAllSites, bool hideBlacklistedSites, bool upToDate)
         {
-            bool visible = !masked && (!outOfRoi || showAllSites) && filtered && (!blacklisted || !hideBlacklistedSites);
+            bool visible = IsVisible(masked, outOfRoi, filtered, blacklisted, showAllSites, hideBlacklistedSites);
             if (blacklisted) return new SiteAppearance(1, SiteType.BlackListed, visible);
             if (!upToDate) return new SiteAppearance(1, SiteType.Normal, visible);
             return new SiteAppearance(activityScale, positive ? SiteType.Positive : SiteType.Negative, visible);

@@ -1672,7 +1672,7 @@ namespace HBP.Quest
             V2PublishedSceneCheckpoint checkpoint = await Task.Run(() => V2SceneMutationCheckpointCodec.Decode(encodedCheckpoint), stop).ConfigureAwait(false);
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
             m_Boundary.ApplyCheckpoint(checkpoint.Checkpoint, operationId);
-            m_Driver.AdvanceCanonicalWatermark(checkpoint.CanonicalSequence);
+            m_Driver.AdvanceCanonicalWatermark(checkpoint.CanonicalSequence, includesSelection: true);
         }
 
         private void ValidateScope(V2TransportRecord record)

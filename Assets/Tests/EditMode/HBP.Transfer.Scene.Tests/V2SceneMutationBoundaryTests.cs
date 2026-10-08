@@ -29,6 +29,480 @@ namespace HBP.Tests.Transfer.Scene
     {
         private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
 
+        [TestCase(true, false)]
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        [TestCase(false, true)]
+        public void QuestControls_RealSiteSetterPublishesOneIntentAndLatestSelectionSurvivesDelayedEchoes(bool fromQuest, bool acrossColumns)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            desktop.Boundary.Dispose();
+            quest.Boundary.Dispose();
+            var desktopB = AddSelectionFixtureSite(desktop, acrossColumns ? desktop.StaticColumn : desktop.Column, "site-b");
+            var questB = AddSelectionFixtureSite(quest, acrossColumns ? quest.StaticColumn : quest.Column, "site-b");
+            WireExclusiveSelectionCallbacks(desktop.Scene);
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var desktopBoundary = new V2SceneMutationBoundary(desktop.Scene, V2OriginDevice.Desktop);
+            using var questBoundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            var proposals = new List<V2QuestMutationProposal>();
+            var canonicals = new List<V2CanonicalMutation>();
+            driver.ProposalQueued += proposals.Add;
+            authority.CanonicalReady += canonicals.Add;
+            var source = fromQuest ? quest : desktop;
+            var b = fromQuest ? questB : desktopB;
+            Column3D bColumn = acrossColumns ? source.StaticColumn : source.Column;
+            source.Scene.SelectSite(source.Column, source.Site);
+            source.Scene.SelectSite(bColumn, b);
+            Assert.That(source.Scene.SelectedColumn, Is.SameAs(bColumn));
+            Assert.That(bColumn.SelectedSite, Is.SameAs(b));
+            source.Scene.SelectSite(source.Column, source.Site);
+            if (fromQuest)
+                for (int contact = 0; contact < 15; contact++)
+                {
+                    source.Scene.SelectSite(bColumn, b);
+                    source.Scene.SelectSite(source.Column, source.Site);
+                }
+
+            Assert.That(source.Scene.SelectedColumn, Is.SameAs(source.Column));
+            Assert.That(source.Column.SelectedSite, Is.SameAs(source.Site));
+            if (acrossColumns) Assert.That(bColumn.SelectedSite, Is.Null, "Desktop clears the previous column's site.");
+            if (fromQuest)
+            {
+                Assert.That(proposals, Has.Count.EqualTo(1), "One in flight; intermediate nulls and column callbacks must not be separate proposals.");
+                Assert.That(driver.PendingProposalCount, Is.EqualTo(2), "Only the in-flight and latest unsent intent are retained.");
+                var first = authority.AcceptQuestProposal(proposals[0]);
+                Assert.That(first.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                driver.ReceiveCanonical(first.CanonicalMutation);
+                Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site), "An older echo cannot roll back the latest local contact.");
+                Assert.That(proposals, Has.Count.EqualTo(2));
+                Assert.That(proposals[1].ObservedCanonicalSequence, Is.EqualTo(first.CanonicalMutation.CanonicalSequence));
+                var latest = authority.AcceptQuestProposal(proposals[1]);
+                Assert.That(latest.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                driver.ReceiveCanonical(latest.CanonicalMutation);
+                Assert.That(driver.ReceiveCanonical(first.CanonicalMutation), Is.False);
+            }
+            else
+            {
+                Assert.That(canonicals, Has.Count.EqualTo(3), "Exactly one final site intent per Desktop action.");
+                foreach (var canonical in canonicals) driver.ReceiveCanonical(canonical);
+                Assert.That(proposals, Is.Empty, "Remote UI callbacks must not echo.");
+            }
+
+            Assert.That(desktop.Scene.SelectedColumn, Is.SameAs(desktop.Column));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(desktop.Column.SelectedSite, Is.SameAs(desktop.Site));
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            // A null for an old column never reactivates that column.
+            questBoundary.Apply(new SetSelectedSite(new ColumnId(quest.StaticColumn.ColumnData.ID), null), V2MutationApplicationOrigin.Remote, T09Operation(400100));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestControls_CorrectionReplaysLatestContactUnlessItBecameHidden(bool hideWaiting)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            desktop.Boundary.Dispose();
+            quest.Boundary.Dispose();
+            var desktopB = AddSelectionFixtureSite(desktop, desktop.Column, "site-b");
+            var questB = AddSelectionFixtureSite(quest, quest.Column, "site-b");
+            var desktopC = AddSelectionFixtureSite(desktop, desktop.Column, "site-c");
+            AddSelectionFixtureSite(quest, quest.Column, "site-c");
+            WireExclusiveSelectionCallbacks(desktop.Scene);
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var desktopBoundary = new V2SceneMutationBoundary(desktop.Scene, V2OriginDevice.Desktop);
+            using var questBoundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            quest.Scene.SelectSite(quest.Column, quest.Site);
+            quest.Scene.SelectSite(quest.Column, questB);
+            desktop.Scene.SelectSite(desktop.Column, desktopC);
+            questB.State.IsMasked = hideWaiting;
+            var rejected = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            driver.ReceiveCorrection(rejected.Correction);
+            Assert.That(proposals, Has.Count.EqualTo(hideWaiting ? 1 : 2));
+            if (!hideWaiting)
+            {
+                Assert.That(quest.Column.SelectedSite, Is.SameAs(questB));
+                var accepted = authority.AcceptQuestProposal(proposals[1]);
+                Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                driver.ReceiveCanonical(accepted.CanonicalMutation);
+            }
+
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+        }
+
+        [Test]
+        public void QuestControls_HiddenWaitingContactFallsBackToConfirmedSelection()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            desktop.Boundary.Dispose();
+            quest.Boundary.Dispose();
+            AddSelectionFixtureSite(desktop, desktop.StaticColumn, "site-b");
+            var questB = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
+            WireExclusiveSelectionCallbacks(desktop.Scene);
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var desktopBoundary = new V2SceneMutationBoundary(desktop.Scene, V2OriginDevice.Desktop);
+            using var questBoundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            quest.Scene.SelectSite(quest.Column, quest.Site);
+            quest.Scene.SelectSite(quest.StaticColumn, questB);
+            questB.State.IsMasked = true;
+            var accepted = authority.AcceptQuestProposal(proposals[0]);
+            driver.ReceiveCanonical(accepted.CanonicalMutation);
+            Assert.That(proposals, Has.Count.EqualTo(1));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+            Assert.That(quest.StaticColumn.SelectedSite, Is.Null);
+        }
+
+        [Test]
+        public void QuestControls_OlderOtherColumnCanonicalCannotUndoNewerSelection()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            quest.Boundary.Dispose();
+            var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var boundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            var columnA = new ColumnId(quest.Column.ColumnData.ID);
+            var columnB = new ColumnId(quest.StaticColumn.ColumnData.ID);
+            var newer = new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400110), 2, new SetSelectedSite(columnB, new SiteId(b.Information.FullID)), V2OriginDevice.Desktop);
+            Assert.That(driver.ReceiveCanonical(newer), Is.True);
+            var older = new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400111), 1, new SetSelectedSite(columnA, new SiteId(quest.Site.Information.FullID)), V2OriginDevice.Desktop);
+            Assert.That(driver.ReceiveCanonical(older), Is.False);
+            var olderColumn = new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400112), 1, new SetSelectedColumn(columnA), V2OriginDevice.Desktop);
+            Assert.That(driver.ReceiveCanonical(olderColumn), Is.False);
+            driver.AdvanceCanonicalWatermark(5, includesSelection: true);
+            Assert.That(driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400113), 4, new SetSelectedSite(columnA, new SiteId(quest.Site.Information.FullID)), V2OriginDevice.Desktop)), Is.False, "A checkpoint also supersedes old selections.");
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
+            Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
+            Assert.That(quest.Column.SelectedSite, Is.Null);
+        }
+
+        [Test]
+        public void QuestControls_OlderSiteForTheSameActiveColumnStillFillsItsIndependentSelectionState()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            var column = new ColumnId(quest.Column.ColumnData.ID);
+            driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400114), 2, new SetSelectedColumn(column), V2OriginDevice.Desktop));
+            Assert.That(driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400115), 1, new SetSelectedSite(column, new SiteId(quest.Site.Information.FullID)), V2OriginDevice.Desktop)), Is.True, "A later column-only value preserves that column's independent selected-site state.");
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+        }
+
+        [Test]
+        public void QuestControls_MatchingEchoRestoresItsColumnAfterAnInterveningCanonical()
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            quest.Boundary.Dispose();
+            var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var boundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest));
+            V2QuestMutationProposal proposal = null;
+            driver.ProposalQueued += value => proposal = value;
+            quest.Scene.SelectSite(quest.StaticColumn, b);
+            driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400120), 1, new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID)), V2OriginDevice.Desktop));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposal.OperationId, 2, proposal.Mutation, V2OriginDevice.Quest));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
+            Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
+            Assert.That(quest.Column.SelectedSite, Is.Null);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestControls_WaitingSelectionSurvivesShortReconnectAndIsClearedWhenOffline(bool shortReconnect)
+        {
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            quest.Boundary.Dispose();
+            var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
+            WireExclusiveSelectionCallbacks(quest.Scene);
+            using var boundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
+            var clock = new TestClock(0);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest, clock));
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            quest.Scene.SelectSite(quest.Column, quest.Site);
+            quest.Scene.SelectSite(quest.StaticColumn, b);
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            driver.BeginDisconnectGrace();
+            if (shortReconnect)
+            {
+                Assert.That(driver.TryReconnect(), Is.True);
+                driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[0].OperationId, 1, proposals[0].Mutation, V2OriginDevice.Quest));
+                Assert.That(proposals, Has.Count.EqualTo(2));
+                Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
+                Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
+                driver.ReceiveCanonical(new V2CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[1].OperationId, 2, proposals[1].Mutation, V2OriginDevice.Quest));
+            }
+            else
+            {
+                clock.Timestamp = 600;
+                Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.OfflineLocal));
+                Assert.That(driver.AbandonedProposalCount, Is.EqualTo(2));
+                quest.Scene.SelectSite(quest.Column, quest.Site);
+                Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site), "Offline local selection stays immediate.");
+                Assert.That(proposals, Has.Count.EqualTo(1), "No waiting selection may leak into the closed online stream.");
+            }
+
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        private static HBP.Core.Object3D.Site AddSelectionFixtureSite(BoundSceneFixture fixture, Column3D column, string name)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(fixture.Root.transform, false);
+            var site = obj.AddComponent<HBP.Core.Object3D.Site>();
+            site.Information = new SiteInformation { Patient = fixture.Site.Information.Patient, Name = name };
+            site.State = new SiteState();
+            column.Sites.Add(site);
+            // Same selection callback as Column3D.InitSites, including the intermediate deselection.
+            site.OnSelectSite.AddListener(selected =>
+            {
+                if (selected) column.UnselectSite();
+                SetAutoProperty(column, "SelectedSite", selected ? site : null);
+                column.OnSelectSite.Invoke(column.SelectedSite);
+            });
+            return site;
+        }
+
+        private static void WireExclusiveSelectionCallbacks(Base3DScene scene)
+        {
+            // The lightweight prepared-scene fixture omits Base3DScene's authored-column callbacks.
+            foreach (var column in scene.Columns)
+            {
+                column.OnSelect.AddListener(() =>
+                {
+                    foreach (var other in scene.Columns.Where(other => other != column))
+                    {
+                        other.IsSelected = false;
+                        other.UnselectSite();
+                    }
+                });
+                column.OnSelectSite.AddListener(_ =>
+                {
+                    foreach (var other in scene.Columns.Where(other => !other.IsSelected)) other.UnselectSite();
+                });
+            }
+        }
+
+        [TestCase("unknown")]
+        [TestCase("masked")]
+        [TestCase("blacklisted")]
+        [TestCase("filtered")]
+        [TestCase("roi")]
+        public void QuestControls_InvalidSiteCannotPublishAndDriverAcceptsNextSelection(string reason)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var proposals = new List<V2QuestMutationProposal>();
+            driver.ProposalQueued += proposals.Add;
+            var column = new ColumnId(quest.Column.ColumnData.ID);
+            var site = new SiteId(quest.Site.Information.FullID);
+            if (reason == "masked") quest.Site.State.IsMasked = true;
+            if (reason == "blacklisted")
+            {
+                SetPrivateField(quest.Site.State, "m_IsBlackListed", true);
+                SetPrivateField(quest.Scene, "m_HideBlacklistedSites", true);
+            }
+
+            if (reason == "filtered") quest.Site.State.IsFiltered = false;
+            if (reason == "roi")
+            {
+                SetPrivateField(quest.Scene.ROIManager, "m_SelectedROI", quest.Roi);
+                quest.Site.State.IsOutOfROI = true;
+            }
+
+            var invalid = new SetSelectedSite(column, reason == "unknown" ? new SiteId("unknown-site") : site);
+            if (reason == "unknown") Assert.Throws<KeyNotFoundException>(() => driver.ApplyOptimistic(invalid, T09Operation(400001)));
+            else Assert.Throws<InvalidOperationException>(() => driver.ApplyOptimistic(invalid, T09Operation(400001)));
+            Assert.That(proposals, Is.Empty);
+            Assert.That(quest.Column.SelectedSite, Is.Null);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            quest.Site.State.IsMasked = quest.Site.State.IsOutOfROI = false;
+            SetPrivateField(quest.Site.State, "m_IsBlackListed", false); // Fixture setup, not an additional shared control under test.
+            quest.Site.State.IsFiltered = true;
+            var next = driver.ApplyOptimistic(new SetSelectedSite(column, site), T09Operation(400002));
+            var result = authority.AcceptQuestProposal(next);
+            Assert.That(result.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(result.CanonicalMutation), Is.False);
+            Assert.That(desktop.Column.SelectedSite, Is.SameAs(desktop.Site));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void QuestControls_PendingSiteBecomingMaskedIsCorrectedWithoutEchoAndNextSelectionWorks()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            int proposals = 0;
+            driver.ProposalQueued += _ => proposals++;
+            var mutation = new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID));
+            var pending = driver.ApplyOptimistic(mutation, T09Operation(400010));
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+            desktop.Site.State.IsMasked = true;
+            var rejected = authority.AcceptQuestProposal(pending);
+            Assert.That(rejected.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(driver.ReceiveCorrection(rejected.Correction), Is.True);
+            Assert.That(quest.Column.SelectedSite, Is.Null);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(proposals, Is.EqualTo(1));
+            desktop.Site.State.IsMasked = false;
+            var accepted = authority.AcceptQuestProposal(driver.ApplyOptimistic(mutation, T09Operation(400011)));
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            driver.ReceiveCanonical(accepted.CanonicalMutation);
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+            Assert.That(desktop.Column.SelectedSite, Is.SameAs(desktop.Site));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(proposals, Is.EqualTo(2));
+        }
+
+        [TestCase(true, false)]
+        [TestCase(false, false)]
+        [TestCase(true, true)]
+        [TestCase(false, true)]
+        public void QuestControls_VisibleExcludedSiteConvergesInBothDirections(bool fromQuest, bool outsideRoi)
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest);
+            foreach (var fixture in new[] { desktop, quest })
+            {
+                SetPrivateField(fixture.Site.State, "m_IsBlackListed", !outsideRoi);
+                fixture.Site.State.IsOutOfROI = outsideRoi;
+                SetPrivateField(fixture.Scene, "m_ShowAllSites", outsideRoi);
+                SetPrivateField(fixture.Scene, "m_HideBlacklistedSites", false);
+            }
+
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var canonicals = new List<V2CanonicalMutation>();
+            authority.CanonicalReady += canonicals.Add;
+            int proposals = 0;
+            driver.ProposalQueued += _ => proposals++;
+            var mutation = new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID));
+            if (fromQuest)
+            {
+                var accepted = authority.AcceptQuestProposal(driver.ApplyOptimistic(mutation, T09Operation(400030)));
+                Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+                Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+                Assert.That(proposals, Is.EqualTo(1));
+            }
+            else
+            {
+                desktop.Boundary.Apply(mutation, V2MutationApplicationOrigin.LocalDesktop, T09Operation(400030));
+                Assert.That(canonicals, Has.Count.EqualTo(1));
+                Assert.That(driver.ReceiveCanonical(canonicals[0]), Is.True);
+                Assert.That(proposals, Is.Zero);
+            }
+
+            Assert.That(desktop.Column.SelectedSite, Is.SameAs(desktop.Site));
+            Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            if (!outsideRoi) Assert.That(quest.Site.State.IsEffectivelyMasked(false), Is.True, "A visible blacklist remains excluded from scientific computations.");
+        }
+
+        [TestCase("visible-blacklist")]
+        [TestCase("hidden-blacklist")]
+        [TestCase("masked")]
+        [TestCase("filtered")]
+        [TestCase("roi")]
+        public void QuestControls_CheckpointRestoresRetainedSelectionIndependentlyOfCurrentVisibility(string kind)
+        {
+            using var source = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var target = new BoundSceneFixture(V2OriginDevice.Quest);
+            SetPrivateField(source.Site.State, "m_IsBlackListed", kind.Contains("blacklist"));
+            source.Scene.SelectSite(source.Column, source.Site);
+            SetPrivateField(source.Scene, "m_HideBlacklistedSites", kind == "hidden-blacklist");
+            source.Site.State.IsMasked = kind == "masked";
+            source.Site.State.IsFiltered = kind != "filtered";
+            source.Site.State.IsOutOfROI = kind == "roi";
+            SetPrivateField(target.Scene, "m_HideBlacklistedSites", true);
+            SetPrivateField(target.Site.State, "m_IsBlackListed", true);
+            target.Site.State.IsFiltered = false;
+            var checkpoint = V2SceneMutationCheckpointCodec.Decode(V2SceneMutationCheckpointCodec.Encode(33, source.Boundary.CaptureCheckpoint())).Checkpoint;
+            int proposals = 0;
+            target.Boundary.MutationProposed += (_, _, _) => proposals++;
+            target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(400040));
+            Assert.That(target.Column.SelectedSite, Is.SameAs(target.Site));
+            Assert.That(target.Scene.HideBlacklistedSites, Is.EqualTo(source.Scene.HideBlacklistedSites));
+            Assert.That(proposals, Is.Zero);
+            // Canonical corrections also restore retained identity after a local visibility change.
+            target.Column.UnselectSite();
+            target.Site.State.IsMasked = true;
+            target.Boundary.Apply(new SetSelectedSite(new ColumnId(target.Column.ColumnData.ID), new SiteId(target.Site.Information.FullID)), V2MutationApplicationOrigin.Remote, T09Operation(400041));
+            Assert.That(target.Column.SelectedSite, Is.SameAs(target.Site));
+            Assert.Throws<InvalidOperationException>(() => target.Boundary.Apply(new SetSelectedSite(new ColumnId(target.Column.ColumnData.ID), new SiteId(target.Site.Information.FullID)), V2MutationApplicationOrigin.LocalQuest, T09Operation(400042)));
+            Assert.Throws<KeyNotFoundException>(() => target.Boundary.Apply(new SetSelectedSite(new ColumnId(target.Column.ColumnData.ID), new SiteId("unknown-site")), V2MutationApplicationOrigin.Remote, T09Operation(400043)));
+        }
+
+        [Test]
+        public void QuestControls_StaleCutPreviewCorrectsThenCurrentPositionSetterPreservesRemoteFields()
+        {
+            using var desktop = new BoundSceneFixture(V2OriginDevice.Desktop, seedCuts: true);
+            using var quest = new BoundSceneFixture(V2OriginDevice.Quest, seedCuts: true);
+            using var authority = new V2DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            var scheduler = new V2OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, V2OriginDevice.Quest);
+            using var driver = new V2QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
+            var canonicals = new List<V2CanonicalMutation>();
+            var proposals = new List<V2QuestMutationProposal>();
+            authority.CanonicalReady += canonicals.Add;
+            driver.ProposalQueued += proposals.Add;
+            var id = new CutId("t10-cut-first");
+            desktop.Boundary.Apply(new SetCutDefinition(id, V2CutOrientation.Custom, true, 3, .2f, 0, 1, 0), V2MutationApplicationOrigin.LocalDesktop, T09Operation(400020));
+            var stale = driver.ApplyOptimistic(new SetCutDefinition(id, V2CutOrientation.Custom, false, 1, .4f, 1, 0, 0), T09Operation(400021));
+            var result = authority.AcceptQuestProposal(stale);
+            Assert.That(result.Outcome, Is.EqualTo(V2ProposalOutcome.Rejected));
+            Assert.That(result.RejectionCode, Is.EqualTo("stale_sequence"));
+            driver.ReceiveCorrection(result.Correction);
+            driver.ReceiveCanonical(canonicals[0]);
+            var cut = quest.Scene.Cuts[0];
+            Assert.That(cut.Flip, Is.True);
+            Assert.That(cut.Position, Is.EqualTo(.2f));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(proposals, Has.Count.EqualTo(1));
+            cut.Position = .7f; // Real setter builds a complete definition from the updated live object.
+            Assert.That(proposals, Has.Count.EqualTo(2));
+            var fresh = (SetCutDefinition)proposals[1].Mutation;
+            Assert.That(fresh.Flip, Is.True);
+            Assert.That(fresh.NumberOfCuts, Is.EqualTo(3));
+            Assert.That(fresh.NormalY, Is.EqualTo(1));
+            var accepted = authority.AcceptQuestProposal(proposals[1]);
+            Assert.That(accepted.Outcome, Is.EqualTo(V2ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(desktop.Scene.Cuts[0].Position, Is.EqualTo(.7f));
+            Assert.That(desktop.Scene.Cuts[0].Flip, Is.True);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(V2QuestMutationConnectionState.Connected));
+            Assert.That(proposals, Has.Count.EqualTo(2));
+        }
+
         [Test]
         public void RejectedOptimisticCutCreateEditDelete_ResolvesAbsenceWithoutGhostOrCompletionGap()
         {

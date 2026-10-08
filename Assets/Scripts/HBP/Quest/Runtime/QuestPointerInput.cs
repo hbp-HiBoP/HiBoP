@@ -22,6 +22,7 @@ namespace HBP.Quest
         [SerializeField] private QuestInteractionPolicy policy;
         [SerializeField] private QuestDevicePoseTracker head, left, right;
         [SerializeField] private QuestAnatomyView anatomy;
+        [SerializeField] private QuestSiteProbe siteProbe;
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
@@ -114,6 +115,20 @@ namespace HBP.Quest
             var data = hand.Data;
             bool valid = focused && !paused && head != null && head.IsTracked && tracker != null && tracker.IsTracked;
             bool pressed = hand.Trigger.IsPressed();
+            if (valid)
+            {
+                data.Ray = new Ray(tracker.transform.position, tracker.transform.forward);
+                if (trackingOrigin != null && hand.Position.activeControl != null && hand.Rotation.activeControl != null)
+                    data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
+            }
+
+            if (index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
+            {
+                Cancel(hand);
+                Feedback(line, reticle, false, default, default);
+                return;
+            }
+
             if (!valid)
             {
                 Cancel(hand);
@@ -124,9 +139,6 @@ namespace HBP.Quest
             var capturedWindow = data.pointerDrag != null ? data.pointerDrag.GetComponentInParent<QuestWindow>() : data.pointerPress != null ? data.pointerPress.GetComponentInParent<QuestWindow>() : null;
             if (hand.Capture.Owner == QuestInteractionOwner.UI && capturedWindow != null && !capturedWindow.IsOpen) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && !HasAnatomyTarget(hand.AnatomyTarget)) Cancel(hand);
-            data.Ray = new Ray(tracker.transform.position, tracker.transform.forward);
-            if (trackingOrigin != null && hand.Position.activeControl != null && hand.Rotation.activeControl != null)
-                data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
             data.trackedDevicePosition = data.Ray.origin;
             data.trackedDeviceOrientation = Quaternion.LookRotation(data.Ray.direction, tracker.transform.up);
             hits.Clear();
@@ -379,20 +391,27 @@ namespace HBP.Quest
         {
             focused = value;
             if (!value)
+            {
+                if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
                     Cancel(hand);
+            }
         }
 
         private void OnApplicationPause(bool value)
         {
             paused = value;
             if (value)
+            {
+                if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
                     Cancel(hand);
+            }
         }
 
         protected override void OnDisable()
         {
+            if (siteProbe != null) siteProbe.Cancel();
             foreach (var hand in hands)
             {
                 Cancel(hand);

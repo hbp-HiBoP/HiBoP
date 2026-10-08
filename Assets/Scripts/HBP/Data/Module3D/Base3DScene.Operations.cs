@@ -21,6 +21,9 @@ namespace HBP.Data.Module3D
         /// <summary>Reports a completed command that changes the positions of scene sites.</summary>
         public event Action<SitePositionCommand> SitePositionCommandExecuted;
 
+        /// <summary>Optional prepared-scene route for one complete site-selection intent.</summary>
+        public Func<Column3D, Core.Object3D.Site, bool> SiteSelectionRouter { get; set; }
+
         /// <summary>Resolve a target independently of Desktop selection. Global means the same modality.</summary>
         public List<Column3D> GetColumnGroup(Column3D target, bool allOfSameType)
         {
@@ -45,6 +48,7 @@ namespace HBP.Data.Module3D
             RequireColumn(column);
             if (site && (!column.Sites.Contains(site) || site.State.IsMasked))
                 throw new ArgumentException("Select an unmasked site belonging to the target column.", nameof(site));
+            if (site && SiteSelectionRouter?.Invoke(column, site) == true) return;
             column.IsSelected = true;
             column.UnselectSite();
             if (site) site.IsSelected = true;

@@ -12,6 +12,49 @@ namespace HBP.Tests.PlatformConfiguration
     public class QuestUIAssetTests
     {
         [Test]
+        public void SiteProbe_IsAuthoredAndWiredToUniversalPointerWithSharedThemeColor()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
+            var probe = root.GetComponentInChildren<QuestSiteProbe>(true);
+            Assert.That(probe, Is.Not.Null);
+            Assert.That(new SerializedObject(pointer).FindProperty("siteProbe").objectReferenceValue, Is.SameAs(probe));
+            var fields = new SerializedObject(probe);
+            foreach (string field in new[] { "anatomy", "policy", "right", "marker", "markerRenderer" })
+                Assert.That(fields.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            var marker = (Transform)fields.FindProperty("marker").objectReferenceValue;
+            Assert.That(marker.gameObject.activeSelf, Is.False);
+            Assert.That(marker.GetComponent<Collider>(), Is.Null, "The probe must not add a physical response.");
+            Assert.That(marker.GetComponent<MeshFilter>().sharedMesh, Is.Not.Null);
+            var policy = (QuestInteractionPolicy)fields.FindProperty("policy").objectReferenceValue;
+            Assert.That(policy.FeedbackColor, Is.Not.Null);
+            Assert.That(policy.SiteProbeRadius, Is.EqualTo(.0005f));
+        }
+
+        [Test]
+        public void SiteSelectionRing_HasIndependentQuestThemeAndDesktopSpriteAndAnimation()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestColumn.prefab");
+            var ring = root.GetComponent<QuestSiteSelectionRing>();
+            Assert.That(new SerializedObject(root.GetComponent<QuestColumnPresentation>()).FindProperty("selectionRing").objectReferenceValue, Is.SameAs(ring));
+            var fields = new SerializedObject(ring);
+            var board = (RectTransform)fields.FindProperty("billboard").objectReferenceValue;
+            var image = (UnityEngine.UI.Image)fields.FindProperty("image").objectReferenceValue;
+            Assert.That(board.gameObject.activeSelf, Is.False);
+            Assert.That(board.GetComponent<Canvas>().renderMode, Is.EqualTo(RenderMode.WorldSpace));
+            Assert.That(board.GetComponent<UnityEngine.UI.GraphicRaycaster>(), Is.Null);
+            Assert.That(image.raycastTarget, Is.False);
+            Assert.That(image.sprite, Is.SameAs(AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Sprites/Selection.png")));
+            Assert.That(image.GetComponent<Animator>().runtimeAnimatorController, Is.SameAs(AssetDatabase.LoadAssetAtPath<RuntimeAnimatorController>("Assets/Sprites/Selection Animation Controller.controller")));
+            var element = image.GetComponent<ThemeElement>().Element;
+            Assert.That(AssetDatabase.GetAssetPath(element), Is.EqualTo("Assets/Resources/Themes/Quest/Elements/QuestSiteSelectionRing.asset"));
+            var settings = element.SettingsByState.Single().Settings;
+            Assert.That(settings.OfType<HBP.Theme.Image>().Single().SourceImage, Is.SameAs(image.sprite));
+            Assert.That(settings.OfType<HBP.Theme.Image>().Single().Material.shader.name, Is.EqualTo("HBP/Quest/Site Selection"));
+            Assert.That(settings.OfType<HBP.Theme.Color>().Single(), Is.SameAs(AssetDatabase.LoadAssetAtPath<HBP.Theme.Color>("Assets/Resources/Themes/Main/Settings/Colors/Default Color.asset")));
+        }
+
+        [Test]
         public void ResizeDemo_WiresOptionalHandleWithoutChangingExistingWindows()
         {
             const string demoPath = "Assets/Prefabs/Quest/UI/Quest Resizable Window Demo.prefab";

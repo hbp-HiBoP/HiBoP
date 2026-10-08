@@ -10,6 +10,11 @@ namespace HBP.Quest
         public bool EnableDistantAnatomy = true;
         [Min(0.0001f)] public float RayWidth = 0.002f;
         public HBP.Theme.Color FeedbackColor;
+
+        [Min(0.0001f)] public float SiteProbeRadius = 0.0005f;
+
+        [Range(0, 1)] public float SiteHapticAmplitude = 0.2f;
+        [Min(0)] public float SiteHapticDuration = 0.025f;
     }
 
     public enum QuestInteractionOwner
