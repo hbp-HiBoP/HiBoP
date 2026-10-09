@@ -34,7 +34,10 @@ namespace HBP.Transfer.Transport
         public Guid OperationId { get; }
         public SessionControlKind Kind { get; }
         public long Revision { get; }
+
         public string AtlasId { get; }
+
+        // Reserved in the v1 frame; atlas availability no longer compares content hashes.
         public string Fingerprint { get; }
         private readonly byte[] m_Body;
         public byte[] GetBody() => (byte[])m_Body.Clone();
@@ -58,7 +61,10 @@ namespace HBP.Transfer.Transport
     {
         public Guid OperationId { get; }
         public SessionControlStatus Status { get; }
+
         public string Message { get; }
+
+        // Reserved in the v1 frame; atlas availability no longer compares content hashes.
         public string Fingerprint { get; }
         public bool HasSharedScene { get; }
         private readonly byte[] m_Body;

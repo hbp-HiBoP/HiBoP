@@ -133,7 +133,7 @@ namespace HBP.Sync.Scene
                             if (AtlasResources.IsLoaded(definition.Id))
                             {
                                 var result = AtlasResources.Status(definition.Id);
-                                if (result.State == AtlasLoadState.Loaded && result.Fingerprint != null) loaded.Add(definition.Id, result.Fingerprint);
+                                if (result.State == AtlasLoadState.Loaded) loaded.Add(definition.Id, "");
                             }
 
                         response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
@@ -151,12 +151,12 @@ namespace HBP.Sync.Scene
                     case SessionControlKind.LoadAtlas:
                         var load = await AtlasResources.LoadAsync(request.AtlasId, token);
                         await UniTask.SwitchToMainThread();
-                        response = Reply(request, load.Succeeded ? SessionControlStatus.Applied : SessionControlStatus.Failed, load.Error, load.Fingerprint);
+                        response = Reply(request, load.Succeeded ? SessionControlStatus.Applied : SessionControlStatus.Failed, load.Error);
                         break;
                     case SessionControlKind.ConfirmAtlas:
-                        if (!AtlasResources.IsLoaded(request.AtlasId) || AtlasResources.Status(request.AtlasId).Fingerprint != request.Fingerprint) return Reply(request, SessionControlStatus.Rejected, "Atlas content differs between devices.");
-                        SessionAtlasCatalog.SetReady(request.AtlasId, request.Fingerprint);
-                        response = Reply(request, SessionControlStatus.Applied, fingerprint: request.Fingerprint);
+                        if (AtlasResources.Status(request.AtlasId).State != AtlasLoadState.Loaded) return Reply(request, SessionControlStatus.Rejected, "Atlas is not loaded.");
+                        SessionAtlasCatalog.SetReady(request.AtlasId);
+                        response = Reply(request, SessionControlStatus.Applied);
                         break;
                     case SessionControlKind.PrepareUnload:
                         if (m_Releases.ContainsKey(request.AtlasId)) throw new InvalidOperationException("An unload is already pending.");

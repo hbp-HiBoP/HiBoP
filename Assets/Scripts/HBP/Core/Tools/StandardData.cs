@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -15,43 +14,11 @@ namespace HBP.Core.Tools
     {
         public const string ManifestName = "standard-data.sha256";
         private static AsyncLazy s_Installation;
-        private static readonly object s_InstalledGate = new();
-        private static Dictionary<string, string> s_InstalledHashes;
-        private static string s_InstalledRoot;
 
-        private static VerifiedResourceScope s_InstalledResources;
-
-        // Only the installed, guarded Android workspace can reuse these identities.
-        // Returning a copy prevents consumers from changing the installation manifest.
-        internal static Dictionary<string, string> GetInstalledHashes(string root)
+        internal static void ValidateInstalledFile(string relative)
         {
-            lock (s_InstalledGate)
-                return Path.GetFullPath(root) == s_InstalledRoot && s_InstalledResources != null ? new Dictionary<string, string>(s_InstalledHashes, StringComparer.Ordinal) : null;
-        }
-
-        internal static VerifiedResourceScope.Lease AcquireInstalledResource(string path)
-        {
-            lock (s_InstalledGate)
-                return Path.GetFullPath(ApplicationState.DataPath) == s_InstalledRoot && s_InstalledResources != null ? s_InstalledResources.Acquire(Path.GetFullPath(path)) : null;
-        }
-
-        internal static void ValidateExpectedFile(string relative, string expectedHash)
-        {
-            string root = Path.GetFullPath(ApplicationState.DataPath);
-            string path = Resolve(root, relative);
-            lock (s_InstalledGate)
-            {
-                if (root == s_InstalledRoot && s_InstalledHashes != null)
-                {
-                    if (!s_InstalledHashes.TryGetValue(relative, out string actual) || actual != expectedHash || !File.Exists(path))
-                        throw new InvalidDataException("Installed scientific reference missing or incompatible: " + relative);
-                    return;
-                }
-            }
-
-            // Desktop reference files are user-editable: always validate their current bytes.
-            if (!File.Exists(path) || HashFile(path) != expectedHash)
-                throw new InvalidDataException("Installed scientific reference missing or incompatible: " + relative);
+            if (!File.Exists(Resolve(ApplicationState.DataPath, relative)))
+                throw new FileNotFoundException("Installed reference is missing: " + relative);
         }
 
         // Android's asset merger expands .gz files. Keep their original bytes in
@@ -72,27 +39,6 @@ namespace HBP.Core.Tools
             foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "Atlases"), "*", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal))
                 if (!file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
                     yield return file.Substring(root.Length + 1).Replace('\\', '/');
-        }
-
-        /// <summary>Build delivery identities when a transfer is requested, without scanning separate localizers.</summary>
-        public static Dictionary<string, string> CaptureTransferHashes(string root, IReadOnlyDictionary<string, string> mniHashes, CancellationToken token = default)
-        {
-            if (mniHashes == null) throw new ArgumentNullException(nameof(mniHashes));
-            var result = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (string relative in EnumerateMniFiles())
-            {
-                if (!mniHashes.TryGetValue(relative, out string hash)) throw new InvalidDataException("Missing MNI resource provenance: " + relative);
-                result.Add(relative, hash);
-            }
-
-            foreach (string relative in EnumerateFiles(root))
-            {
-                token.ThrowIfCancellationRequested();
-                if (result.ContainsKey(relative) || !IsPackagedForQuest(relative)) continue;
-                result.Add(relative, HashFile(Resolve(root, relative)));
-            }
-
-            return result;
         }
 
         public static string HashFile(string path)

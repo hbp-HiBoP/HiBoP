@@ -25,11 +25,11 @@ namespace HBP.Transfer.Scene
             var patients = visualization.Patients.Select(p => p.ID).ToHashSet();
             if (payload.Meshes == null || !payload.Meshes.Any(m => m.PatientId == null) || payload.MRIs == null || !payload.MRIs.Any(m => m.PatientId == null) || payload.StandardFiles == null) Fail("Missing anatomy.");
             foreach (var entry in payload.StandardFiles)
-                if (!(entry.Key.StartsWith("Atlases/", StringComparison.Ordinal) || entry.Key.StartsWith("IRM/", StringComparison.Ordinal) || entry.Key.StartsWith("Meshes/", StringComparison.Ordinal)) || entry.Value == null || entry.Value.Length != 64 || entry.Value.Any(c => !"0123456789abcdef".Contains(c)))
+                if (!(entry.Key.StartsWith("Atlases/", StringComparison.Ordinal) || entry.Key.StartsWith("IRM/", StringComparison.Ordinal) || entry.Key.StartsWith("Meshes/", StringComparison.Ordinal)))
                     Fail("Invalid standard reference.");
             foreach (string required in new[] { "IRM/MNI.nii", "Meshes/MNI.trm", "Meshes/MNI_Lhemi.gii", "Meshes/MNI_Rhemi.gii", "Meshes/MNI_Lwhite.gii", "Meshes/MNI_Rwhite.gii" })
                 if (!payload.StandardFiles.ContainsKey(required))
-                    Fail("Missing standard identity.");
+                    Fail("Missing standard reference.");
 
             void FileReference(string name)
             {

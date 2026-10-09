@@ -57,16 +57,15 @@ namespace HBP.Sync.Scene
         private void RefreshAtlases()
         {
             m_Ibc = Object3DManager.IBC.Loaded ? Object3DManager.IBC.FMRI : null;
-            string ibcLabels = m_Ibc == null ? null : IbcLabelsFingerprint();
-            m_IbcContrastRefs = m_Ibc == null ? Array.Empty<string>() : Enumerable.Range(0, m_Ibc.Volumes.Count).Select(index => ContentReference("ibc", index.ToString(CultureInfo.InvariantCulture), m_Ibc.SourceHash, ibcLabels)).ToArray();
+            m_IbcContrastRefs = m_Ibc == null ? Array.Empty<string>() : Enumerable.Range(0, m_Ibc.Volumes.Count).Select(index => ContentReference("ibc", index.ToString(CultureInfo.InvariantCulture))).ToArray();
             m_DifumoAtlases = Object3DManager.DiFuMo.FMRIs.Where(entry => Object3DManager.DiFuMo.IsLoaded(entry.Key)).OrderBy(entry => entry.Key, StringComparer.Ordinal).ToArray();
-            m_DifumoRefs = m_DifumoAtlases.Select(entry => ContentReference("difumo", entry.Key, entry.Value.SourceHash, DifumoLabelsFingerprint(entry.Key))).ToArray();
+            m_DifumoRefs = m_DifumoAtlases.Select(entry => ContentReference("difumo", entry.Key)).ToArray();
             LocalizerProtocol[] protocols = PreparedLocalizerProtocols();
             var datas = protocols.SelectMany(protocol => protocol.Datas.Where(data => data.Blocs.Count > 0 && data.Loaded).OrderBy(data => data.Name, StringComparer.Ordinal).Select(data => (Protocol: protocol, Resource: data))).ToArray();
             var blocs = datas.SelectMany(entry => entry.Resource.Blocs.Where(bloc => bloc.Loaded).OrderBy(bloc => bloc.Name, StringComparer.Ordinal).Select(bloc => (entry.Protocol, Data: entry.Resource, Resource: bloc))).ToArray();
-            m_LocalizerBlocs = blocs.Select(entry => (entry.Protocol, entry.Data, entry.Resource, ContentReference("localizer-bloc", entry.Protocol.Name, entry.Data.Name, entry.Resource.Name, entry.Resource.FMRI.SourceHash, entry.Resource.FMRI.SourceCompanionHash, entry.Resource.FMRI.MaskHash, entry.Resource.FMRI.MaskCompanionHash))).ToArray();
-            m_LocalizerDatas = datas.Select(entry => (entry.Protocol, entry.Resource, ContentReference("localizer-data", entry.Protocol.Name, entry.Resource.Name, string.Join("|", m_LocalizerBlocs.Where(bloc => ReferenceEquals(bloc.Data, entry.Resource)).Select(bloc => bloc.Reference))))).ToArray();
-            m_LocalizerProtocols = protocols.Select(resource => (resource, ContentReference("localizer-protocol", resource.Name, string.Join("|", m_LocalizerDatas.Where(data => ReferenceEquals(data.Protocol, resource)).Select(data => data.Reference))))).ToArray();
+            m_LocalizerBlocs = blocs.Select(entry => (entry.Protocol, entry.Data, entry.Resource, ContentReference("localizer-bloc", entry.Protocol.Name, entry.Data.Name, entry.Resource.Name))).ToArray();
+            m_LocalizerDatas = datas.Select(entry => (entry.Protocol, entry.Resource, ContentReference("localizer-data", entry.Protocol.Name, entry.Resource.Name))).ToArray();
+            m_LocalizerProtocols = protocols.Select(resource => (resource, ContentReference("localizer-protocol", resource.Name))).ToArray();
         }
 
         public void AssertPreparedRoster()
@@ -327,10 +326,6 @@ namespace HBP.Sync.Scene
                 throw new InvalidDataException("Prepared static label has no values.");
             return Fingerprint(values.OrderBy(entry => entry.Key, StringComparer.Ordinal).Select(entry => Fingerprint(entry.Key, FloatText(entry.Value))));
         }
-
-        private static string IbcLabelsFingerprint() => Fingerprint(Object3DManager.IBC.Information.AllLabels.Select(label => Fingerprint(label.Index.ToString(CultureInfo.InvariantCulture), label.Task, label.Contrast, label.PrettyName, label.ControlCondition, label.TargetCondition)));
-
-        private static string DifumoLabelsFingerprint(string atlas) => Fingerprint(Object3DManager.DiFuMo.Information[atlas].AllLabels.Select(label => Fingerprint(label.Component.ToString(CultureInfo.InvariantCulture), label.Name, label.YeoNetworks7, label.YeoNetworks17, FloatText(label.GM), FloatText(label.WM), FloatText(label.CSF))));
 
         private string ContentReference(string kind, params string[] parts) => $"{kind}:{Fingerprint(new[] { m_ManifestHash, kind }.Concat(parts))}:1";
 

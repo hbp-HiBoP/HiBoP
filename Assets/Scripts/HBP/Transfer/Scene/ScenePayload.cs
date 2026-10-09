@@ -13,7 +13,10 @@ namespace HBP.Transfer.Scene
         public string GlobalContextId;
         public string SessionId;
         public ulong Revision;
+
         public Visualization Visualization;
+
+        // Values are reserved for legacy metadata; only installed paths are required.
         public Dictionary<string, string> StandardFiles = new();
         public List<MeshResource> Meshes = new();
         public List<VolumeResource> MRIs = new();

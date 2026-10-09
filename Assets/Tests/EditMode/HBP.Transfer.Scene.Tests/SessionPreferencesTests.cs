@@ -178,18 +178,35 @@ namespace HBP.Tests.Transfer
             }
         }
 
+
         [Test]
-        public void InstalledLocalizerFingerprintUsesSameCatalogAndDetectsContentChanges()
+        public async Task ReceiverConfirmsLoadedAtlasWithoutComparingContentHashes()
         {
-            string directory = Path.Combine(m_Folder, "Atlases", "Localizers", "AUDI", "Data");
-            Directory.CreateDirectory(directory);
-            string volume = Path.Combine(directory, "bloc.nii");
-            File.WriteAllText(volume, "first test content");
-            string first = AtlasResources.Fingerprint("localizer:AUDI", m_Folder);
-            File.WriteAllText(volume, "second test content");
-            Assert.That(AtlasResources.Fingerprint("localizer:AUDI", m_Folder), Is.Not.EqualTo(first));
-            File.Delete(volume);
-            Assert.Throws<FileNotFoundException>(() => AtlasResources.Fingerprint("localizer:AUDI", m_Folder));
+            Guid context = Guid.NewGuid();
+            var previous = Object3DManager.MarsAtlas;
+            using var atlas = new HBP.Core.DLL.MarsAtlas();
+            typeof(HBP.Core.DLL.BrainAtlas).GetProperty(nameof(HBP.Core.DLL.BrainAtlas.Loaded)).SetValue(atlas, true);
+            Object3DManager.MarsAtlas = atlas;
+            var receiver = new SessionPreferencesReceiver(() => context, () => m_Preferences, () => false);
+            try
+            {
+                await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None);
+                Assert.That(SessionAtlasCatalog.CanUse("mars"), Is.False);
+                var reply = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.ConfirmAtlas, atlasId: "mars", fingerprint: new string('0', 64)), CancellationToken.None);
+                Assert.That(reply.Applied, Is.True, reply.Message);
+                Assert.That(SessionAtlasCatalog.CanUse("mars"), Is.True);
+                Assert.That(SessionAtlasCatalog.Reference("mars"), Is.EqualTo("mars"));
+                Assert.That(SessionAtlasCatalog.Resolve("mars"), Is.EqualTo("mars"));
+                typeof(HBP.Core.DLL.BrainAtlas).GetProperty(nameof(HBP.Core.DLL.BrainAtlas.Loaded)).SetValue(atlas, false);
+                var missing = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.ConfirmAtlas, atlasId: "mars"), CancellationToken.None);
+                Assert.That(missing.Applied, Is.False);
+                Assert.That(SessionAtlasCatalog.CanUse("mars"), Is.False);
+            }
+            finally
+            {
+                await receiver.CloseAsync();
+                Object3DManager.MarsAtlas = previous;
+            }
         }
     }
 }

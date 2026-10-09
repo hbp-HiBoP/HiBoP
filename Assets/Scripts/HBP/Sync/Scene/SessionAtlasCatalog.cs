@@ -9,7 +9,7 @@ namespace HBP.Sync.Scene
     /// <summary>Availability agreed by both peers; it does not change a scene's delivered resource identities.</summary>
     public static class SessionAtlasCatalog
     {
-        private static readonly Dictionary<string, string> s_Ready = new(StringComparer.Ordinal);
+        private static readonly HashSet<string> s_Ready = new(StringComparer.Ordinal);
         public static bool Active { get; private set; }
         public static event Action Changed;
 
@@ -27,10 +27,10 @@ namespace HBP.Sync.Scene
             Changed?.Invoke();
         }
 
-        public static void SetReady(string id, string fingerprint)
+        public static void SetReady(string id)
         {
-            if (fingerprint == null || fingerprint.Length != 64 || AtlasResources.Status(id).Fingerprint != fingerprint) throw new InvalidDataException("Atlas is not ready: " + id);
-            s_Ready[id] = fingerprint;
+            if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidDataException("Atlas is not ready: " + id);
+            s_Ready.Add(id);
             Changed?.Invoke();
         }
 
@@ -40,7 +40,7 @@ namespace HBP.Sync.Scene
             Changed?.Invoke();
         }
 
-        public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.TryGetValue(id, out var fingerprint) && AtlasResources.Status(id).Fingerprint == fingerprint);
+        public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.Contains(id));
 
         public static void Require(string id)
         {
@@ -51,19 +51,15 @@ namespace HBP.Sync.Scene
         public static string Reference(string id)
         {
             Require(id);
-            string fingerprint = Active ? s_Ready[id] : AtlasResources.Status(id).Fingerprint;
-            // Legacy/local tests and resources prepared before a session have no coordinator result yet.
-            if (fingerprint == null) fingerprint = AtlasResources.Fingerprint(id);
-            return id + "@" + fingerprint;
+            return id;
         }
 
         public static string Resolve(string reference)
         {
-            int separator = reference?.LastIndexOf('@') ?? -1;
-            if (separator < 1) throw new InvalidDataException("Missing atlas content identity.");
-            string id = reference.Substring(0, separator);
-            if (Reference(id) != reference) throw new InvalidDataException("Atlas content identity differs between devices.");
-            return id;
+            if (string.IsNullOrEmpty(reference)) throw new InvalidDataException("Missing atlas reference.");
+            AtlasResources.Find(reference);
+            Require(reference);
+            return reference;
         }
     }
 }

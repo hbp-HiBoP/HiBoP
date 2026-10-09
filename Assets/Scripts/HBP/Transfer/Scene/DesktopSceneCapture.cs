@@ -98,12 +98,10 @@ namespace HBP.Transfer.Scene
             {
                 Report("Preparing visualization resources");
                 await UniTask.NextFrame(cancellationToken: token);
-                if (Object3DManager.MNI.ResourceHashes == null)
-                    throw new InvalidOperationException("Standard resource provenance is unavailable. Reopen the visualization.");
-                var mniHashes = new Dictionary<string, string>(Object3DManager.MNI.ResourceHashes, StringComparer.Ordinal);
-                // MNI provenance was recorded when the scene opened. Atlas files are local
-                // to each device; a selected atlas is checked when that operation is applied.
-                var standardFiles = mniHashes;
+                if (!Object3DManager.MNI.IsLoaded)
+                    throw new InvalidOperationException("Standard resources are unavailable. Reopen the visualization.");
+                // Reference files stay installed on each device. Content differences are user-managed.
+                var standardFiles = StandardData.EnumerateMniFiles().ToDictionary(path => path, _ => "", StringComparer.Ordinal);
                 captureStart = SyncTelemetry.CapturePoint();
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {

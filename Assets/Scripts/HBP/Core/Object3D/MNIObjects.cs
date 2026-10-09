@@ -1,5 +1,4 @@
 using System.IO;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
@@ -35,9 +34,6 @@ namespace HBP.Core.Object3D
 
         private AsyncLazy m_LoadWork;
 
-        public System.Collections.Generic.Dictionary<string, string> ResourceHashes { get; private set; }
-        public bool ReusedInstalledHashes { get; private set; }
-
         #endregion
 
         #region Private Methods
@@ -62,8 +58,7 @@ namespace HBP.Core.Object3D
             try
             {
                 string mniPath = Path.Combine(mniMRIDir, "MNI.nii");
-                using var verified = StandardData.AcquireInstalledResource(mniPath);
-                if (!(verified != null ? volume.LoadVerifiedNIFTIFile(verified) : volume.LoadNIFTIFile(mniPath))) throw new IOException("MNI MRI could not be loaded.");
+                if (!volume.LoadNIFTIFile(mniPath)) throw new IOException("MNI MRI could not be loaded.");
 
                 LeftRightMesh3D Prepare(string name, string leftFile, string rightFile)
                 {
@@ -112,19 +107,11 @@ namespace HBP.Core.Object3D
         private async UniTask LoadCoreAsync()
         {
             await UniTask.SwitchToThreadPool();
-            var installedHashes = StandardData.GetInstalledHashes(ApplicationState.DataPath);
-            ReusedInstalledHashes = installedHashes != null;
-            var hashes = StandardData.EnumerateMniFiles().ToDictionary(path => path, path => installedHashes != null ? installedHashes[path] : StandardData.HashFile(StandardData.Resolve(ApplicationState.DataPath, path)));
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
             try
             {
                 await LoadDataAsync(baseIRMDir, baseMeshDir);
                 if (!GreyMatter.IsLoaded || !WhiteMatter.IsLoaded || !MRI.IsLoaded) throw new System.IO.IOException("MNI reference data could not be loaded.");
-                if (!ReusedInstalledHashes)
-                    foreach (var entry in hashes)
-                        if (StandardData.HashFile(StandardData.Resolve(ApplicationState.DataPath, entry.Key)) != entry.Value)
-                            throw new System.IO.IOException("Reference data changed during loading.");
-                ResourceHashes = hashes;
                 IsLoaded = true;
             }
             catch
@@ -141,8 +128,6 @@ namespace HBP.Core.Object3D
             MRI?.Clean();
             GreyMatter = WhiteMatter = null;
             MRI = null;
-            ResourceHashes = null;
-            ReusedInstalledHashes = false;
             IsLoaded = false;
             m_LoadWork = null;
         }

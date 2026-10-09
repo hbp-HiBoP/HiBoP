@@ -100,21 +100,21 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
-        public void MutableDesktopReferenceIsRehashedEvenWithSameLengthAndTimestamp()
+        public void InstalledReferenceAcceptsChangedContentWithoutReadingTheFile()
         {
             var property = typeof(ApplicationState).GetProperty("DataPath");
             string original = ApplicationState.DataPath;
             string path = Path.Combine(root, "reference.nii");
             File.WriteAllBytes(path, new byte[] { 1, 2, 3 });
-            string hash = StandardData.HashFile(path);
             DateTime stamp = File.GetLastWriteTimeUtc(path);
             try
             {
                 property.SetValue(null, root);
-                StandardData.ValidateExpectedFile("reference.nii", hash);
+                StandardData.ValidateInstalledFile("reference.nii");
                 File.WriteAllBytes(path, new byte[] { 4, 5, 6 });
                 File.SetLastWriteTimeUtc(path, stamp);
-                Assert.Throws<InvalidDataException>(() => StandardData.ValidateExpectedFile("reference.nii", hash));
+                using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+                StandardData.ValidateInstalledFile("reference.nii");
             }
             finally
             {
@@ -123,33 +123,19 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
-        public void WarmReferenceCacheStillRejectsIncompatibleExpectedHash()
+        public void InstalledReferenceStillRejectsMissingFilesAndEscapedPaths()
         {
-            var flags = System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic;
-            var hashField = typeof(StandardData).GetField("s_InstalledHashes", flags);
-            var rootField = typeof(StandardData).GetField("s_InstalledRoot", flags);
-            object previousHashes = hashField.GetValue(null), previousRoot = rootField.GetValue(null);
             var property = typeof(ApplicationState).GetProperty("DataPath");
             string original = ApplicationState.DataPath;
-            string path = Path.Combine(root, "reference.nii");
-            File.WriteAllBytes(path, new byte[] { 1, 2, 3 });
-            string hash = StandardData.HashFile(path);
-            using var guard = new VerifiedResourceScope(() => { });
-            guard.Register(path, hash);
-            guard.Seal();
             try
             {
                 property.SetValue(null, root);
-                hashField.SetValue(null, new System.Collections.Generic.Dictionary<string, string> { ["reference.nii"] = hash });
-                rootField.SetValue(null, Path.GetFullPath(root));
-                StandardData.ValidateExpectedFile("reference.nii", hash);
-                Assert.Throws<InvalidDataException>(() => StandardData.ValidateExpectedFile("reference.nii", new string('0', 64)));
+                Assert.Throws<FileNotFoundException>(() => StandardData.ValidateInstalledFile("missing.nii"));
+                Assert.Throws<InvalidDataException>(() => StandardData.ValidateInstalledFile("../reference.nii"));
             }
             finally
             {
                 property.SetValue(null, original);
-                hashField.SetValue(null, previousHashes);
-                rootField.SetValue(null, previousRoot);
             }
         }
 

@@ -36,6 +36,10 @@ namespace HBP.Tests.Quest
                 string directory = Path.Combine(folder, "Atlases", "Localizers", "AUDI", "test");
                 Directory.CreateDirectory(directory);
                 WriteVolume(Path.Combine(directory, "bloc.nii"));
+                WriteVolume(Path.Combine(directory, "bloc_mask.nii"));
+                string unrelated = Path.Combine(directory, "unused.txt");
+                File.WriteAllText(unrelated, "Not part of the atlas.");
+                using var exclusive = new FileStream(unrelated, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                 dataPath.SetValue(null, folder);
                 Object3DManager.Localizers = new LocalizersObjects();
                 AtlasResources.Changed += Loading;
@@ -51,21 +55,45 @@ namespace HBP.Tests.Quest
                 Assert.That(AtlasResources.IsLoaded(id), Is.True);
                 var native = Object3DManager.Localizers.Protocols[0];
                 string volume = Path.Combine(directory, "bloc.nii");
+                var fmri = native.Datas[0].Blocs[0].FMRI;
+                string loadedHash = StandardData.HashFile(volume);
+                Assert.That(fmri.SourceHash, Is.EqualTo(loadedHash));
+                Assert.That(fmri.MaskHash, Is.EqualTo(StandardData.HashFile(fmri.MaskFile)));
+                Assert.That(fmri.MaskVolume.SourceFileSha256.Replace("-", "").ToLowerInvariant(), Is.EqualTo(fmri.MaskHash));
                 using (var changed = new FileStream(volume, FileMode.Open, FileAccess.Write))
                 {
                     changed.Position = 352;
                     changed.WriteByte(99);
                 }
-                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed));
-                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed), "A failed verification must not relabel the old native atlas on retry.");
-                Assert.That(AtlasResources.Status(id).Fingerprint, Is.Null);
+
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Loaded));
+                File.Delete(volume);
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Loaded), "An already loaded atlas must not read its files again.");
                 Assert.That(Object3DManager.Localizers.Protocols[0], Is.SameAs(native));
+                Assert.That(fmri.SourceHash, Is.EqualTo(loadedHash));
+                Assert.That(AtlasResources.Unload(id).State, Is.EqualTo(AtlasLoadState.Unloaded));
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed));
+                WriteVolume(volume);
+                Assert.That((await AtlasResources.LoadAsync(id, timeout.Token)).State, Is.EqualTo(AtlasLoadState.Loaded), "A missing resource can be restored and retried.");
+                Assert.That(Object3DManager.Localizers.Protocols[0], Is.Not.SameAs(native));
                 using (ResourceRetention.Retain(id)) Assert.Throws<InvalidOperationException>(() => AtlasResources.Unload(id));
                 Assert.That(AtlasResources.Unload(id).State, Is.EqualTo(AtlasLoadState.Unloaded));
                 Assert.That(AtlasResources.IsLoaded(id), Is.False);
                 Assert.That((await AtlasResources.LoadAsync(id, cancelled.Token)).State, Is.EqualTo(AtlasLoadState.Cancelled));
                 Assert.That(AtlasResources.IsLoaded(id), Is.False);
                 Assert.That((await AtlasResources.LoadAsync("localizer:VISU", timeout.Token)).State, Is.EqualTo(AtlasLoadState.Failed));
+                var userData = new FMRI("user", volume, Path.Combine(directory, "bloc_mask.nii"), loadInBackground: false);
+                try
+                {
+                    await userData.LoadAsync();
+                    Assert.That(userData.SourceHash, Is.EqualTo(StandardData.HashFile(volume)));
+                    Assert.That(userData.MaskHash, Is.EqualTo(StandardData.HashFile(userData.MaskFile)));
+                    Assert.That(userData.MaskVolume.SourceFileSha256, Is.Not.Null);
+                }
+                finally
+                {
+                    userData.Clean();
+                }
             }
             finally
             {

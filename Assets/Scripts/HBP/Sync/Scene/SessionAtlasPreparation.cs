@@ -19,7 +19,6 @@ namespace HBP.Sync.Scene
     public sealed class SessionAtlasState
     {
         public AtlasLoadState State;
-        public string Fingerprint;
         public string Error;
         public bool Preload;
     }
@@ -37,8 +36,7 @@ namespace HBP.Sync.Scene
         private bool preparing;
         public Task Completion => running;
 
-        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<Task> installed,
-            Func<string, CancellationToken, Task<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
+        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<Task> installed, Func<string, CancellationToken, Task<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
         {
             requested = AtlasResources.Definitions.Where(d => d.Preload(preferences)).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
             this.installed = installed;
@@ -66,7 +64,7 @@ namespace HBP.Sync.Scene
                     stop.Token.ThrowIfCancellationRequested();
                     var result = await load(id, stop.Token);
                     await UniTask.SwitchToMainThread();
-                    results[id] = new() { State = result.State, Fingerprint = result.Fingerprint, Error = result.Error, Preload = true };
+                    results[id] = new() { State = result.State, Error = result.Error, Preload = true };
                 }
             }
             catch (Exception exception)
@@ -89,11 +87,12 @@ namespace HBP.Sync.Scene
             {
                 string id = definition.Id;
                 var resource = status(id);
-                var state = new SessionAtlasState { State = resource.State, Fingerprint = resource.Fingerprint, Error = resource.Error, Preload = requested.Contains(id) };
+                var state = new SessionAtlasState { State = resource.State, Error = resource.Error, Preload = requested.Contains(id) };
                 if (state.Preload && results.TryGetValue(id, out var result) && resource.State == AtlasLoadState.Unloaded && (result.State == AtlasLoadState.Failed || result.State == AtlasLoadState.Cancelled)) state = result;
                 else if (state.Preload && preparing && !results.ContainsKey(id) && resource.State == AtlasLoadState.Unloaded) state.State = AtlasLoadState.Loading;
                 inventory.Atlases[id] = state;
             }
+
             return inventory;
         }
 

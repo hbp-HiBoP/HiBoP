@@ -23,10 +23,19 @@ namespace HBP.Tests.Quest
             var pending = new TaskCompletionSource<SessionControlResponse>();
             var entered = new TaskCompletionSource<SessionControlRequest>();
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            using var cancellation = timeout.Token.Register(() => { pending.TrySetCanceled(); entered.TrySetCanceled(); });
+            using var cancellation = timeout.Token.Register(() =>
+            {
+                pending.TrySetCanceled();
+                entered.TrySetCanceled();
+            });
             using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
             {
-                if (request.Kind == SessionControlKind.AtlasInventory) { entered.TrySetResult(request); return pending.Task; }
+                if (request.Kind == SessionControlKind.AtlasInventory)
+                {
+                    entered.TrySetResult(request);
+                    return pending.Task;
+                }
+
                 return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability));
             });
             try
@@ -37,11 +46,15 @@ namespace HBP.Tests.Quest
                 Assert.That(pending.Task.IsCompleted, Is.False);
                 pending.SetResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
             }
-            finally { owner.Dispose(); pending.TrySetCanceled(); }
+            finally
+            {
+                owner.Dispose();
+                pending.TrySetCanceled();
+            }
         }
 
         [Test]
-        public async Task BackgroundInventoryReportsIncompatibleAtlasWithoutLosingThePairing()
+        public async Task BackgroundInventoryConfirmsLoadedAtlasWithoutComparingLegacyContentHashes()
         {
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
             var reported = new TaskCompletionSource<bool>();
@@ -53,29 +66,70 @@ namespace HBP.Tests.Quest
             {
                 using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
                 {
-                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    if (request.Kind == SessionControlKind.ConfirmAtlas)
+                    {
+                        confirmations++;
+                        reported.TrySetResult(true);
+                    }
+
                     string inventory = "{\"Preparing\":false,\"Atlases\":{\"mars\":{\"State\":" + (int)AtlasLoadState.Loaded + ",\"Preload\":true,\"Fingerprint\":\"" + new string('0', 64) + "\"}}}";
                     return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(inventory)));
                 });
                 owner.ConnectionLost += () => disconnections++;
-                owner.Changed += () => { if (owner.AtlasStatus.Contains("incompatible content")) reported.TrySetResult(true); };
                 await owner.StartAsync();
                 await reported.Task;
-                Assert.That(owner.RetryAtlasId, Is.EqualTo("mars"));
-                Assert.That(confirmations, Is.Zero);
+                await Cysharp.Threading.Tasks.UniTask.NextFrame(cancellationToken: timeout.Token);
+                Assert.That(owner.RetryAtlasId, Is.Null);
+                Assert.That(confirmations, Is.EqualTo(1));
                 Assert.That(disconnections, Is.Zero);
             }
-            finally { AtlasResources.Unload("mars"); }
+            finally
+            {
+                AtlasResources.Unload("mars");
+            }
+        }
+
+        [Test]
+        public async Task ManualLoadConfirmsBothDevicesWithoutComparingContentHashes()
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            int confirmations = 0;
+            try
+            {
+                using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: new string('0', 64), body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
+                });
+                await owner.StartAsync();
+                await owner.SetAtlasLoadedAsync("mars", true);
+                Assert.That(confirmations, Is.EqualTo(1));
+                Assert.That(owner.RetryAtlasId, Is.Null);
+                Assert.That(owner.AtlasStatus, Does.Not.Contain("incompatible"));
+                Assert.That(AtlasResources.IsLoaded("mars"), Is.True);
+                await owner.SetAtlasLoadedAsync("mars", false);
+                Assert.That(AtlasResources.IsLoaded("mars"), Is.False);
+            }
+            finally
+            {
+                if (AtlasResources.IsLoaded("mars")) AtlasResources.Unload("mars");
+            }
         }
 
         [Test]
         public async Task IncompatibleProtocolRequestsAnUpdate()
         {
-            using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
-                Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes("{}"))));
+            using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) => Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes("{}"))));
             Exception failure = null;
-            try { await owner.StartAsync(); }
-            catch (Exception exception) { failure = exception; }
+            try
+            {
+                await owner.StartAsync();
+            }
+            catch (Exception exception)
+            {
+                failure = exception;
+            }
+
             Assert.That(failure, Is.TypeOf<InvalidOperationException>());
             Assert.That(failure.Message, Does.Contain("Update HiBoP Desktop and Quest together"));
         }

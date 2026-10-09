@@ -1598,6 +1598,82 @@ namespace HBP.Tests.SceneTransfer
         }
 
         [Test]
+        public async Task InstalledAtlasReferencesIgnoreContentHashesAndUnselectedLocalizerBlocs()
+        {
+            using var scope = new PlayModeSceneScope("InstalledAtlasReferences");
+            var scene = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
+            var previousIbc = Object3DManager.IBC;
+            var previousDifumo = Object3DManager.DiFuMo;
+            var previousLocalizers = Object3DManager.Localizers;
+            Object3DManager.IBC = new IBCObjects();
+            Object3DManager.DiFuMo = new DiFuMoObjects();
+            Object3DManager.Localizers = new LocalizersObjects();
+            try
+            {
+                string localizerRoot = Path.GetFullPath("Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha");
+                var localizerProtocol = new LocalizerProtocol("protocol-alpha", Path.GetDirectoryName(localizerRoot), loadInBackground: false);
+                Object3DManager.Localizers.Protocols.Add(localizerProtocol);
+                var localizerData = localizerProtocol.Datas.Single(data => data.Name == "signal-alpha");
+                var localizerBloc = localizerData.Blocs.Single(bloc => bloc.Name == "bloc-alpha");
+                foreach (var bloc in localizerData.Blocs) await bloc.FMRI.LoadAsync();
+                await UniTask.SwitchToMainThread();
+                var difumoVolume = new HBP.Core.Object3D.FMRI("s2-fixture", Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz"), loadInBackground: false);
+                var difumoInformation = new DiFuMoInformation(Path.GetFullPath("Assets/Data/Atlases/DiFuMo/64/labels_64_dictionary.csv"));
+                Object3DManager.DiFuMo.FMRIs.Add("s2-fixture", difumoVolume);
+                Object3DManager.DiFuMo.Information.Add("s2-fixture", difumoInformation);
+                await difumoVolume.LoadAsync();
+                await difumoInformation.LoadCompletion;
+                await UniTask.SwitchToMainThread();
+                var ibcVolume = new HBP.Core.Object3D.FMRI("s2-ibc", Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz"), loadInBackground: false);
+                var ibcInformation = new IBCInformation(Path.GetFullPath("Assets/Data/Atlases/IBC/map_labels.csv"));
+                typeof(IBCObjects).GetProperty(nameof(IBCObjects.FMRI)).SetValue(Object3DManager.IBC, ibcVolume);
+                typeof(IBCObjects).GetProperty(nameof(IBCObjects.Information)).SetValue(Object3DManager.IBC, ibcInformation);
+                await ibcVolume.LoadAsync();
+                await ibcInformation.LoadCompletion;
+                await UniTask.SwitchToMainThread();
+                var atlasCatalog = new PreparedSceneResourceCatalog(scene, new string('a', 64));
+                string ibcReference = atlasCatalog.IbcContrastReference(0);
+                string difumoReference = atlasCatalog.DifumoReference("s2-fixture");
+                string protocolReference = atlasCatalog.LocalizerProtocolReference("protocol-alpha");
+                string dataReference = atlasCatalog.LocalizerDataReference("protocol-alpha", "signal-alpha");
+                string blocReference = atlasCatalog.LocalizerBlocReference("protocol-alpha", "signal-alpha", "bloc-alpha");
+                var sourceHash = typeof(HBP.Core.Object3D.FMRI).GetProperty(nameof(HBP.Core.Object3D.FMRI.SourceHash));
+                string originalIbcHash = ibcVolume.SourceHash, originalDifumoHash = difumoVolume.SourceHash, originalLocalizerHash = localizerBloc.FMRI.SourceHash;
+                sourceHash.SetValue(ibcVolume, "different installed content");
+                sourceHash.SetValue(difumoVolume, "different installed content");
+                sourceHash.SetValue(localizerBloc.FMRI, "different installed content");
+                var extraBloc = new LocalizerBloc("another-bloc", Path.Combine(localizerRoot, "bloc-alpha.nii"), loadInBackground: false);
+                try
+                {
+                    await extraBloc.FMRI.LoadAsync();
+                    await UniTask.SwitchToMainThread();
+                    localizerData.Blocs.Add(extraBloc);
+                    Assert.That(atlasCatalog.ResolveIbcContrast(ibcReference), Is.Zero);
+                    Assert.That(atlasCatalog.ResolveDifumo(difumoReference), Is.EqualTo("s2-fixture"));
+                    Assert.That(atlasCatalog.ResolveLocalizer(protocolReference, dataReference, blocReference), Is.SameAs(localizerBloc.FMRI));
+                    Assert.Throws<InvalidDataException>(() => atlasCatalog.ResolveLocalizer(protocolReference, dataReference, "missing-bloc"));
+                }
+                finally
+                {
+                    sourceHash.SetValue(ibcVolume, originalIbcHash);
+                    sourceHash.SetValue(difumoVolume, originalDifumoHash);
+                    sourceHash.SetValue(localizerBloc.FMRI, originalLocalizerHash);
+                    localizerData.Blocs.Remove(extraBloc);
+                    extraBloc.Clean();
+                }
+            }
+            finally
+            {
+                Object3DManager.IBC.Clean();
+                Object3DManager.DiFuMo.Clean();
+                Object3DManager.Localizers.Clean();
+                Object3DManager.IBC = previousIbc;
+                Object3DManager.DiFuMo = previousDifumo;
+                Object3DManager.Localizers = previousLocalizers;
+            }
+        }
+
+        [Test]
         [Timeout(900000)]
         public async Task S2_ReplaysCorrelationsAcrossDeliveredSixModalityScenesWithoutReplacingQuestPresentation()
         {
@@ -2426,7 +2502,7 @@ namespace HBP.Tests.SceneTransfer
                 // A failed replacement must leave the current common scene and poses alive.
                 var invalidArchive = new SceneArchive(Path.Combine(root, "invalid"), true, source.Globals);
                 var invalid = invalidArchive.Read(file);
-                invalid.StandardFiles["IRM/MNI.nii"] = new string('0', 64);
+                invalid.StandardFiles["IRM/missing-reference.nii"] = "";
                 Exception failure = null;
                 try
                 {
@@ -2441,7 +2517,7 @@ namespace HBP.Tests.SceneTransfer
                     invalidArchive.Dispose();
                 }
 
-                Assert.That(failure, Is.TypeOf<InvalidDataException>());
+                Assert.That(failure, Is.TypeOf<FileNotFoundException>());
                 Assert.That(view.Scene, Is.SameAs(scene));
                 Assert.That(view.Columns[1].transform.localScale, Is.EqualTo(Vector3.one * 2));
                 using var incompatibleArchive = new SceneArchive(Path.Combine(root, "incompatible-topology"), true, source.Globals);
@@ -2588,7 +2664,7 @@ namespace HBP.Tests.SceneTransfer
             model.Configuration.FirstColumnToSelect = -1;
             TagCollection tags = marsTags ? new TagCollection(PersistentDataManager.Tags.GeneralTags, PersistentDataManager.Tags.PatientsTags, PersistentDataManager.Tags.SitesTags.Concat(new BaseTag[] { marsTag }), PersistentDataManager.Tags.ID) : PersistentDataManager.Tags;
             archive.Globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
-            var payload = new ScenePayload { TransferId = "fixture", SessionId = "runtime", Revision = 1, GlobalContextId = archive.Globals.Id, Visualization = model, StandardFiles = new(Object3DManager.MNI.ResourceHashes) };
+            var payload = new ScenePayload { TransferId = "fixture", SessionId = "runtime", Revision = 1, GlobalContextId = archive.Globals.Id, Visualization = model, StandardFiles = StandardData.EnumerateMniFiles().ToDictionary(path => path, _ => "") };
             var mesh = Object3DManager.MNI.GreyMatter;
             payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
             payload.MRIs.Add(new VolumeResource { Name = Object3DManager.MNI.MRI.Name, Standard = "MNI" });

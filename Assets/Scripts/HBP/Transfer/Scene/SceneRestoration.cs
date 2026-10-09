@@ -63,7 +63,7 @@ namespace HBP.Transfer.Scene
             foreach (var entry in payload.StandardFiles)
             {
                 token.ThrowIfCancellationRequested();
-                StandardData.ValidateExpectedFile(entry.Key, entry.Value);
+                StandardData.ValidateInstalledFile(entry.Key);
             }
 
             await UniTask.SwitchToMainThread();
