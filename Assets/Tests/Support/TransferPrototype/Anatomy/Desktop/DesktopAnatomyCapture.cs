@@ -73,7 +73,7 @@ namespace HBP.Transfer.Anatomy.Desktop
                 if (source.Length > AnatomySnapshotCodec.MaximumEncodedBytes) throw new InvalidOperationException($"Reference volume alone requires {source.Length} bytes, exceeding the {AnatomySnapshotCodec.MaximumEncodedBytes}-byte codec limit. Keep all scientific inputs; select a smaller source dataset or qualify a larger transport budget.");
                 byte[] volumeBytes = new byte[checked((int)source.Length)];
                 using (var reader = new BinaryReader(source, System.Text.Encoding.UTF8, true)) volumeBytes = reader.ReadBytes(volumeBytes.Length);
-                using var sha = SHA256.Create();
+                using var sha = HBP.Core.Tools.Sha256.Create();
                 if (BitConverter.ToString(sha.ComputeHash(volumeBytes)) != volumeHash) throw new InvalidOperationException("The reference volume file changed since native loading. Reload the visualization before capture.");
                 var projection = new AnatomyProjection(volumeBytes, grid, interpolation, influence, rule, alpha);
                 AnatomyCoordinateSpace coordinates = new(FrameId, AnatomyHandedness.Left, AnatomyLengthUnit.Millimeter, 1, new float[] { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 });

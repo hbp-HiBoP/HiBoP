@@ -135,7 +135,7 @@ namespace HBP.Transfer.Scene
 
         private static string Hash(JToken token)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             using (var hashStream = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write))
             using (var textWriter = new StreamWriter(hashStream, new UTF8Encoding(false), 8192, true))
             using (var jsonWriter = new JsonTextWriter(textWriter) { CloseOutput = false })

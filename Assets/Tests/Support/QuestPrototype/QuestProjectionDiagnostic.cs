@@ -45,7 +45,7 @@ namespace HBP.Quest.Legacy
             try
             {
                 byte[] bytes = File.ReadAllBytes(Path.Combine(Application.persistentDataPath, "quest017-projection.hbna"));
-                using (var sha = SHA256.Create()) report.snapshotSha256 = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
+                using (var sha = HBP.Core.Tools.Sha256.Create()) report.snapshotSha256 = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
                 var snapshot = await Task.Run(() => AnatomySnapshotCodec.Decode(bytes), Application.exitCancellationToken);
                 Require(snapshot.SchemaVersion == 3 && snapshot.Projection != null, "Expected a complete projection snapshot");
                 view = UnityEngine.Object.FindAnyObjectByType<QuestAnatomyView>();

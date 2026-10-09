@@ -148,7 +148,7 @@ namespace HBP.Dev
                 Directory.CreateDirectory(output);
                 File.WriteAllBytes(Path.Combine(output, "anatomy.hbna"), bytes);
                 File.WriteAllBytes(Path.Combine(output, "anatomy-repeat.hbna"), repeated);
-                using SHA256 sha = SHA256.Create();
+                using SHA256 sha = HBP.Core.Tools.Sha256.Create();
                 // Explicit tokens survive IL2CPP stripping; anonymous reflected properties do not.
                 JObject report = new()
                 {

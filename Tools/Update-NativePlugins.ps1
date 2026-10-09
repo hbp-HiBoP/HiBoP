@@ -3,8 +3,8 @@
 Builds the native HiBoP plugins on GitHub and installs the validated artifacts.
 
 .DESCRIPTION
-The script pins the latest commit from the master branch of EEGFormat, hbp_core
-and hbp_math, dispatches their native workflows, waits for all platforms,
+The script pins the latest commit from the selected branch (master by default),
+dispatches the selected native workflows, waits for the requested platforms,
 validates every artifact manifest, and replaces the Unity plugins as one
 rollback-capable transaction.
 
@@ -16,10 +16,19 @@ rollback-capable transaction.
 
 .EXAMPLE
 .\Tools\Update-NativePlugins.ps1 -ValidateOnly
+
+.EXAMPLE
+.\Tools\Update-NativePlugins.ps1 -Branch develop -Libraries hbp_core -Platform Linux
 #>
 
 [CmdletBinding()]
 param(
+    [ValidateNotNullOrEmpty()]
+    [string]$Branch = 'master',
+    [ValidateSet('EEGFormat', 'hbp_core', 'hbp_math')]
+    [string[]]$Libraries,
+    [ValidateSet('All', 'Windows', 'Linux', 'MacOS', 'Android')]
+    [string]$Platform = 'All',
     [string]$Resume,
     [switch]$ValidateOnly,
     [string]$AndroidPackage,
@@ -92,24 +101,27 @@ function Get-NativePluginConfiguration
     {
         throw "Unsupported native plugin configuration schema: $($configuration.schemaVersion)"
     }
-    if ($configuration.branch -ne "master")
+    if (!$ConfigurationOverride) { $configuration.branch = $Branch }
+    & git check-ref-format --branch $configuration.branch > $null
+    if ($LASTEXITCODE -ne 0)
     {
-        throw "Native plugins must be built from the GitHub master branch."
+        throw "Invalid Git branch: $($configuration.branch)"
     }
     if (!$configuration.workflow)
     {
         throw "The native workflow name is missing."
     }
 
-    $libraries = @($configuration.libraries)
-    if ($libraries.Count -ne 3)
+    $configuredLibraries = @($configuration.libraries)
+    $partialUpdate = $configuration.Contains('partialUpdate') -and $configuration.partialUpdate
+    if ($configuredLibraries.Count -eq 0 -or (!$partialUpdate -and $configuredLibraries.Count -ne 3))
     {
-        throw "Expected exactly three native libraries, found $($libraries.Count)."
+        throw "Expected exactly three native libraries, found $($configuredLibraries.Count)."
     }
 
     $destinations = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($library in $libraries)
+    foreach ($library in $configuredLibraries)
     {
         foreach ($property in @("name", "repository", "manifestRepository"))
         {
@@ -122,15 +134,16 @@ function Get-NativePluginConfiguration
         $targets = @($library.targets)
         $expectedPlatforms = @("Windows", "Linux", "MacOS")
         if ($library.name -in @("hbp_core", "hbp_math") -and (!$ConfigurationOverride -or @($targets | Where-Object platform -eq 'Android').Count)) { $expectedPlatforms += "Android" }
+        if ($partialUpdate -and $configuration.buildPlatform -ne 'all') { $expectedPlatforms = @($configuration.buildPlatform) }
         if ($targets.Count -ne $expectedPlatforms.Count)
         {
             throw "Expected $($expectedPlatforms.Count) platform targets for $($library.name)."
         }
-        foreach ($platform in $expectedPlatforms)
+        foreach ($requiredPlatform in $expectedPlatforms)
         {
-            if (@($targets | Where-Object { $_.platform -eq $platform }).Count -ne 1)
+            if (@($targets | Where-Object { $_.platform -eq $requiredPlatform }).Count -ne 1)
             {
-                throw "Expected exactly one $platform target for $($library.name)."
+                throw "Expected exactly one $requiredPlatform target for $($library.name)."
             }
         }
 
@@ -155,6 +168,21 @@ function Get-NativePluginConfiguration
             }
         }
     }
+    if (!$ConfigurationOverride)
+    {
+        if ($Libraries) { $configuration.libraries = @($configuration.libraries | Where-Object name -in $Libraries) }
+        if ($Platform -ne 'All')
+        {
+            foreach ($library in $configuration.libraries)
+            {
+                $library.targets = @($library.targets | Where-Object platform -eq $Platform)
+                if ($library.targets.Count -ne 1) { throw "$($library.name) does not support $Platform." }
+            }
+        }
+        $configuration.buildPlatform = $Platform.ToLowerInvariant()
+        $configuration.partialUpdate = [bool]$Libraries -or $Platform -ne 'All'
+    }
+    elseif (!$configuration.Contains('buildPlatform')) { $configuration.buildPlatform = 'all' }
     return $configuration
 }
 
@@ -262,6 +290,7 @@ function Select-RunArtifacts
     if (($Platforms -and "Android" -in $Platforms) -or (!$Platforms -and $LibraryName -in @("hbp_core", "hbp_math"))) {
         $specifications += [ordered]@{ platform = "Android"; names = @("$LibraryName-android-arm64-$RunId") }
     }
+    if ($Platforms) { $specifications = @($specifications | Where-Object platform -in $Platforms) }
 
     if ($Artifacts.Count -ne $specifications.Count)
     {
@@ -403,6 +432,15 @@ function Assert-InstallTargetsClean
         "Assets/Plugins/Native",
         [System.IO.Path]::GetRelativePath($repositoryRoot, $lockFilePath).Replace("\", "/")
     )
+    if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+    {
+        # Merge the lock under the install mutex; preserve reviewed local builds
+        # on other platforms. Only the selected payloads and metadata must be clean.
+        $paths = @($Configuration.libraries | ForEach-Object { $_.targets | ForEach-Object { $_.destination; "$($_.destination).meta" } })
+        if (!(Test-Path -LiteralPath $lockFilePath -PathType Leaf)) { throw 'Partial updates require an existing native plugin lock.' }
+        $existingLock = Get-Content -LiteralPath $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        if ($existingLock.schemaVersion -ne 1 -or !$existingLock.libraries) { throw 'Invalid native plugin lock for partial update.' }
+    }
     Push-Location $repositoryRoot
     try
     {
@@ -845,7 +883,10 @@ function Get-ValidatedPackages
         }
 
         $macExtractionDirectory = Join-Path $downloadDirectory "_extracted_macos"
-        Expand-MacArtifact -DownloadDirectory $downloadDirectory -ExtractionDirectory $macExtractionDirectory
+        if (@($library.targets | Where-Object platform -eq 'MacOS').Count)
+        {
+            Expand-MacArtifact -DownloadDirectory $downloadDirectory -ExtractionDirectory $macExtractionDirectory
+        }
 
         $manifestPaths = @(Get-ChildItem -LiteralPath $downloadDirectory -Recurse -File -Filter "artifact-manifest.json" |
             Select-Object -ExpandProperty FullName)
@@ -902,6 +943,8 @@ function Remove-InstallScratch
 
 function Enter-InstallMutex
 {
+    param([string]$RequestId)
+
     if ($script:installMutexHeld)
     {
         throw "Another native plugin installation is already active for this checkout."
@@ -924,6 +967,27 @@ function Enter-InstallMutex
     {
         # Ownership is granted when the previous process terminated unexpectedly.
         $script:installMutexHeld = $true
+    }
+    try
+    {
+        if (Test-Path -LiteralPath $workingRoot)
+        {
+            foreach ($directory in Get-ChildItem -LiteralPath $workingRoot -Directory)
+            {
+                $journalPath = Join-Path $directory.FullName 'state.json'
+                if (!(Test-Path -LiteralPath $journalPath)) { continue }
+                $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json -AsHashtable
+                if ($journal.phase -eq 'installing' -and $journal.requestId -ne $RequestId)
+                {
+                    throw "Interrupted native plugin installation: resume it first with -Resume $($journal.requestId)."
+                }
+            }
+        }
+    }
+    catch
+    {
+        Exit-InstallMutex -Mutex $mutex
+        throw
     }
     return $mutex
 }
@@ -1201,7 +1265,7 @@ function New-NativePluginLock
         [hashtable[]]$Packages
     )
 
-    return [ordered]@{
+    $lock = [ordered]@{
         schemaVersion = 1
         generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
         requestId = $State.requestId
@@ -1228,6 +1292,39 @@ function New-NativePluginLock
             }
         })
     }
+    if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+    {
+        $existing = Get-Content -LiteralPath $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        foreach ($updated in $lock.libraries)
+        {
+            $matches = @($existing.libraries | Where-Object name -eq $updated.name)
+            if ($matches.Count -ne 1) { throw "Expected one existing lock entry for $($updated.name)." }
+            $previous = $matches[0]
+            foreach ($artifact in $previous.artifacts)
+            {
+                if (!$artifact.Contains('sourceCommit')) { $artifact.sourceCommit = $previous.commit }
+                if (!$artifact.Contains('runId')) { $artifact.runId = $previous.runId }
+                if (!$artifact.Contains('runUrl')) { $artifact.runUrl = $previous.runUrl }
+            }
+            foreach ($artifact in $updated.artifacts)
+            {
+                $artifact.sourceCommit = $updated.commit
+                $artifact.sourceBranch = $Configuration.branch
+                $artifact.runId = $updated.runId
+                $artifact.runUrl = $updated.runUrl
+            }
+            $previous.artifacts = @($previous.artifacts | Where-Object platform -notin @($updated.artifacts.platform)) + @($updated.artifacts)
+            $commits = @($previous.artifacts | ForEach-Object { $_.sourceCommit } | Select-Object -Unique)
+            $previous.commit = if ($commits.Count -eq 1) { $commits[0] } else { $null }
+            $previous.runId = $null
+            $previous.runUrl = $null
+        }
+        $existing.generatedAt = $lock.generatedAt
+        $existing.requestId = $lock.requestId
+        $existing.branch = $lock.branch
+        return $existing
+    }
+    return $lock
 }
 
 function Assert-ExpectedInstallDiff
@@ -1239,7 +1336,12 @@ function Assert-ExpectedInstallDiff
     Push-Location $repositoryRoot
     try
     {
-        $status = @(& git -c core.quotepath=false status --porcelain=v1 --untracked-files=all -- Assets/Plugins/Native Tools/NativePlugins.lock.json)
+        $statusPaths = @('Assets/Plugins/Native', 'Tools/NativePlugins.lock.json')
+        if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+        {
+            $statusPaths = @($allowedRoots) + @($Configuration.libraries | ForEach-Object { $_.targets | ForEach-Object { "$($_.destination).meta" } })
+        }
+        $status = @(& git -c core.quotepath=false status --porcelain=v1 --untracked-files=all -- @statusPaths)
         if ($LASTEXITCODE -ne 0)
         {
             throw "Git failed while verifying the native plugin diff."
@@ -1447,6 +1549,7 @@ function Install-LocalCorePackages {
 
 if ($LocalCorePackages -and ($AndroidPackage -or $Resume -or $ValidateOnly)) { throw 'LocalCorePackages cannot be combined with another mode.' }
 if ($AndroidPackage -and ($Resume -or $ValidateOnly)) { throw 'AndroidPackage cannot be combined with Resume or ValidateOnly.' }
+if (($Resume -or $AndroidPackage -or $LocalCorePackages) -and ($Branch -ne 'master' -or $Libraries -or $Platform -ne 'All')) { throw 'Selection parameters cannot be combined with Resume or local import modes; Resume keeps its original selection.' }
 $resumeConfiguration = $null
 if ($Resume)
 {
@@ -1502,7 +1605,7 @@ $backupRoot = Join-Path $requestDirectory "backup"
 
 if ($Resume)
 {
-    $recoveryMutex = Enter-InstallMutex
+    $recoveryMutex = Enter-InstallMutex -RequestId $state.requestId
     try
     {
         Assert-UnityClosed
@@ -1555,12 +1658,12 @@ foreach ($library in $configuration.libraries)
         $run = Get-RunForRequest -Configuration $configuration -RepositoryState $repositoryState -RequestId $state.requestId
         if (!$run)
         {
-            Write-Host "Dispatching $($library.name) from master at $($repositoryState.sourceSha)..."
+            Write-Host "Dispatching $($library.name) $($configuration.buildPlatform) from $($configuration.branch) at $($repositoryState.sourceSha)..."
             Invoke-GitHub -Arguments @(
                 "workflow", "run", $configuration.workflow,
                 "-R", $library.repository,
                 "--ref", $configuration.branch,
-                "-f", "platform=all",
+                "-f", "platform=$($configuration.buildPlatform)",
                 "-f", "request_id=$($state.requestId)",
                 "-f", "source_sha=$($repositoryState.sourceSha)") | Out-Null
             $run = Wait-ForRunDiscovery -Configuration $configuration -RepositoryState $repositoryState -RequestId $state.requestId
@@ -1604,7 +1707,7 @@ catch
 $state.phase = "validated"
 Write-State -State $state -StatePath $statePath
 
-$installMutex = Enter-InstallMutex
+$installMutex = Enter-InstallMutex -RequestId $state.requestId
 $cleanupInstallScratch = $false
 try
 {
@@ -1654,7 +1757,7 @@ try
     Write-State -State $state -StatePath $statePath
     $cleanupInstallScratch = $true
     Write-Host ""
-    Write-Host "Native plugins installed successfully from GitHub master."
+    Write-Host "Native plugins installed successfully from GitHub $($configuration.branch)."
     Write-Host "Request: $($state.requestId)"
     Write-Host "Lock file: $lockFilePath"
     Write-Host "Backup and downloaded artifacts: $requestDirectory"

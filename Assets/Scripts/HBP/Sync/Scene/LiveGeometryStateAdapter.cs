@@ -961,7 +961,7 @@ namespace HBP.Sync.Scene
 
         private static string ComparisonSiteId(string columnId, string siteId)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             byte[] columnBytes = Encoding.UTF8.GetBytes(columnId);
             byte[] siteBytes = Encoding.UTF8.GetBytes(siteId);
             byte[] key = new byte[4 + columnBytes.Length + siteBytes.Length];

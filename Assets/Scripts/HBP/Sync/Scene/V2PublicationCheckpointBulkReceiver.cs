@@ -117,7 +117,7 @@ namespace HBP.Sync.Scene
             if (m_Body.Length != m_TotalLength) throw new InvalidDataException("Checkpoint bulk body has an invalid total length.");
 
             body = m_Body.ToArray();
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                 if (!Equal(sha.ComputeHash(body), m_Digest))
                     throw new InvalidDataException("Checkpoint bulk body digest mismatch.");
             operationId = m_OperationId;

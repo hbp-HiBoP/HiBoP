@@ -87,7 +87,7 @@ namespace HBP.Transfer.Projection
         {
             Directory.CreateDirectory(output);
             byte[] bytes = AnatomySnapshotCodec.Encode(snapshot);
-            using var sha = System.Security.Cryptography.SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             var report = new Measurement
             {
                 name = name, inputSha256 = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant(),

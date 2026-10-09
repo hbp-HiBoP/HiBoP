@@ -91,7 +91,7 @@ namespace HBP.Sync.Scene
             void Mix(Cell cell)
             {
                 if (cell == null) return;
-                using var sha = SHA256.Create();
+                using var sha = HBP.Core.Tools.Sha256.Create();
                 byte[] prefix = Encoding.UTF8.GetBytes(key + "\0" + cell.Section);
                 sha.TransformBlock(prefix, 0, prefix.Length, prefix, 0);
                 sha.TransformFinalBlock(cell.Bytes, 0, cell.Bytes.Length);

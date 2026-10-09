@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -41,12 +40,7 @@ namespace HBP.Core.Tools
                     yield return file.Substring(root.Length + 1).Replace('\\', '/');
         }
 
-        public static string HashFile(string path)
-        {
-            using var input = File.OpenRead(path);
-            using var sha = SHA256.Create();
-            return BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "").ToLowerInvariant();
-        }
+        public static string HashFile(string path) => Sha256.HashFile(path);
 
         public static string CompanionFile(string path)
         {

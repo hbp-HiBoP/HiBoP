@@ -29,7 +29,7 @@ namespace HBP.Sync.Scene
             Guid scene;
             if (!Guid.TryParse(visualizationId, out scene))
             {
-                using SHA256 sha = SHA256.Create();
+                using SHA256 sha = HBP.Core.Tools.Sha256.Create();
                 byte[] digest = sha.ComputeHash(Encoding.UTF8.GetBytes("HBP.Sync.Scene:" + (visualizationId ?? throw new ArgumentNullException(nameof(visualizationId)))));
                 var sceneBytes = new byte[16];
                 Buffer.BlockCopy(digest, 0, sceneBytes, 0, sceneBytes.Length);

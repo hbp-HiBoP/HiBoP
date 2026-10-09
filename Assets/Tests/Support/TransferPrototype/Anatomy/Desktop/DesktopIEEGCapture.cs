@@ -31,7 +31,7 @@ namespace HBP.Transfer.Anatomy.Desktop
             var availability = new byte[count];
             var surface = new float[count];
             var sites = new float[count];
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             using var hashing = new CryptoStream(Stream.Null, sha, CryptoStreamMode.Write);
             using var writer = new BinaryWriter(hashing, Encoding.UTF8, true);
             for (int i = 0; i < count; i++)

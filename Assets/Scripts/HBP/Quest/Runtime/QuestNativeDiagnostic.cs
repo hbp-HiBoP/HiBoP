@@ -82,7 +82,7 @@ namespace HBP.Quest
                 Require(IntPtr.Size == 8, "64-bit process required");
                 string fixture = Path.Combine(directory, "synthetic-32x24x16.nii");
                 WriteFixture(fixture);
-                using (var sha = SHA256.Create())
+                using (var sha = HBP.Core.Tools.Sha256.Create())
                     report.fixtureSha256 = BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(fixture))).Replace("-", "").ToLowerInvariant();
                 report.nativeVersion = HbpCoreRuntime.Version;
                 Require(!string.IsNullOrEmpty(report.nativeVersion), "Native version missing");

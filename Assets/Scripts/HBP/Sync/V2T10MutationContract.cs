@@ -348,7 +348,7 @@ namespace HBP.Sync
         {
             if (siteIds == null) throw new ArgumentNullException(nameof(siteIds));
             byte[] bytes = Encoding.UTF8.GetBytes(string.Join("\n", siteIds.OrderBy(id => id, StringComparer.Ordinal)));
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", string.Empty).ToLowerInvariant();
         }
     }

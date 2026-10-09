@@ -1,7 +1,9 @@
 {
     "name": "HBP.Transfer.Anatomy.Contracts",
     "rootNamespace": "HBP.Transfer.Anatomy",
-    "references": [],
+    "references": [
+        "HBP.Core.Runtime"
+    ],
     "overrideReferences": true,
     "precompiledReferences": [],
     "autoReferenced": false,

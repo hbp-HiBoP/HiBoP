@@ -86,7 +86,7 @@ namespace HBP.Transfer.Transport
 
         public static byte[] Hash(StateSnapshot state)
         {
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             return sha.ComputeHash(SharedStateCodec.Encode(state));
         }
 

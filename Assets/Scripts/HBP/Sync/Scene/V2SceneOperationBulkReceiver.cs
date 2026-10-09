@@ -153,7 +153,7 @@ namespace HBP.Sync.Scene
             if (m_Body.Length != m_TotalLength) throw new InvalidDataException("Scene-operation bulk body has an invalid total length.");
 
             byte[] body = m_Body.ToArray();
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                 if (!Equal(sha.ComputeHash(body), m_Digest))
                     throw new InvalidDataException("Scene-operation bulk body digest mismatch.");
 

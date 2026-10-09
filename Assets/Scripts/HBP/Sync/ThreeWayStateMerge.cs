@@ -75,7 +75,7 @@ namespace HBP.Sync
     {
         public static string Hash(StateSnapshot state)
         {
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             return BitConverter.ToString(sha.ComputeHash(SharedStateCodec.Encode(state))).Replace("-", "").ToLowerInvariant();
         }
 

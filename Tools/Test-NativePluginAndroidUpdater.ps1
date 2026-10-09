@@ -7,6 +7,7 @@ $updater = Join-Path $PSScriptRoot 'Update-NativePlugins.ps1'
 . $updater -ValidateOnly
 $realRoot = $repositoryRoot
 $template = Get-Content $configurationPath -Raw
+$lockTemplate = Get-Content $lockFilePath -Raw
 $mainText = Get-Content $updater -Raw
 $main = [scriptblock]::Create($mainText.Substring($mainText.IndexOf('$resumeConfiguration = $null')))
 $realInstall = ${function:Install-Payload}
@@ -75,6 +76,11 @@ function Scenario([string]$Mode) {
     $configurationPath = "$repositoryRoot/Tools/NativePlugins.json"
     $lockFilePath = "$repositoryRoot/Tools/NativePlugins.lock.json"
     $workingRoot = "$repositoryRoot/.native-plugin-update"
+    $isPartial = $Mode -like 'partial-*'
+    if ($isPartial) {
+        $Branch = 'develop'; $Libraries = @('hbp_core'); $Platform = if ($Mode -eq 'partial-macos') {'MacOS'} else {'Linux'}
+        Set-Content $lockFilePath $lockTemplate
+    }
     $configuration = Get-NativePluginConfiguration
     $before = Snapshot $repositoryRoot
     $Resume = $null; $ValidateOnly = $false; $AndroidPackage = $null
@@ -90,9 +96,10 @@ function Scenario([string]$Mode) {
     function Invoke-GitHub([string[]]$Arguments) {
         $calls.Add($Arguments -join ' ')
         if ($Arguments[0] -eq 'workflow' -and $Arguments[1] -eq 'view') { return "request_id:`nsource_sha:`ninputs.source_sha`n  android:" }
-        if ($Arguments[0] -eq 'api' -and $Arguments[1] -match '/commits/master$') { return 'a'*40 }
+        if ($Arguments[0] -eq 'api' -and $Arguments[1] -match "/commits/$Branch`$") { return 'a'*40 }
         if ($Arguments[0] -eq 'workflow' -and $Arguments[1] -eq 'run') {
-            if ('platform=all' -notin $Arguments -or ('source_sha=' + ('a'*40)) -notin $Arguments) { throw 'Dispatch did not pin all platforms to exact source.' }
+            if ("platform=$($Platform.ToLowerInvariant())" -notin $Arguments -or ('source_sha=' + ('a'*40)) -notin $Arguments) { throw 'Dispatch did not pin selected platform to exact source.' }
+            if ($Arguments[[array]::IndexOf($Arguments,'--ref')+1] -ne $Branch) { throw 'Dispatch used the wrong branch.' }
             $repo = $Arguments[[array]::IndexOf($Arguments,'-R')+1]
             $request = @($Arguments | Where-Object { $_ -like 'request_id=*' })[0].Substring(11)
             $dispatched[$repo]=$request
@@ -110,6 +117,7 @@ function Scenario([string]$Mode) {
             $name=$Matches[1]
             $items=@(@{name="$name-windows-x64-123";expired=$false},@{name="$name-linux-x64-ubuntu22-123";expired=$false},@{name="$name-macos-arm64-123";expired=$false})
             if ($name -in @('hbp_core','hbp_math') -and !($Mode -eq 'missing-android' -and $name -eq 'hbp_core') -and !($Mode -eq 'missing-math-android' -and $name -eq 'hbp_math')) { $items+=@{name="$name-android-arm64-123";expired=$false} }
+            if ($isPartial) { $items = @($items | Where-Object name -match "-$($Platform.ToLowerInvariant())-") }
             return @{artifacts=$items} | ConvertTo-Json -Depth 5
         }
         if ($Arguments[0] -eq 'run' -and $Arguments[1] -eq 'download') {
@@ -126,10 +134,47 @@ function Scenario([string]$Mode) {
     function Install-Payload([hashtable]$Package, [string]$RequestId) {
         & $realInstall -Package $Package -RequestId $RequestId
         if ($Mode -eq 'install-failure' -and $Package.platform -eq 'Android' -and $Package.library -eq 'hbp_math') { throw 'Injected failure after Android install.' }
+        if ($Mode -eq 'partial-install-failure') { throw 'Injected failure after partial install.' }
     }
     function Assert-InstalledPackages([hashtable[]]$Packages) {
         & $realAssertInstalled -Packages $Packages
-        if ($Mode -eq 'lock-failure') { throw 'Injected failure after lock write.' }
+        if ($Mode -in @('lock-failure','partial-lock-failure')) { throw 'Injected failure after lock write.' }
+    }
+    if ($isPartial) {
+        if ($Mode -like '*failure') {
+            Reject { . $main } 'Injected failure' $Mode
+            Check ((Snapshot $repositoryRoot) -eq $before) "$Mode restores payload and previous mixed lock"
+            return
+        }
+        . $main
+        $lock = Get-Content $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $oldLock = $lockTemplate | ConvertFrom-Json -AsHashtable
+        Check ($lock.branch -eq 'develop') "$Mode records selected branch"
+        Check (@($calls | Where-Object { $_ -like 'workflow run *' }).Count -eq 1) "$Mode dispatches only hbp_core"
+        $newCore = @($lock.libraries | Where-Object name -eq 'hbp_core')[0]
+        $newArtifact = @($newCore.artifacts | Where-Object platform -eq $Platform)[0]
+        Check ($newArtifact.sourceCommit -eq ('a'*40) -and $newArtifact.runId -eq 123) "$Mode pins selected artifact source and run"
+        foreach ($oldLibrary in $oldLock.libraries) {
+            $newLibrary = @($lock.libraries | Where-Object name -eq $oldLibrary.name)[0]
+            if ($oldLibrary.name -ne 'hbp_core') {
+                Check (($newLibrary | ConvertTo-Json -Depth 15 -Compress) -ceq ($oldLibrary | ConvertTo-Json -Depth 15 -Compress)) "$Mode retains $($oldLibrary.name) lock"
+            } else {
+                foreach ($oldArtifact in $oldLibrary.artifacts | Where-Object platform -ne $Platform) {
+                    $retained = @($newLibrary.artifacts | Where-Object platform -eq $oldArtifact.platform)[0]
+                    Check (($retained.files | ConvertTo-Json -Depth 15 -Compress) -ceq ($oldArtifact.files | ConvertTo-Json -Depth 15 -Compress)) "$Mode retains $($oldArtifact.platform) files"
+                    if ($oldArtifact.Contains('sourceCommit')) { Check ($retained.sourceCommit -ceq $oldArtifact.sourceCommit) "$Mode retains $($oldArtifact.platform) source" }
+                }
+            }
+        }
+        $selectedPath = $newArtifact.destination.Replace('/', [IO.Path]::DirectorySeparatorChar)
+        $unselectedBefore = @($before -split "`n" | Where-Object { $_ -notlike "*$selectedPath*" -and $_ -notlike '*NativePlugins.lock.json*' }) -join "`n"
+        $unselectedAfter = @((Snapshot $repositoryRoot) -split "`n" | Where-Object { $_ -notlike "*$selectedPath*" -and $_ -notlike '*NativePlugins.lock.json*' }) -join "`n"
+        Check ($unselectedBefore -ceq $unselectedAfter) "$Mode retains every unselected payload and metadata"
+        # Resume must keep the selection snapshot rather than the defaults.
+        $Resume = $state.requestId; $Branch='master'; $Libraries=$null; $Platform='All'
+        . $main
+        Check ($configuration.branch -eq 'develop' -and $configuration.libraries.Count -eq 1 -and $configuration.libraries[0].targets.Count -eq 1) "$Mode resume keeps original selection"
+        return
     }
     if ($Mode -like 'resume-*') {
         $Resume='interrupted'; $requestDirectory="$workingRoot/$Resume"
@@ -149,12 +194,22 @@ function Scenario([string]$Mode) {
         $destination="$repositoryRoot/Assets/Plugins/Native/Windows/x86_64/hbp_core.dll"
         Move-Item $destination "$destination.native-previous-$Resume"
         $interrupted=Snapshot $repositoryRoot
+        if ($Mode -eq 'resume-missing-destination') {
+            Reject { Enter-InstallMutex -RequestId 'different-request' } 'Interrupted native plugin installation' 'Another request cannot overwrite an interrupted installation'
+            Reject { Enter-InstallMutex } 'Interrupted native plugin installation' 'Local imports cannot overwrite an interrupted installation'
+            Check ((Snapshot $repositoryRoot) -eq $interrupted) 'Rejected installations preserve interrupted bytes and lock'
+        }
         # Stop after successful recovery, before any new remote work.
         function Assert-WorkflowSupportsOrchestration { throw 'Recovery completed (fixture).' }
         $pattern=if ($Mode -eq 'resume-unity-open') {'Close the Unity Editor'} elseif ($Mode -like 'resume-legacy-*') {'NativePlugins.json changed'} else {'Recovery completed'}
         Reject { . $main } $pattern $Mode
         $expected=if ($Mode -eq 'resume-unity-open') {$interrupted} else {$before}
         Check ((Snapshot $repositoryRoot) -eq $expected) "$Mode preserves/restores exact bytes"
+        if ($Mode -eq 'resume-missing-destination') {
+            $nextMutex = Enter-InstallMutex -RequestId 'different-request'
+            Exit-InstallMutex -Mutex $nextMutex
+            Check (!$script:installMutexHeld) 'Another request can install after recovery'
+        }
         return
     }
     if ($Mode -eq 'success') {
@@ -175,6 +230,7 @@ function Scenario([string]$Mode) {
     }
 }
 foreach ($mode in @('success','workflow-failure','missing-android','missing-math-android','corrupt-android','corrupt-math-android','install-failure','lock-failure','resume-missing-destination','resume-unity-open','resume-legacy-9','resume-legacy-10')) { Scenario $mode }
+foreach ($mode in @('partial-linux','partial-macos','partial-install-failure','partial-lock-failure')) { Scenario $mode }
 
 function Test-LocalImport([string]$LibraryName, [bool]$FailLockWrite, [bool]$ExistingAndroid) {
     $repositoryRoot = Join-Path $root "local-$LibraryName-$FailLockWrite-$ExistingAndroid"

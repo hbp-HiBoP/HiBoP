@@ -480,6 +480,7 @@ namespace HBP.Transfer.Scene
                 cancellationToken.ThrowIfCancellationRequested();
                 File.WriteAllBytes(Resolve(buffer.Key), buffer.Value);
             }
+
             foreach (var file in capturedFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -487,6 +488,7 @@ namespace HBP.Transfer.Scene
                 File.Copy(file.Value, target);
                 if (StandardData.HashFile(target) != file.Key.Substring(0, 64)) throw new IOException("A pairing resource changed during capture.");
             }
+
             if (metadata.Length > MaximumMetadataBytes) throw new InvalidDataException("Pairing metadata exceeds the transfer budget.");
             File.WriteAllBytes(Path.Combine(directory, "globals.json"), metadata);
             WritePackageFiles(output);
@@ -547,8 +549,7 @@ namespace HBP.Transfer.Scene
             if (Globals == null)
                 throw new InvalidOperationException("Global pairing data is required before receiving a visualization.");
             using var source = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
-            using var hash = HBP.Transfer.Codecs.TransferCodec.CreateHash();
-            string contentHash = BitConverter.ToString(hash.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
+            string contentHash = BitConverter.ToString(HBP.Core.Tools.Sha256.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
             source.Position = 0;
             Extract(source, "visualization.json", token);
             ScenePayload payload = ReadPrepared();

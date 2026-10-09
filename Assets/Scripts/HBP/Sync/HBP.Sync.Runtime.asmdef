@@ -1,6 +1,8 @@
 {
     "name": "HBP.Sync.Runtime",
-    "references": [],
+    "references": [
+        "HBP.Core.Runtime"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

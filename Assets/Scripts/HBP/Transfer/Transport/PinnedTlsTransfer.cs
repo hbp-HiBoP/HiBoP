@@ -133,7 +133,7 @@ namespace HBP.Transfer.Transport
         public static async Task<DeliveryReceipt> SendPayloadAsync(Stream stream, byte[] payload, CancellationToken stop, bool corruptChunk = false, Action<int> progress = null)
         {
             if (payload == null || payload.Length == 0 || payload.Length > MaximumPayloadBytes) throw new InvalidDataException("Payload size out of bounds.");
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             var header = new byte[40];
             header[0] = (byte)'H';
             header[1] = (byte)'B';
@@ -177,7 +177,7 @@ namespace HBP.Transfer.Transport
             var payload = new byte[total];
             var chunkHeader = new byte[40];
             var chunkHash = new byte[32];
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             int index = 0;
             for (int offset = 0; offset < total; offset += ChunkBytes)
             {

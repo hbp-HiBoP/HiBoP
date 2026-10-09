@@ -85,7 +85,7 @@ namespace HBP.Transfer.Projection
         public static void Write(string output, string name, AnatomySnapshot snapshot, NativeProjectionInputs.IEEGResult result)
         {
             Directory.CreateDirectory(output);
-            using var sha = System.Security.Cryptography.SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             var report = new Measurement
             {
                 name = name, inputSha256 = BitConverter.ToString(sha.ComputeHash(AnatomySnapshotCodec.Encode(snapshot))).Replace("-", "").ToLowerInvariant(),

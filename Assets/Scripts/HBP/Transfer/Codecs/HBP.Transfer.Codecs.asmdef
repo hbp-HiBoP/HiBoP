@@ -1,6 +1,6 @@
 {
   "name": "HBP.Transfer.Codecs",
-  "references": [],
+  "references": ["HBP.Core.Runtime"],
   "autoReferenced": false,
   "noEngineReferences": true
 }

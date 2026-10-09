@@ -138,7 +138,7 @@ namespace HBP.Sync.Scene
 
         private string DescriptorReference(string kind, string owner, int index, string descriptorHash)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes($"hbp-sync-v1:{m_ManifestHash}:{kind}:{owner}:{index}:{descriptorHash}"));
             return $"{kind}:{BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant()}:1";
         }
@@ -159,7 +159,7 @@ namespace HBP.Sync.Scene
             {
                 if (string.IsNullOrEmpty(companionHash)) return false;
                 string companionExtension = Path.GetExtension(sourcePath).Equals(".img", StringComparison.OrdinalIgnoreCase) ? ".hdr" : ".img";
-                using SHA256 sha = SHA256.Create();
+                using SHA256 sha = HBP.Core.Tools.Sha256.Create();
                 string pair = BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(name + "\n" + companionHash.Replace("-", "").ToLowerInvariant() + companionExtension))).Replace("-", "").ToLowerInvariant();
                 return descriptor == pair + ".pair";
             }
@@ -335,7 +335,7 @@ namespace HBP.Sync.Scene
 
         private static string Fingerprint(IEnumerable<string> parts)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             string encoded = string.Concat(parts.Select(part => part == null ? "-1:" : part.Length.ToString(CultureInfo.InvariantCulture) + ":" + part));
             return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(encoded))).Replace("-", "").ToLowerInvariant();
         }
@@ -365,7 +365,7 @@ namespace HBP.Sync.Scene
         private static string[] MakeReferences(string kind, string manifestHash, int count)
         {
             var references = new string[count];
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             for (int i = 0; i < count; i++)
             {
                 byte[] hash = sha.ComputeHash(Encoding.ASCII.GetBytes($"hbp-sync-v1:{manifestHash}:{kind}:{i}"));

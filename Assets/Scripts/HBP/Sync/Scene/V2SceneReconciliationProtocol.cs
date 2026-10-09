@@ -338,7 +338,7 @@ namespace HBP.Sync.Scene
 
         private static string Hash(byte[] bytes)
         {
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             return Convert.ToBase64String(sha.ComputeHash(bytes));
         }
 

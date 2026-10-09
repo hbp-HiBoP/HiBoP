@@ -67,7 +67,7 @@ namespace HBP.Transfer.Scene
             serializer.PreserveReferencesHandling = PreserveReferencesHandling.None;
             JToken Sort(JToken token) => token is JObject obj ? new JObject(obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => new JProperty(p.Name, Sort(p.Value)))) : token is JArray array ? new JArray(array.Select(Sort)) : token.DeepClone();
             string json = Sort(JToken.FromObject(value, serializer)).ToString(Formatting.None);
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(json))).Replace("-", "").ToLowerInvariant();
         }
 

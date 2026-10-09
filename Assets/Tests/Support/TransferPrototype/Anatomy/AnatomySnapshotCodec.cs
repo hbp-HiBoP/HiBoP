@@ -110,7 +110,7 @@ namespace HBP.Transfer.Anatomy
             }
 
             if (stream.Position != length - HashBytes) throw new InvalidOperationException("Invalid codec layout.");
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             byte[] surfaceHash = sha.ComputeHash(encoded, surfaceOffset, (int)snapshot.SurfaceByteLength);
             Buffer.BlockCopy(surfaceHash, 0, encoded, hashOffset, HashBytes);
             byte[] contentHash = sha.ComputeHash(encoded, 0, encoded.Length - HashBytes);
@@ -219,7 +219,7 @@ namespace HBP.Transfer.Anatomy
 
         private static void VerifyHash(byte[] encoded, int offset, int count, int hashOffset)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             byte[] computed = sha.ComputeHash(encoded, offset, count);
             for (int i = 0; i < HashBytes; i++)
                 if (computed[i] != encoded[hashOffset + i])

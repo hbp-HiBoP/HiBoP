@@ -70,8 +70,7 @@ namespace HBP.Transfer.Scene
                 encodedBytes = source.Length;
                 if (EncodedBytes < 1 || EncodedBytes > PinnedTlsTransfer.MaximumSceneFileBytes)
                     throw new InvalidDataException("Visualization exceeds the transfer budget.");
-                using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
-                digest = sha.ComputeHash(source);
+                digest = HBP.Core.Tools.Sha256.ComputeHash(source);
                 contentHash = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
                 if (telemetryIdentity.IsValid)
                 {

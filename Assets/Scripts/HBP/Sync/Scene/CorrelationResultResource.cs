@@ -173,7 +173,7 @@ namespace HBP.Sync.Scene
 
         public static string Reference(byte[] bytes)
         {
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             return "correlation:" + BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() + ":2";
         }
 

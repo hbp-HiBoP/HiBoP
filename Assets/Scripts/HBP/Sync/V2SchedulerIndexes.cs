@@ -79,7 +79,7 @@ namespace HBP.Sync
                 return V2OperationAdmission.Invalid;
 
             byte[] digest;
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                 digest = sha.ComputeHash(canonicalPayload);
 
             if (m_Operations.TryGetValue(operationId.Value, out OperationEntry existing))
@@ -344,7 +344,7 @@ namespace HBP.Sync
                 }
 
                 writer.Flush();
-                using (SHA256 sha = SHA256.Create())
+                using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                     return new V2CheckpointIdentity(sha.ComputeHash(stream.ToArray()));
             }
         }
@@ -377,7 +377,7 @@ namespace HBP.Sync
                 stream.WriteByte((byte)kind);
                 stream.Write(keyFingerprint, 0, keyFingerprint.Length);
                 stream.Write(encoded, 0, encoded.Length);
-                using (SHA256 sha = SHA256.Create())
+                using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                     return sha.ComputeHash(stream.ToArray());
             }
         }

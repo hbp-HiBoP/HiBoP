@@ -186,8 +186,7 @@ namespace HBP.Transfer.Projection
                     file.Write(bytes, 0, bytes.Length);
                     file.Flush();
                     file.Position = 0;
-                    using var sha = SHA256.Create();
-                    if (!sha.ComputeHash(file).SequenceEqual(snapshot.Projection.VolumeHash.ToArray())) throw new IOException("Private volume file SHA-256 mismatch.");
+                    if (!HBP.Core.Tools.Sha256.ComputeHash(file).SequenceEqual(snapshot.Projection.VolumeHash.ToArray())) throw new IOException("Private volume file SHA-256 mismatch.");
                 }
 
                 result.Volume = new Volume();

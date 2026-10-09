@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -148,15 +147,14 @@ namespace HBP.Core.DLL
                 try
                 {
                     using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    using var sha = SHA256.Create();
                     string hash;
-                    hash = BitConverter.ToString(sha.ComputeHash(source));
+                    hash = BitConverter.ToString(Sha256.ComputeHash(source));
                     string companion = Core.Tools.StandardData.CompanionFile(path);
                     string companionHash = companion == null ? null : Core.Tools.StandardData.HashFile(companion);
                     IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
                     source.Position = 0;
                     string after;
-                    after = IsLoaded ? BitConverter.ToString(sha.ComputeHash(source)) : null;
+                    after = IsLoaded ? BitConverter.ToString(Sha256.ComputeHash(source)) : null;
                     if (IsLoaded && hash == after && (companion == null || companionHash == Core.Tools.StandardData.HashFile(companion)))
                     {
                         SourceFilePath = Path.GetFullPath(path);

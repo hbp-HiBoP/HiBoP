@@ -233,7 +233,7 @@ namespace HBP.Sync
                 WriteBoundedString(writer, key.SphereId);
                 writer.Write(key.PropertyId);
                 writer.Flush();
-                using (SHA256 sha = SHA256.Create())
+                using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                 {
                     byte[] digest = sha.ComputeHash(stream.ToArray());
                     var shortFingerprint = new byte[16];
@@ -719,7 +719,7 @@ namespace HBP.Sync
 
             byte[] body = (byte[])encodedBody.Clone();
             byte[] digest;
-            using (SHA256 sha = SHA256.Create())
+            using (SHA256 sha = HBP.Core.Tools.Sha256.Create())
                 digest = sha.ComputeHash(body);
 
             ReliableStreamId bulkStreamId = CreateBulkStreamId();

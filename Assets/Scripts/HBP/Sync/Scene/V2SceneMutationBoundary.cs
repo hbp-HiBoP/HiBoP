@@ -1227,7 +1227,7 @@ namespace HBP.Sync.Scene
                 }
             }
 
-            using SHA256 sha = SHA256.Create();
+            using SHA256 sha = HBP.Core.Tools.Sha256.Create();
             return sha.ComputeHash(stream.ToArray());
         }
 

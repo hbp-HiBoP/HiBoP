@@ -196,10 +196,10 @@ namespace HBP.Tests.Transfer.Anatomy
         }
 
         [Test]
-        public void ContractAssemblyHasOnlySystemDependencies()
+        public void ContractAssemblyHasOnlySystemAndCoreDependencies()
         {
             foreach (var reference in typeof(AnatomySnapshot).Assembly.GetReferencedAssemblies())
-                Assert.That(reference.Name == "mscorlib" || reference.Name == "netstandard" || reference.Name == "System" || reference.Name.StartsWith("System."), Is.True, reference.FullName);
+                Assert.That(reference.Name == "HBP.Core.Runtime" || reference.Name == "mscorlib" || reference.Name == "netstandard" || reference.Name == "System" || reference.Name.StartsWith("System."), Is.True, reference.FullName);
         }
 
         [Test]

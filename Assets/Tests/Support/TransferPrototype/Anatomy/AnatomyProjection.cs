@@ -24,7 +24,7 @@ namespace HBP.Transfer.Anatomy
             if (gridDimension < 2 || interpolation < 0 || interpolation > 1 || influenceByDistance < 0 || influenceByDistance > 2 || float.IsNaN(influenceDistance) || float.IsInfinity(influenceDistance) || influenceDistance < 0 || influenceDistance > 50 || float.IsNaN(activityAlpha) || activityAlpha < 0 || activityAlpha > 1)
                 throw new ArgumentException("Invalid projection grid, influence or opacity settings.");
             VolumeBytes = new AnatomyBuffer<byte>((byte[])volumeBytes.Clone());
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             VolumeHash = new AnatomyBuffer<byte>(sha.ComputeHash(volumeBytes));
             GridDimension = gridDimension;
             Interpolation = interpolation;
@@ -100,7 +100,7 @@ namespace HBP.Transfer.Anatomy
             int length = reader.ReadInt32();
             if (length < 352 || reader.BaseStream.Position + 32L + length != end) throw new InvalidDataException("Invalid projection volume length.");
             byte[] hash = reader.ReadBytes(32), volume = reader.ReadBytes(length);
-            using var sha = SHA256.Create();
+            using var sha = HBP.Core.Tools.Sha256.Create();
             if (!sha.ComputeHash(volume).SequenceEqual(hash)) throw new InvalidDataException("Reference volume SHA-256 mismatch.");
             return new AnatomyProjection(volume, grid, interpolation, influence, rule, alpha);
         }

@@ -18,6 +18,13 @@ Copy-Item -LiteralPath "$vendor/bouncycastle-2.7.0/LICENSE.md" -Destination "$pr
 Copy-Item -LiteralPath "$repo/ProjectSettings/ProjectVersion.txt" -Destination "$project/ProjectSettings/ProjectVersion.txt"
 Get-ChildItem -LiteralPath "$source/Runtime" -Filter '*.cs' | Copy-Item -Destination "$project/Assets/Runtime"
 Get-ChildItem -LiteralPath "$source/Editor" -Filter '*.cs' | Copy-Item -Destination "$project/Assets/Editor"
+# The standalone probe uses the same SHA service and platform imports as HiBoP.
+Copy-Item -LiteralPath "$repo/Assets/Scripts/HBP/Core/Tools/Sha256.cs", "$repo/Assets/Scripts/HBP/Core/DLL/HbpCoreLibrary.cs" -Destination "$project/Assets/Runtime"
+foreach ($nativePlatform in @('Windows/x86_64', 'Android/arm64-v8a')) {
+    $nativeDirectory = "$project/Assets/Plugins/Native/$nativePlatform"
+    New-Item -ItemType Directory -Force -Path $nativeDirectory | Out-Null
+    Get-ChildItem -LiteralPath "$repo/Assets/Plugins/Native/$nativePlatform" -Filter '*hbp_core*' | Copy-Item -Destination $nativeDirectory
+}
 $manifest = @'
 {"dependencies":{"com.unity.modules.androidjni":"1.0.0","com.unity.modules.jsonserialize":"1.0.0"}}
 '@

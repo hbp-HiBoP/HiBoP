@@ -15,9 +15,7 @@ namespace HBP.Transfer.Transport
             using var source = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, ChunkBytes, true);
             if (source.Length < 1 || source.Length > MaximumSceneFileBytes)
                 throw new InvalidDataException("Visualization exceeds the transfer file budget.");
-            using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
-            byte[] digest;
-            digest = sha.ComputeHash(source);
+            byte[] digest = HBP.Core.Tools.Sha256.ComputeHash(source);
             return await SendPreparedFileAsync(stream, source, digest, stop, progress).ConfigureAwait(false);
         }
 
