@@ -282,7 +282,6 @@ namespace HBP.Core.DLL
         public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Color32[] colorScheme)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
-            if (mask == null) throw new ArgumentNullException(nameof(mask));
             if (colorScheme == null) throw new ArgumentNullException(nameof(colorScheme));
             Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
             Color4[] nativeColors = new Color4[values.Length];

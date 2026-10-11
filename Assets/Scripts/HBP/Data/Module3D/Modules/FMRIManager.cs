@@ -539,7 +539,7 @@ namespace HBP.Data.Module3D
                 if (m_DisplayLocalizers)
                 {
                     var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
-                    return currentFMRI?.MaskVolume;
+                    return currentFMRI?.MaskVolume?.IsLoaded == true ? currentFMRI.MaskVolume : null;
                 }
 
                 return null;
@@ -557,6 +557,8 @@ namespace HBP.Data.Module3D
                 m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface);
             if (CurrentLocalizersMask != null)
                 m_FMRIMask = CurrentLocalizersMask.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface).Select(v => v > 0 ? 1 : 0).ToArray();
+            else
+                m_FMRIMask = null;
 
             UpdateSurfaceFMRIColors();
         }
