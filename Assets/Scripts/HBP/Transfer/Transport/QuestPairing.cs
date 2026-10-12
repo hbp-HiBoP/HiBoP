@@ -405,7 +405,7 @@ namespace HBP.Transfer.Transport
                     }
                     else throw new InvalidDataException("Unsupported pairing version. Update both applications.");
                 }
-                catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is V2TransportProtocolException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException || exception is ArgumentException)
+                catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is TransportProtocolException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException || exception is ArgumentException)
                 {
                     if (!stop.IsCancellationRequested) state("Connection interrupted. Desktop will reconnect; check the code if pairing was refused.");
                 }
@@ -533,7 +533,7 @@ namespace HBP.Transfer.Transport
 
         public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, 14, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);
 
-        public static Task OpenV2ReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, V2PersistentTransport session)
+        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, PersistentTransport session)
         {
             if (session == null)
                 throw new ArgumentNullException(nameof(session));

@@ -6,7 +6,6 @@ using HBP.Core.Preferences;
 using HBP.Core.DLL;
 using UnityEngine;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
 
@@ -61,7 +60,7 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        public static async Task<PairingSnapshot> CaptureAsync(CancellationToken token)
+        public static async UniTask<PairingSnapshot> CaptureAsync(CancellationToken token)
         {
             using var timing = PairingTiming.Measure("desktop.globals-capture");
             await UniTask.SwitchToMainThread();
@@ -85,14 +84,15 @@ namespace HBP.Transfer.Scene
                 source.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
                 // Serialization freezes all managed data and image bytes on Unity's thread.
                 byte[] metadata = archive.CaptureGlobalMetadata(data);
-                return await Task.Run(() =>
+                return await UniTask.RunOnThreadPool(() =>
                 {
+                    token.ThrowIfCancellationRequested();
                     archive.WriteCapturedGlobals(metadata, file);
                     var context = new PairingContext(archive.LoadGlobalData());
                     context.RestoreFilterPresets(archive);
                     token.ThrowIfCancellationRequested();
                     return new PairingSnapshot(archive, context, new SceneDelivery(file, context.Id, context.Id, null));
-                }, token);
+                });
             }
             catch
             {

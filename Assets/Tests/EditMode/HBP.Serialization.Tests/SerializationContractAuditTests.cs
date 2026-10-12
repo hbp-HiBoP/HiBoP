@@ -14,9 +14,10 @@ namespace HBP.Tests.Serialization
     public class SerializationContractAuditTests
     {
         // QUEST-030: approved Atlas/CCEP configurations and persistent scene fields.
+        // Sync T08/T10/T16 add stable cut/ROI/sphere IDs and site placement.
         // Historical member names now belong to the generated alias registry, not the model.
-        private const string ExpectedSerializedMembersSha256 = "954f960684c9a51f77086adc6de81c73f5c623cb18d3162eb00da0a530aece79";
-        private const int ExpectedSerializedMembersCount = 573;
+        private const string ExpectedSerializedMembersSha256 = "f5e227afcb525e8b0c97cf663657db1110eae17eac454edb6de9293580e9f1d5";
+        private const int ExpectedSerializedMembersCount = 577;
         private const string ExpectedLifecycleContractsSha256 = "34b9c961b4b734c42c0010d5812b98fb057e5934a33bcae6e61df77d21f154f7";
         private const int ExpectedLifecycleContractsCount = 384;
 

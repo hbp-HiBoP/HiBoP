@@ -919,7 +919,7 @@ namespace HBP.Tests.PlayMode.Toolbar
             var resumeParsing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             try
             {
-                Func<Task> pauseBackgroundParsing = async () =>
+                Func<UniTask> pauseBackgroundParsing = async () =>
                 {
                     parsingPaused.TrySetResult(true);
                     await resumeParsing.Task;
@@ -1438,8 +1438,8 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             public ReflectedMutationBoundary(Base3DScene desktopScene, Base3DScene questScene)
             {
-                Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.V2SceneMutationBoundary", throwOnError: false)).FirstOrDefault(type => type != null);
-                Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.V2OriginDevice", throwOnError: false)).FirstOrDefault(type => type != null);
+                Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.SceneMutationBoundary", throwOnError: false)).FirstOrDefault(type => type != null);
+                Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.OriginDevice", throwOnError: false)).FirstOrDefault(type => type != null);
                 Assert.That(boundaryType, Is.Not.Null, "The synchronization boundary must be loaded for the integration test.");
                 Assert.That(originType, Is.Not.Null);
                 m_DesktopBoundary = CreateBoundary(boundaryType, originType, desktopScene, "Desktop");
@@ -1461,15 +1461,15 @@ namespace HBP.Tests.PlayMode.Toolbar
                 object incarnationId = Activator.CreateInstance(incarnationIdType, Guid.NewGuid());
                 object sessionId = Activator.CreateInstance(sessionIdType, Guid.NewGuid());
 
-                Type authorityType = FindType("HBP.Sync.Scene.V2DesktopMutationAuthority");
+                Type authorityType = FindType("HBP.Sync.Scene.DesktopMutationAuthority");
                 ConstructorInfo authorityConstructor = authorityType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 5);
                 m_Authority = authorityConstructor.Invoke(new object[] { sceneId, incarnationId, m_DesktopBoundary, 4096, 65536 });
 
-                Type schedulerType = FindType("HBP.Sync.V2OutgoingScheduler");
+                Type schedulerType = FindType("HBP.Sync.OutgoingScheduler");
                 ConstructorInfo schedulerConstructor = schedulerType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 7);
                 object scheduler = schedulerConstructor.Invoke(new[] { sessionId, sceneId, incarnationId, Enum.Parse(originType, "Quest"), null, null, null });
 
-                Type driverType = FindType("HBP.Sync.Scene.V2QuestMutationDriver");
+                Type driverType = FindType("HBP.Sync.Scene.QuestMutationDriver");
                 ConstructorInfo driverConstructor = driverType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 5);
                 m_QuestDriver = driverConstructor.Invoke(new[] { sceneId, incarnationId, m_QuestBoundary, scheduler, (object)0UL });
 

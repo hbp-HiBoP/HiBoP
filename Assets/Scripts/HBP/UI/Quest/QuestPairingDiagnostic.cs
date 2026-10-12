@@ -77,6 +77,7 @@ namespace HBP.UI.Quest
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 File.WriteAllText(Path.Combine(directory, "result.json"), JsonUtility.ToJson(result, true));
                 Application.Quit(exit);
             }
@@ -108,16 +109,16 @@ namespace HBP.UI.Quest
                 return null;
             }
 
-            async Task Start()
+            async UniTask Start()
             {
-                receiver = await Task.Run(() => new QuestPairing(identityPath, "IL2CPP smoke"));
+                receiver = await UniTask.RunOnThreadPool(() => new QuestPairing(identityPath, "IL2CPP smoke"));
                 serverStop = CancellationTokenSource.CreateLinkedTokenSource(timeout.Token);
                 var listener = new TcpListener(IPAddress.Loopback, QuestPairing.Port);
                 listener.Start();
                 serving = receiver.ServeAsync(listener, serverStop.Token, (_, __) => throw new InvalidOperationException(), _ => { }, Receive);
             }
 
-            async Task Close()
+            async UniTask Close()
             {
                 serverStop?.Cancel();
                 await serving;
@@ -169,6 +170,7 @@ namespace HBP.UI.Quest
             {
                 await Close();
                 if (File.Exists(identityPath)) File.Delete(identityPath);
+                await UniTask.SwitchToMainThread();
                 File.WriteAllText(Path.Combine(directory, "result.json"), JsonUtility.ToJson(result, true));
                 Application.Quit(exit);
             }

@@ -1,6 +1,5 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 
 namespace HBP.Transfer.Scene
@@ -11,7 +10,7 @@ namespace HBP.Transfer.Scene
         // either handed to Unity, or destroyed after the worker has actually returned.
         internal static async UniTask<T> RunAsync<T>(Func<T> create, Action<T> release, CancellationToken token)
         {
-            T result = await Task.Run(() =>
+            T result = await UniTask.RunOnThreadPool(() =>
             {
                 token.ThrowIfCancellationRequested();
                 return create();

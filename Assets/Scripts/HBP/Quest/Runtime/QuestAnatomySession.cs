@@ -88,7 +88,7 @@ namespace HBP.Quest
             {
                 if (request.Kind == SessionControlKind.SceneInventory)
                 {
-                    var inventory = view.Scenes.Select(value => new SceneSessionEntry { VisualizationId = value.Scene.Visualization.ID, TransferId = value.TransferId, Orphan = V2SceneReconciliationRecord.Get(value.Scene)?.Status == V2ReconciliationStatus.Orphan }).ToArray();
+                    var inventory = view.Scenes.Select(value => new SceneSessionEntry { VisualizationId = value.Scene.Visualization.ID, TransferId = value.TransferId, Orphan = SceneReconciliationRecord.Get(value.Scene)?.Status == ReconciliationStatus.Orphan }).ToArray();
                     return new(request.OperationId, SessionControlStatus.Applied, hasSharedScene: inventory.Any(value => !value.Orphan), body: SceneSessionState.Encode(inventory));
                 }
 
@@ -131,9 +131,9 @@ namespace HBP.Quest
                     try
                     {
                         var presentation = view.Find(close.TransferId);
-                        var record = presentation == null ? null : V2SceneReconciliationRecord.Get(presentation.Scene);
+                        var record = presentation == null ? null : SceneReconciliationRecord.Get(presentation.Scene);
                         record?.ReleaseReconciliationGuard();
-                        record?.SetStatus(V2ReconciliationStatus.Orphan, "Desktop connected; this visualization is now local to Quest.");
+                        record?.SetStatus(ReconciliationStatus.Orphan, "Desktop connected; this visualization is now local to Quest.");
                     }
                     finally
                     {
@@ -142,7 +142,7 @@ namespace HBP.Quest
                 }
                 else throw new InvalidDataException("Unsupported scene lifecycle request.");
 
-                return new(request.OperationId, SessionControlStatus.Applied, hasSharedScene: view.Scenes.Any(value => V2SceneReconciliationRecord.Get(value.Scene)?.Status != V2ReconciliationStatus.Orphan));
+                return new(request.OperationId, SessionControlStatus.Applied, hasSharedScene: view.Scenes.Any(value => SceneReconciliationRecord.Get(value.Scene)?.Status != ReconciliationStatus.Orphan));
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
@@ -169,18 +169,10 @@ namespace HBP.Quest
 
         private SceneArchive globalArchive;
         private readonly SemaphoreSlim publicationGate = new(1, 1);
-        private LiveGeometryStateAdapter replica;
-        private StateSnapshot acceptedReplica;
-        private QuestV2ReplicaSession v2Replica;
-        private CancellationTokenSource v2ReplicaGraceLifetime;
-        private int replicaGeneration;
-        public ulong ReceivedRevision { get; private set; }
-        public ulong AppliedRevision { get; private set; }
-        public ulong VisibleRevision { get; private set; }
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
-        public V2SceneReconciliationRecord Reconciliation => view != null && view.Scene != null ? V2SceneReconciliationRecord.Get(view.Scene) : null;
-        public bool IsSynchronizationConnected => deliveries.Values.Any(value => value.Shared && value.Replica?.TransportState == V2PersistentTransportState.Connected);
+        public SceneReconciliationRecord Reconciliation => view != null && view.Scene != null ? SceneReconciliationRecord.Get(view.Scene) : null;
+        public bool IsSynchronizationConnected => deliveries.Values.Any(value => value.Shared && value.Replica?.TransportState == PersistentTransportState.Connected);
         public bool IsSceneConnected(HBP.Data.Module3D.Base3DScene scene) => CanRequest(scene);
         public bool IsReady => view != null && view.Scenes.Count != 0;
         public string TransferId => current?.TransferId;
@@ -214,49 +206,6 @@ namespace HBP.Quest
             }
         }
 
-        private readonly struct MeasuredProfiles
-        {
-            private readonly byte m_Bits;
-
-            private MeasuredProfiles(byte bits) => m_Bits = bits;
-
-            public int Count => (m_Bits & 1) + ((m_Bits >> 1) & 1) + ((m_Bits >> 2) & 1);
-
-            public SyncProfile this[int index]
-            {
-                get
-                {
-                    int current = 0;
-                    for (int bit = 0; bit < 3; bit++)
-                    {
-                        if ((m_Bits & (1 << bit)) == 0) continue;
-                        if (current++ == index)
-                        {
-                            return bit switch
-                            {
-                                0 => SyncProfile.SiteColor,
-                                1 => SyncProfile.CutDefinition,
-                                _ => SyncProfile.TimelineAnchor
-                            };
-                        }
-                    }
-
-                    throw new ArgumentOutOfRangeException(nameof(index));
-                }
-            }
-
-            public MeasuredProfiles Add(SyncProfile profile)
-            {
-                int bit = profile switch
-                {
-                    SyncProfile.SiteColor => 0,
-                    SyncProfile.CutDefinition => 1,
-                    SyncProfile.TimelineAnchor => 2,
-                    _ => throw new ArgumentOutOfRangeException(nameof(profile))
-                };
-                return new MeasuredProfiles((byte)(m_Bits | (1 << bit)));
-            }
-        }
 
         private sealed class Entry
         {
@@ -266,7 +215,7 @@ namespace HBP.Quest
             public DeliveryStatus Status;
             public string VisualizationId;
             public PreparedSceneDeliveryBinding Binding;
-            public QuestV2ReplicaSession Replica;
+            public QuestReplicaSession Replica;
             public CancellationTokenSource Grace;
             public readonly SemaphoreSlim Gate = new(1, 1);
             public bool Shared = true;
@@ -426,7 +375,7 @@ namespace HBP.Quest
                     deliveries.Clear();
                     sceneControls.Clear();
                     previous?.Dispose();
-                    atlasPreparation = new SessionAtlasPreparation(candidate.Data.Preferences.Data.Atlases, () => standardInstallation);
+                    atlasPreparation = new SessionAtlasPreparation(candidate.Data.Preferences.Data.Atlases, () => standardInstallation.AsUniTask());
                     atlasPreparation.Start();
                     stop.ThrowIfCancellationRequested();
                 }, stop).ConfigureAwait(false);
@@ -635,11 +584,9 @@ namespace HBP.Quest
                         old.Grace = null;
                         old.Replica?.Dispose();
                         old.Replica = null;
-                        V2SceneReconciliationRecord.Get(replaced.Scene)?.Dispose();
+                        SceneReconciliationRecord.Get(replaced.Scene)?.Dispose();
                     }
 
-                    replica = null;
-                    acceptedReplica = null;
                     telemetry?.Trace.CaptureApplyStart();
                     await view.ApplyAsync(snapshot, archive, preparationStop.Token); // ACK only after complete common rendering and publication.
                     telemetry?.Trace.CaptureApplyEnd();
@@ -675,13 +622,9 @@ namespace HBP.Quest
 
                 var published = view.Find(next.TransferId);
                 next.Binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(ParseContentHash(hash), DeliveryStatus.Published), published.Restored);
-                var record = V2SceneReconciliationRecord.Retain(published.Scene, next.Binding);
-                if (!next.Shared) record.SetStatus(V2ReconciliationStatus.Orphan, "This visualization is now local to Quest.");
+                var record = SceneReconciliationRecord.Retain(published.Scene, next.Binding);
+                if (!next.Shared) record.SetStatus(ReconciliationStatus.Orphan, "This visualization is now local to Quest.");
                 current = next;
-                replica = null;
-                acceptedReplica = null;
-                ReceivedRevision = AppliedRevision = VisibleRevision = 0;
-                ++replicaGeneration;
                 return DeliveryStatus.Published;
             }
             finally
@@ -695,12 +638,12 @@ namespace HBP.Quest
         {
             byte[] prefix = await ReadPrefixAsync(stream, 4, stop).ConfigureAwait(false);
             Entry entry;
-            if (HasTransportMagic(prefix, V2ReplicaRoute.Magic))
+            if (HasTransportMagic(prefix, ReplicaRoute.Magic))
             {
-                var route = await V2ReplicaRoute.ReadBodyAsync(stream, stop).ConfigureAwait(false);
+                var route = await ReplicaRoute.ReadBodyAsync(stream, stop).ConfigureAwait(false);
                 entry = await OnUnityThreadAsync(() =>
                 {
-                    if (globals == null || route.Session.Value != Guid.ParseExact(globals.Id, "N") || !deliveries.TryGetValue(route.Incarnation.Value.ToString("N"), out var found) || !found.Shared || found.Status != DeliveryStatus.Published || found.Binding == null || !found.Binding.CreateV2Identity().SceneId.Equals(route.Scene))
+                    if (globals == null || route.Session.Value != Guid.ParseExact(globals.Id, "N") || !deliveries.TryGetValue(route.Incarnation.Value.ToString("N"), out var found) || !found.Shared || found.Status != DeliveryStatus.Published || found.Binding == null || !found.Binding.CreateIdentity().SceneId.Equals(route.Scene))
                         throw new InvalidDataException("The routed scene incarnation is closed or unavailable.");
                     return found;
                 }, stop).ConfigureAwait(false);
@@ -713,7 +656,7 @@ namespace HBP.Quest
             stop = sceneStop.Token;
             var presentation = await OnUnityThreadAsync(() => view.Find(entry.TransferId), stop).ConfigureAwait(false);
             if (presentation == null) throw new InvalidDataException("The routed scene was closed.");
-            if (HasTransportMagic(prefix, V2SceneReconciliationProtocol.Magic))
+            if (HasTransportMagic(prefix, SceneReconciliationProtocol.Magic))
             {
                 await entry.Gate.WaitAsync(stop).ConfigureAwait(false);
                 try
@@ -726,9 +669,9 @@ namespace HBP.Quest
                         entry.Grace = null;
                         entry.Replica?.Dispose();
                         entry.Replica = null;
-                        return V2SceneReconciliationRecord.Retain(presentation.Scene, entry.Binding);
+                        return SceneReconciliationRecord.Retain(presentation.Scene, entry.Binding);
                     }, stop).ConfigureAwait(false);
-                    await V2SceneReconciliationProtocol.ReceiveQuestAsync(stream, record, stop).ConfigureAwait(false);
+                    await SceneReconciliationProtocol.ReceiveQuestAsync(stream, record, stop).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -741,8 +684,7 @@ namespace HBP.Quest
             var replay = new PrefixReadStream(prefix, stream);
             if (!HasTransportMagic(prefix, "HBT2") && !HasTransportMagic(prefix, "HBS2"))
             {
-                await ReceiveLegacyReplicaAsync(replay, stop).ConfigureAwait(false);
-                return;
+                throw new InvalidDataException("Unsupported synchronization protocol.");
             }
 
             var session = await OnUnityThreadAsync(() =>
@@ -753,7 +695,7 @@ namespace HBP.Quest
                 entry.Grace = null;
                 if (entry.Replica == null)
                 {
-                    entry.Replica = new QuestV2ReplicaSession(presentation.Scene, entry.Binding);
+                    entry.Replica = new QuestReplicaSession(presentation.Scene, entry.Binding);
                     entry.Replica.ActionReceived += action => OnSceneAction(entry, action);
                 }
 
@@ -789,26 +731,26 @@ namespace HBP.Quest
 
         private static bool IsTransientReplicaInterruption(Exception error) => error is IOException or SocketException or ObjectDisposedException or InvalidOperationException;
 
-        private void StartGrace(Entry entry, QuestV2ReplicaSession session)
+        private void StartGrace(Entry entry, QuestReplicaSession session)
         {
             entry.Grace?.Cancel();
             entry.Grace?.Dispose();
             entry.Grace = new CancellationTokenSource();
-            ExpireGraceAsync(entry, session, entry.Grace).AsUniTask().Forget();
+            ExpireGraceAsync(entry, session, entry.Grace).Forget();
         }
 
-        private async Task ExpireGraceAsync(Entry entry, QuestV2ReplicaSession session, CancellationTokenSource grace)
+        private async UniTask ExpireGraceAsync(Entry entry, QuestReplicaSession session, CancellationTokenSource grace)
         {
             try
             {
-                await Task.Delay(V2OutgoingScheduler.ReconnectGraceMilliseconds, grace.Token);
+                await UniTask.Delay(TimeSpan.FromMilliseconds(OutgoingScheduler.ReconnectGraceMilliseconds), DelayType.Realtime, cancellationToken: grace.Token);
                 await UniTask.SwitchToMainThread();
                 if (entry.Replica != session || entry.Grace != grace) return;
                 session.Dispose();
                 entry.Replica = null;
                 entry.Grace = null;
                 var presentation = view.Find(entry.TransferId);
-                if (presentation != null) V2SceneReconciliationRecord.Get(presentation.Scene)?.SetStatus(V2ReconciliationStatus.Local, "Scene offline; reconnect Desktop to merge changes.");
+                if (presentation != null) SceneReconciliationRecord.Get(presentation.Scene)?.SetStatus(ReconciliationStatus.Local, "Scene offline; reconnect Desktop to merge changes.");
                 grace.Dispose();
             }
             catch (OperationCanceledException)
@@ -816,7 +758,7 @@ namespace HBP.Quest
             }
         }
 
-        private void CancelV2ReplicaGraceExpiry()
+        private void CancelReplicaGraceExpiry()
         {
             foreach (var entry in deliveries.Values)
             {
@@ -829,11 +771,11 @@ namespace HBP.Quest
         private void OnContextSelected(HBP.Data.Module3D.Base3DScene scene, HBP.Data.Module3D.Column3D column)
         {
             var presentation = view.Find(scene);
-            if (presentation == null || !deliveries.TryGetValue(presentation.TransferId, out var entry) || entry.Replica?.TransportState != V2PersistentTransportState.Connected || !entry.Shared) return;
-            var identity = entry.Binding.CreateV2Identity();
+            if (presentation == null || !deliveries.TryGetValue(presentation.TransferId, out var entry) || entry.Replica?.TransportState != PersistentTransportState.Connected || !entry.Shared) return;
+            var identity = entry.Binding.CreateIdentity();
             try
             {
-                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.SelectContext, column?.ColumnData.ID));
+                entry.Replica.SendAction(new SceneAction(identity.SceneId, identity.IncarnationId, SceneActionKind.SelectContext, column?.ColumnData.ID));
             }
             catch (IOException error)
             {
@@ -841,30 +783,30 @@ namespace HBP.Quest
             }
         }
 
-        private void OnSceneAction(Entry entry, V2SceneAction action)
+        private void OnSceneAction(Entry entry, SceneAction action)
         {
             var presentation = view.Find(entry.TransferId);
             if (presentation == null || !entry.Shared) return;
-            if (action.Kind == V2SceneActionKind.SelectContext)
+            if (action.Kind == SceneActionKind.SelectContext)
             {
                 var column = presentation.Scene.Columns.FirstOrDefault(value => value.ColumnData.ID == action.Column);
                 if (column != null) view.SelectContext(presentation.Scene, column, false);
             }
-            else if (action.Kind == V2SceneActionKind.Result) ActionStatus = action.Message;
+            else if (action.Kind == SceneActionKind.Result) ActionStatus = action.Message;
         }
 
         public bool CanOpenPatient => view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
-        private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == V2PersistentTransportState.Connected && V2SceneReconciliationRecord.Get(scene)?.Status == V2ReconciliationStatus.Synchronized;
+        private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
 
         public void RequestOpenPatient()
         {
             if (!CanOpenPatient) return;
             var scene = view.Scene;
             var entry = deliveries[view.Find(scene).TransferId];
-            var identity = entry.Binding.CreateV2Identity();
+            var identity = entry.Binding.CreateIdentity();
             try
             {
-                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.OpenPatient, scene.SelectedColumn.ColumnData.ID, scene.SelectedColumn.SelectedSite.Information.FullID));
+                entry.Replica.SendAction(new SceneAction(identity.SceneId, identity.IncarnationId, SceneActionKind.OpenPatient, scene.SelectedColumn.ColumnData.ID, scene.SelectedColumn.SelectedSite.Information.FullID));
                 ActionStatus = "Opening patient on Desktop...";
             }
             catch (IOException error)
@@ -880,9 +822,9 @@ namespace HBP.Quest
             if (CanRequest(scene))
             {
                 var entry = deliveries[presentation.TransferId];
-                var identity = entry.Binding.CreateV2Identity();
+                var identity = entry.Binding.CreateIdentity();
                 entry.Closed ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.Close));
+                entry.Replica.SendAction(new SceneAction(identity.SceneId, identity.IncarnationId, SceneActionKind.Close));
                 ActionStatus = "Closing visualization...";
                 if (await Task.WhenAny(entry.Closed.Task, Task.Delay(TimeSpan.FromSeconds(15))) != entry.Closed.Task) throw new IOException("Desktop did not acknowledge the close. Retry, or close locally after disconnection.");
                 await entry.Closed.Task;
@@ -902,135 +844,6 @@ namespace HBP.Quest
             }
         }
 
-        private async Task ReceiveLegacyReplicaAsync(Stream stream, CancellationToken stop)
-        {
-            var resources = new Dictionary<string, byte[]>(StringComparer.Ordinal);
-            StateSnapshot checkpoint = await OnUnityThreadAsync(() => acceptedReplica, stop).ConfigureAwait(false);
-            await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Checkpoint, ReplicaWire.Checkpoint(checkpoint?.CommonRevision ?? 0, checkpoint == null ? new byte[32] : ReplicaWire.Hash(checkpoint)), stop).ConfigureAwait(false);
-            while (!stop.IsCancellationRequested)
-            {
-                SyncTelemetryPoint firstByte = default;
-                SyncTelemetryPoint lastByte = default;
-                Action<ReplicaReadStage> measure = null;
-                if (SyncTelemetry.Enabled)
-                    measure = stage =>
-                    {
-                        if (stage == ReplicaReadStage.FirstBytes)
-                            firstByte = SyncTelemetry.CapturePoint();
-                        else
-                            lastByte = SyncTelemetry.CapturePoint();
-                    };
-                var frame = await ReplicaWire.ReadAsync(stream, stop, measure).ConfigureAwait(false);
-                if (frame.Kind == ReplicaFrameKind.Resource)
-                {
-                    var resource = ReplicaWire.ReadResource(frame.Body);
-                    if (resources.Count >= 8 && !resources.ContainsKey(resource.Reference)) throw new InvalidDataException("Too many pending replica resources.");
-                    resources[resource.Reference] = resource.Data;
-                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Applied, ReplicaWire.Revision(0), stop).ConfigureAwait(false);
-                    continue;
-                }
-
-                if (frame.Body.Length < 5) throw new InvalidDataException("Truncated replica clock and state.");
-                float senderClock = BitConverter.ToSingle(frame.Body, 0);
-                byte[] stateBytes = new byte[frame.Body.Length - 4];
-                Buffer.BlockCopy(frame.Body, 4, stateBytes, 0, stateBytes.Length);
-                StateSnapshot snapshot = frame.Kind == ReplicaFrameKind.Snapshot ? SharedStateCodec.Decode(stateBytes) : null;
-                ReplicaDelta delta = frame.Kind == ReplicaFrameKind.Delta ? ReplicaDelta.Decode(stateBytes) : null;
-                if (snapshot == null && delta == null) throw new InvalidDataException("Unexpected Desktop replica message.");
-                ulong revision = snapshot?.CommonRevision ?? delta.Revision;
-                Guid epoch = snapshot?.EpochId ?? acceptedReplica?.EpochId ?? Guid.Empty;
-                MeasuredProfiles profiles = SyncTelemetry.Enabled ? GetMeasuredProfiles(delta) : default;
-                SyncReceiveTelemetry telemetry = profiles.Count == 0 ? null : new SyncReceiveTelemetry(firstByte, lastByte, frame.Body.Length + 5L);
-                try
-                {
-                    await OnUnityThreadAsync(() => ReceivedRevision = revision, stop).ConfigureAwait(false);
-                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Received, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                    Task application = await OnUnityThreadAsync(() => ApplyReplicaAsync(snapshot, delta, senderClock, resources, telemetry, stop), stop).ConfigureAwait(false);
-                    await application.ConfigureAwait(false);
-                    resources.Clear();
-                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Applied, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                    Task visible = await OnUnityThreadAsync(() => WaitReplicaVisibleAsync(revision, stop, telemetry), stop).ConfigureAwait(false);
-                    await visible.ConfigureAwait(false);
-                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Visible, ReplicaWire.Revision(revision), stop).ConfigureAwait(false);
-                }
-                catch (Exception exception) when (exception is InvalidDataException || exception is InvalidOperationException || exception is ArgumentException)
-                {
-                    byte[] message = Encoding.UTF8.GetBytes(exception.Message);
-                    await ReplicaWire.WriteAsync(stream, ReplicaFrameKind.Rejected, message, stop).ConfigureAwait(false);
-                    throw;
-                }
-                finally
-                {
-                    // IOException, cancellation and even a failed rejection ACK retain the phases already reached.
-                    for (int i = 0; i < profiles.Count; i++)
-                        telemetry?.Publish(profiles[i], ReplicaIdentity(epoch, revision));
-                }
-            }
-        }
-
-        private async Task ApplyReplicaAsync(StateSnapshot snapshot, ReplicaDelta delta, float senderClock, Dictionary<string, byte[]> resources, SyncReceiveTelemetry telemetry, CancellationToken stop)
-        {
-            await publicationGate.WaitAsync(stop);
-            try
-            {
-                if (!IsReady) throw new InvalidOperationException("No published scene for replica state.");
-                if (delta != null)
-                {
-                    if (acceptedReplica == null) throw new InvalidDataException("A full replica checkpoint is required.");
-                    snapshot = delta.Apply(acceptedReplica);
-                }
-
-                if (acceptedReplica != null && snapshot.CommonRevision <= acceptedReplica.CommonRevision)
-                {
-                    if (snapshot.CommonRevision == acceptedReplica.CommonRevision && SharedStateCodec.Encode(snapshot).AsSpan().SequenceEqual(SharedStateCodec.Encode(acceptedReplica))) return;
-                    throw new InvalidDataException("Stale or divergent replica revision.");
-                }
-
-                LiveGeometryStateAdapter applying = replica;
-                if (applying == null)
-                {
-                    if (snapshot.CommonRevision < 1) throw new InvalidDataException("Invalid initial replica revision.");
-                    byte[] hash = new byte[32];
-                    for (int i = 0; i < hash.Length; i++) hash[i] = Convert.ToByte(current.ContentHash.Substring(i * 2, 2), 16);
-                    var binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(hash, DeliveryStatus.Published), view.PublishedScene);
-                    var candidate = new LiveGeometryStateAdapter(view.Scene, snapshot.EpochId, binding);
-                    foreach (var resource in resources) candidate.PrepareCorrelationResource(resource.Key, resource.Value);
-                    candidate.BindInitialState(snapshot);
-                    applying = candidate;
-                }
-                else
-                    foreach (var resource in resources)
-                        applying.PrepareCorrelationResource(resource.Key, resource.Value);
-
-                using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
-                deadline.CancelAfter(TimeSpan.FromSeconds(30));
-                await UniTask.WaitUntil(() => view.Scene != null && view.Scene.CanApplyLegacyStateSnapshot, cancellationToken: deadline.Token);
-                telemetry?.CaptureApplyStart();
-                applying.Apply(ReplicaClock.ToLocalClock(snapshot, senderClock, Time.realtimeSinceStartup), delta);
-                telemetry?.CaptureApplyEnd();
-                replica = applying;
-                acceptedReplica = snapshot;
-                AppliedRevision = snapshot.CommonRevision;
-            }
-            finally
-            {
-                publicationGate.Release();
-            }
-        }
-
-        private async Task WaitReplicaVisibleAsync(ulong revision, CancellationToken stop, SyncReceiveTelemetry telemetry)
-        {
-            int generation = replicaGeneration;
-            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
-            deadline.CancelAfter(TimeSpan.FromSeconds(30));
-            if (view.Scene == null) throw new InvalidOperationException("The published scene is unavailable.");
-            await view.Scene.PrepareRenderingAsync(deadline.Token);
-            await UniTask.NextFrame(cancellationToken: deadline.Token);
-            if (generation != replicaGeneration || acceptedReplica?.CommonRevision != revision) throw new InvalidDataException("Replica scene was replaced before visibility.");
-            VisibleRevision = revision;
-            // This is the Unity-thread CPU eligibility boundary, not the later worker continuation.
-            telemetry?.CaptureNextVisible();
-        }
 
         private async UniTask RecordInitialNextVisibleAsync(InitialTransferTelemetry telemetry, CancellationToken stop)
         {
@@ -1064,33 +877,6 @@ namespace HBP.Quest
             }
         }
 
-        private static MeasuredProfiles GetMeasuredProfiles(ReplicaDelta delta)
-        {
-            if (delta == null)
-                return default;
-            MeasuredProfiles profiles = default;
-            foreach (StateKey key in delta.Assignments.Keys)
-                profiles = AddMeasuredProfile(profiles, key);
-            foreach (StateKey key in delta.Removals)
-                profiles = AddMeasuredProfile(profiles, key);
-            return profiles;
-        }
-
-        private static MeasuredProfiles AddMeasuredProfile(MeasuredProfiles profiles, StateKey key)
-        {
-            if (key.Entity == EntityKind.Site && key.FieldId == 5)
-                return profiles.Add(SyncProfile.SiteColor);
-            if (key.Entity == EntityKind.Cut && key.FieldId is >= 3 and <= 6)
-                return profiles.Add(SyncProfile.CutDefinition);
-            if (key.Entity == EntityKind.Column && key.FieldId is >= 27 and <= 32)
-                return profiles.Add(SyncProfile.TimelineAnchor);
-            return profiles;
-        }
-
-        private static SyncTelemetryIdentity ReplicaIdentity(Guid epoch, ulong revision)
-        {
-            return SyncTelemetryIdentity.LegacyRevisionProxy(epoch.ToString("N"), unchecked((long)revision));
-        }
 
         private static SyncTelemetryIdentity InitialTransferIdentity(string transferId)
         {
@@ -1132,15 +918,13 @@ namespace HBP.Quest
         {
             RequireMainThread();
             reception?.Cancel();
-            CancelV2ReplicaGraceExpiry();
+            CancelReplicaGraceExpiry();
             foreach (var entry in deliveries.Values)
             {
                 entry.Replica?.Dispose();
                 entry.Replica = null;
             }
 
-            v2Replica?.Dispose();
-            v2Replica = null;
             IsSessionConnected = false;
             IsConnected = false;
         }
@@ -1150,12 +934,6 @@ namespace HBP.Quest
             RequireMainThread();
             pendingInitialTelemetry = null;
             Reconciliation?.Dispose();
-            v2Replica?.Dispose();
-            v2Replica = null;
-            replica = null;
-            acceptedReplica = null;
-            ReceivedRevision = AppliedRevision = VisibleRevision = 0;
-            ++replicaGeneration;
             surfaceCache.Clear();
             Disconnect(); // Cancels queued publication before freeing resources.
             foreach (var entry in deliveries.Values)

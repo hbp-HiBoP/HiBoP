@@ -49,7 +49,7 @@ Quest closing offline simply removes its local instance. At reconciliation Deskt
 
 ## First implementation boundary
 
-The first v2 vertical slice may expose one active scene, but no type or singleton may assume there can only ever be one:
+The first sync vertical slice may expose one active scene, but no type or singleton may assume there can only ever be one:
 
 - sequences, queues, jobs, checkpoints and resource manifests are keyed by scene/incarnation;
 - selection messages name their scene and column;

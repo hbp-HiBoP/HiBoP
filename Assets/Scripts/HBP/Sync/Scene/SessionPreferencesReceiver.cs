@@ -56,7 +56,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        public async Task CloseAsync()
+        public async UniTask CloseAsync()
         {
             m_Epoch.Cancel();
             await m_Gate.WaitAsync();

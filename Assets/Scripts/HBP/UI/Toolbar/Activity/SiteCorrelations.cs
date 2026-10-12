@@ -326,9 +326,9 @@ namespace HBP.UI.Toolbar
                 Base3DScene scene = SelectedScene;
                 CorrelationResultResource resource = ReadLegacyCorrelationResult(scene, loadPath);
                 byte[] resultBytes = resource.Encode();
-                if (V2CorrelationRequestRouter.TryGetHandler(scene, out var handler))
+                if (CorrelationRequestRouter.TryGetHandler(scene, out var handler))
                 {
-                    if (!await handler(V2CorrelationRequest.Load(resultBytes), CancellationToken.None)) return;
+                    if (!await handler(CorrelationRequest.Load(resultBytes), CancellationToken.None)) return;
                 }
                 else
                 {
@@ -447,8 +447,8 @@ namespace HBP.UI.Toolbar
             UpdateInteractable();
             try
             {
-                if (V2CorrelationRequestRouter.TryGetHandler(scene, out var handler))
-                    await handler(V2CorrelationRequest.Compute(externalLoadingIndicator: true, progress: updateProgress), token);
+                if (CorrelationRequestRouter.TryGetHandler(scene, out var handler))
+                    await handler(CorrelationRequest.Compute(externalLoadingIndicator: true, progress: updateProgress), token);
                 else
                     await scene.ComputeCorrelationsAsync(updateProgress, token);
 

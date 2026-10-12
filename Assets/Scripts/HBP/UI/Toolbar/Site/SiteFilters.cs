@@ -38,7 +38,7 @@ namespace HBP.UI.Toolbar
                 if (ListenerLock) return;
 
                 Base3DScene scene = SelectedScene;
-                if (!SiteFilterUiRequestRunner.TryRun(scene, V2SiteFilterRequest.ResetAll(externalLoadingIndicator: true), () => scene.ResetSiteFilters()))
+                if (!SiteFilterUiRequestRunner.TryRun(scene, SiteFilterRequest.ResetAll(externalLoadingIndicator: true), () => scene.ResetSiteFilters()))
                     scene.ResetSiteFilters();
             });
         }

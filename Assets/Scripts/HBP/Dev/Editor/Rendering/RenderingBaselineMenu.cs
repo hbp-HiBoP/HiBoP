@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using HBP.Dev.Rendering;
 using UnityEditor;
 using UnityEngine;
@@ -34,7 +35,7 @@ namespace HBP.Dev.Rendering.EditorTools
             return Application.isPlaying && !RenderingBaselineCapture.IsRunning;
         }
 
-        private static async System.Threading.Tasks.Task CaptureAsync(bool includeSiteStress)
+        private static async UniTask CaptureAsync(bool includeSiteStress)
         {
             try
             {

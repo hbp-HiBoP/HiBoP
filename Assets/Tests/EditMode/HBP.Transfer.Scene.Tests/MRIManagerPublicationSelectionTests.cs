@@ -44,12 +44,12 @@ namespace HBP.Tests.Transfer.Scene
                 brainMaterials = new BrainMaterials();
                 typeof(Base3DScene).GetProperty(nameof(Base3DScene.BrainMaterials)).SetValue(scene, brainMaterials);
 
-                stage = "resolving the v2 publication owner";
-                Type ownerType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession", throwOnError: false)).FirstOrDefault(type => type != null);
-                Assert.That(ownerType, Is.Not.Null, "The v2 Desktop publication owner must be loaded for this integration test.");
+                stage = "resolving the sync publication owner";
+                Type ownerType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession", throwOnError: false)).FirstOrDefault(type => type != null);
+                Assert.That(ownerType, Is.Not.Null, "The sync Desktop publication owner must be loaded for this integration test.");
                 var constructor = ownerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string) }, null);
                 Assert.That(constructor, Is.Not.Null);
-                stage = "constructing the v2 publication owner";
+                stage = "constructing the sync publication owner";
                 publicationOwner = (IDisposable)constructor.Invoke(new object[] { scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N") });
 
                 stage = "selecting the alternate MRI during publication";
@@ -110,7 +110,7 @@ namespace HBP.Tests.Transfer.Scene
         {
             using var fixture = new PublicationOwnerFixture();
             fixture.SetAwaitingInitialBarrier();
-            fixture.ReportConnectionClosed("The Quest v2 replica reconnect grace expired.");
+            fixture.ReportConnectionClosed("The Quest sync replica reconnect grace expired.");
 
             Assert.That(fixture.IsLive, Is.False);
             Assert.That(fixture.IsClosed, Is.True);
@@ -196,8 +196,8 @@ namespace HBP.Tests.Transfer.Scene
                 m_BrainMaterials = new BrainMaterials();
                 typeof(Base3DScene).GetProperty(nameof(Base3DScene.BrainMaterials)).SetValue(scene, m_BrainMaterials);
 
-                m_OwnerType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession", throwOnError: false)).FirstOrDefault(type => type != null);
-                Assert.That(m_OwnerType, Is.Not.Null, "The v2 Desktop publication owner must be loaded for this integration test.");
+                m_OwnerType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession", throwOnError: false)).FirstOrDefault(type => type != null);
+                Assert.That(m_OwnerType, Is.Not.Null, "The sync Desktop publication owner must be loaded for this integration test.");
                 var constructor = m_OwnerType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(string), typeof(string) }, null);
                 Assert.That(constructor, Is.Not.Null);
                 m_PublicationOwner = (IDisposable)constructor.Invoke(new object[] { scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N") });

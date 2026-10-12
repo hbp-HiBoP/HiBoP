@@ -20,11 +20,11 @@ namespace HBP.Tests.Transfer
             var scene = new SceneId(Guid.NewGuid());
             var incarnation = new IncarnationId(Guid.NewGuid());
             using var stream = new MemoryStream();
-            await V2ReplicaRoute.WriteAsync(stream, session, scene, incarnation, CancellationToken.None);
+            await ReplicaRoute.WriteAsync(stream, session, scene, incarnation, CancellationToken.None);
             byte[] inner = System.Text.Encoding.ASCII.GetBytes("HBT2");
             await stream.WriteAsync(inner, 0, inner.Length);
             stream.Position = 4;
-            var routed = await V2ReplicaRoute.ReadBodyAsync(stream, CancellationToken.None);
+            var routed = await ReplicaRoute.ReadBodyAsync(stream, CancellationToken.None);
             Assert.That(routed.Session, Is.EqualTo(session));
             Assert.That(routed.Scene, Is.EqualTo(scene));
             Assert.That(routed.Incarnation, Is.EqualTo(incarnation));
@@ -34,14 +34,14 @@ namespace HBP.Tests.Transfer
         [Test]
         public void PatientActionRetainsCapturedContextAndOperationAndRejectsTrailingBytes()
         {
-            var original = new V2SceneAction(new SceneId(Guid.NewGuid()), new IncarnationId(Guid.NewGuid()), V2SceneActionKind.OpenPatient, "column-A", "patient-site");
-            Assert.That(V2SceneAction.TryDecode(original.Encode(), out var decoded), Is.True);
+            var original = new SceneAction(new SceneId(Guid.NewGuid()), new IncarnationId(Guid.NewGuid()), SceneActionKind.OpenPatient, "column-A", "patient-site");
+            Assert.That(SceneAction.TryDecode(original.Encode(), out var decoded), Is.True);
             Assert.That(decoded.Scene, Is.EqualTo(original.Scene));
             Assert.That(decoded.Incarnation, Is.EqualTo(original.Incarnation));
             Assert.That(decoded.Operation, Is.EqualTo(original.Operation));
             Assert.That(decoded.Column, Is.EqualTo("column-A"));
             Assert.That(decoded.Site, Is.EqualTo("patient-site"));
-            Assert.Throws<InvalidDataException>(() => V2SceneAction.TryDecode(original.Encode().Concat(new byte[] { 1 }).ToArray(), out _));
+            Assert.Throws<InvalidDataException>(() => SceneAction.TryDecode(original.Encode().Concat(new byte[] { 1 }).ToArray(), out _));
         }
 
         [Test]

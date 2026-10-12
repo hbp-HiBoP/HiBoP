@@ -58,7 +58,7 @@ namespace HBP.Tests.Transfer
             {
                 replicaEntered.TrySetResult(true);
                 if (failReplicaWithProtocol)
-                    throw new V2TransportProtocolException("Malformed replica session.");
+                    throw new TransportProtocolException("Malformed replica session.");
                 using var cancelled = token.Register(() => releaseReplica.TrySetCanceled());
                 await releaseReplica.Task;
             });
@@ -142,6 +142,7 @@ namespace HBP.Tests.Transfer
                 clockSeconds += 301;
                 Assert.That(receiver.GetStatus().AttemptsRemaining, Is.EqualTo(4 - i));
             }
+
             Assert.That(receiver.GetStatus().Phase, Is.EqualTo(PairingPhase.AttemptsExhausted));
             string previous = receiver.Code;
             Assert.That(receiver.RearmCode(), Is.True);

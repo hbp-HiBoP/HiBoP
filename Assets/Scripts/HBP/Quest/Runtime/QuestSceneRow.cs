@@ -66,13 +66,13 @@ namespace HBP.Quest
                 else theme.Set();
             }
 
-            var record = V2SceneReconciliationRecord.Get(scene);
+            var record = SceneReconciliationRecord.Get(scene);
             string state = record?.Status switch
             {
-                V2ReconciliationStatus.Orphan => "Local to Quest",
-                V2ReconciliationStatus.Synchronized => session.IsSceneConnected(scene) ? "Shared with Desktop" : "Desktop disconnected",
-                V2ReconciliationStatus.Reconciling => "Reconnecting",
-                V2ReconciliationStatus.OutOfSync => "Reconnection failed",
+                ReconciliationStatus.Orphan => "Local to Quest",
+                ReconciliationStatus.Synchronized => session.IsSceneConnected(scene) ? "Shared with Desktop" : "Desktop disconnected",
+                ReconciliationStatus.Reconciling => "Reconnecting",
+                ReconciliationStatus.OutOfSync => "Reconnection failed",
                 _ => "Local / disconnected"
             };
             details.text = error ?? $"{scene.Columns.Count} columns · {state}";

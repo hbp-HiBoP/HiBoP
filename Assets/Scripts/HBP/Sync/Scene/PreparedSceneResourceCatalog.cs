@@ -143,12 +143,6 @@ namespace HBP.Sync.Scene
             return $"{kind}:{BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant()}:1";
         }
 
-        private static void AssertFunctionalResource(FMRI fmri, PreparedSceneManifest.FunctionalEntry resource)
-        {
-            if (resource == null || !MatchesCapturedFile(resource.File, fmri.SourceFile, fmri.SourceHash, fmri.SourceCompanionHash) || !MatchesCapturedFile(resource.Mask, fmri.MaskFile, fmri.MaskHash, fmri.MaskCompanionHash))
-                throw new InvalidDataException("Prepared functional data differs from the published delivery.");
-        }
-
         private static bool MatchesCapturedFile(string descriptor, string sourcePath, string hash, string companionHash)
         {
             if (string.IsNullOrEmpty(sourcePath)) return descriptor == null;

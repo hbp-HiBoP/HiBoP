@@ -93,9 +93,6 @@ namespace HBP.Core.Object3D
 
     public class SiteState
     {
-        /// <summary>Raised synchronously before a requested site color changes.</summary>
-        public static event Action<SiteState> ColorChanging;
-
         /// <summary>Raised synchronously after a requested site color changes.</summary>
         public static event Action<SiteState> ColorChanged;
 
@@ -186,7 +183,6 @@ namespace HBP.Core.Object3D
             set
             {
                 bool changed = m_Color != value;
-                if (changed) ColorChanging?.Invoke(this);
                 m_Color = value;
                 if (changed) ColorChanged?.Invoke(this);
                 NotifyStateChanged(SiteStateChangeKind.Color);

@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -97,7 +96,7 @@ namespace HBP.UI.Module3D
 
         #region Private Methods
 
-        private async UniTask ImportSitesAsync(string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<Task> beforeBackgroundParsing = null)
+        private async UniTask ImportSitesAsync(string csvPath, Action<float, float, LoadingText> updateProgress, CancellationToken token, Func<UniTask> beforeBackgroundParsing = null)
         {
             Base3DScene scene = Scene;
             bool importHighlighted = m_ImportHighlighted.isOn;

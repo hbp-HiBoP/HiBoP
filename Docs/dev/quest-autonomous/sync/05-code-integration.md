@@ -107,20 +107,20 @@ Introduce one per-scene coordinator keyed by job type and generation. It owns UI
 
 Filtering and correlations are Desktop-executed while online. Activity projection is dual-executed. Detailed states are in `09-long-running-jobs.md`.
 
-## Existing component disposition
+## Standard components after T18
 
-| Existing component | v2 disposition |
+| Component | Responsibility |
 | --- | --- |
 | `DesktopSceneCapture` / archive | Keep for full delivery; remove duplicate fingerprint/copy work. Never call per live mutation. |
-| `QuestManager` / pairing | Keep authentication/preferences; create v2 session owner only after successful publish. |
-| `QuestAnatomySession` | Keep scene lifetime; delegate live operations to a v2 replica owner keyed by scene/incarnation. |
+| `QuestManager` / pairing | Keep authentication/preferences; create sync session owner only after successful publish. |
+| `QuestAnatomySession` | Keep scene lifetime; delegate live operations to a sync replica owner keyed by scene/incarnation. |
 | `QuestAnatomyView.ApplyAsync` | Full publish/replacement only. Never use for normal mutation. Preserve Quest wrappers. |
 | `Base3DScene.Operations` | Preferred domain boundary; extend with IDs, context and targeted invalidation. |
-| `LiveGeometryStateAdapter` | Remove from hot path; checkpoint-only code may be rewritten, not assumed reusable. |
-| `SharedState` / `StateDelta` / merge | Do not preserve as v2 live contract. Retain only proven low-level utilities. No three-way merge. |
-| `DesktopReplicaSession` | Replace with event-driven v2 session and scheduler. |
-| `ReplicaWire` | Replace/version explicitly for typed duplex envelopes and multiplexed chunks. |
-| `BeginSynchronizedStateApplication` | Remove; application is operation-aware. |
+| `SceneMutationBoundary` | Observe precise domain operations and apply typed mutations/checkpoints. |
+| `SceneCheckpointMerge` | Reconcile independent changes and expose conflicting dependent groups for user choice. |
+| `DesktopReplicaSession` / `QuestReplicaSession` | Own the event-driven standard sessions and job coordination. The former experimental Desktop owner was deleted before reusing its name. |
+| `PersistentTransport` / `TransportFrameCodec` | Typed duplex envelopes, multiplexed bulk chunks, reliable retirement and timeline clock probes. |
+| Former S1–S3 adapter, state graph, delta and wire | Deleted, including the Quest receive fallback, old capture telemetry and snapshot-specific scene guards. |
 
 ## Assembly direction
 

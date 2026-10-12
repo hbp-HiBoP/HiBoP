@@ -16,6 +16,12 @@ namespace HBP.Sync.Scene
         private static readonly UTF8Encoding Utf8 = new(false, true);
         private readonly ColumnResult[] m_Columns;
 
+        private static float CanonicalFloat(float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value)) throw new ArgumentOutOfRangeException(nameof(value));
+            return value == 0 ? 0f : value;
+        }
+
         private sealed class ColumnResult
         {
             public string Id;
@@ -242,7 +248,7 @@ namespace HBP.Sync.Scene
             WriteOptionalText(writer, provenance.DataInfoId);
             WriteOptionalText(writer, provenance.DataName);
             writer.Write((int)provenance.Normalization);
-            writer.Write(StateValue.Float(provenance.CorrelationThreshold));
+            writer.Write(CanonicalFloat(provenance.CorrelationThreshold));
             writer.Write((byte)(provenance.UsesBonferroniCorrection ? 1 : 0));
         }
 
@@ -320,7 +326,7 @@ namespace HBP.Sync.Scene
             {
                 WriteText(writer, pair.From);
                 WriteText(writer, pair.To);
-                writer.Write(BitConverter.ToSingle(StateValue.Float(pair.Value), 0));
+                writer.Write(CanonicalFloat(pair.Value));
             }
         }
 

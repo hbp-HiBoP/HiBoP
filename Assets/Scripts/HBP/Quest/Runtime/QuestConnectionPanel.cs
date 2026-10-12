@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
 using HBP.Sync.Scene;
 using UnityEngine;
@@ -17,7 +17,7 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomyView view;
         [SerializeField] private QuestStatusPanel statusPanel;
         private CancellationTokenSource lifetime;
-        private Task running = Task.CompletedTask;
+        private UniTask running = UniTask.CompletedTask;
         private QuestPairing pairing;
         private string address, status = "Starting connection...";
         private bool restarting;
@@ -42,7 +42,7 @@ namespace HBP.Quest
             statusPanel.RetryRequested += Retry;
             statusPanel.NewAssociationRequested += NewAssociation;
             PairingTiming.Measured += LogTiming;
-            _ = RestartAsync(); // All failures observed by RestartAsync/RunAsync.
+            RestartAsync().Forget(); // All failures observed by RestartAsync/RunAsync.
         }
 
         private static void LogTiming(string message) => Debug.Log(message);
@@ -52,16 +52,16 @@ namespace HBP.Quest
         private void Retry()
         {
             if (!CanChangePairing) return;
-            if (pairing == null) _ = RestartAsync();
+            if (pairing == null) RestartAsync().Forget();
             else pairing.RearmCode();
         }
 
         private void NewAssociation()
         {
-            if (CanChangePairing) _ = RestartAsync(true);
+            if (CanChangePairing) RestartAsync(true).Forget();
         }
 
-        public async Task RestartAsync(bool renew = false)
+        public async UniTask RestartAsync(bool renew = false)
         {
             if (restarting || !isActiveAndEnabled) return;
             restarting = true;
@@ -72,7 +72,7 @@ namespace HBP.Quest
                 lifetime?.Dispose();
                 if (!this || !isActiveAndEnabled) return;
                 lifetime = new CancellationTokenSource();
-                running = RunAsync(lifetime.Token, renew);
+                running = RunAsync(lifetime.Token, renew).ToAsyncLazy().Task;
             }
             catch (Exception)
             {
@@ -84,12 +84,16 @@ namespace HBP.Quest
             }
         }
 
-        private async Task RunAsync(CancellationToken stop, bool renew)
+        private async UniTask RunAsync(CancellationToken stop, bool renew)
         {
             try
             {
                 status = "Preparing secure pairing...";
-                using var nextPairing = await Task.Run(() => new QuestPairing(identityPath, deviceName, renew), stop);
+                using var nextPairing = await UniTask.RunOnThreadPool(() =>
+                {
+                    stop.ThrowIfCancellationRequested();
+                    return new QuestPairing(identityPath, deviceName, renew);
+                });
                 stop.ThrowIfCancellationRequested();
                 pairing = nextPairing;
                 address = string.Join(" / ", NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up).SelectMany(n => n.GetIPProperties().UnicastAddresses).Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)).Select(a => a.Address.ToString()).Distinct());
@@ -102,7 +106,7 @@ namespace HBP.Quest
                         listener.Start(4);
                         var context = SynchronizationContext.Current;
                         using var advertising = CancellationTokenSource.CreateLinkedTokenSource(stop);
-                        Task discovery = AdvertiseAsync(nextPairing, advertising.Token);
+                        UniTask discovery = AdvertiseAsync(nextPairing, advertising.Token);
                         try
                         {
                             await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
@@ -122,7 +126,7 @@ namespace HBP.Quest
                         // network listener must be recreated after an interface failure.
                         status = "Connection interrupted. Reconnecting automatically...";
                         Debug.LogWarning("Quest listener will retry: " + exception.GetType().Name);
-                        await Task.Delay(5000, stop);
+                        await UniTask.Delay(TimeSpan.FromMilliseconds(5000), DelayType.Realtime, cancellationToken: stop);
                     }
                 }
             }
@@ -140,7 +144,7 @@ namespace HBP.Quest
             }
         }
 
-        private static async Task AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
+        private static async UniTask AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
         {
             try
             {
@@ -166,7 +170,7 @@ namespace HBP.Quest
                 statusPanel.ShowPairing(pairing.GetStatus(), address);
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
-            else if (session.Reconciliation is { } record && record.Status != V2ReconciliationStatus.Synchronized)
+            else if (session.Reconciliation is { } record && record.Status != ReconciliationStatus.Synchronized)
                 statusPanel.ShowReconciliation(record, pairing.IsConnected);
             else
                 statusPanel.ShowSession(session.IsSynchronizationConnected, false);
@@ -175,7 +179,7 @@ namespace HBP.Quest
         private void OnApplicationPause(bool paused)
         {
             // Keep the identity, code attempt budget and globals across normal headset sleep.
-            if (!paused && isActiveAndEnabled && running.IsCompleted) _ = RestartAsync();
+            if (!paused && isActiveAndEnabled && running.Status.IsCompleted()) RestartAsync().Forget();
         }
 
         private void OnDisable()

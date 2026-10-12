@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
 
 namespace HBP.UI.Quest
@@ -24,7 +25,7 @@ namespace HBP.UI.Quest
         {
             var result = new List<QuestDevice>();
             if (!File.Exists(adb)) return result;
-            string devices = await RunAsync("devices -l", stop).ConfigureAwait(false);
+            string devices = await RunAsync("devices -l", stop);
             foreach (string line in devices.Split('\n'))
             {
                 var match = Regex.Match(line.Trim(), @"^(\S+)\s+device\s+.*usb:");
@@ -36,10 +37,10 @@ namespace HBP.UI.Quest
                 try
                 {
                     // Recreate only if our mapping disappeared (unplugging removes ADB forwards).
-                    string mappings = await RunAsync("forward --list", stop).ConfigureAwait(false);
+                    string mappings = await RunAsync("forward --list", stop);
                     if (!forwards.TryGetValue(serial, out string port) || !mappings.Split('\n').Any(x => x.Trim() == serial + " tcp:" + port + " tcp:" + QuestPairing.Port))
                     {
-                        port = (await RunAsync("-s " + serial + " forward tcp:0 tcp:" + QuestPairing.Port, stop).ConfigureAwait(false)).Trim();
+                        port = (await RunAsync("-s " + serial + " forward tcp:0 tcp:" + QuestPairing.Port, stop)).Trim();
                         if (!int.TryParse(port, out int number) || number < 1 || number > 65535) continue;
                         forwards[serial] = port;
                     }
@@ -60,6 +61,6 @@ namespace HBP.UI.Quest
             return result;
         }
 
-        private Task<string> RunAsync(string arguments, CancellationToken stop) => QuestAdbProcess.RunAsync(adb, arguments, stop);
+        private UniTask<string> RunAsync(string arguments, CancellationToken stop) => QuestAdbProcess.RunAsync(adb, arguments, stop);
     }
 }

@@ -619,7 +619,6 @@ namespace HBP.Data.Module3D
         private bool m_LastReportedActivityProjectionBusy;
         private ActivityProjectionState m_ProjectionState = ActivityProjectionState.Absent;
         private bool? m_CoordinatedAutomaticRecomputePolicy;
-        private bool m_PreserveSynchronizedTimelinesOnNextGenerator;
 
         /// <summary>Whether this scene has an accepted request to show an activity projection.</summary>
         public bool ProjectionRequested => m_ProjectionRequested;
@@ -637,8 +636,6 @@ namespace HBP.Data.Module3D
         /// <summary>When installed by a live session, consumes local starts until both peers are admitted.</summary>
         public Func<bool> ActivityProjectionStartHandler { get; set; }
 
-        /// <summary>Legacy name retained for shared-state capture and older callers.</summary>
-        public bool ProjectionEnabled => ProjectionRequested;
 
         public void SetProjectionEnabled(bool enabled)
         {
@@ -660,7 +657,6 @@ namespace HBP.Data.Module3D
                 ++m_ProjectionGeneration;
                 m_ExplicitProjectionRequestPending = false;
                 m_ActivityProjectionAutoStartSuppressed = true;
-                m_PreserveSynchronizedTimelinesOnNextGenerator = false;
                 SceneInformation.GeneratorUpdateRequested = false;
                 m_ProjectionState = ActivityProjectionState.Absent;
                 InvalidateActivityField();
@@ -670,7 +666,6 @@ namespace HBP.Data.Module3D
         /// <summary>Explicit manual compute request, after any projection warning is accepted.</summary>
         public void RequestActivityProjection()
         {
-            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
             bool wasRequested = m_ProjectionRequested;
             m_ProjectionRequested = true;
             if (!wasRequested) OnProjectionRequestedChanged.Invoke(true);
@@ -791,9 +786,7 @@ namespace HBP.Data.Module3D
             m_ExplicitProjectionRequestPending = false;
             SceneInformation.GeneratorNeedsUpdate = false;
             SceneInformation.GeneratorUpdateRequested = false;
-            bool preserveTimelineState = m_PreserveSynchronizedTimelinesOnNextGenerator;
-            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
-            SetGeneratorUpToDate(false, preserveTimelineState);
+            SetGeneratorUpToDate(false, preserveTimelineState: false);
             return true;
         }
 
@@ -1504,29 +1497,6 @@ namespace HBP.Data.Module3D
         /// <summary>Safe typed scene operations remain admissible while activity computes.</summary>
         public bool CanApplyPreparedState => !m_DestroyRequested && !m_ConfiguredGeometryPending;
 
-        /// <summary>Whole-scene legacy snapshots may replace resources borrowed by an active projection.</summary>
-        public bool CanApplyLegacyStateSnapshot => CanApplyPreparedState && !m_UpdatingGenerators;
-
-        /// <summary>Guard the legacy whole-scene snapshot path; typed operations own their invalidation.</summary>
-        public void BeginSynchronizedStateApplication()
-        {
-            if (!CanApplyLegacyStateSnapshot) throw new InvalidOperationException("The prepared scene is busy.");
-            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
-        }
-
-        /// <summary>Invalidate an in-flight collider snapshot when accepted legacy geometry changes.</summary>
-        public void InvalidateSynchronizedGeometryColliderWork()
-        {
-            if (!CanApplyLegacyStateSnapshot) throw new InvalidOperationException("The prepared scene is busy.");
-            SceneInformation.CollidersNeedUpdate = true;
-        }
-
-        /// <summary>Keep an accepted timeline while its projection is recomputed on this device.</summary>
-        public void PreserveSynchronizedTimelinesOnNextGenerator()
-        {
-            m_PreserveSynchronizedTimelinesOnNextGenerator = ProjectionEnabled;
-        }
-
         /// <summary>
         /// Update the cuts of the scene
         /// </summary>
@@ -2169,18 +2139,6 @@ namespace HBP.Data.Module3D
             m_AutomaticCutsInitialized = true;
         }
 
-        /// <summary>Accept the three ordered cuts of a prepared synchronization snapshot as automatic cuts.</summary>
-        public void MarkAutomaticCutsAsCurrent()
-        {
-            if (!AutomaticCutAroundSelectedSite || Cuts.Count != 3 || Cuts[0].Orientation != CutOrientation.Axial || Cuts[1].Orientation != CutOrientation.Coronal || Cuts[2].Orientation != CutOrientation.Sagittal)
-                throw new InvalidOperationException("Automatic cuts must be axial, coronal and sagittal.");
-            Cuts[0].ID = "hbp:auto-cut:axial";
-            Cuts[1].ID = "hbp:auto-cut:coronal";
-            Cuts[2].ID = "hbp:auto-cut:sagittal";
-            m_AutomaticCutsInitialized = true;
-            OnModifyPlanesCuts.Invoke();
-        }
-
         #endregion
 
         #region Save/Load
@@ -2302,7 +2260,6 @@ namespace HBP.Data.Module3D
             m_ActiveActivityProjection = null;
             m_ExplicitProjectionRequestPending = false;
             m_ActivityProjectionAutoStartSuppressed = true;
-            m_PreserveSynchronizedTimelinesOnNextGenerator = false;
             SceneInformation.GeneratorUpdateRequested = false;
             SceneInformation.GeneratorNeedsUpdate = true;
             m_ProjectionState = ProjectionRequested ? ActivityProjectionState.Stale : ActivityProjectionState.Absent;
@@ -3042,7 +2999,7 @@ namespace HBP.Data.Module3D
             var existingMRIs = m_MRIManager.MRIs.Distinct().ToArray();
             // One sequential worker: the native GIFTI parser is not reentrant.
             // m_AnatomyWork retains the scene until this call actually returns.
-            await System.Threading.Tasks.Task.Run(() =>
+            await UniTask.RunOnThreadPool(() =>
             {
                 foreach (var mesh in existingMeshes)
                 {

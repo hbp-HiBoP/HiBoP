@@ -57,8 +57,7 @@ namespace HBP.Sync
     public enum SyncTelemetryIdentityKind : byte
     {
         Unavailable,
-        Exact,
-        LegacyProxy
+        Exact
     }
 
     public readonly struct SyncTelemetryIdentity : IEquatable<SyncTelemetryIdentity>
@@ -87,10 +86,6 @@ namespace HBP.Sync
             AttemptIdKind = attemptIdKind;
         }
 
-        public static SyncTelemetryIdentity LegacyRevisionProxy(string scopeId, long revision)
-        {
-            return new SyncTelemetryIdentity(scopeId, revision, revision, 0, SyncTelemetryIdentityKind.LegacyProxy, SyncTelemetryIdentityKind.LegacyProxy, SyncTelemetryIdentityKind.Unavailable);
-        }
 
         public static SyncTelemetryIdentity Unknown(string scopeId)
         {

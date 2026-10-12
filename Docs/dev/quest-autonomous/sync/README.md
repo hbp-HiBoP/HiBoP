@@ -1,8 +1,8 @@
-# Desktop–Quest synchronization v2
+# Desktop–Quest synchronization
 
-Status: **specification reset approved; T00 implementation under review**.
+Status: **T00–T17 implemented; T18 cleanup complete with automated qualification recorded**. Physical release qualification remains separate; see the [T18 report](T18-cleanup-and-qualification-2026-10-12.md).
 
-The synchronization work implemented after commit `a4ef93c` does not satisfy the product or performance requirements. Its snapshot/diff hot path, globally blocking acknowledgements, coarse invalidation and unfinished bidirectional model are not the foundation of the next implementation. The replacement is intentionally wire-incompatible and may delete the current S1–S3 runtime once the new vertical slice is active. Keeping the branch buildable between tasks remains mandatory; preserving the old sync protocol does not.
+The operation-based runtime is the sole Desktop–Quest synchronization implementation. T18 removes the former S1–S3 snapshot/diff architecture, its receive fallback, obsolete schemas and dedicated tests. Standard files and types have no V2 prefix; wire signatures and current version numbers remain unchanged. Dated reports and original task decisions retain their historical names. See [T18](tasks/T18.md) for the approved cleanup scope and qualification evidence.
 
 The initial scene delivery remains a separate workflow. Live synchronization starts only after Quest has published that prepared scene. It exchanges typed business operations and bounded job results, never a recaptured scene on each edit.
 
@@ -13,17 +13,17 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 - Continuous values keep the newest unsent preview; structural operations and the newest value after a stream stops are reliable.
 - Both directions use the same business setters and targeted invalidations. Remote application suppresses re-emission without bypassing domain behavior.
 - Filter and correlation jobs run only on Desktop while online; Quest waits for the canonical result. Activity projection runs locally on both devices.
-- A 500 ms disconnection grace queues and retries operations. Beyond it, both peers continue locally. Reconnection chooses one whole state—Desktop or Quest—rather than merging.
+- A 500 ms disconnection grace queues and retries operations. Beyond it, both peers continue locally. Reconciliation combines independent changes and asks the user to choose only for conflicting dependent groups, as approved during T16.
 - Source resource files are transferred only with a full scene delivery. Installed atlases may become available during the pairing session after both peers load identical verified content. Other missing source resources require a full resend.
 - Local camera, Quest wrapper pose/scale, tracked poses, hover and UI layout remain local. Scientific selections and parameters are shared.
-- Future multi-scene support is designed into identifiers and envelopes now, but implemented after the online single-scene core.
+- Multi-scene routing, shared selection/visibility and scene lifecycle use stable scene/incarnation identities. T17's Desktop-authoritative automatic membership policy can be disabled without disabling mutations on common shared scenes.
 - Automated tests are a development-loop feature: the fast sync suite must stay deterministic and short. Real sockets, sleeps, full scene loads and device tests do not belong in the per-edit tier.
 - Assembly direction is a hard contract: `HBP.Core.Runtime` references no other `HBP.*` assembly. Sync, Transfer, UI and Quest depend toward Core; Core never imports their feature-specific contracts, telemetry or state.
 - Architecture is machine-checked before Unity tests. A new `.asmdef` edge must be explicitly permitted, acyclic and justified by the task; successful compilation alone is insufficient.
 
 ## Read in order
 
-1. [Why the current system is being replaced](00-current-system-audit.md)
+1. [Historical audit of the experimental system](00-current-system-audit.md)
 2. [Requirements and boundaries](01-requirements-and-boundaries.md)
 3. [Operation and checkpoint contract](02-state-contract.md)
 4. [Authority, disconnection and reconciliation](03-replication-and-offline.md)
@@ -31,15 +31,15 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 6. [Integration and invalidation model](05-code-integration.md)
 7. [Ordered implementation tasks](06-implementation-stages.md)
 8. [Fast-test strategy and release verification](07-verification.md)
-9. [Wire protocol v2](08-wire-protocol.md)
+9. [Wire protocol](08-wire-protocol.md)
 10. [Long-running jobs](09-long-running-jobs.md)
-11. [Scene lifecycle and future multi-scene support](10-scene-lifecycle.md)
+11. [Scene lifecycle and multi-scene support](10-scene-lifecycle.md)
 12. [Operation matrix](operation-matrix.md)
 13. [Prompt template for implementation agents](prompt.md)
 
 Operator-only aid: [recommended model for each implementation task](model-selection.md). This guide is non-normative and does not change task scope or acceptance criteria.
 
-Approved Quest product controls: [Interfaces et interactions Quest HiBoP](../quest-controls-ux-plan.md). **T15 is closed as of 2026-10-08**: its approved scope (UX lots 01–11) is implemented, qualified and user-accepted; see [T15](tasks/T15.md) for completion evidence. T16 and automatic brain-driven scene/column context selection in T17 remain separate.
+Approved Quest product controls: [Interfaces et interactions Quest HiBoP](../quest-controls-ux-plan.md). **T15 is closed as of 2026-10-08**: its approved scope (UX lots 01–11) is implemented, qualified and user-accepted; see [T15](tasks/T15.md) for completion evidence. T16 reconciliation and T17 scene/column context selection are recorded in their respective task reports.
 
 Implementation evidence: [T00 baseline instrumentation and provisional budgets](T00-baseline-and-budgets.md).
 
@@ -53,6 +53,6 @@ M1 cut-ID fix retest (2026-09-28): [editor-signed build and physical result](M1-
 
 These documents supersede the previous S1 state codec, S2 live adapter and S3 active-session plans as well as future-sync assumptions in `../05-state-command-and-sync-model.md`. Historical task records remain useful evidence, not requirements.
 
-If code and these documents disagree during the refactor, the documented v2 behavior is the target. An agent must record a genuine blocker or request a specification decision rather than silently preserving legacy behavior.
+Later approved product decisions in T16 and T17 supersede earlier single-scene and whole-state reconciliation plans. Preserve the current behavior when cleaning implementation details; record unresolved qualification separately from historical acceptance.
 
 Session policy milestone: [Préférences et atlas de session](tasks/SessionPreferencesAndAtlases.md). All preferences are Desktop-authoritative; connected saves apply in memory on Quest without writing its preferences file.

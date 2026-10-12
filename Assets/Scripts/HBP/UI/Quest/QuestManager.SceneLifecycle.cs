@@ -22,9 +22,9 @@ namespace HBP.Quest.Desktop
             public Base3DScene Scene;
             public string VisualizationId;
             public SceneDelivery Offer;
-            public DesktopV2ReplicaSession Owner;
+            public DesktopReplicaSession Owner;
             public PreparedSceneDeliveryBinding Binding;
-            public V2SceneReconciliationRecord Record;
+            public SceneReconciliationRecord Record;
             public CancellationTokenSource Stop;
             public Task<bool> Work;
             public bool HasPendingWork => Work != null && !Work.IsCompleted;
@@ -164,7 +164,7 @@ namespace HBP.Quest.Desktop
                         long generation = Interlocked.Increment(ref nextTransferCaptureGeneration);
                         entry.Offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, token, update, entry.Scene, transferId, generation, (scene, incarnation, session) =>
                         {
-                            entry.Owner = new DesktopV2ReplicaSession(scene, session, incarnation);
+                            entry.Owner = new DesktopReplicaSession(scene, session, incarnation);
                             entry.Owner.ActionReceived += action => ReceiveSceneAction(entry, action);
                         });
                     }
@@ -182,14 +182,14 @@ namespace HBP.Quest.Desktop
                         await UniTask.SwitchToMainThread(token);
                         if (entry.Removed) return false;
                         entry.Binding = PreparedSceneDeliveryBinding.FromSent(entry.Offer, receipt);
-                        entry.Record = V2SceneReconciliationRecord.Retain(entry.Scene, entry.Binding);
+                        entry.Record = SceneReconciliationRecord.Retain(entry.Scene, entry.Binding);
                         await owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, deliveryStop.Token);
                         await UniTask.SwitchToMainThread(token);
                         update(1, 0, new LoadingText("Visualization ready on Quest"));
                         SetStatus(entry.Scene.Visualization.Name + " ready on Quest.");
                         return true;
                     }
-                    catch (Exception error) when (restart < 2 && !entry.Removed && (owner.RequiresPublicationRestart || error is DesktopV2ReplicaSession.V2PublicationRestartException))
+                    catch (Exception error) when (restart < 2 && !entry.Removed && (owner.RequiresPublicationRestart || error is DesktopReplicaSession.PublicationRestartException))
                     {
                         retry = false;
                     }
@@ -338,7 +338,7 @@ namespace HBP.Quest.Desktop
         {
             restoringScenes = true;
             reconciliationNeedsRetry = false;
-            Task<V2ConflictChoice> choice = null;
+            Task<ConflictChoice> choice = null;
             try
             {
                 await FlushClosesAsync(token);
@@ -365,16 +365,16 @@ namespace HBP.Quest.Desktop
                     {
                         entry.Owner?.Dispose();
                         entry.Owner = null;
-                        var identity = entry.Binding.CreateV2Identity();
+                        var identity = entry.Binding.CreateIdentity();
                         using var sceneStop = CancellationTokenSource.CreateLinkedTokenSource(token, entry.Lifetime.Token);
                         await QuestPairing.OpenReplicaAsync(endpoint, pin, credential, sceneStop.Token, async (stream, stop) =>
                         {
-                            await V2ReplicaRoute.WriteAsync(stream, identity.SessionId, identity.SceneId, identity.IncarnationId, stop);
-                            await V2SceneReconciliationProtocol.ReconcileDesktopAsync(stream, entry.Record, (conflict, choiceStop) => choice ??= ChooseConflictAsync(conflict, token), stop);
+                            await ReplicaRoute.WriteAsync(stream, identity.SessionId, identity.SceneId, identity.IncarnationId, stop);
+                            await SceneReconciliationProtocol.ReconcileDesktopAsync(stream, entry.Record, (conflict, choiceStop) => choice ??= ChooseConflictAsync(conflict, token), stop);
                         });
                         await UniTask.SwitchToMainThread(token);
-                        if (entry.Removed || entry.Record?.Status == V2ReconciliationStatus.Orphan) return;
-                        entry.Owner = new DesktopV2ReplicaSession(entry.Scene, entry.Binding.GlobalContextId, entry.Binding.TransferId);
+                        if (entry.Removed || entry.Record?.Status == ReconciliationStatus.Orphan) return;
+                        entry.Owner = new DesktopReplicaSession(entry.Scene, entry.Binding.GlobalContextId, entry.Binding.TransferId);
                         entry.Owner.ActionReceived += action => ReceiveSceneAction(entry, action);
                         await entry.Owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, sceneStop.Token);
                         entry.Error = null;
@@ -412,10 +412,10 @@ namespace HBP.Quest.Desktop
         private void SendContext(Base3DScene scene, Column3D column)
         {
             if (applyingContext || scene == null || column == null || !scene.IsVisible || !publications.TryGetValue(scene, out var entry) || entry.Owner?.IsLive != true || entry.Binding == null) return;
-            var identity = entry.Binding.CreateV2Identity();
+            var identity = entry.Binding.CreateIdentity();
             try
             {
-                entry.Owner.SendAction(new(identity.SceneId, identity.IncarnationId, V2SceneActionKind.SelectContext, column.ColumnData.ID));
+                entry.Owner.SendAction(new(identity.SceneId, identity.IncarnationId, SceneActionKind.SelectContext, column.ColumnData.ID));
             }
             catch (System.IO.IOException error)
             {
@@ -423,10 +423,10 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private void ReceiveSceneAction(Publication entry, V2SceneAction action)
+        private void ReceiveSceneAction(Publication entry, SceneAction action)
         {
             if (entry.Removed || entry.Scene == null || entry.Scene.IsClosing || entry.Binding == null) return;
-            if (action.Kind == V2SceneActionKind.SelectContext)
+            if (action.Kind == SceneActionKind.SelectContext)
             {
                 var column = entry.Scene.Columns.FirstOrDefault(value => value.ColumnData.ID == action.Column);
                 applyingContext = true;
@@ -452,12 +452,12 @@ namespace HBP.Quest.Desktop
             entry.Actions.Add(action.Operation, ApplySceneActionAsync(entry, action));
         }
 
-        private async Task ApplySceneActionAsync(Publication entry, V2SceneAction action)
+        private async Task ApplySceneActionAsync(Publication entry, SceneAction action)
         {
             try
             {
                 if (reloadingScenes) throw new InvalidOperationException("Visualizations are reloading after a preferences change. Try again when reloading finishes.");
-                if (action.Kind == V2SceneActionKind.Close)
+                if (action.Kind == SceneActionKind.Close)
                 {
                     var close = Closing(entry);
                     // Acknowledge the Quest close before comparing inventories or retiring its transport.
@@ -472,7 +472,7 @@ namespace HBP.Quest.Desktop
                     return;
                 }
 
-                if (action.Kind != V2SceneActionKind.OpenPatient) return;
+                if (action.Kind != SceneActionKind.OpenPatient) return;
                 if (!entry.Scene.IsVisible) throw new InvalidOperationException("Show the source visualization first.");
                 var column = entry.Scene.Columns.FirstOrDefault(value => value.ColumnData.ID == action.Column);
                 var site = column?.Sites.FirstOrDefault(value => value.Information.FullID == action.Site);
@@ -483,14 +483,14 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread(lifetime.Token);
                 if (!await SendAsync(false, child)) throw new InvalidOperationException(GetPublication(child).Error ?? "The patient visualization could not be delivered. Retry from Display.");
                 SendContext(child, child.SelectedColumn);
-                entry.Owner?.SendAction(new(action.Scene, action.Incarnation, V2SceneActionKind.Result, operation: action.Operation, message: "Patient visualization ready on both devices."));
+                entry.Owner?.SendAction(new(action.Scene, action.Incarnation, SceneActionKind.Result, operation: action.Operation, message: "Patient visualization ready on both devices."));
             }
             catch (Exception error)
             {
                 await UniTask.SwitchToMainThread();
                 try
                 {
-                    entry.Owner?.SendAction(new(action.Scene, action.Incarnation, V2SceneActionKind.Result, operation: action.Operation, succeeded: false, message: error.Message));
+                    entry.Owner?.SendAction(new(action.Scene, action.Incarnation, SceneActionKind.Result, operation: action.Operation, succeeded: false, message: error.Message));
                 }
                 catch (System.IO.IOException)
                 {

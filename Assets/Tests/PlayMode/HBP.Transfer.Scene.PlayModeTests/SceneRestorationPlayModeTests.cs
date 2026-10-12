@@ -221,7 +221,7 @@ namespace HBP.Tests.SceneTransfer
                     panel.Refresh();
                     handles.Refresh();
                     var scene = view.Scene;
-                    using var boundary = new V2SceneMutationBoundary(scene, V2OriginDevice.Quest);
+                    using var boundary = new SceneMutationBoundary(scene, OriginDevice.Quest);
                     Assert.That(scene.Cuts.Select(c => c.ID), Is.EqualTo(new[] { "transferred-axial", "transferred-custom" }));
                     Assert.That(handles.Gizmos.Count, Is.EqualTo(4));
                     int proposals = 0;
@@ -354,13 +354,13 @@ namespace HBP.Tests.SceneTransfer
         }
 
         [Test, Category("Sync.SceneFocused"), Timeout(480000)]
-        public Task M2_AutomaticCutsAndPreparedInflation_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null);
+        public Task M2_AutomaticCutsAndPreparedInflation_ConvergeThroughProductionSessions() => VerifyM2ProductionGeometryAsync(null);
 
         [Test, Category("Sync.SceneFocused"), Timeout(480000)]
-        public Task M2_ColdInflation_ConvergesAndCancelsThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true);
+        public Task M2_ColdInflation_ConvergesAndCancelsThroughProductionSessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true);
 
         [Test, Category("Sync.SceneFocused"), Timeout(480000)]
-        public Task M2_InflationWithDesktopOnlyCache_ConvergesThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true, desktopOnlyCache: true);
+        public Task M2_InflationWithDesktopOnlyCache_ConvergesThroughProductionSessions() => VerifyM2ProductionGeometryAsync(null, coldInflation: true, desktopOnlyCache: true);
 
         [Test, Category("Sync.SceneFocused"), Timeout(480000)]
         public Task M2_TransformedSingleInflation_ConvergesWithoutSourceFilesOrPreparedResult() => VerifyM2ProductionGeometryAsync(null, coldInflation: true, nativeSingle: true);
@@ -369,7 +369,7 @@ namespace HBP.Tests.SceneTransfer
         public Task M2_HemisphereMutationDuringJob_RejectsPublication(MeshPart hemisphere) => VerifyM2ProductionGeometryAsync(null, coldInflation: true, mutatedHemisphere: hemisphere);
 
         [Test, Explicit("Requires the local M2 equivalent project and its scientific resources."), Timeout(1200000)]
-        public Task M2_LocalProjectAutomaticCuts_ConvergeThroughProductionV2Sessions() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"));
+        public Task M2_LocalProjectAutomaticCuts_ConvergeThroughProductionSessions() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"));
 
         [Test, Explicit("Requires a corrected Quest APK, authorized USB and a remembered pairing or .test-results/m2-fixes/pair-code.txt."), Timeout(1200000)]
         public Task M2_PhysicalQuestUsb_ReceivesCorrectedLocalProjectAndLiveGestures() => VerifyM2ProductionGeometryAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "HiBoP", "Projects", "full_test.hibop"), true);
@@ -510,7 +510,7 @@ namespace HBP.Tests.SceneTransfer
                     long preparedBytes = new FileInfo(capturedFile).Length;
                     long removedResourceBytes = new FileInfo(previousFile).Length - preparedBytes;
                     TestContext.WriteLine($"Single transformed patient mesh: prepared payload={preparedBytes} bytes, removed compressed GIFTI/TRM overhead={removedResourceBytes} bytes (metadata savings excluded).");
-                    string measurements = Path.GetFullPath(".test-results/inflation-v2");
+                    string measurements = Path.GetFullPath(".test-results/inflation-sync");
                     Directory.CreateDirectory(measurements);
                     File.WriteAllText(Path.Combine(measurements, "payload-measurement.json"), $"{{\"preparedBytes\":{preparedBytes},\"removedResourceBytes\":{removedResourceBytes},\"metadataSavingsIncluded\":false}}");
                     File.Delete(Path.Combine(temp.Path, "patient.gii"));
@@ -525,9 +525,9 @@ namespace HBP.Tests.SceneTransfer
                 var receipt = new DeliveryReceipt(digest, DeliveryStatus.Published);
                 var sent = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
                 var published = PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene);
-                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestV2ReplicaSession", true);
+                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestReplicaSession", true);
                 questSession = (IDisposable)Activator.CreateInstance(questType, new object[] { view.Scene, published });
-                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession")).First(type => type != null);
                 var listener = new TcpListener(IPAddress.Loopback, 0);
                 listener.Start();
                 try
@@ -542,7 +542,7 @@ namespace HBP.Tests.SceneTransfer
                     listener.Stop();
                 }
 
-                Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> connect = (_, _, _, stop, transport) =>
+                Func<string, byte[], byte[], CancellationToken, PersistentTransport, Task> connect = (_, _, _, stop, transport) =>
                 {
                     questRun = (Task)questType.GetMethod("RunConnectionAsync").Invoke(questSession, new object[] { server.GetStream(), stop });
                     desktopRun = transport.RunConnectionAsync(client.GetStream(), stop);
@@ -643,7 +643,7 @@ namespace HBP.Tests.SceneTransfer
                     }
 
                     var errorCanvas = (Canvas)dialogType.GetField("m_Canvas", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(dialogManager);
-                    var coordinator = (V2SurfaceInflationCoordinator)desktopType.GetField("m_SurfaceInflation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopSession);
+                    var coordinator = (SurfaceInflationCoordinator)desktopType.GetField("m_SurfaceInflation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopSession);
                     var originalHandler = coordinator.PreparationHandler;
                     var hemispheres = (LeftRightMesh3D)desktopScene.MeshManager.SelectedMesh;
                     Core.DLL.Surface surface = mutatedHemisphere == MeshPart.Left ? hemispheres.Left : hemispheres.Right;
@@ -705,8 +705,6 @@ namespace HBP.Tests.SceneTransfer
                         GameObject toolObject = new("Inflation toolbar test host");
                         toolObject.transform.SetParent(scope.Root.transform);
                         toolObject.SetActive(false);
-                        // Loading this existing prefab triggers its unrelated Editor OnValidate colormap defect.
-                        UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("UnassignedReferenceException: The variable m_ColorMap of InformationsWrapper has not been assigned"));
                         GameObject menu = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/3D Menu.prefab"), toolObject.transform);
                         try
                         {
@@ -870,8 +868,8 @@ namespace HBP.Tests.SceneTransfer
                 }
 
                 await UniTask.SwitchToMainThread();
-                V2SceneReconciliationRecord.Get(view.Scene)?.Dispose();
-                if (desktop?.Scene != null) V2SceneReconciliationRecord.Get(desktop.Scene)?.Dispose();
+                SceneReconciliationRecord.Get(view.Scene)?.Dispose();
+                if (desktop?.Scene != null) SceneReconciliationRecord.Get(desktop.Scene)?.Dispose();
                 await view.ClearAsync();
                 if (desktop != null) await desktop.CloseAsync();
                 if (localDesktop != null) await localDesktop.CleanAsync();
@@ -882,8 +880,8 @@ namespace HBP.Tests.SceneTransfer
 
         private static async Task VerifyOfflineReconciliationAsync(Base3DScene desktop, Base3DScene quest, PreparedSceneDeliveryBinding sent, PreparedSceneDeliveryBinding published, bool interruptCommit, CancellationToken stop)
         {
-            var desktopRecord = V2SceneReconciliationRecord.Get(desktop);
-            var questRecord = V2SceneReconciliationRecord.Get(quest);
+            var desktopRecord = SceneReconciliationRecord.Get(desktop);
+            var questRecord = SceneReconciliationRecord.Get(quest);
             Assert.That(desktopRecord.CommonHash, Is.Not.Empty);
             Assert.That(questRecord.CommonHash, Is.EqualTo(desktopRecord.CommonHash));
             var desktopColumn = desktop.Columns.OfType<Column3DIEEG>().First();
@@ -895,8 +893,8 @@ namespace HBP.Tests.SceneTransfer
             // Simulate the last canonical having applied on Quest while its progress ACK was lost.
             desktop.StrongCuts = true;
             quest.StrongCuts = true;
-            desktopRecord.QueueCanonical(1, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true));
-            questRecord.ApplyCanonical(1, new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, true));
+            desktopRecord.QueueCanonical(1, new SetSceneBoolean(SceneBooleanProperty.StrongCuts, true));
+            questRecord.ApplyCanonical(1, new SetSceneBoolean(SceneBooleanProperty.StrongCuts, true));
             Assert.That(questRecord.CommonHash, Is.Not.EqualTo(desktopRecord.CommonHash));
             desktop.ResetSitesPositions();
             dSite.State.Color = Color.red;
@@ -904,10 +902,10 @@ namespace HBP.Tests.SceneTransfer
             qSite.State.AddLabel("offline-quest");
             int choices = 0;
 
-            Task<V2ConflictChoice> Choose(V2CheckpointConflict conflict, CancellationToken token)
+            Task<ConflictChoice> Choose(CheckpointConflict conflict, CancellationToken token)
             {
                 choices++;
-                return Task.FromResult(V2ConflictChoice.Quest);
+                return Task.FromResult(ConflictChoice.Quest);
             }
 
             var cancelled = await ReconcileRoundTripAsync(desktopRecord, questRecord, (_, _) => throw new OperationCanceledException(), false, stop);
@@ -920,13 +918,13 @@ namespace HBP.Tests.SceneTransfer
                 var interrupted = await ReconcileRoundTripAsync(desktopRecord, questRecord, Choose, true, stop);
                 Assert.That(interrupted.Desktop, Is.Not.Null);
                 Assert.That(interrupted.Quest, Is.Not.Null);
-                Assert.That(desktopRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
-                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Assert.That(desktopRecord.Status, Is.EqualTo(ReconciliationStatus.OutOfSync));
+                Assert.That(questRecord.Status, Is.EqualTo(ReconciliationStatus.OutOfSync));
                 Assert.That(desktopRecord.PendingCommit, Is.Not.Null);
                 var retryInterrupted = await ReconcileRoundTripAsync(desktopRecord, questRecord, Choose, false, stop, failBeforeStage: true);
                 Assert.That(retryInterrupted.Desktop, Is.TypeOf<IOException>());
-                Assert.That(desktopRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
-                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.OutOfSync));
+                Assert.That(desktopRecord.Status, Is.EqualTo(ReconciliationStatus.OutOfSync));
+                Assert.That(questRecord.Status, Is.EqualTo(ReconciliationStatus.OutOfSync));
                 Color held = dSite.State.Color;
                 dSite.State.Color = Color.yellow;
                 Assert.That(dSite.State.Color, Is.EqualTo(held), "An incomplete commit must keep shared edits suspended.");
@@ -953,7 +951,7 @@ namespace HBP.Tests.SceneTransfer
                 var orphan = await ReconcileRoundTripAsync(desktopRecord, questRecord, (_, _) => throw new AssertionException("A closed Desktop scene must not request a merge choice."), false, stop);
                 Assert.That(orphan.Desktop, Is.Null, orphan.Desktop?.ToString());
                 Assert.That(orphan.Quest, Is.Null, orphan.Quest?.ToString());
-                Assert.That(questRecord.Status, Is.EqualTo(V2ReconciliationStatus.Orphan));
+                Assert.That(questRecord.Status, Is.EqualTo(ReconciliationStatus.Orphan));
                 qSite.State.Color = Color.magenta;
                 Assert.That(qSite.State.Color, Is.EqualTo(Color.magenta), "The orphaned Quest scene must remain usable locally.");
             }
@@ -978,11 +976,11 @@ namespace HBP.Tests.SceneTransfer
 
             using (server)
             {
-                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestV2ReplicaSession", true);
+                Type questType = typeof(QuestAnatomyView).Assembly.GetType("HBP.Quest.QuestReplicaSession", true);
                 using var questOwner = (IDisposable)Activator.CreateInstance(questType, new object[] { quest, published });
-                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+                Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession")).First(type => type != null);
                 Task desktopRun = null, questRun = null;
-                Func<string, byte[], byte[], CancellationToken, V2PersistentTransport, Task> connect = (_, _, _, token, transport) =>
+                Func<string, byte[], byte[], CancellationToken, PersistentTransport, Task> connect = (_, _, _, token, transport) =>
                 {
                     questRun = (Task)questType.GetMethod("RunConnectionAsync").Invoke(questOwner, new object[] { server.GetStream(), token });
                     return desktopRun = transport.RunConnectionAsync(client.GetStream(), token);
@@ -991,8 +989,8 @@ namespace HBP.Tests.SceneTransfer
                 try
                 {
                     await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopOwner, new object[] { sent, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), stop });
-                    Assert.That(V2SceneReconciliationRecord.Get(desktop).Status, Is.EqualTo(V2ReconciliationStatus.Synchronized));
-                    Assert.That(V2SceneReconciliationRecord.Get(quest).Status, Is.EqualTo(V2ReconciliationStatus.Synchronized));
+                    Assert.That(SceneReconciliationRecord.Get(desktop).Status, Is.EqualTo(ReconciliationStatus.Synchronized));
+                    Assert.That(SceneReconciliationRecord.Get(quest).Status, Is.EqualTo(ReconciliationStatus.Synchronized));
                     desktopSite.State.Color = Color.cyan;
                     await UniTask.WaitUntil(() => questSite.State.Color == Color.cyan, cancellationToken: stop);
                     questSite.State.IsHighlighted = true;
@@ -1010,7 +1008,7 @@ namespace HBP.Tests.SceneTransfer
             }
         }
 
-        private static async Task<(Exception Desktop, Exception Quest)> ReconcileRoundTripAsync(V2SceneReconciliationRecord desktop, V2SceneReconciliationRecord quest, Func<V2CheckpointConflict, CancellationToken, Task<V2ConflictChoice>> choose, bool interruptCommit, CancellationToken stop, bool failBeforeStage = false)
+        private static async Task<(Exception Desktop, Exception Quest)> ReconcileRoundTripAsync(SceneReconciliationRecord desktop, SceneReconciliationRecord quest, Func<CheckpointConflict, CancellationToken, Task<ConflictChoice>> choose, bool interruptCommit, CancellationToken stop, bool failBeforeStage = false)
         {
             var listener = new TcpListener(IPAddress.Loopback, 0);
             listener.Start();
@@ -1043,9 +1041,9 @@ namespace HBP.Tests.SceneTransfer
                             offset += count;
                         }
 
-                        Assert.That(System.Text.Encoding.ASCII.GetString(magic), Is.EqualTo(V2SceneReconciliationProtocol.Magic));
+                        Assert.That(System.Text.Encoding.ASCII.GetString(magic), Is.EqualTo(SceneReconciliationProtocol.Magic));
                         if (interruptCommit) stream = new InterruptAppliedReconciliationStream(stream);
-                        await V2SceneReconciliationProtocol.ReceiveQuestAsync(stream, quest, stop);
+                        await SceneReconciliationProtocol.ReceiveQuestAsync(stream, quest, stop);
                     }
                     finally
                     {
@@ -1057,7 +1055,7 @@ namespace HBP.Tests.SceneTransfer
                 {
                     try
                     {
-                        await V2SceneReconciliationProtocol.ReconcileDesktopAsync(client.GetStream(), desktop, choose, stop, failBeforeStage ? (_, _) => throw new IOException("Injected retry interruption before staging.") : null);
+                        await SceneReconciliationProtocol.ReconcileDesktopAsync(client.GetStream(), desktop, choose, stop, failBeforeStage ? (_, _) => throw new IOException("Injected retry interruption before staging.") : null);
                     }
                     finally
                     {
@@ -1174,7 +1172,7 @@ namespace HBP.Tests.SceneTransfer
             File.WriteAllText(readyFile, "Scientific activity prepared; waiting for the headset observer.");
             await UniTask.WaitUntil(() => File.Exists(observerFile), cancellationToken: token);
             string transferId = Guid.NewGuid().ToString("N");
-            Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopV2ReplicaSession")).First(type => type != null);
+            Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession")).First(type => type != null);
             using var session = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { scene, globals.Id, transferId }, null);
             using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token);
             DeliveryReceipt receipt = await QuestPairing.SendAsync(device.Host, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
@@ -1254,10 +1252,6 @@ namespace HBP.Tests.SceneTransfer
 
         [Test]
         [Timeout(180000)]
-        public Task S3_ReplicaStreamAppliesDesktopStateWithoutReplacingQuestPresentation() => VerifyPreparedMeshAndConfigurationAsync(false, true);
-
-        [Test]
-        [Timeout(180000)]
         public async Task T11QuestProductionResetRejection_ReplaysCanonicalAndKeepsHistory()
         {
             string root = Path.Combine(Path.GetTempPath(), "hibop-t11-reset-replay-" + Guid.NewGuid().ToString("N"));
@@ -1287,20 +1281,20 @@ namespace HBP.Tests.SceneTransfer
                 quest.Scene.ShowAllSites = true;
                 var sceneId = new SceneId(Guid.NewGuid());
                 var incarnationId = new IncarnationId(Guid.NewGuid());
-                using var desktopBoundary = new V2SceneMutationBoundary(desktop.Scene, V2OriginDevice.Desktop);
-                using var questBoundary = new V2SceneMutationBoundary(quest.Scene, V2OriginDevice.Quest);
-                var scheduler = new V2OutgoingScheduler(new SessionId(Guid.NewGuid()), sceneId, incarnationId, V2OriginDevice.Quest);
-                using var questDriver = new V2QuestMutationDriver(sceneId, incarnationId, questBoundary, scheduler);
-                using var authority = new V2DesktopMutationAuthority(sceneId, incarnationId, desktopBoundary);
-                var canonicalMutations = new List<V2CanonicalMutation>();
+                using var desktopBoundary = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
+                using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
+                var scheduler = new OutgoingScheduler(new SessionId(Guid.NewGuid()), sceneId, incarnationId, OriginDevice.Quest);
+                using var questDriver = new QuestMutationDriver(sceneId, incarnationId, questBoundary, scheduler);
+                using var authority = new DesktopMutationAuthority(sceneId, incarnationId, desktopBoundary);
+                var canonicalMutations = new List<CanonicalMutation>();
                 authority.CanonicalReady += canonical =>
                 {
                     canonicalMutations.Add(canonical);
                     questDriver.ReceiveCanonical(canonical);
                 };
-                var questPublishedMutations = new List<V2Mutation>();
+                var questPublishedMutations = new List<Mutation>();
                 questBoundary.MutationProposed += (_, mutation, _) => questPublishedMutations.Add(mutation);
-                var questProposals = new List<V2QuestMutationProposal>();
+                var questProposals = new List<QuestMutationProposal>();
                 questDriver.ProposalQueued += questProposals.Add;
 
                 quest.Scene.ResetConfiguration();
@@ -1340,95 +1334,7 @@ namespace HBP.Tests.SceneTransfer
             }
         }
 
-        [Test, Explicit("Requires a paired Quest running HiBoP and USB forwarding on port 45871.")]
-        [Timeout(240000)]
-        public async Task S3_PhysicalQuestReceivesVisibleRevisions()
-        {
-            string root = Path.Combine(Path.GetTempPath(), "hibop-s3-device-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(root);
-            using var settings = new PlayModePersistentDataScope(root);
-            using var scope = new PlayModeSceneScope("S3PhysicalQuest");
-            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
-            CancellationToken token = timeout.Token;
-            RestoredScene desktop = null;
-            byte[] credential = null;
-            try
-            {
-                await PrepareReferencesAsync();
-                using var source = new SceneArchive(Path.Combine(root, "source"));
-                ScenePayload fixture = CreateFixture(source);
-                fixture.TransferId = Guid.NewGuid().ToString("N");
-                fixture.SessionId = Guid.NewGuid().ToString("N");
-                string fixtureFile = Path.Combine(root, "fixture.hbscene");
-                source.Write(fixture, fixtureFile);
-                var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
-                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(fixtureFile), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
-
-                await desktop.Scene.PrepareRenderingAsync(token);
-
-                using var globalArchive = new SceneArchive(Path.Combine(root, "globals"), globals: source.Globals);
-                source.Globals.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, globalArchive);
-                string globalsFile = Path.Combine(root, "globals.hbglobal");
-                globalArchive.WriteGlobalData(source.Globals.Data, globalsFile);
-                using var globalsDelivery = new SceneDelivery(globalsFile, source.Globals.Id, source.Globals.Id, "S3 device globals");
-                using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop.Scene, Guid.NewGuid().ToString("N"), Guid.NewGuid().ToString("N"), 1, source.Globals, token);
-
-                const string host = "127.0.0.1";
-                QuestDevice device = await QuestPairing.DescribeAsync(host, token);
-                string pairingPath = Path.Combine(Application.persistentDataPath, "QuestPairings", BitConverter.ToString(device.Pin).Replace("-", "") + ".pair");
-                credential = PairingStorage.Read(pairingPath);
-                Assert.That(credential, Has.Length.EqualTo(32), "The existing Quest pairing must be available to this Editor.");
-                await QuestPairing.ResumeAsync(host, device.Pin, credential, source.Globals.Id, token, (stream, stop) => globalsDelivery.SendAsync(stream, stop));
-                DeliveryReceipt receipt = await QuestPairing.SendAsync(host, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
-                Assert.That(receipt.Status, Is.EqualTo(DeliveryStatus.Published));
-
-                var adapter = new LiveGeometryStateAdapter(desktop.Scene, Guid.NewGuid(), PreparedSceneDeliveryBinding.FromSent(delivery, receipt));
-                StateSnapshot initial = adapter.Capture(1);
-                adapter.BindInitialState(initial);
-                float firstClock = Time.realtimeSinceStartup;
-                ((Column3DAnatomy)desktop.Scene.Columns[0]).AnatomyParameters.InfluenceDistance = 22.5f;
-                await desktop.Scene.PrepareRenderingAsync(token);
-                StateSnapshot next = adapter.Capture(2);
-                float secondClock = Time.realtimeSinceStartup;
-                await QuestPairing.OpenReplicaAsync(host, device.Pin, credential, token, async (stream, stop) =>
-                {
-                    var checkpoint = await ReplicaWire.ReadAsync(stream, stop);
-                    Assert.That(checkpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
-                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.Zero);
-                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(initial), 1, firstClock, stop);
-                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Delta, ReplicaDelta.Between(initial, next).Encode(), 2, secondClock, stop);
-                });
-                await QuestPairing.OpenReplicaAsync(host, device.Pin, credential, token, async (stream, stop) =>
-                {
-                    var checkpoint = await ReplicaWire.ReadAsync(stream, stop);
-                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.EqualTo(2));
-                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Hash, Is.EqualTo(ReplicaWire.Hash(next)));
-                    await SendDeviceReplicaStateAsync(stream, ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(next), 2, secondClock, stop);
-                });
-            }
-            finally
-            {
-                if (credential != null) Array.Clear(credential, 0, credential.Length);
-                await UniTask.SwitchToMainThread();
-                if (desktop != null) await desktop.CloseAsync();
-            }
-        }
-
-        private static async Task SendDeviceReplicaStateAsync(Stream stream, ReplicaFrameKind kind, byte[] state, ulong revision, float clock, CancellationToken token)
-        {
-            byte[] body = new byte[4 + state.Length];
-            Buffer.BlockCopy(BitConverter.GetBytes(clock), 0, body, 0, 4);
-            Buffer.BlockCopy(state, 0, body, 4, state.Length);
-            await ReplicaWire.WriteAsync(stream, kind, body, token);
-            foreach (ReplicaFrameKind expected in new[] { ReplicaFrameKind.Received, ReplicaFrameKind.Applied, ReplicaFrameKind.Visible })
-            {
-                var reply = await ReplicaWire.ReadAsync(stream, token);
-                Assert.That(reply.Kind, Is.EqualTo(expected), reply.Kind == ReplicaFrameKind.Rejected ? System.Text.Encoding.UTF8.GetString(reply.Body) : "Quest acknowledgement");
-                Assert.That(ReplicaWire.ReadRevision(reply.Body), Is.EqualTo(revision));
-            }
-        }
-
-        private async Task VerifyPreparedMeshAndConfigurationAsync(bool captureLiveDelivery, bool exerciseReplica = false)
+        private async Task VerifyPreparedMeshAndConfigurationAsync(bool captureLiveDelivery)
         {
             string root = Path.Combine(Path.GetTempPath(), "hibop-s2-mesh-binding-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(root);
@@ -1441,7 +1347,6 @@ namespace HBP.Tests.SceneTransfer
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
             var token = timeout.Token;
             RestoredScene desktop = null;
-            QuestAnatomySession replicaSession = null;
             LocalizerProtocol transferredLocalizer = null;
             var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
@@ -1457,7 +1362,7 @@ namespace HBP.Tests.SceneTransfer
                 Debug.Log($"S2 mesh binding: Desktop scene {clock.Elapsed.TotalSeconds:F1}s");
                 var original = Object3DManager.MNI.GreyMatter;
                 var prepared = (LeftRightMesh3D)desktop.Scene.MeshManager.Meshes[0];
-                AssertPreparedSurface(original.Both, prepared.Both, "both");
+                AssertPreparedSurface(original.Both, prepared.Both, "both", projectionUvsGenerated: true);
                 AssertPreparedSurface(original.SimplifiedBoth, prepared.SimplifiedBoth, "simplified both");
                 AssertPreparedSurface(original.Left, prepared.Left, "left");
                 AssertPreparedSurface(original.Right, prepared.Right, "right");
@@ -1467,63 +1372,18 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(new SurfaceCapture(prepared.Both).Data.UV, Is.Not.Empty, "Scene initialization adds projection UVs without changing resource identity.");
 
                 var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
-                if (exerciseReplica)
-                {
-                    var receiverObject = new GameObject("S3 Replica Receiver");
-                    replicaSession = receiverObject.AddComponent<QuestAnatomySession>();
-                    typeof(QuestAnatomySession).GetField("view", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(replicaSession, view);
-                    var publish = typeof(QuestAnatomySession).GetMethod("PublishAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-                    var publication = (Task<DeliveryStatus>)publish.Invoke(replicaSession, new object[] { questArchive.Read(file), questArchive, delivery.ContentHash, token });
-                    Assert.That(await publication, Is.EqualTo(DeliveryStatus.Published));
-                }
-                else await view.ApplyAsync(questArchive.Read(file), questArchive, token);
+                await view.ApplyAsync(questArchive.Read(file), questArchive, token);
 
                 Debug.Log($"S2 mesh binding: Quest scene {clock.Elapsed.TotalSeconds:F1}s");
 
                 byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                 var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                Guid epoch = Guid.NewGuid();
-                LiveGeometryStateAdapter sender = new(desktop.Scene, epoch, PreparedSceneDeliveryBinding.FromSent(delivery, receipt));
-                LiveGeometryStateAdapter receiver = new(view.Scene, epoch, PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene));
+                using var sender = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
+                using var receiver = new SceneMutationBoundary(view.Scene, OriginDevice.Quest);
+                sender.BindPreparedResources(PreparedSceneDeliveryBinding.FromSent(delivery, receipt));
+                receiver.BindPreparedResources(PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene));
                 await desktop.Scene.PrepareRenderingAsync(token);
                 await view.Scene.PrepareRenderingAsync(token);
-                if (exerciseReplica)
-                {
-                    await ExerciseReplicaControlAsync(desktop.Scene, view, replicaSession, sender, token);
-                    return;
-                }
-
-                receiver.BindInitialState(sender.Capture(0));
-
-                desktop.Scene.AtlasManager.DisplayMarsAtlas = true;
-                await desktop.Scene.PrepareRenderingAsync(token);
-                receiver.Apply(sender.Capture(1));
-                await view.Scene.PrepareRenderingAsync(token);
-                int[] fullMask = desktop.Scene.MeshManager.BrainSurface.VisibilityMask;
-                int[] simplifiedMask = desktop.Scene.MeshManager.SimplifiedMeshToUse.VisibilityMask;
-                fullMask[1] = 0;
-                simplifiedMask[1] = 0;
-                desktop.Scene.TriangleEraser.CurrentMasks = new List<int[]> { fullMask, simplifiedMask };
-                await desktop.Scene.PrepareRenderingAsync(token);
-                receiver.Apply(sender.Capture(2));
-                await view.Scene.PrepareRenderingAsync(token);
-                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D20 mask colors");
-                desktop.Scene.SaveConfiguration();
-                desktop.Scene.ResetConfiguration();
-                await desktop.Scene.PrepareRenderingAsync(token);
-                StateSnapshot reset = sender.Capture(3);
-                receiver.Apply(reset);
-                await view.Scene.PrepareRenderingAsync(token);
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(3)), Is.EqualTo(SharedStateCodec.Encode(reset)), "D33 reset state");
-                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D33 reset colors");
-
-                desktop.Scene.LoadConfiguration();
-                await desktop.Scene.PrepareRenderingAsync(token);
-                StateSnapshot loaded = sender.Capture(4);
-                receiver.Apply(loaded);
-                await view.Scene.PrepareRenderingAsync(token);
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(4)), Is.EqualTo(SharedStateCodec.Encode(loaded)), "D33 load state");
-                Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "D33 load colors");
 
                 if (captureLiveDelivery)
                 {
@@ -1551,30 +1411,18 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(installedBloc.FMRI.MaskVolume, Is.Not.Null);
                     byte[] liveDigest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(liveDelivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                     var liveReceipt = new HBP.Transfer.Transport.DeliveryReceipt(liveDigest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                    Guid liveEpoch = Guid.NewGuid();
-                    LiveGeometryStateAdapter liveSender = new(desktop.Scene, liveEpoch, PreparedSceneDeliveryBinding.FromSent(liveDelivery, liveReceipt));
-                    LiveGeometryStateAdapter liveReceiver = new(view.Scene, liveEpoch, PreparedSceneDeliveryBinding.FromPublished(liveReceipt, view.PublishedScene));
+                    using var liveSender = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
+                    using var liveReceiver = new SceneMutationBoundary(view.Scene, OriginDevice.Quest);
+                    liveSender.BindPreparedResources(PreparedSceneDeliveryBinding.FromSent(liveDelivery, liveReceipt));
+                    liveReceiver.BindPreparedResources(PreparedSceneDeliveryBinding.FromPublished(liveReceipt, view.PublishedScene));
                     await view.Scene.PrepareRenderingAsync(token);
-                    StateSnapshot liveInitial = liveSender.Capture(0);
-                    liveReceiver.BindInitialState(liveInitial);
                     Transform liveWrapper = view.Columns[0].transform;
                     liveWrapper.SetPositionAndRotation(new Vector3(2, 3, 4), Quaternion.Euler(5, 15, 25));
                     liveWrapper.localScale = Vector3.one * 1.5f;
-                    liveReceiver.Apply(liveInitial);
+                    var checkpoint = liveSender.CaptureCheckpoint();
+                    await liveReceiver.PrepareCheckpointAsync(checkpoint, token);
+                    liveReceiver.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
                     await view.Scene.PrepareRenderingAsync(token);
-                    StateSnapshot liveActual = liveReceiver.Capture(0);
-                    var expectedFields = liveInitial.Fields;
-                    var actualFields = liveActual.Fields;
-                    Assert.That(actualFields.Keys, Is.EqualTo(expectedFields.Keys), "Live Desktop capture field topology");
-                    foreach (var field in expectedFields)
-                    {
-                        byte[] actualValue = actualFields[field.Key];
-                        if (actualValue.SequenceEqual(field.Value)) continue;
-                        int firstDifference = Enumerable.Range(0, Math.Min(field.Value.Length, actualValue.Length)).Where(index => field.Value[index] != actualValue[index]).DefaultIfEmpty(-1).First();
-                        Assert.Fail($"Live Desktop capture differs at {field.Key}: expected {field.Value.Length} bytes, actual {actualValue.Length} bytes, first difference {firstDifference}; expected {BitConverter.ToString(field.Value.Take(32).ToArray())}; actual {BitConverter.ToString(actualValue.Take(32).ToArray())}");
-                    }
-
-                    Assert.That(SharedStateCodec.Encode(liveActual), Is.EqualTo(SharedStateCodec.Encode(liveInitial)), "Live Desktop capture binds to its delivered Quest scene");
                     Assert.That(view.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktop.Scene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), "Live Desktop capture surface colors");
                     Assert.That(liveWrapper.position, Is.EqualTo(new Vector3(2, 3, 4)), "Live Desktop capture wrapper position");
                     Assert.That(Quaternion.Angle(liveWrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f), "Live Desktop capture wrapper rotation");
@@ -1605,143 +1453,23 @@ namespace HBP.Tests.SceneTransfer
                 Object3DManager.Localizers.Unload("protocol-alpha");
                 await view.ClearAsync();
                 if (desktop != null) await desktop.CloseAsync();
-                if (replicaSession != null) Object.Destroy(replicaSession.gameObject);
                 Object.Destroy(view.gameObject);
                 await UniTask.NextFrame();
                 if (!Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
             }
         }
 
-        private static async Task ExerciseReplicaControlAsync(Base3DScene desktop, QuestAnatomyView view, QuestAnatomySession session, LiveGeometryStateAdapter sender, CancellationToken token)
-        {
-            Base3DScene questScene = view.Scene;
-            Transform wrapper = view.Columns[0].transform;
-            wrapper.SetPositionAndRotation(new Vector3(2, 3, 4), Quaternion.Euler(5, 15, 25));
-            wrapper.localScale = Vector3.one * 1.5f;
-            var listener = new TcpListener(IPAddress.Loopback, 0);
-            listener.Start();
-            using var client = new TcpClient();
-            Task connect = client.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
-            using var peer = await listener.AcceptTcpClientAsync();
-            await connect;
-            using var stop = CancellationTokenSource.CreateLinkedTokenSource(token);
-            Task receiving = session.ReceiveReplicaAsync(peer.GetStream(), stop.Token);
-            try
-            {
-                var emptyCheckpoint = await ReplicaWire.ReadAsync(client.GetStream(), token);
-                Assert.That(emptyCheckpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
-                Assert.That(ReplicaWire.ReadCheckpoint(emptyCheckpoint.Body).Revision, Is.Zero);
-                StateSnapshot initial = sender.Capture(1);
-                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(initial), 1, token);
-                Assert.That(session.ReceivedRevision, Is.EqualTo(1));
-                Assert.That(session.AppliedRevision, Is.EqualTo(1));
-                Assert.That(session.VisibleRevision, Is.EqualTo(1));
-                await view.Scene.PrepareRenderingAsync(token);
-                var questAdapter = (LiveGeometryStateAdapter)typeof(QuestAnatomySession).GetField("replica", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
-                Assert.That(SharedStateCodec.Encode(questAdapter.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(initial)));
-
-                ((Column3DAnatomy)desktop.Columns[0]).AnatomyParameters.InfluenceDistance = 22.5f;
-                await desktop.PrepareRenderingAsync(token);
-                StateSnapshot next = sender.Capture(2);
-                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(initial, next).Encode(), 2, token);
-                await view.Scene.PrepareRenderingAsync(token);
-                Assert.That(view.Scene, Is.SameAs(questScene));
-                Assert.That(((Column3DAnatomy)view.Scene.Columns[0]).AnatomyParameters.InfluenceDistance, Is.EqualTo(22.5f));
-                Assert.That(SharedStateCodec.Encode(questAdapter.Capture(2)), Is.EqualTo(SharedStateCodec.Encode(next)));
-                Assert.That(wrapper.position, Is.EqualTo(new Vector3(2, 3, 4)));
-                Assert.That(Quaternion.Angle(wrapper.rotation, Quaternion.Euler(5, 15, 25)), Is.LessThan(0.001f));
-                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 1.5f));
-                Assert.That(session.VisibleRevision, Is.EqualTo(2));
-
-                var cut = desktop.AddCutPlane();
-                await desktop.PrepareRenderingAsync(token);
-                StateSnapshot createdCuts = sender.CaptureCuts(next);
-                StateSnapshot created = createdCuts.WithFields(createdCuts.Fields, 3);
-                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(next, created).Encode(), 3, token);
-                Assert.That(view.Scene.Cuts.Select(item => item.ID), Does.Contain(cut.ID));
-                cut.Position = 0.72f;
-                desktop.UpdateCutPlane(cut, true);
-                await desktop.PrepareRenderingAsync(token);
-                StateSnapshot movedCuts = sender.CaptureCuts(created);
-                next = movedCuts.WithFields(movedCuts.Fields, 4);
-                await SendReplicaStateAsync(client.GetStream(), ReplicaFrameKind.Delta, ReplicaDelta.Between(created, next).Encode(), 4, token);
-                Assert.That(view.Scene.Cuts.Single(item => item.ID == cut.ID).Position, Is.EqualTo(0.72f));
-
-                client.Close();
-                peer.Close();
-                try
-                {
-                    await receiving;
-                }
-                catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
-                {
-                }
-
-                using var retryClient = new TcpClient();
-                Task retryConnect = retryClient.ConnectAsync(IPAddress.Loopback, ((IPEndPoint)listener.LocalEndpoint).Port);
-                using var retryPeer = await listener.AcceptTcpClientAsync();
-                await retryConnect;
-                Task retryReceiving = session.ReceiveReplicaAsync(retryPeer.GetStream(), stop.Token);
-                try
-                {
-                    var checkpoint = await ReplicaWire.ReadAsync(retryClient.GetStream(), token);
-                    Assert.That(checkpoint.Kind, Is.EqualTo(ReplicaFrameKind.Checkpoint));
-                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Revision, Is.EqualTo(4));
-                    Assert.That(ReplicaWire.ReadCheckpoint(checkpoint.Body).Hash, Is.EqualTo(ReplicaWire.Hash(next)));
-                    await SendReplicaStateAsync(retryClient.GetStream(), ReplicaFrameKind.Snapshot, SharedStateCodec.Encode(next), 4, token);
-                    Assert.That(view.Scene, Is.SameAs(questScene));
-                    Assert.That(wrapper.position, Is.EqualTo(new Vector3(2, 3, 4)));
-                }
-                finally
-                {
-                    retryClient.Close();
-                    retryPeer.Close();
-                    try
-                    {
-                        await retryReceiving;
-                    }
-                    catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
-                    {
-                    }
-                }
-            }
-            finally
-            {
-                stop.Cancel();
-                peer.Close();
-                listener.Stop();
-                try
-                {
-                    await receiving;
-                }
-                catch (Exception exception) when (exception is OperationCanceledException || exception is IOException || exception is ObjectDisposedException)
-                {
-                }
-            }
-        }
-
-        private static async Task SendReplicaStateAsync(Stream stream, ReplicaFrameKind kind, byte[] state, ulong revision, CancellationToken token)
-        {
-            byte[] body = new byte[4 + state.Length];
-            Buffer.BlockCopy(BitConverter.GetBytes(Time.realtimeSinceStartup), 0, body, 0, 4);
-            Buffer.BlockCopy(state, 0, body, 4, state.Length);
-            await ReplicaWire.WriteAsync(stream, kind, body, token);
-            foreach (ReplicaFrameKind expected in new[] { ReplicaFrameKind.Received, ReplicaFrameKind.Applied, ReplicaFrameKind.Visible })
-            {
-                var reply = await ReplicaWire.ReadAsync(stream, token);
-                Assert.That(reply.Kind, Is.EqualTo(expected), reply.Kind == ReplicaFrameKind.Rejected ? System.Text.Encoding.UTF8.GetString(reply.Body) : "Replica ACK");
-                Assert.That(ReplicaWire.ReadRevision(reply.Body), Is.EqualTo(revision));
-            }
-        }
-
-        private static void AssertPreparedSurface(HBP.Core.DLL.Surface expected, HBP.Core.DLL.Surface actual, string variant)
+        private static void AssertPreparedSurface(HBP.Core.DLL.Surface expected, HBP.Core.DLL.Surface actual, string variant, bool projectionUvsGenerated = false)
         {
             var left = new SurfaceCapture(expected);
             var right = new SurfaceCapture(actual);
             Assert.That(right.Data.Vertices, Is.EqualTo(left.Data.Vertices), variant + " vertices");
             Assert.That(right.Data.Triangles, Is.EqualTo(left.Data.Triangles), variant + " triangles");
             Assert.That(right.Data.Normals, Is.EqualTo(left.Data.Normals), variant + " normals");
-            Assert.That(right.Data.UV, Is.EqualTo(left.Data.UV), variant + " UV");
+            if (projectionUvsGenerated)
+                Assert.That(right.Data.UV, Has.Length.EqualTo(right.Data.Vertices.Length), variant + " generated projection UV");
+            else
+                Assert.That(right.Data.UV, Is.EqualTo(left.Data.UV), variant + " UV");
             Assert.That(right.Data.Colors, Is.EqualTo(left.Data.Colors), variant + " colors");
             Assert.That(right.Atlas, Is.EqualTo(left.Atlas), variant + " atlas capability");
         }
@@ -1819,554 +1547,6 @@ namespace HBP.Tests.SceneTransfer
                 Object3DManager.IBC = previousIbc;
                 Object3DManager.DiFuMo = previousDifumo;
                 Object3DManager.Localizers = previousLocalizers;
-            }
-        }
-
-        [Test]
-        [Timeout(900000)]
-        public async Task S2_ReplaysCorrelationsAcrossDeliveredSixModalityScenesWithoutReplacingQuestPresentation()
-        {
-            string root = Path.Combine(Path.GetTempPath(), "hibop-s2-six-modalities-" + Guid.NewGuid().ToString("N"));
-            Directory.CreateDirectory(root);
-            using var settings = new PlayModePersistentDataScope(root);
-            using var scope = new PlayModeSceneScope("S2SixModalityReplay");
-            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
-            await PrepareReferencesAsync();
-            Assert.That((await AtlasResources.LoadAsync("mars")).Succeeded, Is.True);
-            Assert.That(Object3DManager.MarsAtlas.Labels().Length, Is.GreaterThan(1));
-            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(8));
-            var token = timeout.Token;
-            RestoredScene desktop = null;
-            LocalizerProtocol localizerProtocol = null;
-            HBP.Core.Object3D.FMRI difumoVolume = null;
-            DiFuMoInformation difumoInformation = null;
-            IBCObjects previousIbc = Object3DManager.IBC;
-            HBP.Core.Object3D.FMRI ibcVolume = null;
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
-            try
-            {
-                using var source = new SceneArchive(Path.Combine(root, "source"));
-                ScenePayload payload = CreateFixture(source, marsTags: true);
-                string file = Path.Combine(root, "fixture.hbscene");
-                source.Write(payload, file);
-                using var delivery = new SceneDelivery(file, payload.TransferId, payload.SessionId, "S2 six modalities");
-                var desktopArchive = new SceneArchive(Path.Combine(root, "desktop"), true, source.Globals);
-                desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
-                var questArchive = new SceneArchive(Path.Combine(root, "quest"), true, source.Globals);
-                await view.ApplyAsync(questArchive.Read(file), questArchive, token);
-                Base3DScene desktopScene = desktop.Scene, questScene = view.Scene;
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                string localizerRoot = Path.GetFullPath("Assets/Tests/Fixtures/Native/Localizers/protocol-alpha/signal-alpha");
-                localizerProtocol = new LocalizerProtocol("protocol-alpha", localizerRoot, false);
-                var localizerData = new LocalizerData("signal-alpha", localizerRoot, false);
-                var localizerBloc = new LocalizerBloc("bloc-alpha", Path.Combine(localizerRoot, "bloc-alpha.nii"), Path.Combine(localizerRoot, "bloc-alpha_MASK.nii"));
-                localizerData.Blocs.Add(localizerBloc);
-                localizerProtocol.Datas.Add(localizerData);
-                await localizerBloc.FMRI.LoadAsync();
-                await UniTask.SwitchToMainThread();
-                Object3DManager.Localizers.Protocols.Add(localizerProtocol);
-                difumoVolume = new HBP.Core.Object3D.FMRI("s2-fixture", Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz"), loadInBackground: false);
-                difumoInformation = new DiFuMoInformation(Path.GetFullPath("Assets/Data/Atlases/DiFuMo/64/labels_64_dictionary.csv"));
-                await difumoVolume.LoadAsync();
-                await difumoInformation.LoadCompletion;
-                await UniTask.SwitchToMainThread();
-                Object3DManager.DiFuMo.FMRIs.Add("s2-fixture", difumoVolume);
-                Object3DManager.DiFuMo.Information.Add("s2-fixture", difumoInformation);
-                ibcVolume = new HBP.Core.Object3D.FMRI("s2-ibc", Path.GetFullPath("Assets/Tests/Fixtures/Native/Nifti/fmri_4d.nii.gz"), loadInBackground: false);
-                var ibcInformation = new IBCInformation(Path.GetFullPath("Assets/Data/Atlases/IBC/map_labels.csv"));
-                await ibcVolume.LoadAsync();
-                await ibcInformation.LoadCompletion;
-                await UniTask.SwitchToMainThread();
-                var ibcFixture = new IBCObjects();
-                typeof(IBCObjects).GetProperty(nameof(IBCObjects.FMRI)).SetValue(ibcFixture, ibcVolume);
-                typeof(IBCObjects).GetProperty(nameof(IBCObjects.Information)).SetValue(ibcFixture, ibcInformation);
-                Object3DManager.IBC = ibcFixture;
-                Guid epoch = Guid.NewGuid();
-                byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
-                var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                byte[] wrongDigest = (byte[])digest.Clone();
-                wrongDigest[0] ^= 1;
-                var mismatchedReceipt = new HBP.Transfer.Transport.DeliveryReceipt(wrongDigest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                Assert.Throws<InvalidDataException>(() => PreparedSceneDeliveryBinding.FromSent(delivery, mismatchedReceipt));
-                Assert.Throws<InvalidDataException>(() => PreparedSceneDeliveryBinding.FromPublished(mismatchedReceipt, view.PublishedScene));
-                PreparedSceneDeliveryBinding sent = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
-                PreparedSceneDeliveryBinding published = PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene);
-                string originalMeshName = desktop.Payload.Meshes[0].Name;
-                desktop.Payload.Meshes[0].Name = "unpublished-mesh";
-                try
-                {
-                    Assert.DoesNotThrow(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "A mutable restored payload cannot change the delivery manifest.");
-                }
-                finally
-                {
-                    desktop.Payload.Meshes[0].Name = originalMeshName;
-                }
-
-                string originalLiveMeshName = desktopScene.MeshManager.Meshes[0].Name;
-                desktopScene.MeshManager.Meshes[0].Name = "unpublished-mesh";
-                try
-                {
-                    Assert.Throws<InvalidDataException>(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent));
-                }
-                finally
-                {
-                    desktopScene.MeshManager.Meshes[0].Name = originalLiveMeshName;
-                }
-
-                Mesh3D originalMesh = desktopScene.MeshManager.Meshes[0];
-                var changedSurface = (HBP.Core.DLL.Surface)originalMesh.SimplifiedBoth.Clone();
-                var surfaceBuffer = new Mesh();
-                try
-                {
-                    changedSurface.UpdateMeshFromDLL(surfaceBuffer);
-                    Vector3[] changedVertices = surfaceBuffer.vertices;
-                    changedVertices[0].x += 1f;
-                    var normals = surfaceBuffer.normals;
-                    var uv = surfaceBuffer.uv;
-                    var colors = surfaceBuffer.colors;
-                    changedSurface.SetBuffers(changedVertices, surfaceBuffer.triangles, normals.Length == 0 ? null : normals, uv.Length == 0 ? null : uv, colors.Length == 0 ? null : colors);
-                    var hemispheres = (LeftRightMesh3D)originalMesh;
-                    desktopScene.MeshManager.Meshes[0] = Mesh3D.FromPrepared(originalMesh.Name, originalMesh.Type, originalMesh.Both, changedSurface, hemispheres.Left, hemispheres.Right, hemispheres.SimplifiedLeft, hemispheres.SimplifiedRight, null, null, null, null, null, null);
-                    Assert.Throws<InvalidDataException>(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "Different mesh vertices under the same name must not bind.");
-                }
-                finally
-                {
-                    desktopScene.MeshManager.Meshes[0] = originalMesh;
-                    changedSurface.Dispose();
-                    Object.Destroy(surfaceBuffer);
-                }
-
-                var megItem = desktopScene.Columns.OfType<Column3DMEG>().Single().ColumnMEGData.Data.MEGItems[0];
-                float originalMegValue = megItem.ValuesByChannel["A1"][0];
-                megItem.ValuesByChannel["A1"][0] = originalMegValue + 1f;
-                try
-                {
-                    Assert.Throws<InvalidDataException>(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "A different MEG channel value under the same label must not bind.");
-                }
-                finally
-                {
-                    megItem.ValuesByChannel["A1"][0] = originalMegValue;
-                }
-
-                string originalFunctionalFile = desktop.Payload.Columns[4].Functional[0].File;
-                desktop.Payload.Columns[4].Functional[0].File = new string('0', 64) + ".nii.gz";
-                try
-                {
-                    Assert.DoesNotThrow(() => new LiveGeometryStateAdapter(desktopScene, epoch, sent), "A mutable restored payload cannot change a delivered fMRI descriptor.");
-                }
-                finally
-                {
-                    desktop.Payload.Columns[4].Functional[0].File = originalFunctionalFile;
-                }
-
-                LiveGeometryStateAdapter sender = new(desktopScene, epoch, sent);
-                LiveGeometryStateAdapter receiver = new(questScene, epoch, published);
-                StateSnapshot initial = sender.Capture(0);
-                receiver.BindInitialState(initial);
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(0)), Is.EqualTo(SharedStateCodec.Encode(initial)));
-
-                var wrapper = view.Columns[1].transform;
-                wrapper.SetPositionAndRotation(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30));
-                wrapper.localScale = Vector3.one * 2;
-                Column3DIEEG desktopIEEG = desktopScene.ColumnsIEEG.Single();
-                Column3DIEEG questIEEG = questScene.ColumnsIEEG.Single();
-                var first = desktopIEEG.Sites[0];
-                var second = desktopIEEG.Sites[1];
-                desktopScene.SelectSite(desktopIEEG, first);
-                desktopScene.ImplantationManager.ComparingSites = true;
-                desktopIEEG.CorrelationBySitePair[first] = new() { [second] = 0.25f };
-                desktopIEEG.CorrelationMeanBySitePair[first] = new() { [second] = 0.75f };
-                desktopScene.DisplayCorrelations = true;
-                StateSnapshot correlated = sender.Capture(1);
-                Assert.Throws<InvalidDataException>(() => receiver.Apply(correlated), "The result bytes must arrive before the dependent state.");
-                string reference = System.Text.Encoding.UTF8.GetString(correlated.Fields[new StateKey(EntityKind.Scene, "", "", 9)]);
-                receiver.PrepareCorrelationResource(reference, sender.ExportCorrelationResource(reference));
-                receiver.Apply(correlated);
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(1)), Is.EqualTo(SharedStateCodec.Encode(correlated)));
-                var questFirst = questIEEG.Sites.Single(site => site.Information.FullID == first.Information.FullID);
-                var questSecond = questIEEG.Sites.Single(site => site.Information.FullID == second.Information.FullID);
-                Assert.That(questIEEG.CorrelationBySitePair[questFirst][questSecond], Is.EqualTo(0.25f));
-                Assert.That(questIEEG.CorrelationMeanBySitePair[questFirst][questSecond], Is.EqualTo(0.75f));
-                Assert.That(view.Scene, Is.SameAs(questScene));
-                Assert.That(wrapper.position, Is.EqualTo(new Vector3(1, 2, 3)));
-                Assert.That(Quaternion.Angle(wrapper.rotation, Quaternion.Euler(10, 20, 30)), Is.LessThan(0.001f));
-                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2));
-
-                desktopScene.ResetCorrelations();
-                desktopScene.DisplayCorrelations = false;
-                desktopScene.ImplantationManager.ComparingSites = false;
-                StateSnapshot cleared = sender.Capture(2);
-                receiver.Apply(cleared);
-                Assert.That(questIEEG.CorrelationBySitePair, Is.Empty);
-                Assert.That(questIEEG.CorrelationMeanBySitePair, Is.Empty);
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(2)), Is.EqualTo(SharedStateCodec.Encode(cleared)));
-
-                ulong revision = 2;
-
-                async Task Replay(string operation, Action edit)
-                {
-                    edit();
-                    await desktopScene.PrepareRenderingAsync(token);
-                    StateSnapshot expected = sender.Capture(++revision);
-                    receiver.Apply(expected);
-                    await questScene.PrepareRenderingAsync(token);
-                    Assert.That(SharedStateCodec.Encode(receiver.Capture(revision)), Is.EqualTo(SharedStateCodec.Encode(expected)), operation);
-                    for (int columnIndex = 0; columnIndex < desktopScene.Columns.Count; columnIndex++)
-                    {
-                        Column3D desktopColumn = desktopScene.Columns[columnIndex];
-                        Column3D questColumn = questScene.Columns[columnIndex];
-                        Assert.That(questColumn.SurfaceGenerator.ActivityUV, Is.EqualTo(desktopColumn.SurfaceGenerator.ActivityUV), operation + " activity UV " + columnIndex);
-                        Assert.That(questColumn.SurfaceGenerator.AlphaUV, Is.EqualTo(desktopColumn.SurfaceGenerator.AlphaUV), operation + " alpha UV " + columnIndex);
-                        Assert.That(questColumn.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktopColumn.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors), operation + " atlas colors " + columnIndex);
-                        Assert.That(questColumn.Sites.Select(site => site.State.IsOutOfROI), Is.EqualTo(desktopColumn.Sites.Select(site => site.State.IsOutOfROI)), operation + " ROI site mask " + columnIndex);
-                    }
-
-                    Assert.That(view.Scene, Is.SameAs(questScene), operation + " Quest content");
-                    Assert.That(wrapper.position, Is.EqualTo(new Vector3(1, 2, 3)), operation + " Quest wrapper position");
-                    Assert.That(Quaternion.Angle(wrapper.rotation, Quaternion.Euler(10, 20, 30)), Is.LessThan(0.001f), operation + " Quest wrapper rotation");
-                    Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2), operation + " Quest wrapper scale");
-                }
-
-                foreach (Column3D column in desktopScene.Columns)
-                {
-                    await Replay("D1 select " + column.ColumnData.ID, () => desktopScene.SelectColumn(column));
-                    Assert.That(questScene.SelectedColumn.ColumnData.ID, Is.EqualTo(column.ColumnData.ID));
-                }
-
-                await Replay("D2 select site", () => desktopScene.SelectSite(desktopIEEG, first));
-                Assert.That(questIEEG.SelectedSite.Information.FullID, Is.EqualTo(first.Information.FullID));
-                await Replay("D5 strong cuts", () => desktopScene.StrongCuts = true);
-                desktopScene.AutomaticCutAroundSelectedSite = true;
-                await desktopScene.PrepareRenderingAsync(token);
-                StateSnapshot automaticCuts = sender.Capture(++revision);
-                receiver.Apply(automaticCuts);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.Cuts.Select(cut => cut.ID), Is.EqualTo(desktopScene.Cuts.Select(cut => cut.ID)));
-                var automaticCutFields = receiver.Capture(revision).Fields;
-                Assert.That(automaticCutFields.Keys, Is.EqualTo(automaticCuts.Fields.Keys), "D6 automatic cut topology");
-                string cutDetails = string.Join("; ", desktopScene.Cuts.Zip(questScene.Cuts, (left, right) => $"{left.Orientation}: Desktop flip={left.Flip} normal={left.Normal} position={left.Position}; Quest flip={right.Flip} normal={right.Normal} position={right.Position}"));
-                foreach (var field in automaticCuts.Fields)
-                    Assert.That(automaticCutFields[field.Key], Is.EqualTo(field.Value), "D6 " + field.Key + " " + cutDetails);
-                desktopScene.AutomaticCutAroundSelectedSite = false;
-                await desktopScene.PrepareRenderingAsync(token);
-                await Replay("D6 automatic cuts disabled", () => { });
-                await Replay("D2 clear site", () => desktopScene.SelectSite(desktopIEEG, null));
-                Assert.That(questIEEG.SelectedSite, Is.Null);
-
-                await Replay("D13 site display and gain", () =>
-                {
-                    desktopScene.HideBlacklistedSites = true;
-                    desktopScene.ShowAllSites = true;
-                    desktopScene.SiteGain = 1.25f;
-                });
-                Assert.That(questScene.SiteGain, Is.EqualTo(1.25f));
-
-                await Replay("D19 scene appearance", () =>
-                {
-                    desktopScene.BrainColor = ColorType.Hot;
-                    desktopScene.CutColor = ColorType.Winter;
-                    desktopScene.Colormap = ColorType.Cool;
-                    desktopScene.EdgeMode = true;
-                    desktopScene.IsBrainTransparent = true;
-                    desktopScene.BrainMaterials.SetAlpha(0.7f);
-                });
-                Assert.That(questScene.BrainMaterials.Alpha, Is.EqualTo(0.7f));
-                Assert.That(questScene.IsBrainTransparent, Is.True);
-
-                await Replay("D21 column activity opacity", () => desktopScene.Columns.OfType<Column3DStatic>().Single().ActivityAlpha = 0.55f);
-                Assert.That(questScene.Columns.OfType<Column3DStatic>().Single().ActivityAlpha, Is.EqualTo(0.55f));
-
-                await Replay("D22 anatomy influence", () => desktopScene.Columns.OfType<Column3DAnatomy>().Single().AnatomyParameters.InfluenceDistance = 23f);
-                Assert.That(questScene.Columns.OfType<Column3DAnatomy>().Single().AnatomyParameters.InfluenceDistance, Is.EqualTo(23f));
-                await Replay("D17 MRI contrast", () => desktopScene.MRIManager.SetCalValues(0.15f, 0.85f));
-                Assert.That(questScene.MRIManager.MRICalMinFactor, Is.EqualTo(0.15f));
-                Assert.That(questScene.MRIManager.MRICalMaxFactor, Is.EqualTo(0.85f));
-
-                await Replay("D23 static source and span", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DStatic>().Single();
-                    column.SelectedLabelIndex = 1;
-                    column.StaticParameters.SetSpanValues(-2f, 0f, 2f);
-                    column.StaticParameters.InfluenceDistance = 20f;
-                });
-                var questStatic = questScene.Columns.OfType<Column3DStatic>().Single();
-                Assert.That(questStatic.SelectedLabelIndex, Is.EqualTo(1));
-                Assert.That(questStatic.StaticParameters.SpanMin, Is.EqualTo(-2f));
-
-                await Replay("D24 iEEG span and influence", () =>
-                {
-                    desktopIEEG.DynamicParameters.SetSpanValues(-3f, 0f, 3f);
-                    desktopIEEG.DynamicParameters.InfluenceDistance = 18f;
-                });
-                Assert.That(questIEEG.DynamicParameters.SpanMax, Is.EqualTo(3f));
-                Assert.That(questIEEG.DynamicParameters.InfluenceDistance, Is.EqualTo(18f));
-
-                await Replay("D24 CCEP span and influence", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DCCEP>().Single();
-                    column.DynamicParameters.SetSpanValues(-4f, 0f, 4f);
-                    column.DynamicParameters.InfluenceDistance = 19f;
-                });
-
-                await Replay("D26 MEG source", () => desktopScene.Columns.OfType<Column3DMEG>().Single().SelectedMEGIndex = 1);
-                Assert.That(questScene.Columns.OfType<Column3DMEG>().Single().SelectedMEGIndex, Is.EqualTo(1));
-
-                await Replay("D27 iEEG seek and step", () =>
-                {
-                    desktopIEEG.NavigationTimeline.CurrentIndex = 2;
-                    desktopIEEG.NavigationTimeline.Step = 2;
-                    desktopIEEG.NavigationTimeline.IsLooping = true;
-                });
-                Assert.That(questIEEG.NavigationTimeline.CurrentIndex, Is.EqualTo(2));
-                Assert.That(questIEEG.NavigationTimeline.Step, Is.EqualTo(2));
-
-                await Replay("D28 Mars atlas display", () =>
-                {
-                    desktopScene.AtlasManager.DisplayMarsAtlas = true;
-                    desktopScene.AtlasManager.AtlasAlpha = 0.4f;
-                });
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors));
-                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2));
-
-                var unavailableMarsSource = sender.Capture(revision + 1).Fields;
-                unavailableMarsSource[new StateKey(EntityKind.Column, "", "ccep", 16)] = StateValue.Int((int)Column3DCCEP.CCEPMode.MarsAtlas);
-                unavailableMarsSource[new StateKey(EntityKind.Column, "", "ccep", 17)] = StateValue.Text("");
-                unavailableMarsSource[new StateKey(EntityKind.Column, "", "ccep", 18)] = StateValue.Text(int.MaxValue.ToString());
-                Assert.Throws<InvalidDataException>(() => receiver.Apply(sender.Capture(revision + 1).WithFields(unavailableMarsSource, revision + 1)));
-                await Replay("D25 CCEP source reset", () => desktopScene.Columns.OfType<Column3DCCEP>().Single().SelectedSourceSite = null);
-                var questCCEP = questScene.Columns.OfType<Column3DCCEP>().Single();
-                Assert.That(questCCEP.SelectedSourceSite, Is.Null);
-                await Replay("D25 CCEP source restore", () => desktopScene.Columns.OfType<Column3DCCEP>().Single().SelectedSourceSite = desktopScene.Columns.OfType<Column3DCCEP>().Single().Sources.Single());
-                Assert.That(questCCEP.SelectedSourceSite.Information.FullID, Is.EqualTo("patient_A1"));
-                int marsSourceLabel = Object3DManager.MarsAtlas.Labels()[0];
-                await Replay("D25 CCEP Mars area source", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DCCEP>().Single();
-                    column.Mode = Column3DCCEP.CCEPMode.MarsAtlas;
-                    column.SelectedSourceMarsAtlasLabel = marsSourceLabel;
-                });
-                Assert.That(questCCEP.SelectedSourceMarsAtlasLabel, Is.EqualTo(marsSourceLabel));
-                Assert.That(questCCEP.AreaMask, Is.EqualTo(desktopScene.Columns.OfType<Column3DCCEP>().Single().AreaMask));
-                Assert.That(questCCEP.ActivityValues, Is.EqualTo(desktopScene.Columns.OfType<Column3DCCEP>().Single().ActivityValues));
-                await Replay("D25 CCEP site source after Mars area", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DCCEP>().Single();
-                    column.Mode = Column3DCCEP.CCEPMode.Site;
-                    column.SelectedSourceSite = column.Sources.Single();
-                });
-
-                await Replay("D26 fMRI calibration", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DFMRI>().Single();
-                    column.FMRIParameters.SetSpanValues(0.1f, 0.8f, 0.2f, 0.9f);
-                    column.FMRIParameters.SetHideValues(true, false, true);
-                });
-                var questFMRI = questScene.Columns.OfType<Column3DFMRI>().Single();
-                Assert.That(questFMRI.FMRIParameters.FMRINegativeCalMinFactor, Is.EqualTo(0.1f));
-                Assert.That(questFMRI.FMRIParameters.HideLowerValues, Is.True);
-
-                await Replay("D26 MEG calibration", () =>
-                {
-                    var column = desktopScene.Columns.OfType<Column3DMEG>().Single();
-                    column.MEGParameters.SetSpanValues(0.1f, 0.7f, 0.2f, 0.9f);
-                    column.MEGParameters.SetHideValues(false, true, false);
-                });
-                var questMEG = questScene.Columns.OfType<Column3DMEG>().Single();
-                Assert.That(questMEG.MEGParameters.FMRINegativeCalMaxFactor, Is.EqualTo(0.7f));
-                Assert.That(questMEG.MEGParameters.HideMiddleValues, Is.True);
-
-                await Replay("D31 fMRI atlas calibration", () =>
-                {
-                    desktopScene.FMRIManager.FMRIAlpha = 0.6f;
-                    desktopScene.FMRIManager.FMRINegativeCalMinFactor = 0.1f;
-                    desktopScene.FMRIManager.FMRINegativeCalMaxFactor = 0.8f;
-                    desktopScene.FMRIManager.FMRIPositiveCalMinFactor = 0.2f;
-                    desktopScene.FMRIManager.FMRIPositiveCalMaxFactor = 0.9f;
-                });
-                Assert.That(questScene.FMRIManager.FMRIAlpha, Is.EqualTo(0.6f));
-
-                await Replay("D10 site filtering", () => desktopIEEG.Sites[1].State.IsFiltered = false);
-                Assert.That(questIEEG.Sites[1].State.IsFiltered, Is.False);
-                await Replay("D11 site highlight and blacklist", () =>
-                {
-                    desktopIEEG.Sites[1].State.IsHighlighted = true;
-                    desktopIEEG.Sites[1].State.IsBlackListed = true;
-                });
-                Assert.That(questIEEG.Sites[1].State.IsBlackListed, Is.True);
-                await Replay("D12 site color and labels", () =>
-                {
-                    desktopIEEG.Sites[0].State.Color = Color.cyan;
-                    desktopIEEG.Sites[0].State.Labels.Add("synchronized-label");
-                });
-                Assert.That(questIEEG.Sites[0].State.Labels, Does.Contain("synchronized-label"));
-                await Replay("D34 bulk site attributes", () =>
-                {
-                    foreach (var site in desktopIEEG.Sites)
-                    {
-                        site.State.IsHighlighted = true;
-                        site.State.Color = Color.magenta;
-                        site.State.Labels.Add("bulk-label");
-                    }
-                });
-                Assert.That(questIEEG.Sites.All(site => site.State.IsHighlighted && site.State.Color == Color.magenta && site.State.Labels.Contains("bulk-label")), Is.True);
-                await Replay("D14 site position", () => desktopIEEG.Sites[0].transform.localPosition += new Vector3(1, 2, 3));
-                Assert.That(questIEEG.Sites[0].transform.localPosition, Is.EqualTo(desktopIEEG.Sites[0].transform.localPosition));
-                await Replay("D20 erase surface triangles", () =>
-                {
-                    int[] fullMask = desktopScene.MeshManager.BrainSurface.VisibilityMask;
-                    int[] simplifiedMask = desktopScene.MeshManager.SimplifiedMeshToUse.VisibilityMask;
-                    fullMask[1] = 0;
-                    simplifiedMask[1] = 0;
-                    desktopScene.TriangleEraser.CurrentMasks = new List<int[]> { fullMask, simplifiedMask };
-                });
-                Assert.That(questScene.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(desktopScene.MeshManager.BrainSurface.VisibilityMask));
-                Assert.That(questScene.MeshManager.SimplifiedMeshToUse.VisibilityMask, Is.EqualTo(desktopScene.MeshManager.SimplifiedMeshToUse.VisibilityMask));
-
-                ROI roi = null;
-                await Replay("D7 create ROI", () => roi = desktopScene.ROIManager.AddROI("Synchronized ROI"));
-                Assert.That(questScene.ROIManager.ROIs.Single().ID, Is.EqualTo(roi.ID));
-                await Replay("D8 clear active ROI", () => desktopScene.ROIManager.SelectedROI = null);
-                Assert.That(questScene.ROIManager.SelectedROI, Is.Null);
-                await Replay("D8 select active ROI", () => desktopScene.ROIManager.SelectedROI = roi);
-                Assert.That(questScene.ROIManager.SelectedROI.ID, Is.EqualTo(roi.ID));
-                await Replay("D9 add ROI sphere", () => roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", first.Information.DefaultPosition, 2f));
-                Assert.That(questIEEG.Sites[0].State.IsOutOfROI, Is.False);
-                Assert.That(questIEEG.Sites[1].State.IsOutOfROI, Is.True);
-                await Replay("D9 move and resize ROI sphere", () =>
-                {
-                    roi.MoveSelectedSphere(second.Information.DefaultPosition - first.Information.DefaultPosition);
-                    roi.Spheres.Single().SetInfluenceRadius(2.5f);
-                });
-                Assert.That(questIEEG.Sites[0].State.IsOutOfROI, Is.True);
-                Assert.That(questIEEG.Sites[1].State.IsOutOfROI, Is.False);
-                Assert.That(questScene.ROIManager.ROIs.Single().Spheres.Single().InfluenceRadius, Is.EqualTo(2.5f));
-                await Replay("D7 rename ROI", () => roi.Name = "Renamed synchronized ROI");
-                Assert.That(questScene.ROIManager.ROIs.Single().Name, Is.EqualTo(roi.Name));
-                await Replay("D7 delete ROI", () => desktopScene.ROIManager.RemoveROI(roi));
-                Assert.That(questScene.ROIManager.ROIs, Is.Empty);
-
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questStatic.ActivityValues, Is.EqualTo(desktopScene.Columns.OfType<Column3DStatic>().Single().ActivityValues));
-                Assert.That(questCCEP.ActivityValues, Is.EqualTo(desktopScene.Columns.OfType<Column3DCCEP>().Single().ActivityValues));
-                Assert.That(questIEEG.ActivityValues, Is.EqualTo(desktopIEEG.ActivityValues));
-                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2));
-
-                await Replay("D28 Mars atlas hidden for functional projection", () => desktopScene.AtlasManager.DisplayMarsAtlas = false);
-                await Replay("D32 remove activity", () => desktopScene.SetProjectionEnabled(false));
-                Assert.That(questScene.ProjectionEnabled, Is.False);
-                await Replay("D32 compute activity", () => desktopScene.RequestActivityProjection());
-                Assert.That(desktopScene.IsGeneratorUpToDate, Is.True);
-                desktopIEEG.NavigationTimeline.IsLooping = true;
-                StateSnapshot projection = sender.Capture(++revision);
-                receiver.Apply(projection);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.IsGeneratorUpToDate, Is.True);
-                Assert.That(questIEEG.NavigationTimeline.IsLooping, Is.True, "Native recomputation must preserve the accepted timeline.");
-                Assert.That(questIEEG.SurfaceGenerator.ActivityUV, Is.EqualTo(desktopIEEG.SurfaceGenerator.ActivityUV));
-                Assert.That(SharedStateCodec.Encode(receiver.Capture(revision)), Is.EqualTo(SharedStateCodec.Encode(projection)));
-
-                await Replay("D29 IBC contrast", () =>
-                {
-                    var fmri = desktopScene.FMRIManager;
-                    fmri.SelectedIBCContrastID = 1;
-                    fmri.DisplayIBCContrasts = true;
-                });
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.FMRIManager.CurrentFMRI, Is.SameAs(ibcVolume));
-                Assert.That(questScene.FMRIManager.CurrentVolume, Is.SameAs(ibcVolume.Volumes[1]));
-                Assert.That(questScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors));
-
-                await Replay("D29 DiFuMo selection and area", () =>
-                {
-                    var fmri = desktopScene.FMRIManager;
-                    fmri.DisplayIBCContrasts = false;
-                    fmri.SelectedDiFuMoAtlas = "s2-fixture";
-                    fmri.SelectedDiFuMoArea = 1;
-                    fmri.DisplayDiFuMo = true;
-                });
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.FMRIManager.CurrentFMRI, Is.SameAs(difumoVolume));
-                Assert.That(questScene.FMRIManager.CurrentVolume, Is.SameAs(difumoVolume.Volumes[1]));
-                Assert.That(questScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors));
-
-                await Replay("D30 localizer selection and thresholds", () =>
-                {
-                    var fmri = desktopScene.FMRIManager;
-                    fmri.DisplayDiFuMo = false;
-                    fmri.SelectedLocalizersProtocol = "protocol-alpha";
-                    fmri.SelectedLocalizersData = "signal-alpha";
-                    fmri.SelectedLocalizersBloc = "bloc-alpha";
-                    fmri.SelectedLocalizersTimelineIndex = 0;
-                    fmri.LocalizersMin = 0.1f;
-                    fmri.LocalizersMiddle = 0.5f;
-                    fmri.LocalizersMax = 0.9f;
-                    fmri.DisplayLocalizers = true;
-                });
-                await desktopScene.PrepareRenderingAsync(token);
-                await questScene.PrepareRenderingAsync(token);
-                Assert.That(questScene.FMRIManager.CurrentFMRI, Is.SameAs(localizerBloc.FMRI));
-                Assert.That(questScene.FMRIManager.CurrentLocalizersMask, Is.SameAs(localizerBloc.FMRI.MaskVolume));
-                Assert.That(questScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors, Is.EqualTo(desktopScene.Columns[0].BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors));
-                Assert.That(wrapper.localScale, Is.EqualTo(Vector3.one * 2));
-
-                desktopScene.SaveConfiguration();
-                var syncSceneId = new SceneId(Guid.NewGuid());
-                var syncIncarnationId = new IncarnationId(Guid.NewGuid());
-                using var desktopMutationBoundary = new V2SceneMutationBoundary(desktopScene, V2OriginDevice.Desktop);
-                using var questMutationBoundary = new V2SceneMutationBoundary(questScene, V2OriginDevice.Quest);
-                var questMutationScheduler = new V2OutgoingScheduler(new SessionId(Guid.NewGuid()), syncSceneId, syncIncarnationId, V2OriginDevice.Quest);
-                using var questMutationDriver = new V2QuestMutationDriver(syncSceneId, syncIncarnationId, questMutationBoundary, questMutationScheduler);
-                using var desktopMutationAuthority = new V2DesktopMutationAuthority(syncSceneId, syncIncarnationId, desktopMutationBoundary);
-                desktopMutationAuthority.CanonicalReady += canonical => questMutationDriver.ReceiveCanonical(canonical);
-                var configurationTransactions = new List<V2Mutation>();
-                desktopMutationBoundary.MutationProposed += (_, mutation, _) => configurationTransactions.Add(mutation);
-
-                await Replay("D33 reset configuration", () => desktopScene.ResetConfiguration());
-                Assert.That(configurationTransactions, Has.Count.EqualTo(1), "Scene reset must produce one atomic operation.");
-                Assert.That(configurationTransactions[0], Is.TypeOf<SetConfigurationTransaction>());
-                Assert.That(V2MutationDescriptor.Create(syncSceneId, syncIncarnationId, configurationTransactions[0]).BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
-                Assert.That(questMutationDriver.LastObservedCanonicalSequence, Is.EqualTo(1UL), "The Quest driver must apply the reset canonical operation.");
-                configurationTransactions.Clear();
-
-                await Replay("D33 load configuration", () => desktopScene.LoadConfiguration());
-                Assert.That(configurationTransactions, Has.Count.EqualTo(1), "Scene load must produce one atomic operation.");
-                Assert.That(configurationTransactions[0], Is.TypeOf<SetConfigurationTransaction>());
-                Assert.That(V2MutationDescriptor.Create(syncSceneId, syncIncarnationId, configurationTransactions[0]).BarrierScope, Is.EqualTo(V2BarrierScope.AllScene));
-                Assert.That(questMutationDriver.LastObservedCanonicalSequence, Is.EqualTo(2UL), "The Quest driver must apply the load canonical operation.");
-                Assert.That(questMutationDriver.PendingProposalCount, Is.Zero);
-            }
-            finally
-            {
-                await UniTask.SwitchToMainThread();
-                await view.ClearAsync();
-                if (desktop != null) await desktop.CloseAsync();
-                if (localizerProtocol != null)
-                {
-                    Object3DManager.Localizers.Protocols.Remove(localizerProtocol);
-                    localizerProtocol.Clean();
-                }
-
-                if (difumoVolume != null)
-                {
-                    Object3DManager.DiFuMo.FMRIs.Remove("s2-fixture");
-                    Object3DManager.DiFuMo.Information.Remove("s2-fixture");
-                    difumoVolume.Clean();
-                }
-
-                Object3DManager.IBC = previousIbc;
-                ibcVolume?.Clean();
-
-                Object.Destroy(view.gameObject);
-                await UniTask.NextFrame();
-                // SceneArchive retires its pack after the final reader closes.
-                // Only remove the parent once its owned archive folders are gone.
-                if (!Directory.EnumerateFileSystemEntries(root).Any()) Directory.Delete(root);
             }
         }
 
@@ -2515,14 +1695,13 @@ namespace HBP.Tests.SceneTransfer
                 await quest.ApplyAsync(archive.Read(file), archive, token);
                 byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
                 var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                Guid epoch = Guid.NewGuid();
                 var desktopBinding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
                 var questBinding = PreparedSceneDeliveryBinding.FromPublished(receipt, quest.PublishedScene);
-                LiveGeometryStateAdapter desktopAdapter = new(desktop, epoch, desktopBinding);
-                LiveGeometryStateAdapter questAdapter = new(quest.Scene, epoch, questBinding);
-                StateSnapshot openingState = desktopAdapter.Capture(0);
-                questAdapter.BindInitialState(openingState);
-                Assert.That(SharedStateCodec.Encode(questAdapter.Capture(0)), Is.EqualTo(SharedStateCodec.Encode(openingState)), "The live Desktop scene and published Quest scene must bind to the same captured manifest.");
+                using var desktopBoundary = new SceneMutationBoundary(desktop, OriginDevice.Desktop);
+                using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
+                desktopBoundary.BindPreparedResources(desktopBinding);
+                questBoundary.BindPreparedResources(questBinding);
+
                 Debug.Log($"Scene qualification {fixtureName}: Quest scene restored at {clock.Elapsed.TotalSeconds:F1}s.");
                 Assert.That(quest.Scene.Columns.Count, Is.EqualTo(6));
                 await SceneQualification.RunAsync(quest.Scene, Path.GetFullPath(".artifacts/scene-008/editor-restored-" + fixtureName), token);
@@ -2688,7 +1867,7 @@ namespace HBP.Tests.SceneTransfer
                 // Cancel a real preparation after it has started reading its native inputs.
                 using var cancel = new CancellationTokenSource();
                 var cancelledArchive = new SceneArchive(Path.Combine(root, "cancelled"), true, source.Globals);
-                Task replacement = view.ApplyAsync(cancelledArchive.Read(file), cancelledArchive, cancel.Token);
+                Task replacement = view.ApplyAsync(cancelledArchive.Read(file), cancelledArchive, cancel.Token).AsTask();
                 await UniTask.NextFrame();
                 cancel.Cancel();
                 Exception cancellation = null;

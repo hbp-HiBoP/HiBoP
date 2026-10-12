@@ -1,0 +1,687 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Text;
+
+namespace HBP.Sync
+{
+    public enum OriginDevice : byte
+    {
+        Desktop = 1,
+        Quest = 2
+    }
+
+    public enum OperationType : ushort
+    {
+        SetSiteColor = 1,
+        SetCutDefinition = 2,
+        SetTimelineAnchor = 3,
+        SetSelectedColumn = 4,
+        SetSelectedSite = 5,
+        SetSceneBoolean = 6,
+        SetSceneFloat = 7,
+        SetSceneColor = 8,
+        SetSiteHighlight = 9,
+        SetSiteLabels = 10,
+        SetActivityAlpha = 11,
+        SetColumnSpan = 12,
+        SetFunctionalDisplay = 13,
+        SetIbcDifumoDisplay = 14,
+        SetLocalizerDisplay = 15,
+        SetFmriAtlasCalibration = 16,
+        SetSelectedRoiSphere = 17,
+        CreateCut = 18,
+        DeleteCut = 19,
+        SetCutOrder = 20,
+        CreateRoi = 21,
+        RenameRoi = 22,
+        DeleteRoi = 23,
+        SetActiveRoi = 24,
+        CreateRoiSphere = 25,
+        DeleteRoiSphere = 26,
+        SetRoiSphereDefinition = 27,
+        MoveSites = 28,
+        SetMeshDisplay = 29,
+        SetSelectedMri = 30,
+        SetMriCalibration = 31,
+        SetImplantation = 32,
+        ApplyTriangleMask = 33,
+        SetSiteBlacklist = 34,
+        SetInfluenceDistance = 35,
+        SetColumnResource = 36,
+        SetCcepSource = 37,
+        SetSiteConfigurationBatch = 38,
+        SetConfigurationTransaction = 39,
+        SetSiteFilterResult = 40,
+        SetCorrelationResult = 41
+    }
+
+    public enum MutationCutOrientation : byte
+    {
+        Axial = 0,
+        Coronal = 1,
+        Sagittal = 2,
+        Custom = 3
+    }
+
+    public enum BarrierScope : byte
+    {
+        None = 0,
+        TouchedKeys = 1,
+        AllScene = 2
+    }
+
+    public abstract class BinaryIdentity : IEquatable<BinaryIdentity>
+    {
+        public Guid Value { get; }
+        public bool IsValid => Value != Guid.Empty;
+
+        protected BinaryIdentity(Guid value)
+        {
+            if (value == Guid.Empty)
+                throw new ArgumentException("Identity must be nonzero.", nameof(value));
+            Value = value;
+        }
+
+        public byte[] ToByteArray() => Value.ToByteArray();
+
+        public bool Equals(BinaryIdentity other) => other != null && GetType() == other.GetType() && Value == other.Value;
+        public override bool Equals(object obj) => Equals(obj as BinaryIdentity);
+        public override int GetHashCode() => unchecked((Value.GetHashCode() * 397) ^ GetType().GetHashCode());
+        public override string ToString() => Value.ToString("D");
+    }
+
+    public sealed class SessionId : BinaryIdentity
+    {
+        public SessionId(Guid value) : base(value)
+        {
+        }
+
+        public static SessionId FromBytes(byte[] bytes) => new SessionId(IdentityCodec.ReadGuid(bytes));
+    }
+
+    public sealed class SceneId : BinaryIdentity
+    {
+        public SceneId(Guid value) : base(value)
+        {
+        }
+
+        public static SceneId FromBytes(byte[] bytes) => new SceneId(IdentityCodec.ReadGuid(bytes));
+    }
+
+    public sealed class IncarnationId : BinaryIdentity
+    {
+        public IncarnationId(Guid value) : base(value)
+        {
+        }
+
+        public static IncarnationId FromBytes(byte[] bytes) => new IncarnationId(IdentityCodec.ReadGuid(bytes));
+    }
+
+    public sealed class OperationId : BinaryIdentity
+    {
+        public OperationId(Guid value) : base(value)
+        {
+        }
+
+        public static OperationId FromBytes(byte[] bytes) => new OperationId(IdentityCodec.ReadGuid(bytes));
+    }
+
+    public sealed class ReliableStreamId : BinaryIdentity
+    {
+        public ReliableStreamId(Guid value) : base(value)
+        {
+        }
+
+        public static ReliableStreamId FromBytes(byte[] bytes) => new ReliableStreamId(IdentityCodec.ReadGuid(bytes));
+    }
+
+    public abstract class TextIdentity : IEquatable<TextIdentity>
+    {
+        private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
+
+        public string Value { get; }
+
+        protected TextIdentity(string value)
+        {
+            if (value == null)
+                throw new ArgumentNullException(nameof(value));
+
+            string normalized;
+            try
+            {
+                normalized = value.Normalize(NormalizationForm.FormC);
+            }
+            catch (ArgumentException exception)
+            {
+                throw new ArgumentException("Identity must contain valid Unicode text.", nameof(value), exception);
+            }
+
+            if (normalized.Length == 0)
+                throw new ArgumentException("Identity must not be empty.", nameof(value));
+            foreach (char character in normalized)
+            {
+                if (char.IsControl(character))
+                    throw new ArgumentException("Identity must not contain control characters.", nameof(value));
+            }
+
+            byte[] encoded;
+            try
+            {
+                encoded = StrictUtf8.GetBytes(normalized);
+            }
+            catch (EncoderFallbackException exception)
+            {
+                throw new ArgumentException("Identity must contain valid Unicode text.", nameof(value), exception);
+            }
+
+            if (encoded.Length > 256)
+                throw new ArgumentException("Identity exceeds 256 UTF-8 bytes.", nameof(value));
+            Value = normalized;
+        }
+
+        public bool Equals(TextIdentity other) => other != null && GetType() == other.GetType() && StringComparer.Ordinal.Equals(Value, other.Value);
+        public override bool Equals(object obj) => Equals(obj as TextIdentity);
+        public override int GetHashCode() => unchecked((StringComparer.Ordinal.GetHashCode(Value) * 397) ^ GetType().GetHashCode());
+        public override string ToString() => Value;
+    }
+
+    public sealed class ResourceId : TextIdentity
+    {
+        public ResourceId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class RoiId : TextIdentity
+    {
+        public RoiId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class SphereId : TextIdentity
+    {
+        public SphereId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class TopologyId : TextIdentity
+    {
+        public TopologyId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class ColumnId : TextIdentity
+    {
+        public ColumnId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class SiteId : TextIdentity
+    {
+        public SiteId(string value) : base(value)
+        {
+        }
+    }
+
+    public sealed class CutId : TextIdentity
+    {
+        public CutId(string value) : base(value)
+        {
+        }
+    }
+
+    public abstract class Mutation
+    {
+        public abstract OperationType Type { get; }
+
+        internal Mutation()
+        {
+        }
+    }
+
+    public sealed class SetSiteColor : Mutation
+    {
+        public ColumnId ColumnId { get; }
+        public SiteId FullSiteId { get; }
+        public float Red { get; }
+        public float Green { get; }
+        public float Blue { get; }
+        public float Alpha { get; }
+        public override OperationType Type => OperationType.SetSiteColor;
+
+        public SetSiteColor(ColumnId columnId, SiteId fullSiteId, float red, float green, float blue, float alpha)
+        {
+            ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
+            FullSiteId = fullSiteId ?? throw new ArgumentNullException(nameof(fullSiteId));
+            ValueValidation.ValidateFloat(red, nameof(red));
+            ValueValidation.ValidateFloat(green, nameof(green));
+            ValueValidation.ValidateFloat(blue, nameof(blue));
+            ValueValidation.ValidateFloat(alpha, nameof(alpha));
+            Red = red;
+            Green = green;
+            Blue = blue;
+            Alpha = alpha;
+        }
+    }
+
+    public sealed class SetCutDefinition : Mutation
+    {
+        public CutId CutId { get; }
+        public MutationCutOrientation Orientation { get; }
+        public bool Flip { get; }
+        public uint NumberOfCuts { get; }
+        public float Position { get; }
+        public float NormalX { get; }
+        public float NormalY { get; }
+        public float NormalZ { get; }
+        public override OperationType Type => OperationType.SetCutDefinition;
+
+        public SetCutDefinition(CutId cutId, MutationCutOrientation orientation, bool flip, uint numberOfCuts, float position, float normalX, float normalY, float normalZ)
+        {
+            CutId = cutId ?? throw new ArgumentNullException(nameof(cutId));
+            if ((byte)orientation > (byte)MutationCutOrientation.Custom)
+                throw new ArgumentOutOfRangeException(nameof(orientation));
+            if (numberOfCuts < 1 || numberOfCuts > 65535)
+                throw new ArgumentOutOfRangeException(nameof(numberOfCuts));
+            ValueValidation.ValidateFloat(position, nameof(position));
+            if (position < 0f || position > 1f)
+                throw new ArgumentOutOfRangeException(nameof(position));
+            ValueValidation.ValidateFloat(normalX, nameof(normalX));
+            ValueValidation.ValidateFloat(normalY, nameof(normalY));
+            ValueValidation.ValidateFloat(normalZ, nameof(normalZ));
+            if (normalX == 0f && normalY == 0f && normalZ == 0f)
+                throw new ArgumentException("Cut normal must be nonzero.", nameof(normalX));
+
+            Orientation = orientation;
+            Flip = flip;
+            NumberOfCuts = numberOfCuts;
+            Position = position;
+            NormalX = normalX;
+            NormalY = normalY;
+            NormalZ = normalZ;
+        }
+    }
+
+    public enum TimelineAnchorIntent : byte
+    {
+        Play = 1,
+        Pause = 2,
+        Seek = 3,
+        Step = 4,
+        Loop = 5
+    }
+
+    public sealed class SetTimelineAnchor : Mutation
+    {
+        public ColumnId ColumnId { get; }
+        public int Index { get; }
+        public bool Playing { get; }
+        public bool Looping { get; }
+        public int Step { get; }
+        public long MonotonicAnchorTicks { get; }
+        public ulong TickFrequency { get; }
+        public TimelineAnchorIntent Intent { get; }
+        public override OperationType Type => OperationType.SetTimelineAnchor;
+
+        public SetTimelineAnchor(ColumnId columnId, int index, bool playing, bool looping, int step, long monotonicAnchorTicks, ulong tickFrequency) : this(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, playing ? TimelineAnchorIntent.Play : TimelineAnchorIntent.Pause)
+        {
+        }
+
+        public SetTimelineAnchor(ColumnId columnId, int index, bool playing, bool looping, int step, long monotonicAnchorTicks, ulong tickFrequency, TimelineAnchorIntent intent)
+        {
+            ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
+            if (index < 0)
+                throw new ArgumentOutOfRangeException(nameof(index));
+            if (step < 1 || step > 1000000)
+                throw new ArgumentOutOfRangeException(nameof(step));
+            if (monotonicAnchorTicks < 0)
+                throw new ArgumentOutOfRangeException(nameof(monotonicAnchorTicks));
+            if (tickFrequency == 0 || tickFrequency > 1000000000000UL)
+                throw new ArgumentOutOfRangeException(nameof(tickFrequency));
+            if (!Enum.IsDefined(typeof(TimelineAnchorIntent), intent))
+                throw new ArgumentOutOfRangeException(nameof(intent));
+            if (intent == TimelineAnchorIntent.Play && !playing || intent == TimelineAnchorIntent.Pause && playing)
+                throw new ArgumentException("Play and pause anchor intents must match the playing state.", nameof(intent));
+
+            Index = index;
+            Playing = playing;
+            Looping = looping;
+            Step = step;
+            MonotonicAnchorTicks = monotonicAnchorTicks;
+            TickFrequency = tickFrequency;
+            Intent = intent;
+        }
+    }
+
+    public enum TouchedKeyKind : byte
+    {
+        SiteColor = 1,
+        CutDefinition = 2,
+        TimelineAnchor = 3,
+        SelectedColumn = 4,
+        SelectedSite = 5,
+        SceneBoolean = 6,
+        SceneFloat = 7,
+        SceneColor = 8,
+        SiteHighlight = 9,
+        SiteLabels = 10,
+        ActivityAlpha = 11,
+        ColumnSpan = 12,
+        FunctionalDisplay = 13,
+        IbcDifumoDisplay = 14,
+        LocalizerDisplay = 15,
+        FmriAtlasCalibration = 16,
+        SelectedRoiSphere = 17,
+        CutOrder = 18,
+        Roi = 19,
+        ActiveRoi = 20,
+        RoiSphere = 21,
+        SitePosition = 22,
+        MeshDisplay = 23,
+        SelectedMri = 24,
+        MriCalibration = 25,
+        Implantation = 26,
+        TriangleMask = 27,
+        SiteBlacklist = 28,
+        InfluenceDistance = 29,
+        ColumnResource = 30,
+        CcepSource = 31,
+        SiteConfigurationBatch = 32,
+        SiteFilterResult = 33,
+        CorrelationResult = 34
+    }
+
+    public sealed class TouchedKey : IEquatable<TouchedKey>
+    {
+        public SceneId SceneId { get; }
+        public IncarnationId IncarnationId { get; }
+        public TouchedKeyKind Kind { get; }
+        public ColumnId ColumnId { get; }
+        public SiteId SiteId { get; }
+        public CutId CutId { get; }
+        public string RoiId { get; }
+        public string SphereId { get; }
+        public int PropertyId { get; }
+
+        internal TouchedKey(SceneId sceneId, IncarnationId incarnationId, TouchedKeyKind kind, ColumnId columnId, SiteId siteId, CutId cutId, string roiId = null, string sphereId = null, int propertyId = 0)
+        {
+            SceneId = sceneId;
+            IncarnationId = incarnationId;
+            Kind = kind;
+            ColumnId = columnId;
+            SiteId = siteId;
+            CutId = cutId;
+            RoiId = roiId;
+            SphereId = sphereId;
+            PropertyId = propertyId;
+        }
+
+        public bool Equals(TouchedKey other) => other != null && SceneId.Equals(other.SceneId) && IncarnationId.Equals(other.IncarnationId) && Kind == other.Kind && Equals(ColumnId, other.ColumnId) && Equals(SiteId, other.SiteId) && Equals(CutId, other.CutId) && StringComparer.Ordinal.Equals(RoiId, other.RoiId) && StringComparer.Ordinal.Equals(SphereId, other.SphereId) && PropertyId == other.PropertyId;
+
+        public override bool Equals(object obj) => Equals(obj as TouchedKey);
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = SceneId.GetHashCode();
+                hash = (hash * 397) ^ IncarnationId.GetHashCode();
+                hash = (hash * 397) ^ (int)Kind;
+                hash = (hash * 397) ^ (ColumnId?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (SiteId?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (CutId?.GetHashCode() ?? 0);
+                hash = (hash * 397) ^ (RoiId == null ? 0 : StringComparer.Ordinal.GetHashCode(RoiId));
+                hash = (hash * 397) ^ (SphereId == null ? 0 : StringComparer.Ordinal.GetHashCode(SphereId));
+                return (hash * 397) ^ PropertyId;
+            }
+        }
+    }
+
+    public sealed class MutationDescriptor
+    {
+        public TouchedKey CoalescingKey { get; }
+        public IReadOnlyList<TouchedKey> TouchedKeys { get; }
+        public BarrierScope BarrierScope { get; }
+        public bool SupportsLatestUnsentCoalescing => BarrierScope == BarrierScope.None;
+
+        public static MutationDescriptor Create(SceneId sceneId, IncarnationId incarnationId, Mutation mutation) => new MutationDescriptor(sceneId, incarnationId, mutation);
+
+        internal MutationDescriptor(SceneId sceneId, IncarnationId incarnationId, Mutation mutation)
+        {
+            if (mutation is SetConfigurationTransaction transaction)
+            {
+                var transactionKeys = new List<TouchedKey>();
+                BarrierScope transactionBarrier = BarrierScope.None;
+                foreach (Mutation child in transaction.Mutations)
+                {
+                    MutationDescriptor childDescriptor = new MutationDescriptor(sceneId, incarnationId, child);
+                    transactionKeys.AddRange(childDescriptor.TouchedKeys);
+                    if ((byte)childDescriptor.BarrierScope > (byte)transactionBarrier) transactionBarrier = childDescriptor.BarrierScope;
+                }
+
+                var uniqueTransactionKeys = transactionKeys.Distinct().ToArray();
+                if (uniqueTransactionKeys.Length > 128) throw new ArgumentOutOfRangeException(nameof(mutation), "A configuration transaction exceeds the touched-key bound.");
+                if (transactionBarrier == BarrierScope.None) transactionBarrier = BarrierScope.TouchedKeys;
+                BarrierScope = transactionBarrier;
+                CoalescingKey = null;
+                TouchedKeys = new ReadOnlyCollection<TouchedKey>(uniqueTransactionKeys);
+                return;
+            }
+
+            TouchedKey key;
+            if (mutation is SetSiteColor siteColor)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteColor, siteColor.ColumnId, siteColor.FullSiteId, null);
+            else if (mutation is SetCutDefinition cutDefinition)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutDefinition, null, null, cutDefinition.CutId);
+            else if (mutation is SetTimelineAnchor timelineAnchor)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TimelineAnchor, timelineAnchor.ColumnId, null, null);
+            else if (mutation is SetSelectedColumn)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedColumn, null, null, null);
+            else if (mutation is SetSelectedSite selectedSite)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedSite, selectedSite.ColumnId, null, null);
+            else if (mutation is SetSceneBoolean sceneBoolean)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SceneBoolean, null, null, null, propertyId: (int)sceneBoolean.Property);
+            else if (mutation is SetSceneFloat sceneFloat)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SceneFloat, null, null, null, propertyId: (int)sceneFloat.Property);
+            else if (mutation is SetSceneColor sceneColor)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SceneColor, null, null, null, propertyId: (int)sceneColor.Property);
+            else if (mutation is SetSiteHighlight siteHighlight)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteHighlight, siteHighlight.ColumnId, siteHighlight.SiteId, null);
+            else if (mutation is SetSiteLabels siteLabels)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteLabels, siteLabels.ColumnId, siteLabels.SiteId, null);
+            else if (mutation is SetActivityAlpha activityAlpha)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.ActivityAlpha, activityAlpha.ColumnId, null, null);
+            else if (mutation is SetColumnSpan span)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.ColumnSpan, span.ColumnId, null, null, propertyId: (int)span.Kind);
+            else if (mutation is SetFunctionalDisplay functionalDisplay)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.FunctionalDisplay, functionalDisplay.ColumnId, null, null, propertyId: (int)functionalDisplay.Modality);
+            else if (mutation is SetIbcDifumoDisplay)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.IbcDifumoDisplay, null, null, null);
+            else if (mutation is SetLocalizerDisplay)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.LocalizerDisplay, null, null, null);
+            else if (mutation is SetFmriAtlasCalibration)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.FmriAtlasCalibration, null, null, null);
+            else if (mutation is SetSelectedRoiSphere sphere)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedRoiSphere, null, null, null, sphere.RoiId, null);
+            else if (mutation is CreateCut createCut)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutDefinition, null, null, createCut.CutId);
+            else if (mutation is DeleteCut deleteCut)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutDefinition, null, null, deleteCut.CutId);
+            else if (mutation is SetCutOrder)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutOrder, null, null, null);
+            else if (mutation is CreateRoi createRoi)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.Roi, null, null, null, createRoi.RoiId.Value);
+            else if (mutation is RenameRoi renameRoi)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.Roi, null, null, null, renameRoi.RoiId.Value);
+            else if (mutation is DeleteRoi deleteRoi)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.Roi, null, null, null, deleteRoi.RoiId.Value);
+            else if (mutation is SetActiveRoi)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.ActiveRoi, null, null, null);
+            else if (mutation is CreateRoiSphere createSphere)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.RoiSphere, null, null, null, createSphere.RoiId.Value, createSphere.Definition.SphereId.Value);
+            else if (mutation is DeleteRoiSphere deleteSphere)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.RoiSphere, null, null, null, deleteSphere.RoiId.Value, deleteSphere.SphereId.Value);
+            else if (mutation is SetRoiSphereDefinition sphereDefinition)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.RoiSphere, null, null, null, sphereDefinition.RoiId.Value, sphereDefinition.Definition.SphereId.Value);
+            else if (mutation is MoveSites)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SitePosition, null, null, null);
+            else if (mutation is SetMeshDisplay)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.MeshDisplay, null, null, null);
+            else if (mutation is SetSelectedMri)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedMri, null, null, null);
+            else if (mutation is SetMriCalibration)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.MriCalibration, null, null, null);
+            else if (mutation is SetImplantation)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.Implantation, null, null, null);
+            else if (mutation is ApplyTriangleMask masks)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TriangleMask, null, null, null, masks.Masks[0].TopologyId.Value);
+            else if (mutation is SetSiteBlacklist siteBlacklist)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteBlacklist, siteBlacklist.ColumnId, siteBlacklist.SiteId, null);
+            else if (mutation is SetInfluenceDistance influenceDistance)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.InfluenceDistance, influenceDistance.ColumnId, null, null);
+            else if (mutation is SetColumnResource columnResource)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.ColumnResource, columnResource.ColumnId, null, null, propertyId: (int)columnResource.Kind);
+            else if (mutation is SetCcepSource ccepSource)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CcepSource, ccepSource.ColumnId, null, null);
+            else if (mutation is SetSiteConfigurationBatch)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteConfigurationBatch, null, null, null);
+            else if (mutation is SetSiteFilterResult)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteFilterResult, null, null, null);
+            else if (mutation is SetCorrelationResult)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CorrelationResult, null, null, null);
+            else
+                throw new ArgumentException("Unsupported mutation type.", nameof(mutation));
+
+            BarrierScope = mutation is CreateCut or DeleteCut or SetCutOrder or CreateRoi or RenameRoi or DeleteRoi or CreateRoiSphere or DeleteRoiSphere or MoveSites or SetMeshDisplay or SetSelectedMri or SetImplantation or ApplyTriangleMask or SetSiteConfigurationBatch or SetSiteFilterResult or SetCorrelationResult ? BarrierScope.AllScene : BarrierScope.None;
+            if (mutation is SetTimelineAnchor anchor && anchor.Intent != TimelineAnchorIntent.Seek)
+                BarrierScope = BarrierScope.TouchedKeys;
+            CoalescingKey = key;
+            var keys = new List<TouchedKey> { key };
+            if (mutation is ApplyTriangleMask triangleMasks)
+                foreach (TriangleMask mask in triangleMasks.Masks.Skip(1))
+                    keys.Add(new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TriangleMask, null, null, null, mask.TopologyId.Value));
+            TouchedKeys = new ReadOnlyCollection<TouchedKey>(keys.Distinct().ToArray());
+        }
+    }
+
+    public sealed class MutationEnvelope
+    {
+        public SessionId SessionId { get; }
+        public SceneId SceneId { get; }
+        public IncarnationId IncarnationId { get; }
+        public OperationId OperationId { get; }
+        public ReliableStreamId ReliableStreamId { get; }
+        public ulong ReliableFrameSequence { get; }
+        public ulong OriginSequence { get; }
+        public ulong? CanonicalSequence { get; }
+        public ulong? ObservedCanonicalSequence { get; }
+        public OriginDevice OriginDevice { get; }
+        public Mutation Mutation { get; }
+        public MutationDescriptor Descriptor { get; }
+
+        public MutationEnvelope(SessionId sessionId, SceneId sceneId, IncarnationId incarnationId, OperationId operationId, ReliableStreamId reliableStreamId, ulong reliableFrameSequence, ulong originSequence, OriginDevice originDevice, ulong? canonicalSequence, ulong? observedCanonicalSequence, Mutation mutation)
+        {
+            SessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
+            SceneId = sceneId ?? throw new ArgumentNullException(nameof(sceneId));
+            IncarnationId = incarnationId ?? throw new ArgumentNullException(nameof(incarnationId));
+            OperationId = operationId ?? throw new ArgumentNullException(nameof(operationId));
+            ReliableStreamId = reliableStreamId ?? throw new ArgumentNullException(nameof(reliableStreamId));
+            Mutation = mutation ?? throw new ArgumentNullException(nameof(mutation));
+            if (reliableFrameSequence == 0)
+                throw new ArgumentOutOfRangeException(nameof(reliableFrameSequence));
+            if (originSequence == 0)
+                throw new ArgumentOutOfRangeException(nameof(originSequence));
+            if (originDevice != OriginDevice.Desktop && originDevice != OriginDevice.Quest)
+                throw new ArgumentOutOfRangeException(nameof(originDevice));
+            if (canonicalSequence.HasValue && canonicalSequence.Value == 0)
+                throw new ArgumentOutOfRangeException(nameof(canonicalSequence));
+            if (originDevice == OriginDevice.Desktop && !canonicalSequence.HasValue)
+                throw new ArgumentException("Desktop mutations must carry a canonical sequence.", nameof(canonicalSequence));
+            if (originDevice == OriginDevice.Desktop && observedCanonicalSequence.HasValue)
+                throw new ArgumentException("Desktop-origin mutations cannot carry an observed canonical sequence.", nameof(observedCanonicalSequence));
+            if (originDevice == OriginDevice.Quest && !observedCanonicalSequence.HasValue)
+                throw new ArgumentException("Quest proposals must carry an observed canonical sequence.", nameof(observedCanonicalSequence));
+            EnsureDistinctIdentities(sessionId, sceneId, incarnationId, operationId, reliableStreamId);
+
+            ReliableFrameSequence = reliableFrameSequence;
+            OriginSequence = originSequence;
+            OriginDevice = originDevice;
+            CanonicalSequence = canonicalSequence;
+            ObservedCanonicalSequence = observedCanonicalSequence;
+            Descriptor = new MutationDescriptor(sceneId, incarnationId, mutation);
+        }
+
+        private static void EnsureDistinctIdentities(params BinaryIdentity[] identities)
+        {
+            for (int i = 0; i < identities.Length; i++)
+            {
+                if (identities[i] == null || !identities[i].IsValid)
+                    throw new ArgumentException("Envelope identities must be nonzero.", nameof(identities));
+                for (int j = 0; j < i; j++)
+                {
+                    if (identities[i].Value == identities[j].Value)
+                        throw new ArgumentException("Envelope identities must be distinct.", nameof(identities));
+                }
+            }
+        }
+    }
+
+    public sealed class SiteColorCheckpointRecord
+    {
+        public SetSiteColor Value { get; }
+        public ushort RecordType => (ushort)OperationType.SetSiteColor;
+        public ushort SchemaVersion => 1;
+
+        public SiteColorCheckpointRecord(SetSiteColor value) => Value = value ?? throw new ArgumentNullException(nameof(value));
+        public byte[] Encode() => CheckpointRecordCodec.Encode(RecordType, Value);
+        public static SiteColorCheckpointRecord Decode(byte[] bytes) => new SiteColorCheckpointRecord((SetSiteColor)CheckpointRecordCodec.Decode(bytes, OperationType.SetSiteColor));
+    }
+
+    public sealed class CutDefinitionCheckpointRecord
+    {
+        public SetCutDefinition Value { get; }
+        public ushort RecordType => (ushort)OperationType.SetCutDefinition;
+        public ushort SchemaVersion => 1;
+
+        public CutDefinitionCheckpointRecord(SetCutDefinition value) => Value = value ?? throw new ArgumentNullException(nameof(value));
+        public byte[] Encode() => CheckpointRecordCodec.Encode(RecordType, Value);
+        public static CutDefinitionCheckpointRecord Decode(byte[] bytes) => new CutDefinitionCheckpointRecord((SetCutDefinition)CheckpointRecordCodec.Decode(bytes, OperationType.SetCutDefinition));
+    }
+
+    public sealed class TimelineAnchorCheckpointRecord
+    {
+        public SetTimelineAnchor Value { get; }
+        public ushort RecordType => (ushort)OperationType.SetTimelineAnchor;
+        public ushort SchemaVersion => 2;
+
+        public TimelineAnchorCheckpointRecord(SetTimelineAnchor value) => Value = value ?? throw new ArgumentNullException(nameof(value));
+        public byte[] Encode() => CheckpointRecordCodec.Encode(RecordType, Value);
+        public static TimelineAnchorCheckpointRecord Decode(byte[] bytes) => new TimelineAnchorCheckpointRecord((SetTimelineAnchor)CheckpointRecordCodec.Decode(bytes, OperationType.SetTimelineAnchor));
+    }
+
+
+    internal static class IdentityCodec
+    {
+        internal static Guid ReadGuid(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length != 16)
+                throw new ArgumentException("Binary identity must be exactly 16 bytes.", nameof(bytes));
+            return new Guid(bytes);
+        }
+    }
+
+    internal static class ValueValidation
+    {
+        internal static void ValidateFloat(float value, string parameterName)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value) || (value == 0f && 1f / value < 0f))
+                throw new ArgumentOutOfRangeException(parameterName, "Value must be finite and must not be negative zero.");
+        }
+    }
+}

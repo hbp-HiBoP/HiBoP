@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using DataManager = HBP.Core.Data.DataManager;
 using Site = HBP.Core.Data.Site;
 using HBP.Core.Enums;
@@ -159,7 +160,7 @@ namespace HBP.Tests.Quest
                     if (request.Kind != SessionControlKind.AtlasInventory) sent.Add(request);
                     return request.Kind == SessionControlKind.Open ? opening.Task : Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes("{}")));
                 });
-                Task start = owner.StartAsync();
+                Task start = owner.StartAsync().AsTask();
                 preferences.General.Project.DefaultName = "First save";
                 preferences.Save();
                 preferences.General.Project.DefaultName = "Second save";

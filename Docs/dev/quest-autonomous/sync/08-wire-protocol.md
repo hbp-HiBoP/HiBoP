@@ -1,8 +1,8 @@
-# Wire protocol v2
+# Wire protocol sync
 
 ## Purpose
 
-Protocol v2 carries small typed mutations, job control/results, checkpoints and lifecycle messages over the authenticated pairing connection. It is intentionally incompatible with the experimental snapshot protocol.
+Protocol sync carries small typed mutations, job control/results, checkpoints and lifecycle messages over the authenticated pairing connection. It is intentionally incompatible with the experimental snapshot protocol.
 
 The protocol is duplex from its first vertical slice even if Desktop-origin UI coverage ships first.
 

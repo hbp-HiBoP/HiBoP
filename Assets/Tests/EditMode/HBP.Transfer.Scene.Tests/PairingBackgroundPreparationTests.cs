@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Sync.Scene;
@@ -20,10 +21,10 @@ namespace HBP.Tests.Transfer
             var preferences = new UserPreferences();
             preferences.Data.Atlases.PreloadIBC = true;
             int loads = 0;
-            var preparation = new SessionAtlasPreparation(preferences.Data.Atlases, () => installed.Task, (id, token) =>
+            var preparation = new SessionAtlasPreparation(preferences.Data.Atlases, () => installed.Task.AsUniTask(), (id, token) =>
             {
                 loads++;
-                return Task.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded));
+                return UniTask.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded));
             }, id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
             Guid context = Guid.NewGuid();
             var receiver = new SessionPreferencesReceiver(() => context, () => preferences, () => false, preparation.Snapshot);
@@ -52,7 +53,7 @@ namespace HBP.Tests.Transfer
         {
             var preferences = new UserPreferences();
             preferences.Data.Atlases.PreloadIBC = true;
-            var preparation = new SessionAtlasPreparation(preferences.Data.Atlases, () => Task.FromException(new InvalidOperationException("Missing scientific files")), (id, token) => throw new Exception("Must not load"), id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
+            var preparation = new SessionAtlasPreparation(preferences.Data.Atlases, () => UniTask.FromException(new InvalidOperationException("Missing scientific files")), (id, token) => throw new Exception("Must not load"), id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
             preparation.Start();
             await preparation.Completion;
             var inventory = preparation.Snapshot();
@@ -85,16 +86,16 @@ namespace HBP.Tests.Transfer
                 complete.TrySetCanceled();
             });
             int loads = 0;
-            var preparation = new SessionAtlasPreparation(preferences, () => Task.CompletedTask, (id, token) =>
+            var preparation = new SessionAtlasPreparation(preferences, () => UniTask.CompletedTask, (id, token) =>
             {
                 loads++;
                 entered.TrySetResult(true);
-                return complete.Task;
+                return complete.Task.AsUniTask();
             }, id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
             preparation.Start();
             await entered.Task;
             var closing = preparation.CloseAsync();
-            Assert.That(closing.IsCompleted, Is.False);
+            Assert.That(closing.Status.IsCompleted(), Is.False);
             complete.SetResult(new("mars", AtlasLoadState.Cancelled));
             await closing;
             Assert.That(loads, Is.EqualTo(1));
@@ -106,11 +107,11 @@ namespace HBP.Tests.Transfer
         public async Task ClosingWhileWaitingForInstallationDoesNotWaitForApplicationWork()
         {
             var installed = new TaskCompletionSource<bool>();
-            var preparation = new SessionAtlasPreparation(new AtlasesPreferences(), () => installed.Task, (id, token) => throw new Exception("Cancelled context must not load"), id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
+            var preparation = new SessionAtlasPreparation(new AtlasesPreferences(), () => installed.Task.AsUniTask(), (id, token) => throw new Exception("Cancelled context must not load"), id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
             preparation.Start();
             try
             {
-                Task closing = preparation.CloseAsync();
+                Task closing = preparation.CloseAsync().AsTask();
                 Task winner = await Task.WhenAny(closing, Task.Delay(3000));
                 Assert.That(winner, Is.SameAs(closing));
                 await closing;
@@ -128,7 +129,7 @@ namespace HBP.Tests.Transfer
         public async Task SuccessfulPreloadDoesNotResurrectAnUnloadedNativeResource()
         {
             bool loaded = true;
-            var preparation = new SessionAtlasPreparation(new AtlasesPreferences(), () => Task.CompletedTask, (id, token) => Task.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded)), id => new AtlasLoadResult(id, loaded ? AtlasLoadState.Loaded : AtlasLoadState.Unloaded));
+            var preparation = new SessionAtlasPreparation(new AtlasesPreferences(), () => UniTask.CompletedTask, (id, token) => UniTask.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded)), id => new AtlasLoadResult(id, loaded ? AtlasLoadState.Loaded : AtlasLoadState.Unloaded));
             preparation.Start();
             await preparation.Completion;
             Assert.That(preparation.Snapshot().Preparing, Is.False);

@@ -7,13 +7,13 @@ using HBP.Transfer.Transport;
 
 namespace HBP.Sync.Scene
 {
-    public sealed class V2PreparedSceneIdentity
+    public sealed class PreparedSceneIdentity
     {
         public SessionId SessionId { get; }
         public SceneId SceneId { get; }
         public IncarnationId IncarnationId { get; }
 
-        private V2PreparedSceneIdentity(SessionId sessionId, SceneId sceneId, IncarnationId incarnationId)
+        private PreparedSceneIdentity(SessionId sessionId, SceneId sceneId, IncarnationId incarnationId)
         {
             if (sessionId.Value == sceneId.Value || sessionId.Value == incarnationId.Value || sceneId.Value == incarnationId.Value)
                 throw new InvalidDataException("The prepared scene identities must be distinct.");
@@ -22,7 +22,7 @@ namespace HBP.Sync.Scene
             IncarnationId = incarnationId;
         }
 
-        public static V2PreparedSceneIdentity Create(string globalContextId, string visualizationId, string transferId)
+        public static PreparedSceneIdentity Create(string globalContextId, string visualizationId, string transferId)
         {
             Guid session = ParseGuid(globalContextId, nameof(globalContextId));
             Guid incarnation = ParseGuid(transferId, nameof(transferId));
@@ -36,8 +36,8 @@ namespace HBP.Sync.Scene
                 scene = new Guid(sceneBytes);
             }
 
-            if (scene == Guid.Empty) throw new InvalidDataException("The visualization has an empty v2 scene identity.");
-            return new V2PreparedSceneIdentity(new SessionId(session), new SceneId(scene), new IncarnationId(incarnation));
+            if (scene == Guid.Empty) throw new InvalidDataException("The visualization has an empty sync scene identity.");
+            return new PreparedSceneIdentity(new SessionId(session), new SceneId(scene), new IncarnationId(incarnation));
         }
 
         private static Guid ParseGuid(string value, string parameterName)
@@ -91,7 +91,7 @@ namespace HBP.Sync.Scene
             return new PreparedSceneDeliveryBinding(receipt.ContentHash, restored.PreparedManifest);
         }
 
-        public V2PreparedSceneIdentity CreateV2Identity() => V2PreparedSceneIdentity.Create(GlobalContextId, VisualizationId, TransferId);
+        public PreparedSceneIdentity CreateIdentity() => PreparedSceneIdentity.Create(GlobalContextId, VisualizationId, TransferId);
 
         private static void ValidateReceipt(DeliveryReceipt receipt)
         {

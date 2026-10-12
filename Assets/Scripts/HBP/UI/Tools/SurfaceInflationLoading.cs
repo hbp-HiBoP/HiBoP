@@ -12,7 +12,7 @@ namespace HBP.UI.Tools
     /// <summary>Wraps only surface preparation; transitions and publication run after the loading operation ends.</summary>
     public static class SurfaceInflationLoading
     {
-        public static async UniTask PrepareAsync(V2SurfaceInflationCoordinator coordinator, Func<CancellationToken, UniTask> prepare, CancellationToken cancellationToken)
+        public static async UniTask PrepareAsync(SurfaceInflationCoordinator coordinator, Func<CancellationToken, UniTask> prepare, CancellationToken cancellationToken)
         {
             if (!LoadingManager.IsInitialized)
             {
@@ -25,10 +25,10 @@ namespace HBP.UI.Tools
             {
                 preparationCancellation = token;
                 await UniTask.SwitchToMainThread();
-                Task preparation = prepare(token).AsTask();
+                UniTask preparation = prepare(token);
                 try
                 {
-                    while (!preparation.IsCompleted)
+                    while (!preparation.Status.IsCompleted())
                     {
                         update(coordinator.Progress, 0, new LoadingText("Inflating surface on both devices"));
                         await UniTask.Yield(PlayerLoopTiming.Update);

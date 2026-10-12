@@ -138,7 +138,7 @@ namespace HBP.Transfer.Transport
             header[0] = (byte)'H';
             header[1] = (byte)'B';
             header[2] = (byte)'T';
-            header[3] = 2; // v2 acknowledges application publication, never just received bytes.
+            header[3] = 2; // sync acknowledges application publication, never just received bytes.
             PutInt(header, 4, payload.Length);
             byte[] digest = sha.ComputeHash(payload);
             Buffer.BlockCopy(digest, 0, header, 8, 32);

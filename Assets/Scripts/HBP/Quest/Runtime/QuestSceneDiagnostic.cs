@@ -56,7 +56,13 @@ namespace HBP.Quest
         {
             const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
             var session = UnityEngine.Object.FindAnyObjectByType<QuestAnatomySession>();
-            object replica = session == null ? null : typeof(QuestAnatomySession).GetField("v2Replica", flags).GetValue(session);
+            object replica = null;
+            if (session != null && typeof(QuestAnatomySession).GetField("deliveries", flags).GetValue(session) is IDictionary deliveries)
+                foreach (object entry in deliveries.Values)
+                {
+                    replica = entry.GetType().GetField("Replica").GetValue(entry);
+                    if (replica != null) break;
+                }
             if (replica == null) return "No published replica.";
             var result = new StringBuilder();
             object Read(object target, string name) => target.GetType().GetField(name, flags).GetValue(target);

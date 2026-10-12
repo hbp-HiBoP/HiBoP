@@ -446,8 +446,8 @@ namespace HBP.Tests.PlayMode.UI
             var module = root.AddComponent<Module3DMain>();
             Set(module, "m_Scenes", new System.Collections.Generic.List<Base3DScene> { scene });
             moduleField.SetValue(null, module);
-            Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.V2SceneMutationBoundary")).First(type => type != null);
-            Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.V2OriginDevice")).First(type => type != null);
+            Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.SceneMutationBoundary")).First(type => type != null);
+            Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.OriginDevice")).First(type => type != null);
             var boundary = (IDisposable)Activator.CreateInstance(boundaryType, new object[] { scene, Enum.Parse(originType, "Desktop"), null, null, null });
             var mutations = new System.Collections.Generic.List<object>();
             EventInfo proposed = boundaryType.GetEvent("MutationProposed");

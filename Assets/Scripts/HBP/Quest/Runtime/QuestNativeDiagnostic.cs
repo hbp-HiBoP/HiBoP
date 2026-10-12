@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using AOT;
 using HBP.Core.DLL;
 using HBP.Core.DLL.HbpCore;
@@ -69,10 +69,10 @@ namespace HBP.Quest
                 Debug.LogError("QUEST016_PROBE_FAIL invalid run ID");
                 return;
             }
-            _ = RunAsync(runId); // The diagnostic catches and persists its own failures.
+            RunAsync(runId).Forget(); // The diagnostic catches and persists its own failures.
         }
 
-        private static async Task RunAsync(string runId)
+        private static async UniTask RunAsync(string runId)
         {
             var report = new Report { runId = runId };
             string directory = Path.Combine(Application.persistentDataPath, "quest016");
@@ -87,7 +87,7 @@ namespace HBP.Quest
                 report.nativeVersion = HbpCoreRuntime.Version;
                 Require(!string.IsNullOrEmpty(report.nativeVersion), "Native version missing");
                 Debug.Log($"QUEST016_START runId={runId}; native={report.nativeVersion}; cycles={CycleCount}");
-                await Task.Delay(2000, Application.exitCancellationToken);
+                await UniTask.Delay(TimeSpan.FromMilliseconds(2000), DelayType.Realtime, cancellationToken: Application.exitCancellationToken);
                 Sample(report);
                 for (int cycle = 0; cycle < CycleCount; cycle++)
                 {
@@ -96,7 +96,7 @@ namespace HBP.Quest
                     if (report.completedCycles % 10 == 0)
                     {
                         // Yield to the PlayerLoop so deferred Mesh destruction and XR can progress.
-                        await Task.Delay(1000, Application.exitCancellationToken);
+                        await UniTask.Delay(TimeSpan.FromMilliseconds(1000), DelayType.Realtime, cancellationToken: Application.exitCancellationToken);
                         Sample(report);
                     }
                 }

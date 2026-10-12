@@ -159,14 +159,14 @@ namespace HBP.UI.Informations
         public void FilterChannels(ChannelStruct[] channels)
         {
             if (channels == null) throw new ArgumentNullException(nameof(channels));
-            V2SiteFilterChannel[] requestedChannels = channels.Where(channel => channel != null && channel.Patient != null && !string.IsNullOrEmpty(channel.Channel)).Select(channel => new V2SiteFilterChannel(channel.Channel, channel.Patient.ID)).ToArray();
-            V2SiteFilterRequest request = V2SiteFilterRequest.FromChannels(requestedChannels, externalLoadingIndicator: true);
+            SiteFilterChannel[] requestedChannels = channels.Where(channel => channel != null && channel.Patient != null && !string.IsNullOrEmpty(channel.Channel)).Select(channel => new SiteFilterChannel(channel.Channel, channel.Patient.ID)).ToArray();
+            SiteFilterRequest request = SiteFilterRequest.FromChannels(requestedChannels, externalLoadingIndicator: true);
             if (SiteFilterUiRequestRunner.TryRun(m_Scene, request, () => ApplyChannelFilterLocally(requestedChannels))) return;
 
             ApplyChannelFilterLocally(requestedChannels);
         }
 
-        private void ApplyChannelFilterLocally(V2SiteFilterChannel[] channels)
+        private void ApplyChannelFilterLocally(SiteFilterChannel[] channels)
         {
             var selected = channels.Select(channel => (channel.PatientId, channel.Channel)).ToHashSet();
             var assignments = m_Scene.Columns.SelectMany(column => column.Sites).Select(site => (site.State, selected.Contains((site.Information.PatientID, site.name))));

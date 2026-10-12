@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Object3D;
 using HBP.Core.Preferences;
@@ -29,18 +28,18 @@ namespace HBP.Sync.Scene
         private readonly CancellationTokenSource stop = new();
         private readonly HashSet<string> requested;
         private readonly Dictionary<string, SessionAtlasState> results = new(StringComparer.Ordinal);
-        private readonly Func<Task> installed;
-        private readonly Func<string, CancellationToken, Task<AtlasLoadResult>> load;
+        private readonly Func<UniTask> installed;
+        private readonly Func<string, CancellationToken, UniTask<AtlasLoadResult>> load;
         private readonly Func<string, AtlasLoadResult> status;
-        private Task running = Task.CompletedTask;
+        private UniTask running = UniTask.CompletedTask;
         private bool preparing;
-        public Task Completion => running;
+        public UniTask Completion => running;
 
-        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<Task> installed, Func<string, CancellationToken, Task<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
+        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<UniTask> installed, Func<string, CancellationToken, UniTask<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
         {
             requested = AtlasResources.Definitions.Where(d => d.Preload(preferences)).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
             this.installed = installed;
-            this.load = load ?? ((id, token) => AtlasResources.LoadAsync(id, token).AsTask());
+            this.load = load ?? ((id, token) => AtlasResources.LoadAsync(id, token));
             this.status = status ?? AtlasResources.Status;
         }
 
@@ -48,16 +47,16 @@ namespace HBP.Sync.Scene
         {
             if (preparing || stop.IsCancellationRequested || results.Count != 0) return;
             preparing = true;
-            running = RunAsync();
+            running = RunAsync().ToAsyncLazy().Task;
         }
 
-        private async Task RunAsync()
+        private async UniTask RunAsync()
         {
             using var timing = PairingTiming.Measure("quest.atlas-preparation");
             try
             {
                 // Only this context's wait is cancelled; the application owns and observes installation.
-                await installed().AsUniTask().AttachExternalCancellation(stop.Token);
+                await installed().AttachExternalCancellation(stop.Token);
                 await UniTask.SwitchToMainThread();
                 foreach (string id in requested)
                 {
@@ -96,7 +95,7 @@ namespace HBP.Sync.Scene
             return inventory;
         }
 
-        public async Task CloseAsync()
+        public async UniTask CloseAsync()
         {
             stop.Cancel();
             await running;

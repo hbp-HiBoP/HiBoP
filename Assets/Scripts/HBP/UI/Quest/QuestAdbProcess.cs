@@ -5,15 +5,14 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace HBP.UI.Quest
 {
     /// <summary>Bounded ADB client execution. System.Diagnostics.Process.Start is unavailable in Windows IL2CPP.</summary>
     internal static class QuestAdbProcess
     {
-        public static Task<string> RunAsync(string executable, string arguments, CancellationToken stop) =>
-            Task.Run(() => Run(executable, arguments, stop), stop);
+        public static UniTask<string> RunAsync(string executable, string arguments, CancellationToken stop) => UniTask.RunOnThreadPool(() => Run(executable, arguments, stop), configureAwait: false, cancellationToken: stop);
 
         private static string Run(string executable, string arguments, CancellationToken stop)
         {
@@ -50,8 +49,7 @@ namespace HBP.UI.Quest
                     Attributes = attributes
                 };
                 var command = new StringBuilder("\"" + executable + "\" " + arguments);
-                Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x08080000, IntPtr.Zero,
-                    Path.GetDirectoryName(executable), ref startup, out process));
+                Check(CreateProcessW(executable, command, IntPtr.Zero, IntPtr.Zero, true, 0x08080000, IntPtr.Zero, Path.GetDirectoryName(executable), ref startup, out process));
                 var elapsed = Stopwatch.StartNew();
                 while (true)
                 {
@@ -77,8 +75,10 @@ namespace HBP.UI.Quest
                         TerminateProcess(process.Process, 1); // Only this ADB client; never the server or HiBoP.
                         WaitForSingleObject(process.Process, 1000);
                     }
+
                     CloseHandle(process.Process);
                 }
+
                 if (process.Thread != IntPtr.Zero) CloseHandle(process.Thread);
                 if (initialized) DeleteProcThreadAttributeList(attributes);
                 if (attributes != IntPtr.Zero) Marshal.FreeHGlobal(attributes);
@@ -117,22 +117,51 @@ namespace HBP.UI.Quest
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct StartupInfoEx { public StartupInfo Startup; public IntPtr Attributes; }
+        private struct StartupInfoEx
+        {
+            public StartupInfo Startup;
+            public IntPtr Attributes;
+        }
 
         [StructLayout(LayoutKind.Sequential)]
-        private struct ProcessInformation { public IntPtr Process, Thread; public uint ProcessId, ThreadId; }
+        private struct ProcessInformation
+        {
+            public IntPtr Process, Thread;
+            public uint ProcessId, ThreadId;
+        }
 
-        [DllImport("kernel32.dll")] private static extern IntPtr GetCurrentProcess();
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool CloseHandle(IntPtr handle);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool DuplicateHandle(IntPtr sourceProcess, IntPtr source, IntPtr targetProcess, out IntPtr target, uint access, bool inherit, uint options);
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern IntPtr CreateFileW(string name, uint access, uint share, ref SecurityAttributes security, uint disposition, uint flags, IntPtr template);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, uint flags, ref IntPtr size);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool UpdateProcThreadAttribute(IntPtr list, uint flags, IntPtr attribute, IntPtr value, IntPtr size, IntPtr previous, IntPtr returnedSize);
-        [DllImport("kernel32.dll")] private static extern void DeleteProcThreadAttributeList(IntPtr list);
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)] private static extern bool CreateProcessW(string application, StringBuilder command, IntPtr processSecurity, IntPtr threadSecurity, bool inherit, uint flags, IntPtr environment, string directory, ref StartupInfoEx startup, out ProcessInformation process);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool GetExitCodeProcess(IntPtr process, out uint exit);
-        [DllImport("kernel32.dll", SetLastError = true)] private static extern bool TerminateProcess(IntPtr process, uint exit);
+        [DllImport("kernel32.dll")]
+        private static extern IntPtr GetCurrentProcess();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool CloseHandle(IntPtr handle);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool DuplicateHandle(IntPtr sourceProcess, IntPtr source, IntPtr targetProcess, out IntPtr target, uint access, bool inherit, uint options);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr CreateFileW(string name, uint access, uint share, ref SecurityAttributes security, uint disposition, uint flags, IntPtr template);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool InitializeProcThreadAttributeList(IntPtr list, int count, uint flags, ref IntPtr size);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool UpdateProcThreadAttribute(IntPtr list, uint flags, IntPtr attribute, IntPtr value, IntPtr size, IntPtr previous, IntPtr returnedSize);
+
+        [DllImport("kernel32.dll")]
+        private static extern void DeleteProcThreadAttributeList(IntPtr list);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern bool CreateProcessW(string application, StringBuilder command, IntPtr processSecurity, IntPtr threadSecurity, bool inherit, uint flags, IntPtr environment, string directory, ref StartupInfoEx startup, out ProcessInformation process);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern uint WaitForSingleObject(IntPtr handle, uint milliseconds);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool GetExitCodeProcess(IntPtr process, out uint exit);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool TerminateProcess(IntPtr process, uint exit);
 #endif
     }
 }

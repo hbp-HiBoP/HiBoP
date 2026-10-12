@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -591,13 +590,14 @@ namespace HBP.Core.DLL
         {
             using SurfaceInflationOperation operation = new(source, options);
             using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(operation.RequestCancellation);
-            Task<SurfaceInflationExecution> executionTask = Task.Run(operation.Execute);
+            // The worker owns the native operation until completion, even after cancellation.
+            UniTask<SurfaceInflationExecution> executionTask = UniTask.RunOnThreadPool(operation.Execute, configureAwait: false).ToAsyncLazy().Task;
             Exception progressException = null;
 
-            while (!executionTask.IsCompleted)
+            while (!executionTask.Status.IsCompleted())
             {
                 TryReportProgress(progress, operation.Progress, ref progressException);
-                await Task.Delay(15);
+                await UniTask.Delay(TimeSpan.FromMilliseconds(15), DelayType.Realtime);
             }
 
             SurfaceInflationExecution execution = await executionTask;

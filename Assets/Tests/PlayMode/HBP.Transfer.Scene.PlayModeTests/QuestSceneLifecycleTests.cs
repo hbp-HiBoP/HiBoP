@@ -68,7 +68,7 @@ namespace HBP.Tests.Quest
                 var delayed = (Task<DeliveryStatus>)publish.Invoke(session, new object[] { new ScenePayload { TransferId = a }, null, new string('0', 64), CancellationToken.None });
                 Assert.That(await delayed, Is.EqualTo(DeliveryStatus.Closed), "A delayed full delivery cannot resurrect a closed incarnation.");
                 using var routed = new MemoryStream();
-                await V2ReplicaRoute.WriteAsync(routed, new SessionId(Guid.ParseExact(context.Id, "N")), new SceneId(Guid.NewGuid()), new IncarnationId(Guid.ParseExact(a, "N")), CancellationToken.None);
+                await ReplicaRoute.WriteAsync(routed, new SessionId(Guid.ParseExact(context.Id, "N")), new SceneId(Guid.NewGuid()), new IncarnationId(Guid.ParseExact(a, "N")), CancellationToken.None);
                 routed.Position = 0;
                 Exception rejected = null;
                 try

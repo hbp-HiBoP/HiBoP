@@ -9,16 +9,16 @@ namespace HBP.UI.Module3D
 {
     internal static class SiteFilterUiRequestRunner
     {
-        public static bool TryRun(Base3DScene scene, V2SiteFilterRequest request, Action fallback)
+        public static bool TryRun(Base3DScene scene, SiteFilterRequest request, Action fallback)
         {
-            if (scene == null || !V2SiteFilterRequestRouter.TryGetHandler(scene, out Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
+            if (scene == null || !SiteFilterRequestRouter.TryGetHandler(scene, out Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
                 return false;
 
             RunAsync(request, handler, fallback).Forget();
             return true;
         }
 
-        private static async UniTask RunAsync(V2SiteFilterRequest request, Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler, Action fallback)
+        private static async UniTask RunAsync(SiteFilterRequest request, Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler, Action fallback)
         {
             try
             {

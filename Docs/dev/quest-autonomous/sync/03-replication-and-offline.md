@@ -25,7 +25,7 @@ The 86-byte, little-endian body contains magic `HBRP` (4 bytes), schema version 
 
 Reliable receive-stream fences survive the existing 500 ms reconnect grace. The authority additionally fences retired Quest origin identities, and Quest suppresses canonicals behind its retirement floor. New logical mutations require fresh operation IDs; retries preserve their immutable frame identity. Changed-payload UUID reuse is detected within the active retention window; unlimited lifetime UUID auditing is not retained.
 
-Optimistic rollback order contains only live entries and removes confirmed/rejected/replaced identities. Memory therefore follows live scene state and unresolved work, rather than elapsed session duration. T16 reconciles the retained single scene after grace expiry and adds no persistent offline journal; multi-scene behavior remains T17 work.
+Optimistic rollback order contains only live entries and removes confirmed/rejected/replaced identities. Memory therefore follows live scene state and unresolved work, rather than elapsed session duration. T16 reconciles retained scenes after grace expiry and adds no persistent offline journal; T17 routes lifecycle and reconciliation independently per scene/incarnation.
 
 ## Connection state machine
 

@@ -20,7 +20,7 @@ Every task must:
 - update matrix/validation evidence only for behavior actually demonstrated;
 - provide a closure table mapping each acceptance claim to its production entry point, deterministic test or measurement, and any limitation that remains unavailable.
 
-Protocol v2 may temporarily coexist in source with experimental code, but one live scene must never have both owners active. Wire/schema backward compatibility is not required.
+Protocol sync may temporarily coexist in source with experimental code, but one live scene must never have both owners active. Wire/schema backward compatibility is not required.
 
 ## Cross-task definition of done
 
@@ -64,7 +64,7 @@ A task is not complete merely because its focused tests pass. It is complete whe
 
 The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the fast static assembly-dependency check used by all later tasks. It rejects `HBP.Core.Runtime -> HBP.*`, dependency cycles and newly introduced direct `HBP.*` edges absent from the explicit policy. It runs without starting Unity and is invoked by the sync test entry point before any Unity process.
 
-## T01 — Minimal pure v2 contract and codec
+## T01 — Minimal pure sync contract and codec
 
 **Depends on:** T00.
 
@@ -137,11 +137,11 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 
 **Acceptance:** color is O(1), cut previews preserve newest value, timeline advances from an anchor, remote apply does not echo, automatic/derived callbacks do not escape context, and unrelated activity/collider flags remain unchanged.
 
-## T05 — Persistent duplex transport v2
+## T05 — Persistent duplex transport sync
 
 **Depends on:** T01 and T03.
 
-**Goal:** transport v2 records bidirectionally without Unity scene dependencies.
+**Goal:** transport sync records bidirectionally without Unity scene dependencies.
 
 **Work:** independent persistent authenticated read/write loops, TCP `NoDelay`, event-driven writer, bounded framing, lane multiplexing, chunk streams, scoped rejection, one liveness owner and clean cancellation.
 
@@ -168,7 +168,7 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 
 **Depends on:** T04.
 
-**Goal:** remove current global concurrency defects before real-scene v2 handlers expand.
+**Goal:** remove current global concurrency defects before real-scene sync handlers expand.
 
 **Work:**
 
@@ -181,11 +181,11 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 
 **Acceptance:** safe scene work progresses during a fake/controlled generator job, manual stale state does not auto-restart, old generations cannot publish, and sensitive race orders are deterministic.
 
-## T08 — Real-scene v2 vertical slice, publication journal and cutover
+## T08 — Real-scene sync vertical slice, publication journal and cutover
 
 **Depends on:** T02 and T04–T07.
 
-**Goal:** activate the three-profile v2 path on a real prepared Desktop/Quest scene.
+**Goal:** activate the three-profile sync path on a real prepared Desktop/Quest scene.
 
 **Work:**
 
@@ -193,7 +193,7 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 - decode/validate off-thread and enqueue detached records;
 - implement capture-boundary-to-Quest-publication mutation journal, ordered replay and overflow checkpoint fallback;
 - abort and restart full publication on a structural, resource or topology mutation that T08 cannot represent with its three typed mutation families;
-- ensure a v2 scene never has the experimental `DesktopReplicaSession`/adapter owner active simultaneously;
+- use only the standard `DesktopReplicaSession` and operation boundary; T18 deletes the experimental owner and adapter;
 - remove artificial next-frame/quiescence gates from this path;
 - preserve Quest wrapper transforms and collect received/applied/visible telemetry.
 
@@ -293,11 +293,11 @@ The T00 foundation also establishes `Tools/check-assembly-dependencies.ps1`, the
 
 ## T18 — Legacy removal and full qualification
 
-**Depends on:** all tasks required by the intended release.
+**Depends on:** T00–T17 and the approved session-preferences/installed-atlas milestone.
 
 **Goal:** remove dead experimental architecture and prove release gates.
 
-**Work:** delete unused snapshot/delta/merge/hot-capture/session code and obsolete tests; complete matrix evidence; run fast/integration shards, slow real-scene qualification and physical USB/Wi-Fi milestones; compare live and initial-transfer performance with T00.
+**Work:** remove the former snapshot/delta/merge/hot-capture/session implementation and its tests; rename the operation-based runtime and tests without V2 prefixes; preserve current wire bytes and Unity GUIDs; run regression qualification and record physical/real-scene limitations separately. Later approved reconciliation and performance decisions supersede the original whole-state/no-merge and numerical-budget plans. See [T18](tasks/T18.md).
 
 **Acceptance:** no active compatibility shim remains; applicable D1–D34 rows pass both driver directions; no stale job publishes; inactive Desktop and initial transfer meet gates; known limitations are explicit.
 

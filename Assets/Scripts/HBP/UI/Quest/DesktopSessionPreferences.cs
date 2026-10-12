@@ -57,17 +57,25 @@ namespace HBP.UI.Quest
 
         private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, body: body);
 
-        private async Task<SessionControlResponse> SendAsync(SessionControlRequest request)
+        private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request)
         {
             m_Stop.Token.ThrowIfCancellationRequested();
-            var response = await m_Send(request, m_Stop.Token).ConfigureAwait(false);
-            await UniTask.SwitchToMainThread();
+            SessionControlResponse response;
+            try
+            {
+                response = await m_Send(request, m_Stop.Token).ConfigureAwait(false);
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+            }
+
             m_Stop.Token.ThrowIfCancellationRequested();
             QuestHasSharedScene = response.HasSharedScene;
             return response;
         }
 
-        public async Task StartAsync()
+        public async UniTask StartAsync()
         {
             using var timing = PairingTiming.Measure("desktop.session-open");
             var response = await SendAsync(Request(SessionControlKind.Open));
@@ -212,14 +220,14 @@ namespace HBP.UI.Quest
 
         public Task FlushPreferencesAsync() => m_PendingPreferences;
 
-        public async Task EnsureAtlasReadyAsync(string id)
+        public async UniTask EnsureAtlasReadyAsync(string id)
         {
             if (SessionAtlasCatalog.CanUse(id)) return;
             await SetAtlasLoadedAsync(id, true);
             if (!SessionAtlasCatalog.CanUse(id)) throw new InvalidOperationException(Status);
         }
 
-        public async Task<string> ValidateNormalizationAsync(NormalizationType requested, bool desktopHasSharedScene)
+        public async UniTask<string> ValidateNormalizationAsync(NormalizationType requested, bool desktopHasSharedScene)
         {
             if (requested == m_Preferences.Data.EEG.Normalization) return null;
             if (desktopHasSharedScene) return "Close the shared visualizations before changing EEG normalization. Automatic reload and retransfer will be added with multi-scene support.";
@@ -243,7 +251,7 @@ namespace HBP.UI.Quest
             }
         }
 
-        public async Task SetAtlasLoadedAsync(string id, bool loaded)
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded)
         {
             try
             {
@@ -337,9 +345,9 @@ namespace HBP.UI.Quest
             }
         }
 
-        public Task RetryAtlasAsync() => RetryAtlasId == null ? Task.CompletedTask : SetAtlasLoadedAsync(RetryAtlasId, m_RetryLoad);
+        public UniTask RetryAtlasAsync() => RetryAtlasId == null ? UniTask.CompletedTask : SetAtlasLoadedAsync(RetryAtlasId, m_RetryLoad);
 
-        private async Task ConfirmAsync(string id)
+        private async UniTask ConfirmAsync(string id)
         {
             using var retention = ResourceRetention.Retain(id);
             if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidOperationException("Desktop atlas is not loaded: " + id);
@@ -369,7 +377,7 @@ namespace HBP.UI.Quest
             RefreshStatus();
         }
 
-        private async Task FailedAsync(string message, Exception exception)
+        private async UniTask FailedAsync(string message, Exception exception)
         {
             await UniTask.SwitchToMainThread();
             if (m_Disposed) return;

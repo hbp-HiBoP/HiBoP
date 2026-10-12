@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Object3D;
@@ -44,7 +43,7 @@ namespace HBP.Transfer.Scene
 
         public static string GetSelectionError() => !Module3DMain.IsInitialized || Module3DMain.SelectedScene == null ? "Open a visualization to send it to Quest." : Module3DMain.SelectedScene.IsClosing ? "The visualization is closing." : null;
 
-        public static async Task PrepareSelectedResourcesAsync(CancellationToken token)
+        public static async UniTask PrepareSelectedResourcesAsync(CancellationToken token)
         {
             if (GetSelectionError() != null)
                 return;
@@ -52,7 +51,7 @@ namespace HBP.Transfer.Scene
             await scene.CapturePreparedAsync(() => 0, token);
         }
 
-        public static Task<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null)
+        public static UniTask<SceneDelivery> CaptureDeliverySelectedAsync(string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null)
         {
             if (!PlayerLoopHelper.IsMainThread)
                 throw new InvalidOperationException("Capture must start on Unity's thread.");
@@ -66,12 +65,12 @@ namespace HBP.Transfer.Scene
             return CaptureDeliveryAsync(Module3DMain.SelectedScene, transferId, sessionId, revision, globals, token, progress, streaming);
         }
 
-        public static async Task<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null, bool streaming = false)
+        public static async UniTask<SceneDelivery> CaptureDeliveryAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token = default, IProgress<string> progress = null, bool streaming = false)
         {
             return await CaptureDeliveryInstrumentedAsync(scene, transferId, sessionId, revision, globals, token, progress, streaming, default, null);
         }
 
-        private static async Task<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity, Action<Base3DScene, string, string> captureBoundary)
+        private static async UniTask<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity, Action<Base3DScene, string, string> captureBoundary)
         {
             if (!PlayerLoopHelper.IsMainThread)
                 throw new InvalidOperationException("Capture must start on Unity's thread.");
@@ -131,7 +130,7 @@ namespace HBP.Transfer.Scene
                     return streamingDelivery;
                 }
 
-                var delivery = await Task.Run(() =>
+                var delivery = await UniTask.RunOnThreadPool(() =>
                 {
                     SceneDelivery result = null;
                     try
@@ -163,7 +162,7 @@ namespace HBP.Transfer.Scene
             catch
             {
                 // Await worker termination before cleanup; large archive cleanup must not block UI.
-                await Task.Run(() =>
+                await UniTask.RunOnThreadPool(() =>
                 {
                     archive.Dispose();
                     if (Directory.Exists(folder))

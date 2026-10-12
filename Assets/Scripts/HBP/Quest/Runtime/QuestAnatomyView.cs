@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.ExceptionServices;
 using Cysharp.Threading.Tasks;
 using HBP.Data.Module3D;
 using HBP.Transfer.Scene;
@@ -30,7 +31,7 @@ namespace HBP.Quest
         }
 
         private readonly List<Presentation> scenes = new();
-        private readonly List<Task> releases = new();
+        private readonly List<UniTask> releases = new();
         private Presentation current;
         private Base3DScene preparingScene;
         private CancellationTokenSource preparation;
@@ -87,7 +88,7 @@ namespace HBP.Quest
             Changed?.Invoke();
         }
 
-        public async Task ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop)
+        public async UniTask ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop)
         {
             if (preparation != null) throw new InvalidOperationException("A visualization is already being prepared.");
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(stop, this.GetCancellationTokenOnDestroy());
@@ -127,7 +128,7 @@ namespace HBP.Quest
                     scenes.Remove(previous);
                     previous.Scene.OnChangeVisibleState.RemoveListener(previous.VisibilityListener);
                     HidePresentation(previous);
-                    TrackRelease(previous).AsUniTask().Forget();
+                    TrackRelease(previous).Forget();
                 }
 
                 scenes.Add(presentation);
@@ -139,6 +140,8 @@ namespace HBP.Quest
             }
             finally
             {
+                // Preparation can fail on a worker before returning to Unity.
+                await UniTask.SwitchToMainThread();
                 try
                 {
                     if (candidate != null) await candidate.CloseAsync();
@@ -188,15 +191,15 @@ namespace HBP.Quest
                 }
         }
 
-        private Task TrackRelease(Presentation presentation)
+        private UniTask TrackRelease(Presentation presentation)
         {
-            releases.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
-            Task release = ReleaseAsync(presentation);
+            releases.RemoveAll(task => task.Status == UniTaskStatus.Succeeded);
+            UniTask release = ReleaseAsync(presentation).ToAsyncLazy().Task;
             releases.Add(release);
             return release;
         }
 
-        private static async Task ReleaseAsync(Presentation presentation)
+        private static async UniTask ReleaseAsync(Presentation presentation)
         {
             try
             {
@@ -204,31 +207,48 @@ namespace HBP.Quest
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 foreach (var column in presentation.columns)
                     if (column != null)
                         Destroy(column.gameObject);
             }
         }
 
-        public async Task CloseAsync(string transferId)
+        public async UniTask CloseAsync(string transferId)
         {
             var presentation = Find(transferId);
             if (presentation == null) return;
             scenes.Remove(presentation);
             presentation.Scene.OnChangeVisibleState.RemoveListener(presentation.VisibilityListener);
-            HBP.Sync.Scene.V2SceneReconciliationRecord.Get(presentation.Scene)?.Dispose();
+            HBP.Sync.Scene.SceneReconciliationRecord.Get(presentation.Scene)?.Dispose();
             if (current == presentation) current = null;
             HidePresentation(presentation);
             Changed?.Invoke();
             await TrackRelease(presentation);
         }
 
-        public async Task ClearAsync()
+        public async UniTask ClearAsync()
         {
             Task preparing = preparationCompletion;
             Clear();
             await preparing;
-            await Task.WhenAll(releases.ToArray());
+            // All releases are already running. Drain every one before propagating a failure,
+            // so replacing globals cannot dispose inputs still borrowed by another scene.
+            ExceptionDispatchInfo failure = null;
+            foreach (UniTask release in releases.ToArray())
+            {
+                try
+                {
+                    await release;
+                }
+                catch (Exception exception)
+                {
+                    if (failure == null || failure.SourceException is OperationCanceledException && exception is not OperationCanceledException)
+                        failure = ExceptionDispatchInfo.Capture(exception);
+                }
+            }
+
+            failure?.Throw();
             releases.Clear();
         }
 
@@ -279,9 +299,9 @@ namespace HBP.Quest
             {
                 scenes.Remove(presentation);
                 presentation.Scene.OnChangeVisibleState.RemoveListener(presentation.VisibilityListener);
-                HBP.Sync.Scene.V2SceneReconciliationRecord.Get(presentation.Scene)?.Dispose();
+                HBP.Sync.Scene.SceneReconciliationRecord.Get(presentation.Scene)?.Dispose();
                 HidePresentation(presentation);
-                TrackRelease(presentation).AsUniTask().Forget();
+                TrackRelease(presentation).Forget();
             }
 
             current = null;

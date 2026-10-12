@@ -4,7 +4,6 @@ using UnityEngine.Events;
 using HBP.Core.Tools;
 using Cysharp.Threading.Tasks;
 using System.Threading;
-using System.Threading.Tasks;
 using HBP.Core.Exceptions;
 
 namespace HBP.UI.Tools
@@ -189,15 +188,16 @@ namespace HBP.UI.Tools
                 if (visualOpened && m_Instance != null) m_Instance.Presenter.ChangePercentage(progress, duration, message);
             };
             UnityAction cancel = linked.Cancel;
-            Task operation = taskToExecute(update, linked.Token).AsTask();
+            // The race and the final drain share one operation, including concurrent waits.
+            UniTask operation = taskToExecute(update, linked.Token).ToAsyncLazy().Task;
             try
             {
-                Task delay = Task.Delay(delayMilliseconds);
-                Task completed = await Task.WhenAny(operation, delay);
-                if (completed == delay && !operation.IsCompleted && !linked.IsCancellationRequested)
+                UniTask delay = UniTask.Delay(TimeSpan.FromMilliseconds(delayMilliseconds), DelayType.Realtime);
+                int completed = await UniTask.WhenAny(operation, delay);
+                if (completed == 1 && !operation.Status.IsCompleted() && !linked.IsCancellationRequested)
                 {
                     await UniTask.SwitchToMainThread();
-                    if (m_Instance != null && !operation.IsCompleted && !linked.IsCancellationRequested)
+                    if (m_Instance != null && !operation.Status.IsCompleted() && !linked.IsCancellationRequested)
                     {
                         m_Instance.OpenPresentation(showInformations, true);
                         m_Instance.Presenter.OnCancel.AddListener(cancel);
@@ -213,12 +213,14 @@ namespace HBP.UI.Tools
             }
             catch (HBPException exception)
             {
+                await UniTask.SwitchToMainThread();
                 Debug.LogError(exception.ToString());
                 DialogBoxManager.Open(Core.Enums.DialogBoxType.Error, exception.Title, exception.Message).Forget();
                 throw;
             }
             catch (Exception exception)
             {
+                await UniTask.SwitchToMainThread();
                 Debug.LogError(exception.ToString());
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", exception.ToString()).Forget();
                 throw;

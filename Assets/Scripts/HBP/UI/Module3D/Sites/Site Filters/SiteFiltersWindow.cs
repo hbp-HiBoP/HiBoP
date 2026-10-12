@@ -33,21 +33,21 @@ namespace HBP.UI.Module3D
         {
             UpdateFilteringObjects();
             BaseFilterCondition[] conditions = m_ListGestion.List.ObjectsSelected;
-            if (conditions.Length == 0 || !TryGetRequestHandler(out Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
+            if (conditions.Length == 0 || !TryGetRequestHandler(out Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
             {
                 base.ApplyFilters();
                 return;
             }
 
-            RunRoutedRequestAsync(V2SiteFilterRequest.FromConditions(conditions, externalLoadingIndicator: true), handler, ApplyFiltersLocallyAsync).Forget();
+            RunRoutedRequestAsync(SiteFilterRequest.FromConditions(conditions, externalLoadingIndicator: true), handler, ApplyFiltersLocallyAsync).Forget();
         }
 
         public override void ResetFilters()
         {
             UpdateFilteringObjects();
-            if (TryGetRequestHandler(out Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
+            if (TryGetRequestHandler(out Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler))
             {
-                RunRoutedRequestAsync(V2SiteFilterRequest.ResetUnmasked(externalLoadingIndicator: true), handler, (_, token) =>
+                RunRoutedRequestAsync(SiteFilterRequest.ResetUnmasked(externalLoadingIndicator: true), handler, (_, token) =>
                 {
                     token.ThrowIfCancellationRequested();
                     ResetFiltersLocally();
@@ -89,10 +89,10 @@ namespace HBP.UI.Module3D
             FilteringObjects = m_Scene.Columns.SelectMany(column => column.Sites).Where(site => !site.State.IsMasked).Select(site => (object)site).ToList();
         }
 
-        private bool TryGetRequestHandler(out Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler)
+        private bool TryGetRequestHandler(out Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler)
         {
             handler = null;
-            return m_Scene != null && V2SiteFilterRequestRouter.TryGetHandler(m_Scene, out handler);
+            return m_Scene != null && SiteFilterRequestRouter.TryGetHandler(m_Scene, out handler);
         }
 
         private UniTask ApplyFiltersLocallyAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
@@ -105,7 +105,7 @@ namespace HBP.UI.Module3D
             base.ResetFilters();
         }
 
-        private async UniTask RunRoutedRequestAsync(V2SiteFilterRequest request, Func<V2SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler, Func<Action<float, float, LoadingText>, CancellationToken, UniTask> fallback)
+        private async UniTask RunRoutedRequestAsync(SiteFilterRequest request, Func<SiteFilterRequest, CancellationToken, System.Threading.Tasks.Task<bool>> handler, Func<Action<float, float, LoadingText>, CancellationToken, UniTask> fallback)
         {
             m_RoutedRequestRunning = true;
             SetButtonsState();

@@ -52,7 +52,7 @@ namespace HBP.Quest.Desktop
         public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
         public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
 
-        public async Task<string> ValidatePreferencesChangeAsync(NormalizationType requested)
+        public async UniTask<string> ValidatePreferencesChangeAsync(NormalizationType requested)
         {
             string blocked = ValidatePreferencesChangeNow(requested);
             if (blocked != null || requested == PersistentDataManager.UserPreferences.Data.EEG.Normalization || !IsPaired) return blocked;
@@ -77,7 +77,7 @@ namespace HBP.Quest.Desktop
         }
 
 
-        public async Task SetAtlasLoadedAsync(string id, bool loaded)
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded)
         {
             await sessionOperations.WaitAsync(lifetime.Token);
             try
@@ -92,11 +92,12 @@ namespace HBP.Quest.Desktop
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 sessionOperations.Release();
             }
         }
 
-        public async Task RetryAtlasAsync()
+        public async UniTask RetryAtlasAsync()
         {
             await sessionOperations.WaitAsync(lifetime.Token);
             try
@@ -105,6 +106,7 @@ namespace HBP.Quest.Desktop
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 sessionOperations.Release();
             }
         }
@@ -292,11 +294,11 @@ namespace HBP.Quest.Desktop
             SetStatus(reconciliationNeedsRetry ? "Quest connected. Some visualizations could not reconnect. Select Retry." : "Quest connected. Scene synchronization is ready.");
         }
 
-        private static async Task<V2ConflictChoice> ChooseConflictAsync(V2CheckpointConflict conflict, CancellationToken stop)
+        private static async Task<ConflictChoice> ChooseConflictAsync(CheckpointConflict conflict, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(stop);
             int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", "This choice applies to conflicts in all common visualizations during this reconnection. Each visualization has its own result.\n\n" + conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
-            return answer == 0 ? V2ConflictChoice.Desktop : V2ConflictChoice.Quest;
+            return answer == 0 ? ConflictChoice.Desktop : ConflictChoice.Quest;
         }
 
         private async Task<DeliveryReceipt> SendGlobalsAsync(Stream stream, CancellationToken token)

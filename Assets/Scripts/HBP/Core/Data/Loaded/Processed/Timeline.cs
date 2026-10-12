@@ -12,8 +12,6 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
     {
         [ThreadStatic] private static int s_AutomaticPlaybackUpdateDepth;
 
-        /// <summary>Raised synchronously before a timeline anchor component changes.</summary>
-        public static event Action<BasicTimeline> AnchorChanging;
 
         /// <summary>Raised after a timeline anchor component changes; the bool marks automatic playback advancement.</summary>
         public static event Action<BasicTimeline, bool> AnchorChanged;
@@ -66,7 +64,6 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 }
 
                 bool changed = m_CurrentIndex != next;
-                if (changed) AnchorChanging?.Invoke(this);
                 m_CurrentIndex = next;
 
                 if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
@@ -87,7 +84,6 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             set
             {
                 bool changed = m_IsLooping != value;
-                if (changed) AnchorChanging?.Invoke(this);
                 m_IsLooping = value;
                 if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
@@ -104,7 +100,6 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             set
             {
                 bool changed = m_IsPlaying != value;
-                if (changed) AnchorChanging?.Invoke(this);
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
                 m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
@@ -144,7 +139,6 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             set
             {
                 bool changed = m_Step != value;
-                if (changed) AnchorChanging?.Invoke(this);
                 m_Step = value;
                 if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
