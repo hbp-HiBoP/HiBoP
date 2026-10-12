@@ -1,5 +1,7 @@
 #if UNITY_ANDROID
 using System.IO;
+using System.Linq;
+using System.Xml.Linq;
 using UnityEditor.Android;
 
 namespace HBP.Dev
@@ -10,6 +12,24 @@ namespace HBP.Dev
 
         public void OnPostGenerateGradleAndroidProject(string path)
         {
+            if (UnityEditor.PlayerSettings.GetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android) == "fr.crnl.hibop.quest")
+            {
+                // Associate the Quest player with HiBoP in Meta's developer portal.
+                string manifestPath = Path.Combine(path, "src", "main", "AndroidManifest.xml");
+                XDocument manifest = XDocument.Load(manifestPath);
+                XNamespace android = "http://schemas.android.com/apk/res/android";
+                XElement application = manifest.Root.Element("application");
+                XElement appId = application.Elements("meta-data")
+                    .FirstOrDefault(element => (string)element.Attribute(android + "name") == "com.oculus.app_id");
+                if (appId == null)
+                {
+                    appId = new XElement("meta-data", new XAttribute(android + "name", "com.oculus.app_id"));
+                    application.Add(appId);
+                }
+                appId.SetAttributeValue(android + "value", "1422501847605591");
+                manifest.Save(manifestPath);
+            }
+
             // Unity passes the unityLibrary directory. Configure the application module,
             // including projects exported from the Editor and builds invoked by CI.
             string launcher = Path.Combine(path, "..", "launcher", "build.gradle");
