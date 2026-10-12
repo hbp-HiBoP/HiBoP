@@ -607,6 +607,7 @@ namespace HBP.Sync
         public V2SchedulerLimits Limits => m_Limits;
         public V2SchedulerState State => m_State;
         public ulong BulkStreamRetiredThrough => m_BulkStreamRetiredThrough;
+        public ulong LastAllocatedBulkStream => m_NextBulkStreamOrdinal - 1;
 
         public V2OutgoingScheduler(SessionId sessionId, SceneId sceneId, IncarnationId incarnationId, V2OriginDevice originDevice, IMonotonicClock clock = null, V2SchedulerLimits limits = null, Func<Guid> guidFactory = null)
         {

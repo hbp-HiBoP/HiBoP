@@ -12,8 +12,6 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker right;
         [SerializeField] private QuestPointerInput pointer;
         private InputAction leftTrigger, rightTrigger, recenter;
-        private HBP.Data.Module3D.Base3DScene previousScene;
-        private bool placed;
         private bool focused = true;
         private bool paused;
 
@@ -36,23 +34,25 @@ namespace HBP.Quest
                 return;
             }
 
-            if (previousScene != view.Scene)
-            {
-                CancelGrabs();
-                previousScene = view.Scene;
-                placed = false;
-            }
-
-            if (view.Scene != null && (!placed || (left.IsTracked && recenter.WasPressedThisFrame())))
+            foreach (var presentation in view.Scenes)
+                if (!presentation.IsPlaced)
+                    Place(presentation);
+            if (left.IsTracked && recenter.WasPressedThisFrame())
             {
                 RecenterBrains();
                 return;
             }
 
             // A controller belongs to at most one column for the duration of a grab.
-            var grabbed = System.Linq.Enumerable.FirstOrDefault(view.Columns, column => column.Manipulator.IsGrabbed);
-            foreach (var column in view.Columns)
+            var grabbed = System.Linq.Enumerable.FirstOrDefault(view.AllColumns, column => column.Manipulator.IsGrabbed);
+            foreach (var column in view.AllColumns)
             {
+                if (column == null || !column.gameObject.activeSelf || column.Scene.IsClosing || !column.Scene.IsVisible)
+                {
+                    column?.Manipulator.CancelGrab();
+                    continue;
+                }
+
                 if (grabbed != null && grabbed != column)
                 {
                     column.Manipulator.CancelGrab();
@@ -63,7 +63,9 @@ namespace HBP.Quest
                 bool leftDistant = false, rightDistant = false;
                 bool leftGrab = pointer != null && pointer.TryGetAnatomyPose(true, column.Manipulator, out leftPose, out leftDistant);
                 bool rightGrab = pointer != null && pointer.TryGetAnatomyPose(false, column.Manipulator, out rightPose, out rightDistant);
+                bool wasGrabbed = column.Manipulator.IsGrabbed;
                 column.Manipulator.Step(leftPose, left.IsTracked, leftTrigger.IsPressed() && leftGrab, rightPose, right.IsTracked, rightTrigger.IsPressed() && rightGrab, leftDistant, rightDistant);
+                if (!wasGrabbed && column.Manipulator.IsGrabbed) view.SelectContext(column.Scene, column.Column);
                 if (column.Manipulator.IsGrabbed) grabbed = column;
             }
         }
@@ -72,20 +74,25 @@ namespace HBP.Quest
         {
             if (view == null || head == null || !head.IsTracked) return;
             if (pointer != null) pointer.CancelCutGrabs();
+            foreach (var presentation in view.Scenes) Place(presentation);
+        }
+
+        private void Place(QuestAnatomyView.Presentation presentation)
+        {
             int index = 0;
-            foreach (var column in view.Columns)
+            foreach (var column in presentation.Columns)
             {
                 column.Manipulator.Recenter(ReadPose(head));
-                column.transform.position += head.transform.right * (index++ - (view.Columns.Count - 1) * 0.5f) * 0.35f;
+                column.transform.position += head.transform.right * (index++ - (presentation.Columns.Count - 1) * 0.5f) * 0.35f;
             }
 
-            placed = true;
+            view.CompletePlacement(presentation);
         }
 
         private void CancelGrabs()
         {
             if (view != null)
-                foreach (var column in view.Columns)
+                foreach (var column in view.AllColumns)
                     column.Manipulator.CancelGrab();
         }
 

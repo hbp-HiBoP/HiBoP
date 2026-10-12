@@ -55,7 +55,7 @@ namespace HBP.UI.Module3D
                 Scene3DWindow sceneWindow = Instantiate(m_SceneWindowPrefab, transform).GetComponent<Scene3DWindow>();
                 sceneWindow.Initialize(scene);
                 m_SiteInfoDisplayer.transform.SetAsLastSibling();
-                sceneWindow.gameObject.SetActive(false);
+                sceneWindow.gameObject.SetActive(scene.IsVisible);
                 m_Scenes.Add(scene, sceneWindow);
             });
             PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(ChangeLayoutDirection);

@@ -1841,6 +1841,13 @@ namespace HBP.Sync.Tests
         {
             using var desktopFixture = new SessionSceneFixture(0);
             using var questFixture = new SessionSceneFixture(0);
+            var managerObject = new GameObject("Publication inventory regression");
+            managerObject.SetActive(false);
+            Type managerType = FindLoadedType("HBP.Quest.Desktop.QuestManager");
+            object manager = managerObject.AddComponent(managerType);
+            Type publicationType = managerType.GetNestedType("Publication", BindingFlags.NonPublic);
+            var publications = (IDictionary)managerType.GetField("publications", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(manager);
+            PropertyInfo needsReconnection = managerType.GetProperty("NeedsSceneReconnection", BindingFlags.Instance | BindingFlags.NonPublic);
             PreparedSceneDeliveryBinding binding = CreatePreparedBinding();
             object questOwner = CreateQuestSession(questFixture.Scene, binding);
             Type desktopOwnerType = FindLoadedType("HBP.Quest.Desktop.DesktopV2ReplicaSession");
@@ -1913,6 +1920,32 @@ namespace HBP.Sync.Tests
                 Assert.That((bool)desktopOwnerType.GetProperty("IsLive").GetValue(desktopOwner), Is.False, "The production Desktop owner must wait for the barrier acknowledgement.");
                 Assert.That(dropped.DroppedRecord.MessageId, Is.Not.Null);
 
+                async Task<bool> CompleteSendAsync()
+                {
+                    await startPublication;
+                    return true;
+                }
+
+                object publication = Activator.CreateInstance(publicationType, true);
+                publicationType.GetField("Scene").SetValue(publication, desktopFixture.Scene);
+                publicationType.GetField("Binding").SetValue(publication, binding);
+                publicationType.GetField("Owner").SetValue(publication, desktopOwner);
+                Task<bool> sendWork = CompleteSendAsync();
+                publicationType.GetField("Work").SetValue(publication, sendWork);
+                publications.Add(desktopFixture.Scene, publication);
+                Assert.That((bool)needsReconnection.GetValue(manager), Is.False, "A received scene awaiting its initial barrier must not be torn down by the heartbeat.");
+
+                MethodInfo snapshotPublications = managerType.GetMethod("SnapshotInventoryPublications", BindingFlags.Instance | BindingFlags.NonPublic);
+                MethodInfo canApplyInventory = managerType.GetMethod("CanApplyInventory", BindingFlags.Static | BindingFlags.NonPublic);
+                Assert.That(((Array)snapshotPublications.Invoke(manager, null)).Length, Is.Zero, "An inventory started during publication must exclude that publication even if it finishes before the response.");
+
+                object disconnectedPublication = Activator.CreateInstance(publicationType, true);
+                publicationType.GetField("Binding").SetValue(disconnectedPublication, binding);
+                publications.Add(questFixture.Scene, disconnectedPublication);
+                Assert.That((bool)needsReconnection.GetValue(manager), Is.True, "Another disconnected scene must still be eligible for reconnection while this send waits.");
+                publications.Remove(questFixture.Scene);
+                ((CancellationTokenSource)publicationType.GetField("Lifetime").GetValue(disconnectedPublication)).Dispose();
+
                 connectionPairs[0].Close();
                 LoopbackPeerPair resumedPair;
                 try
@@ -1945,6 +1978,22 @@ namespace HBP.Sync.Tests
                 Assert.That(questAckCount.PublicationAcknowledgementWrites, Is.EqualTo(1), "The retained Quest session must apply and acknowledge the replayed barrier once.");
                 Assert.That((V2PersistentTransportState)questOwner.GetType().GetProperty("TransportState").GetValue(questOwner), Is.EqualTo(V2PersistentTransportState.Connected));
                 Assert.That(resumedPair, Is.SameAs(connectionPairs[1]));
+                Assert.That(await sendWork, Is.True, "The original send should complete successfully after the acknowledgement.");
+                Assert.That(publicationType.GetField("Owner").GetValue(publication), Is.SameAs(desktopOwner));
+                Assert.That((bool)needsReconnection.GetValue(manager), Is.False);
+
+                object snapshot = ((Array)snapshotPublications.Invoke(manager, null)).GetValue(0);
+                Assert.That((bool)canApplyInventory.Invoke(null, new[] { snapshot }), Is.True);
+                var laterSend = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                publicationType.GetField("Work").SetValue(publication, laterSend.Task);
+                laterSend.SetResult(true);
+                Assert.That((bool)canApplyInventory.Invoke(null, new[] { snapshot }), Is.False, "An inventory from before a later send must not replace its owner, even when that send has already finished.");
+                publicationType.GetField("Work").SetValue(publication, sendWork);
+                publicationType.GetField("Binding").SetValue(publication, CreatePreparedBinding());
+                Assert.That((bool)canApplyInventory.Invoke(null, new[] { snapshot }), Is.False, "A newer binding must not be reconciled against an older inventory.");
+                publicationType.GetField("Binding").SetValue(publication, binding);
+                publicationType.GetField("Removed").SetValue(publication, true);
+                Assert.That((bool)canApplyInventory.Invoke(null, new[] { snapshot }), Is.False, "A scene closed while inventory was in flight must remain closed.");
 
                 var desktopTransport = (V2PersistentTransport)desktopOwnerType.GetField("m_Transport", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
                 await WaitUntilAsync(() => desktopTransport.SnapshotMetrics().OutstandingReliableFrames == 0, "Retained initial-publication controls were not acknowledged.");
@@ -1952,6 +2001,10 @@ namespace HBP.Sync.Tests
             }
             finally
             {
+                foreach (object publication in publications.Values)
+                    ((CancellationTokenSource)publicationType.GetField("Lifetime").GetValue(publication)).Dispose();
+                publications.Clear();
+                UnityEngine.Object.DestroyImmediate(managerObject);
                 if (desktopOwner is IDisposable desktopDisposable) desktopDisposable.Dispose();
                 ((IDisposable)questOwner).Dispose();
                 foreach (LoopbackPeerPair pair in connectionPairs) pair.Close();
@@ -2960,7 +3013,9 @@ namespace HBP.Sync.Tests
             ConstructorInfo restoredSceneConstructor = typeof(RestoredScene).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(Base3DScene), typeof(ScenePayload), typeof(SceneArchive) }, null);
             Assert.That(restoredSceneConstructor, Is.Not.Null);
             var wrapperPublishedScene = (RestoredScene)restoredSceneConstructor.Invoke(new object[] { questFixture.Scene, null, null });
-            SetPrivateField(questView, "current", wrapperPublishedScene);
+            var presentation = new HBP.Quest.QuestAnatomyView.Presentation();
+            typeof(HBP.Quest.QuestAnatomyView.Presentation).GetProperty("Restored").SetValue(presentation, wrapperPublishedScene);
+            SetPrivateField(questView, "current", presentation);
             questFixture.Root.transform.SetParent(questWrapperObject.transform, false);
             questView.ToggleSurface();
             Vector3 wrapperPosition = new Vector3(0.21f, -0.13f, 0.37f);

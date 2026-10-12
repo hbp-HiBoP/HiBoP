@@ -19,7 +19,7 @@ namespace HBP.Quest
         private readonly bool[] tracked = new bool[2];
         private readonly QuestColumnPresentation[] nearbyColumns = new QuestColumnPresentation[2];
         public IReadOnlyList<QuestCutGizmo> Gizmos => gizmos;
-        public bool Active => panel != null && panel.AidsActive;
+        public bool Active => panel != null && panel.GuidesEnabled && view != null && view.Scenes.Count > 0;
 
         private sealed class Drag
         {
@@ -36,7 +36,7 @@ namespace HBP.Quest
 
         public void Refresh()
         {
-            foreach (var old in gizmos.Where(g => g == null || view == null || g.Scene != view.Scene || !g.IsValid || !view.Columns.Contains(g.Column)).ToArray())
+            foreach (var old in gizmos.Where(g => g == null || view == null || !g.IsValid || !g.Scene.IsVisible || !view.AllColumns.Contains(g.Column)).ToArray())
             {
                 for (int i = 0; i < drags.Length; i++)
                     if (drags[i]?.Gizmo == old)
@@ -56,12 +56,12 @@ namespace HBP.Quest
                 return;
             }
 
-            foreach (var column in view.Columns)
-            foreach (var cut in view.Scene.Cuts)
+            foreach (var column in view.AllColumns.Where(value => value.gameObject.activeInHierarchy && value.Scene.IsVisible && !value.Scene.AutomaticCutAroundSelectedSite))
+            foreach (var cut in column.Scene.Cuts)
                 if (!gizmos.Any(g => g.Column == column && g.Cut == cut))
                 {
                     var gizmo = Instantiate(gizmoPrefab, column.transform, false);
-                    gizmo.Bind(view.Scene, column, cut);
+                    gizmo.Bind(column.Scene, column, cut);
                     gizmos.Add(gizmo);
                 }
 
@@ -121,6 +121,7 @@ namespace HBP.Quest
             float span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             if (!float.IsFinite(span) || span <= 0) return false;
             Vector3 point = gizmo.ContactDistance(grip[hand]) <= gizmo.ContactDistance(aim[hand]) ? grip[hand] : aim[hand];
+            view.SelectContext(gizmo.Scene, gizmo.Column.Column);
             drags[hand] = new Drag { Gizmo = gizmo, LastPoint = gizmo.Frame.InverseTransformPoint(point), Normal = gizmo.Cut.Normal.normalized, Span = span, Flip = gizmo.Cut.Flip, Orientation = gizmo.Cut.Orientation };
             // Continue with the same controller reference (grip or aim) for the whole capture.
             useAim[hand] = point == aim[hand];
@@ -134,7 +135,7 @@ namespace HBP.Quest
             var drag = drags[hand];
             if (drag == null) return false;
             var gizmo = drag.Gizmo;
-            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || gizmo.Scene != view.Scene || !view.Columns.Contains(gizmo.Column))
+            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !gizmo.Scene.IsVisible || !view.AllColumns.Contains(gizmo.Column))
             {
                 End(hand);
                 return false;

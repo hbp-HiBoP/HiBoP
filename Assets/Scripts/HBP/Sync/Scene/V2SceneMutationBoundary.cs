@@ -237,6 +237,7 @@ namespace HBP.Sync.Scene
         private V2Mutation m_LastSceneAutomaticCuts;
         private V2Mutation m_LastSceneHideBlacklisted;
         private V2Mutation m_LastSceneShowAllSites;
+        private V2Mutation m_LastSceneVisible;
         private V2Mutation m_LastSceneSiteGain;
         private V2Mutation m_LastSceneEdgeMode;
         private V2Mutation m_LastSceneBrainTransparent;
@@ -1917,6 +1918,7 @@ namespace HBP.Sync.Scene
             m_CutOrderListener = ObserveCutOrder;
             scene.OnModifyPlanesCuts.AddListener(m_CutOrderListener);
             scene.OnChangeAutomaticCutAroundSelectedSite.AddListener(OnAutomaticCutPolicyChanged);
+            scene.OnChangeVisibleState.AddListener(OnSceneVisibilityChanged);
             scene.SitePositionCommandExecuted += OnSitePositionCommandExecuted;
             scene.OnSharedStateChanged.AddListener(ObserveScenePresentation);
             if (scene.BrainMaterials != null) scene.BrainMaterials.AlphaChanged += OnBrainAlphaChanged;
@@ -2237,6 +2239,7 @@ namespace HBP.Sync.Scene
             Add(new SetSceneBoolean(V2SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
+            Add(new SetSceneBoolean(V2SceneBooleanProperty.Visible, m_Scene.IsVisible));
             Add(new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
             Add(new SetSceneFloat(V2SceneFloatProperty.SiteGain, m_Scene.SiteGain));
             if (m_Scene.BrainMaterials != null)
@@ -2344,6 +2347,8 @@ namespace HBP.Sync.Scene
             ObserveT09(ref m_LastSceneBrainAlpha, new SetSceneFloat(V2SceneFloatProperty.BrainAlpha, alpha));
         }
 
+        private void OnSceneVisibilityChanged(bool visible) => ObserveT09(ref m_LastSceneVisible, new SetSceneBoolean(V2SceneBooleanProperty.Visible, visible));
+
         private void ObserveScenePresentation()
         {
             if (m_Scene == null || m_Disposed) return;
@@ -2351,6 +2356,7 @@ namespace HBP.Sync.Scene
             ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(V2SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             ObserveT09(ref m_LastSceneHideBlacklisted, new SetSceneBoolean(V2SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
             ObserveT09(ref m_LastSceneShowAllSites, new SetSceneBoolean(V2SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
+            ObserveT09(ref m_LastSceneVisible, new SetSceneBoolean(V2SceneBooleanProperty.Visible, m_Scene.IsVisible));
             ObserveT09(ref m_LastSceneSiteGain, new SetSceneFloat(V2SceneFloatProperty.SiteGain, m_Scene.SiteGain));
             ObserveMriCalibration();
             ObserveT09(ref m_LastSceneEdgeMode, new SetSceneBoolean(V2SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
@@ -3765,6 +3771,7 @@ namespace HBP.Sync.Scene
                 case V2SceneBooleanProperty.AutomaticCutAroundSelectedSite: m_Scene.AutomaticCutAroundSelectedSite = value.Value; break;
                 case V2SceneBooleanProperty.HideBlacklistedSites: m_Scene.HideBlacklistedSites = value.Value; break;
                 case V2SceneBooleanProperty.ShowAllSites: m_Scene.ShowAllSites = value.Value; break;
+                case V2SceneBooleanProperty.Visible: m_Scene.UpdateVisibleState(value.Value, false); break;
                 case V2SceneBooleanProperty.EdgeMode: m_Scene.EdgeMode = value.Value; break;
                 case V2SceneBooleanProperty.BrainTransparent: m_Scene.IsBrainTransparent = value.Value; break;
                 case V2SceneBooleanProperty.DisplayMarsAtlas: m_Scene.AtlasManager.DisplayMarsAtlas = value.Value; break;
@@ -3802,6 +3809,7 @@ namespace HBP.Sync.Scene
                 V2SceneBooleanProperty.AutomaticCutAroundSelectedSite => m_Scene.AutomaticCutAroundSelectedSite,
                 V2SceneBooleanProperty.HideBlacklistedSites => m_Scene.HideBlacklistedSites,
                 V2SceneBooleanProperty.ShowAllSites => m_Scene.ShowAllSites,
+                V2SceneBooleanProperty.Visible => m_Scene.IsVisible,
                 V2SceneBooleanProperty.EdgeMode => m_Scene.EdgeMode,
                 V2SceneBooleanProperty.BrainTransparent => m_Scene.IsBrainTransparent,
                 V2SceneBooleanProperty.DisplayMarsAtlas => m_Scene.AtlasManager.DisplayMarsAtlas,
@@ -4202,6 +4210,7 @@ namespace HBP.Sync.Scene
                 m_Scene.OnRemoveCut.RemoveListener(OnCutRemoved);
                 if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);
                 m_Scene.OnChangeAutomaticCutAroundSelectedSite.RemoveListener(OnAutomaticCutPolicyChanged);
+                m_Scene.OnChangeVisibleState.RemoveListener(OnSceneVisibilityChanged);
                 m_Scene.SitePositionCommandExecuted -= OnSitePositionCommandExecuted;
                 m_Scene.OnSharedStateChanged.RemoveListener(ObserveScenePresentation);
                 m_Scene.OnUpdateROI.RemoveListener(RefreshRoiTargets);

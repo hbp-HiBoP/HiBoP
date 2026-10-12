@@ -33,6 +33,149 @@ namespace HBP.Tests.SceneTransfer
 {
     public class SceneRestorationPlayModeTests
     {
+        [Test, Timeout(240000)]
+        public async Task T17_OpenPatient_UsesIndividualTopologyAndReusesTheExistingChild()
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var app = new PlayModeApplicationStateScope(temp.Path);
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Public | BindingFlags.Static).SetValue(null, Path.GetFullPath("Assets/Data"));
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("T17IndividualPatient");
+            try
+            {
+                await PrepareReferencesAsync();
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                var preferences = PersistentDataManager.UserPreferences;
+                preferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization = false;
+                preferences.Visualization._3D.AutomaticEEGUpdate = false;
+                preferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization = "Individual";
+                preferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization = Object3DManager.MNI.MRI.Name;
+                preferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization = "MNI";
+                using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
+                var payload = CreateFixture(source);
+                payload.Visualization.Patients.Add(new Patient { Name = "Other patient" });
+                var patientMesh = new SingleMesh("Individual", "", Path.GetFullPath("Assets/Tests/Fixtures/Native/Patients/synthetic-patient/t1mri/T1pre_synthetic/default_analysis/segmentation/mesh/synthetic-patient_Lhemi.gii"), "");
+                payload.Visualization.Columns.RemoveRange(1, payload.Visualization.Columns.Count - 1);
+                payload.Columns.RemoveRange(1, payload.Columns.Count - 1);
+                string file = Path.Combine(temp.Path, "source.hbscene");
+                source.Write(payload, file);
+                using var archive = new SceneArchive(Path.Combine(temp.Path, "received"), true, source.Globals);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D Content.prefab").GetComponent<Base3DScene>();
+                var restored = await SceneRestoration.PrepareAsync(archive.Read(file), archive, prefab, scope.Root.transform, timeout.Token);
+                // Transfer metadata deliberately excludes Desktop-local anatomy paths.
+                // Restore that Desktop resource for the patient-opening scenario.
+                restored.Scene.Visualization.Patients[0].Meshes.Add(patientMesh);
+                Assert.That(patientMesh.IsUsable, Is.True);
+                var singleton = typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+                var previousModule = singleton.GetValue(null);
+                var moduleRoot = new GameObject("Controlled patient opening module");
+                moduleRoot.SetActive(false);
+                moduleRoot.transform.SetParent(scope.Root.transform, false);
+                var module = moduleRoot.AddComponent<Module3DMain>();
+                foreach (var field in new Dictionary<string, object> { ["m_ScenePrefab"] = prefab.gameObject, ["m_ScenesParent"] = scope.Root.transform, ["m_Scenes"] = new List<Base3DScene> { restored.Scene } })
+                    typeof(Module3DMain).GetField(field.Key, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(module, field.Value);
+                singleton.SetValue(null, module);
+                try
+                {
+                    var parent = restored.Scene;
+                    var patient = parent.Visualization.Patients[0];
+                    var child = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token);
+                    Assert.That(child.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.Patient));
+                    Assert.That(child.MeshManager.BrainSurface.NumberOfTriangles, Is.Not.EqualTo(parent.MeshManager.BrainSurface.NumberOfTriangles));
+                    Assert.That(parent.Visualization.Configuration.ErasedTriangles, Is.Not.Null);
+                    Assert.That(child.Visualization.Configuration.ErasedTriangles, Is.Null);
+                    Assert.That(child.Visualization.Columns.Select(column => (column.Name, column.GetType())), Is.EqualTo(parent.Visualization.Columns.Select(column => (column.Name, column.GetType()))));
+                    child.UpdateVisibleState(false, false);
+                    Assert.That(child.IsVisible, Is.False);
+                    var repeated = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token);
+                    Assert.That(repeated, Is.SameAs(child));
+                    Assert.That(repeated.IsVisible, Is.True, "Opening an existing patient reveals it before selecting it.");
+                    Assert.That(repeated.IsSelected, Is.True);
+                    Assert.That(Module3DMain.Scenes.Count, Is.EqualTo(2));
+                    await Module3DMain.RemoveSceneAsync(parent);
+                    Assert.That(child.IsClosing, Is.False, "Closing the source preserves its individual child.");
+                }
+                finally
+                {
+                    await UniTask.SwitchToMainThread();
+                    foreach (var scene in Module3DMain.Scenes.ToArray()) await Module3DMain.RemoveSceneAsync(scene);
+                    singleton.SetValue(null, previousModule);
+                    await restored.CloseAsync();
+                    await UniTask.NextFrame();
+                }
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+            }
+        }
+
+        [Test, Timeout(240000)]
+        public async Task T17_TwoVisualizationsKeepIndependentContextVisibilityPoseAndClosure()
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var settings = new PlayModePersistentDataScope(temp.Path);
+            using var scope = new PlayModeSceneScope("T17MultipleVisualizations");
+            await PrepareReferencesAsync();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            try
+            {
+                for (int index = 0; index < 2; index++)
+                {
+                    using var source = new SceneArchive(Path.Combine(temp.Path, "source-" + index));
+                    var payload = CreateFixture(source);
+                    payload.TransferId = Guid.NewGuid().ToString("N");
+                    payload.Visualization.Columns.RemoveRange(2, payload.Visualization.Columns.Count - 2);
+                    payload.Columns.RemoveRange(2, payload.Columns.Count - 2);
+                    string file = Path.Combine(temp.Path, "scene-" + index + ".hbscene");
+                    source.Write(payload, file);
+                    var archive = new SceneArchive(Path.Combine(temp.Path, "received-" + index), true, source.Globals);
+                    await view.ApplyAsync(archive.Read(file), archive, timeout.Token);
+                    var opening = view.Find(view.Scene);
+                    Assert.That(opening.IsPlaced, Is.False);
+                    Assert.That(opening.Columns.All(column => !column.gameObject.activeSelf), Is.True, "No interaction or rendering before initial placement.");
+                    var sourceMarker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    sourceMarker.transform.SetParent(opening.Scene.transform, false);
+                    typeof(QuestAnatomyView).GetMethod("BeforeCamera", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { null });
+                    Assert.That(sourceMarker.GetComponent<Renderer>().forceRenderingOff, Is.True, "Scientific source objects must never flash at millimetre scale.");
+                    Assert.That(opening.Columns.SelectMany(column => column.GetComponentsInChildren<Renderer>(true)).All(renderer => renderer.forceRenderingOff), Is.True);
+                    view.CompletePlacement(opening);
+                    typeof(QuestAnatomyView).GetMethod("BeforeCamera", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(view, new object[] { null });
+                    Assert.That(opening.Columns.SelectMany(column => column.GetComponentsInChildren<Renderer>(true)).Any(renderer => !renderer.forceRenderingOff), Is.True);
+                    Assert.That(sourceMarker.GetComponent<Renderer>().forceRenderingOff, Is.True);
+                }
+
+                Assert.That(view.Scenes.Count, Is.EqualTo(2));
+                Assert.That(view.AllColumns.Count, Is.EqualTo(4));
+                var first = view.Scenes[0];
+                var second = view.Scenes[1];
+                var pose = new Vector3(.42f, .21f, .87f);
+                first.Columns[0].transform.localPosition = pose;
+                view.SelectContext(first.Scene, first.Scene.Columns[1]);
+                Assert.That(view.Scene, Is.SameAs(first.Scene));
+                Assert.That(first.Scene.SelectedColumn, Is.SameAs(first.Scene.Columns[1]));
+                Assert.That(second.Scene.IsSelected, Is.False);
+                first.Scene.UpdateVisibleState(false, false);
+                Assert.That(first.Columns.All(column => !column.gameObject.activeSelf), Is.True, "Hiding disables all presentation interaction.");
+                Assert.That(second.Columns.All(column => column.gameObject.activeSelf), Is.True);
+                view.SelectContext(second.Scene, second.Scene.Columns[0]);
+                first.Scene.UpdateVisibleState(true, false);
+                Assert.That(view.Scene, Is.SameAs(second.Scene), "Showing remotely must not steal context.");
+                Assert.That(first.Columns[0].transform.localPosition, Is.EqualTo(pose));
+                await view.CloseAsync(first.TransferId);
+                Assert.That(view.Scenes.Count, Is.EqualTo(1));
+                Assert.That(view.Scene, Is.SameAs(second.Scene));
+                Assert.That(second.Scene.IsClosing, Is.False);
+                await second.Scene.PrepareRenderingAsync(timeout.Token);
+            }
+            finally
+            {
+                await view.ClearAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
         [Test]
         [Timeout(180000)]
         public async Task QuestCutHandles_EditCutsPresentInTransferredVisualizationBeforeAndAfterReplacement()
@@ -72,6 +215,9 @@ namespace HBP.Tests.SceneTransfer
                 {
                     var archive = new SceneArchive(Path.Combine(temp.Path, "received-" + cycle), true, source.Globals);
                     await view.ApplyAsync(archive.Read(file), archive, timeout.Token);
+                    view.CompletePlacement(view.Find(view.Scene));
+                    for (int columnIndex = 0; columnIndex < view.Columns.Count; columnIndex++)
+                        view.Columns[columnIndex].transform.localPosition = Vector3.right * columnIndex * .35f;
                     panel.Refresh();
                     handles.Refresh();
                     var scene = view.Scene;
@@ -79,7 +225,10 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(scene.Cuts.Select(c => c.ID), Is.EqualTo(new[] { "transferred-axial", "transferred-custom" }));
                     Assert.That(handles.Gizmos.Count, Is.EqualTo(4));
                     int proposals = 0;
-                    boundary.MutationProposed += (_, _, _) => proposals++;
+                    boundary.MutationProposed += (_, mutation, _) =>
+                    {
+                        if (mutation is SetCutDefinition) proposals++;
+                    };
                     foreach (var gizmo in handles.Gizmos)
                     {
                         Assert.That(gizmo.IsValid, Is.True);

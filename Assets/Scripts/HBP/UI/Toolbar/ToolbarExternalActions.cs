@@ -89,8 +89,7 @@ namespace HBP.UI.Toolbar
 
         private static void DefaultLoadSinglePatientVisualization(Base3DScene scene, Patient patient)
         {
-            Visualization visualization = Module3DMain.PrepareSinglePatientVisualizationFromMultiPatientScene(scene.Visualization, patient);
-            DefaultLoadVisualization(scene, visualization);
+            LoadingManager.Load(async (update, token) => { await Module3DMain.OpenSinglePatientVisualizationAsync(scene, patient, update, token); });
         }
 
         private static void DefaultOpenSiteFilters(Base3DScene scene)

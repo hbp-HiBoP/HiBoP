@@ -13,6 +13,7 @@ using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using Cysharp.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace HBP.Data.Module3D
 {
@@ -74,6 +75,8 @@ namespace HBP.Data.Module3D
         public static int NumberOfScenesLoadedSinceStart { get; set; }
 
         private List<Base3DScene> m_Scenes = new();
+        private static readonly Dictionary<(Base3DScene Source, string Patient), Base3DScene> s_PatientScenes = new();
+        private static readonly Dictionary<(Base3DScene Source, string Patient), Task<Base3DScene>> s_PatientOpenings = new();
 
         /// <summary>
         /// List of open scenes
@@ -228,9 +231,66 @@ namespace HBP.Data.Module3D
         /// <param name="scene">Scene to be removed</param>
         public static void RemoveScene(Base3DScene scene)
         {
+            RemoveSceneAsync(scene).Forget();
+        }
+
+        /// <summary>Remove the opening and await native cleanup before changing shared global settings.</summary>
+        public static async UniTask RemoveSceneAsync(Base3DScene scene)
+        {
             OnRemoveScene.Invoke(scene);
             m_Instance.m_Scenes.Remove(scene);
-            scene.Clean().Forget();
+            foreach (var key in s_PatientScenes.Where(entry => entry.Value == scene).Select(entry => entry.Key).ToArray()) s_PatientScenes.Remove(key);
+            await scene.CleanAsync();
+        }
+
+        /// <summary>One derived opening per source opening and patient; concurrent requests share its load.</summary>
+        public static async Task<Base3DScene> OpenSinglePatientVisualizationAsync(Base3DScene source, Patient patient, Action<float, float, LoadingText> progress, CancellationToken token)
+        {
+            await UniTask.SwitchToMainThread(token);
+            if (source == null || source.IsClosing || !Scenes.Contains(source) || source.Type != SceneType.MultiPatients || patient == null || !source.Visualization.Patients.Any(value => value.ID == patient.ID))
+                throw new InvalidOperationException("The source visualization or patient is no longer available.");
+            var key = (source, patient.ID);
+            if (s_PatientScenes.TryGetValue(key, out var existing) && existing != null && !existing.IsClosing && Scenes.Contains(existing))
+            {
+                existing.UpdateVisibleState(true);
+                SelectSceneContext(existing, existing.SelectedColumn);
+                return existing;
+            }
+
+            if (s_PatientOpenings.TryGetValue(key, out var pending)) return await pending;
+            var completion = new TaskCompletionSource<Base3DScene>();
+            s_PatientOpenings.Add(key, completion.Task);
+            try
+            {
+                var visualization = PrepareSinglePatientVisualizationFromMultiPatientScene(source.Visualization, patient);
+                await LoadAsync(new[] { visualization }, progress, token);
+                var opened = Scenes.Single(scene => scene.Visualization == visualization);
+                s_PatientScenes[key] = opened;
+                SelectSceneContext(opened, opened.SelectedColumn);
+                completion.TrySetResult(opened);
+                return opened;
+            }
+            catch (Exception error)
+            {
+                completion.TrySetException(error);
+                // Observe the shared task even when this was the only request.
+                _ = completion.Task.Exception;
+                throw;
+            }
+            finally
+            {
+                s_PatientOpenings.Remove(key);
+            }
+        }
+
+        public static void SelectSceneContext(Base3DScene scene, Column3D column)
+        {
+            if (scene == null || scene.IsClosing || !scene.IsVisible) return;
+            foreach (var other in Scenes)
+                if (other != scene && other.IsSelected)
+                    other.IsSelected = false;
+            scene.IsSelected = true;
+            if (column != null && scene.Columns.Contains(column)) column.IsSelected = true;
         }
 
         /// <summary>
@@ -248,6 +308,11 @@ namespace HBP.Data.Module3D
             visualizationToLoad.Configuration.MeshName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             visualizationToLoad.Configuration.MRIName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             visualizationToLoad.Configuration.ImplantationName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
+            // Patient anatomy has its own topology; the source masks and MRI preview
+            // describe the multi-patient reference surface and cannot be reused.
+            visualizationToLoad.Configuration.ErasedTriangles = null;
+            visualizationToLoad.Configuration.ErasedSimplifiedTriangles = null;
+            visualizationToLoad.Configuration.PreviewMRIName = null;
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;

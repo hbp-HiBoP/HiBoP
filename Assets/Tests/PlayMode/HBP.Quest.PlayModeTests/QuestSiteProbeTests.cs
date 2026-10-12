@@ -376,7 +376,7 @@ namespace HBP.Tests.Quest
                 Tick();
                 Press("primaryButton", true);
                 Tick();
-                QuestWindowInteractionTests.Set(fixture.View, "current", null);
+                QuestSceneTestBinding.Clear(fixture.View);
                 Tick();
                 Assert.That(probe.IsActive, Is.False);
                 fixture.AttachScene();
@@ -421,11 +421,12 @@ namespace HBP.Tests.Quest
             public readonly Base3DScene Scene;
             public readonly Column3D Column;
             public readonly QuestAnatomyView View;
+            private QuestColumnPresentation columnPresentation;
 
             public Fixture()
             {
                 data.SetActive(false);
-                Scene = data.AddComponent<Base3DScene>();
+                Scene = QuestSceneTestBinding.VisibleScene(data);
                 Column = data.AddComponent<Column3DAnatomy>();
                 SetAuto(Column, "ColumnData", new AnatomicColumn("Probe", new BaseConfiguration(), new AnatomicConfiguration(), "probe-column"));
                 SetAuto(Column, "Sites", new List<Site>());
@@ -433,16 +434,16 @@ namespace HBP.Tests.Quest
                 View = data.AddComponent<QuestAnatomyView>();
                 var presentation = data.AddComponent<QuestColumnPresentation>();
                 SetAuto(presentation, "Column", Column);
-                ((List<QuestColumnPresentation>)typeof(QuestAnatomyView).GetField("columns", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(View)).Add(presentation);
+                QuestSceneTestBinding.Column(presentation, Scene, Column);
+                columnPresentation = presentation;
                 Visual.transform.localScale = Vector3.one * .001f;
                 AttachScene();
             }
 
             public void AttachScene()
             {
-                var field = typeof(QuestAnatomyView).GetField("current", BindingFlags.Instance | BindingFlags.NonPublic);
-                var restored = field.FieldType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single().Invoke(new object[] { Scene, null, null });
-                QuestWindowInteractionTests.Set(View, "current", restored);
+                QuestSceneTestBinding.Clear(View);
+                QuestSceneTestBinding.Attach(View, Scene).Add(columnPresentation);
             }
 
             public QuestSiteTarget AddSite(string name, Vector3 position, Column3D owner = null)
@@ -467,7 +468,7 @@ namespace HBP.Tests.Quest
 
             public void Dispose()
             {
-                QuestWindowInteractionTests.Set(View, "current", null);
+                QuestSceneTestBinding.Clear(View);
                 Object.DestroyImmediate(data);
                 Object.DestroyImmediate(Visual);
             }

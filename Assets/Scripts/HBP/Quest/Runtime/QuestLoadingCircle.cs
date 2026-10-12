@@ -51,6 +51,15 @@ namespace HBP.Quest
             if (this) gameObject.SetActive(false);
         }
 
+        public async void SetOptions(bool showInformations, bool cancelable)
+        {
+            await UniTask.SwitchToMainThread();
+            if (!this) return;
+            showInformation = showInformations;
+            cancelContainer.SetActive(cancelable && !cancelling);
+            Render(0);
+        }
+
         public void ChangePercentage(float value, float durationInSeconds, LoadingText text)
         {
             if (float.IsNaN(value) || float.IsInfinity(value)) return;

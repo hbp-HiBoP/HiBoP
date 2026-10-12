@@ -152,7 +152,7 @@ namespace HBP.Quest
             }
         }
 
-        public string Summary => session == null ? "Connection unavailable" : session.ReceptionState != AnatomyReceptionState.Idle ? "Receiving..." : session.IsReady ? session.IsSynchronizationConnected ? "Connected" : "Offline" : pairing?.IsPaired == true ? "Paired" : "Pairing";
+        public string Summary => session == null ? "Connection unavailable" : session.ReceptionState != AnatomyReceptionState.Idle ? "Receiving..." : session.IsReady ? pairing?.IsConnected == true || session.IsSynchronizationConnected ? "Connected" : "Offline" : pairing?.IsPaired == true ? "Paired" : "Pairing";
 
         private void Update()
         {
@@ -167,7 +167,7 @@ namespace HBP.Quest
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
             else if (session.Reconciliation is { } record && record.Status != V2ReconciliationStatus.Synchronized)
-                statusPanel.ShowReconciliation(record);
+                statusPanel.ShowReconciliation(record, pairing.IsConnected);
             else
                 statusPanel.ShowSession(session.IsSynchronizationConnected, false);
         }

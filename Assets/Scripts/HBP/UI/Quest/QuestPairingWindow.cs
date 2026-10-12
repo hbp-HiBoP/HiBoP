@@ -21,6 +21,7 @@ namespace HBP.UI.Quest
         [SerializeField] private InputField address;
         [SerializeField] private Text status;
         [SerializeField] private Button pair;
+        [SerializeField] private Toggle synchronizeScenes;
 
         private QuestManager connection;
         private bool rebuilding;
@@ -36,6 +37,8 @@ namespace HBP.UI.Quest
             base.Initialize();
 
             connection = QuestManager.Instance;
+            synchronizeScenes.SetIsOnWithoutNotify(connection.AutomaticallySynchronizeScenes);
+            synchronizeScenes.onValueChanged.AddListener(connection.SetAutomaticallySynchronizeScenes);
             connection.SetDiscoveryActive(true);
             devices.onValueChanged.AddListener(index =>
             {
@@ -70,7 +73,7 @@ namespace HBP.UI.Quest
 
         private async UniTask PairAsync()
         {
-            if (manual.isOn && !connection.CanRetryReconciliation) connection.SelectManual(address.text);
+            if (manual.isOn && !connection.CanRetrySceneOperations) connection.SelectManual(address.text);
             await connection.PairAsync(token => DialogBoxManager.OpenInputAsync("Pair with Quest", "Enter the six-digit code displayed in your Quest.", "• • • • • •", "Pair", "Cancel", token));
         }
 
@@ -92,8 +95,8 @@ namespace HBP.UI.Quest
             devices.interactable = !connection.IsBusy && !manual.isOn && connection.Devices.Count > 0;
             address.interactable = !connection.IsBusy;
             manual.interactable = !connection.IsBusy;
-            pair.interactable = !connection.IsBusy && (connection.CanRetryReconciliation || !connection.IsPaired && (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection));
-            pair.GetComponentInChildren<Text>().text = connection.CanRetryReconciliation ? "Retry" : "Pair";
+            pair.interactable = !connection.IsBusy && (connection.CanRetrySceneOperations || !connection.IsPaired && (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection));
+            pair.GetComponentInChildren<Text>().text = connection.CanRetrySceneOperations ? "Retry" : "Pair";
             status.text = connection.Status;
         }
 

@@ -22,7 +22,7 @@ namespace HBP.Quest
 
         public bool IsEligible(Base3DScene scene) => IsSelectable(scene) && scene.Columns.Contains(Column) && Column.Sites.Contains(Site);
 
-        public bool IsSelectable(Base3DScene scene) => scene != null && !scene.IsClosing && Column != null && Site != null && Site.gameObject.activeInHierarchy && Sphere != null && Sphere.enabled && Site.State != null && HBP.Core.Object3D.SiteAppearance.IsVisible(Site.State.IsMasked, Site.State.IsOutOfROI, Site.State.IsFiltered, Site.State.IsBlackListed, scene.ShowAllSites, scene.HideBlacklistedSites);
+        public bool IsSelectable(Base3DScene scene) => scene != null && scene.IsVisible && !scene.IsClosing && Column != null && Site != null && Site.gameObject.activeInHierarchy && Sphere != null && Sphere.enabled && Site.State != null && HBP.Core.Object3D.SiteAppearance.IsVisible(Site.State.IsMasked, Site.State.IsOutOfROI, Site.State.IsFiltered, Site.State.IsBlackListed, scene.ShowAllSites, scene.HideBlacklistedSites);
     }
 
     /// <summary>Current sphere contact, with nearest-center arbitration and stable prepared-ID ties. No Physics response.</summary>

@@ -28,6 +28,33 @@ namespace HBP.Tests.Quest
     public class QuestCutControlsTests
     {
         [Test]
+        public void CapturedCutKeepsItsSceneAcrossRemoteSelectionAndEndsWhenHidden()
+        {
+            using var first = new Fixture();
+            using var second = new Fixture();
+            first.Window.Open();
+            QuestSceneTestBinding.Attach(first.View, second.Scene).AddRange(second.View.Columns);
+            first.Handles.Refresh();
+            Assert.That(first.Handles.Gizmos.Count, Is.EqualTo(12));
+            var gizmo = first.Handles.Gizmos.First(value => value.Scene == first.Scene);
+            Vector3 start = gizmo.PlaneCenter;
+            first.Handles.SetHand(0, true, start, start);
+            Assert.That(first.Handles.Begin(0, gizmo), Is.True);
+            Assert.That(first.View.Scene, Is.SameAs(first.Scene));
+            first.View.SelectContext(second.Scene, second.Scene.Columns[0], false);
+            Assert.That(first.View.Scene, Is.SameAs(second.Scene));
+            Assert.That(first.Handles.IsCaptured(0), Is.True);
+            float otherBefore = second.Scene.Cuts[0].Position;
+            Vector3 moved = start + gizmo.Frame.TransformVector(gizmo.Cut.Normal.normalized * first.Scene.GetCutPositionGeometry(gizmo.Cut).Span * .1f);
+            first.Handles.SetHand(0, true, moved, moved);
+            Assert.That(first.Handles.Move(0), Is.True);
+            Assert.That(second.Scene.Cuts[0].Position, Is.EqualTo(otherBefore));
+            first.Scene.UpdateVisibleState(false, false);
+            Assert.That(first.Handles.Move(0), Is.False);
+            Assert.That(first.Handles.IsCaptured(0), Is.False);
+        }
+
+        [Test]
         public async Task ProductionPointer_RayHitsRowControlsAndTriggerChangesTheirCut()
         {
             using var f = new Fixture();
@@ -676,7 +703,7 @@ namespace HBP.Tests.Quest
             public Fixture()
             {
                 data.SetActive(false);
-                Scene = data.AddComponent<Base3DScene>();
+                Scene = QuestSceneTestBinding.VisibleScene(data);
                 QuestWindowInteractionTests.Set(Scene, "m_MeshManager", data.AddComponent<MeshManager>());
                 using (var stream = new FileStream(volumePath, FileMode.CreateNew))
                 using (var writer = new BinaryWriter(stream))
@@ -719,10 +746,8 @@ namespace HBP.Tests.Quest
                 }
 
                 View = data.AddComponent<QuestAnatomyView>();
-                var current = typeof(QuestAnatomyView).GetField("current", BindingFlags.Instance | BindingFlags.NonPublic);
-                current.SetValue(View, current.FieldType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single().Invoke(new object[] { Scene, null, null }));
+                var columns = QuestSceneTestBinding.Attach(View, Scene);
                 mesh.bounds = new Bounds(Vector3.zero, new Vector3(160, 130, 140));
-                var columns = (List<QuestColumnPresentation>)typeof(QuestAnatomyView).GetField("columns", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(View);
                 for (int i = 0; i < 2; i++)
                 {
                     var wrapper = new GameObject("Column " + i);
@@ -744,6 +769,7 @@ namespace HBP.Tests.Quest
                     presentation.enabled = false;
                     Auto(presentation, "Column", column);
                     QuestWindowInteractionTests.Set(presentation, "manipulator", manipulator);
+                    QuestSceneTestBinding.Column(presentation, Scene, column);
                     columns.Add(presentation);
                 }
 
@@ -769,7 +795,7 @@ namespace HBP.Tests.Quest
 
             public void Dispose()
             {
-                QuestWindowInteractionTests.Set(View, "current", null);
+                QuestSceneTestBinding.Clear(View);
                 Object.DestroyImmediate(root);
                 foreach (var generator in Scene.CutGeometryGenerators) generator.Dispose();
                 Scene.CutGeometryGenerators.Clear();

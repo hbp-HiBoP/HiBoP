@@ -12,6 +12,7 @@ namespace HBP.Quest
         [SerializeField] private MeshRenderer roiPrefab;
         [SerializeField] private QuestSiteSelectionRing selectionRing;
         private Base3DScene scene;
+        public Base3DScene Scene => scene;
         private readonly List<MeshRenderer> spheres = new();
         public Column3D Column { get; private set; }
         public QuestAnatomyManipulator Manipulator => manipulator;

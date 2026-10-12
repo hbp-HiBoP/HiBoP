@@ -14,7 +14,14 @@ using System.Threading.Tasks;
 
 namespace HBP.Transfer.Transport
 {
-    public enum PairingPhase { Available, Authenticating, AttemptsExhausted, InstallingGlobals, Paired }
+    public enum PairingPhase
+    {
+        Available,
+        Authenticating,
+        AttemptsExhausted,
+        InstallingGlobals,
+        Paired
+    }
 
     public readonly struct PairingStatus
     {
@@ -22,6 +29,7 @@ namespace HBP.Transfer.Transport
         public TimeSpan Remaining { get; }
         public int AttemptsRemaining { get; }
         public PairingPhase Phase { get; }
+
         public PairingStatus(string code, TimeSpan remaining, int attemptsRemaining, PairingPhase phase)
         {
             Code = code;
@@ -116,9 +124,14 @@ namespace HBP.Transfer.Transport
             do
             {
                 uint value;
-                do { value = BitConverter.ToUInt32(RandomBytes(4), 0); } while (value >= 4294000000u);
+                do
+                {
+                    value = BitConverter.ToUInt32(RandomBytes(4), 0);
+                } while (value >= 4294000000u);
+
                 code = (value % 1000000).ToString("D6");
             } while (code == previous);
+
             codeExpires = clock() + CodeLifetime;
         }
 
@@ -172,7 +185,9 @@ namespace HBP.Transfer.Transport
         public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
-            using var slots = new SemaphoreSlim(4, 4);
+            // Keep eight admission slots available beside the 64 persistent replica slots.
+            using var slots = new SemaphoreSlim(72, 72);
+            using var replicaSlots = new SemaphoreSlim(64, 64);
             var handlers = new List<Task>();
             try
             {
@@ -191,7 +206,7 @@ namespace HBP.Transfer.Transport
                     try
                     {
                         await slots.WaitAsync(stop).ConfigureAwait(false);
-                        handlers.Add(HandleAndReleaseAsync(peer, slots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl));
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl));
                         handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
                     }
                     catch
@@ -208,11 +223,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
         {
             try
             {
-                await HandlePeerAsync(peer, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl).ConfigureAwait(false);
+                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl).ConfigureAwait(false);
             }
             finally
             {
@@ -220,7 +235,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandlePeerAsync(TcpClient peer, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
+        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
         {
             using (peer)
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -261,8 +276,13 @@ namespace HBP.Transfer.Transport
                                 var snapshot = GetStatus();
                                 allowed = snapshot.Phase == PairingPhase.Available && ((command == 11) == (receiveGlobals != null));
                                 admittedCode = snapshot.Code;
-                                if (allowed) { attempts++; authenticating = true; } // Includes abandoned/malformed exchanges.
+                                if (allowed)
+                                {
+                                    attempts++;
+                                    authenticating = true;
+                                } // Includes abandoned/malformed exchanges.
                             }
+
                             await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                             if (!allowed) return;
                             using (PairingTiming.Measure("quest.pake"))
@@ -323,7 +343,16 @@ namespace HBP.Transfer.Transport
                         if (command == 14)
                         {
                             deadline.CancelAfter(Timeout.InfiniteTimeSpan);
-                            await receiveReplica(tls, deadline.Token).ConfigureAwait(false);
+                            if (!await replicaSlots.WaitAsync(0, deadline.Token).ConfigureAwait(false)) throw new InvalidOperationException("The Quest replica capacity is reached.");
+                            try
+                            {
+                                await receiveReplica(tls, deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                replicaSlots.Release();
+                            }
+
                             return;
                         }
 

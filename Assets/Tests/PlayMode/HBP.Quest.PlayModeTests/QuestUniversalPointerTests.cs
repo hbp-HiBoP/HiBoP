@@ -20,6 +20,64 @@ namespace HBP.Tests.Quest
     public class QuestUniversalPointerTests
     {
         [Test]
+        public void ManyOpenings_PlaceInFrontWithoutMovingExistingScenes()
+        {
+            var root = new GameObject("Placement test");
+            root.SetActive(false);
+            var mesh = new Mesh { vertices = new[] { Vector3.zero, Vector3.right * 100, Vector3.up * 100 }, triangles = new[] { 0, 1, 2 } };
+            try
+            {
+                var view = root.AddComponent<QuestAnatomyView>();
+                var input = root.AddComponent<QuestAnatomyInput>();
+                var head = new GameObject("Head").AddComponent<QuestDevicePoseTracker>();
+                head.transform.SetParent(root.transform, false);
+                head.transform.SetPositionAndRotation(new Vector3(2, 1.6f, 3), Quaternion.Euler(0, 55, 0));
+                QuestWindowInteractionTests.Set(input, "view", view);
+                QuestWindowInteractionTests.Set(input, "head", head);
+                var place = typeof(QuestAnatomyInput).GetMethod("Place", BindingFlags.Instance | BindingFlags.NonPublic);
+                QuestColumnPresentation first = null;
+                Vector3 firstMoved = new(9, 8, 7);
+                for (int index = 0; index < 36; index++)
+                {
+                    var scene = QuestSceneTestBinding.VisibleScene(root);
+                    var columns = QuestSceneTestBinding.Attach(view, scene);
+                    var wrapper = new GameObject("Column");
+                    wrapper.transform.SetParent(root.transform, false);
+                    var brain = new GameObject("Brain", typeof(MeshFilter), typeof(MeshRenderer));
+                    brain.transform.SetParent(wrapper.transform, false);
+                    brain.transform.localScale = Vector3.one * .001f;
+                    brain.GetComponent<MeshFilter>().sharedMesh = mesh;
+                    var column = wrapper.AddComponent<Column3DAnatomy>();
+                    typeof(Column3D).GetProperty("BrainMesh").GetSetMethod(true).Invoke(column, new object[] { brain });
+                    var manipulator = wrapper.AddComponent<QuestAnatomyManipulator>();
+                    manipulator.Bind(column);
+                    var presentation = wrapper.AddComponent<QuestColumnPresentation>();
+                    QuestWindowInteractionTests.Set(presentation, "manipulator", manipulator);
+                    QuestSceneTestBinding.Column(presentation, scene, column);
+                    columns.Add(presentation);
+                    var opening = view.Find(scene);
+                    typeof(QuestAnatomyView.Presentation).GetProperty("IsPlaced").SetValue(opening, false);
+                    place.Invoke(input, new object[] { opening });
+                    Vector3 expected = head.transform.position + head.transform.forward * .65f + Vector3.up * -.12f;
+                    Assert.That(Vector3.Distance(manipulator.GrabCenter, expected), Is.LessThan(.001f));
+                    Assert.That(opening.IsPlaced, Is.True);
+                    if (index == 0)
+                    {
+                        first = presentation;
+                        first.transform.position = firstMoved;
+                    }
+                    else Assert.That(first.transform.position, Is.EqualTo(firstMoved));
+                }
+            }
+            finally
+            {
+                QuestSceneTestBinding.Clear(root.GetComponent<QuestAnatomyView>());
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(mesh);
+            }
+        }
+
+        [Test]
         public void NearbySelection_UsesExactMeshBoundsAndNearestCenterRegardlessOfColumnOrder()
         {
             var content = new GameObject("Inactive overlapping brain fixture");
@@ -28,7 +86,8 @@ namespace HBP.Tests.Quest
             try
             {
                 var view = content.AddComponent<QuestAnatomyView>();
-                var columns = (List<QuestColumnPresentation>)typeof(QuestAnatomyView).GetField("columns", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                var scene = QuestSceneTestBinding.VisibleScene(content);
+                var columns = QuestSceneTestBinding.Attach(view, scene);
 
                 QuestAnatomyManipulator MakeColumn(string name, Vector3 position)
                 {
@@ -46,6 +105,7 @@ namespace HBP.Tests.Quest
                     manipulator.Bind(column);
                     var presentation = wrapper.AddComponent<QuestColumnPresentation>();
                     QuestWindowInteractionTests.Set(presentation, "manipulator", manipulator);
+                    QuestSceneTestBinding.Column(presentation, scene, column);
                     columns.Add(presentation);
                     return manipulator;
                 }
@@ -69,6 +129,7 @@ namespace HBP.Tests.Quest
             }
             finally
             {
+                QuestSceneTestBinding.Clear(content.GetComponent<QuestAnatomyView>());
                 Object.DestroyImmediate(content);
                 Object.DestroyImmediate(mesh);
             }
@@ -115,7 +176,9 @@ namespace HBP.Tests.Quest
                 manipulator.Bind(column);
                 var presentation = wrapper.AddComponent<QuestColumnPresentation>();
                 QuestWindowInteractionTests.Set(presentation, "manipulator", manipulator);
-                var columns = (List<QuestColumnPresentation>)typeof(QuestAnatomyView).GetField("columns", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(view);
+                var scene = QuestSceneTestBinding.VisibleScene(content);
+                var columns = QuestSceneTestBinding.Attach(view, scene);
+                QuestSceneTestBinding.Column(presentation, scene, column);
                 columns.Add(presentation);
                 var window = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Window.prefab"), root.transform);
                 window.transform.SetPositionAndRotation(Vector3.forward * 1.15f, Quaternion.identity);
@@ -330,6 +393,7 @@ namespace HBP.Tests.Quest
             finally
             {
                 Object.DestroyImmediate(root);
+                QuestSceneTestBinding.Clear(content.GetComponent<QuestAnatomyView>());
                 Object.DestroyImmediate(content);
                 Object.DestroyImmediate(mesh);
                 Object.DestroyImmediate(policy);

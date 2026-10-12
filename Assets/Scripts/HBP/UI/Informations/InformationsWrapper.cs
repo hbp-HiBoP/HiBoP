@@ -225,7 +225,7 @@ namespace HBP.UI.Informations
         void OnValidate()
         {
             SetBase3DScene();
-            SetColorMap();
+            if (m_ColorMap != null) SetColorMap();
             SetMinimized();
         }
 

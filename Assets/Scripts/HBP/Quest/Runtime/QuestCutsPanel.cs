@@ -20,9 +20,10 @@ namespace HBP.Quest
         private readonly Dictionary<Cut, QuestCutRow> controls = new();
         private Base3DScene scene;
         private bool suspended;
-        public bool Ready => view != null && view.Scene != null && !view.IsPreparing && !view.Scene.IsClosing;
+        public bool Ready => view != null && view.Scene != null && view.Scene.IsVisible && !view.Scene.IsClosing;
         public bool AidsActive => Ready && window != null && window.IsOpen && !suspended && !view.Scene.AutomaticCutAroundSelectedSite;
         public bool Suspended => suspended;
+        public bool GuidesEnabled => window != null && window.IsOpen && !suspended;
         public IReadOnlyCollection<QuestCutRow> Rows => controls.Values;
 
         private void Awake()

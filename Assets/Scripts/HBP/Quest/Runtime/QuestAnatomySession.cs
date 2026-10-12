@@ -43,9 +43,128 @@ namespace HBP.Quest
         private Task standardInstallation = Task.CompletedTask;
         private Task standardPreparation = Task.CompletedTask;
 
-        public Task<SessionControlResponse> ReceiveSessionControlAsync(SessionControlRequest request, CancellationToken token)
+        private long controlGeneration;
+        private readonly Dictionary<Guid, (byte[] Bytes, Task<SessionControlResponse> Work)> sceneControls = new();
+        private readonly SemaphoreSlim receptionGate = new(1, 1);
+        private readonly SemaphoreSlim loadingGate = new(1, 1);
+        public bool IsSessionConnected { get; private set; }
+        public string ActionStatus { get; private set; }
+
+        public async Task<SessionControlResponse> ReceiveSessionControlAsync(SessionControlRequest request, CancellationToken token)
         {
-            return sessionPreferences.HandleAsync(request, token);
+            if ((byte)request.Kind < (byte)SessionControlKind.SceneInventory)
+            {
+                var response = await sessionPreferences.HandleAsync(request, token);
+                await UniTask.SwitchToMainThread(token);
+                if (request.Kind == SessionControlKind.Open && response.Applied)
+                {
+                    controlGeneration = request.Generation;
+                    IsSessionConnected = true;
+                }
+
+                return response;
+            }
+
+            await UniTask.SwitchToMainThread(token);
+            if (globals == null || request.ContextId != Guid.ParseExact(globals.Id, "N") || request.Generation != controlGeneration)
+                return new(request.OperationId, SessionControlStatus.Stale, "The Quest connection generation has changed.");
+            var bytes = SessionControlCodec.Encode(request);
+            if (sceneControls.TryGetValue(request.OperationId, out var previous))
+                return bytes.SequenceEqual(previous.Bytes) ? await previous.Work : new(request.OperationId, SessionControlStatus.Rejected, "Scene operation identity reused.");
+            if (sceneControls.Count >= 256)
+            {
+                foreach (var key in sceneControls.Where(value => value.Value.Work.IsCompleted).Select(value => value.Key).Take(128).ToArray()) sceneControls.Remove(key);
+                if (sceneControls.Count >= 256) return new(request.OperationId, SessionControlStatus.Rejected, "Too many pending scene operations.");
+            }
+
+            var work = HandleSceneControlAsync(request, token);
+            sceneControls.Add(request.OperationId, (bytes, work));
+            return await work;
+        }
+
+        private async Task<SessionControlResponse> HandleSceneControlAsync(SessionControlRequest request, CancellationToken token)
+        {
+            try
+            {
+                if (request.Kind == SessionControlKind.SceneInventory)
+                {
+                    var inventory = view.Scenes.Select(value => new SceneSessionEntry { VisualizationId = value.Scene.Visualization.ID, TransferId = value.TransferId, Orphan = V2SceneReconciliationRecord.Get(value.Scene)?.Status == V2ReconciliationStatus.Orphan }).ToArray();
+                    return new(request.OperationId, SessionControlStatus.Applied, hasSharedScene: inventory.Any(value => !value.Orphan), body: SceneSessionState.Encode(inventory));
+                }
+
+                var close = SceneSessionState.Decode<SceneSessionClose>(request.GetBody());
+                if (!Guid.TryParseExact(close.TransferId, "N", out _)) throw new InvalidDataException("Invalid closing incarnation.");
+                if (deliveries.TryGetValue(close.TransferId, out var entry))
+                {
+                    if (entry.VisualizationId != close.VisualizationId) throw new InvalidDataException("Wrong closing scene.");
+                    entry.Shared = false;
+                    entry.FinalDiscardSequence = close.FinalSequence;
+                    entry.FinalDiscardBulk = close.BulkThrough;
+                    entry.Grace?.Cancel();
+                    entry.Grace?.Dispose();
+                    entry.Grace = null;
+                    entry.Replica?.Dispose();
+                    entry.Replica = null;
+                }
+                else
+                {
+                    if (deliveries.Count >= MaximumDeliveryHistory) throw new InvalidOperationException("Scene history is full.");
+                    entry = new Entry { TransferId = close.TransferId, VisualizationId = close.VisualizationId, Shared = false, Status = DeliveryStatus.Closed };
+                    entry.Lifetime.Cancel();
+                    deliveries.Add(close.TransferId, entry);
+                }
+
+                if (request.Kind == SessionControlKind.CloseScene)
+                {
+                    // This is the atomic discard boundary. No delayed frame can find this incarnation.
+                    entry.Status = DeliveryStatus.Closed;
+                    entry.Lifetime.Cancel();
+                    entry.CloseWork ??= CloseIncarnationAsync(entry);
+                    await entry.CloseWork;
+                }
+                else if (request.Kind == SessionControlKind.DetachScene)
+                {
+                    // A completed publication may be reconciling. Stop that scene's wire work
+                    // and release its recovery lock before leaving an editable local copy.
+                    if (entry.Preparation?.Task.IsCompleted != false) entry.Lifetime.Cancel();
+                    await entry.Gate.WaitAsync(token);
+                    try
+                    {
+                        var presentation = view.Find(close.TransferId);
+                        var record = presentation == null ? null : V2SceneReconciliationRecord.Get(presentation.Scene);
+                        record?.ReleaseReconciliationGuard();
+                        record?.SetStatus(V2ReconciliationStatus.Orphan, "Desktop connected; this visualization is now local to Quest.");
+                    }
+                    finally
+                    {
+                        entry.Gate.Release();
+                    }
+                }
+                else throw new InvalidDataException("Unsupported scene lifecycle request.");
+
+                return new(request.OperationId, SessionControlStatus.Applied, hasSharedScene: view.Scenes.Any(value => V2SceneReconciliationRecord.Get(value.Scene)?.Status != V2ReconciliationStatus.Orphan));
+            }
+            catch (Exception error) when (error is not OperationCanceledException)
+            {
+                return new(request.OperationId, SessionControlStatus.Failed, error.Message);
+            }
+        }
+
+        private async Task CloseIncarnationAsync(Entry entry)
+        {
+            if (entry.Preparation != null) await entry.Preparation.Task;
+            await entry.Gate.WaitAsync();
+            try
+            {
+                await view.CloseAsync(entry.TransferId);
+            }
+            finally
+            {
+                entry.Gate.Release();
+            }
+
+            entry.Closed?.TrySetResult(true);
+            if (ReferenceEquals(current, entry)) current = null;
         }
 
         private SceneArchive globalArchive;
@@ -61,8 +180,9 @@ namespace HBP.Quest
         public AnatomyReceptionState ReceptionState { get; private set; }
         public bool IsConnected { get; private set; }
         public V2SceneReconciliationRecord Reconciliation => view != null && view.Scene != null ? V2SceneReconciliationRecord.Get(view.Scene) : null;
-        public bool IsSynchronizationConnected => v2Replica != null && v2Replica.TransportState == V2PersistentTransportState.Connected;
-        public bool IsReady => current != null && view != null && view.Scene != null;
+        public bool IsSynchronizationConnected => deliveries.Values.Any(value => value.Shared && value.Replica?.TransportState == V2PersistentTransportState.Connected);
+        public bool IsSceneConnected(HBP.Data.Module3D.Base3DScene scene) => CanRequest(scene);
+        public bool IsReady => view != null && view.Scenes.Count != 0;
         public string TransferId => current?.TransferId;
         public string ContentHash => current?.ContentHash;
         public string SessionId => current?.SessionId;
@@ -144,6 +264,17 @@ namespace HBP.Quest
             public string SessionId;
             public string ContentHash;
             public DeliveryStatus Status;
+            public string VisualizationId;
+            public PreparedSceneDeliveryBinding Binding;
+            public QuestV2ReplicaSession Replica;
+            public CancellationTokenSource Grace;
+            public readonly SemaphoreSlim Gate = new(1, 1);
+            public bool Shared = true;
+            public readonly CancellationTokenSource Lifetime = new();
+            public TaskCompletionSource<bool> Closed;
+            public TaskCompletionSource<bool> Preparation;
+            public Task CloseWork;
+            public ulong FinalDiscardSequence, FinalDiscardBulk;
         }
 
         private void Awake()
@@ -151,6 +282,7 @@ namespace HBP.Quest
             sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing, () => atlasPreparation?.Snapshot() ?? new SessionAtlasInventory());
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
+            if (view != null) view.ContextSelected += OnContextSelected;
         }
 
         private void Start()
@@ -187,6 +319,19 @@ namespace HBP.Quest
         }
 
         private async Task<DeliveryReceipt> ReceiveWithLoadingAsync(Stream stream, CancellationToken stop, bool globalsTransfer)
+        {
+            await loadingGate.WaitAsync(stop);
+            try
+            {
+                return await ReceiveWithLoadingCoreAsync(stream, stop, globalsTransfer);
+            }
+            finally
+            {
+                loadingGate.Release();
+            }
+        }
+
+        private async Task<DeliveryReceipt> ReceiveWithLoadingCoreAsync(Stream stream, CancellationToken stop, bool globalsTransfer)
         {
             using var timing = PairingTiming.Measure(globalsTransfer ? "quest.globals-reception" : "quest.scene-reception-and-preparation");
             ReceiveResult result = await LoadingManager.LoadAsync<ReceiveResult>(async update =>
@@ -279,6 +424,7 @@ namespace HBP.Quest
                     consumed = true;
                     current = null;
                     deliveries.Clear();
+                    sceneControls.Clear();
                     previous?.Dispose();
                     atlasPreparation = new SessionAtlasPreparation(candidate.Data.Preferences.Data.Atlases, () => standardInstallation);
                     atlasPreparation.Start();
@@ -296,53 +442,62 @@ namespace HBP.Quest
 
         private async Task<DeliveryReceipt> ReceiveCoreAsync(Func<CancellationToken, Func<string, string, CancellationToken, Task<DeliveryStatus>>, Action<long>, Task<DeliveryReceipt>> receive, CancellationToken stop, Func<string, string, CancellationToken, Task<DeliveryStatus>> prepare = null)
         {
-            RequireMainThread();
-            if (destroyed || !isActiveAndEnabled)
-                throw new InvalidOperationException("The session receiver is unavailable.");
-            if (view == null || unityContext == null)
-                throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
-            if (reception != null)
-                throw new InvalidOperationException("A delivery is already in progress.");
-            using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stop);
-            reception = attempt;
-            LastError = null;
-            ReceivedBytes = 0;
-            TotalBytes = 0;
-            lock (telemetryGate)
-            {
-                firstTransferByte = default;
-                lastTransferByte = default;
-                transferWireBytes = 0;
-            }
-
-            ReceptionState = AnatomyReceptionState.Connecting;
-            loadingProgress?.Invoke(0.02f, "Connecting to Desktop");
-
+            await receptionGate.WaitAsync(stop);
             try
             {
-                var receipt = await receive(attempt.Token, prepare ?? ((file, hash, token) => PrepareAsync(file, hash, token)), count => unityContext.Post(_ =>
+                await UniTask.SwitchToMainThread(stop);
+                RequireMainThread();
+                if (destroyed || !isActiveAndEnabled)
+                    throw new InvalidOperationException("The session receiver is unavailable.");
+                if (view == null || unityContext == null)
+                    throw new InvalidOperationException("Missing serialized view or Unity synchronization context.");
+                if (reception != null)
+                    throw new InvalidOperationException("A delivery is already in progress.");
+                using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stop);
+                reception = attempt;
+                LastError = null;
+                ReceivedBytes = 0;
+                TotalBytes = 0;
+                lock (telemetryGate)
                 {
-                    if (destroyed || reception != attempt || attempt.IsCancellationRequested)
-                        return;
-                    IsConnected = true;
-                    ReceptionState = AnatomyReceptionState.Receiving;
-                    if (TotalBytes == 0) ReceivedBytes = count;
-                }, null));
+                    firstTransferByte = default;
+                    lastTransferByte = default;
+                    transferWireBytes = 0;
+                }
 
-                return receipt;
-            }
-            catch (Exception exception)
-            {
-                // No resource release here: ACK loss can follow a successful publication.
+                ReceptionState = AnatomyReceptionState.Connecting;
+                loadingProgress?.Invoke(0.02f, "Connecting to Desktop");
 
-                LastError = exception.Message;
-                throw;
+                try
+                {
+                    var receipt = await receive(attempt.Token, prepare ?? ((file, hash, token) => PrepareAsync(file, hash, token)), count => unityContext.Post(_ =>
+                    {
+                        if (destroyed || reception != attempt || attempt.IsCancellationRequested)
+                            return;
+                        IsConnected = true;
+                        ReceptionState = AnatomyReceptionState.Receiving;
+                        if (TotalBytes == 0) ReceivedBytes = count;
+                    }, null));
+
+                    return receipt;
+                }
+                catch (Exception exception)
+                {
+                    // No resource release here: ACK loss can follow a successful publication.
+
+                    LastError = exception.Message;
+                    throw;
+                }
+                finally
+                {
+                    reception = null;
+                    IsConnected = false;
+                    ReceptionState = AnatomyReceptionState.Idle;
+                }
             }
             finally
             {
-                reception = null;
-                IsConnected = false;
-                ReceptionState = AnatomyReceptionState.Idle;
+                receptionGate.Release();
             }
         }
 
@@ -444,13 +599,13 @@ namespace HBP.Quest
             {
                 if (deliveries.TryGetValue(snapshot.TransferId, out Entry existing))
                 {
-                    if (existing.ContentHash != hash) throw new InvalidDataException("Transfer identity reused with different content.");
-                    return existing == current ? DeliveryStatus.AlreadyPublished : existing.Status;
+                    if (existing.ContentHash != null && existing.ContentHash != hash) throw new InvalidDataException("Transfer identity reused with different content.");
+                    return view.Find(snapshot.TransferId) != null && existing.Status == DeliveryStatus.Published ? DeliveryStatus.AlreadyPublished : existing.Status;
                 }
 
                 // Never evict tombstones: that would allow a delayed retry to resurrect old content.
                 if (deliveries.Count >= MaximumDeliveryHistory) throw new InvalidOperationException("Delivery history is full; reopen the receiver before sending new identities.");
-                var next = new Entry { TransferId = snapshot.TransferId, SessionId = snapshot.SessionId, ContentHash = hash, Status = DeliveryStatus.Published };
+                var next = new Entry { VisualizationId = snapshot.Visualization.ID, TransferId = snapshot.TransferId, SessionId = snapshot.SessionId, ContentHash = hash, Status = DeliveryStatus.Published };
                 deliveries.Add(next.TransferId, next); // Allocate metadata before the renderer commit.
                 InitialTransferTelemetry telemetry = null;
                 if (SyncTelemetry.Enabled)
@@ -465,15 +620,28 @@ namespace HBP.Quest
                     }
                 }
 
+                next.Preparation = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                using var preparationStop = CancellationTokenSource.CreateLinkedTokenSource(stop, next.Lifetime.Token);
                 try
                 {
-                    v2Replica?.Dispose();
-                    v2Replica = null;
+                    var replaced = view.Scenes.FirstOrDefault(value => value.Scene.Visualization.ID == snapshot.Visualization.ID);
+                    if (replaced != null && deliveries.TryGetValue(replaced.TransferId, out var old))
+                    {
+                        old.Shared = false;
+                        old.Status = DeliveryStatus.Superseded;
+                        old.Lifetime.Cancel();
+                        old.Grace?.Cancel();
+                        old.Grace?.Dispose();
+                        old.Grace = null;
+                        old.Replica?.Dispose();
+                        old.Replica = null;
+                        V2SceneReconciliationRecord.Get(replaced.Scene)?.Dispose();
+                    }
+
                     replica = null;
                     acceptedReplica = null;
                     telemetry?.Trace.CaptureApplyStart();
-                    Reconciliation?.Dispose();
-                    await view.ApplyAsync(snapshot, archive, stop); // ACK only after complete common rendering and publication.
+                    await view.ApplyAsync(snapshot, archive, preparationStop.Token); // ACK only after complete common rendering and publication.
                     telemetry?.Trace.CaptureApplyEnd();
                     if (telemetry != null)
                     {
@@ -483,16 +651,32 @@ namespace HBP.Quest
                 }
                 catch
                 {
-                    deliveries.Remove(next.TransferId);
+                    if (next.Shared && next.Status != DeliveryStatus.Closed) deliveries.Remove(next.TransferId);
+                    else
+                    {
+                        next.Status = DeliveryStatus.Closed;
+                        next.Lifetime.Cancel();
+                    }
+
                     throw;
                 }
                 finally
                 {
+                    next.Preparation.TrySetResult(true);
                     // Publish captured facts even if apply or the later receipt fails; never fabricate ApplyEnd.
                     telemetry?.Trace.Publish(SyncProfile.InitialTransfer, InitialTransferIdentity(snapshot.TransferId));
                 }
 
-                if (current != null) current.Status = DeliveryStatus.Superseded;
+                if (next.Status == DeliveryStatus.Closed)
+                {
+                    await view.CloseAsync(next.TransferId);
+                    return DeliveryStatus.Closed;
+                }
+
+                var published = view.Find(next.TransferId);
+                next.Binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(ParseContentHash(hash), DeliveryStatus.Published), published.Restored);
+                var record = V2SceneReconciliationRecord.Retain(published.Scene, next.Binding);
+                if (!next.Shared) record.SetStatus(V2ReconciliationStatus.Orphan, "This visualization is now local to Quest.");
                 current = next;
                 replica = null;
                 acceptedReplica = null;
@@ -506,180 +690,216 @@ namespace HBP.Quest
             }
         }
 
-        /// <summary>Receive ordered scientific state on a separate authenticated control stream.</summary>
+        /// <summary>Route before entering any scene's unchanged replica or reconciliation protocol.</summary>
         public async Task ReceiveReplicaAsync(Stream stream, CancellationToken stop)
         {
-            QuestV2ReplicaSession retainedSession = await OnUnityThreadAsync(() => v2Replica, stop).ConfigureAwait(false);
-            byte[] prefix;
-            try
+            byte[] prefix = await ReadPrefixAsync(stream, 4, stop).ConfigureAwait(false);
+            Entry entry;
+            if (HasTransportMagic(prefix, V2ReplicaRoute.Magic))
             {
+                var route = await V2ReplicaRoute.ReadBodyAsync(stream, stop).ConfigureAwait(false);
+                entry = await OnUnityThreadAsync(() =>
+                {
+                    if (globals == null || route.Session.Value != Guid.ParseExact(globals.Id, "N") || !deliveries.TryGetValue(route.Incarnation.Value.ToString("N"), out var found) || !found.Shared || found.Status != DeliveryStatus.Published || found.Binding == null || !found.Binding.CreateV2Identity().SceneId.Equals(route.Scene))
+                        throw new InvalidDataException("The routed scene incarnation is closed or unavailable.");
+                    return found;
+                }, stop).ConfigureAwait(false);
                 prefix = await ReadPrefixAsync(stream, 4, stop).ConfigureAwait(false);
             }
-            catch (Exception exception) when (!stop.IsCancellationRequested && IsTransientReplicaInterruption(exception) && retainedSession != null)
-            {
-                await OnUnityThreadAsync(() =>
-                {
-                    if (ReferenceEquals(v2Replica, retainedSession))
-                    {
-                        if (retainedSession.CanResumeConnection)
-                            StartV2ReplicaGraceExpiry(retainedSession);
-                        else if (retainedSession.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
-                            MarkV2ReplicaOffline("The Quest replica reconnect grace expired; reconnect on Desktop to reunite the local changes.");
-                    }
+            else entry = await OnUnityThreadAsync(() => current, stop).ConfigureAwait(false);
 
-                    return 0;
-                }, CancellationToken.None).ConfigureAwait(false);
-                return;
-            }
-
+            if (entry == null || entry.Binding == null || !entry.Shared) throw new InvalidOperationException("No shared scene is available.");
+            using var sceneStop = CancellationTokenSource.CreateLinkedTokenSource(stop, entry.Lifetime.Token);
+            stop = sceneStop.Token;
+            var presentation = await OnUnityThreadAsync(() => view.Find(entry.TransferId), stop).ConfigureAwait(false);
+            if (presentation == null) throw new InvalidDataException("The routed scene was closed.");
             if (HasTransportMagic(prefix, V2SceneReconciliationProtocol.Magic))
             {
-                await publicationGate.WaitAsync(stop).ConfigureAwait(false);
+                await entry.Gate.WaitAsync(stop).ConfigureAwait(false);
                 try
                 {
                     var record = await OnUnityThreadAsync(() =>
                     {
-                        if (!IsReady) throw new InvalidOperationException("No retained Quest scene is available for reconciliation.");
-                        CancelV2ReplicaGraceExpiry();
-                        v2Replica?.Dispose();
-                        v2Replica = null;
-                        var binding = PreparedSceneDeliveryBinding.FromPublished(new DeliveryReceipt(ParseContentHash(current.ContentHash), DeliveryStatus.Published), view.PublishedScene);
-                        return V2SceneReconciliationRecord.Retain(view.Scene, binding);
+                        if (!entry.Shared || entry.Status != DeliveryStatus.Published) throw new InvalidOperationException("The scene was closed.");
+                        entry.Grace?.Cancel();
+                        entry.Grace?.Dispose();
+                        entry.Grace = null;
+                        entry.Replica?.Dispose();
+                        entry.Replica = null;
+                        return V2SceneReconciliationRecord.Retain(presentation.Scene, entry.Binding);
                     }, stop).ConfigureAwait(false);
                     await V2SceneReconciliationProtocol.ReceiveQuestAsync(stream, record, stop).ConfigureAwait(false);
                 }
                 finally
                 {
-                    publicationGate.Release();
+                    entry.Gate.Release();
                 }
 
                 return;
             }
 
             var replay = new PrefixReadStream(prefix, stream);
-            if (HasTransportMagic(prefix, "HBT2") || HasTransportMagic(prefix, "HBS2"))
+            if (!HasTransportMagic(prefix, "HBT2") && !HasTransportMagic(prefix, "HBS2"))
             {
-                Task<QuestV2ReplicaSession> acquisition = await OnUnityThreadAsync(() =>
-                {
-                    if (!IsReady) throw new InvalidOperationException("Publish a visualization before opening its v2 replica stream.");
-                    byte[] digest = ParseContentHash(current.ContentHash);
-                    var receipt = new DeliveryReceipt(digest, DeliveryStatus.Published);
-                    PreparedSceneDeliveryBinding binding = PreparedSceneDeliveryBinding.FromPublished(receipt, view.PublishedScene);
-                    if (v2Replica == null || !v2Replica.Matches(binding))
-                    {
-                        CancelV2ReplicaGraceExpiry();
-                        v2Replica?.Dispose();
-                        v2Replica = new QuestV2ReplicaSession(view.Scene, binding);
-                    }
-
-                    CancelV2ReplicaGraceExpiry();
-                    return Task.FromResult(v2Replica);
-                }, stop).ConfigureAwait(false);
-                QuestV2ReplicaSession session = await acquisition.ConfigureAwait(false);
-                try
-                {
-                    await session.RunConnectionAsync(replay, stop).ConfigureAwait(false);
-                }
-                catch (Exception exception) when (!stop.IsCancellationRequested && IsTransientReplicaInterruption(exception) && session.CanResumeConnection)
-                {
-                    await OnUnityThreadAsync(() =>
-                    {
-                        if (ReferenceEquals(v2Replica, session)) StartV2ReplicaGraceExpiry(session);
-                        return 0;
-                    }, CancellationToken.None).ConfigureAwait(false);
-                    return;
-                }
-                catch (Exception exception)
-                {
-                    if (!stop.IsCancellationRequested)
-                    {
-                        await OnUnityThreadAsync(() =>
-                        {
-                            if (ReferenceEquals(v2Replica, session))
-                            {
-                                if (session.TransportState == V2PersistentTransportState.DisconnectedGrace)
-                                    StartV2ReplicaGraceExpiry(session);
-                                else if (session.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
-                                    MarkV2ReplicaOffline("The Quest v2 replica failed: " + exception.Message);
-                            }
-
-                            return 0;
-                        }, CancellationToken.None).ConfigureAwait(false);
-                    }
-
-                    throw;
-                }
-                finally
-                {
-                    if (stop.IsCancellationRequested)
-                    {
-                        await OnUnityThreadAsync(() =>
-                        {
-                            if (ReferenceEquals(v2Replica, session))
-                            {
-                                CancelV2ReplicaGraceExpiry();
-                                v2Replica = null;
-                                session.Dispose();
-                            }
-
-                            return 0;
-                        }, CancellationToken.None).ConfigureAwait(false);
-                    }
-                }
-
+                await ReceiveLegacyReplicaAsync(replay, stop).ConfigureAwait(false);
                 return;
             }
 
-            await ReceiveLegacyReplicaAsync(replay, stop).ConfigureAwait(false);
-        }
+            var session = await OnUnityThreadAsync(() =>
+            {
+                if (!entry.Shared || entry.Status != DeliveryStatus.Published) throw new InvalidOperationException("The scene was closed.");
+                entry.Grace?.Cancel();
+                entry.Grace?.Dispose();
+                entry.Grace = null;
+                if (entry.Replica == null)
+                {
+                    entry.Replica = new QuestV2ReplicaSession(presentation.Scene, entry.Binding);
+                    entry.Replica.ActionReceived += action => OnSceneAction(entry, action);
+                }
 
-        private static bool IsTransientReplicaInterruption(Exception exception) => exception is IOException || exception is SocketException || exception is ObjectDisposedException;
-
-        private void StartV2ReplicaGraceExpiry(QuestV2ReplicaSession session)
-        {
-            CancelV2ReplicaGraceExpiry();
-            var lifetime = new CancellationTokenSource();
-            v2ReplicaGraceLifetime = lifetime;
-            _ = ExpireV2ReplicaGraceAsync(session, lifetime);
-        }
-
-        private async Task ExpireV2ReplicaGraceAsync(QuestV2ReplicaSession session, CancellationTokenSource lifetime)
-        {
+                return entry.Replica;
+            }, stop).ConfigureAwait(false);
             try
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(V2OutgoingScheduler.ReconnectGraceMilliseconds), lifetime.Token).ConfigureAwait(false);
+                await session.RunConnectionAsync(replay, stop).ConfigureAwait(false);
+            }
+            catch (Exception error) when (!stop.IsCancellationRequested && IsTransientReplicaInterruption(error))
+            {
                 await OnUnityThreadAsync(() =>
                 {
-                    if (!ReferenceEquals(v2Replica, session) || !ReferenceEquals(v2ReplicaGraceLifetime, lifetime)) return 0;
-                    v2ReplicaGraceLifetime = null;
-                    lifetime.Dispose();
-                    if (session.ConnectionState == V2QuestMutationConnectionState.OfflineLocal)
-                        MarkV2ReplicaOffline("The Quest replica reconnect grace expired; reconnect on Desktop to reunite the local changes.");
+                    StartGrace(entry, session);
                     return 0;
                 }, CancellationToken.None).ConfigureAwait(false);
             }
-            catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
+            finally
             {
+                if (stop.IsCancellationRequested)
+                    await OnUnityThreadAsync(() =>
+                    {
+                        if (entry.Replica == session)
+                        {
+                            session.Dispose();
+                            entry.Replica = null;
+                        }
+
+                        return 0;
+                    }, CancellationToken.None).ConfigureAwait(false);
             }
-            catch (Exception exception)
+        }
+
+        private static bool IsTransientReplicaInterruption(Exception error) => error is IOException or SocketException or ObjectDisposedException or InvalidOperationException;
+
+        private void StartGrace(Entry entry, QuestV2ReplicaSession session)
+        {
+            entry.Grace?.Cancel();
+            entry.Grace?.Dispose();
+            entry.Grace = new CancellationTokenSource();
+            ExpireGraceAsync(entry, session, entry.Grace).AsUniTask().Forget();
+        }
+
+        private async Task ExpireGraceAsync(Entry entry, QuestV2ReplicaSession session, CancellationTokenSource grace)
+        {
+            try
             {
-                Debug.LogError("Quest v2 replica reconnect expiry failed: " + exception);
+                await Task.Delay(V2OutgoingScheduler.ReconnectGraceMilliseconds, grace.Token);
+                await UniTask.SwitchToMainThread();
+                if (entry.Replica != session || entry.Grace != grace) return;
+                session.Dispose();
+                entry.Replica = null;
+                entry.Grace = null;
+                var presentation = view.Find(entry.TransferId);
+                if (presentation != null) V2SceneReconciliationRecord.Get(presentation.Scene)?.SetStatus(V2ReconciliationStatus.Local, "Scene offline; reconnect Desktop to merge changes.");
+                grace.Dispose();
+            }
+            catch (OperationCanceledException)
+            {
             }
         }
 
         private void CancelV2ReplicaGraceExpiry()
         {
-            CancellationTokenSource lifetime = v2ReplicaGraceLifetime;
-            v2ReplicaGraceLifetime = null;
-            if (lifetime == null) return;
-            lifetime.Cancel();
-            lifetime.Dispose();
+            foreach (var entry in deliveries.Values)
+            {
+                entry.Grace?.Cancel();
+                entry.Grace?.Dispose();
+                entry.Grace = null;
+            }
         }
 
-        private void MarkV2ReplicaOffline(string reason)
+        private void OnContextSelected(HBP.Data.Module3D.Base3DScene scene, HBP.Data.Module3D.Column3D column)
         {
-            IsConnected = false;
-            LastError = reason;
+            var presentation = view.Find(scene);
+            if (presentation == null || !deliveries.TryGetValue(presentation.TransferId, out var entry) || entry.Replica?.TransportState != V2PersistentTransportState.Connected || !entry.Shared) return;
+            var identity = entry.Binding.CreateV2Identity();
+            try
+            {
+                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.SelectContext, column?.ColumnData.ID));
+            }
+            catch (IOException error)
+            {
+                ActionStatus = error.Message;
+            }
+        }
+
+        private void OnSceneAction(Entry entry, V2SceneAction action)
+        {
+            var presentation = view.Find(entry.TransferId);
+            if (presentation == null || !entry.Shared) return;
+            if (action.Kind == V2SceneActionKind.SelectContext)
+            {
+                var column = presentation.Scene.Columns.FirstOrDefault(value => value.ColumnData.ID == action.Column);
+                if (column != null) view.SelectContext(presentation.Scene, column, false);
+            }
+            else if (action.Kind == V2SceneActionKind.Result) ActionStatus = action.Message;
+        }
+
+        public bool CanOpenPatient => view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
+        private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == V2PersistentTransportState.Connected && V2SceneReconciliationRecord.Get(scene)?.Status == V2ReconciliationStatus.Synchronized;
+
+        public void RequestOpenPatient()
+        {
+            if (!CanOpenPatient) return;
+            var scene = view.Scene;
+            var entry = deliveries[view.Find(scene).TransferId];
+            var identity = entry.Binding.CreateV2Identity();
+            try
+            {
+                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.OpenPatient, scene.SelectedColumn.ColumnData.ID, scene.SelectedColumn.SelectedSite.Information.FullID));
+                ActionStatus = "Opening patient on Desktop...";
+            }
+            catch (IOException error)
+            {
+                ActionStatus = error.Message;
+            }
+        }
+
+        public async Task RequestCloseAsync(HBP.Data.Module3D.Base3DScene scene)
+        {
+            var presentation = view.Find(scene);
+            if (presentation == null) return;
+            if (CanRequest(scene))
+            {
+                var entry = deliveries[presentation.TransferId];
+                var identity = entry.Binding.CreateV2Identity();
+                entry.Closed ??= new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                entry.Replica.SendAction(new V2SceneAction(identity.SceneId, identity.IncarnationId, V2SceneActionKind.Close));
+                ActionStatus = "Closing visualization...";
+                if (await Task.WhenAny(entry.Closed.Task, Task.Delay(TimeSpan.FromSeconds(15))) != entry.Closed.Task) throw new IOException("Desktop did not acknowledge the close. Retry, or close locally after disconnection.");
+                await entry.Closed.Task;
+            }
+            else
+            {
+                if (deliveries.TryGetValue(presentation.TransferId, out var entry))
+                {
+                    entry.Shared = false;
+                    entry.Status = DeliveryStatus.Closed;
+                    entry.Lifetime.Cancel();
+                    entry.Replica?.Dispose();
+                    entry.Replica = null;
+                }
+
+                await view.CloseAsync(presentation.TransferId);
+            }
         }
 
         private async Task ReceiveLegacyReplicaAsync(Stream stream, CancellationToken stop)
@@ -913,8 +1133,15 @@ namespace HBP.Quest
             RequireMainThread();
             reception?.Cancel();
             CancelV2ReplicaGraceExpiry();
+            foreach (var entry in deliveries.Values)
+            {
+                entry.Replica?.Dispose();
+                entry.Replica = null;
+            }
+
             v2Replica?.Dispose();
             v2Replica = null;
+            IsSessionConnected = false;
             IsConnected = false;
         }
 
@@ -931,8 +1158,15 @@ namespace HBP.Quest
             ++replicaGeneration;
             surfaceCache.Clear();
             Disconnect(); // Cancels queued publication before freeing resources.
-            if (current != null)
-                current.Status = DeliveryStatus.Closed;
+            foreach (var entry in deliveries.Values)
+            {
+                entry.Shared = false;
+                entry.Status = DeliveryStatus.Closed;
+                entry.Lifetime.Cancel();
+                entry.Replica?.Dispose();
+                entry.Replica = null;
+            }
+
             current = null;
             if (view != null)
                 view.Clear();
@@ -956,6 +1190,7 @@ namespace HBP.Quest
         private void OnDestroy()
         {
             destroyed = true;
+            if (view != null) view.ContextSelected -= OnContextSelected;
             CloseSession();
             deliveries.Clear();
             _ = ReleaseGlobalsAsync();

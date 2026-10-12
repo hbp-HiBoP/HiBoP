@@ -9,6 +9,7 @@ namespace HBP.UI.Tools
         UnityEvent OnCancel { get; }
         void Initialize();
         void Open(bool showInformations = true, bool cancelable = false);
+        void SetOptions(bool showInformations, bool cancelable);
         void Close();
         void ChangePercentage(float progress, float durationInSeconds, LoadingText message);
     }

@@ -21,6 +21,17 @@ namespace HBP.Quest.Desktop
 {
     internal sealed class DesktopV2ReplicaSession : IDisposable
     {
+        public event Action<V2SceneAction> ActionReceived;
+        public ulong FinalSequence => m_Authority.CanonicalSequence;
+        public ulong BulkThrough => m_Scheduler.LastAllocatedBulkStream;
+
+        public void SendAction(V2SceneAction action)
+        {
+            if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
+            var queued = m_Transport.EnqueueSessionControl(action.Encode(), V2DeliveryReliability.Reliable);
+            if (!queued.Accepted) throw new IOException("Scene action queue is full.");
+        }
+
         private enum PublicationState
         {
             Capturing,
@@ -145,7 +156,11 @@ namespace HBP.Quest.Desktop
             m_SurfaceInflation = new V2SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
             m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
             m_SurfaceInflation.RemoteJobStarted += completion => SurfaceInflationLoading.ObserveAsync(completion).Forget();
-            m_OpenReplica = openReplica ?? QuestPairing.OpenV2ReplicaAsync;
+            m_OpenReplica = openReplica ?? ((host, pin, credential, token, transport) => QuestPairing.OpenReplicaAsync(host, pin, credential, token, async (stream, stop) =>
+            {
+                await V2ReplicaRoute.WriteAsync(stream, m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, stop).ConfigureAwait(false);
+                await transport.RunConnectionAsync(stream, stop).ConfigureAwait(false);
+            }));
             m_Authority.CanonicalReady += OnCanonicalReady;
             m_Authority.SessionMustDisconnect += OnAuthorityFailure;
             m_Scene.OnAddCut.AddListener(OnCutTopologyChanged);
@@ -426,6 +441,14 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == V2ScheduleLane.SessionControl)
             {
+                if (V2SceneAction.TryDecode(payload, out var action))
+                {
+                    if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
+                    await UniTask.SwitchToMainThread(stop);
+                    ActionReceived?.Invoke(action);
+                    return;
+                }
+
                 if (V2RetentionProgress.TryDecode(payload, out V2RetentionProgress progress))
                 {
                     await ProcessRetentionProgressAsync(progress, stop).ConfigureAwait(false);

@@ -22,7 +22,7 @@ using UnityEngine;
 namespace HBP.Quest.Desktop
 {
     /// <summary>Owns the Desktop Quest connection independently of disposable windows.</summary>
-    public sealed class QuestManager : Manager<QuestManager>
+    public sealed partial class QuestManager : Manager<QuestManager>
     {
         public static QuestManager Instance => m_Instance;
         public event Action Changed;
@@ -34,17 +34,14 @@ namespace HBP.Quest.Desktop
         public bool IsBusy => busy;
         public bool LastOperationCancelled { get; private set; }
         public bool CanRetryReconciliation => reconciliationNeedsRetry;
+        public bool CanRetrySceneOperations => CanRetryReconciliation || CanRetryScenes;
         private IDisposable pairingTiming;
         public bool IsPaired => connected && credential != null;
-        public bool CanRetry => offer?.CanRetry == true && failedDelivery && IsPaired;
-        public bool HasRetryableDelivery => offer?.CanRetry == true && failedDelivery;
+        public bool CanRetry => HasRetryableDelivery && IsPaired;
+        public bool HasRetryableDelivery => publications.Values.Any(value => value.Error != null && value.Offer?.CanRetry == true);
 
         private byte[] pin, credential;
         private string endpoint, store;
-        private SceneDelivery offer;
-        private DesktopReplicaSession replica;
-        private DesktopV2ReplicaSession publicationReplica;
-        private V2SceneReconciliationRecord reconciliation;
         private bool reconciliationNeedsRetry;
         private PairingSnapshot globals;
         private DesktopSessionPreferences sessionPreferences;
@@ -53,9 +50,32 @@ namespace HBP.Quest.Desktop
         private long discoveryGeneration;
         public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
         public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
-        public bool HasSharedScene => publicationReplica != null && !publicationReplica.IsClosed || replica != null && !replica.IsClosed || reconciliation != null && reconciliation.Scene && !reconciliation.Scene.IsClosing;
-        public Task<string> ValidatePreferencesChangeAsync(NormalizationType requested) => IsPaired && sessionPreferences != null ? sessionPreferences.ValidateNormalizationAsync(requested, HasSharedScene) : Task.FromResult(ValidatePreferencesChangeNow(requested));
-        public string ValidatePreferencesChangeNow(NormalizationType requested) => requested != PersistentDataManager.UserPreferences.Data.EEG.Normalization && (HasSharedScene || IsBusy || sessionPreferences?.QuestHasSharedScene == true) ? "Close shared visualizations and wait for the Quest operation to finish before changing EEG normalization." : null;
+        public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
+
+        public async Task<string> ValidatePreferencesChangeAsync(NormalizationType requested)
+        {
+            string blocked = ValidatePreferencesChangeNow(requested);
+            if (blocked != null || requested == PersistentDataManager.UserPreferences.Data.EEG.Normalization || !IsPaired) return blocked;
+            try
+            {
+                var inventory = await InventoryAsync(lifetime.Token);
+                if (inventory.Any(remote => remote.Orphan || !publications.Values.Any(local => !local.Removed && local.Binding?.TransferId == remote.TransferId)))
+                    return "Close local/orphan visualizations on Quest before changing EEG normalization. Their original recordings cannot be reloaded from Desktop.";
+                return null;
+            }
+            catch (Exception error)
+            {
+                return "Cannot prepare the Quest reload: " + error.Message;
+            }
+        }
+
+        public string ValidatePreferencesChangeNow(NormalizationType requested)
+        {
+            if (requested == PersistentDataManager.UserPreferences.Data.EEG.Normalization) return null;
+            if (busy || reloadingScenes || restoringScenes || !inventoryWork.IsCompleted || publications.Values.Any(value => value.Work != null && !value.Work.IsCompleted)) return "Wait for Quest operations to finish before reloading visualizations.";
+            return HasSharedScene && !IsPaired ? "Reconnect Quest before reloading shared visualizations." : null;
+        }
+
 
         public async Task SetAtlasLoadedAsync(string id, bool loaded)
         {
@@ -117,25 +137,14 @@ namespace HBP.Quest.Desktop
 #endif
             usb = new QuestUsbDiscovery(adb);
             PairingTiming.Measured += LogPairingTiming;
+            InitializeSceneLifecycle();
         }
 
         private static void LogPairingTiming(string message) => Debug.Log(message);
 
         private void Update()
         {
-            if (replica != null)
-            {
-                if (replica.IsClosed) replica = null;
-                else replica.Tick(Time.unscaledTime);
-                if (replica?.RejectionReason is { } rejection && Status != rejection) SetStatus(rejection);
-            }
-
-            if (publicationReplica != null && publicationReplica.IsClosed)
-            {
-                publicationReplica.Dispose();
-                publicationReplica = null;
-            }
-
+            TickSceneLifecycle();
             if (!busy && !scanning && (discoveryActive || reconnect) && Time.unscaledTime >= nextDiscovery)
             {
                 nextDiscovery = Time.unscaledTime + 5;
@@ -148,7 +157,7 @@ namespace HBP.Quest.Desktop
                 _ = RunAsync(async token =>
                 {
                     bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
-                    if (!connected || !ready || publicationReplica == null && reconciliation != null && !reconciliationNeedsRetry && reconciliation.Status != V2ReconciliationStatus.Orphan) await RestoreAsync(token);
+                    if (!connected || !ready || NeedsSceneReconnection) await RestoreAsync(token);
                 });
             }
         }
@@ -202,6 +211,12 @@ namespace HBP.Quest.Desktop
         {
             return RunAsync(async token =>
             {
+                if (IsPaired && !reconciliationNeedsRetry && CanRetryScenes)
+                {
+                    await RetryFailedScenesAsync(token);
+                    return;
+                }
+
                 reconciliationNeedsRetry = false;
                 if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
                 if (pin == null)
@@ -219,6 +234,7 @@ namespace HBP.Quest.Desktop
                 try
                 {
                     await RestoreAsync(token);
+                    if (CanRetryScenes) await RetryFailedScenesAsync(token);
                 }
                 catch (AuthenticationException) when (remembered)
                 {
@@ -272,54 +288,14 @@ namespace HBP.Quest.Desktop
             }
 
             nextHeartbeat = Time.unscaledTime + 5;
-            if (reconciliation != null && publicationReplica == null && reconciliation.Status != V2ReconciliationStatus.Orphan)
-                await ReconcileRetainedSceneAsync(token);
-            else SetStatus("Quest paired and ready for a visualization.");
-        }
-
-        private async Task ReconcileRetainedSceneAsync(CancellationToken token)
-        {
-            try
-            {
-                SetStatus("Reconnecting: comparing scene changes...");
-                await QuestPairing.OpenReplicaAsync(endpoint, pin, credential, token, (stream, stop) => V2SceneReconciliationProtocol.ReconcileDesktopAsync(stream, reconciliation, ChooseConflictAsync, stop, RunReconciliationApplyAsync));
-                await UniTask.SwitchToMainThread(token);
-                if (reconciliation.Status == V2ReconciliationStatus.Orphan)
-                {
-                    SetStatus(reconciliation.Message);
-                    return;
-                }
-
-                var binding = reconciliation.Binding;
-                publicationReplica = new DesktopV2ReplicaSession(reconciliation.Scene, binding.GlobalContextId, binding.TransferId);
-                await publicationReplica.StartAfterPublicationAsync(binding, endpoint, pin, credential, token);
-                await UniTask.SwitchToMainThread(token);
-                SetStatus("Scene synchronized with Quest.");
-            }
-            catch
-            {
-                await UniTask.SwitchToMainThread();
-                reconciliationNeedsRetry = true;
-                SetStatus(reconciliation.Message ?? "Reconnection interrupted. Select Retry to try again.");
-                throw;
-            }
-        }
-
-        private static async Task RunReconciliationApplyAsync(Func<CancellationToken, Task> apply, CancellationToken stop)
-        {
-            await LoadingManager.LoadDelayedAsync(async (update, token) =>
-            {
-                update(0.1f, 0, new LoadingText("Applying merged changes"));
-                await apply(token);
-                await UniTask.SwitchToMainThread(token);
-                update(1, 0, new LoadingText("Changes merged"));
-            }, stop);
+            await RestoreScenesAsync(token);
+            SetStatus(reconciliationNeedsRetry ? "Quest connected. Some visualizations could not reconnect. Select Retry." : "Quest connected. Scene synchronization is ready.");
         }
 
         private static async Task<V2ConflictChoice> ChooseConflictAsync(V2CheckpointConflict conflict, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(stop);
-            int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
+            int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", "This choice applies to conflicts in all common visualizations during this reconnection. Each visualization has its own result.\n\n" + conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
             return answer == 0 ? V2ConflictChoice.Desktop : V2ConflictChoice.Quest;
         }
 
@@ -341,158 +317,27 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        public async Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
+        public Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
         {
-            SyncTelemetryPoint requestPoint = retry ? default : SyncTelemetry.CapturePoint();
-            bool sent = false;
-            string requestedTransferId = null;
-            long captureGeneration = 0;
-            if (!retry)
+            var scene = sourceScene != null ? sourceScene : Module3DMain.IsInitialized ? Module3DMain.SelectedScene : null;
+            if (scene == null)
             {
-                requestedTransferId = Guid.NewGuid().ToString("N");
-                captureGeneration = Interlocked.Increment(ref nextTransferCaptureGeneration);
+                SetStatus("Select an open visualization first.");
+                return Task.FromResult(false);
             }
 
-            string userRequestTransferId = requestedTransferId;
-            long userRequestCaptureGeneration = captureGeneration;
-
-            try
-            {
-                await RunAsync(async token =>
-                {
-                    if (!IsPaired && reconnect && credential != null) await RestoreAsync(token);
-                    if (!IsPaired) throw new InvalidOperationException("Pair a Quest first.");
-                    if (retry && !CanRetry) throw new InvalidOperationException("No prepared visualization is available to retry.");
-                    if (sessionPreferences != null) await sessionPreferences.FlushPreferencesAsync();
-                    failedDelivery = false;
-                    var context = SynchronizationContext.Current;
-                    bool retryCurrent = retry && publicationReplica?.CanRetryTransfer == true;
-                    int publicationRestarts = 0;
-                    try
-                    {
-                        while (true)
-                        {
-                            if (!retryCurrent && (retry || publicationRestarts > 0))
-                            {
-                                requestedTransferId = Guid.NewGuid().ToString("N");
-                                captureGeneration = Interlocked.Increment(ref nextTransferCaptureGeneration);
-                            }
-
-                            var result = await LoadingManager.LoadAsync<(DeliveryReceipt Receipt, Exception Error)>(async (update, loadingToken) =>
-                            {
-                                try
-                                {
-                                    using var linked = CancellationTokenSource.CreateLinkedTokenSource(token, loadingToken);
-                                    var stop = linked.Token;
-                                    void Report(float value, string message) => context.Post(_ => update(value, 0, new LoadingText(message)), null);
-                                    if (!retryCurrent)
-                                    {
-                                        offer?.Dispose();
-                                        offer = null;
-                                        publicationReplica?.Dispose();
-                                        publicationReplica = null;
-                                        Report(0.02f, "Preparing visualization");
-                                        await UniTask.SwitchToMainThread(stop);
-                                        var sceneToSend = sourceScene != null ? sourceScene : Module3DMain.IsInitialized ? Module3DMain.SelectedScene : null;
-                                        if (sceneToSend != null && sessionPreferences != null)
-                                            foreach (string atlas in sceneToSend.RequiredAtlasIds())
-                                                await sessionPreferences.EnsureAtlasReadyAsync(atlas);
-                                        offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, stop, update, sourceScene, requestedTransferId, captureGeneration, (scene, transferId, sessionId) => { publicationReplica = new DesktopV2ReplicaSession(scene, sessionId, transferId); });
-                                        Report(0.20f, "Connecting to Quest");
-                                    }
-
-                                    DesktopV2ReplicaSession owner = publicationReplica ?? throw new InvalidOperationException("The prepared visualization has no v2 publication owner.");
-                                    using var publicationStop = CancellationTokenSource.CreateLinkedTokenSource(stop, owner.PublicationAbortToken);
-                                    var delivery = offer;
-                                    DeliveryReceipt receipt = await QuestPairing.SendAsync(endpoint, pin, credential, publicationStop.Token, (stream, sendStop) => delivery.SendAsync(stream, sendStop, null, (count, total) =>
-                                    {
-                                        float value = 0.20f + 0.65f * Mathf.Clamp01((float)count / total);
-                                        Report(value, $"Sending visualization: {100L * Math.Min(count, total) / total}%");
-                                    }));
-                                    await UniTask.SwitchToMainThread(stop);
-                                    var binding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
-                                    reconciliation?.Dispose();
-                                    reconciliation = V2SceneReconciliationRecord.Retain(owner.Scene, binding);
-                                    reconciliationNeedsRetry = false;
-                                    await owner.StartAfterPublicationAsync(binding, endpoint, pin, credential, publicationStop.Token);
-                                    update(1, 0, new LoadingText("Visualization ready on Quest"));
-                                    return (receipt, null);
-                                }
-                                catch (Exception error)
-                                {
-                                    await UniTask.SwitchToMainThread();
-                                    return (null, error);
-                                }
-                            }, true);
-                            await UniTask.SwitchToMainThread(token);
-                            if (result.Error != null)
-                            {
-                                bool restart = publicationReplica?.RequiresPublicationRestart == true || result.Error is DesktopV2ReplicaSession.V2PublicationRestartException;
-                                if (!restart || publicationRestarts >= 2) throw result.Error;
-                                publicationRestarts++;
-                                retryCurrent = false;
-                                publicationReplica?.Dispose();
-                                publicationReplica = null;
-                                if (offer != null)
-                                {
-                                    SceneDelivery incomplete = offer;
-                                    offer = null;
-                                    await incomplete.DisposeAsync();
-                                }
-
-                                continue;
-                            }
-
-                            sent = result.Receipt.Status == DeliveryStatus.Published || result.Receipt.Status == DeliveryStatus.AlreadyPublished;
-                            if (sent)
-                            {
-                                replica?.Dispose();
-                                replica = null;
-                            }
-
-                            break;
-                        }
-
-                        SetStatus(sent ? "Visualization ready on Quest." : "The visualization was closed or replaced on Quest. Send a new snapshot.");
-                    }
-                    catch
-                    {
-                        sent = false;
-                        await UniTask.SwitchToMainThread();
-                        failedDelivery = offer?.CanRetry == true;
-                        if (offer != null && !failedDelivery)
-                        {
-                            var incomplete = offer;
-                            offer = null;
-                            await incomplete.DisposeAsync();
-                        }
-
-                        if (!failedDelivery)
-                        {
-                            publicationReplica?.Dispose();
-                            publicationReplica = null;
-                        }
-
-                        await UniTask.SwitchToMainThread();
-                        connected = false;
-                        Changed?.Invoke();
-                        throw;
-                    }
-                });
-            }
-            finally
-            {
-                if (!retry)
-                {
-                    var identity = new SyncTelemetryIdentity(userRequestTransferId, 1, userRequestCaptureGeneration);
-                    SyncTelemetry.MarkAt(SyncProfile.InitialTransfer, identity, SyncMilestone.UserRequest, requestPoint);
-                }
-            }
-
-            return sent;
+            var entry = GetPublication(scene);
+            if (entry.Work != null && !entry.Work.IsCompleted) return entry.Work;
+            if (!retry && entry.Owner is { IsLive: true, IsClosed: false }) return Task.FromResult(true);
+            entry.Work = SendSceneAsync(entry, retry);
+            return entry.Work;
         }
 
-        public void Cancel() => operation?.Cancel();
+        public void Cancel()
+        {
+            operation?.Cancel();
+            foreach (var entry in publications.Values) entry.Stop?.Cancel();
+        }
 
         private Task RunAsync(Func<CancellationToken, Task> action)
         {
@@ -527,7 +372,7 @@ namespace HBP.Quest.Desktop
                 else if (reconciliationNeedsRetry)
                 {
                     LastOperationCancelled = exception is OperationCanceledException || attempt.IsCancellationRequested;
-                    SetStatus((reconciliation?.Message ?? "Reconnection interrupted.") + " Select Retry.");
+                    SetStatus("Some visualizations could not reconnect. Select Retry.");
                 }
                 else if (exception is OperationCanceledException || attempt.IsCancellationRequested)
                 {
@@ -639,21 +484,14 @@ namespace HBP.Quest.Desktop
 
         private void ClearPairing()
         {
-            reconciliation?.Dispose();
-            reconciliation = null;
+            ClearSceneLifecycle();
             reconciliationNeedsRetry = false;
             sessionPreferences?.Dispose();
             sessionPreferences = null;
-            replica?.Dispose();
-            replica = null;
-            publicationReplica?.Dispose();
-            publicationReplica = null;
             if (credential != null) Array.Clear(credential, 0, credential.Length);
             credential = pin = null;
             globals?.Dispose();
             globals = null;
-            offer?.Dispose();
-            offer = null;
             endpoint = SelectedId = null;
             connected = reconnect = failedDelivery = false;
             Changed?.Invoke();
@@ -668,13 +506,12 @@ namespace HBP.Quest.Desktop
         private async void OnDestroy()
         {
             PairingTiming.Measured -= LogPairingTiming;
-            replica?.Dispose();
-            publicationReplica?.Dispose();
+            DisposeSceneLifecycle();
             lifetime.Cancel();
             operation?.Cancel();
             try
             {
-                await Task.WhenAll(running, discovering);
+                await Task.WhenAll(new[] { running, discovering, inventoryWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
             }
             catch (Exception)
             {

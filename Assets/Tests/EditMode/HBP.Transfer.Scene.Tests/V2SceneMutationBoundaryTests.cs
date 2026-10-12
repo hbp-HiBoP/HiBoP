@@ -27,6 +27,26 @@ namespace HBP.Tests.Transfer.Scene
     [Category("Sync.SceneFocused")]
     public class V2SceneMutationBoundaryTests
     {
+        [Test]
+        public void SceneVisibility_IsSharedWithoutSelectingOrEchoingRemoteChanges()
+        {
+            using var source = new BoundSceneFixture(V2OriginDevice.Desktop);
+            using var target = new BoundSceneFixture(V2OriginDevice.Quest);
+            var changes = new List<V2Mutation>();
+            var echoes = new List<V2Mutation>();
+            source.Boundary.MutationProposed += (_, value, _) => changes.Add(value);
+            target.Boundary.MutationProposed += (_, value, _) => echoes.Add(value);
+            source.Scene.UpdateVisibleState(true, false);
+            var show = changes.OfType<SetSceneBoolean>().Single(value => value.Property == V2SceneBooleanProperty.Visible);
+            target.Boundary.Apply(show, V2MutationApplicationOrigin.Remote, T09Operation(900001));
+            Assert.That(target.Scene.IsVisible, Is.True);
+            Assert.That(target.Scene.IsSelected, Is.False);
+            Assert.That(echoes, Is.Empty);
+            target.Boundary.Apply(new SetSceneBoolean(V2SceneBooleanProperty.Visible, false), V2MutationApplicationOrigin.Remote, T09Operation(900002));
+            Assert.That(target.Scene.gameObject.activeSelf, Is.False);
+            Assert.That(echoes, Is.Empty);
+        }
+
         private static readonly SceneId SceneIdForT09 = new(Guid.Parse("10000000-0000-0000-0000-000000000009"));
 
         [Test]
@@ -1386,7 +1406,9 @@ namespace HBP.Tests.Transfer.Scene
         {
             GameObject root = new("Quest explicit projection request test");
             root.SetActive(false);
-            var scene = root.AddComponent<Base3DScene>();
+            var sceneRoot = new GameObject("Visible scientific scene");
+            sceneRoot.transform.SetParent(root.transform, false);
+            var scene = sceneRoot.AddComponent<Base3DScene>();
             var view = root.AddComponent<QuestAnatomyView>();
             BrainMaterials brainMaterials = null;
             try
@@ -1400,7 +1422,10 @@ namespace HBP.Tests.Transfer.Scene
                 Assert.That(scene.ShouldStartActivityProjection(automaticPolicyEnabled: false), Is.False);
 
                 var restoredScene = (RestoredScene)Activator.CreateInstance(typeof(RestoredScene), BindingFlags.Instance | BindingFlags.NonPublic, binder: null, args: new object[] { scene, null, null }, culture: null);
-                typeof(QuestAnatomyView).GetField("current", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, restoredScene);
+                var presentation = new QuestAnatomyView.Presentation();
+                typeof(QuestAnatomyView.Presentation).GetProperty("Restored").SetValue(presentation, restoredScene);
+                typeof(QuestAnatomyView).GetField("current", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(view, presentation);
+
 
                 scene.SceneInformation.SurfaceProjectionNeedsUpdate = true;
                 view.RecalculateProjection();
@@ -1771,7 +1796,7 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             V2SceneMutationCheckpoint checkpoint = V2SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(33));
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(34));
             Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(V2OperationType.SetSceneBoolean));
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == V2SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == V2SceneBooleanProperty.ShowAllSites), Is.True);

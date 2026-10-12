@@ -14,6 +14,21 @@ namespace HBP.Tests.PlatformConfiguration
     public class QuestConnectionLayoutTests
     {
         [Test]
+        public void SceneControls_UseNestedPrefabsAndSerializedOwners()
+        {
+            var pairing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Pairing window.prefab").GetComponent<QuestPairingWindow>();
+            var toggle = (Toggle)new SerializedObject(pairing).FindProperty("synchronizeScenes").objectReferenceValue;
+            Assert.That(toggle, Is.Not.Null);
+            Assert.That(toggle.isOn, Is.True);
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(toggle), Does.EndWith("Toggle with Text.prefab"));
+            var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var display = new SerializedObject(bootstrap.GetComponentInChildren<QuestDisplayPanel>(true));
+            foreach (string field in new[] { "session", "view", "input", "openPatient", "rows", "rowPrefab" }) Assert.That(display.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            var row = (QuestSceneRow)display.FindProperty("rowPrefab").objectReferenceValue;
+            foreach (string field in new[] { "title", "details", "visibility", "close", "selectedState" }) Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+        }
+
+        [Test]
         public void QuestMenu_UsesTwoWindows()
         {
             var menu = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/General/Main menu.prefab");

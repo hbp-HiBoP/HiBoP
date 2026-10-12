@@ -123,6 +123,29 @@ namespace HBP.UI.Main
                 return;
             }
 
+            if (normalizationChanged && QuestManager.IsInitialized)
+            {
+                try
+                {
+                    await LoadingManager.LoadAsync(async (update, token) =>
+                    {
+                        await QuestManager.Instance.ReloadForPreferencesAsync(() =>
+                        {
+                            m_ObjectTemp.Data.EEG.Normalization = requestedNormalization;
+                            base.OK();
+                            PersistentDataManager.UserPreferences.Save();
+                        }, update, token);
+                    });
+                }
+                catch (System.Exception exception)
+                {
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Visualization reload", exception.Message, "OK");
+                }
+
+                UITools.ShowMemoryCacheBudgetWarningIfNeeded();
+                return;
+            }
+
             m_ObjectTemp.Data.EEG.Normalization = requestedNormalization;
             base.OK();
             PersistentDataManager.UserPreferences.Save();

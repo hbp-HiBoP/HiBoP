@@ -19,6 +19,15 @@ namespace HBP.Quest
     /// <summary>Owns one published Quest scene's v2 mutation boundary and duplex transport.</summary>
     internal sealed class QuestV2ReplicaSession : IDisposable
     {
+        public event Action<V2SceneAction> ActionReceived;
+
+        public void SendAction(V2SceneAction action)
+        {
+            if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
+            var queued = m_Transport.EnqueueSessionControl(action.Encode(), V2DeliveryReliability.Reliable);
+            if (!queued.Accepted) throw new IOException("Scene action queue is full.");
+        }
+
         private const int MaximumDeferredRecords = 512;
         private const int MaximumDeferredBytes = 4 * 1024 * 1024;
         private const int MaximumPendingVisibilityTelemetry = 1024;
@@ -416,6 +425,14 @@ namespace HBP.Quest
                 if (!record.SessionId.Equals(m_Identity.SessionId) || record.Kind != V2TransportMessageKind.Application)
                     throw new InvalidDataException("Unexpected v2 session-control record.");
                 byte[] controlPayload = record.GetPayloadCopy();
+                if (V2SceneAction.TryDecode(controlPayload, out var action))
+                {
+                    if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
+                    await UniTask.SwitchToMainThread(stop);
+                    ActionReceived?.Invoke(action);
+                    return;
+                }
+
                 if (V2RetentionProgress.TryDecode(controlPayload, out V2RetentionProgress progress))
                 {
                     await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);

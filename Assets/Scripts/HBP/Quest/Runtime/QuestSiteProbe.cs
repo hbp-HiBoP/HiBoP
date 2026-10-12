@@ -38,8 +38,8 @@ namespace HBP.Quest
         {
             if (!isActiveAndEnabled) return false;
             bool pressed = activate.IsPressed();
-            var scene = anatomy != null ? anatomy.Scene : null;
-            if (!valid || policy == null || right == null || marker == null || scene == null || scene.IsClosing || IsActive && scene != capturedScene)
+            var scene = capturedScene;
+            if (!valid || policy == null || right == null || marker == null || anatomy == null || anatomy.Scenes.Count == 0 || capturedScene != null && (capturedScene.IsClosing || !capturedScene.IsVisible || anatomy.Find(capturedScene) == null))
             {
                 Cancel();
                 return false;
@@ -58,7 +58,7 @@ namespace HBP.Quest
                 armed = false;
                 if (handBusy) return false; // A held during an existing capture needs a fresh press.
                 IsActive = true;
-                capturedScene = scene;
+                capturedScene = null;
                 cache.Clear();
             }
 
@@ -74,20 +74,28 @@ namespace HBP.Quest
             }
 
             targets.Clear();
-            foreach (var column in anatomy.Columns)
-                if (column != null && column.Column != null && scene.Columns.Contains(column.Column))
+            foreach (var column in anatomy.AllColumns)
+                if (column != null && column.Column != null && column.Scene.IsVisible && (capturedScene == null || column.Scene == capturedScene))
                     foreach (var site in column.Column.Sites)
                     {
                         if (site == null) continue;
                         if (!cache.TryGetValue(site, out var target)) cache.Add(site, target = new QuestSiteTarget(column.Column, site));
-                        if (target.IsSelectable(scene)) targets.Add(target);
+                        if (target.IsSelectable(column.Scene)) targets.Add(target);
                     }
 
             var contact = contactPolicy.FindContact(point, policy.SiteProbeRadius, targets);
             if (contact != lastContact)
             {
                 lastContact = contact;
-                if (QuestSiteSelection.TrySelect(scene, contact))
+                var owner = contact == null ? null : System.Linq.Enumerable.FirstOrDefault(anatomy.AllColumns, value => value.Column == contact.Column);
+                if (owner != null)
+                {
+                    capturedScene = owner.Scene;
+                    scene = owner.Scene;
+                    anatomy.SelectContext(owner.Scene, owner.Column);
+                }
+
+                if (owner != null && QuestSiteSelection.TrySelect(scene, contact))
                 {
                     Selected?.Invoke(contact.Site);
                     var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);

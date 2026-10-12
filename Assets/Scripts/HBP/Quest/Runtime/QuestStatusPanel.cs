@@ -101,9 +101,9 @@ namespace HBP.Quest
             GetComponent<QuestWindow>()?.Close();
         }
 
-        public void ShowReconciliation(V2SceneReconciliationRecord record)
+        public void ShowReconciliation(V2SceneReconciliationRecord record, bool desktopConnected = false)
         {
-            heading.text = record.Status switch
+            heading.text = desktopConnected && record.Status == V2ReconciliationStatus.Orphan ? "Desktop connected" : record.Status switch
             {
                 V2ReconciliationStatus.Reconciling => "Reconnecting",
                 V2ReconciliationStatus.OutOfSync => "Synchronization incomplete",
@@ -111,7 +111,7 @@ namespace HBP.Quest
                 _ => "Available offline"
             };
             code.text = address.text = "";
-            message.text = record.Message ?? "Reconnect Desktop to merge your changes.";
+            message.text = record.Status == V2ReconciliationStatus.Orphan && desktopConnected ? "This visualization is local to Quest. Its Desktop copy was closed." : record.Message ?? "Reconnect Desktop to merge your changes.";
             countdown.gameObject.SetActive(false);
             lifetimeGauge.gameObject.SetActive(false);
             Actions(false, false);

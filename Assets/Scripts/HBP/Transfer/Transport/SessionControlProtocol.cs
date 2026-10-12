@@ -16,7 +16,10 @@ namespace HBP.Transfer.Transport
         AbortUnload = 6,
         ConfirmAtlas = 7,
         Inspect = 8,
-        AtlasInventory = 9
+        AtlasInventory = 9,
+        SceneInventory = 10,
+        CloseScene = 11,
+        DetachScene = 12
     }
 
     public enum SessionControlStatus : byte

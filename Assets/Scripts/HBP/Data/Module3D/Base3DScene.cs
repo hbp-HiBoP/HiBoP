@@ -1895,22 +1895,30 @@ namespace HBP.Data.Module3D
         /// Update the visible state of the scene
         /// </summary>
         /// <param name="state">Visible or not visible</param>
-        public void UpdateVisibleState(bool state)
+        public bool IsVisible => gameObject.activeSelf;
+
+        public void UpdateVisibleState(bool state, bool selectWhenShown = true)
         {
-            gameObject.SetActive(state);
-            OnChangeVisibleState.Invoke(state);
+            bool changed = IsVisible != state;
+            if (!changed && (!state || !selectWhenShown)) return;
+            if (changed)
+            {
+                gameObject.SetActive(state);
+                OnChangeVisibleState.Invoke(state);
+            }
+
             if (!state)
             {
                 Module3DMain.OnMinimizeScene.Invoke(this);
             }
-            else
+            else if (selectWhenShown)
             {
                 Module3DMain.OnSelectScene.Invoke(this);
                 Module3DMain.OnSelectColumn.Invoke(SelectedColumn);
                 if (m_DesktopPresentation) Module3DMain.OnSelectView.Invoke(SelectedColumn?.SelectedView);
             }
 
-            IsSelected = state;
+            if (!state || selectWhenShown) IsSelected = state;
         }
 
         /// <summary>

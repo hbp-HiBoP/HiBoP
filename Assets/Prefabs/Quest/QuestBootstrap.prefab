@@ -1995,6 +1995,11 @@ PrefabInstance:
       propertyPath: input
       value: 
       objectReference: {fileID: 8397353321855146870}
+    - target: {fileID: 2744793699379912197, guid: d4df8d6b9116c094da283abc0ff711b5,
+        type: 3}
+      propertyPath: session
+      value: 
+      objectReference: {fileID: 3281140389832051285}
     - target: {fileID: 3047337188628818788, guid: d4df8d6b9116c094da283abc0ff711b5,
         type: 3}
       propertyPath: m_MinWidth

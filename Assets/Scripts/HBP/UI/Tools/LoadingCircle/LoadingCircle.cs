@@ -91,6 +91,15 @@ namespace HBP.UI.Tools
             Reset();
         }
 
+        public async void SetOptions(bool showInformations, bool cancelable)
+        {
+            await UniTask.SwitchToMainThread();
+            if (this == null) return;
+            m_CancelButtonContainer.SetActive(cancelable && !m_IsCancelling);
+            if (showInformations) ShowInformations();
+            else HideInformations();
+        }
+
         public void ShowInformations()
         {
             Animator animator = transform.GetComponent<Animator>();

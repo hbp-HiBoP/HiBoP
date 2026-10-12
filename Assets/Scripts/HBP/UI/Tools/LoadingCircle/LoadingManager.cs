@@ -15,6 +15,32 @@ namespace HBP.UI.Tools
 
         [SerializeField] private MonoBehaviour m_LoadingCircle;
         private ILoadingPresenter Presenter => (ILoadingPresenter)m_LoadingCircle;
+        private int m_PresentationUsers;
+        private int m_InformationUsers, m_CancelableUsers;
+        private readonly object m_PresentationLock = new();
+
+        private void OpenPresentation(bool showInformations, bool cancelable = false)
+        {
+            lock (m_PresentationLock)
+            {
+                if (showInformations) m_InformationUsers++;
+                if (cancelable) m_CancelableUsers++;
+                if (++m_PresentationUsers == 1) Presenter.Open(m_InformationUsers != 0, m_CancelableUsers != 0);
+                else Presenter.SetOptions(m_InformationUsers != 0, m_CancelableUsers != 0);
+            }
+        }
+
+        private async UniTask ClosePresentation(bool showInformations, bool cancelable = false)
+        {
+            await UniTask.SwitchToMainThread();
+            lock (m_PresentationLock)
+            {
+                if (showInformations) m_InformationUsers--;
+                if (cancelable) m_CancelableUsers--;
+                if (--m_PresentationUsers == 0) Presenter.Close();
+                else Presenter.SetOptions(m_InformationUsers != 0, m_CancelableUsers != 0);
+            }
+        }
 
         #endregion
 
@@ -33,7 +59,7 @@ namespace HBP.UI.Tools
         public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             AsyncMethod<T> method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations);
+            m_Instance.OpenPresentation(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             try
             {
@@ -53,14 +79,14 @@ namespace HBP.UI.Tools
             }
             finally
             {
-                m_Instance.Presenter.Close();
+                await m_Instance.ClosePresentation(showInformations);
             }
         }
 
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
         {
             AsyncMethod method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations);
+            m_Instance.OpenPresentation(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             try
             {
@@ -77,7 +103,7 @@ namespace HBP.UI.Tools
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
 
-            m_Instance.Presenter.Close();
+            await m_Instance.ClosePresentation(showInformations);
         }
 
         public static void Load(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations = true)
@@ -88,7 +114,7 @@ namespace HBP.UI.Tools
         public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, CancellationToken, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             CancelableAsyncMethod<T> method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations, true);
+            m_Instance.OpenPresentation(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             m_Instance.Presenter.OnCancel.AddListener(method.Cancel);
             try
@@ -113,7 +139,7 @@ namespace HBP.UI.Tools
             }
             finally
             {
-                m_Instance.Presenter.Close();
+                await m_Instance.ClosePresentation(showInformations, true);
                 m_Instance.Presenter.OnCancel.RemoveListener(method.Cancel);
             }
         }
@@ -121,7 +147,7 @@ namespace HBP.UI.Tools
         public static async UniTask LoadAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations = true)
         {
             CancelableAsyncMethod method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations, true);
+            m_Instance.OpenPresentation(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             m_Instance.Presenter.OnCancel.AddListener(method.Cancel);
             try
@@ -146,7 +172,7 @@ namespace HBP.UI.Tools
             }
             finally
             {
-                m_Instance.Presenter.Close();
+                await m_Instance.ClosePresentation(showInformations, true);
                 m_Instance.Presenter.OnCancel.RemoveListener(method.Cancel);
             }
         }
@@ -173,7 +199,7 @@ namespace HBP.UI.Tools
                     await UniTask.SwitchToMainThread();
                     if (m_Instance != null && !operation.IsCompleted && !linked.IsCancellationRequested)
                     {
-                        m_Instance.Presenter.Open(showInformations, true);
+                        m_Instance.OpenPresentation(showInformations, true);
                         m_Instance.Presenter.OnCancel.AddListener(cancel);
                         visualOpened = true;
                     }
@@ -203,7 +229,7 @@ namespace HBP.UI.Tools
                 if (visualOpened && m_Instance != null)
                 {
                     m_Instance.Presenter.OnCancel.RemoveListener(cancel);
-                    m_Instance.Presenter.Close();
+                    await m_Instance.ClosePresentation(showInformations, true);
                 }
             }
         }
@@ -220,7 +246,7 @@ namespace HBP.UI.Tools
         private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, UniTask> taskToExecute, bool showInformations)
         {
             AsyncMethod method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations);
+            m_Instance.OpenPresentation(showInformations);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             try
             {
@@ -237,13 +263,13 @@ namespace HBP.UI.Tools
                 DialogBoxManager.OpenScrollable(Core.Enums.DialogBoxType.Error, "Unknown error", e.ToString()).Forget();
             }
 
-            m_Instance.Presenter.Close();
+            await m_Instance.ClosePresentation(showInformations);
         }
 
         private static async UniTaskVoid LoadVoid(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> taskToExecute, bool showInformations)
         {
             CancelableAsyncMethod method = new(taskToExecute);
-            m_Instance.Presenter.Open(showInformations, true);
+            m_Instance.OpenPresentation(showInformations, true);
             method.OnUpdateProgress.AddListener((progress, duration, message) => m_Instance.Presenter.ChangePercentage(progress, duration, message));
             m_Instance.Presenter.OnCancel.AddListener(method.Cancel);
             try
@@ -265,7 +291,7 @@ namespace HBP.UI.Tools
             }
             finally
             {
-                m_Instance.Presenter.Close();
+                await m_Instance.ClosePresentation(showInformations, true);
                 m_Instance.Presenter.OnCancel.RemoveListener(method.Cancel);
             }
         }

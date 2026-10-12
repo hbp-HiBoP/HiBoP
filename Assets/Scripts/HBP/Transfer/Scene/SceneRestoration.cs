@@ -55,7 +55,7 @@ namespace HBP.Transfer.Scene
 
     public static class SceneRestoration
     {
-        public static async UniTask<RestoredScene> PrepareAsync(ScenePayload payload, SceneArchive archive, Base3DScene prefab, Transform parent, CancellationToken token)
+        public static async UniTask<RestoredScene> PrepareAsync(ScenePayload payload, SceneArchive archive, Base3DScene prefab, Transform parent, CancellationToken token, Action<Base3DScene> onCreated = null)
         {
             SceneValidation.Validate(payload, archive);
             await StandardData.EnsureInstalledAsync();
@@ -79,6 +79,7 @@ namespace HBP.Transfer.Scene
             IDisposable preparation = scene.RetainForPreparation();
             try
             {
+                onCreated?.Invoke(scene);
                 scene.Initialize(payload.Visualization);
                 await scene.InitializePreparedAsync(async resourceToken =>
                 {

@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System;
 using System.Threading.Tasks;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.Quest;
@@ -15,6 +16,50 @@ namespace HBP.Tests.Quest
 {
     public class QuestLoadingTests
     {
+        [TestCase(true, true), TestCase(true, false), TestCase(false, true), TestCase(false, false)]
+        public async Task OverlappingLoads_KeepPresenterUntilLastTransferCompletes(bool quest, bool finishCancelableFirst)
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(quest ? "Assets/Prefabs/Quest/Quest Loading Manager.prefab" : "Assets/Prefabs/LoadingCircle/Loading Manager.prefab"));
+            var firstDone = new TaskCompletionSource<int>();
+            var secondDone = new TaskCompletionSource<int>();
+            try
+            {
+                var presenter = (MonoBehaviour)root.GetComponentsInChildren<MonoBehaviour>(true).Single(value => value is ILoadingPresenter);
+                var cancel = root.GetComponentInChildren<Button>(true);
+                Task<int> first = LoadingManager.LoadAsync<int>(async (_, _) => await firstDone.Task).AsTask();
+                Task<int> second = LoadingManager.LoadAsync<int>(async _ => await secondDone.Task).AsTask();
+                await UniTask.NextFrame();
+                Assert.That(presenter.gameObject.activeSelf, Is.True);
+                Assert.That(cancel.gameObject.activeInHierarchy, Is.True, "Starting non-cancelable work preserves cancellation for the active transfer.");
+                if (finishCancelableFirst) firstDone.SetResult(1);
+                else secondDone.SetResult(2);
+                if (finishCancelableFirst) Assert.That(await first, Is.EqualTo(1));
+                else Assert.That(await second, Is.EqualTo(2));
+                await UniTask.NextFrame();
+                Assert.That(presenter.gameObject.activeSelf, Is.True, "Finishing one load must not hide another transfer's progress.");
+                Assert.That(cancel.gameObject.activeInHierarchy, Is.EqualTo(!finishCancelableFirst));
+                if (finishCancelableFirst)
+                {
+                    secondDone.SetResult(2);
+                    Assert.That(await second, Is.EqualTo(2));
+                }
+                else
+                {
+                    firstDone.SetResult(1);
+                    Assert.That(await first, Is.EqualTo(1));
+                }
+
+                await UniTask.NextFrame();
+                Assert.That(presenter.gameObject.activeSelf, Is.False);
+            }
+            finally
+            {
+                firstDone.TrySetResult(1);
+                secondDone.TrySetResult(2);
+                Object.DestroyImmediate(root);
+            }
+        }
+
         [Test]
         public async Task QuestLoading_ProgressCancellationAndSharedManagerRemainFunctional()
         {

@@ -30,6 +30,200 @@ namespace HBP.Tests.PlayMode.Module3D
 {
     public class Module3DScenePlayModeTests
     {
+        [Test]
+        public void InitiallyActiveScene_StillSelectsItsContextWhenShown()
+        {
+            using var scope = new PlayModeSceneScope("InitialDesktopVisibility");
+            var scene = CreateBaseScene(scope, "Initially active scene");
+            scene.gameObject.SetActive(true);
+            Base3DScene selected = null;
+            int visibilityChanges = 0;
+            Module3DMain.OnSelectScene.AddListener(value => selected = value);
+            scene.OnChangeVisibleState.AddListener(_ => visibilityChanges++);
+            scene.UpdateVisibleState(true);
+            Assert.That(selected, Is.SameAs(scene));
+            Assert.That(scene.IsSelected, Is.True);
+            Assert.That(visibilityChanges, Is.Zero, "Window activation must not publish a redundant scientific visibility mutation.");
+        }
+
+#if UNITY_EDITOR
+        [TestCase(false), TestCase(true)]
+        public async Task QuestPreferencesReload_FromLoadingWorkerPreservesViewsAndReleasesFailedCapture(bool failInitialCapture)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("QuestPreferencesReload");
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scope);
+            var original = initialized.BaseScene;
+            foreach (var column in original.Columns)
+            foreach (var site in column.Sites)
+                column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+            var view = original.Columns.Single().Views.Single();
+            var position = new Vector3(12, 34, 56);
+            var rotation = Quaternion.Euler(10, 20, 30);
+            var target = new Vector3(1, 2, 3);
+            view.SetCamera(position, rotation, target);
+            var previousModule = GetModule3DMainInstance();
+            CreateRuntimeModule3DMain(scope, "Preferences reload module");
+            var module = GetModule3DMainInstance();
+            SetPrivateField(module, "m_ScenePrefab", UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"));
+            SetPrivateField(module, "m_ScenesParent", scope.Root.transform);
+            SetPrivateField(module, "m_Scenes", new List<Base3DScene> { original });
+            var root = new GameObject("Preferences reload Quest manager");
+            root.SetActive(false);
+            root.transform.SetParent(scope.Root.transform, false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var requested = PersistentDataManager.UserPreferences.Data.EEG.Normalization == NormalizationType.None ? NormalizationType.SubTrial : NormalizationType.None;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            try
+            {
+                if (failInitialCapture)
+                {
+                    var camera = GetPrivateField<Camera3D>(view, "m_Camera3D");
+                    SetPrivateField(view, "m_Camera3D", null);
+                    Exception failure;
+                    try
+                    {
+                        failure = await AsyncPlayModeTestUtilities.CaptureExceptionAsync(() => manager.ReloadForPreferencesAsync(() => Assert.Fail("Preferences must not be applied after a failed capture."), NoProgress, timeout.Token));
+                    }
+                    finally
+                    {
+                        SetPrivateField(view, "m_Camera3D", camera);
+                    }
+
+                    Assert.That(failure, Is.TypeOf<NullReferenceException>());
+                    Assert.That(GetPrivateField<bool>(manager, "reloadingScenes"), Is.False, "Failed configuration capture must release the reload guard so the user can retry.");
+                    Assert.That(Module3DMain.Scenes.Single(), Is.SameAs(original));
+                }
+
+                bool workerEntered = false, appliedOnMainThread = false;
+                var method = new CancelableAsyncMethod(async (progress, token) =>
+                {
+                    using var stop = CancellationTokenSource.CreateLinkedTokenSource(token, timeout.Token);
+                    workerEntered = !PlayerLoopHelper.IsMainThread;
+                    await manager.ReloadForPreferencesAsync(() =>
+                    {
+                        appliedOnMainThread = PlayerLoopHelper.IsMainThread;
+                        Assert.That(Module3DMain.Scenes, Is.Empty, "Old native scenes must be retired before preferences are applied.");
+                        PersistentDataManager.UserPreferences.Data.EEG.Normalization = requested;
+                    }, progress, stop.Token);
+                });
+                await method.ExecuteAsync();
+                await UniTask.SwitchToMainThread();
+                Assert.That(workerEntered, Is.True, "Exercise the same worker entry used by the preferences loading UI.");
+                Assert.That(appliedOnMainThread, Is.True);
+                Assert.That(GetPrivateField<bool>(manager, "reloadingScenes"), Is.False);
+                var reloaded = Module3DMain.Scenes.Single();
+                Assert.That(reloaded, Is.Not.SameAs(original));
+                Assert.That(reloaded.Visualization, Is.SameAs(initialized.Visualization));
+                Assert.That(PersistentDataManager.UserPreferences.Data.EEG.Normalization, Is.EqualTo(requested));
+                var reloadedView = reloaded.Columns.Single().Views.Single();
+                AssertVectorApproximately(reloadedView.LocalCameraPosition, position);
+                Assert.That(Quaternion.Angle(reloadedView.LocalCameraRotation, rotation), Is.LessThan(.001f));
+                AssertVectorApproximately(reloadedView.LocalCameraTarget, target);
+                if (failInitialCapture)
+                {
+                    await Module3DMain.RemoveSceneAsync(reloaded);
+                    var pending = GetPrivateField<Dictionary<string, (Visualization Visualization, bool Share)>>(manager, "pendingReloads");
+                    pending[initialized.Visualization.ID] = (initialized.Visualization, false);
+                    var loading = UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/LoadingCircle/Loading Manager.prefab"));
+                    try
+                    {
+                        await (Task)manager.GetType().GetMethod("RetryFailedScenesAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(manager, new object[] { timeout.Token });
+                        Assert.That(pending, Is.Empty);
+                        var retried = Module3DMain.Scenes.Single();
+                        Assert.That(retried.Visualization, Is.SameAs(initialized.Visualization));
+                        AssertVectorApproximately(retried.Columns.Single().Views.Single().LocalCameraPosition, position);
+                    }
+                    finally
+                    {
+                        await UniTask.SwitchToMainThread();
+                        UnityEngine.Object.DestroyImmediate(loading);
+                    }
+                }
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                foreach (var scene in Module3DMain.Scenes.ToArray()) await Module3DMain.RemoveSceneAsync(scene);
+                UnityEngine.Object.DestroyImmediate(root);
+                SetModule3DMainInstance(previousModule);
+            }
+        }
+
+        [TestCase(true), TestCase(false)]
+        public async Task DesktopSceneWindow_UsesInitialVisibilityAndFollowsHideShow(bool initiallyVisible)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("DesktopWindowVisibility");
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scope);
+            var scene = initialized.BaseScene;
+            scene.UpdateVisibleState(initiallyVisible, false);
+            var singleton = typeof(Singleton<HBP.UI.Module3D.Module3DUI>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = singleton.GetValue(null);
+            var onAdd = Module3DMain.OnAddScene;
+            var onSite = Module3DMain.OnDisplaySiteInformation;
+            var onAtlas = Module3DMain.OnDisplayAtlasInformation;
+            GameObject root = new("Desktop UI", typeof(RectTransform), typeof(Canvas));
+            root.SetActive(false);
+            root.transform.SetParent(scope.Root.transform, false);
+            var ui = root.AddComponent<HBP.UI.Module3D.Module3DUI>();
+            var siteRoot = new GameObject("Site information", typeof(RectTransform));
+            siteRoot.transform.SetParent(root.transform, false);
+            var site = siteRoot.AddComponent<HBP.UI.Module3D.SiteInfoDisplayer>();
+            site.enabled = false;
+            foreach (string field in new[] { "m_IEEG", "m_CCEP", "m_Tags" })
+            {
+                var content = new GameObject(field);
+                content.transform.SetParent(siteRoot.transform, false);
+                SetPrivateField(site, field, content);
+            }
+
+            var atlasRoot = new GameObject("Atlas information", typeof(RectTransform));
+            atlasRoot.transform.SetParent(root.transform, false);
+            var atlas = atlasRoot.AddComponent<HBP.UI.Module3D.AtlasInfoDisplayer>();
+            atlas.enabled = false;
+            SetPrivateField(ui, "m_SiteInfoDisplayer", site);
+            SetPrivateField(ui, "m_AtlasInfoDisplayer", atlas);
+            SetPrivateField(ui, "m_SceneWindowPrefab", UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/Scenes/Scene 3D Window.prefab"));
+            Module3DMain.OnAddScene = new();
+            Module3DMain.OnDisplaySiteInformation = new();
+            Module3DMain.OnDisplayAtlasInformation = new();
+            singleton.SetValue(null, null);
+            try
+            {
+                root.SetActive(true);
+                Module3DMain.OnAddScene.Invoke(scene);
+                var window = HBP.UI.Module3D.Module3DUI.Scenes[scene];
+                Assert.That(window.gameObject.activeInHierarchy, Is.EqualTo(initiallyVisible), "The authored Desktop window must match the scene immediately after registration.");
+                scene.UpdateVisibleState(true);
+                Assert.That(window.gameObject.activeInHierarchy, Is.True);
+                Assert.That(window.Scene3DUI.GetComponentInChildren<UnityEngine.UI.RawImage>().gameObject.activeInHierarchy, Is.True, "The authored brain viewport is enabled with its window.");
+                scene.UpdateVisibleState(false, false);
+                Assert.That(window.gameObject.activeInHierarchy, Is.False);
+                scene.UpdateVisibleState(true);
+                Assert.That(window.gameObject.activeInHierarchy, Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                singleton.SetValue(null, previous);
+                Module3DMain.OnAddScene = onAdd;
+                Module3DMain.OnDisplaySiteInformation = onSite;
+                Module3DMain.OnDisplayAtlasInformation = onAtlas;
+                await CleanSceneOwnedAnatomy(scene);
+                await UniTask.SwitchToMainThread();
+            }
+        }
+#endif
+
         private GenericEvent<Base3DScene> m_OnSelectScene;
         private GenericEvent<Base3DScene> m_OnDeselectScene;
         private GenericEvent<Base3DScene> m_OnMinimizeScene;
