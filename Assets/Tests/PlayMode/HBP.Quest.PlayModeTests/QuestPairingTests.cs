@@ -120,8 +120,8 @@ namespace HBP.Tests.Quest
                 var retry = (Button)fields.FindProperty("retry").objectReferenceValue;
                 var replace = (Button)fields.FindProperty("newAssociation").objectReferenceValue;
                 int retries = 0, replacements = 0;
-                card.RetryRequested += () => retries++;
-                card.NewAssociationRequested += () => replacements++;
+                card.OnRetryRequested.AddListener(() => retries++);
+                card.OnNewAssociationRequested.AddListener(() => replacements++);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "");
                 Assert.That(countdown.text, Does.Contain("01:30"));
                 Assert.That(((Text)fields.FindProperty("code").objectReferenceValue).text, Is.EqualTo("123 456"));

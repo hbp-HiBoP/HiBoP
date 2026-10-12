@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -44,8 +45,7 @@ namespace HBP.Quest
         public bool SurfaceHidden => current?.SurfaceHidden == true;
         public bool IsPreparing => preparation != null;
         public string Summary => scenes.Count == 0 ? "No visualization received" : $"{scenes.Count} visualizations | Available offline";
-        public event Action Changed;
-        public event Action<Base3DScene, Column3D> ContextSelected;
+        public GenericEvent<Base3DScene, Column3D> OnContextSelected { get; } = new();
 
         private void OnEnable()
         {
@@ -84,8 +84,7 @@ namespace HBP.Quest
                     other.Scene.IsSelected = false;
             if (!scene.IsSelected) scene.IsSelected = true;
             if (column != null) column.IsSelected = true;
-            if (intentional) ContextSelected?.Invoke(scene, column ?? scene.SelectedColumn);
-            Changed?.Invoke();
+            if (intentional) OnContextSelected.Invoke(scene, column ?? scene.SelectedColumn);
         }
 
         public async UniTask ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop)
@@ -135,7 +134,6 @@ namespace HBP.Quest
                 current = presentation;
                 ApplyVisibility(presentation, presentation.Scene.IsVisible);
                 SelectContext(presentation.Scene, presentation.Scene.SelectedColumn, false);
-                Changed?.Invoke();
                 Debug.Log($"QUEST_TRANSFER_PUBLISHED transfer={payload.TransferId}");
             }
             finally
@@ -170,8 +168,6 @@ namespace HBP.Quest
                 if (visible) column.Show();
                 else column.Hide();
             }
-
-            Changed?.Invoke();
         }
 
         public void CompletePlacement(Presentation presentation)
@@ -223,7 +219,6 @@ namespace HBP.Quest
             HBP.Sync.Scene.SceneReconciliationRecord.Get(presentation.Scene)?.Dispose();
             if (current == presentation) current = null;
             HidePresentation(presentation);
-            Changed?.Invoke();
             await TrackRelease(presentation);
         }
 
@@ -305,7 +300,6 @@ namespace HBP.Quest
             }
 
             current = null;
-            Changed?.Invoke();
         }
 
         private void OnDestroy() => Clear();

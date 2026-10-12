@@ -105,13 +105,13 @@ namespace HBP.UI.Main
 
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged -= SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.RemoveListener(SetDisplay);
             }
 
             m_ObservedProject = project;
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged += SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.AddListener(SetDisplay);
             }
         }
 
@@ -119,7 +119,7 @@ namespace HBP.UI.Main
         {
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged -= SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.RemoveListener(SetDisplay);
             }
         }
 

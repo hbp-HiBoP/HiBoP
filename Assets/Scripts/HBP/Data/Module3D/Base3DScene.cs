@@ -594,7 +594,6 @@ namespace HBP.Data.Module3D
         private bool m_UpdatingColliders = false;
 
         private Func<UniTask> m_BeforeColliderPublish;
-        private Action m_OnColliderPublished;
 
         /// <summary>
         /// Lock when updating generator
@@ -1147,13 +1146,13 @@ namespace HBP.Data.Module3D
         {
             if (Visualization != null)
             {
-                Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
+                Core.DLL.ActivityProjectionSettings.OnChanged.AddListener(InvalidateProjectionGrid);
             }
         }
 
         private void OnDisable()
         {
-            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
+            Core.DLL.ActivityProjectionSettings.OnChanged.RemoveListener(InvalidateProjectionGrid);
         }
 
         private void Update()
@@ -2156,8 +2155,8 @@ namespace HBP.Data.Module3D
             gameObject.name = Visualization.Name;
 
             BrainMaterials = new BrainMaterials();
-            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
-            Core.DLL.ActivityProjectionSettings.OnChanged += InvalidateProjectionGrid;
+            Core.DLL.ActivityProjectionSettings.OnChanged.RemoveListener(InvalidateProjectionGrid);
+            Core.DLL.ActivityProjectionSettings.OnChanged.AddListener(InvalidateProjectionGrid);
 
             RegisterAtlasUsage();
             s_LiveScenes.Add(this);
@@ -3232,8 +3231,6 @@ namespace HBP.Data.Module3D
                     cutCollider.sharedMesh = null;
                     if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
                 }
-
-                m_OnColliderPublished?.Invoke();
             }
             finally
             {

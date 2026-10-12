@@ -1,6 +1,7 @@
+using UnityEngine.Events;
+using System;
 using UnityEngine;
 using UnityEngine.UI;
-using System;
 using HBP.Transfer.Transport;
 using HBP.Sync.Scene;
 
@@ -19,8 +20,8 @@ namespace HBP.Quest
         [SerializeField] private Button newAssociation;
         [SerializeField] private Text retryLabel;
         [SerializeField] private Text newAssociationLabel;
-        public event Action RetryRequested;
-        public event Action NewAssociationRequested;
+        public UnityEvent OnRetryRequested { get; } = new();
+        public UnityEvent OnNewAssociationRequested { get; } = new();
         private bool confirming;
 
         private void Awake()
@@ -28,14 +29,14 @@ namespace HBP.Quest
             retry.onClick.AddListener(() =>
             {
                 if (confirming) confirming = false;
-                else RetryRequested?.Invoke();
+                else OnRetryRequested.Invoke();
             });
             newAssociation.onClick.AddListener(() =>
             {
                 if (confirming)
                 {
                     confirming = false;
-                    NewAssociationRequested?.Invoke();
+                    OnNewAssociationRequested.Invoke();
                 }
                 else confirming = true;
             });

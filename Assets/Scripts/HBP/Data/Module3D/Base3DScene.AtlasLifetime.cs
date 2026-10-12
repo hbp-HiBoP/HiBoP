@@ -20,12 +20,13 @@ namespace HBP.Data.Module3D
             if (!string.IsNullOrEmpty(state.LocalizerProtocol)) yield return "localizer:" + state.LocalizerProtocol;
         }
 
-        public event Action<string> AtlasUseAdmission;
+        /// <summary>Attached domain validators may synchronously refuse atlas use by throwing.</summary>
+        public Action<string> AtlasUseValidator { get; set; }
 
         public void EnsureAtlasCanBeUsed(string id)
         {
             ResourceRetention.EnsureCanUse(id);
-            AtlasUseAdmission?.Invoke(id);
+            AtlasUseValidator?.Invoke(id);
         }
 
         private static void RegisterAtlasUsage()

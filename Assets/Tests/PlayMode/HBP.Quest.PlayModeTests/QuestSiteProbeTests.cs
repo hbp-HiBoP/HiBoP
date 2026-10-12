@@ -293,7 +293,7 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(probe, "right", right);
                 QuestWindowInteractionTests.Set(probe, "marker", marker.transform);
                 int selections = 0;
-                probe.Selected += _ => selections++;
+                probe.OnSelected.AddListener(_ => selections++);
                 ui.SetActive(true);
                 await UniTask.NextFrame();
                 SetAuto(head, "IsTracked", true);

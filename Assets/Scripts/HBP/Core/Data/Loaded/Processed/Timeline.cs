@@ -14,7 +14,9 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 
 
         /// <summary>Raised after a timeline anchor component changes; the bool marks automatic playback advancement.</summary>
-        public static event Action<BasicTimeline, bool> AnchorChanged;
+        private GenericEvent<BasicTimeline, bool> m_OnAnchorChanged;
+
+        public GenericEvent<BasicTimeline, bool> OnAnchorChanged => m_OnAnchorChanged ??= new();
 
         #region Properties
 
@@ -68,7 +70,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 
                 if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
 
-                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
                 OnUpdateCurrentIndex.Invoke();
             }
         }
@@ -85,7 +87,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             {
                 bool changed = m_IsLooping != value;
                 m_IsLooping = value;
-                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 
@@ -103,7 +105,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
                 m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
-                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 
@@ -140,7 +142,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             {
                 bool changed = m_Step != value;
                 m_Step = value;
-                if (changed) AnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using UnityEngine.Events;
+using System.Collections.Generic;
 using System.Linq;
 using System;
 using UnityEngine;
@@ -41,7 +42,7 @@ namespace HBP.Data.Module3D
     /// </remarks>
     public class TriangleEraser : MonoBehaviour
     {
-        public event Action VisibilityMaskChanged;
+        public UnityEvent OnVisibilityMaskChanged { get; } = new();
 
         #region Properties
 
@@ -160,7 +161,7 @@ namespace HBP.Data.Module3D
                     m_Scene.InvalidateSurfaceMesh();
                     m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
                     Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                    VisibilityMaskChanged?.Invoke();
+                    OnVisibilityMaskChanged.Invoke();
                 }
             }
         }
@@ -192,7 +193,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            VisibilityMaskChanged?.Invoke();
+            OnVisibilityMaskChanged.Invoke();
         }
 
         /// <summary>
@@ -216,7 +217,7 @@ namespace HBP.Data.Module3D
             MeshHasInvisibleTriangles = mask.Contains(0);
             m_MasksStack.Clear();
             m_SimplifiedMasksStack.Clear();
-            VisibilityMaskChanged?.Invoke();
+            OnVisibilityMaskChanged.Invoke();
         }
 
         /// <summary>
@@ -242,7 +243,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            VisibilityMaskChanged?.Invoke();
+            OnVisibilityMaskChanged.Invoke();
         }
 
         /// <summary>
@@ -261,7 +262,7 @@ namespace HBP.Data.Module3D
             m_Scene.FMRIManager.UpdateSurfaceFMRIValues();
             m_Scene.AtlasManager.UpdateAtlasColors();
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
-            VisibilityMaskChanged?.Invoke();
+            OnVisibilityMaskChanged.Invoke();
         }
 
         #endregion

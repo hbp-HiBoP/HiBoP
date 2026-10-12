@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -31,7 +32,7 @@ namespace HBP.Sync.Scene
         private ulong m_LastGeneration;
         private bool m_Disposed;
 
-        public event Action<Task> RemoteJobStarted;
+        public GenericEvent<Task> OnRemoteJobStarted { get; } = new();
 
         /// <summary>Optional presentation wrapper for preparation only, completed before any transition.</summary>
         public Func<Func<CancellationToken, UniTask>, CancellationToken, UniTask> PreparationHandler { get; set; }
@@ -487,7 +488,7 @@ namespace HBP.Sync.Scene
 
         private void NotifyRemoteStarted(ActiveJob active)
         {
-            RemoteJobStarted?.Invoke(active.Completion.Task);
+            OnRemoteJobStarted.Invoke(active.Completion.Task);
             ObserveRemoteCompletionAsync(active.Completion.Task).Forget();
         }
 

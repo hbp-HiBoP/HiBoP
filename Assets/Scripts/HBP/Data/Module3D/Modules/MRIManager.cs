@@ -1,4 +1,4 @@
-using System;
+using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,7 +19,7 @@ namespace HBP.Data.Module3D
     public class MRIManager : MonoBehaviour
     {
         /// <summary>Raised when the selected MRI resource changes.</summary>
-        public event Action ResourceSelectionChanged;
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
 
         #region Properties
 
@@ -157,7 +157,7 @@ namespace HBP.Data.Module3D
 
             bool selectionChanged = SelectedMRIID != mriID;
             SelectedMRIID = mriID;
-            if (selectionChanged) ResourceSelectionChanged?.Invoke();
+            if (selectionChanged) OnResourceSelectionChanged.Invoke();
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateProjectionGrid();
@@ -171,7 +171,7 @@ namespace HBP.Data.Module3D
             if (index < 0 || !MRIs[index].IsLoaded) throw new System.InvalidOperationException("Prepared MRI is unavailable.");
             if (SelectedMRIID == index) return;
             SelectedMRIID = index;
-            ResourceSelectionChanged?.Invoke();
+            OnResourceSelectionChanged.Invoke();
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateProjectionGrid();

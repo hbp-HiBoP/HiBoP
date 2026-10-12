@@ -231,7 +231,7 @@ namespace HBP.Quest
             sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing, () => atlasPreparation?.Snapshot() ?? new SessionAtlasInventory());
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
-            if (view != null) view.ContextSelected += OnContextSelected;
+            if (view != null) view.OnContextSelected.AddListener(OnContextSelected);
         }
 
         private void Start()
@@ -696,7 +696,7 @@ namespace HBP.Quest
                 if (entry.Replica == null)
                 {
                     entry.Replica = new QuestReplicaSession(presentation.Scene, entry.Binding);
-                    entry.Replica.ActionReceived += action => OnSceneAction(entry, action);
+                    entry.Replica.OnActionReceived.AddListener(action => OnSceneAction(entry, action));
                 }
 
                 return entry.Replica;
@@ -968,7 +968,7 @@ namespace HBP.Quest
         private void OnDestroy()
         {
             destroyed = true;
-            if (view != null) view.ContextSelected -= OnContextSelected;
+            if (view != null) view.OnContextSelected.RemoveListener(OnContextSelected);
             CloseSession();
             deliveries.Clear();
             _ = ReleaseGlobalsAsync();

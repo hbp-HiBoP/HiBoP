@@ -21,7 +21,7 @@ namespace HBP.UI.Quest
             m_OnClose ??= new UnityEvent();
             base.Initialize();
             connection = QuestManager.Instance;
-            connection.Changed += Refresh;
+            connection.OnChanged.AddListener(Refresh);
             Refresh();
         }
 
@@ -50,7 +50,7 @@ namespace HBP.UI.Quest
 
         private void OnDestroy()
         {
-            if (connection != null) connection.Changed -= Refresh;
+            if (connection != null) connection.OnChanged.RemoveListener(Refresh);
         }
 
         public override async void OK()

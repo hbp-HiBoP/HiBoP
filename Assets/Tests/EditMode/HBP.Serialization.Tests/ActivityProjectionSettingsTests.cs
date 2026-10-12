@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using HBP.Core.DLL;
 using HBP.Core.Enums;
@@ -38,8 +39,8 @@ namespace HBP.Tests.Serialization
         {
             ActivityProjectionSettings.ResetDefaults();
             int changeCount = 0;
-            Action onChanged = () => ++changeCount;
-            ActivityProjectionSettings.OnChanged += onChanged;
+            UnityAction onChanged = () => ++changeCount;
+            ActivityProjectionSettings.OnChanged.AddListener(onChanged);
             try
             {
                 ActivityProjectionSettings.VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
@@ -55,7 +56,7 @@ namespace HBP.Tests.Serialization
             }
             finally
             {
-                ActivityProjectionSettings.OnChanged -= onChanged;
+                ActivityProjectionSettings.OnChanged.RemoveListener(onChanged);
             }
         }
 

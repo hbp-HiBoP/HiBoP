@@ -1,4 +1,4 @@
-using System;
+using HBP.Core.Tools;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -22,8 +22,8 @@ namespace HBP.Quest
         public bool IsManipulated { get; private set; }
         public bool IsBusy => hovered != 0 || IsManipulated;
         public Vector3 Placement => placement;
-        public event Action<QuestWindow> Changed;
-        public event Action<QuestWindow> Destroyed;
+        public GenericEvent<QuestWindow> OnChanged { get; } = new();
+        public GenericEvent<QuestWindow> OnDestroyed { get; } = new();
 
         private void Awake()
         {
@@ -48,14 +48,14 @@ namespace HBP.Quest
             if (canvas != null) canvas.enabled = value;
             if (content != null) content.SetActive(value);
             if (raycaster != null) raycaster.enabled = value;
-            Changed?.Invoke(this);
+            OnChanged.Invoke(this);
         }
 
         public void SetPinned(bool value)
         {
             IsPinned = value;
             RefreshPin();
-            Changed?.Invoke(this);
+            OnChanged.Invoke(this);
         }
 
         public void TogglePin() => SetPinned(!IsPinned);
@@ -74,12 +74,12 @@ namespace HBP.Quest
         public void SetManipulated(bool value)
         {
             IsManipulated = value;
-            Changed?.Invoke(this);
+            OnChanged.Invoke(this);
         }
 
         private void OnDestroy()
         {
-            Destroyed?.Invoke(this);
+            OnDestroyed.Invoke(this);
         }
     }
 }

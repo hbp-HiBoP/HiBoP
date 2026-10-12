@@ -19,7 +19,7 @@ namespace HBP.Quest
     /// <summary>Owns one published Quest scene's sync mutation boundary and duplex transport.</summary>
     internal sealed class QuestReplicaSession : IDisposable
     {
-        public event Action<SceneAction> ActionReceived;
+        public GenericEvent<SceneAction> OnActionReceived { get; } = new();
 
         public void SendAction(SceneAction action)
         {
@@ -148,16 +148,16 @@ namespace HBP.Quest
             m_Boundary.BindPreparedResources(binding);
             m_Scheduler = new OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, OriginDevice.Quest);
             m_Transport = new PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
-            m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
+            m_Transport.OnClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_Driver = new QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler, 0, proposal => m_Transport.EnqueueMutation(proposal.Mutation, null, proposal.ObservedCanonicalSequence, coalesciblePreview: ScheduleDescriptor.ForMutation(m_Identity.SceneId, m_Identity.IncarnationId, proposal.Mutation).CoalescingKey != null, operationId: proposal.OperationId));
             m_SurfaceInflation = new SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, false, () => !m_Disposed && m_Driver.ConnectionState == QuestMutationConnectionState.Connected && m_Transport.State == PersistentTransportState.Connected, () => m_Driver.LastObservedCanonicalSequence, SendSurfaceInflationControl, () => m_Driver.ConnectionState == QuestMutationConnectionState.OfflineLocal);
             m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
-            m_SurfaceInflation.RemoteJobStarted += completion => SurfaceInflationLoading.ObserveAsync(completion).Forget();
+            m_SurfaceInflation.OnRemoteJobStarted.AddListener(completion => SurfaceInflationLoading.ObserveAsync(completion).Forget());
             m_BeforeCheckpointApply = beforeCheckpointApply;
             m_AfterDeferredRecordProcessed = afterDeferredRecordProcessed;
-            m_Driver.ProposalQueued += OnProposalQueued;
-            m_Driver.RetentionProgressChanged += PublishRetentionProgress;
-            m_Driver.OfflineLocalEntered += OnOfflineLocalEntered;
+            m_Driver.OnProposalQueued.AddListener(OnProposalQueued);
+            m_Driver.OnRetentionProgressChanged.AddListener(PublishRetentionProgress);
+            m_Driver.OnOfflineLocalEntered.AddListener(OnOfflineLocalEntered);
             m_Scene.ActivityProjectionStartHandler = HandleLocalActivityProjectionStart;
             m_Scene.OnActivityProjectionCompleted.AddListener(OnActivityProjectionCompleted);
             m_Scene.OnProgressUpdateGenerator.AddListener(OnActivityProjectionProgress);
@@ -429,7 +429,7 @@ namespace HBP.Quest
                 {
                     if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
                     await UniTask.SwitchToMainThread(stop);
-                    ActionReceived?.Invoke(action);
+                    OnActionReceived.Invoke(action);
                     return;
                 }
 
@@ -1733,9 +1733,9 @@ namespace HBP.Quest
         {
             if (m_Disposed) return;
             m_Disposed = true;
-            m_Driver.ProposalQueued -= OnProposalQueued;
-            m_Driver.RetentionProgressChanged -= PublishRetentionProgress;
-            m_Driver.OfflineLocalEntered -= OnOfflineLocalEntered;
+            m_Driver.OnProposalQueued.RemoveListener(OnProposalQueued);
+            m_Driver.OnRetentionProgressChanged.RemoveListener(PublishRetentionProgress);
+            m_Driver.OnOfflineLocalEntered.RemoveListener(OnOfflineLocalEntered);
             if (m_Scene.ActivityProjectionStartHandler == HandleLocalActivityProjectionStart)
                 m_Scene.ActivityProjectionStartHandler = null;
             m_Scene.ClearCoordinatedAutomaticRecomputePolicy();

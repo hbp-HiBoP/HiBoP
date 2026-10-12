@@ -36,7 +36,6 @@ namespace HBP.Sync.Scene
         public SceneCheckpointState Common => m_Common;
         public string CommonHash => m_Common?.Hash() ?? string.Empty;
         public string[] ChangedTimelines => m_ChangedTimelines.ToArray();
-        public event Action Changed;
         internal IDisposable RecoveryLock;
         internal SceneMutationBoundary RecoveryBoundary;
 
@@ -45,7 +44,7 @@ namespace HBP.Sync.Scene
             Scene = scene;
             Binding = binding;
             m_Timelines = scene.Columns.Where(column => column.NavigationTimeline != null).GroupBy(column => column.NavigationTimeline).ToDictionary(group => group.Key, group => group.Select(column => new ColumnId(column.ColumnData.ID)).ToArray());
-            BasicTimeline.AnchorChanged += OnTimelineChanged;
+            foreach (BasicTimeline timeline in m_Timelines.Keys) timeline.OnAnchorChanged.AddListener(OnTimelineChanged);
         }
 
         public static SceneReconciliationRecord Get(Base3DScene scene) => !ReferenceEquals(scene, null) && Records.TryGetValue(scene, out var record) ? record : null;
@@ -210,7 +209,6 @@ namespace HBP.Sync.Scene
         {
             Status = status;
             Message = message;
-            Changed?.Invoke();
         }
 
         public void ReleaseReconciliationGuard() => ReleaseRecoveryLock();
@@ -225,7 +223,7 @@ namespace HBP.Sync.Scene
 
         public void Dispose()
         {
-            BasicTimeline.AnchorChanged -= OnTimelineChanged;
+            foreach (BasicTimeline timeline in m_Timelines.Keys) timeline.OnAnchorChanged.RemoveListener(OnTimelineChanged);
             ReleaseRecoveryLock();
             if (Records.TryGetValue(Scene, out var current) && ReferenceEquals(current, this)) Records.Remove(Scene);
         }

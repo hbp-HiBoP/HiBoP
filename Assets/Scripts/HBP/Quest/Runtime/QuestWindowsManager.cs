@@ -20,7 +20,6 @@ namespace HBP.Quest
         [SerializeField] private Definition[] catalogue = Array.Empty<Definition>();
         private readonly Dictionary<string, QuestWindow> windows = new(StringComparer.Ordinal);
         private bool trackingPlaced;
-        public event Action WindowsChanged;
 
         private void Awake()
         {
@@ -47,25 +46,19 @@ namespace HBP.Quest
             }
 
             windows.Add(window.Key, window);
-            window.Changed += OnChanged;
-            window.Destroyed += Unregister;
+            window.OnDestroyed.AddListener(Unregister);
             var canvas = window.GetComponent<Canvas>();
             if (canvas != null && uiCamera != null) canvas.worldCamera = uiCamera;
             var follow = window.GetComponent<QuestWindowFollower>();
             if (follow != null) follow.Configure(head, window);
             foreach (var dragger in window.GetComponentsInChildren<QuestWindowDragger>(true)) dragger.Configure(window, head);
-            WindowsChanged?.Invoke();
         }
-
-        private void OnChanged(QuestWindow window) => WindowsChanged?.Invoke();
 
         public void Unregister(QuestWindow window)
         {
             if (window == null || !windows.TryGetValue(window.Key, out var registered) || registered != window) return;
-            window.Changed -= OnChanged;
-            window.Destroyed -= Unregister;
+            window.OnDestroyed.RemoveListener(Unregister);
             windows.Remove(window.Key);
-            WindowsChanged?.Invoke();
         }
 
         public QuestWindow Find(string key) => windows.TryGetValue(key, out var window) ? window : null;
@@ -112,8 +105,7 @@ namespace HBP.Quest
             foreach (var window in windows.Values)
                 if (window != null)
                 {
-                    window.Changed -= OnChanged;
-                    window.Destroyed -= Unregister;
+                    window.OnDestroyed.RemoveListener(Unregister);
                 }
 
             windows.Clear();

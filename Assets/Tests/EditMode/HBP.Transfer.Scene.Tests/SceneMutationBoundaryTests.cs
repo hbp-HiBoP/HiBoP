@@ -28,14 +28,128 @@ namespace HBP.Tests.Transfer.Scene
     public class SceneMutationBoundaryTests
     {
         [Test]
+        public void CutDefinitionEvent_IsInheritedAndRunsOnceAfterEachActualChange()
+        {
+            using var cut = new SceneCut();
+            HBP.Core.DLL.Plane plane = cut;
+            Assert.That(cut.OnDefinitionChanged, Is.SameAs(plane.OnDefinitionChanged));
+            int changes = 0;
+            plane.OnDefinitionChanged.AddListener(changed =>
+            {
+                Assert.That(changed, Is.SameAs(cut));
+                Assert.That(changed.PointSide(changed.Point + changed.Normal), Is.EqualTo(1));
+                changes++;
+            });
+
+            plane.Normal = Vector3.up * 2;
+            plane.Normalize();
+            cut.Orientation = CutOrientation.Custom;
+            cut.Flip = true;
+            cut.NumberOfCuts++;
+            cut.Position = 0.75f;
+            Assert.That(changes, Is.EqualTo(6));
+
+            plane.Normal = plane.Normal;
+            plane.Normalize();
+            cut.Orientation = cut.Orientation;
+            cut.Flip = cut.Flip;
+            cut.NumberOfCuts = cut.NumberOfCuts;
+            cut.Position = cut.Position;
+            plane.Point = Vector3.one;
+            Assert.That(changes, Is.EqualTo(6), "Point updates must preserve the existing cut notification contract.");
+        }
+
+        [Test]
+        public void SharedTimeline_ObservesEachInstanceOnceAndPublishesEachColumnOnce()
+        {
+            var timeline = new TestTimeline(100);
+            var otherTimeline = new TestTimeline(100);
+            var firstColumn = new ColumnId("event-column-a");
+            var secondColumn = new ColumnId("event-column-b");
+            using var boundary = new SceneMutationBoundary(Array.Empty<(SiteState, ColumnId, SiteId)>(), Array.Empty<(SceneCut, CutId)>(), new[] { ((BasicTimeline)timeline, firstColumn), ((BasicTimeline)timeline, secondColumn) }, OriginDevice.Desktop);
+            var proposals = new List<Mutation>();
+            boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
+
+            otherTimeline.CurrentIndex = 10;
+            Assert.That(proposals, Is.Empty);
+            timeline.CurrentIndex = 10;
+            Assert.That(proposals.OfType<SetTimelineAnchor>().Select(anchor => anchor.ColumnId), Is.EquivalentTo(new[] { firstColumn, secondColumn }));
+            boundary.Dispose();
+            timeline.CurrentIndex = 20;
+            Assert.That(proposals, Has.Count.EqualTo(2));
+        }
+
+        [Test]
+        public void BoundaryDispose_RemovesItsInstanceEventSubscriptions()
+        {
+            var state = new SiteState();
+            using var cut = new SceneCut();
+            var timeline = new TestTimeline(100);
+            var column = new ColumnId("event-column");
+            using var boundary = new SceneMutationBoundary(new[] { (state, column, new SiteId("event-site")) }, new[] { (cut, new CutId(cut.ID)) }, new[] { ((BasicTimeline)timeline, column) }, OriginDevice.Desktop);
+            var events = new UnityEngine.Events.UnityEventBase[] { state.OnChangeState, state.OnColorChanged, cut.OnDefinitionChanged, timeline.OnAnchorChanged };
+            MethodInfo prepareInvoke = typeof(UnityEngine.Events.UnityEventBase).GetMethod("PrepareInvoke", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(prepareInvoke, Is.Not.Null);
+            foreach (var source in events) Assert.That(ListenerCount(source), Is.EqualTo(1));
+
+            // Populate Unity's invocation caches before checking that disposal clears them too.
+            state.Color = Color.blue;
+            cut.Position = 0.75f;
+            timeline.CurrentIndex = 1;
+            boundary.Dispose();
+            foreach (var source in events) Assert.That(ListenerCount(source), Is.Zero, "Domain events must release every boundary listener on disposal.");
+
+            int ListenerCount(UnityEngine.Events.UnityEventBase source) => ((System.Collections.IList)prepareInvoke.Invoke(source, null)).Count;
+        }
+
+        [Test]
+        public void AtlasValidator_DisposingOneBoundaryPreservesTheOtherOwner()
+        {
+            using var fixture = new BoundSceneFixture();
+            using var secondBoundary = new SceneMutationBoundary(fixture.Scene, OriginDevice.Desktop);
+            Assert.That(fixture.Scene.AtlasUseValidator.GetInvocationList(), Has.Length.EqualTo(2));
+            fixture.Boundary.Dispose();
+            Assert.That(fixture.Scene.AtlasUseValidator.GetInvocationList(), Has.Length.EqualTo(1));
+            secondBoundary.Dispose();
+            Assert.That(fixture.Scene.AtlasUseValidator, Is.Null);
+        }
+
+        [Test]
+        public void InstanceDomainEvents_AllocateNoMemoryDuringRepeatedNotifications()
+        {
+            var state = new SiteState();
+            using var cut = new SceneCut();
+            var timeline = new TestTimeline(100);
+            int notifications = 0;
+            state.OnColorChanged.AddListener(_ => notifications++);
+            cut.OnDefinitionChanged.AddListener(_ => notifications++);
+            timeline.OnAnchorChanged.AddListener((_, _) => notifications++);
+            for (int i = 0; i < 100; i++) Update(i);
+            notifications = 0;
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            for (int i = 0; i < 50000; i++) Update(i);
+            long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+            Assert.That(notifications, Is.EqualTo(150000));
+            Assert.That(allocated, Is.Zero, "Warmed site, cut and timeline event dispatch must not allocate per notification.");
+
+            void Update(int i)
+            {
+                bool even = i % 2 == 0;
+                state.Color = even ? Color.red : Color.blue;
+                cut.Position = even ? 0.25f : 0.75f;
+                timeline.CurrentIndex = even ? 1 : 2;
+            }
+        }
+
+        [Test]
         public void SceneVisibility_IsSharedWithoutSelectingOrEchoingRemoteChanges()
         {
             using var source = new BoundSceneFixture(OriginDevice.Desktop);
             using var target = new BoundSceneFixture(OriginDevice.Quest);
             var changes = new List<Mutation>();
             var echoes = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, value, _) => changes.Add(value);
-            target.Boundary.MutationProposed += (_, value, _) => echoes.Add(value);
+            source.Boundary.OnMutationProposed.AddListener((_, value, _) => changes.Add(value));
+            target.Boundary.OnMutationProposed.AddListener((_, value, _) => echoes.Add(value));
             source.Scene.UpdateVisibleState(true, false);
             var show = changes.OfType<SetSceneBoolean>().Single(value => value.Property == SceneBooleanProperty.Visible);
             target.Boundary.Apply(show, MutationApplicationOrigin.Remote, T09Operation(900001));
@@ -77,7 +191,7 @@ namespace HBP.Tests.Transfer.Scene
             using var fixture = new BoundSceneFixture(origin, seedCuts: true, configureCutCreation: true);
             float negativeZero = BitConverter.Int32BitsToSingle(int.MinValue);
             var proposals = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             fixture.Scene.SetCutDefinition(fixture.Scene.Cuts[0], CutOrientation.Custom, false, negativeZero, new Vector3(negativeZero, 1, negativeZero));
 
@@ -109,8 +223,8 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             var proposals = new List<QuestMutationProposal>();
             var canonicals = new List<CanonicalMutation>();
-            driver.ProposalQueued += proposals.Add;
-            authority.CanonicalReady += canonicals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             var source = fromQuest ? quest : desktop;
             var b = fromQuest ? questB : desktopB;
             Column3D bColumn = acrossColumns ? source.StaticColumn : source.Column;
@@ -181,7 +295,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             quest.Scene.SelectSite(quest.Column, quest.Site);
             quest.Scene.SelectSite(quest.Column, questB);
             desktop.Scene.SelectSite(desktop.Column, desktopC);
@@ -218,7 +332,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, questBoundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             quest.Scene.SelectSite(quest.Column, quest.Site);
             quest.Scene.SelectSite(quest.StaticColumn, questB);
             questB.State.IsMasked = true;
@@ -276,7 +390,7 @@ namespace HBP.Tests.Transfer.Scene
             using var boundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             QuestMutationProposal proposal = null;
-            driver.ProposalQueued += value => proposal = value;
+            driver.OnProposalQueued.AddListener(value => proposal = value);
             quest.Scene.SelectSite(quest.StaticColumn, b);
             driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400120), 1, new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID)), OriginDevice.Desktop));
             Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
@@ -299,7 +413,7 @@ namespace HBP.Tests.Transfer.Scene
             var clock = new TestClock(0);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest, clock));
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             quest.Scene.SelectSite(quest.Column, quest.Site);
             quest.Scene.SelectSite(quest.StaticColumn, b);
             Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
@@ -377,7 +491,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             var column = new ColumnId(quest.Column.ColumnData.ID);
             var site = new SiteId(quest.Site.Information.FullID);
             if (reason == "masked") quest.Site.State.IsMasked = true;
@@ -420,7 +534,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             int proposals = 0;
-            driver.ProposalQueued += _ => proposals++;
+            driver.OnProposalQueued.AddListener(_ => proposals++);
             var mutation = new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID));
             var pending = driver.ApplyOptimistic(mutation, T09Operation(400010));
             Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
@@ -462,9 +576,9 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var canonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             int proposals = 0;
-            driver.ProposalQueued += _ => proposals++;
+            driver.OnProposalQueued.AddListener(_ => proposals++);
             var mutation = new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID));
             if (fromQuest)
             {
@@ -508,7 +622,7 @@ namespace HBP.Tests.Transfer.Scene
             target.Site.State.IsFiltered = false;
             var checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(33, source.Boundary.CaptureCheckpoint())).Checkpoint;
             int proposals = 0;
-            target.Boundary.MutationProposed += (_, _, _) => proposals++;
+            target.Boundary.OnMutationProposed.AddListener((_, _, _) => proposals++);
             target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(400040));
             Assert.That(target.Column.SelectedSite, Is.SameAs(target.Site));
             Assert.That(target.Scene.HideBlacklistedSites, Is.EqualTo(source.Scene.HideBlacklistedSites));
@@ -532,8 +646,8 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var canonicals = new List<CanonicalMutation>();
             var proposals = new List<QuestMutationProposal>();
-            authority.CanonicalReady += canonicals.Add;
-            driver.ProposalQueued += proposals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
+            driver.OnProposalQueued.AddListener(proposals.Add);
             var id = new CutId("t10-cut-first");
             desktop.Boundary.Apply(new SetCutDefinition(id, MutationCutOrientation.Custom, true, 3, .2f, 0, 1, 0), MutationApplicationOrigin.LocalDesktop, T09Operation(400020));
             var stale = driver.ApplyOptimistic(new SetCutDefinition(id, MutationCutOrientation.Custom, false, 1, .4f, 1, 0, 0), T09Operation(400021));
@@ -572,7 +686,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             var cut = quest.Scene.Cuts[0];
             for (int i = 1; i <= 100; i++) HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .5f + i * .003f);
             Assert.That(HBP.Quest.QuestCutCommands.Normal(quest.Scene, cut, "1", "1", "0"), Is.True);
@@ -596,7 +710,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             var cut = quest.Scene.Cuts[0];
             HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .6f);
             HBP.Quest.QuestCutCommands.Position(quest.Scene, cut, .7f);
@@ -630,7 +744,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             var first = quest.Scene.AddCutPlane();
             HBP.Quest.QuestCutCommands.Position(quest.Scene, first, .8f);
             HBP.Quest.QuestCutCommands.Flip(quest.Scene, first, true);
@@ -662,8 +776,8 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
             var canonical = new List<CanonicalMutation>();
-            driver.ProposalQueued += proposals.Add;
-            authority.CanonicalReady += canonical.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            authority.OnCanonicalReady.AddListener(canonical.Add);
             var cut = quest.Scene.Cuts[1];
             var id = new CutId(cut.ID);
             quest.Scene.RemoveCutPlane(cut);
@@ -692,7 +806,7 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var proposals = new List<QuestMutationProposal>();
-            driver.ProposalQueued += proposals.Add;
+            driver.OnProposalQueued.AddListener(proposals.Add);
             if (queuedBehindPosition) HBP.Quest.QuestCutCommands.Position(quest.Scene, quest.Scene.Cuts[0], .6f);
             var id = new CutId("checkpoint-new-cut");
             Mutation structural = kind == "create" ? new CreateCut(id, new SetCutDefinition(id, MutationCutOrientation.Custom, false, 1, .4f, 1, 0, 0), 1) : kind == "delete" ? new DeleteCut(new CutId(quest.Scene.Cuts[1].ID)) : new SetCutOrder(quest.Scene.Cuts.Select(c => new CutId(c.ID)).Reverse());
@@ -726,7 +840,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
-            authority.CanonicalReady += canonical => driver.ReceiveCanonical(canonical);
+            authority.OnCanonicalReady.AddListener(canonical => driver.ReceiveCanonical(canonical));
             var cut = new CutId("rejected-optimistic-cut");
             var proposals = new[]
             {
@@ -767,7 +881,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary, maximumOperations: 8, maximumKeys: 8);
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
-            authority.CanonicalReady += canonical => driver.ReceiveCanonical(canonical);
+            authority.OnCanonicalReady.AddListener(canonical => driver.ReceiveCanonical(canonical));
             int nextOperation = 2000000;
             for (int i = 0; i < 2048; i++)
             {
@@ -834,7 +948,7 @@ namespace HBP.Tests.Transfer.Scene
             var targets = Enumerable.Range(0, siteCount).Select(index => (states[index], new ColumnId("column-" + index), new SiteId("site-" + index))).ToArray();
             using var boundary = new SceneMutationBoundary(targets, Array.Empty<(SceneCut, CutId)>(), Array.Empty<(BasicTimeline, ColumnId)>(), OriginDevice.Desktop, new TestClock(0));
             var proposals = new List<Mutation>();
-            boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             states[siteCount - 1].Color = new Color(0.2f, 0.4f, 0.6f, 1f);
 
@@ -853,7 +967,7 @@ namespace HBP.Tests.Transfer.Scene
             var targets = Enumerable.Range(0, siteCount).Select(index => (states[index], new ColumnId("column-" + index), new SiteId("site-" + index))).ToArray();
             using var boundary = new SceneMutationBoundary(targets, Array.Empty<(SceneCut, CutId)>(), Array.Empty<(BasicTimeline, ColumnId)>(), OriginDevice.Desktop, new TestClock(0));
             var proposals = new List<Mutation>();
-            boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
             var stopwatch = Stopwatch.StartNew();
 
             states[siteCount - 1].IsHighlighted = true;
@@ -1556,7 +1670,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new Fixture("source", OriginDevice.Desktop, 1000);
             using var target = new Fixture("target", OriginDevice.Quest, 1000);
             var sourceProposals = new List<(OperationId Id, Mutation Mutation, OriginDevice Device)>();
-            source.Boundary.MutationProposed += (id, mutation, device) => sourceProposals.Add((id, mutation, device));
+            source.Boundary.OnMutationProposed.AddListener((id, mutation, device) => sourceProposals.Add((id, mutation, device)));
 
             source.Cut.Orientation = HBP.Core.Enums.CutOrientation.Custom;
             source.Cut.Flip = true;
@@ -1578,7 +1692,7 @@ namespace HBP.Tests.Transfer.Scene
             int cutInvalidations = 0;
             target.Boundary.Dispose();
             target.Rebind(updateCut: _ => cutInvalidations++);
-            target.Boundary.MutationProposed += (_, _, _) => Assert.Fail("Remote cut application echoed a mutation.");
+            target.Boundary.OnMutationProposed.AddListener((_, _, _) => Assert.Fail("Remote cut application echoed a mutation."));
             target.Boundary.Apply(newest, MutationApplicationOrigin.Remote, sourceProposals[sourceProposals.Count - 1].Id);
 
             Assert.That(target.Cut.Position, Is.EqualTo(0.75f));
@@ -1601,7 +1715,7 @@ namespace HBP.Tests.Transfer.Scene
             source.Timeline.IsPlaying = true;
             var targetProposals = new List<Mutation>();
             int timelineCallbacks = 0;
-            target.Boundary.MutationProposed += (_, mutation, _) => targetProposals.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => targetProposals.Add(mutation));
             target.Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 timelineCallbacks++;
@@ -1747,7 +1861,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new BoundSceneFixture();
             using var target = new BoundSceneFixture();
             var sourceMutations = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, mutation, _) => sourceMutations.Add(mutation);
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => sourceMutations.Add(mutation));
 
             source.Scene.StrongCuts = true;
             source.Scene.ShowAllSites = true;
@@ -1791,7 +1905,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.ShowAllSites), Is.True);
 
             var targetMutations = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => targetMutations.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => targetMutations.Add(mutation));
             ResetSceneInvalidationFlags(target.Scene);
             target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
             target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
@@ -1822,7 +1936,7 @@ namespace HBP.Tests.Transfer.Scene
         {
             using var fixture = new BoundSceneFixture(OriginDevice.Desktop);
             var proposals = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             fixture.Site.State.IsBlackListed = true;
             Assert.That(proposals.Select(mutation => mutation.Type), Is.EqualTo(new[] { OperationType.SetSiteBlacklist }));
@@ -1857,7 +1971,7 @@ namespace HBP.Tests.Transfer.Scene
             target.Site.State.IsFiltered = false;
             stateChanges = 0;
             var echoes = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             var invalidBatch = new SetSiteConfigurationBatch(new[]
             {
@@ -2018,7 +2132,7 @@ namespace HBP.Tests.Transfer.Scene
             };
             fixture.Column.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(throwOnce);
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             try
             {
                 Assert.Throws<InvalidOperationException>(() => fixture.Boundary.Apply(transaction, MutationApplicationOrigin.Remote, T09Operation(365)));
@@ -2062,7 +2176,7 @@ namespace HBP.Tests.Transfer.Scene
                 new SetSceneBoolean(SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
             });
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal proposal = driver.ApplyOptimistic(transaction, T09Operation(367));
 
@@ -2101,7 +2215,7 @@ namespace HBP.Tests.Transfer.Scene
             var siteId = new SiteId(fixture.Site.Information.FullID);
             var assignment = new SiteConfigurationAssignment(columnId, siteId, !originalBlacklist, !originalHighlight, 0.14f, 0.28f, 0.42f, 0.86f, new[] { "rejected", "batch", "ordered" });
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal batchProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { assignment }), T09Operation(936));
             var transaction = new SetConfigurationTransaction(new Mutation[]
@@ -2149,7 +2263,7 @@ namespace HBP.Tests.Transfer.Scene
             var columnId = new ColumnId(fixture.Column.ColumnData.ID);
             var siteId = new SiteId(fixture.Site.Information.FullID);
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             var transaction = new SetConfigurationTransaction(new Mutation[]
             {
@@ -2197,7 +2311,7 @@ namespace HBP.Tests.Transfer.Scene
             var firstAssignment = new SiteConfigurationAssignment(columnId, siteId, !originalBlacklist, !originalHighlight, 0.11f, 0.22f, 0.33f, 0.44f, new[] { "first", "rejected" });
             var originalAssignment = new SiteConfigurationAssignment(columnId, siteId, originalBlacklist, originalHighlight, originalColor.r, originalColor.g, originalColor.b, originalColor.a, originalLabels);
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal firstBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { firstAssignment }), T09Operation(940));
             QuestMutationProposal secondBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[] { originalAssignment }), T09Operation(941));
@@ -2253,9 +2367,9 @@ namespace HBP.Tests.Transfer.Scene
             desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), white.r, white.g, white.b, white.a), MutationApplicationOrigin.Remote, T09Operation(943));
             quest.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), MutationApplicationOrigin.Remote, T09Operation(944));
             var echoes = new List<Mutation>();
-            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             var canonicalMutations = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicalMutations.Add;
+            authority.OnCanonicalReady.AddListener(canonicalMutations.Add);
 
             QuestMutationProposal batchProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
             {
@@ -2307,7 +2421,7 @@ namespace HBP.Tests.Transfer.Scene
             desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), white.r, white.g, white.b, white.a), MutationApplicationOrigin.Remote, T09Operation(948));
             quest.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), MutationApplicationOrigin.Remote, T09Operation(949));
             var echoes = new List<Mutation>();
-            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal firstProposal = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
             {
@@ -2357,9 +2471,9 @@ namespace HBP.Tests.Transfer.Scene
             var scheduler = new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest, new TestClock(0));
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var echoes = new List<Mutation>();
-            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             var canonicalMutations = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicalMutations.Add;
+            authority.OnCanonicalReady.AddListener(canonicalMutations.Add);
 
             QuestMutationProposal rejectedBatch = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
             {
@@ -2408,7 +2522,7 @@ namespace HBP.Tests.Transfer.Scene
             Color green = new(0.09f, 0.77f, 0.23f, 1f);
             fixture.Boundary.Apply(new SetSiteColor(columnId, siteId, white.r, white.g, white.b, white.a), MutationApplicationOrigin.Remote, T09Operation(957));
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal first = driver.ApplyOptimistic(new SetSiteConfigurationBatch(new[]
             {
@@ -2456,17 +2570,17 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             int questProposalEvents = 0;
             int confirmations = 0;
-            quest.Boundary.MutationProposed += (_, _, _) => questProposalEvents++;
-            driver.ProposalConfirmed += _ => confirmations++;
+            quest.Boundary.OnMutationProposed.AddListener((_, _, _) => questProposalEvents++);
+            driver.OnProposalConfirmed.AddListener(_ => confirmations++);
             DesktopProposalResult admission = null;
             bool expectStaleRejection = false;
-            driver.ProposalQueued += proposal =>
+            driver.OnProposalQueued.AddListener(proposal =>
             {
                 admission = authority.AcceptQuestProposal(proposal);
                 if (expectStaleRejection) return;
                 Assert.That(admission.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 Assert.That(driver.ReceiveCanonical(admission.CanonicalMutation), Is.False, "A matching canonical echo must only confirm the optimistic transaction.");
-            };
+            });
 
             var roiId = new RoiId("t11-quest-staged-roi");
             var sphereId = new SphereId("t11-quest-staged-sphere");
@@ -2521,7 +2635,7 @@ namespace HBP.Tests.Transfer.Scene
             float originalInfluence = quest.Column.AnatomyParameters.InfluenceDistance;
             bool originalShowAllSites = quest.Scene.ShowAllSites;
             var echoes = new List<Mutation>();
-            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             var transaction = new SetConfigurationTransaction(new Mutation[]
             {
                 new SetSiteBlacklist(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID), !originalBlacklist),
@@ -2529,7 +2643,7 @@ namespace HBP.Tests.Transfer.Scene
             });
             QuestMutationProposal proposal = driver.ApplyOptimistic(transaction, T09Operation(371));
             var acceptedCanonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += acceptedCanonicals.Add;
+            authority.OnCanonicalReady.AddListener(acceptedCanonicals.Add);
             QuestMutationProposal laterOptimistic = driver.ApplyOptimistic(new SetSceneBoolean(SceneBooleanProperty.ShowAllSites, !originalShowAllSites), T09Operation(374));
             Assert.That(laterOptimistic, Is.Not.Null);
 
@@ -2573,7 +2687,7 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             bool originalShowAllSites = quest.Scene.ShowAllSites;
             var echoes = new List<Mutation>();
-            quest.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             var transaction = new SetConfigurationTransaction(new Mutation[]
             {
                 new SetSceneBoolean(SceneBooleanProperty.ShowAllSites, !originalShowAllSites)
@@ -2584,7 +2698,7 @@ namespace HBP.Tests.Transfer.Scene
             var optimisticColor = driver.ApplyOptimistic(new SetSiteColor(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID), 0.9f, 0.1f, 0.2f, 1f), T09Operation(379));
             Assert.That(optimisticColor, Is.Not.Null);
             var canonicalMutations = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicalMutations.Add;
+            authority.OnCanonicalReady.AddListener(canonicalMutations.Add);
 
             desktop.Boundary.Apply(new SetSiteColor(new ColumnId(desktop.Column.ColumnData.ID), new SiteId(desktop.Site.Information.FullID), 0.1f, 0.2f, 0.8f, 1f), MutationApplicationOrigin.LocalDesktop, T09Operation(380));
             Assert.That(driver.ReceiveCanonical(canonicalMutations[0]), Is.True);
@@ -2627,7 +2741,7 @@ namespace HBP.Tests.Transfer.Scene
             float optimisticInfluenceDistance = originalInfluenceDistance + 6f;
             Color red = new(0.87f, 0.12f, 0.18f, 1f);
             var echoes = new List<Mutation>();
-            fixture.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
 
             QuestMutationProposal transaction = driver.ApplyOptimistic(new SetConfigurationTransaction(new Mutation[]
             {
@@ -2697,7 +2811,7 @@ namespace HBP.Tests.Transfer.Scene
             source.Boundary.BindPreparedResources(CreateT11PreparedBinding(source.Scene));
             target.Boundary.BindPreparedResources(CreateT11PreparedBinding(target.Scene));
             var proposed = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposed.Add(mutation));
 
             source.StaticColumn.SelectedLabelIndex = 1;
             source.StaticColumn.StaticParameters.InfluenceDistance = 17f;
@@ -2716,7 +2830,7 @@ namespace HBP.Tests.Transfer.Scene
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(23, source.Boundary.CaptureCheckpoint())).Checkpoint;
             var echoes = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(358));
 
             Assert.That(target.StaticColumn.SelectedLabelIndex, Is.EqualTo(1));
@@ -2732,7 +2846,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new T11CcepFixture();
             using var target = new T11CcepFixture();
             var proposed = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposed.Add(mutation));
 
             source.Column.ApplySynchronizedSource(Column3DCCEP.CCEPMode.Site, source.Site, -1);
             source.Column.DynamicParameters.InfluenceDistance = 19f;
@@ -2746,7 +2860,7 @@ namespace HBP.Tests.Transfer.Scene
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(24, source.Boundary.CaptureCheckpoint())).Checkpoint;
             Assert.That(checkpoint.T11Records.Any(record => record.Value is SetCcepSource), Is.True);
             var echoes = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => echoes.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(359));
 
             Assert.That(target.Column.Mode, Is.EqualTo(Column3DCCEP.CCEPMode.Site));
@@ -2764,7 +2878,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new BoundSceneFixture();
             using var target = new BoundSceneFixture();
             var proposals = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             source.Column.IsSelected = true;
             source.Scene.SelectSiteForSynchronization(source.Column, source.Site);
@@ -2786,7 +2900,7 @@ namespace HBP.Tests.Transfer.Scene
             byte[] bytes = SceneMutationCheckpointCodec.Encode(12, source.Boundary.CaptureCheckpoint());
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(bytes).Checkpoint;
             var appliedProposals = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => appliedProposals.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => appliedProposals.Add(mutation));
             target.Scene.SceneInformation.ProjectionGridNeedsUpdate = false;
             target.Scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
             target.Scene.SceneInformation.GeneratorNeedsUpdate = false;
@@ -2814,7 +2928,7 @@ namespace HBP.Tests.Transfer.Scene
             using var source = new BoundSceneFixture();
             using var target = new BoundSceneFixture();
             var proposals = new List<Mutation>();
-            source.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             source.StaticColumn.StaticParameters.ApplySynchronizedSpanValues(-1f, 0.25f, 1f);
             source.DynamicColumn.DynamicParameters.ApplySynchronizedSpanValues(-2f, 0f, 3f);
@@ -2828,7 +2942,7 @@ namespace HBP.Tests.Transfer.Scene
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(13, source.Boundary.CaptureCheckpoint())).Checkpoint;
             var targetProposals = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => targetProposals.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => targetProposals.Add(mutation));
             ulong projectionGeneration = target.Scene.ProjectionGeneration;
             ulong activityInputGeneration = target.Scene.ActivityInputGeneration;
 
@@ -2861,12 +2975,12 @@ namespace HBP.Tests.Transfer.Scene
             using var questDriver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var canonicals = new List<CanonicalMutation>();
             var questEchoes = new List<Mutation>();
-            authority.CanonicalReady += canonical =>
+            authority.OnCanonicalReady.AddListener(canonical =>
             {
                 canonicals.Add(canonical);
                 Assert.That(questDriver.ReceiveCanonical(canonical), Is.True);
-            };
-            quest.Boundary.MutationProposed += (_, mutation, _) => questEchoes.Add(mutation);
+            });
+            quest.Boundary.OnMutationProposed.AddListener((_, mutation, _) => questEchoes.Add(mutation));
             Mutation[] mutations = CreateT09DriverMutations(desktop, 19);
             ulong projectionGeneration = quest.Scene.ProjectionGeneration;
             ulong activityInputGeneration = quest.Scene.ActivityInputGeneration;
@@ -2906,14 +3020,14 @@ namespace HBP.Tests.Transfer.Scene
             using var questDriver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, scheduler);
             var canonicals = new List<CanonicalMutation>();
             var desktopEchoes = new List<Mutation>();
-            authority.CanonicalReady += canonicals.Add;
-            desktop.Boundary.MutationProposed += (_, mutation, _) => desktopEchoes.Add(mutation);
-            questDriver.ProposalQueued += proposal =>
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
+            desktop.Boundary.OnMutationProposed.AddListener((_, mutation, _) => desktopEchoes.Add(mutation));
+            questDriver.OnProposalQueued.AddListener(proposal =>
             {
                 DesktopProposalResult accepted = authority.AcceptQuestProposal(proposal);
                 Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 Assert.That(questDriver.ReceiveCanonical(accepted.CanonicalMutation), Is.False, "A matching T09 proposal is confirmed without applying it a second time.");
-            };
+            });
             Mutation[] mutations = CreateT09DriverMutations(quest, 23);
             ulong desktopProjectionGeneration = desktop.Scene.ProjectionGeneration;
             ulong desktopActivityInputGeneration = desktop.Scene.ActivityInputGeneration;
@@ -2964,7 +3078,7 @@ namespace HBP.Tests.Transfer.Scene
             fixture.Timeline.IsPlaying = true;
             var proposals = new List<Mutation>();
             int nestedCutUpdates = 0;
-            fixture.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
             fixture.Timeline.OnUpdateCurrentIndex.AddListener(() =>
             {
                 nestedCutUpdates++;
@@ -3000,7 +3114,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(checkpoint.CutDefinitions, Has.Count.EqualTo(1));
             Assert.That(checkpoint.TimelineAnchors, Has.Count.EqualTo(1));
             var targetProposals = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => targetProposals.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => targetProposals.Add(mutation));
 
             target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
 
@@ -3051,7 +3165,7 @@ namespace HBP.Tests.Transfer.Scene
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(21, source.Boundary.CaptureCheckpoint())).Checkpoint;
             var proposals = new List<Mutation>();
-            target.Boundary.MutationProposed += (_, mutation, _) => proposals.Add(mutation);
+            target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             target.Boundary.ApplyCheckpoint(checkpoint, new OperationId(Guid.NewGuid()));
 
@@ -3274,18 +3388,18 @@ namespace HBP.Tests.Transfer.Scene
             int desktopProposals = 0;
             int questCutEffects = 0;
             int desktopCutEffects = 0;
-            quest.Boundary.MutationProposed += (_, _, device) =>
+            quest.Boundary.OnMutationProposed.AddListener((_, _, device) =>
             {
                 if (device == OriginDevice.Quest) questProposals++;
-            };
-            desktop.Boundary.MutationProposed += (_, _, device) =>
+            });
+            desktop.Boundary.OnMutationProposed.AddListener((_, _, device) =>
             {
                 if (device == OriginDevice.Desktop) desktopProposals++;
-            };
+            });
             quest.Scene.OnModifyPlanesCuts.AddListener(() => questCutEffects++);
             desktop.Scene.OnModifyPlanesCuts.AddListener(() => desktopCutEffects++);
-            authority.CanonicalReady += canonical => questDriver.ReceiveCanonical(canonical);
-            questDriver.ProposalQueued += proposal => Assert.That(authority.AcceptQuestProposal(proposal).Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            authority.OnCanonicalReady.AddListener(canonical => questDriver.ReceiveCanonical(canonical));
+            questDriver.OnProposalQueued.AddListener(proposal => Assert.That(authority.AcceptQuestProposal(proposal).Outcome, Is.EqualTo(ProposalOutcome.Accepted)));
 
             Assert.That(questDriver.ApplyOptimistic(new DeleteCut(new CutId("t10-cut-middle")), T09Operation(811)), Is.Not.Null);
             Assert.That(quest.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(new[] { "t10-cut-first", "t10-cut-last" }));
@@ -3419,11 +3533,11 @@ namespace HBP.Tests.Transfer.Scene
             {
                 Boundary?.Dispose();
                 Boundary = new SceneMutationBoundary(new[] { (State, ColumnId, SiteId) }, new[] { (Cut, new CutId(Cut.ID)) }, new[] { ((BasicTimeline)Timeline, ColumnId) }, m_LocalOrigin, m_Clock, updateCut, m_TimelineAgeSeconds, m_TimelineTimingEstimate);
-                Boundary.MutationProposed += (id, mutation, _) =>
+                Boundary.OnMutationProposed.AddListener((id, mutation, _) =>
                 {
                     LastOperationId = id;
                     LastProposal = mutation;
-                };
+                });
             }
 
             public void Dispose()

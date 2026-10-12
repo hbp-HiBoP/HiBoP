@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -281,7 +282,7 @@ namespace HBP.Sync.Scene
         private PreparedSceneResourceCatalog m_ResourceCatalog;
         private string m_ResourceManifestHash;
 
-        public event Action<OperationId, Mutation, OriginDevice> MutationProposed;
+        public GenericEvent<OperationId, Mutation, OriginDevice> OnMutationProposed { get; } = new();
         public PreparedSceneResourceCatalog ResourceCatalog => m_ResourceCatalog;
         public bool IsAnyTimelinePlaying => Volatile.Read(ref m_PlayingTimelineCount) > 0;
 
@@ -303,7 +304,7 @@ namespace HBP.Sync.Scene
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
             m_LastSitePlacement = new MoveSites(scene.SitePlacement switch { SitePlacementMode.Left => SiteMoveCommand.Left, SitePlacementMode.Right => SiteMoveCommand.Right, _ => SiteMoveCommand.Reset });
-            m_Scene.AtlasUseAdmission += SessionAtlasCatalog.Require;
+            m_Scene.AtlasUseValidator += SessionAtlasCatalog.Require;
             BindSceneTargets(scene);
         }
 
@@ -327,13 +328,13 @@ namespace HBP.Sync.Scene
                 BindColumnResourceObservers(column, m_ColumnListeners[column]);
             if (m_Scene.MeshManager != null)
             {
-                m_Scene.MeshManager.ResourceSelectionChanged += ObserveMeshSelection;
-                m_Scene.MeshManager.DisplaySelectionChanged += ObserveMeshDisplay;
+                m_Scene.MeshManager.OnResourceSelectionChanged.AddListener(ObserveMeshSelection);
+                m_Scene.MeshManager.OnDisplaySelectionChanged.AddListener(ObserveMeshDisplay);
             }
 
-            if (m_Scene.MRIManager != null) m_Scene.MRIManager.ResourceSelectionChanged += ObserveMriSelection;
-            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged += ObserveImplantationSelection;
-            if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.VisibilityMaskChanged += ObserveTriangleMask;
+            if (m_Scene.MRIManager != null) m_Scene.MRIManager.OnResourceSelectionChanged.AddListener(ObserveMriSelection);
+            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.OnResourceSelectionChanged.AddListener(ObserveImplantationSelection);
+            if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.OnVisibilityMaskChanged.AddListener(ObserveTriangleMask);
             ObserveMeshDisplay();
             ObserveMriSelection();
             ObserveImplantationSelection();
@@ -396,9 +397,9 @@ namespace HBP.Sync.Scene
                 timelineTargets.Add(new TimelineTarget(target.ColumnId));
             }
 
-            SiteState.ColorChanged += OnSiteColorChanged;
-            SceneCut.DefinitionChanged += OnCutDefinitionChanged;
-            BasicTimeline.AnchorChanged += OnTimelineAnchorChanged;
+            foreach (SiteState state in m_Sites.Keys) state.OnColorChanged.AddListener(OnSiteColorChanged);
+            foreach (SceneCut cut in m_CutIds.Keys) cut.OnDefinitionChanged.AddListener(OnCutDefinitionChanged);
+            foreach (BasicTimeline timeline in m_Timelines.Keys) timeline.OnAnchorChanged.AddListener(OnTimelineAnchorChanged);
         }
 
         public void Apply(Mutation mutation, MutationApplicationOrigin origin, OperationId operationId)
@@ -430,7 +431,7 @@ namespace HBP.Sync.Scene
                     else RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
                 }
 
-                MutationProposed?.Invoke(operationId, mutation, ToOriginDevice(origin));
+                OnMutationProposed.Invoke(operationId, mutation, ToOriginDevice(origin));
             }
         }
 
@@ -1841,8 +1842,8 @@ namespace HBP.Sync.Scene
 
         private void BindSceneTargets(Base3DScene scene)
         {
-            scene.ConfigurationMutationStarted += BeginConfigurationMutation;
-            scene.ConfigurationMutationCompleted += CompleteConfigurationMutation;
+            scene.OnConfigurationMutationStarted.AddListener(BeginConfigurationMutation);
+            scene.OnConfigurationMutationCompleted.AddListener(CompleteConfigurationMutation);
             scene.SiteConfigurationBatchRouter = ApplySiteConfigurationBatch;
             scene.SiteSelectionRouter = ApplySiteSelection;
             scene.CutDefinitionRouter = ApplyCutDefinition;
@@ -1925,17 +1926,17 @@ namespace HBP.Sync.Scene
             scene.OnModifyPlanesCuts.AddListener(m_CutOrderListener);
             scene.OnChangeAutomaticCutAroundSelectedSite.AddListener(OnAutomaticCutPolicyChanged);
             scene.OnChangeVisibleState.AddListener(OnSceneVisibilityChanged);
-            scene.SitePositionCommandExecuted += OnSitePositionCommandExecuted;
+            scene.OnSitePositionCommandExecuted.AddListener(OnSitePositionCommandExecuted);
             scene.OnSharedStateChanged.AddListener(ObserveScenePresentation);
-            if (scene.BrainMaterials != null) scene.BrainMaterials.AlphaChanged += OnBrainAlphaChanged;
-            if (scene.FMRIManager != null) scene.FMRIManager.PresentationChanged += ObserveFmriPresentation;
+            if (scene.BrainMaterials != null) scene.BrainMaterials.OnAlphaChanged.AddListener(OnBrainAlphaChanged);
+            if (scene.FMRIManager != null) scene.FMRIManager.OnPresentationChanged.AddListener(ObserveFmriPresentation);
             Module3DMain.OnSelectColumn.AddListener(OnModuleColumnSelected);
             scene.OnUpdateROI.AddListener(RefreshRoiTargets);
             if (scene.ROIManager != null)
             {
-                scene.ROIManager.RoiAdded += OnRoiAdded;
-                scene.ROIManager.RoiRemoved += OnRoiRemoved;
-                scene.ROIManager.ActiveRoiChanged += OnActiveRoiChanged;
+                scene.ROIManager.OnRoiAdded.AddListener(OnRoiAdded);
+                scene.ROIManager.OnRoiRemoved.AddListener(OnRoiRemoved);
+                scene.ROIManager.OnActiveRoiChanged.AddListener(OnActiveRoiChanged);
             }
 
             RefreshRoiTargets();
@@ -1974,7 +1975,7 @@ namespace HBP.Sync.Scene
                     RememberOptimisticCheckpointRollback(operationId, capture.InitialCheckpoint, capture.InitialSiteConfigurationProvenance);
                 try
                 {
-                    MutationProposed?.Invoke(operationId, transaction, m_LocalOrigin);
+                    OnMutationProposed.Invoke(operationId, transaction, m_LocalOrigin);
                 }
                 catch
                 {
@@ -2075,7 +2076,7 @@ namespace HBP.Sync.Scene
             if (m_LocalOrigin == OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
             try
             {
-                MutationProposed?.Invoke(operationId, mutation, m_LocalOrigin);
+                OnMutationProposed.Invoke(operationId, mutation, m_LocalOrigin);
             }
             catch (Exception failure)
             {
@@ -2638,6 +2639,7 @@ namespace HBP.Sync.Scene
             int previousIndex = Array.FindIndex(m_LastCutOrder, candidate => candidate.Equals(id));
             Mutation rollback = m_CutDefinitionSnapshots.TryGetValue(cut, out SetCutDefinition definition) && previousIndex >= 0 ? new CreateCut(id, definition, previousIndex) : null;
             if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new DeleteCut(id), rollback);
+            cut.OnDefinitionChanged.RemoveListener(OnCutDefinitionChanged);
             m_CutIds.Remove(cut);
             m_Cuts.Remove(id);
             m_CutDefinitionSnapshots.Remove(cut);
@@ -2650,6 +2652,7 @@ namespace HBP.Sync.Scene
             if (m_CutIds.TryGetValue(cut, out CutId existingId))
             {
                 if (existingId.Equals(id)) return;
+                cut.OnDefinitionChanged.RemoveListener(OnCutDefinitionChanged);
                 m_Cuts.Remove(existingId);
                 m_CutIds.Remove(cut);
             }
@@ -2657,6 +2660,7 @@ namespace HBP.Sync.Scene
             if (!m_Cuts.TryAdd(id, cut) || !m_CutIds.TryAdd(cut, id))
                 throw new InvalidOperationException("Cut identities must remain unique in the prepared scene.");
             m_CutDefinitionSnapshots[cut] = CreateCutDefinition(cut, id);
+            cut.OnDefinitionChanged.AddListener(OnCutDefinitionChanged);
         }
 
         private void ObserveCutOrder()
@@ -3954,8 +3958,9 @@ namespace HBP.Sync.Scene
             return true;
         }
 
-        private void OnCutDefinitionChanged(SceneCut cut)
+        private void OnCutDefinitionChanged(Core.DLL.Plane plane)
         {
+            if (plane is not SceneCut cut) return;
             if (m_Disposed || !m_CutIds.TryGetValue(cut, out CutId id)) return;
             SetCutDefinition mutation;
             try
@@ -4063,7 +4068,7 @@ namespace HBP.Sync.Scene
                 SiteConfigurationProvenanceSnapshot provenanceRollback = CaptureSiteConfigurationProvenanceSnapshot(mutation);
                 MarkSiteConfigurationWriters(mutation, operationId.Value);
                 if (device == OriginDevice.Quest) RememberOptimisticRollback(operationId, rollback, mutation, provenanceRollback);
-                MutationProposed?.Invoke(operationId, mutation, device.Value);
+                OnMutationProposed.Invoke(operationId, mutation, device.Value);
                 return;
             }
 
@@ -4071,7 +4076,7 @@ namespace HBP.Sync.Scene
             SiteConfigurationProvenanceSnapshot generatedProvenanceRollback = CaptureSiteConfigurationProvenanceSnapshot(mutation);
             MarkSiteConfigurationWriters(mutation, generatedOperationId.Value);
             if (m_LocalOrigin == OriginDevice.Quest) RememberOptimisticRollback(generatedOperationId, rollback, mutation, generatedProvenanceRollback);
-            MutationProposed?.Invoke(generatedOperationId, mutation, m_LocalOrigin);
+            OnMutationProposed.Invoke(generatedOperationId, mutation, m_LocalOrigin);
         }
 
         private SiteState ResolveSite(ColumnId columnId, SiteId siteId)
@@ -4199,13 +4204,13 @@ namespace HBP.Sync.Scene
         {
             if (m_Disposed) return;
             m_Disposed = true;
-            SiteState.ColorChanged -= OnSiteColorChanged;
-            SceneCut.DefinitionChanged -= OnCutDefinitionChanged;
-            BasicTimeline.AnchorChanged -= OnTimelineAnchorChanged;
+            foreach (SiteState state in m_Sites.Keys) state.OnColorChanged.RemoveListener(OnSiteColorChanged);
+            foreach (SceneCut cut in m_CutIds.Keys) cut.OnDefinitionChanged.RemoveListener(OnCutDefinitionChanged);
+            foreach (BasicTimeline timeline in m_Timelines.Keys) timeline.OnAnchorChanged.RemoveListener(OnTimelineAnchorChanged);
             if (m_Scene != null)
             {
-                m_Scene.ConfigurationMutationStarted -= BeginConfigurationMutation;
-                m_Scene.ConfigurationMutationCompleted -= CompleteConfigurationMutation;
+                m_Scene.OnConfigurationMutationStarted.RemoveListener(BeginConfigurationMutation);
+                m_Scene.OnConfigurationMutationCompleted.RemoveListener(CompleteConfigurationMutation);
                 if (m_Scene.SiteConfigurationBatchRouter?.Target == this)
                     m_Scene.SiteConfigurationBatchRouter = null;
                 if (m_Scene.SiteSelectionRouter?.Target == this)
@@ -4217,27 +4222,27 @@ namespace HBP.Sync.Scene
                 if (m_CutOrderListener != null) m_Scene.OnModifyPlanesCuts.RemoveListener(m_CutOrderListener);
                 m_Scene.OnChangeAutomaticCutAroundSelectedSite.RemoveListener(OnAutomaticCutPolicyChanged);
                 m_Scene.OnChangeVisibleState.RemoveListener(OnSceneVisibilityChanged);
-                m_Scene.SitePositionCommandExecuted -= OnSitePositionCommandExecuted;
+                m_Scene.OnSitePositionCommandExecuted.RemoveListener(OnSitePositionCommandExecuted);
                 m_Scene.OnSharedStateChanged.RemoveListener(ObserveScenePresentation);
                 m_Scene.OnUpdateROI.RemoveListener(RefreshRoiTargets);
                 if (m_Scene.ROIManager != null)
                 {
-                    m_Scene.ROIManager.RoiAdded -= OnRoiAdded;
-                    m_Scene.ROIManager.RoiRemoved -= OnRoiRemoved;
-                    m_Scene.ROIManager.ActiveRoiChanged -= OnActiveRoiChanged;
+                    m_Scene.ROIManager.OnRoiAdded.RemoveListener(OnRoiAdded);
+                    m_Scene.ROIManager.OnRoiRemoved.RemoveListener(OnRoiRemoved);
+                    m_Scene.ROIManager.OnActiveRoiChanged.RemoveListener(OnActiveRoiChanged);
                 }
 
-                if (m_Scene.BrainMaterials != null) m_Scene.BrainMaterials.AlphaChanged -= OnBrainAlphaChanged;
-                if (m_Scene.FMRIManager != null) m_Scene.FMRIManager.PresentationChanged -= ObserveFmriPresentation;
+                if (m_Scene.BrainMaterials != null) m_Scene.BrainMaterials.OnAlphaChanged.RemoveListener(OnBrainAlphaChanged);
+                if (m_Scene.FMRIManager != null) m_Scene.FMRIManager.OnPresentationChanged.RemoveListener(ObserveFmriPresentation);
                 if (m_Scene.MeshManager != null)
                 {
-                    m_Scene.MeshManager.ResourceSelectionChanged -= ObserveMeshSelection;
-                    m_Scene.MeshManager.DisplaySelectionChanged -= ObserveMeshDisplay;
+                    m_Scene.MeshManager.OnResourceSelectionChanged.RemoveListener(ObserveMeshSelection);
+                    m_Scene.MeshManager.OnDisplaySelectionChanged.RemoveListener(ObserveMeshDisplay);
                 }
 
-                if (m_Scene.MRIManager != null) m_Scene.MRIManager.ResourceSelectionChanged -= ObserveMriSelection;
-                if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged -= ObserveImplantationSelection;
-                if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.VisibilityMaskChanged -= ObserveTriangleMask;
+                if (m_Scene.MRIManager != null) m_Scene.MRIManager.OnResourceSelectionChanged.RemoveListener(ObserveMriSelection);
+                if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.OnResourceSelectionChanged.RemoveListener(ObserveImplantationSelection);
+                if (m_Scene.TriangleEraser != null) m_Scene.TriangleEraser.OnVisibilityMaskChanged.RemoveListener(ObserveTriangleMask);
                 Module3DMain.OnSelectColumn.RemoveListener(OnModuleColumnSelected);
             }
 
@@ -4283,7 +4288,7 @@ namespace HBP.Sync.Scene
             m_Cuts.Clear();
             m_CutDefinitionSnapshots.Clear();
             m_Timelines.Clear();
-            if (m_Scene != null) m_Scene.AtlasUseAdmission -= SessionAtlasCatalog.Require;
+            if (m_Scene != null) m_Scene.AtlasUseValidator -= SessionAtlasCatalog.Require;
             m_ResourceCatalog = null;
         }
 

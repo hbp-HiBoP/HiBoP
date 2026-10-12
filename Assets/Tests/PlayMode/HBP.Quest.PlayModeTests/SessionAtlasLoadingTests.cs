@@ -42,7 +42,7 @@ namespace HBP.Tests.Quest
                 using var exclusive = new FileStream(unrelated, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                 dataPath.SetValue(null, folder);
                 Object3DManager.Localizers = new LocalizersObjects();
-                AtlasResources.Changed += Loading;
+                AtlasResources.OnChanged.AddListener(Loading);
                 var first = AtlasResources.LoadAsync(id, timeout.Token).AsTask();
                 var second = AtlasResources.LoadAsync(id, timeout.Token).AsTask();
                 var abandoned = AtlasResources.LoadAsync(id, cancelled.Token).AsTask();
@@ -97,7 +97,7 @@ namespace HBP.Tests.Quest
             }
             finally
             {
-                AtlasResources.Changed -= Loading;
+                AtlasResources.OnChanged.RemoveListener(Loading);
                 Object3DManager.Localizers.Clean();
                 Object3DManager.Localizers = previousLocalizers;
                 dataPath.SetValue(null, previousPath);

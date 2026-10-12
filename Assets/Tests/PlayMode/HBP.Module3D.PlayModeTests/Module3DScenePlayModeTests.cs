@@ -1458,61 +1458,72 @@ namespace HBP.Tests.PlayMode.Module3D
         public async Task Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized()
         {
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneModule3DInitializedLifecycle");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, 2);
             Base3DScene baseScene = initialized.BaseScene;
-            DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
-            int addViewLineEvents = 0;
-            int removedViewLine = -1;
-            int addCutEvents = 0;
+            try
+            {
+                DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+                int addViewLineEvents = 0;
+                int removedViewLine = -1;
+                int addCutEvents = 0;
 
-            baseScene.OnAddViewLine.AddListener(() => addViewLineEvents++);
-            baseScene.OnRemoveViewLine.AddListener(line => removedViewLine = line);
-            baseScene.OnAddCut.AddListener(_ => addCutEvents++);
+                baseScene.OnAddViewLine.AddListener(() => addViewLineEvents++);
+                baseScene.OnRemoveViewLine.AddListener(line => removedViewLine = line);
+                baseScene.OnAddCut.AddListener(_ => addCutEvents++);
 
-            Assert.That(baseScene.Columns, Has.Count.EqualTo(2));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Sites.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.Columns, Has.Count.EqualTo(2));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Sites.Count), Is.All.EqualTo(1));
 
-            baseScene.AddViewLine();
-            baseScene.Columns[1].Views[1].IsSelected = true;
-            baseScene.RemoveViewLine(1);
+                baseScene.AddViewLine();
+                baseScene.Columns[1].Views[1].IsSelected = true;
+                baseScene.RemoveViewLine(1);
 
-            Assert.That(addViewLineEvents, Is.EqualTo(1));
-            Assert.That(removedViewLine, Is.EqualTo(1));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.SelectedColumn, Is.SameAs(baseScene.Columns[1]));
-            Assert.That(baseScene.SelectedColumn.SelectedView, Is.SameAs(baseScene.Columns[1].Views[0]));
+                Assert.That(addViewLineEvents, Is.EqualTo(1));
+                Assert.That(removedViewLine, Is.EqualTo(1));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.SelectedColumn, Is.SameAs(baseScene.Columns[1]));
+                Assert.That(baseScene.SelectedColumn.SelectedView, Is.SameAs(baseScene.Columns[1].Views[0]));
 
-            Core.Object3D.Cut cut = baseScene.AddCutPlane();
-            int removeCutEvents = 0;
-            cut.OnRemoveCut.AddListener(() => removeCutEvents++);
+                Core.Object3D.Cut cut = baseScene.AddCutPlane();
+                int removeCutEvents = 0;
+                cut.OnRemoveCut.AddListener(() => removeCutEvents++);
 
-            Assert.That(addCutEvents, Is.EqualTo(1));
-            Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Cuts[0].Index, Is.EqualTo(0));
-            Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+                Assert.That(addCutEvents, Is.EqualTo(1));
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Cuts[0].Index, Is.EqualTo(0));
+                Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
 
-            Core.Object3D.Cut secondCut = baseScene.AddCutPlane();
-            string secondId = secondCut.ID;
-            baseScene.RemoveCutPlane(cut);
+                Core.Object3D.Cut secondCut = baseScene.AddCutPlane();
+                string secondId = secondCut.ID;
+                baseScene.RemoveCutPlane(cut);
 
-            Assert.That(secondCut.ID, Is.EqualTo(secondId));
-            Assert.That(secondCut.Index, Is.EqualTo(0));
-            baseScene.RemoveCutPlane(secondCut);
+                Assert.That(secondCut.ID, Is.EqualTo(secondId));
+                Assert.That(secondCut.Index, Is.EqualTo(0));
+                baseScene.RemoveCutPlane(secondCut);
 
-            Assert.That(removeCutEvents, Is.EqualTo(1));
-            Assert.That(baseScene.Cuts, Is.Empty);
-            Assert.That(displayedObjects.BrainCutMeshes, Is.Empty);
-            Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(0));
-            Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+                Assert.That(removeCutEvents, Is.EqualTo(1));
+                Assert.That(baseScene.Cuts, Is.Empty);
+                Assert.That(displayedObjects.BrainCutMeshes, Is.Empty);
+                Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(0));
+                Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
         }
 
         [Test]
@@ -1630,10 +1641,10 @@ namespace HBP.Tests.PlayMode.Module3D
                 using SceneMutationBoundary boundary = new(scene, OriginDevice.Quest);
                 PreparedSceneResourceCatalog catalog = new(scene, new string('c', 64));
                 SetPrivateField(boundary, "m_ResourceCatalog", catalog);
-                Action maskObserver = (Action)Delegate.CreateDelegate(typeof(Action), boundary, typeof(SceneMutationBoundary).GetMethod("ObserveTriangleMask", BindingFlags.Instance | BindingFlags.NonPublic));
-                scene.TriangleEraser.VisibilityMaskChanged += maskObserver;
+                UnityAction maskObserver = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), boundary, typeof(SceneMutationBoundary).GetMethod("ObserveTriangleMask", BindingFlags.Instance | BindingFlags.NonPublic));
+                scene.TriangleEraser.OnVisibilityMaskChanged.AddListener(maskObserver);
                 int publications = 0;
-                boundary.MutationProposed += (_, _, _) => publications++;
+                boundary.OnMutationProposed.AddListener((_, _, _) => publications++);
                 SceneId sceneId = new(Guid.NewGuid());
                 IncarnationId incarnation = new(Guid.NewGuid());
                 OutgoingScheduler scheduler = new(new SessionId(Guid.NewGuid()), sceneId, incarnation, OriginDevice.Quest);
@@ -1735,7 +1746,7 @@ namespace HBP.Tests.PlayMode.Module3D
                     Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
                 }
 
-                scene.TriangleEraser.VisibilityMaskChanged -= maskObserver;
+                scene.TriangleEraser.OnVisibilityMaskChanged.RemoveListener(maskObserver);
             }
             finally
             {
@@ -1984,62 +1995,73 @@ namespace HBP.Tests.PlayMode.Module3D
         public async Task Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneModule3DConfigurationRoundTrip");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
             Base3DScene baseScene = initialized.BaseScene;
-            Visualization visualization = initialized.Visualization;
-            Vector3 firstViewPosition = new(12, 34, 56);
-            Quaternion firstViewRotation = Quaternion.Euler(10, 20, 30);
-            Vector3 firstViewTarget = new(1, 2, 3);
-            Vector3 secondViewPosition = new(-12, 24, 72);
-            Quaternion secondViewRotation = Quaternion.Euler(40, 50, 60);
-            Vector3 secondViewTarget = new(4, 5, 6);
-
-            visualization.Configuration = new VisualizationConfiguration(ColorType.Grayscale, ColorType.Hot, ColorType.Winter, MeshPart.Right, "MNI White matter", "MNI", string.Empty, true, true, 0.42f, true, true, true, true, 1.75f, 0.2f, 0.8f, CameraControl.Orbital, new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) }, new[]
+            try
             {
-                new View(firstViewPosition, firstViewRotation, firstViewTarget),
-                new View(secondViewPosition, secondViewRotation, secondViewTarget)
-            }, Enumerable.Empty<RegionOfInterest>());
+                Visualization visualization = initialized.Visualization;
+                Vector3 firstViewPosition = new(12, 34, 56);
+                Quaternion firstViewRotation = Quaternion.Euler(10, 20, 30);
+                Vector3 firstViewTarget = new(1, 2, 3);
+                Vector3 secondViewPosition = new(-12, 24, 72);
+                Quaternion secondViewRotation = Quaternion.Euler(40, 50, 60);
+                Vector3 secondViewTarget = new(4, 5, 6);
 
-            baseScene.LoadConfiguration(false);
+                visualization.Configuration = new VisualizationConfiguration(ColorType.Grayscale, ColorType.Hot, ColorType.Winter, MeshPart.Right, "MNI White matter", "MNI", string.Empty, true, true, 0.42f, true, true, true, true, 1.75f, 0.2f, 0.8f, CameraControl.Orbital, new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) }, new[]
+                {
+                    new View(firstViewPosition, firstViewRotation, firstViewTarget),
+                    new View(secondViewPosition, secondViewRotation, secondViewTarget)
+                }, Enumerable.Empty<RegionOfInterest>());
 
-            Assert.That(baseScene.CutColor, Is.EqualTo(ColorType.Hot));
-            Assert.That(baseScene.Colormap, Is.EqualTo(ColorType.Winter));
-            Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Right));
-            Assert.That(baseScene.EdgeMode, Is.True);
-            Assert.That(baseScene.IsBrainTransparent, Is.True);
-            Assert.That(baseScene.StrongCuts, Is.True);
-            Assert.That(baseScene.HideBlacklistedSites, Is.True);
-            Assert.That(baseScene.ShowAllSites, Is.True);
-            Assert.That(baseScene.AutomaticCutAroundSelectedSite, Is.True);
-            Assert.That(baseScene.SiteGain, Is.EqualTo(1.75f));
-            Assert.That(baseScene.MRIManager.MRICalMinFactor, Is.EqualTo(0.2f));
-            Assert.That(baseScene.MRIManager.MRICalMaxFactor, Is.EqualTo(0.8f));
-            Assert.That(baseScene.CameraType, Is.EqualTo(CameraControl.Orbital));
-            Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Cuts[0].Orientation, Is.EqualTo(CutOrientation.Coronal));
-            Assert.That(baseScene.Cuts[0].Flip, Is.True);
-            Assert.That(baseScene.Cuts[0].Position, Is.EqualTo(0.25f));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(2));
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraPosition, firstViewPosition);
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraRotation.eulerAngles, firstViewRotation.eulerAngles);
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraTarget, firstViewTarget);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraPosition, secondViewPosition);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraRotation.eulerAngles, secondViewRotation.eulerAngles);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraTarget, secondViewTarget);
+                baseScene.LoadConfiguration(false);
 
-            string selectedImplantationName = baseScene.ImplantationManager.SelectedImplantation.Name;
-            baseScene.SaveConfiguration();
+                Assert.That(baseScene.CutColor, Is.EqualTo(ColorType.Hot));
+                Assert.That(baseScene.Colormap, Is.EqualTo(ColorType.Winter));
+                Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Right));
+                Assert.That(baseScene.EdgeMode, Is.True);
+                Assert.That(baseScene.IsBrainTransparent, Is.True);
+                Assert.That(baseScene.StrongCuts, Is.True);
+                Assert.That(baseScene.HideBlacklistedSites, Is.True);
+                Assert.That(baseScene.ShowAllSites, Is.True);
+                Assert.That(baseScene.AutomaticCutAroundSelectedSite, Is.True);
+                Assert.That(baseScene.SiteGain, Is.EqualTo(1.75f));
+                Assert.That(baseScene.MRIManager.MRICalMinFactor, Is.EqualTo(0.2f));
+                Assert.That(baseScene.MRIManager.MRICalMaxFactor, Is.EqualTo(0.8f));
+                Assert.That(baseScene.CameraType, Is.EqualTo(CameraControl.Orbital));
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Cuts[0].Orientation, Is.EqualTo(CutOrientation.Coronal));
+                Assert.That(baseScene.Cuts[0].Flip, Is.True);
+                Assert.That(baseScene.Cuts[0].Position, Is.EqualTo(0.25f));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(2));
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraPosition, firstViewPosition);
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraRotation.eulerAngles, firstViewRotation.eulerAngles);
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraTarget, firstViewTarget);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraPosition, secondViewPosition);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraRotation.eulerAngles, secondViewRotation.eulerAngles);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraTarget, secondViewTarget);
 
-            Assert.That(visualization.Configuration.MeshName, Is.EqualTo("MNI White matter"));
-            Assert.That(visualization.Configuration.MRIName, Is.EqualTo("MNI"));
-            Assert.That(visualization.Configuration.ImplantationName, Is.EqualTo(selectedImplantationName));
-            Assert.That(visualization.Configuration.Cuts, Has.Count.EqualTo(1));
-            Assert.That(visualization.Configuration.Views, Has.Count.EqualTo(2));
-            AssertVectorApproximately(visualization.Configuration.Views[1].Position.ToVector3(), secondViewPosition);
+                string selectedImplantationName = baseScene.ImplantationManager.SelectedImplantation.Name;
+                baseScene.SaveConfiguration();
+
+                Assert.That(visualization.Configuration.MeshName, Is.EqualTo("MNI White matter"));
+                Assert.That(visualization.Configuration.MRIName, Is.EqualTo("MNI"));
+                Assert.That(visualization.Configuration.ImplantationName, Is.EqualTo(selectedImplantationName));
+                Assert.That(visualization.Configuration.Cuts, Has.Count.EqualTo(1));
+                Assert.That(visualization.Configuration.Views, Has.Count.EqualTo(2));
+                AssertVectorApproximately(visualization.Configuration.Views[1].Position.ToVector3(), secondViewPosition);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
         }
 
         [Test]

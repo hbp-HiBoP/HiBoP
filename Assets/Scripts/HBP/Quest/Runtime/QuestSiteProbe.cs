@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using HBP.Data.Module3D;
 using UnityEngine;
@@ -24,7 +25,7 @@ namespace HBP.Quest
         private bool armed;
         private MaterialPropertyBlock color;
         public bool IsActive { get; private set; }
-        public event System.Action<Site> Selected;
+        public GenericEvent<Site> OnSelected { get; } = new();
 
         private void OnEnable()
         {
@@ -97,7 +98,7 @@ namespace HBP.Quest
 
                 if (owner != null && QuestSiteSelection.TrySelect(scene, contact))
                 {
-                    Selected?.Invoke(contact.Site);
+                    OnSelected.Invoke(contact.Site);
                     var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
                     if (device.TryGetHapticCapabilities(out var capabilities) && capabilities.supportsImpulse)
                         device.SendHapticImpulse(0, policy.SiteHapticAmplitude, policy.SiteHapticDuration);

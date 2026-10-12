@@ -28,7 +28,7 @@ namespace HBP.Tests.Transfer.Scene
             var desktopScheduler = new OutgoingScheduler(Session, Scene, Incarnation, OriginDevice.Desktop) { ApplicationRetentionEnabled = true };
             var questScheduler = new OutgoingScheduler(Session, Scene, Incarnation, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(Scene, Incarnation, quest.Boundary, questScheduler);
-            authority.CanonicalReady += canonical => desktopScheduler.EnqueueMutation(canonical.Mutation, false, canonical.OperationId, canonical.CanonicalSequence);
+            authority.OnCanonicalReady.AddListener(canonical => desktopScheduler.EnqueueMutation(canonical.Mutation, false, canonical.OperationId, canonical.CanonicalSequence));
 
             for (int i = 0; i < 100000; i++)
             {
@@ -179,7 +179,7 @@ namespace HBP.Tests.Transfer.Scene
             using var quest = new Fixture(OriginDevice.Quest, new TestClock());
             using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
             var canonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             using var driver = CreateQuestDriver(quest, new TestClock());
 
             desktop.Boundary.Apply(Color("site-a", 0.15f, 0.25f, 0.35f), MutationApplicationOrigin.LocalDesktop, Operation(101));
@@ -219,12 +219,12 @@ namespace HBP.Tests.Transfer.Scene
             int cutUpdates = 0;
             int timelineIndexChanges = 0;
             quest.SiteA.OnChangeState.AddListener(() => siteChanges++);
-            driver.ProposalQueued += proposal =>
+            driver.OnProposalQueued.AddListener(proposal =>
             {
                 DesktopProposalResult result = authority.AcceptQuestProposal(proposal);
                 Assert.That(result.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 driver.ReceiveCanonical(result.CanonicalMutation);
-            };
+            });
             quest.CutChanged += () => cutUpdates++;
             quest.Timeline.OnUpdateCurrentIndex.AddListener(() => timelineIndexChanges++);
 
@@ -296,7 +296,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
             using var driver = CreateQuestDriver(quest, new TestClock());
             var queued = new List<QuestMutationProposal>();
-            driver.ProposalQueued += queued.Add;
+            driver.OnProposalQueued.AddListener(queued.Add);
 
             desktop.Boundary.Apply(Color("site-a", 0.9f, 0.1f, 0.2f), MutationApplicationOrigin.LocalDesktop, Operation(401));
             driver.ApplyOptimistic(Color("site-a", 0.1f, 0.9f, 0.2f), Operation(402));
@@ -337,7 +337,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
             using var driver = CreateQuestDriver(quest, new TestClock());
             var canonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             int questSiteChanges = 0;
             quest.SiteA.OnChangeState.AddListener(() => questSiteChanges++);
 
@@ -364,7 +364,7 @@ namespace HBP.Tests.Transfer.Scene
             using var quest = new Fixture(OriginDevice.Quest, new TestClock(), timelineLength: 101);
             using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
             var canonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             using var driver = CreateQuestDriver(quest, new TestClock());
 
             QuestMutationProposal invalid = driver.ApplyOptimistic(new SetTimelineAnchor(quest.ColumnId, 100, false, false, 1, 0, 1000), Operation(461));
@@ -397,7 +397,7 @@ namespace HBP.Tests.Transfer.Scene
             Color priorSiteA = quest.SiteA.Color;
             Color priorSiteB = quest.SiteB.Color;
             var rejected = new List<string>();
-            driver.ProposalRejected += (_, code) => rejected.Add(code);
+            driver.OnProposalRejected.AddListener((_, code) => rejected.Add(code));
 
             QuestMutationProposal proposal = driver.ApplyOptimistic(Color("site-a", 0.9f, 0.1f, 0.3f), Operation(463));
             Assert.That(proposal, Is.Not.Null);
@@ -423,19 +423,19 @@ namespace HBP.Tests.Transfer.Scene
             int deferred = 0;
             int queued = 0;
             int notQueued = 0;
-            driver.ProposalDeferred += (_, disposition) =>
+            driver.OnProposalDeferred.AddListener((_, disposition) =>
             {
                 Assert.That(disposition, Is.EqualTo(EnqueueDisposition.Backpressured));
                 deferred++;
-            };
-            driver.ProposalQueued += proposal =>
+            });
+            driver.OnProposalQueued.AddListener(proposal =>
             {
                 queued++;
                 DesktopProposalResult accepted = authority.AcceptQuestProposal(proposal);
                 Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 driver.ReceiveCanonical(accepted.CanonicalMutation);
-            };
-            driver.ProposalNotQueued += (_, _) => notQueued++;
+            });
+            driver.OnProposalNotQueued.AddListener((_, _) => notQueued++);
 
             Assert.That(scheduler.EnqueueMutation(Color("site-b", 0.1f, 0.2f, 0.3f), coalesciblePreview: false, operationId: Operation(471), observedCanonicalSequence: 0).Accepted, Is.True);
             QuestMutationProposal proposal = driver.ApplyOptimistic(Color("site-a", 0.6f, 0.5f, 0.4f), Operation(472));
@@ -535,13 +535,13 @@ namespace HBP.Tests.Transfer.Scene
             string disconnectReason = null;
             bool sessionConnected = true;
             var canonical = new List<CanonicalMutation>();
-            authority.SessionMustDisconnect += reason =>
+            authority.OnSessionMustDisconnect.AddListener(reason =>
             {
                 disconnectRequests++;
                 disconnectReason = reason;
                 sessionConnected = false;
-            };
-            authority.CanonicalReady += canonical.Add;
+            });
+            authority.OnCanonicalReady.AddListener(canonical.Add);
 
             desktop.Boundary.Apply(Color("site-a", 0.1f, 0.2f, 0.3f), MutationApplicationOrigin.LocalDesktop, Operation(481));
             Assert.That(authority.State, Is.EqualTo(DesktopMutationAuthorityState.Active));
@@ -572,7 +572,7 @@ namespace HBP.Tests.Transfer.Scene
             using (var reconnectDriver = CreateQuestDriver(reconnectQuest, reconnectClock))
             {
                 int offlineNotices = 0;
-                reconnectDriver.OfflineLocalEntered += () => offlineNotices++;
+                reconnectDriver.OnOfflineLocalEntered.AddListener(() => offlineNotices++);
                 reconnectDriver.ApplyOptimistic(Color("site-a", 0.7f, 0.6f, 0.5f), Operation(501));
                 Assert.That(reconnectDriver.TryGetNextTransmission(out TransmissionAttempt sent), Is.True);
                 reconnectDriver.BeginDisconnectGrace();
@@ -591,7 +591,7 @@ namespace HBP.Tests.Transfer.Scene
             using var quest = new Fixture(OriginDevice.Quest, expiryClock);
             using var driver = CreateQuestDriver(quest, expiryClock);
             int expiredNotices = 0;
-            driver.OfflineLocalEntered += () => expiredNotices++;
+            driver.OnOfflineLocalEntered.AddListener(() => expiredNotices++);
             driver.ApplyOptimistic(Color("site-a", 0.3f, 0.4f, 0.8f), Operation(502));
             Assert.That(driver.TryGetNextTransmission(out _), Is.True);
             driver.BeginDisconnectGrace();
@@ -616,7 +616,7 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = CreateQuestDriver(quest, new TestClock());
             var journal = new PublicationMutationJournal(Scene, Incarnation);
             var accepted = new List<CanonicalMutation>();
-            authority.CanonicalReady += accepted.Add;
+            authority.OnCanonicalReady.AddListener(accepted.Add);
 
             desktop.Boundary.Apply(Color("site-a", 0.15f, 0.25f, 0.35f), MutationApplicationOrigin.LocalDesktop, Operation(601));
             desktop.Boundary.Apply(Cut(MutationCutOrientation.Custom, true, 7, 0.75f, 0.25f, 0.5f, 0.75f), MutationApplicationOrigin.LocalDesktop, Operation(602));
@@ -646,7 +646,7 @@ namespace HBP.Tests.Transfer.Scene
             using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
             var journal = new PublicationMutationJournal(Scene, Incarnation, maximumMutations: 1);
             var accepted = new List<CanonicalMutation>();
-            authority.CanonicalReady += accepted.Add;
+            authority.OnCanonicalReady.AddListener(accepted.Add);
 
             desktop.Boundary.Apply(Color("site-a", 0.15f, 0.25f, 0.35f), MutationApplicationOrigin.LocalDesktop, Operation(611));
             desktop.Boundary.Apply(Cut(MutationCutOrientation.Custom, true, 7, 0.75f, 0.25f, 0.5f, 0.75f), MutationApplicationOrigin.LocalDesktop, Operation(612));
@@ -692,7 +692,7 @@ namespace HBP.Tests.Transfer.Scene
             using var quest = new Fixture(OriginDevice.Quest, clock);
             using var driver = CreateQuestDriver(quest, clock);
             var queued = new List<QuestMutationProposal>();
-            driver.ProposalQueued += queued.Add;
+            driver.OnProposalQueued.AddListener(queued.Add);
             driver.ApplyOptimistic(Cut(MutationCutOrientation.Custom, false, 1, .6f, 1, 0, 0), Operation(7400));
             driver.ApplyOptimistic(Cut(MutationCutOrientation.Custom, false, 1, .8f, 1, 0, 0), Operation(7401));
             Assert.That(driver.TryGetNextTransmission(out var sent), Is.True);
@@ -730,7 +730,7 @@ namespace HBP.Tests.Transfer.Scene
             using var quest = new Fixture(OriginDevice.Quest, new TestClock());
             using var driver = CreateQuestDriver(quest, new TestClock());
             var queued = new List<QuestMutationProposal>();
-            driver.ProposalQueued += queued.Add;
+            driver.OnProposalQueued.AddListener(queued.Add);
             driver.ApplyOptimistic(Cut(MutationCutOrientation.Custom, false, 1, .6f, 1, 0, 0), Operation(7410));
             driver.ApplyOptimistic(Cut(MutationCutOrientation.Custom, false, 1, .8f, 1, 0, 0), Operation(7411));
             // The replica applies the complete checkpoint before advancing this watermark.
@@ -835,7 +835,7 @@ namespace HBP.Tests.Transfer.Scene
             using var driver = CreateQuestDriver(quest, new TestClock());
             SetSiteConfigurationBatch Batch(string site, float red) => new SetSiteConfigurationBatch(new[] { new SiteConfigurationAssignment(quest.ColumnId, new SiteId(site), false, false, red, 0, 0, 1, Array.Empty<string>()) });
             var canonicals = new List<CanonicalMutation>();
-            authority.CanonicalReady += canonicals.Add;
+            authority.OnCanonicalReady.AddListener(canonicals.Add);
             var proposal = driver.ApplyOptimistic(Batch("site-a", 0.2f), Operation(7340));
             desktop.Boundary.Apply(Batch("site-a", 0.7f), MutationApplicationOrigin.LocalDesktop, Operation(7341));
             MutationCorrection correction = authority.AcceptQuestProposal(proposal).Correction;

@@ -450,10 +450,12 @@ namespace HBP.Tests.PlayMode.UI
             Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.OriginDevice")).First(type => type != null);
             var boundary = (IDisposable)Activator.CreateInstance(boundaryType, new object[] { scene, Enum.Parse(originType, "Desktop"), null, null, null });
             var mutations = new System.Collections.Generic.List<object>();
-            EventInfo proposed = boundaryType.GetEvent("MutationProposed");
-            ParameterExpression[] args = proposed.EventHandlerType.GetMethod("Invoke").GetParameters().Select(parameter => Expression.Parameter(parameter.ParameterType)).ToArray();
-            Delegate listener = Expression.Lambda(proposed.EventHandlerType, Expression.Call(Expression.Constant(mutations), typeof(System.Collections.Generic.List<object>).GetMethod("Add"), Expression.Convert(args[1], typeof(object))), args).Compile();
-            proposed.AddEventHandler(boundary, listener);
+            object proposed = boundaryType.GetProperty("OnMutationProposed").GetValue(boundary);
+            MethodInfo addListener = proposed.GetType().GetMethod("AddListener");
+            Type listenerType = addListener.GetParameters()[0].ParameterType;
+            ParameterExpression[] args = listenerType.GetMethod("Invoke").GetParameters().Select(parameter => Expression.Parameter(parameter.ParameterType)).ToArray();
+            Delegate listener = Expression.Lambda(listenerType, Expression.Call(Expression.Constant(mutations), typeof(System.Collections.Generic.List<object>).GetMethod("Add"), Expression.Convert(args[1], typeof(object))), args).Compile();
+            addListener.Invoke(proposed, new object[] { listener });
             try
             {
                 Keys(Key.LeftCtrl, Key.LeftShift, Key.H);
@@ -475,7 +477,7 @@ namespace HBP.Tests.PlayMode.UI
             finally
             {
                 Keys();
-                proposed.RemoveEventHandler(boundary, listener);
+                proposed.GetType().GetMethod("RemoveListener").Invoke(proposed, new object[] { listener });
                 boundary.Dispose();
                 moduleField.SetValue(null, previous);
             }

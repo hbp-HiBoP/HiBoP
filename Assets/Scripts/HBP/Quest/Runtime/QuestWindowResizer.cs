@@ -30,7 +30,7 @@ namespace HBP.Quest
         private void OnEnable()
         {
             if (window == null) return;
-            window.Changed += WindowChanged;
+            window.OnChanged.AddListener(WindowChanged);
         }
 
         private void WindowChanged(QuestWindow changed)
@@ -89,7 +89,7 @@ namespace HBP.Quest
 
         private void OnDisable()
         {
-            if (window != null) window.Changed -= WindowChanged;
+            if (window != null) window.OnChanged.RemoveListener(WindowChanged);
             End();
         }
     }

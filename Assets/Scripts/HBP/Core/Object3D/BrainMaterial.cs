@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+using HBP.Core.Tools;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Core.Object3D
 {
     public class BrainMaterials
     {
-        public event System.Action<float> AlphaChanged;
+        public GenericEvent<float> OnAlphaChanged { get; } = new();
 
         #region Properties
 
@@ -206,7 +207,7 @@ namespace HBP.Core.Object3D
             Color color = new(1, 1, 1, alpha);
             m_TransparentBrain.SetColor("_Color", color);
             m_TransparentCut.SetColor("_Color", color);
-            if (changed) AlphaChanged?.Invoke(alpha);
+            if (changed) OnAlphaChanged.Invoke(alpha);
         }
 
         #endregion

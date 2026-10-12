@@ -24,7 +24,7 @@ namespace HBP.UI.Main
         private void Start()
         {
             connection = QuestManager.Instance;
-            connection.Changed += Refresh;
+            connection.OnChanged.AddListener(Refresh);
             Refresh();
         }
 
@@ -55,7 +55,7 @@ namespace HBP.UI.Main
 
         private void OnDestroy()
         {
-            if (connection != null) connection.Changed -= Refresh;
+            if (connection != null) connection.OnChanged.RemoveListener(Refresh);
         }
     }
 }

@@ -176,7 +176,6 @@ namespace HBP.Core.Database
         #region Events
 
         public UnityEvent OnUpdateDatabases { get; } = new();
-        public event Action OnValidationStateChanged;
 
         #endregion
 
@@ -476,7 +475,6 @@ namespace HBP.Core.Database
 
             operation.Cancel();
             ObserveBackgroundOperationAsync(replacement).Forget();
-            OnValidationStateChanged?.Invoke();
         }
 
         private void MarkRequestedValidationStale(ValidationRequest request)
@@ -748,7 +746,6 @@ namespace HBP.Core.Database
                     if (publishValidation) m_ValidationPublished = true;
                 }
 
-                OnValidationStateChanged?.Invoke();
                 OnUpdateDatabases.Invoke();
                 return assetResult.HasIssues || dataInfoResult.HasIssues;
             }

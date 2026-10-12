@@ -76,7 +76,7 @@ namespace HBP.Tests.Quest
                     string inventory = "{\"Preparing\":false,\"Atlases\":{\"mars\":{\"State\":" + (int)AtlasLoadState.Loaded + ",\"Preload\":true,\"Fingerprint\":\"" + new string('0', 64) + "\"}}}";
                     return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(inventory)));
                 });
-                owner.ConnectionLost += () => disconnections++;
+                owner.OnConnectionLost.AddListener(() => disconnections++);
                 await owner.StartAsync();
                 await reported.Task;
                 await Cysharp.Threading.Tasks.UniTask.NextFrame(cancellationToken: timeout.Token);

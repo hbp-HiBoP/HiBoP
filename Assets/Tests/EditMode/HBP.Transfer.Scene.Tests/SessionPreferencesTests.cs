@@ -89,14 +89,14 @@ namespace HBP.Tests.Transfer
                 if (result.State == AtlasLoadState.Loading) loads++;
             }
 
-            AtlasResources.Changed += Loading;
+            AtlasResources.OnChanged.AddListener(Loading);
             try
             {
                 PreferencesSnapshot.Read(Snapshot()).Apply(m_Preferences, false);
             }
             finally
             {
-                AtlasResources.Changed -= Loading;
+                AtlasResources.OnChanged.RemoveListener(Loading);
             }
 
             Assert.That(m_Preferences, Is.SameAs(identity));

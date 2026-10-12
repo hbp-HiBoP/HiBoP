@@ -1426,11 +1426,11 @@ namespace HBP.Tests.PlayMode.Toolbar
         {
             private readonly object m_DesktopBoundary;
             private readonly object m_QuestBoundary;
-            private readonly EventInfo m_MutationEvent;
+            private readonly object m_MutationEvent;
             private readonly Delegate m_MutationHandler;
             private readonly object m_Authority;
             private readonly object m_QuestDriver;
-            private readonly EventInfo m_CanonicalEvent;
+            private readonly object m_CanonicalEvent;
             private readonly Delegate m_CanonicalHandler;
             public List<object> Mutations { get; } = new();
             public List<object> CanonicalMutations { get; } = new();
@@ -1445,14 +1445,16 @@ namespace HBP.Tests.PlayMode.Toolbar
                 m_DesktopBoundary = CreateBoundary(boundaryType, originType, desktopScene, "Desktop");
                 m_QuestBoundary = CreateBoundary(boundaryType, originType, questScene, "Quest");
 
-                m_MutationEvent = boundaryType.GetEvent("MutationProposed", BindingFlags.Instance | BindingFlags.Public);
+                m_MutationEvent = boundaryType.GetProperty("OnMutationProposed", BindingFlags.Instance | BindingFlags.Public).GetValue(m_DesktopBoundary);
                 Assert.That(m_MutationEvent, Is.Not.Null);
-                MethodInfo invoke = m_MutationEvent.EventHandlerType.GetMethod("Invoke");
+                MethodInfo addMutationListener = m_MutationEvent.GetType().GetMethod("AddListener");
+                Type mutationListenerType = addMutationListener.GetParameters()[0].ParameterType;
+                MethodInfo invoke = mutationListenerType.GetMethod("Invoke");
                 ParameterExpression[] parameters = invoke.GetParameters().Select(parameter => Expression.Parameter(parameter.ParameterType)).ToArray();
                 MethodInfo record = GetType().GetMethod(nameof(RecordMutation), BindingFlags.Instance | BindingFlags.NonPublic);
                 Expression body = Expression.Call(Expression.Constant(this), record, Expression.Convert(parameters[1], typeof(object)));
-                m_MutationHandler = Expression.Lambda(m_MutationEvent.EventHandlerType, body, parameters).Compile();
-                m_MutationEvent.AddEventHandler(m_DesktopBoundary, m_MutationHandler);
+                m_MutationHandler = Expression.Lambda(mutationListenerType, body, parameters).Compile();
+                addMutationListener.Invoke(m_MutationEvent, new object[] { m_MutationHandler });
 
                 Type sceneIdType = FindType("HBP.Sync.SceneId");
                 Type incarnationIdType = FindType("HBP.Sync.IncarnationId");
@@ -1473,14 +1475,16 @@ namespace HBP.Tests.PlayMode.Toolbar
                 ConstructorInfo driverConstructor = driverType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 5);
                 m_QuestDriver = driverConstructor.Invoke(new[] { sceneId, incarnationId, m_QuestBoundary, scheduler, (object)0UL });
 
-                m_CanonicalEvent = authorityType.GetEvent("CanonicalReady", BindingFlags.Instance | BindingFlags.Public);
+                m_CanonicalEvent = authorityType.GetProperty("OnCanonicalReady", BindingFlags.Instance | BindingFlags.Public).GetValue(m_Authority);
                 Assert.That(m_CanonicalEvent, Is.Not.Null);
-                Type canonicalType = m_CanonicalEvent.EventHandlerType.GetMethod("Invoke").GetParameters()[0].ParameterType;
+                MethodInfo addCanonicalListener = m_CanonicalEvent.GetType().GetMethod("AddListener");
+                Type canonicalListenerType = addCanonicalListener.GetParameters()[0].ParameterType;
+                Type canonicalType = canonicalListenerType.GetMethod("Invoke").GetParameters()[0].ParameterType;
                 MethodInfo recordAndDeliver = GetType().GetMethod(nameof(RecordAndDeliverCanonical), BindingFlags.Instance | BindingFlags.NonPublic);
                 ParameterExpression canonical = Expression.Parameter(canonicalType);
                 Expression canonicalBody = Expression.Call(Expression.Constant(this), recordAndDeliver, Expression.Convert(canonical, typeof(object)));
-                m_CanonicalHandler = Expression.Lambda(m_CanonicalEvent.EventHandlerType, canonicalBody, canonical).Compile();
-                m_CanonicalEvent.AddEventHandler(m_Authority, m_CanonicalHandler);
+                m_CanonicalHandler = Expression.Lambda(canonicalListenerType, canonicalBody, canonical).Compile();
+                addCanonicalListener.Invoke(m_CanonicalEvent, new object[] { m_CanonicalHandler });
             }
 
             private static object CreateBoundary(Type boundaryType, Type originType, Base3DScene scene, string origin)
@@ -1508,8 +1512,8 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             public void Dispose()
             {
-                m_CanonicalEvent.RemoveEventHandler(m_Authority, m_CanonicalHandler);
-                m_MutationEvent.RemoveEventHandler(m_DesktopBoundary, m_MutationHandler);
+                m_CanonicalEvent.GetType().GetMethod("RemoveListener").Invoke(m_CanonicalEvent, new object[] { m_CanonicalHandler });
+                m_MutationEvent.GetType().GetMethod("RemoveListener").Invoke(m_MutationEvent, new object[] { m_MutationHandler });
                 ((IDisposable)m_Authority).Dispose();
                 ((IDisposable)m_QuestDriver).Dispose();
                 ((IDisposable)m_DesktopBoundary).Dispose();

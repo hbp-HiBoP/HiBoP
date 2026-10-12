@@ -39,9 +39,9 @@ namespace HBP.Quest
 
         private void OnEnable()
         {
-            statusPanel.RetryRequested += Retry;
-            statusPanel.NewAssociationRequested += NewAssociation;
-            PairingTiming.Measured += LogTiming;
+            statusPanel.OnRetryRequested.AddListener(Retry);
+            statusPanel.OnNewAssociationRequested.AddListener(NewAssociation);
+            PairingTiming.OnMeasured += LogTiming;
             RestartAsync().Forget(); // All failures observed by RestartAsync/RunAsync.
         }
 
@@ -184,9 +184,9 @@ namespace HBP.Quest
 
         private void OnDisable()
         {
-            statusPanel.RetryRequested -= Retry;
-            statusPanel.NewAssociationRequested -= NewAssociation;
-            PairingTiming.Measured -= LogTiming;
+            statusPanel.OnRetryRequested.RemoveListener(Retry);
+            statusPanel.OnNewAssociationRequested.RemoveListener(NewAssociation);
+            PairingTiming.OnMeasured -= LogTiming;
             lifetime?.Cancel();
         }
     }

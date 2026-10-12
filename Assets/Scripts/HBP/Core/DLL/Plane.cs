@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
+using HBP.Core.Tools;
 using UnityEngine;
 
 namespace HBP.Core.DLL
@@ -13,6 +14,10 @@ namespace HBP.Core.DLL
     {
         private Vector3 m_Point;
         private Vector3 m_Normal;
+        protected GenericEvent<Plane> m_OnDefinitionChanged;
+
+        /// <summary>Invoked synchronously after a definition change, once the native plane is updated.</summary>
+        public GenericEvent<Plane> OnDefinitionChanged => m_OnDefinitionChanged ??= new();
 
         #region Properties
 
@@ -40,17 +45,12 @@ namespace HBP.Core.DLL
                 bool changed = m_Normal != value;
                 m_Normal = value;
                 UpdateNativePlane();
-                if (changed) OnNormalChanged();
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
             }
         }
 
         #endregion
 
-
-        /// <summary>Called synchronously after the plane normal changes.</summary>
-        protected virtual void OnNormalChanged()
-        {
-        }
 
         #region Constructors
 
@@ -75,7 +75,7 @@ namespace HBP.Core.DLL
             Vector3 previous = m_Normal;
             ThrowIfFailed(hbp_plane_normalize(_handle.Handle));
             m_Normal = m_Normal.normalized;
-            if (previous != m_Normal) OnNormalChanged();
+            if (previous != m_Normal) m_OnDefinitionChanged?.Invoke(this);
         }
 
         public int PointSide(Vector3 point)

@@ -1,15 +1,15 @@
+using HBP.Core.Tools;
 using System.Collections.Generic;
 using System.Linq;
-using System;
 using UnityEngine;
 
 namespace HBP.Data.Module3D
 {
     public class ROIManager : MonoBehaviour
     {
-        public event Action<ROI> RoiAdded;
-        public event Action<ROI> RoiRemoved;
-        public event Action<ROI> ActiveRoiChanged;
+        public GenericEvent<ROI> OnRoiAdded { get; } = new();
+        public GenericEvent<ROI> OnRoiRemoved { get; } = new();
+        public GenericEvent<ROI> OnActiveRoiChanged { get; } = new();
 
         #region Properties
 
@@ -55,7 +55,7 @@ namespace HBP.Data.Module3D
                 }
 
                 UpdateROIMasks();
-                if (changed) ActiveRoiChanged?.Invoke(m_SelectedROI);
+                if (changed) OnActiveRoiChanged.Invoke(m_SelectedROI);
             }
         }
 
@@ -108,7 +108,7 @@ namespace HBP.Data.Module3D
             ROIs.Add(roi);
             UpdateROIMasks();
             SelectedROI = ROIs.Last();
-            RoiAdded?.Invoke(roi);
+            OnRoiAdded.Invoke(roi);
 
             return roi;
         }
@@ -140,7 +140,7 @@ namespace HBP.Data.Module3D
             if (roi == null || !ROIs.Contains(roi)) return;
             bool wasSelected = m_SelectedROI == roi;
             ROIs.Remove(roi);
-            RoiRemoved?.Invoke(roi);
+            OnRoiRemoved.Invoke(roi);
             if (Application.isPlaying) Destroy(roi.gameObject);
             else DestroyImmediate(roi.gameObject);
             if (wasSelected) SelectedROI = ROIs.LastOrDefault();

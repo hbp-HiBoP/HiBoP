@@ -11,9 +11,6 @@ namespace HBP.Core.Object3D
     /// </summary>
     public class Cut : HBP.Core.DLL.Plane, IIdentifiable
     {
-        /// <summary>Raised synchronously after a cut definition field changes.</summary>
-        public static event Action<Cut> DefinitionChanged;
-
         #region Properties
 
         /// <summary>
@@ -38,7 +35,7 @@ namespace HBP.Core.Object3D
             {
                 bool changed = m_Orientation != value;
                 m_Orientation = value;
-                if (changed) NotifyDefinitionChanged();
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
             }
         }
 
@@ -54,7 +51,7 @@ namespace HBP.Core.Object3D
             {
                 bool changed = m_Flip != value;
                 m_Flip = value;
-                if (changed) NotifyDefinitionChanged();
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
             }
         }
 
@@ -70,7 +67,7 @@ namespace HBP.Core.Object3D
             {
                 bool changed = m_NumberOfCuts != value;
                 m_NumberOfCuts = value;
-                if (changed) NotifyDefinitionChanged();
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
             }
         }
 
@@ -86,13 +83,9 @@ namespace HBP.Core.Object3D
             {
                 bool changed = m_Position != value;
                 m_Position = value;
-                if (changed) NotifyDefinitionChanged();
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
             }
         }
-
-        protected override void OnNormalChanged() => NotifyDefinitionChanged();
-
-        private void NotifyDefinitionChanged() => DefinitionChanged?.Invoke(this);
 
         #endregion
 

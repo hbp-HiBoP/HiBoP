@@ -94,7 +94,9 @@ namespace HBP.Core.Object3D
     public class SiteState
     {
         /// <summary>Raised synchronously after a requested site color changes.</summary>
-        public static event Action<SiteState> ColorChanged;
+        private GenericEvent<SiteState> m_OnColorChanged;
+
+        public GenericEvent<SiteState> OnColorChanged => m_OnColorChanged ??= new();
 
         private SiteStateChangeKind m_CurrentChangeKind;
 
@@ -184,7 +186,7 @@ namespace HBP.Core.Object3D
             {
                 bool changed = m_Color != value;
                 m_Color = value;
-                if (changed) ColorChanged?.Invoke(this);
+                if (changed) m_OnColorChanged?.Invoke(this);
                 NotifyStateChanged(SiteStateChangeKind.Color);
             }
         }

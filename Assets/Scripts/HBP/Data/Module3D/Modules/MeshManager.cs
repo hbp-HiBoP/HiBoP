@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -60,10 +61,10 @@ namespace HBP.Data.Module3D
         public int SelectedMeshID { get; private set; }
 
         /// <summary>Raised when the selected prepared mesh resource changes.</summary>
-        public event System.Action ResourceSelectionChanged;
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
 
         /// <summary>Raised when the selected mesh part or representation changes.</summary>
-        public event System.Action DisplaySelectionChanged;
+        public UnityEvent OnDisplaySelectionChanged { get; } = new();
 
         /// <summary>
         /// Selected Mesh3D
@@ -281,7 +282,7 @@ namespace HBP.Data.Module3D
             }
             finally
             {
-                if (selectionChanged) ResourceSelectionChanged?.Invoke();
+                if (selectionChanged) OnResourceSelectionChanged.Invoke();
             }
 
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
@@ -344,7 +345,7 @@ namespace HBP.Data.Module3D
             MeshPartToDisplay = selected;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
-            if (changed) DisplaySelectionChanged?.Invoke();
+            if (changed) OnDisplaySelectionChanged.Invoke();
         }
 
         /// <summary>
@@ -358,7 +359,7 @@ namespace HBP.Data.Module3D
             SelectedMesh.SelectRepresentation(representation);
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceMesh();
-            DisplaySelectionChanged?.Invoke();
+            OnDisplaySelectionChanged.Invoke();
         }
 
         /// <summary>

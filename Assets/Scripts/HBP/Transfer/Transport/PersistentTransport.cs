@@ -72,7 +72,7 @@ namespace HBP.Transfer.Transport
         private TimeSpan? m_LastRoundTrip;
         private long m_LastLivenessProbeTicks;
 
-        public event Action<ClockProbeSample> ClockProbeSampleReceived;
+        public event Action<ClockProbeSample> OnClockProbeSampleReceived;
 
         public PersistentTransportState State
         {
@@ -736,7 +736,7 @@ namespace HBP.Transfer.Transport
                 }
             }
 
-            if (sample != null) ClockProbeSampleReceived?.Invoke(sample);
+            if (sample != null) OnClockProbeSampleReceived?.Invoke(sample);
         }
 
         private void ProcessApplicationRecord(TransportRecord record)

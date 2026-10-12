@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -37,10 +38,10 @@ namespace HBP.Data.Module3D
         private int m_ConfigurationMutationDepth;
 
         /// <summary>Raised once before the outermost synchronous configuration load or reset.</summary>
-        public event Action ConfigurationMutationStarted;
+        public UnityEvent OnConfigurationMutationStarted { get; } = new();
 
         /// <summary>Raised once when the outermost configuration load or reset finishes.</summary>
-        public event Action<Exception> ConfigurationMutationCompleted;
+        public GenericEvent<Exception> OnConfigurationMutationCompleted { get; } = new();
 
         /// <summary>Feature-neutral hook used by an attached synchronization boundary to validate and publish one site batch.</summary>
         public Func<IReadOnlyList<SiteConfigurationChange>, Action, bool> SiteConfigurationBatchRouter { get; set; }
@@ -55,7 +56,7 @@ namespace HBP.Data.Module3D
             Exception actionError = null;
             try
             {
-                if (isOutermost) ConfigurationMutationStarted?.Invoke();
+                if (isOutermost) OnConfigurationMutationStarted.Invoke();
                 mutation();
             }
             catch (Exception exception)
@@ -70,7 +71,7 @@ namespace HBP.Data.Module3D
                 {
                     try
                     {
-                        ConfigurationMutationCompleted?.Invoke(actionError);
+                        OnConfigurationMutationCompleted.Invoke(actionError);
                     }
                     catch (Exception completionError)
                     {

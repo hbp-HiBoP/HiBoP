@@ -66,7 +66,7 @@ namespace HBP.Quest.Desktop
             PlayerPrefs.SetInt(AutoSyncKey, value ? 1 : 0);
             PlayerPrefs.Save();
             if (value) inventoryRequested = true;
-            Changed?.Invoke();
+            OnChanged.Invoke();
         }
 
         private Publication GetPublication(Base3DScene scene)
@@ -132,7 +132,7 @@ namespace HBP.Quest.Desktop
             {
                 await UniTask.SwitchToMainThread();
                 entry.Stop = null;
-                Changed?.Invoke();
+                OnChanged.Invoke();
             }
         }
 
@@ -165,7 +165,7 @@ namespace HBP.Quest.Desktop
                         entry.Offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, token, update, entry.Scene, transferId, generation, (scene, incarnation, session) =>
                         {
                             entry.Owner = new DesktopReplicaSession(scene, session, incarnation);
-                            entry.Owner.ActionReceived += action => ReceiveSceneAction(entry, action);
+                            entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
                         });
                     }
 
@@ -375,7 +375,7 @@ namespace HBP.Quest.Desktop
                         await UniTask.SwitchToMainThread(token);
                         if (entry.Removed || entry.Record?.Status == ReconciliationStatus.Orphan) return;
                         entry.Owner = new DesktopReplicaSession(entry.Scene, entry.Binding.GlobalContextId, entry.Binding.TransferId);
-                        entry.Owner.ActionReceived += action => ReceiveSceneAction(entry, action);
+                        entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
                         await entry.Owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, sceneStop.Token);
                         entry.Error = null;
                     }
@@ -396,7 +396,7 @@ namespace HBP.Quest.Desktop
             {
                 await UniTask.SwitchToMainThread();
                 restoringScenes = false;
-                Changed?.Invoke();
+                OnChanged.Invoke();
             }
         }
 
@@ -627,7 +627,7 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 HBP.Core.Data.DataManager.ConfigureMemoryBudget(memoryLimit, SystemInfo.systemMemorySize);
                 reloadingScenes = false;
-                Changed?.Invoke();
+                OnChanged.Invoke();
             }
         }
 

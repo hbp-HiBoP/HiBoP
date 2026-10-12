@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +26,7 @@ namespace HBP.Quest.Desktop
     public sealed partial class QuestManager : Manager<QuestManager>
     {
         public static QuestManager Instance => m_Instance;
-        public event Action Changed;
+        public UnityEvent OnChanged { get; } = new();
 
         public IReadOnlyList<QuestDevice> Devices => devices;
         public IReadOnlyList<string> DiscoveryMessages { get; private set; } = new[] { "Searching for Quests on USB and Wi-Fi..." };
@@ -138,7 +139,7 @@ namespace HBP.Quest.Desktop
             adb = Path.Combine(sdk, "platform-tools", "adb.exe");
 #endif
             usb = new QuestUsbDiscovery(adb);
-            PairingTiming.Measured += LogPairingTiming;
+            PairingTiming.OnMeasured += LogPairingTiming;
             InitializeSceneLifecycle();
         }
 
@@ -272,8 +273,8 @@ namespace HBP.Quest.Desktop
             sessionPreferences?.Dispose();
             var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
             sessionPreferences = controls;
-            controls.Changed += () => Changed?.Invoke();
-            controls.ConnectionLost += SessionConnectionLost;
+            controls.OnChanged.AddListener(() => OnChanged.Invoke());
+            controls.OnConnectionLost.AddListener(SessionConnectionLost);
             try
             {
                 SetStatus("Applying shared preferences and definitions on Quest...");
@@ -346,7 +347,7 @@ namespace HBP.Quest.Desktop
             if (busy || !isActiveAndEnabled) return Task.CompletedTask;
             busy = true;
             LastOperationCancelled = false;
-            Changed?.Invoke();
+            OnChanged.Invoke();
             return running = ExecuteAsync(action);
         }
 
@@ -394,7 +395,7 @@ namespace HBP.Quest.Desktop
                 sessionOperations.Release();
                 operation = null;
                 busy = false;
-                Changed?.Invoke();
+                OnChanged.Invoke();
             }
         }
 
@@ -402,7 +403,7 @@ namespace HBP.Quest.Desktop
         {
             scanning = true;
             DiscoveryMessages = new[] { "Searching for Quests on USB and Wi-Fi..." };
-            Changed?.Invoke();
+            OnChanged.Invoke();
             try
             {
                 long generation = ++discoveryGeneration;
@@ -450,7 +451,7 @@ namespace HBP.Quest.Desktop
                 if (!manualSelected && SelectedId == null && devices.Count > 0) Select(devices[0]);
                 messages.Add(devices.Count == 0 ? "No Quest found. Try Manual IP." : $"{devices.Count} Quest headset{(devices.Count == 1 ? "" : "s")} found");
                 DiscoveryMessages = messages;
-                Changed?.Invoke();
+                OnChanged.Invoke();
             }
             finally
             {
@@ -463,7 +464,7 @@ namespace HBP.Quest.Desktop
         {
             devices = (complete ? found : found.Concat(devices)).GroupBy(x => x.Id).Select(g => g.OrderBy(x => x.UsbSerial == null).First()).OrderBy(x => x.Label).ToList();
             if (!manualSelected && !busy && SelectedId == null && devices.Count > 0) Select(devices[0]);
-            Changed?.Invoke();
+            OnChanged.Invoke();
         }
 
         private string CredentialPath(byte[] identity) => Path.Combine(store, BitConverter.ToString(identity).Replace("-", "") + ".pair");
@@ -496,18 +497,18 @@ namespace HBP.Quest.Desktop
             globals = null;
             endpoint = SelectedId = null;
             connected = reconnect = failedDelivery = false;
-            Changed?.Invoke();
+            OnChanged.Invoke();
         }
 
         private void SetStatus(string value)
         {
             Status = value;
-            Changed?.Invoke();
+            OnChanged.Invoke();
         }
 
         private async void OnDestroy()
         {
-            PairingTiming.Measured -= LogPairingTiming;
+            PairingTiming.OnMeasured -= LogPairingTiming;
             DisposeSceneLifecycle();
             lifetime.Cancel();
             operation?.Cancel();

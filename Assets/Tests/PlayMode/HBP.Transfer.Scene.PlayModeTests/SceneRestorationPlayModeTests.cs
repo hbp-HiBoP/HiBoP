@@ -225,10 +225,10 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(scene.Cuts.Select(c => c.ID), Is.EqualTo(new[] { "transferred-axial", "transferred-custom" }));
                     Assert.That(handles.Gizmos.Count, Is.EqualTo(4));
                     int proposals = 0;
-                    boundary.MutationProposed += (_, mutation, _) =>
+                    boundary.OnMutationProposed.AddListener((_, mutation, _) =>
                     {
                         if (mutation is SetCutDefinition) proposals++;
-                    };
+                    });
                     foreach (var gizmo in handles.Gizmos)
                     {
                         Assert.That(gizmo.IsValid, Is.True);
@@ -1287,15 +1287,15 @@ namespace HBP.Tests.SceneTransfer
                 using var questDriver = new QuestMutationDriver(sceneId, incarnationId, questBoundary, scheduler);
                 using var authority = new DesktopMutationAuthority(sceneId, incarnationId, desktopBoundary);
                 var canonicalMutations = new List<CanonicalMutation>();
-                authority.CanonicalReady += canonical =>
+                authority.OnCanonicalReady.AddListener(canonical =>
                 {
                     canonicalMutations.Add(canonical);
                     questDriver.ReceiveCanonical(canonical);
-                };
+                });
                 var questPublishedMutations = new List<Mutation>();
-                questBoundary.MutationProposed += (_, mutation, _) => questPublishedMutations.Add(mutation);
+                questBoundary.OnMutationProposed.AddListener((_, mutation, _) => questPublishedMutations.Add(mutation));
                 var questProposals = new List<QuestMutationProposal>();
-                questDriver.ProposalQueued += questProposals.Add;
+                questDriver.OnProposalQueued.AddListener(questProposals.Add);
 
                 quest.Scene.ResetConfiguration();
 

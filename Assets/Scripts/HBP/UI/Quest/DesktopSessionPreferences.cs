@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -42,8 +43,8 @@ namespace HBP.UI.Quest
         public string AtlasStatus { get; private set; } = "Quest session is connecting.";
         public string RetryAtlasId { get; private set; }
         private bool m_RetryLoad;
-        public event Action Changed;
-        public event Action ConnectionLost;
+        public UnityEvent OnChanged { get; } = new();
+        public UnityEvent OnConnectionLost { get; } = new();
 
         public DesktopSessionPreferences(Guid context, long generation, UserPreferences preferences, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> send, UserPreferences pairingPreferences = null)
         {
@@ -85,7 +86,7 @@ namespace HBP.UI.Quest
             m_Started = true;
             m_Opened.TrySetResult(true);
             SetStatus("Quest connected. Preferences and manual atlas actions are synchronized.");
-            AtlasResources.Changed += AtlasChanged;
+            AtlasResources.OnChanged.AddListener(AtlasChanged);
             m_InventoryWork = RefreshInventoryAsync();
         }
 
@@ -175,7 +176,7 @@ namespace HBP.UI.Quest
             {
                 SetStatus("Preferences saved on Desktop; Quest queue is full. Pending operations were abandoned.");
                 Dispose();
-                ConnectionLost?.Invoke();
+                OnConnectionLost.Invoke();
                 return;
             }
 
@@ -281,7 +282,7 @@ namespace HBP.UI.Quest
                         {
                             RetryAtlasId = id;
                             m_RetryLoad = true;
-                            Changed?.Invoke();
+                            OnChanged.Invoke();
                             return;
                         }
 
@@ -367,7 +368,7 @@ namespace HBP.UI.Quest
         private void RefreshStatus()
         {
             AtlasStatus = Status + (m_AtlasStates.Count == 0 ? "" : "\n" + string.Join("\n", m_AtlasStates.OrderBy(entry => entry.Key, StringComparer.Ordinal).Select(entry => entry.Value)));
-            Changed?.Invoke();
+            OnChanged.Invoke();
         }
 
         private void SetStatus(string value)
@@ -387,7 +388,7 @@ namespace HBP.UI.Quest
                 m_Started = false;
                 m_Stop.Cancel();
                 SessionAtlasCatalog.End();
-                ConnectionLost?.Invoke();
+                OnConnectionLost.Invoke();
             }
         }
 
@@ -397,7 +398,7 @@ namespace HBP.UI.Quest
             m_Disposed = true;
             m_Started = false;
             m_Preferences.OnSavePreferences.RemoveListener(OnPreferencesSaved);
-            AtlasResources.Changed -= AtlasChanged;
+            AtlasResources.OnChanged.RemoveListener(AtlasChanged);
             m_Stop.Cancel();
             SessionAtlasCatalog.End();
             m_Opened.TrySetCanceled();

@@ -32,8 +32,8 @@ namespace HBP.Data.Module3D
         internal static void ResetStandardResourcesWhenUnused()
         {
             s_ResetStandardResourcesWhenUnused = true;
-            AtlasResources.Changed -= StandardAtlasAvailabilityChanged;
-            AtlasResources.Changed += StandardAtlasAvailabilityChanged;
+            AtlasResources.OnChanged.RemoveListener(StandardAtlasAvailabilityChanged);
+            AtlasResources.OnChanged.AddListener(StandardAtlasAvailabilityChanged);
             FinishStandardResourceResetAsync().Forget();
         }
 
@@ -68,7 +68,7 @@ namespace HBP.Data.Module3D
             if (!s_ResetStandardResourcesWhenUnused || s_LiveScenes.Count != 0 || !s_StandardPreparation.Status.IsCompleted()) return;
             if (AtlasResources.Definitions.Any(atlas => Core.Tools.ResourceRetention.GetReleaseBlockReason(atlas.Id) != null)) return;
             s_ResetStandardResourcesWhenUnused = false;
-            AtlasResources.Changed -= StandardAtlasAvailabilityChanged;
+            AtlasResources.OnChanged.RemoveListener(StandardAtlasAvailabilityChanged);
             Object3DManager.Reset();
         }
 
@@ -93,7 +93,7 @@ namespace HBP.Data.Module3D
             SceneInformation.GeneratorNeedsUpdate = true;
             m_SurfaceRepresentationLifetime.Cancel();
             m_ObservedPreferences?.OnSavePreferences.RemoveListener(PreferencesChanged);
-            Core.DLL.ActivityProjectionSettings.OnChanged -= InvalidateProjectionGrid;
+            Core.DLL.ActivityProjectionSettings.OnChanged.RemoveListener(InvalidateProjectionGrid);
             m_CloseWork = UniTask.Lazy(ReleaseSceneResourcesAsync);
             return m_CloseWork.Task;
         }

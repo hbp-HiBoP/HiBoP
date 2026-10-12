@@ -44,7 +44,7 @@ namespace HBP.Core.Data
         private long m_Clock;
 
         public long LimitBytes { get; private set; } = long.MaxValue;
-        public event Action<MemoryCacheSnapshot> BudgetExceeded;
+        public event Action<MemoryCacheSnapshot> OnBudgetExceeded;
 
         public static long ResolveLimitBytes(int explicitLimitMiB, int totalPhysicalMemoryMiB)
         {
@@ -157,7 +157,7 @@ namespace HBP.Core.Data
             foreach (Action eviction in evictions)
                 eviction();
             if (snapshot.IsOverBudget)
-                BudgetExceeded?.Invoke(snapshot);
+                OnBudgetExceeded?.Invoke(snapshot);
         }
 
         private MemoryCacheSnapshot SnapshotLocked()

@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Enums;
@@ -43,12 +44,12 @@ namespace HBP.Data.Module3D
             {
                 if (m_SelectedImplantationID == value) return;
                 m_SelectedImplantationID = value;
-                ResourceSelectionChanged?.Invoke();
+                OnResourceSelectionChanged.Invoke();
             }
         }
 
         /// <summary>Raised when the selected prepared implantation resource changes.</summary>
-        public event System.Action ResourceSelectionChanged;
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
 
         /// <summary>
         /// Selected implantation3D

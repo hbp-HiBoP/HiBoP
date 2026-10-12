@@ -21,7 +21,7 @@ namespace HBP.Quest.Desktop
 {
     internal sealed class DesktopReplicaSession : IDisposable
     {
-        public event Action<SceneAction> ActionReceived;
+        public GenericEvent<SceneAction> OnActionReceived { get; } = new();
         public ulong FinalSequence => m_Authority.CanonicalSequence;
         public ulong BulkThrough => m_Scheduler.LastAllocatedBulkStream;
 
@@ -152,24 +152,24 @@ namespace HBP.Quest.Desktop
             m_Journal = new PublicationMutationJournal(m_Identity.SceneId, m_Identity.IncarnationId);
             m_Scheduler = new OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, OriginDevice.Desktop) { ApplicationRetentionEnabled = true };
             m_Transport = new PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
-            m_Transport.ClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
+            m_Transport.OnClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_SurfaceInflation = new SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
             m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
-            m_SurfaceInflation.RemoteJobStarted += completion => SurfaceInflationLoading.ObserveAsync(completion).Forget();
+            m_SurfaceInflation.OnRemoteJobStarted.AddListener(completion => SurfaceInflationLoading.ObserveAsync(completion).Forget());
             m_OpenReplica = openReplica ?? ((host, pin, credential, token, transport) => QuestPairing.OpenReplicaAsync(host, pin, credential, token, async (stream, stop) =>
             {
                 await ReplicaRoute.WriteAsync(stream, m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, stop).ConfigureAwait(false);
                 await transport.RunConnectionAsync(stream, stop).ConfigureAwait(false);
             }));
-            m_Authority.CanonicalReady += OnCanonicalReady;
-            m_Authority.SessionMustDisconnect += OnAuthorityFailure;
+            m_Authority.OnCanonicalReady.AddListener(OnCanonicalReady);
+            m_Authority.OnSessionMustDisconnect.AddListener(OnAuthorityFailure);
             m_Scene.OnAddCut.AddListener(OnCutTopologyChanged);
             m_Scene.OnRemoveCut.AddListener(OnCutTopologyChanged);
             m_Scene.OnSurfaceRepresentationChanged.AddListener(OnUnsupportedResourceChanged);
             m_Scene.OnSelectCCEPSource.AddListener(OnUnsupportedResourceChanged);
-            m_Scene.MRIManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
-            if (m_Scene.MeshManager != null) m_Scene.MeshManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
-            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged += OnUnsupportedResourceChanged;
+            m_Scene.MRIManager.OnResourceSelectionChanged.AddListener(OnUnsupportedResourceChanged);
+            if (m_Scene.MeshManager != null) m_Scene.MeshManager.OnResourceSelectionChanged.AddListener(OnUnsupportedResourceChanged);
+            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.OnResourceSelectionChanged.AddListener(OnUnsupportedResourceChanged);
             Module3DMain.OnRemoveScene.AddListener(OnSceneRemoved);
             m_Scene.ActivityProjectionStartHandler = HandleLocalActivityProjectionStart;
             m_Scene.OnActivityProjectionCompleted.AddListener(OnActivityProjectionCompleted);
@@ -445,7 +445,7 @@ namespace HBP.Quest.Desktop
                 {
                     if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
                     await UniTask.SwitchToMainThread(stop);
-                    ActionReceived?.Invoke(action);
+                    OnActionReceived.Invoke(action);
                     return;
                 }
 
@@ -1494,9 +1494,9 @@ namespace HBP.Quest.Desktop
             m_Scene.OnRemoveCut.RemoveListener(OnCutTopologyChanged);
             m_Scene.OnSurfaceRepresentationChanged.RemoveListener(OnUnsupportedResourceChanged);
             m_Scene.OnSelectCCEPSource.RemoveListener(OnUnsupportedResourceChanged);
-            m_Scene.MRIManager.ResourceSelectionChanged -= OnUnsupportedResourceChanged;
-            if (m_Scene.MeshManager != null) m_Scene.MeshManager.ResourceSelectionChanged -= OnUnsupportedResourceChanged;
-            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.ResourceSelectionChanged -= OnUnsupportedResourceChanged;
+            m_Scene.MRIManager.OnResourceSelectionChanged.RemoveListener(OnUnsupportedResourceChanged);
+            if (m_Scene.MeshManager != null) m_Scene.MeshManager.OnResourceSelectionChanged.RemoveListener(OnUnsupportedResourceChanged);
+            if (m_Scene.ImplantationManager != null) m_Scene.ImplantationManager.OnResourceSelectionChanged.RemoveListener(OnUnsupportedResourceChanged);
             Module3DMain.OnRemoveScene.RemoveListener(OnSceneRemoved);
         }
 
@@ -1509,8 +1509,8 @@ namespace HBP.Quest.Desktop
             }
 
             RemoveTopologyListeners();
-            m_Authority.CanonicalReady -= OnCanonicalReady;
-            m_Authority.SessionMustDisconnect -= OnAuthorityFailure;
+            m_Authority.OnCanonicalReady.RemoveListener(OnCanonicalReady);
+            m_Authority.OnSessionMustDisconnect.RemoveListener(OnAuthorityFailure);
             m_UserPreferences?.OnSavePreferences.RemoveListener(OnDesktopPreferencesSaved);
             if (m_Scene.ActivityProjectionStartHandler == HandleLocalActivityProjectionStart)
                 m_Scene.ActivityProjectionStartHandler = null;

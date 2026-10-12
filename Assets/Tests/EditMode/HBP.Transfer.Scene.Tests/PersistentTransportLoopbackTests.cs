@@ -47,7 +47,7 @@ namespace HBP.Sync.Tests
                 var operation = new OperationId(GuidFor(201001));
                 var mutation = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.25f, 0.5f, 0.75f, 1);
                 driver.ApplyOptimistic(mutation, operation);
-                driver.ProposalConfirmed += _ => stop.Cancel();
+                driver.OnProposalConfirmed.AddListener(_ => stop.Cancel());
                 var record = new TransportRecord(TransportMessageKind.Application, Session, Scene, Incarnation, operation, new ReliableStreamId(GuidFor(201002)), 1, 1, OriginDevice.Desktop, ScheduleLane.Interactive, payload: MutationPayloadCodec.Encode(mutation), canonicalSequence: 1, mutation: mutation);
                 await (Task)InvokePrivateMethod(owner, "ProcessRecordAsync", record, default(SyncTelemetryPoint), default(SyncTelemetryPoint), stop.Token);
                 Assert.That(stop.IsCancellationRequested, Is.True);
@@ -79,12 +79,12 @@ namespace HBP.Sync.Tests
                 var preview = new SetTimelineAnchor(new ColumnId("preview-timeline"), 3, false, false, 1, 0, 1000, TimelineAnchorIntent.Seek);
                 driver.ApplyOptimistic(preview, operation);
                 TransportRecord retainedAtCancellation = null;
-                driver.ProposalConfirmed += id =>
+                driver.OnProposalConfirmed.AddListener(id =>
                 {
                     if (!id.Equals(operation)) return;
                     retainedAtCancellation = GetPrivateField<TransportRecord>(owner, "m_ReadAheadRecord");
                     firstStop.Cancel();
-                };
+                });
                 var following = new SetSiteColor(new ColumnId(fixture.ColumnId), new SiteId(fixture.SiteIds[0]), 0.8f, 0.2f, 0.4f, 1);
                 Assert.That(desktop.EnqueueMutation(preview, 1, null, operationId: operation).Accepted, Is.True);
                 Assert.That(desktop.EnqueueMutation(following, 2, null, operationId: new OperationId(GuidFor(301012))).Accepted, Is.True);
@@ -493,17 +493,17 @@ namespace HBP.Sync.Tests
             OperationId safeOperation = new OperationId(GuidFor(55414));
             OperationId blockedOperation = new OperationId(GuidFor(55415));
             OperationId acceptedOperation = new OperationId(GuidFor(55416));
-            Action<OperationId> confirmationListener = operationId =>
+            UnityAction<OperationId> confirmationListener = operationId =>
             {
                 if (operationId.Equals(safeOperation)) safeConfirmed.TrySetResult(operationId);
                 if (operationId.Equals(acceptedOperation)) sensitiveConfirmed.TrySetResult(operationId);
             };
-            Action<OperationId, Mutation> correctionListener = (operationId, mutation) =>
+            UnityAction<OperationId, Mutation> correctionListener = (operationId, mutation) =>
             {
                 if (operationId.Equals(blockedOperation)) sensitiveCorrected.TrySetResult((operationId, mutation));
             };
-            questDriver.ProposalConfirmed += confirmationListener;
-            questDriver.AuthoritativeCorrectionApplied += correctionListener;
+            questDriver.OnProposalConfirmed.AddListener(confirmationListener);
+            questDriver.OnAuthoritativeCorrectionApplied.AddListener(correctionListener);
 
             try
             {
@@ -569,8 +569,8 @@ namespace HBP.Sync.Tests
             }
             finally
             {
-                questDriver.ProposalConfirmed -= confirmationListener;
-                questDriver.AuthoritativeCorrectionApplied -= correctionListener;
+                questDriver.OnProposalConfirmed.RemoveListener(confirmationListener);
+                questDriver.OnAuthoritativeCorrectionApplied.RemoveListener(correctionListener);
                 await sessions.CloseAsync();
             }
         }
@@ -1462,11 +1462,11 @@ namespace HBP.Sync.Tests
             Assert.That(desktopPeer.EnqueueSceneOperation(PublicationControlCodec.EncodeLiveBarrier(1), allScene, structural: true, operationId: barrierId).Accepted, Is.True);
 
             int matchingColorApplications = 0;
-            Action<SiteState> countMutationApply = state =>
+            UnityAction<SiteState> countMutationApply = state =>
             {
                 if (ReferenceEquals(state, fixture.Sites[0].State) && state.Color == appliedColor) matchingColorApplications++;
             };
-            SiteState.ColorChanged += countMutationApply;
+            fixture.Sites[0].State.OnColorChanged.AddListener(countMutationApply);
             LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
             var droppedBulk = new DropBulkWriteStream(firstPair.Client.GetStream());
             Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, droppedBulk, CancellationToken.None);
@@ -1511,7 +1511,7 @@ namespace HBP.Sync.Tests
             }
             finally
             {
-                SiteState.ColorChanged -= countMutationApply;
+                fixture.Sites[0].State.OnColorChanged.RemoveListener(countMutationApply);
                 ((IDisposable)questOwner).Dispose();
                 desktopPeer.Dispose();
                 firstPair.Close();
@@ -1643,11 +1643,11 @@ namespace HBP.Sync.Tests
             Assert.That(desktopPeer.EnqueueSceneOperation(PublicationControlCodec.EncodeLiveBarrier(1), allScene, structural: true, operationId: barrierId).Accepted, Is.True);
 
             int matchingColorApplications = 0;
-            Action<SiteState> countMutationApply = state =>
+            UnityAction<SiteState> countMutationApply = state =>
             {
                 if (ReferenceEquals(state, fixture.Sites[0].State) && state.Color == appliedColor) matchingColorApplications++;
             };
-            SiteState.ColorChanged += countMutationApply;
+            fixture.Sites[0].State.OnColorChanged.AddListener(countMutationApply);
             LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
             Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, firstPair.Client.GetStream(), CancellationToken.None);
             Task<Exception> firstQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
@@ -1691,7 +1691,7 @@ namespace HBP.Sync.Tests
             }
             finally
             {
-                SiteState.ColorChanged -= countMutationApply;
+                fixture.Sites[0].State.OnColorChanged.RemoveListener(countMutationApply);
                 ((IDisposable)questOwner).Dispose();
                 desktopPeer.Dispose();
                 firstPair.Close();
@@ -1743,13 +1743,13 @@ namespace HBP.Sync.Tests
 
             int firstApplications = 0;
             int secondApplications = 0;
-            Action<SiteState> countMutationApply = state =>
+            UnityAction<SiteState> countMutationApply = state =>
             {
                 if (!ReferenceEquals(state, fixture.Sites[0].State)) return;
                 if (state.Color == firstColor) firstApplications++;
                 if (state.Color == secondColor) secondApplications++;
             };
-            SiteState.ColorChanged += countMutationApply;
+            fixture.Sites[0].State.OnColorChanged.AddListener(countMutationApply);
             LoopbackPeerPair firstPair = await LoopbackPeerPair.ConnectAsync();
             Task<Exception> firstDesktopRun = CaptureRunAsync(desktopPeer, firstPair.Client.GetStream(), CancellationToken.None);
             Task<Exception> firstQuestRun = CaptureTaskExceptionAsync(RunQuestSession(questOwner, firstPair.Server.GetStream(), CancellationToken.None));
@@ -1791,7 +1791,7 @@ namespace HBP.Sync.Tests
             }
             finally
             {
-                SiteState.ColorChanged -= countMutationApply;
+                fixture.Sites[0].State.OnColorChanged.RemoveListener(countMutationApply);
                 ((IDisposable)questOwner).Dispose();
                 desktopPeer.Dispose();
                 firstPair.Close();
@@ -2826,7 +2826,7 @@ namespace HBP.Sync.Tests
             var scheduler = new OutgoingScheduler(Session, Scene, Incarnation, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(Scene, Incarnation, boundary, scheduler);
             var proposed = new List<Mutation>();
-            boundary.MutationProposed += (_, mutation, _) => proposed.Add(mutation);
+            boundary.OnMutationProposed.AddListener((_, mutation, _) => proposed.Add(mutation));
 
             Assert.Throws<InvalidDataException>(() => driver.ApplyOptimistic(new SetMeshDisplay(new ResourceId("missing-mesh"), MutationMeshPart.Both, MutationSurfaceRepresentation.Anatomical), new OperationId(GuidFor(55121))));
             Assert.Throws<InvalidOperationException>(() => driver.ApplyOptimistic(new ApplyTriangleMask(new[]
@@ -2873,7 +2873,7 @@ namespace HBP.Sync.Tests
 
                 var canonical = new List<CanonicalMutation>();
                 var authority = (DesktopMutationAuthority)desktopOwnerType.GetField("m_Authority", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(desktopOwner);
-                authority.CanonicalReady += canonical.Add;
+                authority.OnCanonicalReady.AddListener(canonical.Add);
 
                 fixture.Sites[0].State.Color = new Color(0.1f, 0.2f, 0.3f, 1f);
                 fixture.Sites[0].State.Color = new Color(0.8f, 0.7f, 0.6f, 1f);
@@ -2996,11 +2996,11 @@ namespace HBP.Sync.Tests
             using (var desktopBoundary = new SceneMutationBoundary(desktopFixture.Scene, OriginDevice.Desktop))
             using (var questBoundary = new SceneMutationBoundary(questFixture.Scene, OriginDevice.Quest))
             {
-                desktopBoundary.MutationProposed += (id, mutation, _) =>
+                desktopBoundary.OnMutationProposed.AddListener((id, mutation, _) =>
                 {
                     if (mutation is SetCutDefinition cutDefinition)
                         proposed.Add((id, cutDefinition));
-                };
+                });
 
                 desktopCut.Position = 0.63f;
                 desktopFixture.Scene.UpdateCutPlane(desktopCut, changedByUser: true, preserveDefinitionNormal: true);
@@ -3893,7 +3893,7 @@ namespace HBP.Sync.Tests
             driverType.GetMethod("BeginDisconnectGrace").Invoke(driver, null);
             object scheduler = GetPrivateField<object>(driver, "m_Scheduler");
             // The real transport has already entered its reconnect grace. Expire its monotonic deadline
-            // deterministically so the driver's public ConnectionState transition raises OfflineLocalEntered.
+            // deterministically so the driver's public ConnectionState transition raises OnOfflineLocalEntered.
             SetPrivateField(scheduler, "m_GraceDeadline", 0L);
             Assert.That((QuestMutationConnectionState)driverType.GetProperty("ConnectionState").GetValue(driver), Is.EqualTo(QuestMutationConnectionState.OfflineLocal));
         }

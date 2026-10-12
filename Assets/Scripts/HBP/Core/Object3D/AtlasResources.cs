@@ -69,7 +69,7 @@ namespace HBP.Core.Object3D
         private static readonly Dictionary<string, LoadOperation> s_Loads = new(StringComparer.Ordinal);
         private static readonly Dictionary<string, AtlasLoadResult> s_Results = new(StringComparer.Ordinal);
         public static IReadOnlyList<Definition> Definitions => s_Definitions;
-        public static event Action<AtlasLoadResult> Changed;
+        public static GenericEvent<AtlasLoadResult> OnChanged { get; } = new();
 
         private static Definition[] BuildDefinitions()
         {
@@ -127,7 +127,7 @@ namespace HBP.Core.Object3D
             {
                 usage = ResourceRetention.Retain(id);
                 operation.CheckCancellation();
-                Changed?.Invoke(new(id, AtlasLoadState.Loading));
+                OnChanged.Invoke(new(id, AtlasLoadState.Loading));
                 if (!IsLoaded(id)) await PrepareAsync(id, operation);
                 if (!IsLoaded(id)) throw new InvalidDataException("Atlas could not be loaded: " + id);
                 result = new(id, AtlasLoadState.Loaded);
@@ -145,7 +145,7 @@ namespace HBP.Core.Object3D
             await UniTask.SwitchToMainThread();
             s_Loads.Remove(id);
             s_Results[id] = result;
-            Changed?.Invoke(result);
+            OnChanged.Invoke(result);
             return result;
         }
 
@@ -300,7 +300,7 @@ namespace HBP.Core.Object3D
 
             var result = new AtlasLoadResult(id, AtlasLoadState.Unloaded);
             s_Results[id] = result;
-            Changed?.Invoke(result);
+            OnChanged.Invoke(result);
             return result;
         }
 

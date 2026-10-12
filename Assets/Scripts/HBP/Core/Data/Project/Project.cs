@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.IO;
 using System.Linq;
@@ -95,7 +96,7 @@ namespace HBP.Core.Data
             return request.Force || (request.Includes(ValidationAspect.PatientAssets) && m_Patients.Where(request.Matches).Any(patient => !patient.IsAssetValidationCurrent)) || (dataInfoAspects != ValidationAspect.None && m_Datasets.SelectMany(dataset => dataset.Data).Where(request.Matches).Any(dataInfo => !dataInfo.IsValidationCurrent(dataInfoAspects, request)));
         }
 
-        public event Action OnValidationStateChanged;
+        public UnityEvent OnValidationStateChanged { get; } = new();
 
         /// <summary>
         /// Project extension.
@@ -852,7 +853,7 @@ namespace HBP.Core.Data
 
             operation.Cancel();
             _ = replacement.EnsureReadyAsync();
-            OnValidationStateChanged?.Invoke();
+            OnValidationStateChanged.Invoke();
         }
 
         private void MarkRequestedValidationStale(ValidationRequest request)
@@ -924,7 +925,7 @@ namespace HBP.Core.Data
                     }
                 }
 
-                OnValidationStateChanged?.Invoke();
+                OnValidationStateChanged.Invoke();
                 return assetResult.HasIssues || dataInfoResult.HasIssues;
             }
             catch (OperationCanceledException)

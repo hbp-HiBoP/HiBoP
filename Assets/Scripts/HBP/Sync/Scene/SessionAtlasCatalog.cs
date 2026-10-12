@@ -11,33 +11,28 @@ namespace HBP.Sync.Scene
     {
         private static readonly HashSet<string> s_Ready = new(StringComparer.Ordinal);
         public static bool Active { get; private set; }
-        public static event Action Changed;
 
         public static void Begin()
         {
             s_Ready.Clear();
             Active = true;
-            Changed?.Invoke();
         }
 
         public static void End()
         {
             s_Ready.Clear();
             Active = false;
-            Changed?.Invoke();
         }
 
         public static void SetReady(string id)
         {
             if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidDataException("Atlas is not ready: " + id);
             s_Ready.Add(id);
-            Changed?.Invoke();
         }
 
         public static void Remove(string id)
         {
             s_Ready.Remove(id);
-            Changed?.Invoke();
         }
 
         public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.Contains(id));

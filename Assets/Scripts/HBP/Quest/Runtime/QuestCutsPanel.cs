@@ -33,7 +33,7 @@ namespace HBP.Quest
                 if (Ready && !view.Scene.AutomaticCutAroundSelectedSite) view.Scene.AddCutPlane();
             });
             suspend.onClick.AddListener(() => suspended = !suspended);
-            window.Changed += OnWindowChanged;
+            window.OnChanged.AddListener(OnWindowChanged);
         }
 
         private void OnWindowChanged(QuestWindow value)
@@ -87,7 +87,7 @@ namespace HBP.Quest
 
         private void OnDestroy()
         {
-            if (window != null) window.Changed -= OnWindowChanged;
+            if (window != null) window.OnChanged.RemoveListener(OnWindowChanged);
         }
     }
 }

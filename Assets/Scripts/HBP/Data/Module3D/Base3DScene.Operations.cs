@@ -1,3 +1,4 @@
+using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace HBP.Data.Module3D
     public partial class Base3DScene
     {
         /// <summary>Reports a completed command that changes the positions of scene sites.</summary>
-        public event Action<SitePositionCommand> SitePositionCommandExecuted;
+        public GenericEvent<SitePositionCommand> OnSitePositionCommandExecuted { get; } = new();
 
         public SitePlacementMode SitePlacement { get; private set; }
 
@@ -138,7 +139,7 @@ namespace HBP.Data.Module3D
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
             SitePlacement = right ? SitePlacementMode.Right : SitePlacementMode.Left;
             OnSharedStateChanged.Invoke();
-            SitePositionCommandExecuted?.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
+            OnSitePositionCommandExecuted.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
         }
 
         public void ResetSitesPositions()
@@ -146,7 +147,7 @@ namespace HBP.Data.Module3D
             foreach (var column in Columns) column.ResetSitesPositions();
             SitePlacement = SitePlacementMode.Original;
             OnSharedStateChanged.Invoke();
-            SitePositionCommandExecuted?.Invoke(SitePositionCommand.Reset);
+            OnSitePositionCommandExecuted.Invoke(SitePositionCommand.Reset);
         }
 
         internal void RestoreSitePlacement(SitePlacementMode placement)
@@ -164,7 +165,7 @@ namespace HBP.Data.Module3D
 
             SitePlacement = placement;
             if (previous != placement)
-                SitePositionCommandExecuted?.Invoke(placement == SitePlacementMode.Left ? SitePositionCommand.MoveLeft : placement == SitePlacementMode.Right ? SitePositionCommand.MoveRight : SitePositionCommand.Reset);
+                OnSitePositionCommandExecuted.Invoke(placement == SitePlacementMode.Left ? SitePositionCommand.MoveLeft : placement == SitePlacementMode.Right ? SitePositionCommand.MoveRight : SitePositionCommand.Reset);
         }
 
         public void ResetSiteFilters(bool included = true)

@@ -1,3 +1,5 @@
+using UnityEngine.Events;
+using HBP.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -281,10 +283,10 @@ namespace HBP.Sync.Scene
 
         public DesktopMutationAuthorityState State => m_State;
         public string FailureCode { get; private set; }
-        public event Action<CanonicalMutation> CanonicalReady;
+        public GenericEvent<CanonicalMutation> OnCanonicalReady { get; } = new();
 
         /// <summary>Session owners must close the connected replica session when this event fires.</summary>
-        public event Action<string> SessionMustDisconnect;
+        public GenericEvent<string> OnSessionMustDisconnect { get; } = new();
 
         public DesktopMutationAuthority(SceneId sceneId, IncarnationId incarnationId, SceneMutationBoundary boundary, int maximumOperations = MaximumRememberedOperations, int maximumKeys = 65536)
         {
@@ -293,7 +295,7 @@ namespace HBP.Sync.Scene
             m_Boundary = boundary ?? throw new ArgumentNullException(nameof(boundary));
             m_Ledger = new OperationLedger(maximumOperations, maximumKeys);
             m_MaximumOperations = maximumOperations;
-            m_Boundary.MutationProposed += OnLocalMutationProposed;
+            m_Boundary.OnMutationProposed.AddListener(OnLocalMutationProposed);
         }
 
         /// <summary>Accepts a Quest proposal, applies it once on Desktop, and returns its echo or targeted correction.</summary>
@@ -422,7 +424,7 @@ namespace HBP.Sync.Scene
                     m_CanonicalSequence = acceptedSequence;
                     var canonical = new CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation, OriginDevice.Quest);
                     var result = Remember(operationId, payload, new DesktopProposalResult(ProposalOutcome.Accepted, canonical));
-                    CanonicalReady?.Invoke(canonical);
+                    OnCanonicalReady.Invoke(canonical);
                     return result;
                 }
 
@@ -503,7 +505,7 @@ namespace HBP.Sync.Scene
             m_CanonicalSequence = acceptedSequence;
             var canonical = new CanonicalMutation(m_SceneId, m_IncarnationId, operationId, acceptedSequence, mutation);
             Remember(operationId, payload, new DesktopProposalResult(ProposalOutcome.Accepted, canonical));
-            CanonicalReady?.Invoke(canonical);
+            OnCanonicalReady.Invoke(canonical);
         }
 
         private void FaultAuthority(string failureCode)
@@ -511,7 +513,7 @@ namespace HBP.Sync.Scene
             if (m_State == DesktopMutationAuthorityState.Faulted) return;
             m_State = DesktopMutationAuthorityState.Faulted;
             FailureCode = failureCode;
-            SessionMustDisconnect?.Invoke(failureCode);
+            OnSessionMustDisconnect.Invoke(failureCode);
         }
 
         private bool TryGetPriorDecision(OperationId operationId, byte[] payload, out DesktopProposalResult result)
@@ -534,7 +536,7 @@ namespace HBP.Sync.Scene
 
         private DesktopProposalResult PublishPriorCanonical(DesktopProposalResult result)
         {
-            if (result.CanonicalMutation != null) CanonicalReady?.Invoke(result.CanonicalMutation);
+            if (result.CanonicalMutation != null) OnCanonicalReady.Invoke(result.CanonicalMutation);
             return result;
         }
 
@@ -554,7 +556,7 @@ namespace HBP.Sync.Scene
         {
             if (m_Disposed) return;
             m_Disposed = true;
-            m_Boundary.MutationProposed -= OnLocalMutationProposed;
+            m_Boundary.OnMutationProposed.RemoveListener(OnLocalMutationProposed);
             m_Ledger.CloseIncarnation(m_SceneId, m_IncarnationId);
             m_Decisions.Clear();
         }
@@ -637,7 +639,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        public event Action RetentionProgressChanged;
+        public UnityEvent OnRetentionProgressChanged { get; } = new();
 
         public void RecordApplicationOrigin(OperationId operationId, ulong originSequence)
         {
@@ -684,13 +686,13 @@ namespace HBP.Sync.Scene
             }
         }
 
-        public event Action<QuestMutationProposal> ProposalQueued;
-        public event Action<QuestMutationProposal, EnqueueDisposition> ProposalDeferred;
-        public event Action<OperationId, EnqueueDisposition> ProposalNotQueued;
-        public event Action<OperationId> ProposalConfirmed;
-        public event Action<OperationId, Mutation> AuthoritativeCorrectionApplied;
-        public event Action<OperationId, string> ProposalRejected;
-        public event Action OfflineLocalEntered;
+        public GenericEvent<QuestMutationProposal> OnProposalQueued { get; } = new();
+        public GenericEvent<QuestMutationProposal, EnqueueDisposition> OnProposalDeferred { get; } = new();
+        public GenericEvent<OperationId, EnqueueDisposition> OnProposalNotQueued { get; } = new();
+        public GenericEvent<OperationId> OnProposalConfirmed { get; } = new();
+        public GenericEvent<OperationId, Mutation> OnAuthoritativeCorrectionApplied { get; } = new();
+        public GenericEvent<OperationId, string> OnProposalRejected { get; } = new();
+        public UnityEvent OnOfflineLocalEntered { get; } = new();
 
         public QuestMutationDriver(SceneId sceneId, IncarnationId incarnationId, SceneMutationBoundary boundary, OutgoingScheduler scheduler, ulong lastObservedCanonicalSequence = 0) : this(sceneId, incarnationId, boundary, scheduler, lastObservedCanonicalSequence, null)
         {
@@ -716,7 +718,7 @@ namespace HBP.Sync.Scene
                 m_CanonicalTriangleMasks[initialMask.Masks[0].TopologyId.Value] = (initialMask, lastObservedCanonicalSequence);
             }
 
-            m_Boundary.MutationProposed += OnLocalMutationProposed;
+            m_Boundary.OnMutationProposed.AddListener(OnLocalMutationProposed);
         }
 
         /// <summary>Applies one Quest-origin value through the prepared scene boundary and queues its stable proposal.</summary>
@@ -827,13 +829,13 @@ namespace HBP.Sync.Scene
                 CompleteCutEdit(canonical.OperationId);
                 if (matchesOptimistic)
                 {
-                    ProposalConfirmed?.Invoke(canonical.OperationId);
+                    OnProposalConfirmed.Invoke(canonical.OperationId);
                     return false;
                 }
 
                 if (!keySuperseded)
                 {
-                    AuthoritativeCorrectionApplied?.Invoke(canonical.OperationId, canonical.Mutation);
+                    OnAuthoritativeCorrectionApplied.Invoke(canonical.OperationId, canonical.Mutation);
                     return true;
                 }
 
@@ -1032,7 +1034,7 @@ namespace HBP.Sync.Scene
             CompleteCutEdit(correction.OperationId);
             if (!matchesOptimistic && !keySuperseded)
             {
-                AuthoritativeCorrectionApplied?.Invoke(correction.OperationId, correction.AuthoritativeMutation);
+                OnAuthoritativeCorrectionApplied.Invoke(correction.OperationId, correction.AuthoritativeMutation);
                 return true;
             }
 
@@ -1068,7 +1070,7 @@ namespace HBP.Sync.Scene
                 CompleteCutEdit(operationId);
             }
 
-            ProposalRejected?.Invoke(operationId, rejectionCode);
+            OnProposalRejected.Invoke(operationId, rejectionCode);
             if (!restored) EnterOfflineLocal();
             return true;
         }
@@ -1091,7 +1093,7 @@ namespace HBP.Sync.Scene
 
             if (m_Pending.ContainsKey(operationId.Value) || m_Received.ContainsKey(operationId.Value))
             {
-                ProposalNotQueued?.Invoke(operationId, EnqueueDisposition.Rejected);
+                OnProposalNotQueued.Invoke(operationId, EnqueueDisposition.Rejected);
                 EnterOfflineLocal(1);
                 RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
                 return;
@@ -1109,7 +1111,7 @@ namespace HBP.Sync.Scene
             bool replacesDeferred = key != null && m_DeferredByKey.ContainsKey(key);
             if (m_Pending.Count >= MaximumRememberedOperations && !replacesDeferred)
             {
-                ProposalNotQueued?.Invoke(operationId, EnqueueDisposition.Backpressured);
+                OnProposalNotQueued.Invoke(operationId, EnqueueDisposition.Backpressured);
                 EnterOfflineLocal(1);
                 RemoveCreatedTransactionJournal(operationId, createdTransactionJournal);
                 return;
@@ -1118,7 +1120,7 @@ namespace HBP.Sync.Scene
             m_Pending.Add(operationId.Value, MutationPayloadCodec.Encode(proposal.Mutation));
             if (IsPreparedGeometryMutation(mutation)) m_PendingGeometryOrder.Add(operationId.Value);
             m_PendingObservations.Add(operationId.Value, proposal.ObservedCanonicalSequence);
-            RetentionProgressChanged?.Invoke();
+            OnRetentionProgressChanged.Invoke();
             m_LastCreatedProposal = proposal;
             if (IsCutEdit(mutation))
             {
@@ -1274,7 +1276,7 @@ namespace HBP.Sync.Scene
             catch (Exception exception) when (exception is InvalidOperationException || exception is KeyNotFoundException || exception is ArgumentException)
             {
                 RemovePendingProposal(waiting.OperationId);
-                ProposalNotQueued?.Invoke(waiting.OperationId, EnqueueDisposition.Rejected);
+                OnProposalNotQueued.Invoke(waiting.OperationId, EnqueueDisposition.Rejected);
                 return;
             }
 
@@ -1292,7 +1294,7 @@ namespace HBP.Sync.Scene
             {
                 RemovePendingProposal(queued.ReplacedOperationId);
                 if (descriptor.CoalescingKey != null) RemoveDeferredProposalForKey(descriptor.CoalescingKey);
-                ProposalQueued?.Invoke(proposal);
+                OnProposalQueued.Invoke(proposal);
                 return;
             }
 
@@ -1302,7 +1304,7 @@ namespace HBP.Sync.Scene
                 return;
             }
 
-            ProposalNotQueued?.Invoke(proposal.OperationId, queued.Disposition);
+            OnProposalNotQueued.Invoke(proposal.OperationId, queued.Disposition);
             EnterOfflineLocal();
         }
 
@@ -1320,7 +1322,7 @@ namespace HBP.Sync.Scene
                 if (key != null) m_DeferredByKey.Add(key, node);
             }
 
-            ProposalDeferred?.Invoke(proposal, disposition);
+            OnProposalDeferred.Invoke(proposal, disposition);
         }
 
         private void PumpDeferredProposals()
@@ -1335,14 +1337,14 @@ namespace HBP.Sync.Scene
                 {
                     RemovePendingProposal(queued.ReplacedOperationId);
                     RemoveDeferredProposal(node, removePending: false);
-                    ProposalQueued?.Invoke(proposal);
+                    OnProposalQueued.Invoke(proposal);
                     continue;
                 }
 
                 if (queued.Disposition == EnqueueDisposition.Backpressured)
                     return;
 
-                ProposalNotQueued?.Invoke(proposal.OperationId, queued.Disposition);
+                OnProposalNotQueued.Invoke(proposal.OperationId, queued.Disposition);
                 EnterOfflineLocal();
                 return;
             }
@@ -1357,7 +1359,7 @@ namespace HBP.Sync.Scene
             m_Boundary.ForgetOptimisticOperation(operationId);
             m_TransactionReplayJournal.Remove(operationId.Value);
             m_OverflowedTransactionReplayJournals.Remove(operationId.Value);
-            RetentionProgressChanged?.Invoke();
+            OnRetentionProgressChanged.Invoke();
         }
 
         private void RecordOptimisticForPendingTransactions(OperationId operationId, Mutation mutation)
@@ -1528,7 +1530,7 @@ namespace HBP.Sync.Scene
             m_TransactionReplayJournal.Clear();
             m_OverflowedTransactionReplayJournals.Clear();
             m_OfflineLocal = true;
-            OfflineLocalEntered?.Invoke();
+            OnOfflineLocalEntered.Invoke();
         }
 
         private bool TryGetReceived(OperationId operationId, byte[] payload)
@@ -1594,7 +1596,7 @@ namespace HBP.Sync.Scene
         {
             if (m_Disposed) return;
             m_Disposed = true;
-            m_Boundary.MutationProposed -= OnLocalMutationProposed;
+            m_Boundary.OnMutationProposed.RemoveListener(OnLocalMutationProposed);
             m_Pending.Clear();
             m_PendingObservations.Clear();
             m_SiteSelectionInFlight = null;

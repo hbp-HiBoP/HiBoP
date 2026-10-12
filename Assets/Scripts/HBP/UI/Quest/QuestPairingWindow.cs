@@ -49,7 +49,7 @@ namespace HBP.UI.Quest
             {
                 if (manual.isOn) connection.SelectManual(address.text);
             });
-            connection.Changed += Refresh;
+            connection.OnChanged.AddListener(Refresh);
             Refresh();
         }
 
@@ -103,7 +103,7 @@ namespace HBP.UI.Quest
         private void OnDestroy()
         {
             if (connection == null) return;
-            connection.Changed -= Refresh;
+            connection.OnChanged.RemoveListener(Refresh);
             connection.SetDiscoveryActive(false);
         }
 
