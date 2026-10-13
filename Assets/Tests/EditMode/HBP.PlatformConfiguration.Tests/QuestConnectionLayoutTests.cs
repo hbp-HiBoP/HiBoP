@@ -17,10 +17,20 @@ namespace HBP.Tests.PlatformConfiguration
         public void SceneControls_UseNestedPrefabsAndSerializedOwners()
         {
             var pairing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Pairing window.prefab").GetComponent<QuestPairingWindow>();
-            var toggle = (Toggle)new SerializedObject(pairing).FindProperty("synchronizeScenes").objectReferenceValue;
+            Assert.That(pairing.GetComponentsInChildren<Toggle>(true).Any(candidate => candidate.name == "Synchronize visualizations"), Is.False);
+            var preferences = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/User preferences window.prefab").GetComponent<UserPreferencesModifier>();
+            var quest = (QuestPreferencesSubModifier)new SerializedObject(preferences).FindProperty("m_QuestPreferencesSubModifier").objectReferenceValue;
+            Assert.That(quest, Is.Not.Null);
+            var toggle = (Toggle)new SerializedObject(quest).FindProperty("m_AutomaticallySynchronizeScenesToggle").objectReferenceValue;
             Assert.That(toggle, Is.Not.Null);
             Assert.That(toggle.isOn, Is.True);
             Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(toggle), Does.EndWith("Toggle with Text.prefab"));
+            Assert.That(toggle.GetComponent<Tooltip>().Text, Does.Contain("closures").And.Contain("already shared"));
+            var selector = preferences.transform.Find("Content/Fields/Tabs/General Tab/Tab selectors/Quest tab selector").GetComponent<Toggle>();
+            Assert.That(selector.group, Is.Not.Null);
+            Assert.That(selector.onValueChanged.GetPersistentEventCount(), Is.EqualTo(1));
+            Assert.That(selector.onValueChanged.GetPersistentTarget(0), Is.SameAs(quest.gameObject));
+            Assert.That(selector.onValueChanged.GetPersistentMethodName(0), Is.EqualTo("SetActive"));
             var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var display = new SerializedObject(bootstrap.GetComponentInChildren<QuestDisplayPanel>(true));
             foreach (string field in new[] { "session", "view", "input", "openPatient", "rows", "rowPrefab" }) Assert.That(display.FindProperty(field).objectReferenceValue, Is.Not.Null, field);

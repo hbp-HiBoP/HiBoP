@@ -21,6 +21,7 @@ namespace HBP.UI.Main
         [SerializeField] ThemePreferencesSubModifier m_ThemePreferencesSubModifier;
         [SerializeField] LocationPreferencesSubModifier m_LocationPreferencesSubModifier;
         [SerializeField] SystemPreferencesSubModifier m_SystemPreferencesSubModifier;
+        [SerializeField] QuestPreferencesSubModifier m_QuestPreferencesSubModifier;
         [SerializeField] MiscPreferencesSubModifier m_MiscPreferencesSubModifier;
         [SerializeField] EEGPreferencesSubModifier m_EEGPreferencesSubModifier;
         [SerializeField] ProtocolPreferencesSubModifier m_ProtocolPreferencesSubModifier;
@@ -59,6 +60,7 @@ namespace HBP.UI.Main
                 m_ThemePreferencesSubModifier.Interactable = value;
                 m_LocationPreferencesSubModifier.Interactable = value;
                 m_SystemPreferencesSubModifier.Interactable = value;
+                m_QuestPreferencesSubModifier.Interactable = value;
                 m_MiscPreferencesSubModifier.Interactable = value;
                 m_EEGPreferencesSubModifier.Interactable = value;
                 m_ProtocolPreferencesSubModifier.Interactable = value;
@@ -198,6 +200,7 @@ namespace HBP.UI.Main
             m_ThemePreferencesSubModifier.Object = objectToDisplay.General.Theme;
             m_LocationPreferencesSubModifier.Object = objectToDisplay.General.Localization;
             m_SystemPreferencesSubModifier.Object = objectToDisplay.General.System;
+            m_QuestPreferencesSubModifier.Object = objectToDisplay.General.Quest;
             m_MiscPreferencesSubModifier.Object = objectToDisplay.General.Misc;
 
             // Data

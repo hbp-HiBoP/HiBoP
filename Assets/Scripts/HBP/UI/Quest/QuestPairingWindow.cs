@@ -21,7 +21,6 @@ namespace HBP.UI.Quest
         [SerializeField] private InputField address;
         [SerializeField] private Text status;
         [SerializeField] private Button pair;
-        [SerializeField] private Toggle synchronizeScenes;
 
         private QuestManager connection;
         private bool rebuilding;
@@ -37,8 +36,6 @@ namespace HBP.UI.Quest
             base.Initialize();
 
             connection = QuestManager.Instance;
-            synchronizeScenes.SetIsOnWithoutNotify(connection.AutomaticallySynchronizeScenes);
-            synchronizeScenes.onValueChanged.AddListener(connection.SetAutomaticallySynchronizeScenes);
             connection.SetDiscoveryActive(true);
             devices.onValueChanged.AddListener(index =>
             {

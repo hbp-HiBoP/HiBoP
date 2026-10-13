@@ -38,7 +38,7 @@ namespace HBP.Quest.Desktop
         private readonly List<(SessionControlKind Kind, SceneSessionClose Close)> pendingCloses = new();
         private readonly Dictionary<string, (HBP.Core.Data.Visualization Visualization, bool Share)> pendingReloads = new();
         public bool CanRetryScenes => pendingReloads.Count != 0 || publications.Values.Any(value => !value.Removed && value.Binding == null && value.Error != null);
-        private const string AutoSyncKey = "Quest.AutomaticallySynchronizeOpenVisualizations";
+        private UserPreferences sceneLifecyclePreferences;
         private bool autoSync, applyingContext, restoringScenes, reloadingScenes, inventoryRequested;
         private Task inventoryWork = Task.CompletedTask;
         private float nextSceneAttempt;
@@ -53,18 +53,19 @@ namespace HBP.Quest.Desktop
 
         private void InitializeSceneLifecycle()
         {
-            autoSync = PlayerPrefs.GetInt(AutoSyncKey, 1) != 0;
+            sceneLifecyclePreferences = PersistentDataManager.UserPreferences;
+            autoSync = sceneLifecyclePreferences.General.Quest.AutomaticallySynchronizeScenes;
+            sceneLifecyclePreferences.OnSavePreferences.AddListener(ApplyScenePreferences);
             Module3DMain.OnRemoveScene.AddListener(SceneRemoved);
             Module3DMain.OnSelectScene.AddListener(SceneSelected);
             Module3DMain.OnSelectColumn.AddListener(ColumnSelected);
         }
 
-        public void SetAutomaticallySynchronizeScenes(bool value)
+        private void ApplyScenePreferences()
         {
+            bool value = sceneLifecyclePreferences.General.Quest.AutomaticallySynchronizeScenes;
             if (autoSync == value) return;
             autoSync = value;
-            PlayerPrefs.SetInt(AutoSyncKey, value ? 1 : 0);
-            PlayerPrefs.Save();
             if (value) inventoryRequested = true;
             OnChanged.Invoke();
         }
@@ -633,6 +634,7 @@ namespace HBP.Quest.Desktop
 
         private void DisposeSceneLifecycle()
         {
+            sceneLifecyclePreferences?.OnSavePreferences.RemoveListener(ApplyScenePreferences);
             Module3DMain.OnRemoveScene.RemoveListener(SceneRemoved);
             Module3DMain.OnSelectScene.RemoveListener(SceneSelected);
             Module3DMain.OnSelectColumn.RemoveListener(ColumnSelected);

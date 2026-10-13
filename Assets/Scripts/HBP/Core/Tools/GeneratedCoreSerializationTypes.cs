@@ -145,6 +145,7 @@ namespace HBP.Core.Tools
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.MiscPreferences), "HBP.Core.Preferences.MiscPreferences", "HBP.Data.Preferences.MiscPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ProjectPreferences), "HBP.Core.Preferences.ProjectPreferences", "HBP.Data.Preferences.ProjectPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ProtocolPreferences), "HBP.Core.Preferences.ProtocolPreferences", "HBP.Data.Preferences.ProtocolPreferences");
+            SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.QuestPreferences), "HBP.Core.Preferences.QuestPreferences", "HBP.Data.Preferences.QuestPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.SystemPreferences), "HBP.Core.Preferences.SystemPreferences", "HBP.Data.Preferences.SystemPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.TagImportPreferences), "HBP.Core.Preferences.TagImportPreferences", "HBP.Data.Preferences.TagImportPreferences");
             SerializationTypeRegistry.RegisterGenerated(typeof(global::HBP.Core.Preferences.ThemePreferences), "HBP.Core.Preferences.ThemePreferences", "HBP.Data.Preferences.ThemePreferences");

@@ -75,6 +75,25 @@ namespace HBP.Tests.Transfer
             Assert.That(File.Exists(UserPreferences.PATH), Is.False);
         }
 
+        [TestCase(false), TestCase(true)]
+        public void QuestPreferences_SaveCloneAndSnapshotPreserveSceneSharing(bool synchronize)
+        {
+            Assert.That(m_Preferences.General.Quest.AutomaticallySynchronizeScenes, Is.True);
+            var edited = (UserPreferences)m_Preferences.Clone();
+            Assert.That(edited.General.Quest, Is.Not.SameAs(m_Preferences.General.Quest));
+            edited.General.Quest.AutomaticallySynchronizeScenes = false;
+            Assert.That(m_Preferences.General.Quest.AutomaticallySynchronizeScenes, Is.True, "Editing the temporary preferences must not apply before Save.");
+            edited.General.Quest.AutomaticallySynchronizeScenes = synchronize;
+            m_Preferences.Copy(edited);
+            m_Preferences.Save();
+
+            var loaded = UserPreferences.Initialize();
+            Assert.That(loaded.General.Quest.AutomaticallySynchronizeScenes, Is.EqualTo(synchronize));
+            loaded.General.Quest.AutomaticallySynchronizeScenes = !synchronize;
+            PreferencesSnapshot.Read(PreferencesSnapshot.Capture(m_Preferences)).Apply(loaded, true);
+            Assert.That(loaded.General.Quest.AutomaticallySynchronizeScenes, Is.EqualTo(synchronize));
+        }
+
         [Test]
         public void ApplyKeepsIdentityListenersAndQuestFileAndDoesNotPreload()
         {

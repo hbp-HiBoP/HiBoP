@@ -30,6 +30,42 @@ namespace HBP.Tests.PlayMode.Module3D
 {
     public class Module3DScenePlayModeTests
     {
+        [TestCase(false), TestCase(true)]
+        public async Task QuestSceneSharing_AppliesSavedPreferencesAndUnsubscribesOnDestroy(bool initialValue)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            var preferences = PersistentDataManager.UserPreferences;
+            preferences.General.Quest.AutomaticallySynchronizeScenes = initialValue;
+            var root = new GameObject("Quest scene sharing preferences test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            try
+            {
+                root.SetActive(true);
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(initialValue));
+                var edited = (UserPreferences)preferences.Clone();
+                edited.General.Quest.AutomaticallySynchronizeScenes = !initialValue;
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(initialValue));
+                preferences.Copy(edited);
+                preferences.Save();
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(!initialValue));
+
+                int changes = 0;
+                manager.OnChanged.AddListener(() => changes++);
+                UnityEngine.Object.Destroy(root);
+                await UniTask.NextFrame();
+                changes = 0;
+                preferences.General.Quest.AutomaticallySynchronizeScenes = initialValue;
+                preferences.Save();
+                Assert.That(changes, Is.Zero, "A destroyed Quest manager must stop observing preference saves.");
+            }
+            finally
+            {
+                if (root != null) UnityEngine.Object.Destroy(root);
+            }
+        }
+
         [Test]
         public void InitiallyActiveScene_StillSelectsItsContextWhenShown()
         {

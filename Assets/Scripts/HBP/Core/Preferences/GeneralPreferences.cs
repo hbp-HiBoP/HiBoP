@@ -14,6 +14,7 @@ namespace HBP.Core.Preferences
         [JsonProperty] public ThemePreferences Theme { get; set; }
         [JsonProperty] public LocalizationPreferences Localization { get; set; }
         [JsonProperty] public SystemPreferences System { get; set; }
+        [JsonProperty] public QuestPreferences Quest { get; set; }
         [JsonProperty] public MiscPreferences Misc { get; set; }
 
         #endregion
@@ -24,12 +25,13 @@ namespace HBP.Core.Preferences
         {
         }
 
-        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc)
+        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc, QuestPreferences quest = null)
         {
             Project = project;
             Theme = theme;
             Localization = localization;
             System = system;
+            Quest = quest;
             Misc = misc;
         }
 
@@ -39,7 +41,7 @@ namespace HBP.Core.Preferences
 
         public object Clone()
         {
-            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Localization.Clone() as LocalizationPreferences, System.Clone() as SystemPreferences, Misc.Clone() as MiscPreferences);
+            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Localization.Clone() as LocalizationPreferences, System.Clone() as SystemPreferences, Misc.Clone() as MiscPreferences, Quest.Clone() as QuestPreferences);
         }
 
         #endregion
