@@ -18,6 +18,236 @@ namespace HBP.Tests.Quest
 {
     public sealed class SessionPreferencesOwnerTests
     {
+        [TestCase(false), TestCase(true)]
+        public async Task ConnectionAttemptJoinsExistingInventoryBeforeTakingTheSessionGate(bool cancel)
+        {
+            var root = new UnityEngine.GameObject("Quest inventory ownership test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = typeof(HBP.Quest.Desktop.QuestManager);
+            var inventory = new TaskCompletionSource<bool>();
+            type.GetField("inventoryWork", flags).SetValue(manager, inventory.Task);
+            type.GetField("automaticOperation", flags).SetValue(manager, true);
+            bool invoked = false;
+            Func<CancellationToken, Task> action = token =>
+            {
+                token.ThrowIfCancellationRequested();
+                invoked = true;
+                return Task.CompletedTask;
+            };
+            var operation = (Task)type.GetMethod("ExecuteAsync", flags).Invoke(manager, new object[] { action });
+            try
+            {
+                Assert.That(invoked, Is.False);
+                var gate = (SemaphoreSlim)type.GetField("sessionOperations", flags).GetValue(manager);
+                Assert.That(gate.CurrentCount, Is.EqualTo(1), "Inventory may itself need the gate to finish a scene send.");
+                if (cancel)
+                {
+                    manager.CancelConnectionAttempt();
+                    await UniTask.NextFrame();
+                    Assert.That(operation.IsCompleted, Is.False, "Cancellation must drain the existing inventory before closing its presentation.");
+                }
+
+                inventory.SetResult(true);
+                await operation;
+                Assert.That(invoked, Is.EqualTo(!cancel));
+                Assert.That(manager.LastOperationCancelled, Is.EqualTo(cancel));
+                Assert.That(gate.CurrentCount, Is.EqualTo(1));
+            }
+            finally
+            {
+                inventory.TrySetResult(true);
+                await operation;
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void LostSessionCannotKeepAPendingManualSuccess()
+        {
+            var root = new UnityEngine.GameObject("Quest lost session test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = typeof(HBP.Quest.Desktop.QuestManager);
+            type.GetField("connected", flags).SetValue(manager, true);
+            type.GetField("credential", flags).SetValue(manager, new byte[32]);
+            type.GetField("<LastOperationSucceeded>k__BackingField", flags).SetValue(manager, true);
+            try
+            {
+                type.GetMethod("SessionConnectionLost", flags).Invoke(manager, null);
+                Assert.That(manager.IsPaired, Is.False);
+                Assert.That(manager.LastOperationSucceeded, Is.False);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task UsbApplicationAppearingAfterCableConnectionUsesOnlyTheRetainedForward()
+        {
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var receiver = new QuestPairing();
+            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
+            listener.Start();
+            int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
+            int commands = 0;
+            var usb = new QuestUsbDiscovery("unused", (command, token) =>
+            {
+                commands++;
+                return Task.FromResult(command == "devices -l" ? "SERIAL device usb:1 product:eureka" : command.Contains("forward tcp:0") ? port.ToString() : "");
+            });
+            Assert.That(await usb.FindAsync(stop.Token), Is.Empty);
+            Assert.That(usb.HasForwards, Is.True);
+            int afterInventory = commands;
+            listener.Start();
+            var serving = receiver.ServeAsync(listener, stop.Token, (_, __) => throw new InvalidOperationException(), _ => { });
+            try
+            {
+                var found = await usb.ProbeAsync(stop.Token);
+                Assert.That(found.Count, Is.EqualTo(1));
+                Assert.That(found[0].Id, Is.EqualTo(Convert.ToBase64String(receiver.Pin)));
+                Assert.That(found[0].UsbSerial, Is.EqualTo("SERIAL"));
+                Assert.That(commands, Is.EqualTo(afterInventory), "Probing the retained endpoint must never launch ADB again.");
+            }
+            finally
+            {
+                stop.Cancel();
+                await serving;
+            }
+        }
+
+        [Test, Timeout(90000)]
+        public async Task IdleAutomaticDiscoveryDoesNotPollAdbForOneMinute()
+        {
+            var root = new UnityEngine.GameObject("Quest idle discovery test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = typeof(HBP.Quest.Desktop.QuestManager);
+            string directory = Path.Combine(Path.GetTempPath(), "hibop-idle-discovery-" + Guid.NewGuid().ToString("N"));
+            int commands = 0;
+            type.GetField("store", flags).SetValue(manager, directory);
+            type.GetField("sceneLifecyclePreferences", flags).SetValue(manager, new UserPreferences());
+            type.GetField("usb", flags).SetValue(manager, new QuestUsbDiscovery("unused", (_, token) =>
+            {
+                Interlocked.Increment(ref commands);
+                return Task.FromResult("");
+            }));
+            var tick = type.GetMethod("TickDiscovery", flags);
+            try
+            {
+                type.GetMethod("InitializeDiscovery", flags).Invoke(manager, null);
+                await (Task)type.GetField("discovering", flags).GetValue(manager);
+                var warmup = System.Diagnostics.Stopwatch.StartNew();
+                while (warmup.Elapsed.TotalSeconds < 3)
+                {
+                    tick.Invoke(manager, null);
+                    await UniTask.Delay(100, DelayType.Realtime);
+                }
+
+                int initial = Volatile.Read(ref commands);
+                Assert.That(initial, Is.GreaterThanOrEqualTo(2), string.Join("; ", manager.DiscoveryMessages));
+                int scans = 0;
+                Task previous = (Task)type.GetField("discovering", flags).GetValue(manager);
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                while (clock.Elapsed.TotalSeconds < 60)
+                {
+                    tick.Invoke(manager, null);
+                    var current = (Task)type.GetField("discovering", flags).GetValue(manager);
+                    if (!ReferenceEquals(current, previous))
+                    {
+                        scans++;
+                        previous = current;
+                    }
+
+                    await UniTask.Delay(100, DelayType.Realtime);
+                }
+
+                int during = Volatile.Read(ref commands) - initial;
+                string report = "{\"seconds\":60,\"initialAdbCommands\":" + initial + ",\"adbCommandsDuringMinute\":" + during + ",\"discoveryWindowsDuringMinute\":" + scans + "}";
+                string output = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", ".test-results", "quest-pairing"));
+                Directory.CreateDirectory(output);
+                File.WriteAllText(Path.Combine(output, "idle-discovery.json"), report);
+                Assert.That(initial, Is.GreaterThanOrEqualTo(2), "The initial USB inventory must actually run.");
+                Assert.That(during, Is.LessThanOrEqualTo(2), "Allow one external PnP event, but reject periodic ADB scans.");
+            }
+            finally
+            {
+                type.GetMethod("DisposeDiscovery", flags).Invoke(manager, null);
+                ((CancellationTokenSource)type.GetField("lifetime", flags).GetValue(manager)).Cancel();
+                await (Task)type.GetField("discovering", flags).GetValue(manager);
+                await (Task)type.GetField("listening", flags).GetValue(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+                if (Directory.Exists(directory)) Directory.Delete(directory, true);
+            }
+        }
+
+        [Test]
+        public void SelectingHeadsetIsNonDestructiveAndDisconnectRetainsAssociation()
+        {
+            var root = new UnityEngine.GameObject("Quest connection lifecycle test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            byte[] credential = new byte[32], pin = new byte[32];
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            typeof(HBP.Quest.Desktop.QuestManager).GetField("credential", flags).SetValue(manager, credential);
+            typeof(HBP.Quest.Desktop.QuestManager).GetField("pin", flags).SetValue(manager, pin);
+            typeof(HBP.Quest.Desktop.QuestManager).GetField("connected", flags).SetValue(manager, true);
+            try
+            {
+                var other = new QuestDevice { Pin = new byte[32], Host = "127.0.0.1", Name = "Other Quest" };
+                other.Pin[0] = 1;
+                manager.Select(other);
+                Assert.That(manager.IsPaired, Is.True);
+                Assert.That(manager.IsSelectedConnected, Is.False);
+                Assert.That(manager.ConnectedId, Is.EqualTo(Convert.ToBase64String(pin)));
+                manager.Disconnect();
+                Assert.That(manager.IsPaired, Is.False);
+                Assert.That(typeof(HBP.Quest.Desktop.QuestManager).GetField("credential", flags).GetValue(manager), Is.SameAs(credential));
+                Assert.That((bool)typeof(HBP.Quest.Desktop.QuestManager).GetField("autoConnectSuspended", flags).GetValue(manager), Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task CancellingSessionOpenCancelsTheNetworkRequestAndDrainsIt()
+        {
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var entered = new TaskCompletionSource<bool>();
+            var pending = new TaskCompletionSource<SessionControlResponse>();
+            using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), async (request, token) =>
+            {
+                using var cancellation = token.Register(() => pending.TrySetCanceled());
+                entered.TrySetResult(true);
+                return await pending.Task;
+            });
+            var opening = owner.StartAsync(stop.Token).AsTask();
+            await entered.Task;
+            stop.Cancel();
+            Exception failure = null;
+            try
+            {
+                await opening;
+            }
+            catch (Exception error)
+            {
+                failure = error;
+            }
+
+            Assert.That(failure, Is.InstanceOf<OperationCanceledException>());
+            Assert.That(pending.Task.IsCompleted, Is.True);
+            Assert.That(owner.Status, Does.Not.Contain("Quest connected"));
+        }
+
         [Test]
         public async Task OpeningFinishesWhileAtlasInventoryRemainsPending()
         {
@@ -153,7 +383,7 @@ namespace HBP.Tests.Quest
             {
                 Directory.CreateDirectory(folder);
                 UserPreferences.PATH = Path.Combine(folder, "Preferences.txt");
-                var general = new GeneralPreferences(new ProjectPreferences("Before", folder, folder), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences());
+                var general = new GeneralPreferences(new ProjectPreferences("Before", folder, folder), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences(), new QuestPreferences());
                 var preferences = new UserPreferences(general, new DataPreferences(), new VisualizationPreferences());
                 owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, preferences, (request, token) =>
                 {

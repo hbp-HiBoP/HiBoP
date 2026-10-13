@@ -22,6 +22,7 @@ namespace HBP.Transfer.Transport
     public static class QuestDiscovery
     {
         public const int Port = 45872;
+        public const int AnnouncementPort = 45873;
         private const string Query = "HiBoP-Quest-discover-v1";
         private const string Prefix = "HiBoP-Quest-v1|";
 
@@ -47,10 +48,33 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public static async Task AdvertiseAsync(Func<string> announcement, CancellationToken stop)
+        public static async Task ListenAsync(Action<QuestDevice> discovered, CancellationToken stop)
+        {
+            using var socket = new UdpClient();
+            socket.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+            socket.Client.Bind(new IPEndPoint(IPAddress.Any, AnnouncementPort));
+            using var close = stop.Register(socket.Close);
+            try
+            {
+                while (!stop.IsCancellationRequested)
+                {
+                    var packet = await socket.ReceiveAsync().ConfigureAwait(false);
+                    if (packet.Buffer.Length > 512) continue;
+                    var device = Decode(Encoding.UTF8.GetString(packet.Buffer), packet.RemoteEndPoint.Address.ToString());
+                    if (device != null) discovered(device);
+                }
+            }
+            catch (Exception) when (stop.IsCancellationRequested)
+            {
+            }
+        }
+
+        public static async Task AdvertiseAsync(Func<string> announcement, CancellationToken stop, Func<bool> waiting = null, SemaphoreSlim wake = null)
         {
             using var socket = new UdpClient(new IPEndPoint(IPAddress.Any, Port));
             using var close = stop.Register(socket.Close);
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(stop);
+            Task announcing = AnnounceAsync(announcement, waiting, wake, linked.Token);
             try
             {
                 while (!stop.IsCancellationRequested)
@@ -64,6 +88,59 @@ namespace HBP.Transfer.Transport
             catch (Exception) when (stop.IsCancellationRequested)
             {
             }
+            finally
+            {
+                linked.Cancel();
+                await announcing.ConfigureAwait(false);
+            }
+        }
+
+        private static async Task AnnounceAsync(Func<string> announcement, Func<bool> waiting, SemaphoreSlim wake, CancellationToken stop)
+        {
+            using var socket = new UdpClient { EnableBroadcast = true };
+            try
+            {
+                bool changed = true;
+                while (!stop.IsCancellationRequested)
+                {
+                    if (changed || waiting?.Invoke() != false)
+                    {
+                        byte[] bytes = Encoding.UTF8.GetBytes(announcement());
+                        foreach (var destination in Destinations())
+                            try
+                            {
+                                await socket.SendAsync(bytes, bytes.Length, new IPEndPoint(destination, AnnouncementPort)).ConfigureAwait(false);
+                            }
+                            catch (SocketException) when (!stop.IsCancellationRequested)
+                            {
+                            }
+                    }
+
+                    if (wake != null) changed = await wake.WaitAsync(5000, stop).ConfigureAwait(false);
+                    else
+                    {
+                        await Task.Delay(5000, stop).ConfigureAwait(false);
+                        changed = false;
+                    }
+                }
+            }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
+            {
+            }
+        }
+
+        private static IEnumerable<IPAddress> Destinations()
+        {
+            var result = new HashSet<IPAddress> { IPAddress.Broadcast };
+            foreach (var network in NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up))
+            foreach (var unicast in network.GetIPProperties().UnicastAddresses.Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)))
+            {
+                if (unicast.IPv4Mask == null) continue;
+                byte[] address = unicast.Address.GetAddressBytes(), mask = unicast.IPv4Mask.GetAddressBytes();
+                result.Add(new IPAddress(address.Select((b, i) => (byte)(b | ~mask[i])).ToArray()));
+            }
+
+            return result;
         }
 
         public static async Task<List<QuestDevice>> FindAsync(CancellationToken stop, Action<QuestDevice> discovered = null)
@@ -73,13 +150,7 @@ namespace HBP.Transfer.Transport
             deadline.CancelAfter(1500);
             using var close = deadline.Token.Register(socket.Close);
             var found = new Dictionary<string, QuestDevice>();
-            var destinations = new HashSet<IPAddress> { IPAddress.Broadcast };
-            foreach (var network in NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up))
-            foreach (var unicast in network.GetIPProperties().UnicastAddresses.Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)))
-            {
-                byte[] address = unicast.Address.GetAddressBytes(), mask = unicast.IPv4Mask.GetAddressBytes();
-                destinations.Add(new IPAddress(address.Select((b, i) => (byte)(b | ~mask[i])).ToArray()));
-            }
+            var destinations = await Task.Run(Destinations, stop).ConfigureAwait(false);
 
             try
             {

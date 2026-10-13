@@ -55,6 +55,67 @@ namespace HBP.UI.Tools
 
         #region Public Methods
 
+        /// <summary>Presentation only: the caller owns error reporting and awaits cancellation drainage.</summary>
+        public sealed class PresentationHandle
+        {
+            private readonly LoadingManager owner;
+            private readonly UnityAction cancel;
+            private readonly CancellationToken token;
+            private bool active, closed;
+
+            internal PresentationHandle(LoadingManager owner, CancellationTokenSource stop)
+            {
+                this.owner = owner;
+                cancel = stop.Cancel;
+                token = stop.Token;
+                Resume();
+            }
+
+            public void Resume()
+            {
+                if (active || closed || token.IsCancellationRequested) return;
+                owner.OpenPresentation(true, true);
+                owner.Presenter.OnCancel.AddListener(cancel);
+                active = true;
+            }
+
+            public async UniTask PauseAsync()
+            {
+                await UniTask.SwitchToMainThread();
+                if (!active) return;
+                active = false;
+                owner.Presenter.OnCancel.RemoveListener(cancel);
+                await owner.ClosePresentation(true, true);
+            }
+
+            internal void Update(float value, float duration, LoadingText text)
+            {
+                if (active) owner.Presenter.ChangePercentage(value, duration, text);
+            }
+
+            internal async UniTask CloseAsync()
+            {
+                closed = true;
+                await PauseAsync();
+            }
+        }
+
+        public static async UniTask PresentAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> action, CancellationToken token, Action<PresentationHandle> opened = null)
+        {
+            using var stop = CancellationTokenSource.CreateLinkedTokenSource(token);
+            var presentation = new PresentationHandle(m_Instance, stop);
+            try
+            {
+                opened?.Invoke(presentation);
+                await action(presentation.Update, stop.Token);
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                await presentation.CloseAsync();
+            }
+        }
+
         public static async UniTask<T> LoadAsync<T>(Func<Action<float, float, LoadingText>, UniTask<T>> taskToExecute, bool showInformations = true)
         {
             AsyncMethod<T> method = new(taskToExecute);

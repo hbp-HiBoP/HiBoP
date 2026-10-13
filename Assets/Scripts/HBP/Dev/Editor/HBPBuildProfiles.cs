@@ -214,7 +214,9 @@ namespace HBP.Dev
 
             foreach (var plugin in PluginImporter.GetAllImporters().Where(p => p.isNativePlugin && p.assetPath.StartsWith("Assets/")))
             {
-                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android) && (!requiredPlugins.Contains(plugin.assetPath) || plugin.GetCompatibleWithAnyPlatform() || plugin.GetCompatibleWithEditor() || plugin.GetPlatformData(BuildTarget.Android, "CPU") != "ARM64"))
+                // Unity also reports Android Java source plugins as native plugins. This bridge is platform-neutral Java, not an ABI-specific library.
+                bool networkBridge = plugin.assetPath == "Assets/Plugins/Android/NetworkMonitor.java";
+                if (plugin.GetCompatibleWithPlatform(BuildTarget.Android) && (!requiredPlugins.Contains(plugin.assetPath) && !networkBridge || plugin.GetCompatibleWithAnyPlatform() || plugin.GetCompatibleWithEditor() || !networkBridge && plugin.GetPlatformData(BuildTarget.Android, "CPU") != "ARM64"))
                     throw new BuildFailedException($"Quest must not include an incompatible native plugin: {plugin.assetPath}");
             }
         }

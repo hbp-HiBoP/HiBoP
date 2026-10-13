@@ -21,11 +21,11 @@ namespace HBP.Core.Preferences
 
         #region Constructors
 
-        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences())
+        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences(), new QuestPreferences())
         {
         }
 
-        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc, QuestPreferences quest = null)
+        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc, QuestPreferences quest)
         {
             Project = project;
             Theme = theme;

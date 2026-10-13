@@ -23,9 +23,35 @@ namespace HBP.Quest
         private bool restarting;
         private string identityPath, deviceName;
         private float nextRefresh;
+        private readonly SemaphoreSlim advertisementWake = new(0, 1);
+        private bool showingRequestedCode;
+        private AndroidJavaObject networkMonitor;
+        private NetworkListener networkListener;
+
+        private void WakeAdvertisement()
+        {
+            try
+            {
+                advertisementWake.Release();
+            }
+            catch (SemaphoreFullException)
+            {
+            }
+        }
+
+        private sealed class NetworkListener : AndroidJavaProxy
+        {
+            private readonly Action changed;
+            public NetworkListener(Action changed) : base("com.hbp.quest.NetworkMonitor$Listener") => this.changed = changed;
+
+            [UnityEngine.Scripting.Preserve]
+            public void changedNetwork() => changed();
+        }
 
         private void Awake()
         {
+            // Initialize the preference path (Unity API) before any detached receiver work can access its type.
+            _ = HBP.Core.Preferences.UserPreferences.PATH;
             string root = Application.persistentDataPath;
 #if UNITY_ANDROID && !UNITY_EDITOR
             using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
@@ -39,8 +65,13 @@ namespace HBP.Quest
 
         private void OnEnable()
         {
-            statusPanel.OnRetryRequested.AddListener(Retry);
             statusPanel.OnNewAssociationRequested.AddListener(NewAssociation);
+#if UNITY_ANDROID && !UNITY_EDITOR
+            using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
+            using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
+            networkListener = new NetworkListener(WakeAdvertisement);
+            networkMonitor = new AndroidJavaObject("com.hbp.quest.NetworkMonitor", activity, networkListener);
+#endif
             PairingTiming.OnMeasured += LogTiming;
             RestartAsync().Forget(); // All failures observed by RestartAsync/RunAsync.
         }
@@ -48,13 +79,6 @@ namespace HBP.Quest
         private static void LogTiming(string message) => Debug.Log(message);
 
         private bool CanChangePairing => !restarting && !session.IsReady && session.ReceptionState == AnatomyReceptionState.Idle && pairing?.IsPreparing != true && pairing?.GetStatus().Phase != PairingPhase.Authenticating;
-
-        private void Retry()
-        {
-            if (!CanChangePairing) return;
-            if (pairing == null) RestartAsync().Forget();
-            else pairing.RearmCode();
-        }
 
         private void NewAssociation()
         {
@@ -112,7 +136,7 @@ namespace HBP.Quest
                             await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
                             {
                                 if (!stop.IsCancellationRequested) status = message;
-                            }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync);
+                            }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync, session.ActiveGlobalContextAsync);
                         }
                         finally
                         {
@@ -135,7 +159,7 @@ namespace HBP.Quest
             }
             catch (Exception exception)
             {
-                status = "Connection unavailable. Check Wi-Fi, then select Retry.";
+                status = "Connection unavailable. Check Wi-Fi and reconnect from Desktop.";
                 Debug.LogWarning("QUEST-011 listener failed: " + exception.GetType().Name + ": " + exception.Message);
             }
             finally
@@ -144,11 +168,12 @@ namespace HBP.Quest
             }
         }
 
-        private static async UniTask AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
+        private async UniTask AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
         {
             try
             {
-                await QuestDiscovery.AdvertiseAsync(() => receiver.Announcement, stop);
+                string announcement = receiver.Announcement;
+                await System.Threading.Tasks.Task.Run(() => QuestDiscovery.AdvertiseAsync(() => announcement, stop, () => !receiver.IsConnected, advertisementWake), stop);
             }
             catch (Exception exception) when (!stop.IsCancellationRequested)
             {
@@ -162,12 +187,18 @@ namespace HBP.Quest
         {
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
+            bool requested = pairing?.IsCodeRequested == true;
+            if (requested && !showingRequestedCode) statusPanel.ShowRequestedCode();
+            if (!requested && showingRequestedCode) statusPanel.Hide();
+            showingRequestedCode = requested;
             if (session.ReceptionState != AnatomyReceptionState.Idle || pairing?.IsPreparing == true)
                 statusPanel.ShowSession(session.IsSynchronizationConnected, true);
             else if (pairing == null)
                 statusPanel.ShowUnavailable(status);
-            else if (!pairing.IsPaired)
+            else if (!pairing.IsPaired && requested)
                 statusPanel.ShowPairing(pairing.GetStatus(), address);
+            else if (!pairing.IsPaired)
+                statusPanel.ShowAvailable(address);
             else if (!session.IsReady)
                 statusPanel.ShowWaiting();
             else if (session.Reconciliation is { } record && record.Status != ReconciliationStatus.Synchronized)
@@ -180,12 +211,16 @@ namespace HBP.Quest
         {
             // Keep the identity, code attempt budget and globals across normal headset sleep.
             if (!paused && isActiveAndEnabled && running.Status.IsCompleted()) RestartAsync().Forget();
+            if (!paused) WakeAdvertisement();
         }
 
         private void OnDisable()
         {
-            statusPanel.OnRetryRequested.RemoveListener(Retry);
             statusPanel.OnNewAssociationRequested.RemoveListener(NewAssociation);
+            networkMonitor?.Call("close");
+            networkMonitor?.Dispose();
+            networkMonitor = null;
+            networkListener = null;
             PairingTiming.OnMeasured -= LogTiming;
             lifetime?.Cancel();
         }

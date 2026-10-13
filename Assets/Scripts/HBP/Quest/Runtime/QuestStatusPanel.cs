@@ -20,17 +20,12 @@ namespace HBP.Quest
         [SerializeField] private Button newAssociation;
         [SerializeField] private Text retryLabel;
         [SerializeField] private Text newAssociationLabel;
-        public UnityEvent OnRetryRequested { get; } = new();
         public UnityEvent OnNewAssociationRequested { get; } = new();
         private bool confirming;
 
         private void Awake()
         {
-            retry.onClick.AddListener(() =>
-            {
-                if (confirming) confirming = false;
-                else OnRetryRequested.Invoke();
-            });
+            retry.onClick.AddListener(() => { confirming = false; });
             newAssociation.onClick.AddListener(() =>
             {
                 if (confirming)
@@ -51,7 +46,7 @@ namespace HBP.Quest
             message.text = state.Phase switch
             {
                 PairingPhase.Authenticating => "Connecting...",
-                PairingPhase.AttemptsExhausted => "Five attempts used. Select Retry.",
+                PairingPhase.AttemptsExhausted => "Five attempts used. Forget the association to pair again.",
                 PairingPhase.InstallingGlobals => "Resume pairing on Desktop.",
                 _ => "Enter this code on Desktop."
             };
@@ -60,7 +55,7 @@ namespace HBP.Quest
             int seconds = (int)Math.Ceiling(state.Remaining.TotalSeconds);
             countdown.text = $"New code in {seconds / 60:00}:{seconds % 60:00}";
             lifetimeGauge.fillAmount = Mathf.Clamp01((float)(state.Remaining.TotalSeconds / QuestPairing.CodeLifetime.TotalSeconds));
-            Actions(state.Phase == PairingPhase.AttemptsExhausted, state.Phase != PairingPhase.Authenticating);
+            Actions(false, state.Phase != PairingPhase.Authenticating);
         }
 
         private void Actions(bool canRetry, bool canReplace)
@@ -69,9 +64,20 @@ namespace HBP.Quest
             retry.gameObject.SetActive(canRetry || confirming);
             newAssociation.gameObject.SetActive(canReplace);
             retryLabel.text = confirming ? "Cancel" : "Retry";
-            newAssociationLabel.text = confirming ? "Confirm" : "New association";
+            newAssociationLabel.text = confirming ? "Confirm" : "Forget association";
             ((RectTransform)newAssociation.transform).anchoredPosition = new Vector2(canRetry || confirming ? 130 : 0, -152);
-            if (confirming) message.text = "Replace the Desktop association?";
+            if (confirming) message.text = "Forget the Desktop association? You will need to enter a new code on Desktop.";
+        }
+
+        public void ShowAvailable(string ip)
+        {
+            heading.text = "Ready for Desktop";
+            code.text = "";
+            address.text = ip ?? "";
+            message.text = "Start the connection from Desktop.";
+            countdown.gameObject.SetActive(false);
+            lifetimeGauge.gameObject.SetActive(false);
+            Actions(false, true);
         }
 
         public void ShowWaiting()
@@ -93,13 +99,19 @@ namespace HBP.Quest
             message.text = details;
             countdown.gameObject.SetActive(false);
             lifetimeGauge.gameObject.SetActive(false);
-            Actions(true, false);
+            Actions(false, true);
         }
 
         public void Hide()
         {
             confirming = false;
             GetComponent<QuestWindow>()?.Close();
+        }
+
+        public void ShowRequestedCode()
+        {
+            GetComponent<QuestWindow>()?.Open();
+            GetComponent<QuestWindowFollower>()?.Recall();
         }
 
         public void ShowReconciliation(SceneReconciliationRecord record, bool desktopConnected = false)

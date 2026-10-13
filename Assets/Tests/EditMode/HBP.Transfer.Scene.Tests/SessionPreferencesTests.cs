@@ -38,7 +38,7 @@ namespace HBP.Tests.Transfer
             m_Folder = Path.Combine(Path.GetTempPath(), "hibop-session-preferences-" + Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(m_Folder);
             UserPreferences.PATH = Path.Combine(m_Folder, "Preferences.txt");
-            var general = new GeneralPreferences(new ProjectPreferences("Session test", m_Folder, m_Folder), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences());
+            var general = new GeneralPreferences(new ProjectPreferences("Session test", m_Folder, m_Folder), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences(), new QuestPreferences());
             m_Preferences = new UserPreferences(general, new DataPreferences(), new VisualizationPreferences());
         }
 
@@ -84,14 +84,18 @@ namespace HBP.Tests.Transfer
             edited.General.Quest.AutomaticallySynchronizeScenes = false;
             Assert.That(m_Preferences.General.Quest.AutomaticallySynchronizeScenes, Is.True, "Editing the temporary preferences must not apply before Save.");
             edited.General.Quest.AutomaticallySynchronizeScenes = synchronize;
+            edited.General.Quest.AutomaticallyConnect = synchronize;
             m_Preferences.Copy(edited);
             m_Preferences.Save();
 
             var loaded = UserPreferences.Initialize();
             Assert.That(loaded.General.Quest.AutomaticallySynchronizeScenes, Is.EqualTo(synchronize));
+            Assert.That(loaded.General.Quest.AutomaticallyConnect, Is.EqualTo(synchronize));
             loaded.General.Quest.AutomaticallySynchronizeScenes = !synchronize;
+            loaded.General.Quest.AutomaticallyConnect = !synchronize;
             PreferencesSnapshot.Read(PreferencesSnapshot.Capture(m_Preferences)).Apply(loaded, true);
             Assert.That(loaded.General.Quest.AutomaticallySynchronizeScenes, Is.EqualTo(synchronize));
+            Assert.That(loaded.General.Quest.AutomaticallyConnect, Is.EqualTo(synchronize));
         }
 
         [Test]

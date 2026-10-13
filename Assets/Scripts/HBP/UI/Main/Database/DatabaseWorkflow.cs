@@ -17,7 +17,7 @@ namespace HBP.UI.Database
     {
         private static LoadingRecoveryReport s_LastPresentedStructuralRecovery;
 
-        public static async UniTask InitializeAsync()
+        public static async UniTask InitializeAsync(Action<Exception> errorPresented = null)
         {
             await UniTask.WaitUntil(() => DatabaseManager.IsInitialized);
 
@@ -46,11 +46,20 @@ namespace HBP.UI.Database
                     Debug.LogWarning("Database startup was skipped. HiBoP will continue without a loaded database. " + exception.Message);
                 }
             else
-                await LoadingManager.LoadAsync(async update =>
+                try
                 {
-                    await database.LoadDatabaseAsync(update);
-                    return true;
-                });
+                    await LoadingManager.LoadAsync(async update =>
+                    {
+                        await database.LoadDatabaseAsync(update);
+                        return true;
+                    });
+                }
+                catch (Exception error)
+                {
+                    // LoadingManager already owns the startup error dialogue. Joining consumers must not repeat it.
+                    errorPresented?.Invoke(error);
+                    throw;
+                }
         }
 
         public static async UniTask<bool> LoadDatabaseAsync()

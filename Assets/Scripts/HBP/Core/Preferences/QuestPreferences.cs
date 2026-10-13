@@ -8,19 +8,21 @@ namespace HBP.Core.Preferences
     public class QuestPreferences : ICloneable
     {
         [JsonProperty] public bool AutomaticallySynchronizeScenes { get; set; }
+        [JsonProperty] public bool AutomaticallyConnect { get; set; }
 
-        public QuestPreferences() : this(true)
+        public QuestPreferences() : this(true, true)
         {
         }
 
-        public QuestPreferences(bool automaticallySynchronizeScenes)
+        public QuestPreferences(bool automaticallySynchronizeScenes, bool automaticallyConnect)
         {
             AutomaticallySynchronizeScenes = automaticallySynchronizeScenes;
+            AutomaticallyConnect = automaticallyConnect;
         }
 
         public object Clone()
         {
-            return new QuestPreferences(AutomaticallySynchronizeScenes);
+            return new QuestPreferences(AutomaticallySynchronizeScenes, AutomaticallyConnect);
         }
     }
 }

@@ -39,6 +39,13 @@ namespace HBP.Transfer.Transport
         }
     }
 
+    public sealed class QuestContextException : InvalidOperationException
+    {
+        public QuestContextException() : base("This Quest has open visualizations from another pairing context. Close them on Quest, then connect again from Desktop.")
+        {
+        }
+    }
+
     /// <summary>Serialized authenticated receiver. Discovery is never an authentication decision.</summary>
     public sealed class QuestPairing : IDisposable
     {
@@ -58,6 +65,17 @@ namespace HBP.Transfer.Transport
         private long lastContact;
         private int attempts, paired, ownerClaimed, preparing, receiving;
         private string globalsId;
+        private Guid codeRequest;
+        private TimeSpan displayExpires, nextDisplayRequest;
+
+        public bool IsCodeRequested
+        {
+            get
+            {
+                lock (codeGate) return codeRequest != Guid.Empty && clock() < displayExpires && !IsPaired;
+            }
+        }
+
         public string Code => GetStatus().Code;
         public byte[] Pin => TransportIdentity.Hash(identity.RawData);
         public string Fingerprint => FormatPin(Pin);
@@ -182,7 +200,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
             // Keep eight admission slots available beside the 64 persistent replica slots.
@@ -206,7 +224,7 @@ namespace HBP.Transfer.Transport
                     try
                     {
                         await slots.WaitAsync(stop).ConfigureAwait(false);
-                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl));
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals));
                         handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
                     }
                     catch
@@ -223,11 +241,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals)
         {
             try
             {
-                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl).ConfigureAwait(false);
+                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals).ConfigureAwait(false);
             }
             finally
             {
@@ -235,7 +253,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl)
+        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals)
         {
             using (peer)
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -254,6 +272,35 @@ namespace HBP.Transfer.Transport
                     {
                         byte[] info = Encoding.UTF8.GetBytes(Announcement);
                         await tls.WriteAsync(info, 0, info.Length, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    if (command == 21 || command == 22)
+                    {
+                        byte[] bytes = new byte[16];
+                        await PinnedTlsTransfer.ReadExactAsync(tls, bytes, 0, bytes.Length, deadline.Token).ConfigureAwait(false);
+                        Guid request = new Guid(bytes);
+                        bool accepted;
+                        lock (codeGate)
+                        {
+                            if (command == 22)
+                            {
+                                accepted = request == codeRequest;
+                                if (accepted) codeRequest = Guid.Empty;
+                            }
+                            else
+                            {
+                                accepted = request != Guid.Empty && GetStatus().Phase == PairingPhase.Available && clock() >= nextDisplayRequest && (codeRequest == Guid.Empty || clock() >= displayExpires);
+                                if (accepted)
+                                {
+                                    codeRequest = request;
+                                    displayExpires = clock() + CodeLifetime;
+                                    nextDisplayRequest = clock() + TimeSpan.FromSeconds(5);
+                                }
+                            }
+                        }
+
+                        await ReplyAsync(tls, accepted, deadline.Token).ConfigureAwait(false);
                         return;
                     }
 
@@ -291,7 +338,18 @@ namespace HBP.Transfer.Transport
                             Array.Clear(secret, 0, secret.Length);
                             secret = RandomBytes(32);
                             Save(); // Durable ownership before acknowledging authentication.
-                            await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
+                            try
+                            {
+                                await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
+                                if (await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false) != 1) throw new IOException("Credential delivery was not acknowledged.");
+                            }
+                            catch
+                            {
+                                // Keep the durable secret usable, but allow code recovery if Desktop never received it.
+                                Interlocked.Exchange(ref ownerClaimed, 0);
+                                throw;
+                            }
+
                             if (receiveGlobals == null) Interlocked.Exchange(ref paired, 1);
                             Touch();
                             state(receiveGlobals == null ? "Paired. Ready to receive." : "Desktop recognized. Waiting for shared data...");
@@ -363,6 +421,19 @@ namespace HBP.Transfer.Transport
                             await PinnedTlsTransfer.ReadExactAsync(tls, id, 0, id.Length, deadline.Token).ConfigureAwait(false);
                             string nextId = Encoding.ASCII.GetString(id);
                             if (!Guid.TryParseExact(nextId, "N", out _)) throw new InvalidDataException("Invalid global snapshot identity.");
+                            string activeId = activeGlobals == null ? null : await activeGlobals(deadline.Token).ConfigureAwait(false);
+                            if (activeId != null && activeId != nextId)
+                            {
+                                await tls.WriteAsync(new byte[] { 2 }, 0, 1, deadline.Token).ConfigureAwait(false);
+                                return;
+                            }
+
+                            if (activeId == nextId)
+                            {
+                                globalsId = nextId;
+                                Interlocked.Exchange(ref paired, 1);
+                            }
+
                             bool needsGlobals = !IsPaired || globalsId != nextId;
                             await ReplyAsync(tls, needsGlobals, deadline.Token).ConfigureAwait(false);
                             if (needsGlobals)
@@ -446,6 +517,20 @@ namespace HBP.Transfer.Transport
             return result;
         }
 
+        public static async Task<Guid> RequestCodeAsync(string host, byte[] pin, CancellationToken stop, Guid request = default)
+        {
+            bool show = request == Guid.Empty;
+            if (show) request = Guid.NewGuid();
+            await ConnectAsync(host, pin, stop, async (tls, token) =>
+            {
+                await tls.WriteAsync(new[] { (byte)(show ? 21 : 22) }, 0, 1, token).ConfigureAwait(false);
+                byte[] bytes = request.ToByteArray();
+                await tls.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
+                await AcceptedAsync(tls, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return request;
+        }
+
         // Kept for transport clients; new UI persists the credential before starting global installation.
         public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals = null)
         {
@@ -467,6 +552,7 @@ namespace HBP.Transfer.Transport
                     using (PairingTiming.Measure("desktop.pake"))
                         await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()), false, token), token).ConfigureAwait(false);
                     await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, credential.Length, token).ConfigureAwait(false);
+                    await tls.WriteAsync(new byte[] { 1 }, 0, 1, token).ConfigureAwait(false);
                 }).ConfigureAwait(false);
                 return credential;
             }
@@ -491,7 +577,10 @@ namespace HBP.Transfer.Transport
             {
                 byte[] id = Encoding.ASCII.GetBytes(contextId);
                 await tls.WriteAsync(id, 0, id.Length, token).ConfigureAwait(false);
-                if (await ReadByteAsync(tls, token).ConfigureAwait(false) == 1)
+                int disposition = await ReadByteAsync(tls, token).ConfigureAwait(false);
+                if (disposition == 2) throw new QuestContextException();
+                if (disposition != 0 && disposition != 1) throw new InvalidDataException("Unsupported globals response. Update Desktop and Quest together.");
+                if (disposition == 1)
                     using (PairingTiming.Measure("desktop.globals-transfer-and-apply"))
                         await sendGlobals(tls, token).ConfigureAwait(false);
                 await AcceptedAsync(tls, token).ConfigureAwait(false);

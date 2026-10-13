@@ -332,6 +332,8 @@ namespace HBP.Quest
             return await work.ConfigureAwait(false);
         }
 
+        public Task<string> ActiveGlobalContextAsync(CancellationToken stop) => OnUnityThreadAsync(() => IsReady ? globals?.Id ?? string.Empty : null, stop);
+
         private async Task<DeliveryStatus> InstallGlobalsAsync(string file, string hash, CancellationToken stop)
         {
             using var timing = PairingTiming.Measure("quest.globals-application");
@@ -348,7 +350,7 @@ namespace HBP.Quest
             {
                 var candidate = await Task.Run(() =>
                 {
-                    var context = new PairingContext(archive.ReadGlobalData(file, stop));
+                    var context = new PairingContext(archive.ReadGlobalData(file, stop, inertPreferences: true));
                     context.RestoreFilterPresets(archive);
                     return context;
                 }, stop).ConfigureAwait(false);
@@ -363,6 +365,7 @@ namespace HBP.Quest
                         throw new ObjectDisposedException(nameof(QuestAnatomySession));
                     if (sessionPreferences != null) await sessionPreferences.CloseAsync();
                     if (atlasPreparation != null) await atlasPreparation.CloseAsync();
+                    candidate.Data.Preferences = archive.MaterializeReceivedPreferences();
                     HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
                     HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;

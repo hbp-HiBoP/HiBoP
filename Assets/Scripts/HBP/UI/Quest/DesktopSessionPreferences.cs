@@ -58,28 +58,29 @@ namespace HBP.UI.Quest
 
         private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, body: body);
 
-        private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request)
+        private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request, CancellationToken cancellationToken = default)
         {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
             m_Stop.Token.ThrowIfCancellationRequested();
             SessionControlResponse response;
             try
             {
-                response = await m_Send(request, m_Stop.Token).ConfigureAwait(false);
+                response = await m_Send(request, linked.Token).ConfigureAwait(false);
             }
             finally
             {
                 await UniTask.SwitchToMainThread();
             }
 
-            m_Stop.Token.ThrowIfCancellationRequested();
+            linked.Token.ThrowIfCancellationRequested();
             QuestHasSharedScene = response.HasSharedScene;
             return response;
         }
 
-        public async UniTask StartAsync()
+        public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             using var timing = PairingTiming.Measure("desktop.session-open");
-            var response = await SendAsync(Request(SessionControlKind.Open));
+            var response = await SendAsync(Request(SessionControlKind.Open), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
             SessionAtlasCatalog.Begin();

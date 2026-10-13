@@ -389,6 +389,107 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public async System.Threading.Tasks.Task DetachedGlobalsPreserveFreeTextAndKeepWorkerPreferenceSettersInert()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "detached-globals"), deferResourceWrites: true);
+            Fixture(source);
+            var data = source.Globals.Data;
+            data.Protocols[0].Name = "snapshot-illustration-demo";
+            source.Globals.CaptureFilterPresets(new FilterConditionsPresetCollection(), source);
+            var metadata = source.CaptureDetachedGlobalMetadata(data);
+            data.Protocols[0].Name = "Changed";
+            var normalization = HBP.Core.Data.DataManager.DefaultNormalization;
+            metadata["Preferences"]["Data"]["EEG"]["Normalization"] = (int)HBP.Core.Enums.NormalizationType.Protocol;
+            await System.Threading.Tasks.Task.Run(() =>
+            {
+                source.CompleteIllustrations(metadata);
+                var detached = metadata.ToObject<GlobalDataPayload>(PreparedDataJson.Create(source, inertPreferences: true));
+                Assert.That(detached.Protocols[0].Name, Is.EqualTo("snapshot-illustration-demo"));
+            });
+            Assert.That(HBP.Core.Data.DataManager.DefaultNormalization, Is.EqualTo(normalization));
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task PairingCaptureRecordsMainThreadCostAgainstSynchronousPreparation()
+        {
+            var protocols = Enumerable.Range(0, 100).Select(index =>
+            {
+                string id = index.ToString();
+                var ev = new Event("event " + id, new[] { index }, MainSecondaryEnum.Main, "event-" + id);
+                var sub = new SubBloc("sub " + id, 0, MainSecondaryEnum.Main, new TimeWindow(0, 30), new TimeWindow(0, 0), new[] { ev }, Array.Empty<Icon>(), Array.Empty<Treatment>(), "sub-" + id);
+                var bloc = new Bloc("bloc " + id, 0, "", "sub_event_CODE", new[] { sub }, "bloc-" + id);
+                return new Protocol("protocol " + id, new[] { bloc }, "protocol-" + id);
+            }).ToList();
+            var data = new GlobalDataPayload { Preferences = new UserPreferences(), Tags = new TagCollection(Array.Empty<BaseTag>(), Array.Empty<BaseTag>(), Array.Empty<BaseTag>()), Protocols = protocols, Aliases = new AliasCollection(), Grid = 32 };
+            _ = new PairingContext(data); // Warm JIT/contracts before comparing preparation paths.
+            using var legacy = new SceneArchive(Path.Combine(directory, "legacy-capture"), deferResourceWrites: true);
+            using var detached = new SceneArchive(Path.Combine(directory, "detached-capture"), deferResourceWrites: true);
+            long allocated = GC.GetAllocatedBytesForCurrentThread();
+            var clock = System.Diagnostics.Stopwatch.StartNew();
+            var oldContext = new PairingContext(data);
+            oldContext.CaptureFilterPresets(new FilterConditionsPresetCollection(), legacy);
+            byte[] oldMetadata = legacy.CaptureGlobalMetadata(data);
+            double legacyMs = clock.Elapsed.TotalMilliseconds;
+            long legacyBytes = GC.GetAllocatedBytesForCurrentThread() - allocated;
+            allocated = GC.GetAllocatedBytesForCurrentThread();
+            clock.Restart();
+            var capture = new PairingContext(data, deferFingerprints: true);
+            capture.CaptureFilterPresets(new FilterConditionsPresetCollection(), detached);
+            var references = capture.Deferred;
+            var metadata = detached.CaptureDetachedGlobalMetadata(data);
+            double detachedMs = clock.Elapsed.TotalMilliseconds;
+            long detachedBytes = GC.GetAllocatedBytesForCurrentThread() - allocated;
+            int owner = System.Threading.Thread.CurrentThread.ManagedThreadId;
+            double workerMs = await System.Threading.Tasks.Task.Run(() =>
+            {
+                Assert.That(System.Threading.Thread.CurrentThread.ManagedThreadId, Is.Not.EqualTo(owner));
+                var worker = System.Diagnostics.Stopwatch.StartNew();
+                detached.CompleteIllustrations(metadata);
+                var context = new PairingContext(metadata.ToObject<GlobalDataPayload>(PreparedDataJson.Create(detached, inertPreferences: true)));
+                references.Complete(context, context.Data.FilterPresets);
+                metadata["FilterPresets"] = context.Data.FilterPresets.DeepClone();
+                detached.WriteCapturedGlobals(System.Text.Encoding.UTF8.GetBytes(metadata.ToString(Newtonsoft.Json.Formatting.None)), Path.Combine(directory, "benchmark.hbglobal"));
+                Assert.That(context.Data.Protocols.Count, Is.EqualTo(100));
+                return worker.Elapsed.TotalMilliseconds;
+            });
+            string report = Newtonsoft.Json.JsonConvert.SerializeObject(new { protocols = 100, synchronousMainMs = legacyMs, synchronousMainAllocatedBytes = legacyBytes == 0 ? (long?)null : legacyBytes, detachedMainMs = detachedMs, detachedMainAllocatedBytes = detachedBytes == 0 ? (long?)null : detachedBytes, detachedWorkerMs = workerMs, metadataBytes = oldMetadata.Length }, Newtonsoft.Json.Formatting.Indented);
+            string output = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", ".test-results", "quest-pairing"));
+            Directory.CreateDirectory(output);
+            File.WriteAllText(Path.Combine(output, "capture-comparison.json"), report);
+            TestContext.WriteLine(report);
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task InertGlobalPreferencesRecreateRuntimeEventsOnlyDuringApplication()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "inert-source"), deferResourceWrites: true);
+            Fixture(source);
+            source.Globals.CaptureFilterPresets(new FilterConditionsPresetCollection(), source);
+            var metadata = Newtonsoft.Json.Linq.JObject.Parse(System.Text.Encoding.UTF8.GetString(source.CaptureGlobalMetadata(source.Globals.Data)));
+            metadata["Preferences"]["Data"]["EEG"]["Normalization"] = (int)NormalizationType.Protocol;
+            string file = Path.Combine(directory, "inert.hbglobal");
+            source.WriteCapturedGlobals(System.Text.Encoding.UTF8.GetBytes(metadata.ToString()), file);
+            using var target = new SceneArchive(Path.Combine(directory, "inert-target"), true);
+            var original = HBP.Core.Data.DataManager.DefaultNormalization;
+            try
+            {
+                await System.Threading.Tasks.Task.Run(() => target.ReadGlobalData(file, inertPreferences: true));
+                Assert.That(HBP.Core.Data.DataManager.DefaultNormalization, Is.EqualTo(original));
+                var runtime = target.MaterializeReceivedPreferences();
+                Assert.That(runtime.OnSavePreferences, Is.Not.Null);
+                int notifications = 0;
+                runtime.OnSavePreferences.AddListener(() => notifications++);
+                runtime.NotifyChanged();
+                Assert.That(notifications, Is.EqualTo(1));
+                Assert.That(HBP.Core.Data.DataManager.DefaultNormalization, Is.EqualTo(NormalizationType.Protocol));
+            }
+            finally
+            {
+                HBP.Core.Data.DataManager.DefaultNormalization = original;
+            }
+        }
+
+        [Test]
         public void GlobalValidationIsRenewedForEveryCapture()
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);

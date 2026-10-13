@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
+using HBP.Core.Database;
 using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Core.Enums;
@@ -38,6 +39,17 @@ namespace HBP.Quest.Desktop
         public bool CanRetrySceneOperations => CanRetryReconciliation || CanRetryScenes;
         private IDisposable pairingTiming;
         public bool IsPaired => connected && credential != null;
+        public string ConnectedId => pin == null ? null : Convert.ToBase64String(pin);
+        public string ConnectedLabel => devices.FirstOrDefault(device => device.Id == ConnectedId)?.Label ?? (pin == null ? "Quest" : "Quest · " + BitConverter.ToString(pin, 0, 3).Replace("-", ""));
+        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId;
+        public bool LastOperationSucceeded { get; private set; }
+        public Exception BlockingError { get; private set; }
+        private string selectedEndpoint;
+        private byte[] selectedPin;
+        private string activeRequest;
+        private bool automaticOperation;
+        private LoadingManager.PresentationHandle pairingPresentation;
+        private Action<float, float, LoadingText> pairingProgress;
         public bool CanRetry => HasRetryableDelivery && IsPaired;
         public bool HasRetryableDelivery => publications.Values.Any(value => value.Error != null && value.Offer?.CanRetry == true);
 
@@ -48,7 +60,6 @@ namespace HBP.Quest.Desktop
         private DesktopSessionPreferences sessionPreferences;
         private readonly SemaphoreSlim sessionOperations = new(1, 1);
         private long sessionGeneration;
-        private long discoveryGeneration;
         public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
         public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
         public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
@@ -115,7 +126,9 @@ namespace HBP.Quest.Desktop
         private void SessionConnectionLost()
         {
             connected = false;
+            LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
+            UpdateDiscoveryWatch();
             SetStatus("Quest disconnected. Pending preference and atlas operations were abandoned.");
         }
 
@@ -141,6 +154,7 @@ namespace HBP.Quest.Desktop
             usb = new QuestUsbDiscovery(adb);
             PairingTiming.OnMeasured += LogPairingTiming;
             InitializeSceneLifecycle();
+            InitializeDiscovery();
         }
 
         private static void LogPairingTiming(string message) => Debug.Log(message);
@@ -148,141 +162,265 @@ namespace HBP.Quest.Desktop
         private void Update()
         {
             TickSceneLifecycle();
-            if (!busy && !scanning && (discoveryActive || reconnect) && Time.unscaledTime >= nextDiscovery)
-            {
-                nextDiscovery = Time.unscaledTime + 5;
-                discovering = DiscoverAsync();
-            }
-
-            if (!busy && reconnect && credential != null && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
+            TickDiscovery();
+            if (!busy && reconnect && credential != null && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
             {
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>
                 {
                     bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
-                    if (!connected || !ready || NeedsSceneReconnection) await RestoreAsync(token);
-                });
+                    if (!ready || NeedsSceneReconnection) await RestoreAsync(token);
+                }, true);
             }
         }
 
         public void SetDiscoveryActive(bool active)
         {
             discoveryActive = active;
-            if (active) nextDiscovery = 0;
+            if (active) RequestDiscovery();
+            UpdateDiscoveryWatch();
         }
 
         public void Disconnect()
         {
-            if (!IsPaired) return;
             if (busy) throw new InvalidOperationException("Wait for the current Quest operation to finish.");
-            devices.Clear();
-            manualSelected = false;
-            DiscoveryMessages = new[] { "Searching for Quests on USB and Wi-Fi..." };
-            ClearPairing();
-            SetStatus("Select a Quest to pair.");
+            autoConnectSuspended = true;
+            DisconnectTransport();
+            SetStatus("Quest disconnected. Select Connect to reconnect.");
+        }
+
+        private void DisconnectTransport()
+        {
+            connected = reconnect = false;
+            LastOperationSucceeded = false;
+            sessionPreferences?.Dispose();
+            sessionPreferences = null;
+            foreach (var entry in publications.Values)
+            {
+                entry.Owner?.Dispose();
+                entry.Owner = null;
+            }
         }
 
         public void Select(QuestDevice device)
         {
-            if (busy || device == null || device.Pin == null) return;
-            if (device.Id == SelectedId && pin != null && pin.SequenceEqual(device.Pin))
-            {
-                endpoint = device.Host;
-                return;
-            }
-
-            ClearPairing();
+            if (busy || device?.Pin == null) return;
             manualSelected = false;
-            endpoint = device.Host;
             SelectedId = device.Id;
-            pin = (byte[])device.Pin.Clone();
-            credential = ReadCredential(pin);
-            SetStatus(credential == null ? "Select Pair to enter the code shown in your Quest." : "Quest remembered. Select Pair to reconnect.");
+            selectedEndpoint = device.Host;
+            selectedPin = (byte[])device.Pin.Clone();
+            OnChanged.Invoke();
         }
 
         public void SelectManual(string address)
         {
             if (busy) return;
-            if (pin != null && string.Equals(endpoint, address?.Trim(), StringComparison.Ordinal)) return;
-            ClearPairing();
             manualSelected = true;
-            endpoint = address?.Trim();
-            SetStatus("Select Pair to connect to this address.");
+            selectedEndpoint = address?.Trim();
+            selectedPin = null;
+            SelectedId = null;
+            OnChanged.Invoke();
         }
 
         public Task PairAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode)
         {
-            return RunAsync(async token =>
+            string target = SelectedId ?? selectedEndpoint;
+            if (busy) return activeRequest == target ? running : Task.FromException(new InvalidOperationException("Another Quest operation is in progress."));
+            autoConnectSuspended = false;
+            if (SelectedId != null) automaticExcluded.Remove(SelectedId);
+            if (SelectedId != null) automaticRetryAfter.Remove(SelectedId);
+            activeRequest = target;
+            return RunAsync(token => ConnectSelectedAsync(requestCode, false, token));
+        }
+
+        private async Task ConnectSelectedAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, bool automatic, CancellationToken token)
+        {
+            if (IsSelectedConnected)
             {
-                if (IsPaired && !reconciliationNeedsRetry && CanRetryScenes)
+                await PrepareDatabaseAsync(token);
                 {
-                    await RetryFailedScenesAsync(token);
-                    return;
-                }
+                    var stop = token;
+                    // A manual reconnect may refresh definitions only once neither side uses the old snapshot.
+                    if (!HasSharedScene && inventoryWork.IsCompleted && !publications.Values.Any(entry => entry.HasPendingWork))
+                    {
+                        await FlushClosesAsync(stop);
+                        if ((await InventoryAsync(stop)).Length == 0)
+                        {
+                            stop.ThrowIfCancellationRequested();
+                            DisconnectTransport();
+                            globals?.Dispose();
+                            globals = null;
+                        }
+                    }
 
-                reconciliationNeedsRetry = false;
-                if (string.IsNullOrWhiteSpace(endpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
-                if (pin == null)
-                {
-                    if (endpoint.Contains(":")) throw new ArgumentException("Enter the Quest IPv4 address without a port.");
-                    SetStatus("Connecting to Quest...");
-                    pin = await QuestPairing.InspectAsync(endpoint, token);
-                    credential = ReadCredential(pin);
+                    await RestoreAsync(stop);
+                    if (CanRetryScenes) await RetryFailedScenesAsync(stop);
                 }
+                return;
+            }
 
-                bool remembered = credential != null;
-                if (!remembered) await AuthenticateWithCodeAsync(requestCode, token);
+            if (string.IsNullOrWhiteSpace(selectedEndpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
+            byte[] nextPin = selectedPin;
+            if (nextPin == null)
+            {
+                if (selectedEndpoint.Contains(":")) throw new ArgumentException("Enter the Quest IPv4 address without a port.");
+                nextPin = await QuestPairing.InspectAsync(selectedEndpoint, token);
+                SelectedId = Convert.ToBase64String(nextPin);
+                selectedPin = nextPin;
+            }
 
-                reconnect = true;
-                try
+            token.ThrowIfCancellationRequested();
+            if (pin != null && !pin.SequenceEqual(nextPin))
+            {
+                if (HasSharedScene) throw new InvalidOperationException("Close the visualizations shared with the current Quest before connecting another headset.");
+                ClearPairing();
+            }
+
+            DisconnectTransport();
+            pin = (byte[])nextPin.Clone();
+            endpoint = selectedEndpoint;
+            if (credential == null) credential = await Task.Run(() => ReadCredential(pin), token);
+            await UniTask.SwitchToMainThread(token);
+            if (automatic && credential == null) throw new AuthenticationException("Pair this Quest manually before connecting automatically.");
+            reconciliationNeedsRetry = false;
+            await PrepareDatabaseAsync(token);
+            if (credential == null) await AuthenticateWithCodeAsync(requestCode, token);
+            try
+            {
+                await RestoreAsync(token);
+            }
+            catch (AuthenticationException) when (!automatic)
+            {
+                if (credential != null) Array.Clear(credential, 0, credential.Length);
+                credential = null;
+                await AuthenticateWithCodeAsync(requestCode, token);
+                await RestoreAsync(token);
+            }
+        }
+
+        private async Task PrepareDatabaseAsync(CancellationToken token)
+        {
+            async UniTask Prepare(Action<float, float, LoadingText> progress, CancellationToken stop)
+            {
+                SetStatus("Waiting for the Desktop database");
+                await ApplicationManager.WaitForDatabaseInitializationAsync(stop);
+                stop.ThrowIfCancellationRequested();
+                await DatabaseManager.Database.EnsureDatabaseReadyAsync(progress, stop);
+            }
+
+            try
+            {
+                await Prepare(pairingProgress, token);
+            }
+            catch (Exception error) when (error is not OperationCanceledException)
+            {
+                BlockingError = error;
+                throw;
+            }
+        }
+
+        private async Task PresentPhaseAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> phase, CancellationToken token)
+        {
+            var previous = pairingPresentation;
+            var previousProgress = pairingProgress;
+            try
+            {
+                await LoadingManager.PresentAsync(async (update, stop) =>
                 {
-                    await RestoreAsync(token);
-                    if (CanRetryScenes) await RetryFailedScenesAsync(token);
-                }
-                catch (AuthenticationException) when (remembered)
-                {
-                    Array.Clear(credential, 0, credential.Length);
-                    credential = null;
-                    connected = reconnect = false;
-                    await AuthenticateWithCodeAsync(requestCode, token);
-                    reconnect = true;
-                    await RestoreAsync(token);
-                }
-            });
+                    pairingProgress = update;
+                    update(0, 0, new LoadingText(Status));
+                    await phase(update, stop);
+                }, token, handle => pairingPresentation = handle);
+            }
+            finally
+            {
+                pairingPresentation = previous;
+                pairingProgress = previousProgress;
+            }
         }
 
         private async Task AuthenticateWithCodeAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, CancellationToken token)
         {
-            InputDialogResult answer = await requestCode(token);
-            if (!answer.Confirmed) throw new OperationCanceledException(token);
-            if (answer.Value == null || answer.Value.Length != 6 || !answer.Value.All(char.IsDigit))
-                throw new ArgumentException("Enter the six-digit code shown in your Quest.");
-            SetStatus("Checking the Quest code...");
-            pairingTiming?.Dispose();
-            pairingTiming = PairingTiming.Measure("desktop.pairing-total");
-            credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, token);
-            PairingStorage.Write(CredentialPath(pin), credential);
+            if (requestCode == null) throw new AuthenticationException("Connect manually to enter the Quest code.");
+            Guid codeRequest = await QuestPairing.RequestCodeAsync(endpoint, pin, token);
+            try
+            {
+                InputDialogResult answer;
+                var presentation = pairingPresentation;
+                if (presentation != null) await presentation.PauseAsync();
+                try
+                {
+                    answer = await requestCode(token);
+                }
+                finally
+                {
+                    if (!token.IsCancellationRequested) presentation?.Resume();
+                }
+
+                if (!answer.Confirmed) throw new OperationCanceledException(token);
+                if (answer.Value == null || answer.Value.Length != 6 || !answer.Value.All(char.IsDigit))
+                    throw new ArgumentException("Enter the six-digit code shown in your Quest.");
+                {
+                    var stop = token;
+                    SetStatus("Checking the Quest code");
+                    pairingTiming?.Dispose();
+                    pairingTiming = PairingTiming.Measure("desktop.pairing-total");
+                    credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, stop);
+                    // Once received, persist even if cancellation arrives: the receiver already owns this secret.
+                    await Task.Run(() => PairingStorage.Write(CredentialPath(pin), credential));
+                    stop.ThrowIfCancellationRequested();
+                }
+            }
+            finally
+            {
+                try
+                {
+                    using var close = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                    await QuestPairing.RequestCodeAsync(endpoint, pin, close.Token, codeRequest);
+                }
+                catch (Exception)
+                {
+                    /* The bounded display request expires if the peer disappeared. */
+                }
+            }
         }
 
         private async Task RestoreAsync(CancellationToken token)
         {
-            SetStatus("Preparing Quest pairing...");
+            SetStatus("Preparing Quest pairing");
             await UniTask.NextFrame(cancellationToken: token);
             globals ??= await PairingSnapshot.CaptureAsync(token);
-            SetStatus("Connecting to paired Quest...");
             sessionPreferences?.Dispose();
             var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
             sessionPreferences = controls;
-            controls.OnChanged.AddListener(() => OnChanged.Invoke());
-            controls.OnConnectionLost.AddListener(SessionConnectionLost);
+            controls.OnChanged.AddListener(() =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls)) OnChanged.Invoke();
+            });
+            controls.OnConnectionLost.AddListener(() =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls)) SessionConnectionLost();
+            });
             try
             {
-                SetStatus("Applying shared preferences and definitions on Quest...");
+                SetStatus("Applying shared preferences and definitions on Quest");
                 using (PairingTiming.Measure("desktop.globals-resume"))
                     await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, SendGlobalsAsync);
-                SetStatus("Opening the Quest session...");
-                await controls.StartAsync();
-                connected = true;
+                SetStatus("Opening the Quest session");
+                await controls.StartAsync(token);
+                token.ThrowIfCancellationRequested();
+                connected = reconnect = true;
+                LastOperationSucceeded = true;
+                long date = DateTime.UtcNow.Ticks;
+                history[ConnectedId] = date;
+                try
+                {
+                    await Task.Run(() => associations.RecordSuccess(pin, date));
+                }
+                catch (Exception error)
+                {
+                    Debug.LogWarning("Could not save Quest connection history: " + error.Message);
+                }
             }
             catch
             {
@@ -291,15 +429,46 @@ namespace HBP.Quest.Desktop
             }
 
             nextHeartbeat = Time.unscaledTime + 5;
-            await RestoreScenesAsync(token);
+            try
+            {
+                // Pairing is silent in automatic mode; scene reconciliation remains visible.
+                if (automaticOperation && (HasSharedScene || autoSync && Module3DMain.IsInitialized && Module3DMain.Scenes.Count != 0))
+                    await PresentPhaseAsync(async (_, stop) => await RestoreScenesAsync(stop), token);
+                else await RestoreScenesAsync(token);
+            }
+            catch (Exception error)
+            {
+                reconciliationNeedsRetry = true;
+                LastOperationCancelled = error is OperationCanceledException || token.IsCancellationRequested;
+                LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);
+                SetStatus(LastOperationSucceeded ? "Quest connected. Scene synchronization needs attention: " + error.Message : "Quest disconnected. Reconnect to resume scene synchronization.");
+                return;
+            }
+
+            LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);
+            if (!LastOperationSucceeded)
+            {
+                SetStatus("Quest disconnected. Reconnect to resume scene synchronization.");
+                return;
+            }
+
             SetStatus(reconciliationNeedsRetry ? "Quest connected. Some visualizations could not reconnect. Select Retry." : "Quest connected. Scene synchronization is ready.");
         }
 
-        private static async Task<ConflictChoice> ChooseConflictAsync(CheckpointConflict conflict, CancellationToken stop)
+        private async Task<ConflictChoice> ChooseConflictAsync(CheckpointConflict conflict, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(stop);
-            int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", "This choice applies to conflicts in all common visualizations during this reconnection. Each visualization has its own result.\n\n" + conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
-            return answer == 0 ? ConflictChoice.Desktop : ConflictChoice.Quest;
+            var presentation = pairingPresentation;
+            if (presentation != null) await presentation.PauseAsync();
+            try
+            {
+                int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", "This choice applies to conflicts in all common visualizations during this reconnection. Each visualization has its own result.\n\n" + conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
+                return answer == 0 ? ConflictChoice.Desktop : ConflictChoice.Quest;
+            }
+            finally
+            {
+                if (!stop.IsCancellationRequested) presentation?.Resume();
+            }
         }
 
         private async Task<DeliveryReceipt> SendGlobalsAsync(Stream stream, CancellationToken token)
@@ -338,13 +507,19 @@ namespace HBP.Quest.Desktop
 
         public void Cancel()
         {
-            operation?.Cancel();
+            CancelConnectionAttempt();
             foreach (var entry in publications.Values) entry.Stop?.Cancel();
         }
 
-        private Task RunAsync(Func<CancellationToken, Task> action)
+        public void CancelConnectionAttempt() => operation?.Cancel();
+
+        private Task RunAsync(Func<CancellationToken, Task> action, bool automatic = false)
         {
-            if (busy || !isActiveAndEnabled) return Task.CompletedTask;
+            if (busy) return Task.FromException(new InvalidOperationException("Another Quest operation is in progress."));
+            if (!isActiveAndEnabled) return Task.FromException(new ObjectDisposedException(nameof(QuestManager)));
+            automaticOperation = automatic;
+            LastOperationSucceeded = false;
+            BlockingError = null;
             busy = true;
             LastOperationCancelled = false;
             OnChanged.Invoke();
@@ -355,22 +530,62 @@ namespace HBP.Quest.Desktop
         {
             using var attempt = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             operation = attempt;
-            await sessionOperations.WaitAsync(lifetime.Token);
+            long initialGeneration = sessionGeneration;
+            bool acquired = false;
+
+            async Task InvokeAsync(CancellationToken token)
+            {
+                // Finish an existing inventory before taking its session gate: it can itself await scene sends.
+                if (!inventoryWork.IsCompleted)
+                {
+                    SetStatus("Waiting for Quest scene operations");
+                    // This work already owns any scene-transfer presentation. Drain it even after cancellation,
+                    // so this attempt cannot finish while the inventory still starts new sends behind it.
+                    await inventoryWork;
+                    token.ThrowIfCancellationRequested();
+                }
+
+                await UniTask.SwitchToMainThread(token);
+                await sessionOperations.WaitAsync(token);
+                acquired = true;
+                await action(token);
+            }
+
             try
             {
-                await action(attempt.Token);
+                if (automaticOperation) await InvokeAsync(attempt.Token);
+                else
+                    await PresentPhaseAsync(async (_, stop) =>
+                    {
+                        using var cancel = stop.Register(attempt.Cancel);
+                        await InvokeAsync(attempt.Token);
+                    }, attempt.Token);
             }
             catch (Exception exception)
             {
                 await UniTask.SwitchToMainThread();
-                connected = false;
-                sessionPreferences?.Dispose();
+                bool restoreSession = reconnect && exception is not AuthenticationException && exception is not OperationCanceledException && !attempt.IsCancellationRequested;
+                bool preserved = IsPaired && initialGeneration == sessionGeneration && exception is ArgumentException or InvalidOperationException or OperationCanceledException;
+                if (!preserved) DisconnectTransport();
+                reconnect = preserved || restoreSession;
+                nextHeartbeat = Time.unscaledTime + 15;
+                nextAutomaticAttempt = Time.unscaledTime + 15;
+                if (automaticOperation && ConnectedId != null) automaticRetryAfter[ConnectedId] = Time.unscaledTime + 30;
+                if (!automaticOperation) autoConnectSuspended = true;
+                if (BlockingError != null) autoConnectSuspended = true;
+                if (exception is QuestContextException)
+                {
+                    reconnect = false;
+                    if (ConnectedId != null) automaticExcluded.Add(ConnectedId);
+                }
+
                 if (exception is AuthenticationException)
                 {
+                    if (ConnectedId != null) automaticExcluded.Add(ConnectedId);
                     reconnect = false;
                     if (credential != null) Array.Clear(credential, 0, credential.Length);
                     credential = null;
-                    SetStatus("Pairing refused. Check the Quest code and try again.");
+                    SetStatus("Pairing needs attention. Connect manually to enter the Quest code, or forget the association on Quest if it is locked.");
                 }
                 else if (reconciliationNeedsRetry)
                 {
@@ -383,7 +598,7 @@ namespace HBP.Quest.Desktop
                     SetStatus("Operation cancelled.");
                 }
                 else
-                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? exception.Message : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association..." : "Quest unreachable. Check USB or Wi-Fi.");
+                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? exception.Message : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association" : "Quest unreachable. Check USB or Wi-Fi.");
 
                 Debug.LogWarning("Quest operation failed: " + exception.Message);
             }
@@ -392,82 +607,15 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 pairingTiming?.Dispose();
                 pairingTiming = null;
-                sessionOperations.Release();
+                if (acquired) sessionOperations.Release();
                 operation = null;
+                activeRequest = null;
                 busy = false;
                 OnChanged.Invoke();
             }
         }
 
-        private async Task DiscoverAsync()
-        {
-            scanning = true;
-            DiscoveryMessages = new[] { "Searching for Quests on USB and Wi-Fi..." };
-            OnChanged.Invoke();
-            try
-            {
-                long generation = ++discoveryGeneration;
-                var context = SynchronizationContext.Current;
-                var found = new List<QuestDevice>();
-
-                void Discovered(QuestDevice device) =>
-                    context.Post(_ =>
-                    {
-                        if (!this || lifetime.IsCancellationRequested || !scanning || generation != discoveryGeneration) return;
-                        found.Add(device);
-                        PublishDiscovery(found, false);
-                    }, null);
-
-                var pending = new Dictionary<Task<List<QuestDevice>>, string>
-                {
-                    [QuestDiscovery.FindAsync(lifetime.Token, Discovered)] = "Wi-Fi",
-                    [usb.FindAsync(lifetime.Token, Discovered)] = "USB"
-                };
-                var messages = new List<string>();
-                while (pending.Count > 0)
-                {
-                    var completed = await Task.WhenAny(pending.Keys);
-                    string source = pending[completed];
-                    pending.Remove(completed);
-                    try
-                    {
-                        found.AddRange(await completed);
-                    }
-                    catch (Exception) when (!lifetime.IsCancellationRequested)
-                    {
-                        messages.Add(source + " discovery unavailable");
-                    }
-
-                    if (!this || lifetime.IsCancellationRequested) return;
-                    PublishDiscovery(found, pending.Count == 0);
-                }
-
-                if (!manualSelected && SelectedId != null)
-                {
-                    QuestDevice selected = devices.FirstOrDefault(x => x.Id == SelectedId);
-                    if (selected != null && !busy) endpoint = selected.Host;
-                }
-
-                if (!manualSelected && SelectedId == null && devices.Count > 0) Select(devices[0]);
-                messages.Add(devices.Count == 0 ? "No Quest found. Try Manual IP." : $"{devices.Count} Quest headset{(devices.Count == 1 ? "" : "s")} found");
-                DiscoveryMessages = messages;
-                OnChanged.Invoke();
-            }
-            finally
-            {
-                scanning = false;
-                if (this) nextDiscovery = Time.unscaledTime + 5;
-            }
-        }
-
-        private void PublishDiscovery(List<QuestDevice> found, bool complete)
-        {
-            devices = (complete ? found : found.Concat(devices)).GroupBy(x => x.Id).Select(g => g.OrderBy(x => x.UsbSerial == null).First()).OrderBy(x => x.Label).ToList();
-            if (!manualSelected && !busy && SelectedId == null && devices.Count > 0) Select(devices[0]);
-            OnChanged.Invoke();
-        }
-
-        private string CredentialPath(byte[] identity) => Path.Combine(store, BitConverter.ToString(identity).Replace("-", "") + ".pair");
+        private string CredentialPath(byte[] identity) => associations.CredentialPath(identity);
 
         private byte[] ReadCredential(byte[] identity)
         {
@@ -479,7 +627,7 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception)
             {
-                SetStatus("Saved pairing cannot be read. Enter the headset code to pair again.");
+                // Report on the owning Unity thread through the connection result.
             }
 
             return null;
@@ -495,7 +643,7 @@ namespace HBP.Quest.Desktop
             credential = pin = null;
             globals?.Dispose();
             globals = null;
-            endpoint = SelectedId = null;
+            endpoint = null;
             connected = reconnect = failedDelivery = false;
             OnChanged.Invoke();
         }
@@ -503,18 +651,20 @@ namespace HBP.Quest.Desktop
         private void SetStatus(string value)
         {
             Status = value;
+            pairingProgress?.Invoke(0, 0, new LoadingText(value));
             OnChanged.Invoke();
         }
 
         private async void OnDestroy()
         {
             PairingTiming.OnMeasured -= LogPairingTiming;
+            DisposeDiscovery();
             DisposeSceneLifecycle();
             lifetime.Cancel();
             operation?.Cancel();
             try
             {
-                await Task.WhenAll(new[] { running, discovering, inventoryWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
+                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
             }
             catch (Exception)
             {

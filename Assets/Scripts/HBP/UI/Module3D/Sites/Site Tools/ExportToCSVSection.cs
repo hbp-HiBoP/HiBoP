@@ -269,7 +269,7 @@ namespace HBP.UI.Module3D
             await UniTask.SwitchToThreadPool();
 
             token.ThrowIfCancellationRequested();
-            updateProgress(0.1f, 0, new LoadingText("Loading existing CSV file..."));
+            updateProgress(0.1f, 0, new LoadingText("Loading existing CSV file"));
 
             // Reading the existing CSV file
             Dictionary<string, Dictionary<string, string>> existingData = new();
@@ -311,7 +311,7 @@ namespace HBP.UI.Module3D
                 }
             }
 
-            updateProgress(0.3f, 0, new LoadingText("Preparing new data..."));
+            updateProgress(0.3f, 0, new LoadingText("Preparing new data"));
 
             // Prepare new data
             System.Text.StringBuilder newCsvContent = await PrepareCSVContentAsync(request, (p, _, t) => updateProgress(0.3f + p * 0.5f, 0, t), token);
@@ -347,7 +347,7 @@ namespace HBP.UI.Module3D
                 }
             }
 
-            updateProgress(0.8f, 0, new LoadingText("Merging data..."));
+            updateProgress(0.8f, 0, new LoadingText("Merging data"));
 
             // Create a dictionary with the new data
             Dictionary<string, Dictionary<string, string>> newData = new();
@@ -452,7 +452,7 @@ namespace HBP.UI.Module3D
                 mergedCsvContent.AppendLine(rowBuilder.ToString());
             }
 
-            updateProgress(0.95f, 0, new LoadingText("Writing merged file..."));
+            updateProgress(0.95f, 0, new LoadingText("Writing merged file"));
 
             // Write the merged file
             using StreamWriter sw = new(csvPath);

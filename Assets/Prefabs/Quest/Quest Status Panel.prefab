@@ -1094,7 +1094,7 @@ MonoBehaviour:
   close: {fileID: 8092947956275297395}
   pin: {fileID: 3546008616348378514}
   pinLabel: {fileID: 1056328863305317757}
-  initiallyOpen: 1
+  initiallyOpen: 0
   placement: {x: -0.47, y: 0.05, z: 1.15}
 --- !u!114 &2853932684746156159
 MonoBehaviour:

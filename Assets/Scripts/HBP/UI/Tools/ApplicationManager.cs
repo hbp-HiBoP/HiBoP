@@ -15,13 +15,22 @@ namespace HBP.UI.Tools
         private bool m_IsQuitting = false;
         private readonly UniTaskCompletionSource m_DatabaseInitialization = new();
         public UniTask DatabaseInitialization => m_DatabaseInitialization.Task;
+        public static System.Exception DatabaseInitializationPresentedError { get; private set; }
+
+        public static async UniTask WaitForDatabaseInitializationAsync(System.Threading.CancellationToken token)
+        {
+            await UniTask.WaitUntil(() => IsInitialized, cancellationToken: token);
+            await m_Instance.DatabaseInitialization.AttachExternalCancellation(token);
+        }
 
         #endregion
 
         #region Private Methods
 
-        private void Awake()
+        protected override void Initialization()
         {
+            base.Initialization();
+            DatabaseInitializationPresentedError = null;
             Application.wantsToQuit += OnQuit;
         }
 
@@ -34,7 +43,7 @@ namespace HBP.UI.Tools
         {
             try
             {
-                await DatabaseWorkflow.InitializeAsync();
+                await DatabaseWorkflow.InitializeAsync(error => DatabaseInitializationPresentedError = error);
                 m_DatabaseInitialization.TrySetResult();
             }
             catch (System.Exception exception)
@@ -46,6 +55,7 @@ namespace HBP.UI.Tools
 
         private void OnDestroy()
         {
+            Application.wantsToQuit -= OnQuit;
             DataManager.Clear();
             string tmpDir = ApplicationState.ExtractProjectFolder;
             if (Directory.Exists(tmpDir))

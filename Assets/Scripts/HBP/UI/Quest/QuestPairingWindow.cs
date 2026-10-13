@@ -21,6 +21,8 @@ namespace HBP.UI.Quest
         [SerializeField] private InputField address;
         [SerializeField] private Text status;
         [SerializeField] private Button pair;
+        [SerializeField] private Button disconnect;
+        private bool requesting;
 
         private QuestManager connection;
         private bool rebuilding;
@@ -36,6 +38,7 @@ namespace HBP.UI.Quest
             base.Initialize();
 
             connection = QuestManager.Instance;
+            disconnect.onClick.AddListener(connection.Disconnect);
             connection.SetDiscoveryActive(true);
             devices.onValueChanged.AddListener(index =>
             {
@@ -92,14 +95,16 @@ namespace HBP.UI.Quest
             devices.interactable = !connection.IsBusy && !manual.isOn && connection.Devices.Count > 0;
             address.interactable = !connection.IsBusy;
             manual.interactable = !connection.IsBusy;
-            pair.interactable = !connection.IsBusy && (connection.CanRetrySceneOperations || !connection.IsPaired && (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection));
-            pair.GetComponentInChildren<Text>().text = connection.CanRetrySceneOperations ? "Retry" : "Pair";
-            status.text = connection.Status;
+            pair.interactable = !requesting && !connection.IsBusy && (connection.IsSelectedConnected || connection.CanRetrySceneOperations || (manual.isOn ? !string.IsNullOrWhiteSpace(address.text) : connection.Devices.Count > 0 && !missingSelection));
+            pair.GetComponentInChildren<Text>().text = connection.IsSelectedConnected ? connection.CanRetrySceneOperations ? "Retry" : "Reconnect" : "Connect";
+            disconnect.interactable = !requesting && !connection.IsBusy && connection.IsPaired;
+            status.text = connection.IsPaired ? "Connected: " + connection.ConnectedLabel + "\n" + connection.Status : connection.Status;
         }
 
         private void OnDestroy()
         {
             if (connection == null) return;
+            if (requesting) connection.CancelConnectionAttempt();
             connection.OnChanged.RemoveListener(Refresh);
             connection.SetDiscoveryActive(false);
         }
@@ -110,20 +115,42 @@ namespace HBP.UI.Quest
 
         public override async void OK()
         {
-            await PairAsync();
-            if (!connection.IsPaired)
+            if (requesting) return;
+            requesting = true;
+            Exception failure = null;
+            try
             {
-                Refresh();
-                if (!connection.LastOperationCancelled)
-                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", connection.Status);
+                await PairAsync();
+            }
+            catch (Exception error)
+            {
+                failure = error;
+            }
+            finally
+            {
+                requesting = false;
+                if (this) Refresh();
+            }
+
+            if (!this) return;
+            if (failure != null)
+            {
+                status.text = failure.Message;
                 return;
             }
 
-            bool paired = connection.IsPaired;
+            if (!connection.LastOperationSucceeded || connection.LastOperationCancelled || !connection.IsSelectedConnected)
+            {
+                Refresh();
+                if (!connection.LastOperationCancelled && connection.BlockingError != null && !ReferenceEquals(connection.BlockingError, ApplicationManager.DatabaseInitializationPresentedError))
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", connection.BlockingError.Message);
+                return;
+            }
+
             string result = connection.Status;
             base.OK();
             await UniTask.NextFrame();
-            await DialogBoxManager.OpenAsync(paired ? DialogBoxType.Informational : DialogBoxType.Error, paired ? "Quest paired" : "Quest pairing failed", paired ? "Your Quest is paired and ready." : result);
+            await DialogBoxManager.OpenAsync(DialogBoxType.Informational, "Quest paired", connection.CanRetrySceneOperations ? result : "Your Quest is paired and ready.");
         }
 
         #endregion

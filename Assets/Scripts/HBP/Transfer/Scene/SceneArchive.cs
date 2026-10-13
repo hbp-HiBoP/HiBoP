@@ -47,6 +47,9 @@ namespace HBP.Transfer.Scene
         internal bool DetachCapture { get; set; }
 
         private readonly List<SurfaceCapture> detachedSurfaces = new();
+        private bool detachingIllustrations;
+        private readonly List<(string Path, FileStream Stream, string Extension)> illustrationSources = new();
+        private JToken receivedPreferences;
         internal int ContentVersion => packedBuffers ? ScenePayload.FormatVersion : ScenePayload.LegacyFormatVersion;
         internal SceneGlobalReferences GlobalReferences { get; private set; }
 
@@ -338,6 +341,29 @@ namespace HBP.Transfer.Scene
         public string AddIllustration(string path)
         {
             EnsureWritable();
+            if (detachingIllustrations)
+            {
+                int index = illustrationSources.FindIndex(item => item.Path == path);
+                if (index >= 0) return "snapshot-illustration-" + index;
+                string suffix = Path.GetExtension(path).ToLowerInvariant();
+                if (suffix.Length < 4 || suffix.Length > 16 || suffix.Substring(1).Any(c => !char.IsLetter(c) && c != '.')) return "";
+                try
+                {
+                    // Own the open source across capture. Writers/deleters cannot replace it before worker copying.
+                    var input = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    illustrationSources.Add((path, input, suffix));
+                    return "snapshot-illustration-" + (illustrationSources.Count - 1);
+                }
+                catch (IOException)
+                {
+                    return "";
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    return "";
+                }
+            }
+
             if (!File.Exists(path))
                 return "";
             string extension = Path.GetExtension(path).ToLowerInvariant();
@@ -471,6 +497,64 @@ namespace HBP.Transfer.Scene
             return memory.ToArray();
         }
 
+        internal JObject CaptureDetachedGlobalMetadata(GlobalDataPayload payload)
+        {
+            EnsureWritable();
+            detachingIllustrations = true;
+            try
+            {
+                using var writer = new JTokenWriter();
+                Serializer(true).Serialize(writer, payload);
+                return (JObject)writer.Token;
+            }
+            finally
+            {
+                detachingIllustrations = false;
+            }
+        }
+
+        internal void CompleteIllustrations(JObject metadata)
+        {
+            var names = new string[illustrationSources.Count];
+            byte[] buffer = new byte[65536];
+            for (int i = 0; i < names.Length; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var source = illustrationSources[i];
+                string temporary = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
+                try
+                {
+                    using (source.Stream)
+                    using (var output = File.Create(temporary))
+                    {
+                        int count;
+                        while ((count = source.Stream.Read(buffer, 0, buffer.Length)) != 0)
+                        {
+                            cancellationToken.ThrowIfCancellationRequested();
+                            output.Write(buffer, 0, count);
+                        }
+                    }
+
+                    names[i] = StandardData.HashFile(temporary) + source.Extension;
+                    string target = Resolve(names[i]);
+                    if (!File.Exists(target)) File.Move(temporary, target);
+                }
+                finally
+                {
+                    if (File.Exists(temporary)) File.Delete(temporary);
+                }
+            }
+
+            foreach (var value in metadata.Descendants().OfType<JValue>())
+                if (value.Parent is JProperty property && property.Name is "IllustrationPath" or "ImagePath" && value.Type == JTokenType.String && ((string)value).StartsWith("snapshot-illustration-", StringComparison.Ordinal))
+                {
+                    if (!int.TryParse(((string)value).Substring(22), out int index) || index < 0 || index >= names.Length) throw new InvalidDataException("Invalid captured illustration.");
+                    value.Value = names[index];
+                }
+
+            illustrationSources.Clear();
+        }
+
         internal void WriteCapturedGlobals(byte[] metadata, string output)
         {
             EnsureWritable();
@@ -583,17 +667,45 @@ namespace HBP.Transfer.Scene
             return payload;
         }
 
-        public GlobalDataPayload ReadGlobalData(string input, System.Threading.CancellationToken token = default)
+        public GlobalDataPayload ReadGlobalData(string input, System.Threading.CancellationToken token = default, bool inertPreferences = false)
         {
             using var source = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
             Extract(source, "globals.json", token);
-            return LoadGlobalData();
+            return LoadGlobalData(inertPreferences);
         }
 
-        internal GlobalDataPayload LoadGlobalData()
+        internal GlobalDataPayload LoadGlobalData(bool inertPreferences = false)
         {
             using var reader = new JsonTextReader(File.OpenText(Path.Combine(directory, "globals.json"))) { MaxDepth = 128 };
-            return Serializer(true).Deserialize<GlobalDataPayload>(reader);
+            if (inertPreferences)
+            {
+                var metadata = JObject.Load(reader);
+                receivedPreferences = metadata["Preferences"]?.DeepClone();
+                return metadata.ToObject<GlobalDataPayload>(PreparedDataJson.Create(this, inertPreferences: true));
+            }
+
+            return PreparedDataJson.Create(this, inertPreferences: inertPreferences).Deserialize<GlobalDataPayload>(reader);
+        }
+
+        /// <summary>Call on Unity's thread after detached preparation; these four setters change runtime globals.</summary>
+        public HBP.Core.Preferences.UserPreferences MaterializeReceivedPreferences()
+        {
+            if (receivedPreferences == null) throw new InvalidOperationException("No detached received preferences.");
+
+            T ReadEnum<T>(string path) where T : struct, Enum
+            {
+                var value = receivedPreferences.SelectToken(path);
+                if (value?.Type != JTokenType.Integer || !Enum.IsDefined(typeof(T), (int)value)) throw new InvalidDataException("Invalid runtime preference: " + path);
+                return (T)Enum.ToObject(typeof(T), (int)value);
+            }
+
+            _ = ReadEnum<HBP.Core.Enums.AveragingType>("Data.EEG.Averaging");
+            _ = ReadEnum<HBP.Core.Enums.NormalizationType>("Data.EEG.Normalization");
+            _ = ReadEnum<HBP.Core.Enums.AveragingType>("Data.Protocol.PositionAveraging");
+            var correction = receivedPreferences.SelectToken("Data.Anatomic.SiteNameCorrection");
+            if (correction?.Type != JTokenType.Boolean) throw new InvalidDataException("Invalid site name correction preference.");
+            // Constructors recreate runtime-only fields/events; all setters now run on the caller's Unity thread.
+            return receivedPreferences.ToObject<HBP.Core.Preferences.UserPreferences>(PreparedDataJson.Create(this));
         }
 
         private void Extract(Stream input, string metadataName, System.Threading.CancellationToken token)
@@ -940,6 +1052,8 @@ namespace HBP.Transfer.Scene
             disposed = true;
             capturedBuffers.Clear();
             capturedFiles.Clear();
+            foreach (var source in illustrationSources) source.Stream.Dispose();
+            illustrationSources.Clear();
             detachedSurfaces.Clear();
             verifiedResources.Dispose();
         }

@@ -108,7 +108,33 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void PairingCardShowsCountdownRetryAndConfirmedReplacement()
+        public void RequestedCodeOpensAndRecallsTheInitiallyClosedWindow()
+        {
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            var head = new GameObject("Code request head");
+            try
+            {
+                var window = ui.GetComponent<QuestWindow>();
+                Assert.That(window.IsOpen, Is.False);
+                head.transform.position = new Vector3(10, 2, 20);
+                head.transform.rotation = Quaternion.Euler(0, 90, 0);
+                ui.GetComponent<QuestWindowFollower>().Configure(head.transform, window);
+                ui.GetComponent<QuestStatusPanel>().ShowRequestedCode();
+                Assert.That(window.IsOpen, Is.True);
+                Assert.That(ui.GetComponent<Canvas>().enabled, Is.True);
+                Assert.That(Vector3.Distance(ui.transform.position, head.transform.position + head.transform.rotation * window.Placement), Is.LessThan(0.001f));
+                ui.GetComponent<QuestStatusPanel>().Hide();
+                Assert.That(window.IsOpen, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(ui);
+                Object.DestroyImmediate(head);
+            }
+        }
+
+        [Test]
+        public void PairingCardShowsRequestedCodeAndConfirmedForgetWithoutLocalReconnect()
         {
             var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
             try
@@ -119,8 +145,7 @@ namespace HBP.Tests.Quest
                 var gauge = (Image)fields.FindProperty("lifetimeGauge").objectReferenceValue;
                 var retry = (Button)fields.FindProperty("retry").objectReferenceValue;
                 var replace = (Button)fields.FindProperty("newAssociation").objectReferenceValue;
-                int retries = 0, replacements = 0;
-                card.OnRetryRequested.AddListener(() => retries++);
+                int replacements = 0;
                 card.OnNewAssociationRequested.AddListener(() => replacements++);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "");
                 Assert.That(countdown.text, Does.Contain("01:30"));
@@ -131,8 +156,8 @@ namespace HBP.Tests.Quest
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Authenticating), "");
                 Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.Zero, 0, PairingPhase.AttemptsExhausted), "");
-                retry.onClick.Invoke();
-                Assert.That(retries, Is.EqualTo(1));
+                Assert.That(retry.gameObject.activeSelf, Is.False);
+                Assert.That(((Text)fields.FindProperty("newAssociationLabel").objectReferenceValue).text, Is.EqualTo("Forget association"));
                 card.ShowWaiting();
                 replace.onClick.Invoke();
                 card.ShowWaiting();

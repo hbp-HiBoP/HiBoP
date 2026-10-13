@@ -20,6 +20,7 @@ namespace HBP.Transfer.Scene
     internal sealed class PreparedDataJson : SerializationAliasContractResolver, ISerializationBinder
     {
         private readonly SceneArchive archive;
+        internal bool InertPreferences { get; set; }
 
         private PreparedDataJson(SceneArchive archive)
         {
@@ -34,9 +35,9 @@ namespace HBP.Transfer.Scene
             typeof(EventInformation), typeof(EventInformation.EventOccurence), typeof(EventStatistics), typeof(Frequency)
         };
 
-        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false)
+        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false, bool inertPreferences = false)
         {
-            var resolver = new PreparedDataJson(archive);
+            var resolver = new PreparedDataJson(archive) { InertPreferences = inertPreferences };
             var serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 ContractResolver = resolver, SerializationBinder = resolver, TypeNameHandling = TypeNameHandling.Auto,
@@ -101,6 +102,15 @@ namespace HBP.Transfer.Scene
         protected override JsonObjectContract CreateObjectContract(Type type)
         {
             var contract = base.CreateObjectContract(type);
+            if (InertPreferences && type.Namespace == typeof(HBP.Core.Preferences.UserPreferences).Namespace)
+            {
+                contract.OverrideCreator = null;
+                contract.CreatorParameters.Clear();
+                contract.DefaultCreator = () => FormatterServices.GetUninitializedObject(type);
+                contract.OnDeserializingCallbacks.Clear();
+                contract.OnDeserializedCallbacks.Clear();
+            }
+
             // Project callbacks rewrite identifier/path fields and Visualization clears Patients.
             // The prepared graph already contains resolved references and must not use that path.
             if (typeof(BaseData).IsAssignableFrom(type)) contract.OnSerializingCallbacks.Clear();
@@ -121,6 +131,33 @@ namespace HBP.Transfer.Scene
             }
 
             return contract;
+        }
+
+        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization serialization)
+        {
+            var property = base.CreateProperty(member, serialization);
+            if (InertPreferences && member.DeclaringType?.Namespace == typeof(HBP.Core.Preferences.UserPreferences).Namespace && member is PropertyInfo info)
+            {
+                // Store preference values without invoking setters which alter DLL/global state.
+                string fieldName = "<" + member.Name + ">k__BackingField";
+                var field = member.DeclaringType.GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic) ?? member.DeclaringType.GetField("m_" + member.Name, BindingFlags.Instance | BindingFlags.NonPublic);
+                if (field != null) property.ValueProvider = new ReflectionValueProvider(field);
+                else if (member.Name is "Averaging" or "Normalization" or "PositionAveraging" or "SiteNameCorrection")
+                    property.ValueProvider = new InertPreferenceSetter(property.ValueProvider);
+            }
+
+            return property;
+        }
+
+        private sealed class InertPreferenceSetter : IValueProvider
+        {
+            private readonly IValueProvider original;
+            internal InertPreferenceSetter(IValueProvider original) => this.original = original;
+            public object GetValue(object target) => original.GetValue(target);
+
+            public void SetValue(object target, object value)
+            {
+            }
         }
 
         public Type BindToType(string assemblyName, string typeName)

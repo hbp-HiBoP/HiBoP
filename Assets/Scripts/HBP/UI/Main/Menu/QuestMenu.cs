@@ -1,6 +1,3 @@
-using System;
-using Cysharp.Threading.Tasks;
-using HBP.Core.Enums;
 using HBP.Quest.Desktop;
 using HBP.UI.Tools;
 using UnityEngine;
@@ -17,7 +14,7 @@ namespace HBP.UI.Main
         protected override void Awake()
         {
             base.Awake();
-            pairButton.Initialize(this, () => OpenPairingWindow().Forget());
+            pairButton.Initialize(this, () => WindowsManager.Open("Quest Pairing window", null));
             sendButton.Initialize(this, () => WindowsManager.Open("Quest Send window", null));
         }
 
@@ -26,26 +23,6 @@ namespace HBP.UI.Main
             connection = QuestManager.Instance;
             connection.OnChanged.AddListener(Refresh);
             Refresh();
-        }
-
-        private async UniTask OpenPairingWindow()
-        {
-            if (connection.IsPaired)
-            {
-                int choice = await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Quest already paired", "A Quest is already paired. Continuing will disconnect it before opening the pairing window.", "Continue", "Cancel");
-                if (choice != 0) return;
-                try
-                {
-                    if (connection.IsPaired) connection.Disconnect();
-                }
-                catch (Exception exception)
-                {
-                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Could not disconnect Quest", exception.Message);
-                    return;
-                }
-            }
-
-            WindowsManager.Open("Quest Pairing window", null);
         }
 
         private void Refresh()

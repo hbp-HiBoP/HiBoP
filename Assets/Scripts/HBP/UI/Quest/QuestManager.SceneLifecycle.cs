@@ -174,7 +174,7 @@ namespace HBP.Quest.Desktop
                     using var deliveryStop = CancellationTokenSource.CreateLinkedTokenSource(token, owner.PublicationAbortToken);
                     try
                     {
-                        SetStatus("Sending " + entry.Scene.Visualization.Name + " to Quest...");
+                        SetStatus("Sending " + entry.Scene.Visualization.Name + " to Quest");
                         var receipt = await QuestPairing.SendAsync(endpoint, pin, credential, deliveryStop.Token, (stream, stop) => entry.Offer.SendAsync(stream, stop, null, (sent, total) =>
                         {
                             float fraction = total == 0 ? 0 : Mathf.Clamp01((float)sent / total);

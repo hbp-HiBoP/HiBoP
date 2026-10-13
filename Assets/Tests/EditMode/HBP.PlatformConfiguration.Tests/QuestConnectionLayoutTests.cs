@@ -26,6 +26,12 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(toggle.isOn, Is.True);
             Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(toggle), Does.EndWith("Toggle with Text.prefab"));
             Assert.That(toggle.GetComponent<Tooltip>().Text, Does.Contain("closures").And.Contain("already shared"));
+            var connect = (Toggle)new SerializedObject(quest).FindProperty("m_AutomaticallyConnectToggle").objectReferenceValue;
+            Assert.That(connect, Is.Not.Null);
+            Assert.That(connect.isOn, Is.True);
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(connect), Does.EndWith("Toggle with Text.prefab"));
+            Assert.That(connect.GetComponent<Tooltip>().Text, Does.Contain("most recently").And.Contain("code"));
+            Assert.That(new SerializedObject(pairing).FindProperty("disconnect").objectReferenceValue, Is.Not.Null);
             var selector = preferences.transform.Find("Content/Fields/Tabs/General Tab/Tab selectors/Quest tab selector").GetComponent<Toggle>();
             Assert.That(selector.group, Is.Not.Null);
             Assert.That(selector.onValueChanged.GetPersistentEventCount(), Is.EqualTo(1));
@@ -64,6 +70,8 @@ namespace HBP.Tests.PlatformConfiguration
             var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var connection = bootstrap.GetComponentInChildren<QuestConnectionPanel>(true);
             Assert.That(new SerializedObject(connection).FindProperty("statusPanel").objectReferenceValue, Is.Not.Null);
+            var status = bootstrap.GetComponentsInChildren<QuestWindow>(true).Single(window => window.Key == "Connection");
+            Assert.That(new SerializedObject(status).FindProperty("initiallyOpen").boolValue, Is.False);
             var manager = bootstrap.GetComponentInChildren<LoadingManager>(true);
             Assert.That(manager, Is.Not.Null);
             Assert.That(new SerializedObject(manager).FindProperty("m_LoadingCircle").objectReferenceValue, Is.Not.Null);

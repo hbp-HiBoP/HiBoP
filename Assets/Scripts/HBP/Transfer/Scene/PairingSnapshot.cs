@@ -8,6 +8,10 @@ using UnityEngine;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Unity.Profiling;
 
 namespace HBP.Transfer.Scene
 {
@@ -17,6 +21,7 @@ namespace HBP.Transfer.Scene
         public PairingContext Context { get; }
         public SceneDelivery Delivery { get; }
         private readonly SceneArchive archive;
+        private static readonly ProfilerMarker CaptureMarker = new("Quest.Pairing.CaptureManagedMetadata");
 
         private PairingSnapshot(SceneArchive archive, PairingContext context, SceneDelivery delivery)
         {
@@ -80,15 +85,34 @@ namespace HBP.Transfer.Scene
                     Grid = ActivityProjectionSettings.VolumeGridDimension,
                     Interpolation = ActivityProjectionSettings.VolumeInterpolation
                 };
-                var source = new PairingContext(data);
-                source.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
-                // Serialization freezes all managed data and image bytes on Unity's thread.
-                byte[] metadata = archive.CaptureGlobalMetadata(data);
+                PairingContext.DeferredReferences references;
+                JObject metadata;
+                using (CaptureMarker.Auto())
+                using (PairingTiming.Measure("desktop.globals-managed-capture"))
+                {
+                    var source = new PairingContext(data, deferFingerprints: true);
+                    source.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
+                    references = source.Deferred;
+                    metadata = archive.CaptureDetachedGlobalMetadata(data);
+                }
+
+                Debug.Log($"[QUEST-PAIRING] globals: {data.Tags.AllTags.Count()} tags, {data.Protocols.Count} protocols");
                 return await UniTask.RunOnThreadPool(() =>
                 {
                     token.ThrowIfCancellationRequested();
-                    archive.WriteCapturedGlobals(metadata, file);
-                    var context = new PairingContext(archive.LoadGlobalData());
+                    using (PairingTiming.Measure("desktop.globals-illustrations")) archive.CompleteIllustrations(metadata);
+                    PairingContext context;
+                    using (PairingTiming.Measure("desktop.globals-fingerprints"))
+                    {
+                        context = new PairingContext(metadata.ToObject<GlobalDataPayload>(PreparedDataJson.Create(archive, inertPreferences: true)));
+                        PairingTiming.Count("desktop.global-definitions", context.DefinitionCount);
+                        references.Complete(context, context.Data.FilterPresets);
+                        metadata["FilterPresets"] = context.Data.FilterPresets.DeepClone();
+                    }
+
+                    using (PairingTiming.Measure("desktop.globals-encode-and-compress"))
+                        archive.WriteCapturedGlobals(Encoding.UTF8.GetBytes(metadata.ToString(Formatting.None)), file);
+                    PairingTiming.Count("desktop.global-files", Directory.EnumerateFiles(archive.DirectoryPath).LongCount());
                     context.RestoreFilterPresets(archive);
                     token.ThrowIfCancellationRequested();
                     return new PairingSnapshot(archive, context, new SceneDelivery(file, context.Id, context.Id, null));

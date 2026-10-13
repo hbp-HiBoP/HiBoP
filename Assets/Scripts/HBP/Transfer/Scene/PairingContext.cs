@@ -32,14 +32,22 @@ namespace HBP.Transfer.Scene
         public GlobalDataPayload Data { get; }
         public FilterConditionsPresetCollection FilterPresets { get; private set; }
         public string Id => Data.Id;
+        internal int DefinitionCount => objects.Count;
         private readonly Dictionary<string, BaseData> objects = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> hashes = new(StringComparer.Ordinal);
+        private readonly JsonSerializer fingerprintSerializer = CreateFingerprintSerializer();
+        internal DeferredReferences Deferred { get; }
 
-        public PairingContext(GlobalDataPayload data)
+        public PairingContext(GlobalDataPayload data) : this(data, false)
+        {
+        }
+
+        internal PairingContext(GlobalDataPayload data, bool deferFingerprints)
         {
             if (data == null || data.Version != GlobalDataPayload.FormatVersion || string.IsNullOrEmpty(data.Id) || data.Id.Length > 128 || data.Preferences?.General == null || data.Preferences.Data?.EEG == null || data.Preferences.Data.Anatomic == null || data.Preferences.Data.Atlases == null || data.Preferences.Data.Protocol == null || data.Preferences.Visualization?._3D == null || data.Tags == null || data.Protocols == null || data.Aliases == null || data.Grid < 2 || data.Grid > 1024 || !Enum.IsDefined(typeof(Core.Enums.VolumeInterpolation), data.Interpolation))
                 throw new InvalidDataException("Incomplete or unsupported pairing data.");
             Data = data;
+            if (deferFingerprints) Deferred = new DeferredReferences();
             foreach (var tag in data.Tags.AllTags) Register(tag);
             foreach (var protocol in data.Protocols)
             {
@@ -54,21 +62,48 @@ namespace HBP.Transfer.Scene
             string key = Key(value);
             if (objects.ContainsKey(key)) throw new InvalidDataException("Ambiguous global definition identity: " + key);
             objects.Add(key, value);
-            hashes.Add(key, Fingerprint(value));
+            hashes.Add(key, Deferred == null ? Fingerprint(value, fingerprintSerializer) : null);
         }
 
         internal static bool IsGlobal(Type type) => typeof(BaseTag).IsAssignableFrom(type) || type == typeof(Protocol) || type == typeof(Bloc) || type == typeof(SubBloc) || type == typeof(Event) || typeof(Icon).IsAssignableFrom(type) || typeof(Treatment).IsAssignableFrom(type);
 
         private static string Key(BaseData value) => value.GetType().FullName + ":" + value.ID;
 
-        private static string Fingerprint(BaseData value)
+        private static JsonSerializer CreateFingerprintSerializer()
         {
             var serializer = PreparedDataJson.Create(null);
             serializer.PreserveReferencesHandling = PreserveReferencesHandling.None;
+            return serializer;
+        }
+
+        private static string Fingerprint(BaseData value, JsonSerializer serializer) => Fingerprint(JToken.FromObject(value, serializer));
+
+        private static string Fingerprint(JToken value)
+        {
             JToken Sort(JToken token) => token is JObject obj ? new JObject(obj.Properties().OrderBy(p => p.Name, StringComparer.Ordinal).Select(p => new JProperty(p.Name, Sort(p.Value)))) : token is JArray array ? new JArray(array.Select(Sort)) : token.DeepClone();
-            string json = Sort(JToken.FromObject(value, serializer)).ToString(Formatting.None);
+            string json = Sort(value).ToString(Formatting.None);
             using var sha = HBP.Core.Tools.Sha256.Create();
             return BitConverter.ToString(sha.ComputeHash(Encoding.UTF8.GetBytes(json))).Replace("-", "").ToLowerInvariant();
+        }
+
+        /// <summary>Contains only detached definition JSON, never mutable model instances.</summary>
+        internal sealed class DeferredReferences
+        {
+            internal readonly List<(string Key, JToken Definition)> Definitions = new();
+
+            internal void Complete(PairingContext context, JToken presets)
+            {
+                foreach (var entry in Definitions)
+                    if (!context.hashes.TryGetValue(entry.Key, out string expected) || Fingerprint(entry.Definition) != expected)
+                        throw new InvalidOperationException("A filter preset references a missing or changed global definition: " + entry.Key);
+                if (presets == null) return;
+                foreach (var reference in ((JContainer)presets).DescendantsAndSelf().OfType<JObject>().Where(obj => obj.Count == 2 && obj["global"] != null && obj["hash"] != null))
+                {
+                    string key = (string)reference["global"];
+                    if (!context.hashes.TryGetValue(key, out string hash)) throw new InvalidDataException("Missing global filter definition.");
+                    reference["hash"] = hash;
+                }
+            }
         }
 
         public void CaptureFilterPresets(FilterConditionsPresetCollection presets, SceneArchive archive)
@@ -101,6 +136,7 @@ namespace HBP.Transfer.Scene
             // This converter belongs to one serializer/capture, never to the paired session.
             // BaseData equality is ID-based; separate objects sharing an ID must each be checked.
             private readonly HashSet<BaseData> validated = new(ReferenceComparer.Instance);
+            private readonly JsonSerializer fingerprintSerializer = CreateFingerprintSerializer();
 
             public GlobalReferenceConverter(PairingContext context, SceneGlobalReferences references)
             {
@@ -119,6 +155,19 @@ namespace HBP.Transfer.Scene
                 }
 
                 string key = Key((BaseData)value);
+                if (context.Deferred != null)
+                {
+                    if (!context.objects.ContainsKey(key)) throw new InvalidOperationException("Missing global filter definition: " + key);
+                    if (validated.Add((BaseData)value)) context.Deferred.Definitions.Add((key, JToken.FromObject(value, fingerprintSerializer)));
+                    writer.WriteStartObject();
+                    writer.WritePropertyName("global");
+                    writer.WriteValue(key);
+                    writer.WritePropertyName("hash");
+                    writer.WriteValue("");
+                    writer.WriteEndObject();
+                    return;
+                }
+
                 if (!context.hashes.TryGetValue(key, out string hash) || (!validated.Contains((BaseData)value) && hash != MeasuredFingerprint((BaseData)value)))
                     throw new InvalidOperationException("A protocol or tag definition is absent or changed since pairing. Pair again before sending this visualization: " + key);
                 validated.Add((BaseData)value);
@@ -138,7 +187,7 @@ namespace HBP.Transfer.Scene
 
             private string MeasuredFingerprint(BaseData value)
             {
-                return Fingerprint(value);
+                return Fingerprint(value, fingerprintSerializer);
             }
 
             public override object ReadJson(JsonReader reader, Type type, object existing, JsonSerializer serializer)
