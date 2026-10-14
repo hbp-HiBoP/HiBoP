@@ -135,7 +135,7 @@ namespace HBP.UI.Quest
             if (!this) return;
             if (failure != null)
             {
-                status.text = failure.Message;
+                status.text = TransferError.Describe(failure);
                 return;
             }
 
@@ -143,7 +143,7 @@ namespace HBP.UI.Quest
             {
                 Refresh();
                 if (!connection.LastOperationCancelled && connection.BlockingError != null && !ReferenceEquals(connection.BlockingError, ApplicationManager.DatabaseInitializationPresentedError))
-                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", connection.BlockingError.Message);
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing", TransferError.Describe(connection.BlockingError));
                 return;
             }
 

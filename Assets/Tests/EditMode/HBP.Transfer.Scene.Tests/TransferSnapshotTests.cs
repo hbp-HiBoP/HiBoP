@@ -77,6 +77,18 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public void AheadSurfaceBudgetRejectsCaptureBeforeCloningAndAllowsSerialRetry()
+        {
+            using var surface = Triangle();
+            using var archive = new SceneArchive(System.IO.Path.Combine(System.IO.Path.GetTempPath(), Guid.NewGuid().ToString("N")), deferResourceWrites: true) { DetachCapture = true, MaximumOwnedCaptureBytes = 1 };
+            long revision = surface.TransferRevision;
+            Assert.Throws<ScenePreparationBudgetExceededException>(() => archive.AddSurface(surface));
+            Assert.That(surface.TransferRevision, Is.EqualTo(revision));
+            archive.MaximumOwnedCaptureBytes = long.MaxValue;
+            Assert.That(archive.AddSurface(surface), Is.EqualTo("snapshot-surface-0"));
+        }
+
+        [Test]
         public void DerivedAttributeRefresh_InvalidatesSerializedColorsAndUvsWithoutChangingGeometry()
         {
             using Surface source = Triangle();

@@ -78,6 +78,11 @@ namespace HBP.Quest
         private int m_DeferredBytes;
         private bool m_DeferredDrainPending;
         private bool m_Disposed;
+        private OperationId m_AppliedDisplayPolicy;
+        private OperationId m_DisplayReadinessPolicy;
+        private Task m_DisplayReadiness;
+        private readonly CancellationTokenSource m_DisplayReadinessStop = new();
+        private bool m_InitialProjectionFailed;
         private IDisposable m_SiteFilterRequestRegistration;
         private IDisposable m_CorrelationRequestRegistration;
         private ActiveSiteFilterJob m_ActiveSiteFilterJob;
@@ -151,7 +156,7 @@ namespace HBP.Quest
             m_Transport.OnClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_Driver = new QuestMutationDriver(m_Identity.SceneId, m_Identity.IncarnationId, m_Boundary, m_Scheduler, 0, proposal => m_Transport.EnqueueMutation(proposal.Mutation, null, proposal.ObservedCanonicalSequence, coalesciblePreview: ScheduleDescriptor.ForMutation(m_Identity.SceneId, m_Identity.IncarnationId, proposal.Mutation).CoalescingKey != null, operationId: proposal.OperationId));
             m_SurfaceInflation = new SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, false, () => !m_Disposed && m_Driver.ConnectionState == QuestMutationConnectionState.Connected && m_Transport.State == PersistentTransportState.Connected, () => m_Driver.LastObservedCanonicalSequence, SendSurfaceInflationControl, () => m_Driver.ConnectionState == QuestMutationConnectionState.OfflineLocal);
-            m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
+            m_SurfaceInflation.PreparationHandler = (prepare, token) => !QuestAnatomySession.CanInteractWith(m_Scene) ? prepare(token) : SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
             m_SurfaceInflation.OnRemoteJobStarted.AddListener(completion => SurfaceInflationLoading.ObserveAsync(completion).Forget());
             m_BeforeCheckpointApply = beforeCheckpointApply;
             m_AfterDeferredRecordProcessed = afterDeferredRecordProcessed;
@@ -425,6 +430,17 @@ namespace HBP.Quest
                 if (!record.SessionId.Equals(m_Identity.SessionId) || record.Kind != TransportMessageKind.Application)
                     throw new InvalidDataException("Unexpected sync session-control record.");
                 byte[] controlPayload = record.GetPayloadCopy();
+                if (PublicationControlCodec.TryDecodeRenderReady(controlPayload, out var readyPolicy))
+                {
+                    await UniTask.SwitchToMainThread(stop);
+                    if (!readyPolicy.Equals(m_AppliedDisplayPolicy)) throw new InvalidDataException("Render readiness preceded its projection policy.");
+                    if (m_DisplayReadinessPolicy != null && !readyPolicy.Equals(m_DisplayReadinessPolicy)) throw new InvalidDataException("Render readiness policy changed.");
+                    m_DisplayReadinessPolicy = readyPolicy;
+                    if (m_DisplayReadiness == null || m_DisplayReadiness.IsCompleted)
+                        m_DisplayReadiness = ObserveDisplayReadinessAsync(readyPolicy, stop);
+                    return;
+                }
+
                 if (SceneAction.TryDecode(controlPayload, out var action))
                 {
                     if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
@@ -658,6 +674,7 @@ namespace HBP.Quest
             switch (control.Kind)
             {
                 case ActivityProjectionControlKind.Policy:
+                    m_AppliedDisplayPolicy = control.JobId;
                     m_Scene.SetCoordinatedAutomaticRecomputePolicy(SessionAtlasCatalog.Active && m_SessionPreferences != null ? m_SessionPreferences.Visualization._3D.AutomaticEEGUpdate : control.AutomaticPolicyEnabled);
                     m_ApplyingRemoteProjectionRequest = true;
                     try
@@ -711,6 +728,7 @@ namespace HBP.Quest
                     terminalTarget.Terminals.MarkRemoteTerminal();
                     if (control.Kind == ActivityProjectionControlKind.Failed)
                     {
+                        m_InitialProjectionFailed = true;
                         terminalTarget.Failed = true;
                         CancelQuestActivityProjection(terminalTarget, notifyPeer: false);
                     }
@@ -721,6 +739,41 @@ namespace HBP.Quest
                     throw new InvalidDataException("Desktop cannot request an activity projection from Quest.");
                 default:
                     throw new InvalidDataException("Unexpected activity-projection control kind.");
+            }
+        }
+
+        private async Task ObserveDisplayReadinessAsync(OperationId policy, CancellationToken stop)
+        {
+            using var linked = CancellationTokenSource.CreateLinkedTokenSource(stop, m_DisplayReadinessStop.Token);
+            linked.CancelAfter(TimeSpan.FromMinutes(3));
+            try
+            {
+                // This observer must stay outside the incoming reader: projection terminals use it.
+                await UniTask.Yield(PlayerLoopTiming.Update, linked.Token);
+                await m_Scene.PrepareRenderingAsync(linked.Token);
+                while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
+                    await UniTask.Yield(PlayerLoopTiming.Update, linked.Token);
+                await m_Scene.PrepareRenderingAsync(linked.Token);
+                linked.Token.ThrowIfCancellationRequested();
+                if (m_Disposed || !policy.Equals(m_AppliedDisplayPolicy)) return;
+                var queued = m_Transport.EnqueueSessionControl(PublicationControlCodec.EncodeRenderReady(policy, !m_InitialProjectionFailed), DeliveryReliability.Reliable);
+                if (!queued.Accepted) throw new IOException("Quest could not acknowledge render readiness.");
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception error)
+            {
+                Debug.LogWarning("Quest render readiness failed: " + error.Message);
+                if (!m_Disposed && !stop.IsCancellationRequested)
+                    try
+                    {
+                        m_Transport.EnqueueSessionControl(PublicationControlCodec.EncodeRenderReady(policy, false), DeliveryReliability.Reliable);
+                    }
+                    catch (Exception)
+                    {
+                        /* The disconnected owner will be reconciled explicitly. */
+                    }
             }
         }
 
@@ -858,6 +911,7 @@ namespace HBP.Quest
         private void CompleteLocalActivityProjection(ActiveActivityProjectionJob active, ActivityProjectionCompletionKind completion)
         {
             if (!ReferenceEquals(active, m_ActiveActivityProjectionJob) || active.Terminals.LocalTerminal) return;
+            if (completion == ActivityProjectionCompletionKind.Failed) m_InitialProjectionFailed = true;
             active.Terminals.MarkLocalTerminal();
             if (active.Generation == 0)
             {
@@ -1733,6 +1787,7 @@ namespace HBP.Quest
         {
             if (m_Disposed) return;
             m_Disposed = true;
+            m_DisplayReadinessStop.Cancel();
             m_Driver.OnProposalQueued.RemoveListener(OnProposalQueued);
             m_Driver.OnRetentionProgressChanged.RemoveListener(PublishRetentionProgress);
             m_Driver.OnOfflineLocalEntered.RemoveListener(OnOfflineLocalEntered);

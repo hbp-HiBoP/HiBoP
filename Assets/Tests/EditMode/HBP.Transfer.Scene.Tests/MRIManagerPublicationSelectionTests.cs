@@ -15,6 +15,40 @@ namespace HBP.Tests.Transfer.Scene
     public sealed class MRIManagerPublicationSelectionTests
     {
         [Test]
+        public async System.Threading.Tasks.Task ConcurrentMriLoadsAndHistogramReadersKeepTheSameNativeVolume()
+        {
+            string path = Path.Combine(Path.GetTempPath(), "concurrent-mri-" + Guid.NewGuid().ToString("N") + ".nii");
+            CreateMinimalNifti(path);
+            var mri = new MRI3D(new HBP.Core.Data.MRI("Concurrent MRI", path), false);
+            var start = new System.Threading.Tasks.TaskCompletionSource<bool>(System.Threading.Tasks.TaskCreationOptions.RunContinuationsAsynchronously);
+            try
+            {
+                var workers = Enumerable.Range(0, 12).Select(index => System.Threading.Tasks.Task.Run(async () =>
+                {
+                    await start.Task;
+                    mri.Load();
+                    var volume = mri.Volume;
+                    for (int i = 0; i < 20; i++)
+                    {
+                        mri.Load();
+                        Assert.That(volume.GetHistogramBins(50).Sum(), Is.EqualTo(24));
+                        Assert.That(mri.Volume, Is.SameAs(volume));
+                    }
+                })).ToArray();
+                start.SetResult(true);
+                await System.Threading.Tasks.Task.WhenAll(workers);
+                File.Delete(path);
+                mri.Load();
+                Assert.That(mri.Volume.GetHistogramBins(50).Sum(), Is.EqualTo(24), "A repeated demand must reuse the loaded volume without reading/replacing it.");
+            }
+            finally
+            {
+                mri.Clean();
+                if (File.Exists(path)) File.Delete(path);
+            }
+        }
+
+        [Test]
         public void MRISelectionDuringInitialPublication_AbortsDeliveryAndRequestsFreshCapture()
         {
             GameObject root = new("MRI publication selection test");

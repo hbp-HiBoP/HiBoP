@@ -126,6 +126,8 @@ namespace HBP.UI.Toolbar
         {
             if (m_UpdateRequired)
             {
+                var scene = Module3DMain.SelectedScene;
+                if (scene != null && !scene.IsClosing && (!scene.SceneInformation.Initialized || scene.AnatomyCompletion.Status == Cysharp.Threading.Tasks.UniTaskStatus.Pending)) return;
                 m_SceneSettingsToolbar.UpdateToolbar();
                 m_DisplaySettingsToolbar.UpdateToolbar();
                 m_ActivitySettingsToolbar.UpdateToolbar();

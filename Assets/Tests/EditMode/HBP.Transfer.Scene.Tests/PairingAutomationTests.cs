@@ -18,6 +18,64 @@ namespace HBP.Tests.Transfer
         private static QuestDevice Device(byte identity) => new() { Pin = Enumerable.Repeat(identity, 32).ToArray(), Name = "Quest", Host = "127.0.0.1" };
 
         [Test]
+        public void OperatingSystemFailuresUseEnglishProductMessages()
+        {
+            var socket = new SocketException((int)SocketError.OperationAborted);
+            Assert.That(TransferError.Describe(new IOException("Une erreur réseau est survenue", socket)), Is.EqualTo("The Quest transfer was interrupted. Check USB or Wi-Fi, then retry."));
+            Assert.That(TransferError.Describe(new TimeoutException("Délai dépassé")), Does.StartWith("The Quest operation timed out."));
+            Assert.That(TransferError.Describe(new InvalidOperationException("The Quest connection changed.")), Is.EqualTo("The Quest connection changed."));
+        }
+
+        [TestCase("read"), TestCase("aborted-write"), TestCase("failure")]
+        public async Task CancelledTlsIoIsCancellationWhileUncancelledIoRemainsAFailure(string mode)
+        {
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var attempt = CancellationTokenSource.CreateLinkedTokenSource(stop.Token);
+            using var receiver = new QuestPairing();
+            var listener = new TcpListener(IPAddress.Loopback, QuestPairing.Port);
+            listener.Start();
+            var entered = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var watchdog = stop.Token.Register(() => entered.TrySetCanceled());
+            var serving = receiver.ServeAsync(listener, stop.Token, async (_, token) =>
+            {
+                await Task.Delay(Timeout.Infinite, token);
+                throw new InvalidOperationException();
+            }, _ => { });
+            byte[] credential = null;
+            try
+            {
+                credential = await QuestPairing.PairAsync("127.0.0.1", receiver.Pin, receiver.Code, stop.Token);
+                var sending = QuestPairing.SendAsync("127.0.0.1", receiver.Pin, credential, attempt.Token, async (stream, token) =>
+                {
+                    entered.TrySetResult(true);
+                    if (mode == "read") await stream.ReadAsync(new byte[1], 0, 1, token);
+                    if (mode == "aborted-write") attempt.Cancel();
+                    throw new IOException("Une erreur réseau est survenue", new SocketException((int)SocketError.OperationAborted));
+                });
+                await entered.Task;
+                if (mode == "read") attempt.Cancel();
+                Exception failure = null;
+                try
+                {
+                    await sending;
+                }
+                catch (Exception error)
+                {
+                    failure = error;
+                }
+
+                Assert.That(failure, mode == "failure" ? Is.InstanceOf<IOException>() : Is.InstanceOf<OperationCanceledException>());
+                if (failure is OperationCanceledException cancelled) Assert.That(cancelled.CancellationToken, Is.EqualTo(attempt.Token));
+            }
+            finally
+            {
+                if (credential != null) Array.Clear(credential, 0, credential.Length);
+                stop.Cancel();
+                await serving;
+            }
+        }
+
+        [Test]
         public void PreferencesDefaultAndClonePreserveExplicitChoice()
         {
             Assert.That(JsonConvert.DeserializeObject<QuestPreferences>("{\"AutomaticallySynchronizeScenes\":false}").AutomaticallyConnect, Is.True);

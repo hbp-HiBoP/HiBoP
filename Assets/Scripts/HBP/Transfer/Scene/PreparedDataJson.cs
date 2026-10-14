@@ -20,6 +20,7 @@ namespace HBP.Transfer.Scene
     internal sealed class PreparedDataJson : SerializationAliasContractResolver, ISerializationBinder
     {
         private readonly SceneArchive archive;
+        private JsonConverter[] operationConverters;
         internal bool InertPreferences { get; set; }
 
         private PreparedDataJson(SceneArchive archive)
@@ -35,17 +36,31 @@ namespace HBP.Transfer.Scene
             typeof(EventInformation), typeof(EventInformation.EventOccurence), typeof(EventStatistics), typeof(Frequency)
         };
 
-        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false, bool inertPreferences = false)
+        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false, bool inertPreferences = false, JsonConverter numericConverter = null)
         {
             var resolver = new PreparedDataJson(archive) { InertPreferences = inertPreferences };
+            var converters = new List<JsonConverter>();
+            if (globals != null) converters.Add(globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null));
+            converters.Add(new ObjectKeyDictionaryConverter());
+            if (numericConverter != null) converters.Add(numericConverter);
+            resolver.operationConverters = converters.ToArray();
             var serializer = JsonSerializer.Create(new JsonSerializerSettings
             {
                 ContractResolver = resolver, SerializationBinder = resolver, TypeNameHandling = TypeNameHandling.Auto,
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects, ObjectCreationHandling = ObjectCreationHandling.Replace,
-                MaxDepth = 128, Converters = { new ObjectKeyDictionaryConverter() }
+                MaxDepth = 128
             });
-            if (globals != null) serializer.Converters.Insert(0, globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null));
             return serializer;
+        }
+
+        protected override JsonContract CreateContract(Type type)
+        {
+            var contract = base.CreateContract(type);
+            // Resolve matching once per type and operation. Converter state still validates
+            // every real instance; no mutable model or validation survives the capture.
+            if (contract.Converter == null)
+                contract.Converter = operationConverters.FirstOrDefault(converter => converter.CanConvert(type));
+            return contract;
         }
 
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization serialization)

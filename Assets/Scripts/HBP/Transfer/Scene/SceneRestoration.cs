@@ -10,6 +10,7 @@ using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Transfer.Transport;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using FMRI = HBP.Core.Object3D.FMRI;
@@ -57,8 +58,11 @@ namespace HBP.Transfer.Scene
     {
         public static async UniTask<RestoredScene> PrepareAsync(ScenePayload payload, SceneArchive archive, Base3DScene prefab, Transform parent, CancellationToken token, Action<Base3DScene> onCreated = null)
         {
-            SceneValidation.Validate(payload, archive);
-            await StandardData.EnsureInstalledAsync();
+            using var total = PairingTiming.Measure("quest.restore-total", payload.TransferId);
+            using (PairingTiming.Measure("quest.restore-validation", payload.TransferId))
+                SceneValidation.Validate(payload, archive);
+            using (PairingTiming.Measure("quest.restore-standard-install", payload.TransferId))
+                await StandardData.EnsureInstalledAsync();
             await UniTask.SwitchToThreadPool();
             foreach (var entry in payload.StandardFiles)
             {
@@ -68,7 +72,8 @@ namespace HBP.Transfer.Scene
 
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
-            await Base3DScene.PrepareStandardResourcesAsync();
+            using (PairingTiming.Measure("quest.restore-standard-resources", payload.TransferId))
+                await Base3DScene.PrepareStandardResourcesAsync();
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
             if (prefab == null)
@@ -81,75 +86,84 @@ namespace HBP.Transfer.Scene
             {
                 onCreated?.Invoke(scene);
                 scene.Initialize(payload.Visualization);
-                await scene.InitializePreparedAsync(async resourceToken =>
-                {
-                    await UniTask.SwitchToMainThread();
-                    foreach (var resource in payload.MRIs)
+                using (PairingTiming.Measure("quest.restore-initialize", payload.TransferId))
+                    await scene.InitializePreparedAsync(async resourceToken =>
                     {
-                        resourceToken.ThrowIfCancellationRequested();
-                        MRI3D mri;
-                        if (resource.Standard == "MNI")
-                            mri = Object3DManager.MNI.MRI;
-                        else
+                        using var resources = PairingTiming.Measure("quest.restore-native-resources", payload.TransferId);
+                        await UniTask.SwitchToMainThread();
+                        foreach (var resource in payload.MRIs)
                         {
-                            mri = await NativePreparation.RunAsync(() =>
+                            resourceToken.ThrowIfCancellationRequested();
+                            MRI3D mri;
+                            if (resource.Standard == "MNI")
+                                mri = Object3DManager.MNI.MRI;
+                            else
                             {
-                                var volume = new Core.DLL.Volume();
-                                try
+                                mri = await NativePreparation.RunAsync(() =>
                                 {
-                                    using var verified = archive.AcquireNativeResource(resource.File);
-                                    if (!volume.LoadVerifiedNIFTIFile(verified))
-                                        throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
-                                    return new MRI3D(resource.Name, volume, false);
-                                }
-                                catch
-                                {
-                                    volume.Dispose();
-                                    throw;
-                                }
+                                    using var measurement = PairingTiming.Measure("quest.restore-volume", payload.TransferId);
+                                    var volume = new Core.DLL.Volume();
+                                    try
+                                    {
+                                        using var verified = archive.AcquireNativeResource(resource.File);
+                                        if (!volume.LoadVerifiedNIFTIFile(verified))
+                                            throw new InvalidDataException("Cannot restore MRI: " + resource.Name);
+                                        return new MRI3D(resource.Name, volume, false);
+                                    }
+                                    catch
+                                    {
+                                        volume.Dispose();
+                                        throw;
+                                    }
+                                }, item => item.Clean(), resourceToken);
+                            }
+
+                            if (resource.PatientId == null)
+                                scene.MRIManager.MRIs.Add(mri);
+                            else
+                            {
+                                Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
+                                if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris))
+                                    scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
+                                mris.Add(mri);
+                            }
+                        }
+
+                        foreach (var resource in payload.Meshes)
+                        {
+                            resourceToken.ThrowIfCancellationRequested();
+                            // Resolve live scene references on Unity before giving private work to the worker.
+                            var standard = resource.Standard == null ? null : resource.Standard == "grey" ? Object3DManager.MNI.GreyMatter : Object3DManager.MNI.WhiteMatter;
+                            MRI3D sourceMRI = null;
+                            if (resource.SourceMRI != null)
+                            {
+                                var candidates = resource.PatientId == null ? scene.MRIManager.MRIs : scene.MRIManager.PreloadedMRIs.Single(p => p.Key.ID == resource.PatientId).Value;
+                                sourceMRI = candidates.Single(mri => mri.Name == resource.SourceMRI);
+                            }
+
+                            Mesh3D mesh = await NativePreparation.RunAsync(() =>
+                            {
+                                using var measurement = PairingTiming.Measure("quest.restore-surface", payload.TransferId);
+                                return RestoreMesh(resource, archive, standard, sourceMRI);
                             }, item => item.Clean(), resourceToken);
+                            if (resource.PatientId == null)
+                                scene.MeshManager.Meshes.Add(mesh);
+                            else
+                            {
+                                Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
+                                if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes))
+                                    scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
+                                meshes.Add(mesh);
+                            }
                         }
 
-                        if (resource.PatientId == null)
-                            scene.MRIManager.MRIs.Add(mri);
-                        else
-                        {
-                            Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                            if (!scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris))
-                                scene.MRIManager.PreloadedMRIs.Add(patient, mris = new List<MRI3D>());
-                            mris.Add(mri);
-                        }
-                    }
-
-                    foreach (var resource in payload.Meshes)
-                    {
-                        resourceToken.ThrowIfCancellationRequested();
-                        // Resolve live scene references on Unity before giving private work to the worker.
-                        var standard = resource.Standard == null ? null : resource.Standard == "grey" ? Object3DManager.MNI.GreyMatter : Object3DManager.MNI.WhiteMatter;
-                        MRI3D sourceMRI = null;
-                        if (resource.SourceMRI != null)
-                        {
-                            var candidates = resource.PatientId == null ? scene.MRIManager.MRIs : scene.MRIManager.PreloadedMRIs.Single(p => p.Key.ID == resource.PatientId).Value;
-                            sourceMRI = candidates.Single(mri => mri.Name == resource.SourceMRI);
-                        }
-
-                        Mesh3D mesh = await NativePreparation.RunAsync(() => RestoreMesh(resource, archive, standard, sourceMRI), item => item.Clean(), resourceToken);
-                        if (resource.PatientId == null)
-                            scene.MeshManager.Meshes.Add(mesh);
-                        else
-                        {
-                            Patient patient = payload.Visualization.Patients.Single(p => p.ID == resource.PatientId);
-                            if (!scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes))
-                                scene.MeshManager.PreloadedMeshes.Add(patient, meshes = new List<Mesh3D>());
-                            meshes.Add(mesh);
-                        }
-                    }
-
-                    for (int i = 0; i < payload.Columns.Count; i++)
-                        await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
-                }, null, token);
-                await scene.CompleteInitializationAsync(null, null, token);
-                await scene.PrepareRenderingAsync(token);
+                        for (int i = 0; i < payload.Columns.Count; i++)
+                            await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
+                    }, null, token);
+                using (PairingTiming.Measure("quest.restore-configuration", payload.TransferId))
+                    await scene.CompleteInitializationAsync(null, null, token);
+                using (PairingTiming.Measure("quest.restore-render-ready", payload.TransferId))
+                    await scene.PrepareRenderingAsync(token);
                 token.ThrowIfCancellationRequested();
                 return result;
             }

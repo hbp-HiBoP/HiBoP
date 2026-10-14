@@ -40,7 +40,7 @@ namespace HBP.Quest
             if (!isActiveAndEnabled) return false;
             bool pressed = activate.IsPressed();
             var scene = capturedScene;
-            if (!valid || policy == null || right == null || marker == null || anatomy == null || anatomy.Scenes.Count == 0 || capturedScene != null && (capturedScene.IsClosing || !capturedScene.IsVisible || anatomy.Find(capturedScene) == null))
+            if (!valid || policy == null || right == null || marker == null || anatomy == null || anatomy.Scenes.Count == 0 || capturedScene != null && (!QuestAnatomySession.CanInteractWith(capturedScene) || !capturedScene.IsVisible || anatomy.Find(capturedScene) == null))
             {
                 Cancel();
                 return false;
@@ -76,7 +76,7 @@ namespace HBP.Quest
 
             targets.Clear();
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.Column != null && column.Scene.IsVisible && (capturedScene == null || column.Scene == capturedScene))
+                if (column != null && column.Column != null && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (capturedScene == null || column.Scene == capturedScene))
                     foreach (var site in column.Column.Sites)
                     {
                         if (site == null) continue;

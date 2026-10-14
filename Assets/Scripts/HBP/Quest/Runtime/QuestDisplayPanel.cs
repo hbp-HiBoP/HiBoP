@@ -36,7 +36,7 @@ namespace HBP.Quest
             Refresh();
         }
 
-        private bool Ready => view != null && view.Scene != null && view.Scene.IsVisible && !view.Scene.IsClosing;
+        private bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
         private void Update() => Refresh();
 
         private void Refresh()

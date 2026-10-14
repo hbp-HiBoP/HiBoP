@@ -32,6 +32,9 @@ namespace HBP.Transfer.Transport
                 try
                 {
                     var resources = prepare();
+                    // Once resources are owned, retries use the spool. Do not retain the
+                    // detached JSON graph while the bounded producer waits for a sender.
+                    prepare = null;
                     Interlocked.Exchange(ref rawBytes, resources.Sum(resource => resource.Length));
                     digest = BlockContainer.Produce(resources, packet =>
                     {

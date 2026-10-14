@@ -47,7 +47,7 @@ namespace HBP.Quest
             var grabbed = System.Linq.Enumerable.FirstOrDefault(view.AllColumns, column => column.Manipulator.IsGrabbed);
             foreach (var column in view.AllColumns)
             {
-                if (column == null || !column.gameObject.activeSelf || column.Scene.IsClosing || !column.Scene.IsVisible)
+                if (column == null || !column.gameObject.activeSelf || !QuestAnatomySession.CanInteractWith(column.Scene) || !column.Scene.IsVisible)
                 {
                     column?.Manipulator.CancelGrab();
                     continue;
@@ -74,7 +74,9 @@ namespace HBP.Quest
         {
             if (view == null || head == null || !head.IsTracked) return;
             if (pointer != null) pointer.CancelCutGrabs();
-            foreach (var presentation in view.Scenes) Place(presentation);
+            foreach (var presentation in view.Scenes)
+                if (QuestAnatomySession.CanInteractWith(presentation.Scene))
+                    Place(presentation);
         }
 
         private void Place(QuestAnatomyView.Presentation presentation)

@@ -77,7 +77,7 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception error)
             {
-                return "Cannot prepare the Quest reload: " + error.Message;
+                return "Cannot prepare the Quest reload: " + TransferError.Describe(error);
             }
         }
 
@@ -441,7 +441,7 @@ namespace HBP.Quest.Desktop
                 reconciliationNeedsRetry = true;
                 LastOperationCancelled = error is OperationCanceledException || token.IsCancellationRequested;
                 LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);
-                SetStatus(LastOperationSucceeded ? "Quest connected. Scene synchronization needs attention: " + error.Message : "Quest disconnected. Reconnect to resume scene synchronization.");
+                SetStatus(LastOperationSucceeded ? "Quest connected. Scene synchronization needs attention: " + TransferError.Describe(error) : "Quest disconnected. Reconnect to resume scene synchronization.");
                 return;
             }
 
@@ -458,7 +458,7 @@ namespace HBP.Quest.Desktop
         private async Task<ConflictChoice> ChooseConflictAsync(CheckpointConflict conflict, CancellationToken stop)
         {
             await UniTask.SwitchToMainThread(stop);
-            var presentation = pairingPresentation;
+            var presentation = displayReservation?.Presentation ?? pairingPresentation;
             if (presentation != null) await presentation.PauseAsync();
             try
             {
@@ -500,9 +500,17 @@ namespace HBP.Quest.Desktop
 
             var entry = GetPublication(scene);
             if (entry.Work != null && !entry.Work.IsCompleted) return entry.Work;
-            if (!retry && entry.Owner is { IsLive: true, IsClosed: false }) return Task.FromResult(true);
+            if (retry) return RetryPublishedSceneAsync(scene);
+            if (!retry && entry.Owner is { IsLive: true, IsClosed: false } && !entry.UserRetryRequired && entry.Owner.IsInitialRenderingReady) return Task.FromResult(true);
+            if (entry.UserRetryRequired && !retry) return Task.FromResult(false);
             entry.Work = SendSceneAsync(entry, retry);
             return entry.Work;
+        }
+
+        private async Task<bool> RetryPublishedSceneAsync(Base3DScene scene)
+        {
+            await RetryDisplayScenesAsync(new[] { scene }, lifetime.Token);
+            return IsSceneSynchronized(scene);
         }
 
         public void Cancel()
@@ -598,7 +606,7 @@ namespace HBP.Quest.Desktop
                     SetStatus("Operation cancelled.");
                 }
                 else
-                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? exception.Message : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association" : "Quest unreachable. Check USB or Wi-Fi.");
+                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? TransferError.Describe(exception) : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association" : "Quest unreachable. Check USB or Wi-Fi.");
 
                 Debug.LogWarning("Quest operation failed: " + exception.Message);
             }

@@ -328,7 +328,7 @@ namespace HBP.Quest
         {
             if (target == null || anatomy == null || target.SharedMesh == null) return false;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && column.Scene != null && column.Scene.IsVisible && column.Manipulator == target)
+                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && column.Manipulator == target)
                     return true;
             return false;
         }
@@ -340,14 +340,14 @@ namespace HBP.Quest
             if (anatomy == null) return null;
             QuestAnatomyManipulator grabbed = null;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && column.Scene != null && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && column.Manipulator.IsGrabbed)
+                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && column.Manipulator.IsGrabbed)
                 {
                     grabbed = column.Manipulator;
                     break;
                 }
 
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && column.Scene != null && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
                 {
                     nearest = column.Manipulator;
                     distance = hitDistance;
@@ -360,7 +360,7 @@ namespace HBP.Quest
         {
             if (anatomy == null) return null;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && column.Scene != null && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
+                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
                 {
                     if (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))) return column.Manipulator;
                     // Preserve joining a direct gesture, but don't mix physical and remote poses accidentally.
@@ -374,7 +374,7 @@ namespace HBP.Quest
             QuestAnatomyManipulator nearest = null;
             float nearestCenter = float.PositiveInfinity;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && column.Scene != null && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
+                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
                 {
                     float distance = (position - column.Manipulator.GrabCenter).sqrMagnitude;
                     if (distance < nearestCenter)

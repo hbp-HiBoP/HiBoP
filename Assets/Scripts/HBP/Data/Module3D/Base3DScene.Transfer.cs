@@ -32,9 +32,11 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>Wait for all source resources, then copy on Unity's thread without interleaved mutations.</summary>
-        public async UniTask<T> CapturePreparedAsync<T>(Func<T> capture, CancellationToken token)
+        public async UniTask<T> CapturePreparedAsync<T>(Func<T> capture, CancellationToken token, Func<string, IDisposable> measure = null)
         {
-            await m_InitializationWork;
+            using (measure?.Invoke("source.wait-initialization"))
+                await m_InitializationWork;
+            using (measure?.Invoke("source.wait-anatomy"))
             {
                 // Another capture may start preparation while this caller is awaiting
                 // Unity. Recheck on Unity before replacing the tracked lifetime task.
@@ -48,6 +50,7 @@ namespace HBP.Data.Module3D
             token.ThrowIfCancellationRequested();
             if (IsClosing || !SceneInformation.Initialized)
                 throw new InvalidOperationException("The visualization is closing or has not finished initialization.");
+            using (measure?.Invoke("source.prepare-missing-anatomy"))
             {
                 m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
                 await m_AnatomyWork;
@@ -57,29 +60,37 @@ namespace HBP.Data.Module3D
             token.ThrowIfCancellationRequested();
             if (IsClosing)
                 throw new ObjectDisposedException(Name);
-            while (IsSurfaceRepresentationPreparing)
+            using (measure?.Invoke("source.wait-surface-representation"))
             {
-                token.ThrowIfCancellationRequested();
-                if (IsClosing) throw new ObjectDisposedException(Name);
-                await UniTask.Yield(PlayerLoopTiming.Update, token);
+                while (IsSurfaceRepresentationPreparing)
+                {
+                    token.ThrowIfCancellationRequested();
+                    if (IsClosing) throw new ObjectDisposedException(Name);
+                    await UniTask.Yield(PlayerLoopTiming.Update, token);
+                }
             }
 
-            await m_SurfaceRepresentationGate.WaitAsync(token);
+            using (measure?.Invoke("source.wait-capture-gate"))
+                await m_SurfaceRepresentationGate.WaitAsync(token);
             try
             {
                 await UniTask.SwitchToMainThread();
-                do
+                using (measure?.Invoke("source.wait-derived-data"))
                 {
-                    await m_GeneratorWork;
-                    await m_CorrelationWork;
-                    await m_ColliderWork;
-                    await UniTask.SwitchToMainThread();
-                    token.ThrowIfCancellationRequested();
-                } while (!m_GeneratorWork.Status.IsCompleted() || !m_CorrelationWork.Status.IsCompleted() || !m_ColliderWork.Status.IsCompleted());
+                    do
+                    {
+                        using (measure?.Invoke("source.wait-generator")) await m_GeneratorWork;
+                        using (measure?.Invoke("source.wait-correlation")) await m_CorrelationWork;
+                        using (measure?.Invoke("source.wait-collider")) await m_ColliderWork;
+                        await UniTask.SwitchToMainThread();
+                        token.ThrowIfCancellationRequested();
+                    } while (!m_GeneratorWork.Status.IsCompleted() || !m_CorrelationWork.Status.IsCompleted() || !m_ColliderWork.Status.IsCompleted());
+                }
 
                 if (IsClosing)
                     throw new ObjectDisposedException(Name);
-                return capture();
+                using (measure?.Invoke("source.capture-owned-snapshot"))
+                    return capture();
             }
             finally
             {

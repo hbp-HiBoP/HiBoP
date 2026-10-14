@@ -566,6 +566,7 @@ namespace HBP.Tests.PlayMode.Toolbar
         {
             using PlayModeSceneScope scene = new("ToolbarToolbarSafeStates");
             using ToolbarSceneHarness harness = new(scene.Scene);
+            harness.Scene.SceneInformation.Initialized = true;
             ToolbarTestColumn selectedColumn = harness.CreateColumn("safe-state-column", selected: true);
             ObjectSite selectedSite = harness.CreateSite("A2", 0, new Vector3(2, 0, 0), selectedColumn);
             SelectSite(selectedColumn, selectedSite);

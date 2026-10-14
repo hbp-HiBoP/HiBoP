@@ -20,7 +20,7 @@ namespace HBP.Quest
         {
             visibility.onClick.AddListener(() =>
             {
-                if (presentation?.Scene != null && !closing) presentation.Scene.UpdateVisibleState(!presentation.Scene.IsVisible, false);
+                if (QuestAnatomySession.CanInteractWith(presentation?.Scene) && !closing) presentation.Scene.UpdateVisibleState(!presentation.Scene.IsVisible, false);
             });
             close.onClick.AddListener(() => CloseAsync().Forget());
         }
@@ -34,7 +34,7 @@ namespace HBP.Quest
 
         private async UniTaskVoid CloseAsync()
         {
-            if (closing || presentation?.Scene == null) return;
+            if (closing || !QuestAnatomySession.CanInteractWith(presentation?.Scene)) return;
             closing = true;
             error = null;
             try
@@ -77,7 +77,7 @@ namespace HBP.Quest
             };
             details.text = error ?? $"{scene.Columns.Count} columns · {state}";
             visibility.GetComponentInChildren<Text>().text = scene.IsVisible ? "Hide" : "Show";
-            visibility.interactable = close.interactable = !closing && !scene.IsClosing;
+            visibility.interactable = close.interactable = !closing && QuestAnatomySession.CanInteractWith(scene);
         }
     }
 }

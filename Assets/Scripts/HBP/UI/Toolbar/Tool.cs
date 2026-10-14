@@ -59,7 +59,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public void UpdateTool()
         {
-            if (SelectedScene != null && SelectedColumn != null && SelectedView != null)
+            if (SelectedScene != null && !SelectedScene.IsClosing && SelectedScene.SceneInformation.Initialized && SelectedScene.AnatomyCompletion.Status == Cysharp.Threading.Tasks.UniTaskStatus.Succeeded && SelectedColumn != null && SelectedView != null)
             {
                 UpdateInteractable();
                 UpdateStatus();

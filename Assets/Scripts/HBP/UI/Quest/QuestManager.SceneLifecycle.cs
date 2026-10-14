@@ -29,6 +29,15 @@ namespace HBP.Quest.Desktop
             public Task<bool> Work;
             public bool HasPendingWork => Work != null && !Work.IsCompleted;
             public string Error;
+            public bool UserRetryRequired;
+            public bool OfferWasSent;
+            public bool PreparedForDisplay;
+            public CancellationTokenSource PreparationStop;
+            public Task<bool> Preparation;
+            public Task<bool> DisplaySend;
+            public TaskCompletionSource<bool> DisplayCompletion;
+            public DisplayReservation DisplayOwner;
+            public readonly HashSet<string> UncertainTransfers = new(StringComparer.Ordinal);
             public bool Removed;
             public readonly CancellationTokenSource Lifetime = new();
             public readonly Dictionary<Guid, Task> Actions = new();
@@ -37,19 +46,29 @@ namespace HBP.Quest.Desktop
         private readonly Dictionary<Base3DScene, Publication> publications = new();
         private readonly List<(SessionControlKind Kind, SceneSessionClose Close)> pendingCloses = new();
         private readonly Dictionary<string, (HBP.Core.Data.Visualization Visualization, bool Share)> pendingReloads = new();
-        public bool CanRetryScenes => pendingReloads.Count != 0 || publications.Values.Any(value => !value.Removed && value.Binding == null && value.Error != null);
+        public bool CanRetryScenes => pendingReloads.Count != 0 || publications.Values.Any(value => !value.Removed && (value.UserRetryRequired || value.Binding == null && value.Error != null));
         private UserPreferences sceneLifecyclePreferences;
         private bool autoSync, applyingContext, restoringScenes, reloadingScenes, inventoryRequested;
         private Task inventoryWork = Task.CompletedTask;
         private float nextSceneAttempt;
         public bool AutomaticallySynchronizeScenes => autoSync;
-        private bool NeedsSceneReconnection => publications.Values.Any(value => !value.Removed && !value.HasPendingWork && value.Binding != null && value.Owner?.IsLive != true && value.Error == null);
+        public bool IsSceneSynchronized(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && !entry.Removed && !entry.UserRetryRequired && !entry.HasPendingWork && entry.Binding != null && entry.Owner?.IsLive == true && entry.Owner.IsInitialRenderingReady && entry.Error == null;
+        public string GetSceneSynchronizationError(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) ? entry.Error : null;
+
+        public async Task CancelSceneSynchronizationAsync(Base3DScene scene)
+        {
+            if (scene == null || !publications.TryGetValue(scene, out var entry)) return;
+            entry.Stop?.Cancel();
+            if (entry.Work != null) await entry.Work;
+        }
+
+        private bool NeedsSceneReconnection => publications.Values.Any(value => !value.Removed && !value.UserRetryRequired && !value.HasPendingWork && !IsDisplayReserved(value.Scene) && value.Binding != null && value.Owner?.IsLive != true && value.Error == null);
 
         // An inventory can predate a send that finishes while its response is in flight.
         // Only reconcile entries that stayed idle and kept the same publication throughout.
-        private (Publication Entry, PreparedSceneDeliveryBinding Binding, Task<bool> Work)[] SnapshotInventoryPublications() => publications.Values.Where(value => !value.Removed && !value.HasPendingWork).Select(value => (value, value.Binding, value.Work)).ToArray();
+        private (Publication Entry, PreparedSceneDeliveryBinding Binding, Task<bool> Work)[] SnapshotInventoryPublications() => publications.Values.Where(value => !value.Removed && !value.UserRetryRequired && !value.HasPendingWork && !IsDisplayReserved(value.Scene)).Select(value => (value, value.Binding, value.Work)).ToArray();
 
-        private static bool CanApplyInventory((Publication Entry, PreparedSceneDeliveryBinding Binding, Task<bool> Work) snapshot) => !snapshot.Entry.Removed && !snapshot.Entry.HasPendingWork && ReferenceEquals(snapshot.Entry.Binding, snapshot.Binding) && ReferenceEquals(snapshot.Entry.Work, snapshot.Work);
+        private static bool CanApplyInventory((Publication Entry, PreparedSceneDeliveryBinding Binding, Task<bool> Work) snapshot) => !snapshot.Entry.Removed && !snapshot.Entry.UserRetryRequired && !snapshot.Entry.HasPendingWork && ReferenceEquals(snapshot.Entry.Binding, snapshot.Binding) && ReferenceEquals(snapshot.Entry.Work, snapshot.Work);
 
         private void InitializeSceneLifecycle()
         {
@@ -81,7 +100,7 @@ namespace HBP.Quest.Desktop
 
         private void TickSceneLifecycle()
         {
-            if (!IsPaired || busy || restoringScenes || reloadingScenes || !inventoryWork.IsCompleted || !Module3DMain.IsInitialized || Time.unscaledTime < nextSceneAttempt) return;
+            if (!IsPaired || busy || displayReservation != null || restoringScenes || reloadingScenes || !inventoryWork.IsCompleted || !Module3DMain.IsInitialized || Time.unscaledTime < nextSceneAttempt) return;
             if (inventoryRequested)
             {
                 inventoryRequested = false;
@@ -92,14 +111,14 @@ namespace HBP.Quest.Desktop
             if (!autoSync) return;
             foreach (var scene in Module3DMain.Scenes.ToArray())
             {
-                if (scene == null || scene.IsClosing) continue;
+                if (scene == null || scene.IsClosing || IsDisplayReserved(scene)) continue;
                 if (!publications.TryGetValue(scene, out var entry))
                 {
                     _ = SendAsync(false, scene);
                     continue;
                 }
 
-                if (!entry.Removed && entry.Binding == null && entry.Error == null && (entry.Work == null || entry.Work.IsCompleted)) _ = SendAsync(false, scene);
+                if (!entry.Removed && !entry.UserRetryRequired && entry.Binding == null && entry.Error == null && (entry.Work == null || entry.Work.IsCompleted)) _ = SendAsync(false, scene);
             }
         }
 
@@ -124,6 +143,7 @@ namespace HBP.Quest.Desktop
                 if (!entry.Removed)
                 {
                     entry.Error = "Visualization transfer cancelled. Retry to continue.";
+                    entry.UserRetryRequired = true;
                     SetStatus(entry.Error);
                 }
 
@@ -137,57 +157,65 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update)
+        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null)
         {
+            using var preparation = PairingTiming.Measure("desktop.scene-publication-total");
             try
             {
+                validate?.Invoke();
                 if (!IsPaired || globals == null) throw new InvalidOperationException("Pair a Quest first.");
                 if (entry.Removed || entry.Scene == null || entry.Scene.IsClosing) throw new InvalidOperationException("The visualization has been closed.");
                 if (sessionPreferences != null)
                 {
-                    await sessionPreferences.FlushPreferencesAsync();
-                    foreach (string atlas in entry.Scene.RequiredAtlasIds()) await sessionPreferences.EnsureAtlasReadyAsync(atlas);
+                    using var preferences = PairingTiming.Measure("desktop.scene-preferences-and-atlas");
+                    await sessionPreferences.FlushPreferencesAsync().AsUniTask().AttachExternalCancellation(token);
+                    foreach (string atlas in entry.Scene.RequiredAtlasIds()) await sessionPreferences.EnsureAtlasReadyAsync(atlas, token);
                 }
+
+                await UniTask.SwitchToMainThread(token);
 
                 for (int restart = 0;; restart++)
                 {
-                    bool reuse = retry && entry.Offer?.CanRetry == true && entry.Owner?.CanRetryTransfer == true;
-                    if (!reuse)
-                    {
-                        entry.Owner?.Dispose();
-                        entry.Owner = null;
-                        entry.Binding = null;
-                        entry.Record?.Dispose();
-                        entry.Record = null;
-                        if (entry.Offer != null) await entry.Offer.DisposeAsync();
-                        entry.Offer = null;
-                        string transferId = Guid.NewGuid().ToString("N");
-                        long generation = Interlocked.Increment(ref nextTransferCaptureGeneration);
-                        entry.Offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, token, update, entry.Scene, transferId, generation, (scene, incarnation, session) =>
-                        {
-                            entry.Owner = new DesktopReplicaSession(scene, session, incarnation);
-                            entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
-                        });
-                    }
+                    token.ThrowIfCancellationRequested();
+                    validate?.Invoke();
+                    await PrepareSceneOfferAsync(entry, retry, token, update);
+                    entry.PreparedForDisplay = false;
 
                     var owner = entry.Owner;
+                    validate?.Invoke();
                     using var deliveryStop = CancellationTokenSource.CreateLinkedTokenSource(token, owner.PublicationAbortToken);
                     try
                     {
                         SetStatus("Sending " + entry.Scene.Visualization.Name + " to Quest");
+                        entry.OfferWasSent = true;
                         var receipt = await QuestPairing.SendAsync(endpoint, pin, credential, deliveryStop.Token, (stream, stop) => entry.Offer.SendAsync(stream, stop, null, (sent, total) =>
                         {
                             float fraction = total == 0 ? 0 : Mathf.Clamp01((float)sent / total);
                             update(.20f + .65f * fraction, 0, new LoadingText("Sending " + entry.Scene.Visualization.Name + $": {fraction:P0}"));
                         }));
                         await UniTask.SwitchToMainThread(token);
+                        validate?.Invoke();
                         if (entry.Removed) return false;
+                        if (retry && restart < 2 && receipt.Status is DeliveryStatus.Closed or DeliveryStatus.Superseded)
+                        {
+                            await RetireInterruptedPublicationAsync(entry, token);
+                            continue;
+                        }
+
                         entry.Binding = PreparedSceneDeliveryBinding.FromSent(entry.Offer, receipt);
+                        entry.UncertainTransfers.Remove(entry.Offer.TransferId);
                         entry.Record = SceneReconciliationRecord.Retain(entry.Scene, entry.Binding);
-                        await owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, deliveryStop.Token);
+                        using (PairingTiming.Measure("desktop.scene-initial-sync", entry.Offer.TransferId))
+                        {
+                            await owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, deliveryStop.Token);
+                            await owner.WaitInitialRenderingAsync(deliveryStop.Token);
+                        }
+
                         await UniTask.SwitchToMainThread(token);
+                        validate?.Invoke();
                         update(1, 0, new LoadingText("Visualization ready on Quest"));
                         SetStatus(entry.Scene.Visualization.Name + " ready on Quest.");
+                        entry.UserRetryRequired = false;
                         return true;
                     }
                     catch (Exception error) when (restart < 2 && !entry.Removed && (owner.RequiresPublicationRestart || error is DesktopReplicaSession.PublicationRestartException))
@@ -201,14 +229,88 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 if (!entry.Removed)
                 {
-                    entry.Error = error is OperationCanceledException ? "Visualization transfer cancelled. Retry to continue." : error.Message;
-                    if (error is not OperationCanceledException) Debug.LogException(error);
+                    bool cancelled = token.IsCancellationRequested || error is OperationCanceledException;
+                    entry.Error = cancelled ? "Visualization transfer cancelled. Retry to continue." : TransferError.Describe(error);
+                    entry.UserRetryRequired = true;
+                    if (entry.Binding != null && entry.Owner?.IsInitialRenderingReady != true)
+                    {
+                        entry.Owner?.Dispose();
+                        entry.Owner = null;
+                        if (entry.Scene != null && !entry.Scene.IsClosing)
+                            try
+                            {
+                                await entry.Scene.CapturePreparedAsync(() => 0, CancellationToken.None);
+                            }
+                            catch (Exception cleanup)
+                            {
+                                Debug.LogWarning("Desktop Display preparation stopped: " + cleanup.Message);
+                            }
+                    }
+
+                    if (!cancelled) Debug.LogException(error);
                     if (entry.Binding != null) reconciliationNeedsRetry = true;
                     SetStatus(entry.Error);
                 }
 
                 return false;
             }
+        }
+
+        private async Task PrepareSceneOfferAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, long maximumBytes = long.MaxValue)
+        {
+            bool reuse = entry.Offer != null && entry.Owner?.CanRetryTransfer == true && (entry.PreparedForDisplay && !entry.OfferWasSent || retry && entry.Offer.CanRetry);
+            if (!reuse && (entry.OfferWasSent || entry.UncertainTransfers.Count != 0) && entry.Binding == null)
+            {
+                if (!retry) throw new InvalidOperationException("The interrupted Quest transfer needs an explicit retry.");
+                await RetireInterruptedPublicationAsync(entry, token);
+            }
+
+            if (!reuse)
+            {
+                if (entry.OfferWasSent && entry.Offer != null) entry.UncertainTransfers.Add(entry.Offer.TransferId);
+                entry.OfferWasSent = false;
+                entry.Owner?.Dispose();
+                entry.Owner = null;
+                entry.Binding = null;
+                entry.Record?.Dispose();
+                entry.Record = null;
+                if (entry.Offer != null) await entry.Offer.DisposeAsync();
+                entry.Offer = null;
+                string transferId = Guid.NewGuid().ToString("N");
+                long generation = Interlocked.Increment(ref nextTransferCaptureGeneration);
+                entry.Offer = await DesktopSceneCapture.CaptureForQuestAsync(globals.Context, token, update, entry.Scene, transferId, generation, (scene, incarnation, session) =>
+                {
+                    entry.Owner = new DesktopReplicaSession(scene, session, incarnation);
+                    entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
+                }, maximumOwnedSnapshotBytes: maximumBytes);
+            }
+        }
+
+        private async Task RetireInterruptedPublicationAsync(Publication entry, CancellationToken token)
+        {
+            var expectedContext = globals;
+            long expectedGeneration = sessionGeneration;
+            var transfers = entry.UncertainTransfers.ToList();
+            if (entry.OfferWasSent && entry.Offer != null) transfers.Add(entry.Offer.TransferId);
+            if (transfers.Count == 0) throw new InvalidOperationException("The interrupted transfer identity is unavailable. Close the Desktop visualization before sending it again.");
+            foreach (string transfer in transfers.Distinct())
+            {
+                await SceneControlAsync(SessionControlKind.CloseScene, new SceneSessionClose { VisualizationId = entry.VisualizationId, TransferId = transfer }, token);
+                await UniTask.SwitchToMainThread(token);
+                if (!IsPaired || !ReferenceEquals(globals, expectedContext) || sessionGeneration != expectedGeneration || entry.Removed)
+                    throw new InvalidOperationException("The Quest connection changed during recovery. Retry after reconnecting.");
+            }
+
+            // Only the exact, acknowledged old incarnations may be replaced. A Quest tombstone
+            // also prevents an abandoned receive from publishing after this acknowledgement.
+            entry.Owner?.Dispose();
+            entry.Owner = null;
+            if (entry.Offer != null) await entry.Offer.DisposeAsync();
+            await UniTask.SwitchToMainThread(token);
+            entry.Offer = null;
+            entry.OfferWasSent = false;
+            entry.PreparedForDisplay = false;
+            entry.UncertainTransfers.Clear();
         }
 
         private async Task<SessionControlResponse> SceneControlAsync(SessionControlKind kind, SceneSessionClose close, CancellationToken token)
@@ -244,8 +346,10 @@ namespace HBP.Quest.Desktop
             if (!publications.TryGetValue(scene, out var entry) || entry.Removed) return;
             var close = Closing(entry);
             Retire(entry);
-            if (close.TransferId == null || reloadingScenes) return;
-            pendingCloses.Add((autoSync ? SessionControlKind.CloseScene : SessionControlKind.DetachScene, close));
+            if (reloadingScenes) return;
+            if (close.TransferId != null) pendingCloses.Add((autoSync ? SessionControlKind.CloseScene : SessionControlKind.DetachScene, close));
+            foreach (string transfer in entry.UncertainTransfers.Where(value => value != close.TransferId))
+                pendingCloses.Add((autoSync ? SessionControlKind.CloseScene : SessionControlKind.DetachScene, new SceneSessionClose { VisualizationId = entry.VisualizationId, TransferId = transfer }));
             inventoryRequested = true;
         }
 
@@ -284,7 +388,7 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 inventoryRequested = true;
                 nextSceneAttempt = Time.unscaledTime + 5;
-                SetStatus("Scene synchronization interrupted: " + error.Message);
+                SetStatus("Scene synchronization interrupted: " + TransferError.Describe(error));
             }
         }
 
@@ -308,7 +412,10 @@ namespace HBP.Quest.Desktop
             var closes = new List<Task<SessionControlResponse>>();
             foreach (var remote in inventory)
             {
-                var retained = publications.Values.FirstOrDefault(value => !value.Removed && value.VisualizationId == remote.VisualizationId && (value.Binding?.TransferId ?? value.Offer?.TransferId) == remote.TransferId);
+                var retained = publications.Values.FirstOrDefault(value => !value.Removed && value.VisualizationId == remote.VisualizationId && ((value.Binding?.TransferId ?? value.Offer?.TransferId) == remote.TransferId || value.UncertainTransfers.Contains(remote.TransferId)));
+                // An uncertain receipt or cancelled Display remains a manual recovery.
+                // Inventory must not erase its remote copy to make a fresh send possible.
+                if (retained?.UserRetryRequired == true || retained?.UncertainTransfers.Contains(remote.TransferId) == true) continue;
                 if (remote.Orphan || retained == null || !local.Contains(retained.Scene))
                     closes.Add(SceneControlAsync(SessionControlKind.CloseScene, new SceneSessionClose { VisualizationId = remote.VisualizationId, TransferId = remote.TransferId }, token));
             }
@@ -335,7 +442,7 @@ namespace HBP.Quest.Desktop
             await Task.WhenAll(sends);
         }
 
-        private async Task RestoreScenesAsync(CancellationToken token)
+        private async Task RestoreScenesAsync(CancellationToken token, Base3DScene manualScene = null)
         {
             restoringScenes = true;
             reconciliationNeedsRetry = false;
@@ -343,16 +450,23 @@ namespace HBP.Quest.Desktop
             try
             {
                 await FlushClosesAsync(token);
-                var candidates = SnapshotInventoryPublications();
+                var candidates = manualScene == null ? SnapshotInventoryPublications() : new[] { (Entry: GetPublication(manualScene), Binding: GetPublication(manualScene).Binding, Work: GetPublication(manualScene).Work) };
                 var inventory = await InventoryAsync(token);
 
                 async Task ReconnectAsync((Publication Entry, PreparedSceneDeliveryBinding Binding, Task<bool> Work) candidate)
                 {
-                    if (!CanApplyInventory(candidate) || candidate.Binding == null) return;
+                    if (manualScene == null && !CanApplyInventory(candidate) || candidate.Binding == null || candidate.Entry.Removed) return;
                     var entry = candidate.Entry;
                     var remote = inventory.FirstOrDefault(value => value.TransferId == entry.Binding.TransferId && value.VisualizationId == entry.VisualizationId && !value.Orphan);
                     if (remote == null)
                     {
+                        if (manualScene != null)
+                        {
+                            entry.Error = "The published visualization is unavailable on Quest. Close it explicitly before sending a new copy.";
+                            entry.UserRetryRequired = true;
+                            return;
+                        }
+
                         entry.Owner?.Dispose();
                         entry.Owner = null;
                         entry.Binding = null;
@@ -361,7 +475,7 @@ namespace HBP.Quest.Desktop
                         return;
                     }
 
-                    if (entry.Owner?.IsLive == true) return;
+                    if (entry.Owner?.IsLive == true && (manualScene == null || entry.Owner.IsInitialRenderingReady)) return;
                     try
                     {
                         entry.Owner?.Dispose();
@@ -378,20 +492,22 @@ namespace HBP.Quest.Desktop
                         entry.Owner = new DesktopReplicaSession(entry.Scene, entry.Binding.GlobalContextId, entry.Binding.TransferId);
                         entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
                         await entry.Owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, sceneStop.Token);
+                        await entry.Owner.WaitInitialRenderingAsync(sceneStop.Token);
                         entry.Error = null;
                     }
                     catch (Exception error) when (!token.IsCancellationRequested)
                     {
                         await UniTask.SwitchToMainThread(token);
                         if (entry.Removed) return;
-                        entry.Error = "Reconnection failed for " + entry.VisualizationId + ": " + error.Message;
+                        entry.Error = "Reconnection failed for " + entry.VisualizationId + ": " + TransferError.Describe(error);
+                        entry.UserRetryRequired = true;
                         reconciliationNeedsRetry = true;
                     }
                 }
 
                 await Task.WhenAll(candidates.Where(value => value.Binding != null).Select(ReconnectAsync));
                 await FlushClosesAsync(token);
-                if (autoSync) await SynchronizeInventoryAsync(token);
+                if (autoSync && manualScene == null) await SynchronizeInventoryAsync(token);
             }
             finally
             {
@@ -420,7 +536,7 @@ namespace HBP.Quest.Desktop
             }
             catch (System.IO.IOException error)
             {
-                SetStatus(error.Message);
+                SetStatus(TransferError.Describe(error));
             }
         }
 
@@ -491,13 +607,13 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 try
                 {
-                    entry.Owner?.SendAction(new(action.Scene, action.Incarnation, SceneActionKind.Result, operation: action.Operation, succeeded: false, message: error.Message));
+                    entry.Owner?.SendAction(new(action.Scene, action.Incarnation, SceneActionKind.Result, operation: action.Operation, succeeded: false, message: TransferError.Describe(error)));
                 }
                 catch (System.IO.IOException)
                 {
                 }
 
-                SetStatus(error.Message);
+                SetStatus(TransferError.Describe(error));
             }
         }
 
@@ -524,15 +640,14 @@ namespace HBP.Quest.Desktop
                     }
                     catch (Exception error) when (error is not OperationCanceledException)
                     {
-                        failures.Add(pending.Visualization.Name + ": " + error.Message);
+                        failures.Add(pending.Visualization.Name + ": " + TransferError.Describe(error));
                     }
                 }
 
-                foreach (var entry in publications.Values.Where(value => !value.Removed && value.Binding == null && value.Error != null).ToArray())
-                    if (!await SendAsync(true, entry.Scene))
-                        failures.Add(entry.Scene.Visualization.Name + ": " + entry.Error);
                 return failures.Count == 0;
             });
+            await RetryDisplayScenesAsync(publications.Values.Where(value => !value.Removed && value.UserRetryRequired).Select(value => value.Scene).ToArray(), token);
+            failures.AddRange(publications.Values.Where(value => !value.Removed && value.UserRetryRequired).Select(value => value.Scene.Visualization.Name + ": " + value.Error));
             SetStatus(failures.Count == 0 ? "Visualizations ready." : "Some visualizations need retry: " + string.Join("; ", failures));
         }
 
@@ -616,7 +731,7 @@ namespace HBP.Quest.Desktop
                     }
                     catch (Exception error) when (error is not OperationCanceledException)
                     {
-                        failures.Add(visualization.Name + ": " + error.Message);
+                        failures.Add(visualization.Name + ": " + TransferError.Describe(error));
                     }
                 }
 

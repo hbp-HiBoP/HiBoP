@@ -40,6 +40,7 @@ namespace HBP.Transfer.Scene
         private readonly long encodedBytes;
         public string ContentHash => blocks == null ? contentHash : blocks.ContentHash;
         public long EncodedBytes => blocks == null ? encodedBytes : blocks.EncodedBytes;
+        public long EstimatedOwnedSnapshotBytes { get; internal set; }
         public bool CanRetry => blocks == null || blocks.IsPrepared;
 
         internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, SyncTelemetryIdentity telemetryIdentity = default)

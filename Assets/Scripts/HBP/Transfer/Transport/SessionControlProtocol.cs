@@ -19,7 +19,8 @@ namespace HBP.Transfer.Transport
         AtlasInventory = 9,
         SceneInventory = 10,
         CloseScene = 11,
-        DetachScene = 12
+        DetachScene = 12,
+        DisplayBatch = 13
     }
 
     public enum SessionControlStatus : byte

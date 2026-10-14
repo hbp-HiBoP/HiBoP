@@ -63,6 +63,10 @@ namespace HBP.Quest.Desktop
         private readonly CancellationTokenSource m_Lifetime = new CancellationTokenSource();
         private readonly CancellationTokenSource m_PublicationAbort = new CancellationTokenSource();
         private readonly TaskCompletionSource<OperationId> m_InitialApplyAcknowledged = new TaskCompletionSource<OperationId>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource<OperationId> m_RenderReadyAcknowledged = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private OperationId m_InitialDisplayPolicy;
+        private bool m_InitialProjectionFailed;
+        public bool IsInitialRenderingReady { get; private set; }
         private readonly JobGenerationRegistry m_SiteFilterGenerations = new JobGenerationRegistry();
         private readonly JobGenerationRegistry m_CorrelationGenerations = new JobGenerationRegistry();
         private readonly JobGenerationRegistry m_ActivityProjectionGenerations = new JobGenerationRegistry();
@@ -154,7 +158,7 @@ namespace HBP.Quest.Desktop
             m_Transport = new PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.OnClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
             m_SurfaceInflation = new SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
-            m_SurfaceInflation.PreparationHandler = (prepare, token) => SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
+            m_SurfaceInflation.PreparationHandler = (prepare, token) => QuestManager.HasDisplayPresentation(m_Scene) ? prepare(token) : SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
             m_SurfaceInflation.OnRemoteJobStarted.AddListener(completion => SurfaceInflationLoading.ObserveAsync(completion).Forget());
             m_OpenReplica = openReplica ?? ((host, pin, credential, token, transport) => QuestPairing.OpenReplicaAsync(host, pin, credential, token, async (stream, stop) =>
             {
@@ -290,7 +294,27 @@ namespace HBP.Quest.Desktop
                 m_State = PublicationState.Live;
             }
 
-            PublishActivityProjectionPolicy();
+            await UniTask.SwitchToMainThread(stop);
+            m_InitialDisplayPolicy = PublishActivityProjectionPolicy();
+        }
+
+        public async Task WaitInitialRenderingAsync(CancellationToken stop)
+        {
+            using var readinessStop = CancellationTokenSource.CreateLinkedTokenSource(stop, m_ConnectionLifetime.Token);
+            readinessStop.CancelAfter(TimeSpan.FromMinutes(3));
+            stop = readinessStop.Token;
+            var policy = m_InitialDisplayPolicy ?? throw new InvalidOperationException("The initial projection policy has not been published.");
+            await UniTask.SwitchToMainThread(stop);
+            await m_Scene.PrepareRenderingAsync(stop);
+            while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
+                await UniTask.Yield(PlayerLoopTiming.Update, stop);
+            if (m_InitialProjectionFailed) throw new InvalidOperationException("The initial scientific projection failed. Retry to reconcile the visualization.");
+            var ready = m_Transport.EnqueueSessionControl(PublicationControlCodec.EncodeRenderReady(policy), DeliveryReliability.Reliable);
+            if (!ready.Accepted) throw new IOException("The render readiness request could not be retained.");
+            await m_RenderReadyAcknowledged.Task.AsUniTask().AttachExternalCancellation(readinessStop.Token);
+            if (!policy.Equals(await m_RenderReadyAcknowledged.Task)) throw new InvalidDataException("Wrong render readiness policy.");
+            stop.ThrowIfCancellationRequested();
+            IsInitialRenderingReady = true;
         }
 
         private void ValidateBinding(PreparedSceneDeliveryBinding binding)
@@ -441,6 +465,14 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == ScheduleLane.SessionControl)
             {
+                if (PublicationControlCodec.TryDecodeRenderReady(payload, out var readyPolicy, out bool renderSucceeded))
+                {
+                    if (!readyPolicy.Equals(m_InitialDisplayPolicy)) throw new InvalidDataException("Wrong render readiness policy.");
+                    if (renderSucceeded) m_RenderReadyAcknowledged.TrySetResult(readyPolicy);
+                    else m_RenderReadyAcknowledged.TrySetException(new InvalidOperationException("Quest could not finish the initial scientific rendering. Retry to reconcile the visualization."));
+                    return;
+                }
+
                 if (SceneAction.TryDecode(payload, out var action))
                 {
                     if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
@@ -631,6 +663,7 @@ namespace HBP.Quest.Desktop
                     active.Terminals.MarkRemoteTerminal();
                     if (control.Kind == ActivityProjectionControlKind.Failed)
                     {
+                        m_InitialProjectionFailed = true;
                         m_ActivityProjectionGenerations.Cancel(active.Identity);
                         CancelDesktopActivityProjection(active, notifyPeer: false);
                     }
@@ -740,6 +773,7 @@ namespace HBP.Quest.Desktop
         private void CompleteLocalActivityProjection(ActiveActivityProjectionJob active, ActivityProjectionCompletionKind completion)
         {
             if (!ReferenceEquals(active, m_ActiveActivityProjectionJob) || active.Terminals.LocalTerminal) return;
+            if (completion == ActivityProjectionCompletionKind.Failed) m_InitialProjectionFailed = true;
             active.Terminals.MarkLocalTerminal();
             ActivityProjectionControlKind kind = completion switch
             {
@@ -839,14 +873,16 @@ namespace HBP.Quest.Desktop
             PublishActivityProjectionPolicy();
         }
 
-        private void PublishActivityProjectionPolicy()
+        private OperationId PublishActivityProjectionPolicy()
         {
-            if (!IsLive || IsClosed) return;
+            if (!IsLive || IsClosed) return null;
             bool automatic = AutomaticProjectionPolicyEnabled;
             m_Scene.SetCoordinatedAutomaticRecomputePolicy(automatic);
-            SendActivityProjectionControl(new ActivityProjectionControl(ActivityProjectionControlKind.Policy, CreateOperationId(), 0, projectionRequested: m_Scene.ProjectionRequested, automaticPolicyEnabled: automatic), DeliveryReliability.Reliable);
+            var policy = CreateOperationId();
+            SendActivityProjectionControl(new ActivityProjectionControl(ActivityProjectionControlKind.Policy, policy, 0, projectionRequested: m_Scene.ProjectionRequested, automaticPolicyEnabled: automatic), DeliveryReliability.Reliable);
             // Base3DScene starts a stale projection from Update once its geometry and resources are ready.
             // Starting directly here can emit a false failure for a ready projection or unfinished geometry.
+            return policy;
         }
 
         private void SendActivityProjectionTerminal(OperationId jobId, ulong generation, ulong inputGeneration, ActivityProjectionControlKind kind, string failureCode = null)
@@ -1301,7 +1337,7 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception exception)
             {
-                MarkConnectionClosed("The Quest sync replica connection failed: " + exception.Message);
+                MarkConnectionClosed("The Quest sync replica connection failed: " + TransferError.Describe(exception));
                 Debug.LogWarning("Quest sync replica disconnected: " + exception.Message);
             }
         }
@@ -1328,7 +1364,7 @@ namespace HBP.Quest.Desktop
                 }
                 catch (Exception exception)
                 {
-                    MarkConnectionClosed("The Quest sync replica connection failed: " + exception.Message);
+                    MarkConnectionClosed("The Quest sync replica connection failed: " + TransferError.Describe(exception));
                     Debug.LogWarning("Quest sync replica disconnected: " + exception.Message);
                     return;
                 }
@@ -1411,7 +1447,7 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception exception)
             {
-                MarkConnectionClosed("The Quest sync mutation receiver failed: " + exception.Message);
+                MarkConnectionClosed("The Quest sync mutation receiver failed: " + TransferError.Describe(exception));
                 Debug.LogError("Quest sync mutation receive failed: " + exception);
             }
         }

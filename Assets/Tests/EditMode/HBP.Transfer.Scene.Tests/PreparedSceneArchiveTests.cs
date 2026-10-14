@@ -353,6 +353,36 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public void AheadBudgetIncludesMetadataAndRejectsNumericCopiesBeforeAllocation()
+        {
+            using var writer = new DetachedSceneMetadata(4096, 1024);
+            writer.WriteStartObject();
+            writer.WritePropertyName("Buffer");
+            long retained = writer.EstimatedRetainedBytes;
+            Assert.That(retained, Is.GreaterThan(1024));
+            Assert.Throws<ScenePreparationBudgetExceededException>(() => writer.CheckNumericBudget(4096));
+            Assert.That(writer.EstimatedRetainedBytes, Is.EqualTo(retained));
+            Assert.That(writer.OwnedNumericBytes, Is.Zero);
+        }
+
+        [Test]
+        public async System.Threading.Tasks.Task AheadBudgetExhaustionCanFallBackWithoutChangingScientificContent()
+        {
+            using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true) { DetachCapture = true };
+            var payload = Fixture(source);
+            source.MaximumOwnedCaptureBytes = 1;
+            Assert.Throws<ScenePreparationBudgetExceededException>(() => source.CaptureDetachedMetadata(payload));
+            source.MaximumOwnedCaptureBytes = long.MaxValue;
+            var captured = source.CaptureDetachedMetadata(payload);
+            Assert.That(captured.EstimatedRetainedBytes, Is.GreaterThan(captured.OwnedNumericBytes));
+            string file = Path.Combine(directory, "fallback.hbscene");
+            await System.Threading.Tasks.Task.Run(() => source.WriteCaptured(captured.Encode(source), file));
+            using var target = new SceneArchive(Path.Combine(directory, "target"), true, source.Globals);
+            var restored = target.Read(file);
+            Assert.That(((IEEGColumn)restored.Visualization.Columns[1]).Data.ProcessedValuesByChannel["patient_A1"], Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
+        }
+
+        [Test]
         public async System.Threading.Tasks.Task CapturedGlobalsKeepDefinitionsPreferencesAndImagesDuringWorkerEncoding()
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"), deferResourceWrites: true);

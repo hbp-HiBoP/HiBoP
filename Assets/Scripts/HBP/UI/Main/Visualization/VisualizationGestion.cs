@@ -7,6 +7,7 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Core.Preferences;
+using System.Threading;
 
 namespace HBP.UI.Main
 {
@@ -42,7 +43,10 @@ namespace HBP.UI.Main
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
 
-        public async void Display()
+        public async void Display() => await DisplayAsync();
+
+        /// <summary>The same Display operation can be awaited by diagnostics and UI callers.</summary>
+        public async UniTask DisplayAsync(CancellationToken cancellationToken = default)
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
@@ -53,9 +57,20 @@ namespace HBP.UI.Main
             }
 
             DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
-            UniTask loading = LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
+            UniTask loading = new SceneDisplayOperation(visualizations).RunAsync(cancellationToken);
             OK();
-            await loading;
+            try
+            {
+                await loading;
+            }
+            catch (System.OperationCanceledException)
+            {
+            }
+            catch (System.Exception error)
+            {
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Display could not start", HBP.Transfer.Transport.TransferError.Describe(error), "OK");
+            }
+
             await UniTask.SwitchToMainThread();
             UITools.ShowMemoryCacheBudgetWarningIfNeeded();
         }

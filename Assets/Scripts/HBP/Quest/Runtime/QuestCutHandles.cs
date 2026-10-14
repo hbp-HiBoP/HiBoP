@@ -36,7 +36,7 @@ namespace HBP.Quest
 
         public void Refresh()
         {
-            foreach (var old in gizmos.Where(g => g == null || view == null || !g.IsValid || !g.Scene.IsVisible || !view.AllColumns.Contains(g.Column)).ToArray())
+            foreach (var old in gizmos.Where(g => g == null || view == null || !g.IsValid || !QuestAnatomySession.CanInteractWith(g.Scene) || !g.Scene.IsVisible || !view.AllColumns.Contains(g.Column)).ToArray())
             {
                 for (int i = 0; i < drags.Length; i++)
                     if (drags[i]?.Gizmo == old)
@@ -56,7 +56,7 @@ namespace HBP.Quest
                 return;
             }
 
-            foreach (var column in view.AllColumns.Where(value => value.gameObject.activeInHierarchy && value.Scene.IsVisible && !value.Scene.AutomaticCutAroundSelectedSite))
+            foreach (var column in view.AllColumns.Where(value => value.gameObject.activeInHierarchy && QuestAnatomySession.CanInteractWith(value.Scene) && value.Scene.IsVisible && !value.Scene.AutomaticCutAroundSelectedSite))
             foreach (var cut in column.Scene.Cuts)
                 if (!gizmos.Any(g => g.Column == column && g.Cut == cut))
                 {

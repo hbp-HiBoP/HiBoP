@@ -1,5 +1,3 @@
-using Cysharp.Threading.Tasks;
-using HBP.Core.Enums;
 using HBP.Data.Module3D;
 using HBP.Transfer.Scene;
 using HBP.Quest.Desktop;
@@ -57,20 +55,12 @@ namespace HBP.UI.Quest
         {
             if (!m_OKButton.interactable) return;
             m_OKButton.interactable = false;
+            Base3DScene scene = Module3DMain.SelectedScene;
             base.OK();
             QuestManager manager = connection;
-            bool sent = await manager.SendAsync(false);
-            string error = manager.Status;
-            if (sent) return;
-
-            await UniTask.NextFrame();
-            while (await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest send failed", error, "Retry", "Cancel") == 0)
-            {
-                await UniTask.WaitUntil(() => !manager.IsBusy);
-                sent = await manager.SendAsync(manager.HasRetryableDelivery);
-                if (sent) return;
-                error = manager.Status;
-            }
+            // The menu is an explicit recovery request, even if cancellation left no
+            // complete retry spool. Display owns its presentation and recovery dialog.
+            await manager.SendAsync(true, scene);
         }
     }
 }

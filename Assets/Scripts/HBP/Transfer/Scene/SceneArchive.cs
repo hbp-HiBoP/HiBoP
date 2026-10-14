@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using HBP.Core.Tools;
+using HBP.Transfer.Transport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -45,6 +46,7 @@ namespace HBP.Transfer.Scene
         private BufferPack pack = new();
         private bool packedBuffers;
         internal bool DetachCapture { get; set; }
+        internal long MaximumOwnedCaptureBytes { get; set; } = long.MaxValue;
 
         private readonly List<SurfaceCapture> detachedSurfaces = new();
         private bool detachingIllustrations;
@@ -175,7 +177,7 @@ namespace HBP.Transfer.Scene
                 throw new InvalidOperationException("Detached capture requires the current format and pairing.");
             packedBuffers = true;
             PrepareGlobalReferences();
-            var writer = new DetachedSceneMetadata();
+            var writer = new DetachedSceneMetadata(MaximumOwnedCaptureBytes, detachedSurfaces.Sum(surface => surface.Data.Bytes + 4L * surface.Mask.Length));
             Serializer().Serialize(writer, payload);
             return writer;
         }
@@ -460,9 +462,7 @@ namespace HBP.Transfer.Scene
 
         private JsonSerializer Serializer(bool globalData = false)
         {
-            var serializer = PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers);
-            serializer.Converters.Add(new NumericBufferConverter(this));
-            return serializer;
+            return PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers, numericConverter: new NumericBufferConverter(this));
         }
 
         public void Write(ScenePayload payload, string output)
@@ -643,20 +643,30 @@ namespace HBP.Transfer.Scene
 
         public ScenePayload ReadPrepared(string verifiedContentHash = null)
         {
+            using var total = PairingTiming.Measure("scene.decode-total");
             if (!verifiedContent || Globals == null)
                 throw new InvalidOperationException("Verified paired content is required.");
             readToken.ThrowIfCancellationRequested();
             if (packedBuffers)
-                GlobalReferences = SceneGlobalReferences.Read(Path.Combine(directory, SceneGlobalReferences.FileName), Globals);
+                using (PairingTiming.Measure("scene.decode-global-references"))
+                    GlobalReferences = SceneGlobalReferences.Read(Path.Combine(directory, SceneGlobalReferences.FileName), Globals);
             using var reader = new SceneMetadataReader(File.OpenText(Path.Combine(directory, "visualization.json")));
             ScenePayload payload;
-            payload = Serializer().Deserialize<ScenePayload>(reader);
+            PairingTiming.Count("scene.metadata-bytes", new FileInfo(Path.Combine(directory, "visualization.json")).Length);
+            JObject metadata;
+            using (PairingTiming.Measure("scene.decode-json"))
+                metadata = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
             if (reader.Read())
                 throw new InvalidDataException("Trailing scene metadata.");
+            using (PairingTiming.Measure("scene.decode-object-graph"))
+                payload = metadata.ToObject<ScenePayload>(Serializer());
             if (payload?.GlobalContextId != Globals.Id)
                 throw new InvalidDataException("This visualization belongs to a different pairing. Send a new snapshot.");
-            SceneValidation.Validate(payload, this);
-            PreparedManifest = PreparedSceneManifest.FromMetadataFile(Path.Combine(directory, "visualization.json"));
+            PairingTiming.Count("scene.decoded-numeric-bytes", numericBytesRead, payload.TransferId);
+            using (PairingTiming.Measure("scene.decode-validation", payload.TransferId))
+                SceneValidation.Validate(payload, this);
+            using (PairingTiming.Measure("scene.decode-manifest", payload.TransferId))
+                PreparedManifest = PreparedSceneManifest.FromMetadata(metadata);
             if (verifiedContentHash != null)
             {
                 if (verifiedContentHash.Length != 64 || verifiedContentHash.Any(character => character < '0' || character > '9' && character < 'a' || character > 'f'))
@@ -896,6 +906,16 @@ namespace HBP.Transfer.Scene
         {
             EnsureWritable();
             cancellationToken.ThrowIfCancellationRequested();
+            if (DetachCapture && MaximumOwnedCaptureBytes != long.MaxValue)
+            {
+                // Reserve before native cloning or managed buffer copies. Include a
+                // conservative allowance for the clone and concurrent encoding buffers.
+                long retained = detachedSurfaces.Sum(value => value.Data.Bytes + 4L * value.Mask.Length);
+                long geometry = checked(48L * surface.NumberOfVertices + 16L * surface.NumberOfTriangles);
+                if (checked(retained + 3 * geometry) > MaximumOwnedCaptureBytes)
+                    throw new ScenePreparationBudgetExceededException();
+            }
+
             var snapshot = new SurfaceCapture(surface);
             if (!DetachCapture)
                 return WriteSurface(snapshot);
@@ -1080,6 +1100,7 @@ namespace HBP.Transfer.Scene
                 // Own the bytes before asynchronous encoding; a source scene may change or close.
                 archive.cancellationToken.ThrowIfCancellationRequested();
                 var values = (Array)value;
+                if (writer is DetachedSceneMetadata budget) budget.CheckNumericBudget(checked(values.LongLength * 4));
                 byte[] bytes = new byte[checked(values.Length * 4)];
                 Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
                 if (!BitConverter.IsLittleEndian)

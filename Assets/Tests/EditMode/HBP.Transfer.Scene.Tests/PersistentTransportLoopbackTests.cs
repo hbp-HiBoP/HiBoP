@@ -1978,6 +1978,7 @@ namespace HBP.Sync.Tests
                 Assert.That(((Array)snapshotPublications.Invoke(manager, null)).Length, Is.Zero, "An inventory started during publication must exclude that publication even if it finishes before the response.");
 
                 object disconnectedPublication = Activator.CreateInstance(publicationType, true);
+                publicationType.GetField("Scene").SetValue(disconnectedPublication, questFixture.Scene);
                 publicationType.GetField("Binding").SetValue(disconnectedPublication, binding);
                 publications.Add(questFixture.Scene, disconnectedPublication);
                 Assert.That((bool)needsReconnection.GetValue(manager), Is.True, "Another disconnected scene must still be eligible for reconnection while this send waits.");

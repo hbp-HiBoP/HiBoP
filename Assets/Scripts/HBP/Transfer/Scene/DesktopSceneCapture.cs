@@ -9,6 +9,8 @@ using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Sync;
+using HBP.Transfer.Transport;
+using Unity.Profiling;
 using UnityEngine;
 using FMRI = HBP.Core.Object3D.FMRI;
 
@@ -16,8 +18,10 @@ namespace HBP.Transfer.Scene
 {
     public static class DesktopSceneCapture
     {
+        private static readonly ProfilerMarker CaptureMarker = new("HBP.SceneTransfer.CaptureOwnedSnapshot");
+
         /// <summary>Entry point for LoadingManager, whose delegate begins on a worker thread.</summary>
-        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null, string transferId = null, long captureGeneration = 0, Action<Base3DScene, string, string> captureBoundary = null)
+        public static async UniTask<SceneDelivery> CaptureForQuestAsync(PairingContext globals, CancellationToken token, Action<float, float, LoadingText> update, Base3DScene sourceScene = null, string transferId = null, long captureGeneration = 0, Action<Base3DScene, string, string> captureBoundary = null, long maximumOwnedSnapshotBytes = long.MaxValue)
         {
             await UniTask.SwitchToMainThread(token);
             if (ReferenceEquals(sourceScene, null))
@@ -36,7 +40,7 @@ namespace HBP.Transfer.Scene
 #endif
             transferId ??= Guid.NewGuid().ToString("N");
             var telemetryIdentity = new SyncTelemetryIdentity(transferId, 1, captureGeneration == 0 ? 1 : captureGeneration);
-            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity, captureBoundary);
+            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity, captureBoundary, maximumOwnedSnapshotBytes);
             update(0.20f, 0, new LoadingText("Visualization prepared"));
             return delivery;
         }
@@ -70,7 +74,7 @@ namespace HBP.Transfer.Scene
             return await CaptureDeliveryInstrumentedAsync(scene, transferId, sessionId, revision, globals, token, progress, streaming, default, null);
         }
 
-        private static async UniTask<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity, Action<Base3DScene, string, string> captureBoundary)
+        private static async UniTask<SceneDelivery> CaptureDeliveryInstrumentedAsync(Base3DScene scene, string transferId, string sessionId, ulong revision, PairingContext globals, CancellationToken token, IProgress<string> progress, bool streaming, SyncTelemetryIdentity telemetryIdentity, Action<Base3DScene, string, string> captureBoundary, long maximumOwnedSnapshotBytes = long.MaxValue)
         {
             if (!PlayerLoopHelper.IsMainThread)
                 throw new InvalidOperationException("Capture must start on Unity's thread.");
@@ -84,7 +88,7 @@ namespace HBP.Transfer.Scene
             string output = Path.Combine(folder, "visualization.hbscene");
             var archive = new SceneArchive(Path.Combine(folder, "resources"), globals: globals, deferResourceWrites: true, cancellationToken: token)
             {
-                DetachCapture = true
+                DetachCapture = true, MaximumOwnedCaptureBytes = maximumOwnedSnapshotBytes
             };
 
 
@@ -104,13 +108,24 @@ namespace HBP.Transfer.Scene
                 captureStart = SyncTelemetry.CapturePoint();
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
+                    using var marker = CaptureMarker.Auto();
                     Report("Capturing visualization");
-                    captureBoundary?.Invoke(scene, transferId, globals.Id);
+                    using (PairingTiming.Measure("source.begin-publication-journal", transferId))
+                        captureBoundary?.Invoke(scene, transferId, globals.Id);
                     ScenePayload payload;
-                    payload = Capture(scene, archive, transferId, sessionId, revision, standardFiles);
+                    using (PairingTiming.Measure("source.capture-model-and-resources", transferId))
+                        payload = Capture(scene, archive, transferId, sessionId, revision, standardFiles);
                     // No await across the live graph: metadata and numeric bytes are now owned.
-                    return (Metadata: archive.CaptureDetachedMetadata(payload), Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
-                }, token);
+                    DetachedSceneMetadata metadata;
+                    using (PairingTiming.Measure("source.capture-json-tokens", transferId))
+                        metadata = archive.CaptureDetachedMetadata(payload);
+                    PairingTiming.Count("source.numeric-buffer-bytes", metadata.OwnedNumericBytes, transferId);
+                    PairingTiming.Count("source.estimated-owned-snapshot-bytes", metadata.EstimatedRetainedBytes, transferId);
+                    PairingTiming.Count("source.numeric-buffer-count", metadata.NumericBufferCount, transferId);
+                    PairingTiming.Count("source.column-count", payload.Columns.Count, transferId);
+                    PairingTiming.Count("source.mesh-count", payload.Meshes.Count, transferId);
+                    return (Metadata: metadata, Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
+                }, token, stage => PairingTiming.Measure(stage, transferId));
                 captureEnd = SyncTelemetry.CapturePoint();
                 token.ThrowIfCancellationRequested();
                 Report("Preparing visualization for transfer");
@@ -119,12 +134,15 @@ namespace HBP.Transfer.Scene
                     SceneDelivery streamingDelivery = null;
                     streamingDelivery = new SceneDelivery(output, transferId, sessionId, snapshot.Summary, () =>
                     {
+                        using var preparation = PairingTiming.Measure("source.encode-and-resolve-resources", transferId);
                         byte[] metadata;
                         metadata = snapshot.Metadata.Encode(archive);
+                        PairingTiming.Count("source.encoded-metadata-bytes", metadata.LongLength, transferId);
                         var resources = archive.CaptureBlockResources(metadata);
                         streamingDelivery.SetPreparedManifest(PreparedSceneManifest.FromMetadata(snapshot.Metadata.Token));
                         return resources;
                     }, archive.Dispose, token, telemetryIdentity);
+                    streamingDelivery.EstimatedOwnedSnapshotBytes = snapshot.Metadata.EstimatedRetainedBytes;
                     streamingDelivery.SourceScene = scene;
                     streamingDelivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                     return streamingDelivery;
@@ -135,6 +153,7 @@ namespace HBP.Transfer.Scene
                     SceneDelivery result = null;
                     try
                     {
+                        using var preparation = PairingTiming.Measure("source.encode-and-write-archive", transferId);
                         byte[] metadata;
                         metadata = snapshot.Metadata.Encode(archive);
                         archive.WriteCaptured(metadata, output);
@@ -155,6 +174,7 @@ namespace HBP.Transfer.Scene
                     }
                 });
                 Report("Visualization prepared");
+                delivery.EstimatedOwnedSnapshotBytes = snapshot.Metadata.EstimatedRetainedBytes;
                 delivery.SourceScene = scene;
                 delivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                 return delivery;

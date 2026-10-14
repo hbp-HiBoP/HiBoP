@@ -26,7 +26,7 @@ namespace HBP.Quest
     }
 
     /// <summary>Owns delivery identity independently of connections; all publication/lifecycle changes use Unity's thread.</summary>
-    public sealed class QuestAnatomySession : MonoBehaviour
+    public sealed partial class QuestAnatomySession : MonoBehaviour
     {
         public const int MaximumDeliveryHistory = 256;
         private readonly ReceivedSurfaceCache surfaceCache = new();
@@ -86,6 +86,8 @@ namespace HBP.Quest
         {
             try
             {
+                if (request.Kind == SessionControlKind.DisplayBatch)
+                    return await ApplyDisplayBatchAsync(request, token);
                 if (request.Kind == SessionControlKind.SceneInventory)
                 {
                     var inventory = view.Scenes.Select(value => new SceneSessionEntry { VisualizationId = value.Scene.Visualization.ID, TransferId = value.TransferId, Orphan = SceneReconciliationRecord.Get(value.Scene)?.Status == ReconciliationStatus.Orphan }).ToArray();
@@ -146,7 +148,7 @@ namespace HBP.Quest
             }
             catch (Exception error) when (error is not OperationCanceledException)
             {
-                return new(request.OperationId, SessionControlStatus.Failed, error.Message);
+                return new(request.OperationId, SessionControlStatus.Failed, TransferError.Describe(error));
             }
         }
 
@@ -283,13 +285,19 @@ namespace HBP.Quest
         private async Task<DeliveryReceipt> ReceiveWithLoadingCoreAsync(Stream stream, CancellationToken stop, bool globalsTransfer)
         {
             using var timing = PairingTiming.Measure(globalsTransfer ? "quest.globals-reception" : "quest.scene-reception-and-preparation");
-            ReceiveResult result = await LoadingManager.LoadAsync<ReceiveResult>(async update =>
+            displayReceivingProgress = 0;
+
+            async UniTask<ReceiveResult> Receive(Action<float, float, LoadingText> update)
             {
                 try
                 {
                     Task<DeliveryReceipt> work = await OnUnityThreadAsync(() =>
                     {
-                        loadingProgress = (value, message) => update(value, 0, new LoadingText(message));
+                        loadingProgress = (value, message) =>
+                        {
+                            displayReceivingProgress = Math.Max(displayReceivingProgress, value);
+                            update(value, 0, new LoadingText(message));
+                        };
                         loadingProgress(0.02f, globalsTransfer ? "Receiving pairing data" : "Connecting to Desktop");
                         if (globalsTransfer)
                             return ReceiveCoreAsync(async (token, publish, progress) =>
@@ -319,7 +327,9 @@ namespace HBP.Quest
                     await UniTask.SwitchToMainThread();
                     loadingProgress = null;
                 }
-            });
+            }
+
+            ReceiveResult result = displayBatch != null && !globalsTransfer ? await Receive((value, duration, message) => { }) : await LoadingManager.LoadAsync<ReceiveResult>(Receive);
             if (result.Error != null) throw result.Error;
             return result.Receipt;
         }
@@ -436,8 +446,9 @@ namespace HBP.Quest
                 catch (Exception exception)
                 {
                     // No resource release here: ACK loss can follow a successful publication.
-
-                    LastError = exception.Message;
+                    if (attempt.IsCancellationRequested)
+                        throw new OperationCanceledException("Quest receive cancelled.", exception, attempt.Token);
+                    LastError = TransferError.Describe(exception);
                     throw;
                 }
                 finally
@@ -498,7 +509,16 @@ namespace HBP.Quest
                     loadingProgress?.Invoke(0.85f, "Preparing visualization");
                     return 0;
                 }, stop).ConfigureAwait(false);
-                ScenePayload payload = await Task.Run(() => { return archive.ReadPrepared(hash); }, stop).ConfigureAwait(false);
+                ScenePayload payload = await Task.Run(() =>
+                {
+                    using var timing = PairingTiming.Measure("quest.decode-verified-scene");
+                    return archive.ReadPrepared(hash);
+                }, stop).ConfigureAwait(false);
+                await OnUnityThreadAsync(() =>
+                {
+                    loadingProgress?.Invoke(.92f, "Preparing visualization rendering");
+                    return 0;
+                }, stop).ConfigureAwait(false);
                 Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
                 DeliveryStatus result = await publication.ConfigureAwait(false);
                 consumed = result == DeliveryStatus.Published;
@@ -799,7 +819,7 @@ namespace HBP.Quest
         }
 
         public bool CanOpenPatient => view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
-        private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
+        private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => CanInteractWith(scene) && view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
 
         public void RequestOpenPatient()
         {
@@ -820,6 +840,7 @@ namespace HBP.Quest
 
         public async Task RequestCloseAsync(HBP.Data.Module3D.Base3DScene scene)
         {
+            if (!CanInteractWith(scene)) throw new InvalidOperationException("Wait for Display to finish.");
             var presentation = view.Find(scene);
             if (presentation == null) return;
             if (CanRequest(scene))
@@ -966,13 +987,18 @@ namespace HBP.Quest
             SyncTelemetryCapture.ExportCheckpoint("quest-pause");
         }
 
-        private void OnDisable() => Disconnect();
+        private void OnDisable()
+        {
+            Disconnect();
+            StopDisplayBatch();
+        }
 
         private void OnDestroy()
         {
             destroyed = true;
             if (view != null) view.OnContextSelected.RemoveListener(OnContextSelected);
             CloseSession();
+            StopDisplayBatch();
             deliveries.Clear();
             _ = ReleaseGlobalsAsync();
         }
@@ -1070,7 +1096,11 @@ namespace HBP.Quest
             }
         }
 
-        private void Update() => sessionPreferences?.Tick();
+        private void Update()
+        {
+            sessionPreferences?.Tick();
+            TickDisplayBatch();
+        }
 
         private async Task ReleaseGlobalsAsync()
         {

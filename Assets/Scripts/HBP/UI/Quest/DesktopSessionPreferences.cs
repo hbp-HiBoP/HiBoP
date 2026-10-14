@@ -165,7 +165,7 @@ namespace HBP.UI.Quest
             }
             catch (Exception exception)
             {
-                await FailedAsync("Quest atlas preparation: " + exception.Message, exception);
+                await FailedAsync("Quest atlas preparation: " + TransferError.Describe(exception), exception);
             }
         }
 
@@ -211,7 +211,7 @@ namespace HBP.UI.Quest
             }
             catch (Exception exception)
             {
-                await FailedAsync("Preferences saved on Desktop; Quest: " + exception.Message, exception);
+                await FailedAsync("Preferences saved on Desktop; Quest: " + TransferError.Describe(exception), exception);
             }
             finally
             {
@@ -222,10 +222,11 @@ namespace HBP.UI.Quest
 
         public Task FlushPreferencesAsync() => m_PendingPreferences;
 
-        public async UniTask EnsureAtlasReadyAsync(string id)
+        public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken token = default)
         {
             if (SessionAtlasCatalog.CanUse(id)) return;
-            await SetAtlasLoadedAsync(id, true);
+            await SetAtlasLoadedAsync(id, true, token);
+            token.ThrowIfCancellationRequested();
             if (!SessionAtlasCatalog.CanUse(id)) throw new InvalidOperationException(Status);
         }
 
@@ -249,15 +250,17 @@ namespace HBP.UI.Quest
             }
             catch (Exception exception)
             {
-                return "The Quest scene state could not be checked: " + exception.Message;
+                return "The Quest scene state could not be checked: " + TransferError.Describe(exception);
             }
         }
 
-        public async UniTask SetAtlasLoadedAsync(string id, bool loaded)
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded, CancellationToken cancellationToken = default)
         {
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
+            var token = operation.Token;
             try
             {
-                await m_Gate.WaitAsync(m_Stop.Token);
+                await m_Gate.WaitAsync(token);
                 try
                 {
                     SetAtlasState(id, loaded ? "loading" : "checking usage", loaded ? "loading" : "checking usage");
@@ -265,9 +268,27 @@ namespace HBP.UI.Quest
                     if (loaded)
                     {
                         // Both loads start before either is awaited. Observe both results, including native completion.
-                        var localWork = AtlasResources.LoadAsync(id, m_Stop.Token).AsTask();
-                        var remoteWork = SendAsync(Request(SessionControlKind.LoadAtlas, id));
-                        var local = await localWork;
+                        var localWork = AtlasResources.LoadAsync(id, token).AsTask();
+                        var remoteWork = SendAsync(Request(SessionControlKind.LoadAtlas, id), token).AsTask();
+                        AtlasLoadResult local;
+                        try
+                        {
+                            local = await localWork;
+                        }
+                        catch
+                        {
+                            operation.Cancel();
+                            try
+                            {
+                                await remoteWork;
+                            }
+                            catch (Exception)
+                            {
+                            }
+
+                            throw;
+                        }
+
                         SessionControlResponse remote = null;
                         try
                         {
@@ -275,7 +296,7 @@ namespace HBP.UI.Quest
                         }
                         catch (Exception exception)
                         {
-                            await FailedAsync(id + ": Desktop " + local.State + "; Quest: " + exception.Message, exception);
+                            await FailedAsync(id + ": Desktop " + local.State + "; Quest: " + TransferError.Describe(exception), exception);
                         }
 
                         SetAtlasState(id, local.State.ToString(), remote == null ? "connection lost" : remote.Applied ? "loaded" : remote.Message);
@@ -295,7 +316,7 @@ namespace HBP.UI.Quest
                             return;
                         }
 
-                        await ConfirmAsync(id);
+                        await ConfirmAsync(id, token);
                     }
                     else
                     {
@@ -342,18 +363,18 @@ namespace HBP.UI.Quest
             {
                 RetryAtlasId = id;
                 m_RetryLoad = loaded;
-                SetAtlasState(id, AtlasResources.Status(id).State.ToString(), exception.Message);
-                await FailedAsync(id + ": " + exception.Message, exception);
+                SetAtlasState(id, AtlasResources.Status(id).State.ToString(), TransferError.Describe(exception));
+                await FailedAsync(id + ": " + TransferError.Describe(exception), exception);
             }
         }
 
         public UniTask RetryAtlasAsync() => RetryAtlasId == null ? UniTask.CompletedTask : SetAtlasLoadedAsync(RetryAtlasId, m_RetryLoad);
 
-        private async UniTask ConfirmAsync(string id)
+        private async UniTask ConfirmAsync(string id, CancellationToken token = default)
         {
             using var retention = ResourceRetention.Retain(id);
             if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidOperationException("Desktop atlas is not loaded: " + id);
-            var response = await SendAsync(Request(SessionControlKind.ConfirmAtlas, id));
+            var response = await SendAsync(Request(SessionControlKind.ConfirmAtlas, id), token);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             SessionAtlasCatalog.SetReady(id);
             m_ConfirmedAtlases.Add(id);

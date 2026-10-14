@@ -334,8 +334,30 @@ namespace HBP.Sync.Scene
     {
         private static readonly byte[] LiveMagic = Encoding.ASCII.GetBytes("HBLV");
         private static readonly byte[] AcknowledgementMagic = Encoding.ASCII.GetBytes("HBAK");
+        private static readonly byte[] ReadyMagic = Encoding.ASCII.GetBytes("HBRD");
+        private static readonly byte[] FailedMagic = Encoding.ASCII.GetBytes("HBRF");
         private const int LiveLength = 12;
         private const int AcknowledgementLength = 20;
+
+        // The policy identity is carried on the same ordered reliable stream as the policy.
+        public static byte[] EncodeRenderReady(OperationId policyId, bool succeeded = true)
+        {
+            var bytes = EncodeAcknowledgement(policyId);
+            Buffer.BlockCopy(succeeded ? ReadyMagic : FailedMagic, 0, bytes, 0, 4);
+            return bytes;
+        }
+
+        public static bool TryDecodeRenderReady(byte[] bytes, out OperationId policyId) => TryDecodeRenderReady(bytes, out policyId, out var succeeded) && succeeded;
+
+        public static bool TryDecodeRenderReady(byte[] bytes, out OperationId policyId, out bool succeeded)
+        {
+            policyId = null;
+            succeeded = HasMagic(bytes, ReadyMagic);
+            if (!succeeded && !HasMagic(bytes, FailedMagic) || bytes.Length != AcknowledgementLength) return false;
+            var copy = (byte[])bytes.Clone();
+            Buffer.BlockCopy(AcknowledgementMagic, 0, copy, 0, 4);
+            return TryDecodeAcknowledgement(copy, out policyId);
+        }
 
         public static byte[] EncodeLiveBarrier(ulong canonicalSequence)
         {

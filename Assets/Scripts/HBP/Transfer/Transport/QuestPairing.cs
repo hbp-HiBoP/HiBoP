@@ -667,12 +667,21 @@ namespace HBP.Transfer.Transport
             using var peer = new TcpClient();
             peer.NoDelay = true;
             using var cancellation = deadline.Token.Register(peer.Close);
-            await peer.ConnectAsync(address, port).ConfigureAwait(false);
-            using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => pin == null || TransportIdentity.Matches(certificate, pin));
-            using (PairingTiming.Measure("desktop.tls"))
-                await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
-            deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
-            await action(tls, deadline.Token).ConfigureAwait(false);
+            try
+            {
+                await peer.ConnectAsync(address, port).ConfigureAwait(false);
+                using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => pin == null || TransportIdentity.Matches(certificate, pin));
+                using (PairingTiming.Measure("desktop.tls"))
+                    await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+                deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
+                await action(tls, deadline.Token).ConfigureAwait(false);
+            }
+            catch (Exception error) when (deadline.IsCancellationRequested && (error is IOException || error is SocketException || error is ObjectDisposedException || error is OperationCanceledException))
+            {
+                // Closing a cancelled socket can surface as an IOException on Windows/Mono.
+                if (stop.IsCancellationRequested) throw new OperationCanceledException("Quest operation cancelled.", error, stop);
+                throw new TimeoutException("The Quest operation timed out. Check the connection and try again.", error);
+            }
         }
 
         private static async Task<int> ReadByteAsync(Stream stream, CancellationToken stop)

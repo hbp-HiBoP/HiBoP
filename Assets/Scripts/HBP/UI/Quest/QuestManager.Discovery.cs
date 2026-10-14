@@ -184,7 +184,7 @@ namespace HBP.Quest.Desktop
                     }
                     catch (Exception error) when (!token.IsCancellationRequested)
                     {
-                        return (new List<QuestDevice>(), transport + " discovery unavailable: " + error.Message);
+                        return (new List<QuestDevice>(), transport + " discovery unavailable: " + TransferError.Describe(error));
                     }
                 }
 
@@ -200,7 +200,7 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception error) when (!token.IsCancellationRequested)
             {
-                DiscoveryMessages = new[] { "Quest discovery unavailable: " + error.Message };
+                DiscoveryMessages = new[] { "Quest discovery unavailable: " + TransferError.Describe(error) };
             }
             catch (Exception) when (token.IsCancellationRequested)
             {

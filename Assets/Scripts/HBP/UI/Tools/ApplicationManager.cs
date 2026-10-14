@@ -66,6 +66,7 @@ namespace HBP.UI.Tools
 
         private bool OnQuit()
         {
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-displaySyncEvidenceOnce") >= 0 && System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-displaySyncEvidence") >= 0) return true;
 #if DEVELOPMENT_BUILD || UNITY_EDITOR
             string[] arguments = System.Environment.GetCommandLineArgs();
             if (System.Array.IndexOf(arguments, "-questPairingSmoke") >= 0) return true;

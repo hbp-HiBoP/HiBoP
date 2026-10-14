@@ -380,7 +380,18 @@ namespace HBP.Data.Module3D
         /// <returns></returns>
         public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
+            await LoadWithResultsAsync(visualizations, onChangeProgress, token);
+        }
+
+        /// <summary>
+        /// Returns the actual openings. The callback runs after configuration has
+        /// been applied; it can admit bounded preparation without waiting for a remote consumer.
+        /// Completed openings survive cancellation or failure of a later callback/opening.
+        /// </summary>
+        public static async UniTask<IReadOnlyList<Base3DScene>> LoadWithResultsAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token, Func<Base3DScene, CancellationToken, UniTask> onSceneReady = null)
+        {
             Visualization[] visualizationSnapshot = visualizations.ToArray();
+            var created = new List<Base3DScene>(visualizationSnapshot.Length);
             Project project = ApplicationState.LoadedProject;
             DataInfo[] requiredDataInfos = visualizationSnapshot.SelectMany(visualization => visualization.GetRequiredDataInfos()).Distinct().ToArray();
             Patient[] requiredPatients = visualizationSnapshot.SelectMany(visualization => visualization.Patients).Distinct().ToArray();
@@ -410,13 +421,14 @@ namespace HBP.Data.Module3D
             const float LOADING_SCENE_PROGRESS = 0.5f;
             foreach (Visualization visualization in visualizationSnapshot)
             {
+                Base3DScene scene;
                 try
                 {
                     token.ThrowIfCancellationRequested();
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
                     await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(validationWeight + (progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS) * (1 - validationWeight), duration, text), token);
-                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(validationWeight + (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) * (1 - validationWeight), duration, text), token);
+                    scene = await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(validationWeight + (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) * (1 - validationWeight), duration, text), token);
                     progress += visualizationWeight;
                 }
                 catch (OperationCanceledException e)
@@ -430,9 +442,16 @@ namespace HBP.Data.Module3D
                     visualization.Unload();
                     throw e;
                 }
+
+                created.Add(scene);
+                // Outside the construction catch: this scene is complete, so a
+                // consumer stopping admission must not unload its live visualization.
+                if (onSceneReady != null) await onSceneReady(scene, token);
+                await UniTask.SwitchToMainThread(token);
             }
 
             OnFinishedAddingNewScenes.Invoke();
+            return created;
         }
 
         /// <summary>
@@ -441,7 +460,7 @@ namespace HBP.Data.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
+        private static async UniTask<Base3DScene> LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToMainThread();
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
@@ -465,6 +484,7 @@ namespace HBP.Data.Module3D
                 m_Instance.m_Scenes.Add(scene);
                 IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
                 await scene.CompleteInitializationAsync(() => OnAddScene.Invoke(scene), inflationProgress, token);
+                return scene;
             }
             catch
             {

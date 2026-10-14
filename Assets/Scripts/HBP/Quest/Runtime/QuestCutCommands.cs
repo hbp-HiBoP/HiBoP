@@ -9,7 +9,7 @@ namespace HBP.Quest
     /// <summary>Each control changes only its intent, reading all other fields from the live cut.</summary>
     public static class QuestCutCommands
     {
-        public static bool CanEdit(Base3DScene scene, Cut cut) => scene != null && !scene.IsClosing && !scene.AutomaticCutAroundSelectedSite && scene.Cuts.Contains(cut);
+        public static bool CanEdit(Base3DScene scene, Cut cut) => QuestAnatomySession.CanInteractWith(scene) && !scene.AutomaticCutAroundSelectedSite && scene.Cuts.Contains(cut);
 
         public static bool Position(Base3DScene scene, Cut cut, float value)
         {

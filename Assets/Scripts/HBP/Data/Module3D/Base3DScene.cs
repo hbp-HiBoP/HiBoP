@@ -2169,6 +2169,13 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void FinalizeInitialization()
         {
+            m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
+            FinalizeInitializationState();
+            m_AnatomyWork.Forget();
+        }
+
+        private void FinalizeInitializationState()
+        {
             if (Columns.Count > 0)
             {
                 Columns[0].IsSelected = true;
@@ -2177,8 +2184,6 @@ namespace HBP.Data.Module3D
             }
 
             SceneInformation.Initialized = true;
-            m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
-            m_AnatomyWork.Forget();
         }
 
         /// <summary>
@@ -2576,7 +2581,13 @@ namespace HBP.Data.Module3D
             await initialized;
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
-            FinalizeInitialization();
+            // Native readers (configuration, toolbar, render updates) must not run
+            // while missing anatomy is still loading into these same resources.
+            m_AnatomyWork = LoadMissingAnatomyAsync().ToAsyncLazy().Task;
+            await m_AnatomyWork;
+            await UniTask.SwitchToMainThread();
+            token.ThrowIfCancellationRequested();
+            FinalizeInitializationState();
             onInitialized?.Invoke();
             LoadConfiguration();
             // Configuration depends on the selected topology, before any activity is requested.
