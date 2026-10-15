@@ -92,6 +92,12 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(new SerializedObject(follower).FindProperty("headCamera").objectReferenceValue, Is.Not.Null);
             Assert.That(new SerializedObject(follower).FindProperty("content").objectReferenceValue, Is.EqualTo(presenter.gameObject));
             Assert.That(follower.GetComponent<TrackedDeviceRaycaster>(), Is.Not.Null);
+            var overlay = follower.GetComponent<QuestLoadingOverlay>();
+            Assert.That(overlay, Is.Not.Null);
+            var overlayMaterial = new SerializedObject(overlay).FindProperty("material").objectReferenceValue as Material;
+            Assert.That(overlayMaterial, Is.Not.Null);
+            Assert.That(overlayMaterial.shader.name, Is.EqualTo("HBP/Quest/Loading Overlay"));
+            Assert.That(follower.GetComponent<Canvas>().sortingOrder, Is.GreaterThanOrEqualTo(30000));
             Assert.That(root.GetComponentInChildren<HBP.UI.Tools.LoadingCircle>(true), Is.Null);
             foreach (var theme in presenter.GetComponentsInChildren<ThemeElement>(true))
                 Assert.That(AssetDatabase.GetAssetPath(theme.Element), Does.StartWith("Assets/Resources/Themes/Quest/Elements/"));
@@ -188,7 +194,7 @@ namespace HBP.Tests.PlatformConfiguration
                 var windowFields = new SerializedObject(window);
                 Assert.That(windowFields.FindProperty("canvas").objectReferenceValue, Is.Not.Null, window.Key);
                 Assert.That(windowFields.FindProperty("content").objectReferenceValue, Is.Not.Null, window.Key);
-                Assert.That(windowFields.FindProperty("raycaster").objectReferenceValue, Is.TypeOf<TrackedDeviceRaycaster>(), window.Key);
+                Assert.That(windowFields.FindProperty("raycaster").objectReferenceValue, Is.InstanceOf<TrackedDeviceRaycaster>(), window.Key);
                 Assert.That(window.GetComponent<QuestWindowFollower>(), Is.Not.Null);
                 foreach (var theme in window.GetComponentsInChildren<ThemeElement>(true))
                     Assert.That(AssetDatabase.GetAssetPath(theme.Element), Does.StartWith("Assets/Resources/Themes/Quest/Elements/"));
@@ -197,6 +203,8 @@ namespace HBP.Tests.PlatformConfiguration
             }
 
             var toolbar = root.GetComponentInChildren<QuestToolbar>(true);
+            var toolbarSource = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Toolbar.prefab");
+            Assert.That(((RectTransform)toolbar.transform).rect.height, Is.EqualTo(((RectTransform)toolbarSource.transform).rect.height), "The production instance must inherit the toolbar height.");
             Assert.That(((UnityEngine.UI.Button)new SerializedObject(toolbar).FindProperty("cutsButton").objectReferenceValue).interactable, Is.False);
             Assert.That(((UnityEngine.UI.Button)new SerializedObject(toolbar).FindProperty("cutsButton").objectReferenceValue).GetComponentInChildren<UnityEngine.UI.Text>(true).text, Is.EqualTo("Cuts"));
             var cuts = root.GetComponentInChildren<QuestCutsPanel>(true);
@@ -210,6 +218,7 @@ namespace HBP.Tests.PlatformConfiguration
             foreach (string field in new[] { "view", "panel", "pointer", "policy", "gizmoPrefab" })
                 Assert.That(new SerializedObject(handles).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("horizontalOnly").boolValue, Is.True);
+            Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("tiltTowardHead").boolValue, Is.True);
         }
 
         [Test]

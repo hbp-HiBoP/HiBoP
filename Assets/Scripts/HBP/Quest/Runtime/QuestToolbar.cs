@@ -13,13 +13,21 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            connectionButton.onClick.AddListener(() => windows.Open("Connection"));
-            displayButton.onClick.AddListener(() => windows.Open("Display"));
+            foreach (var button in GetComponentsInChildren<QuestToolbarButton>(true)) button.Configure(windows);
+            connectionButton.onClick.AddListener(() => ToggleWindow("Connection"));
+            displayButton.onClick.AddListener(() => ToggleWindow("Display"));
             recenterButton.onClick.AddListener(windows.RecenterOpen);
             cutsButton.onClick.AddListener(() =>
             {
-                if (cuts != null && cuts.Ready) windows.Open("Cuts");
+                if (cuts != null && cuts.Ready) ToggleWindow("Cuts");
             });
+        }
+
+        private void ToggleWindow(string key)
+        {
+            var window = windows.Find(key);
+            if (window != null && window.IsOpen) window.Close();
+            else windows.Open(key);
         }
 
         private void Update()

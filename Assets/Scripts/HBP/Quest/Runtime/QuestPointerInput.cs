@@ -178,12 +178,13 @@ namespace HBP.Quest
             data.position = data.pointerCurrentRaycast.screenPosition;
             data.delta = data.position - hand.LastPosition;
             hand.LastPosition = data.position;
-            var candidate = AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
+            bool loadingOverlay = IsLoadingOverlay(data.pointerCurrentRaycast);
+            var candidate = loadingOverlay ? null : AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
             bool near = candidate != null;
             float distantDistance = policy.RayDistance;
-            var distantCandidate = !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
+            var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
-            var cutCandidate = cuts != null ? cuts.Candidate(index) : null;
+            var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
             var oldOwner = hand.Capture.Owner;
             bool began = hand.Capture.Sample(true, pressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate)) hand.Capture.Cancel();
@@ -304,6 +305,8 @@ namespace HBP.Quest
         private static bool IsUiHitAbove(RaycastResult hit, RaycastResult previous)
         {
             if (!previous.isValid) return true;
+            bool loading = IsLoadingOverlay(hit);
+            if (loading != IsLoadingOverlay(previous)) return loading;
             var canvas = hit.module.GetComponent<Canvas>();
             var other = previous.module.GetComponent<Canvas>();
             // TrackedDeviceRaycaster does not fill sortingLayer/sortingOrder. EventSystem
@@ -319,6 +322,8 @@ namespace HBP.Quest
 
             return hit.distance < previous.distance;
         }
+
+        private static bool IsLoadingOverlay(RaycastResult hit) => hit.module != null && hit.module.GetComponentInParent<QuestLoadingOverlay>() is { isActiveAndEnabled: true };
 
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
         private static object DiagnosticVector(Vector3 value) => new { value.x, value.y, value.z };

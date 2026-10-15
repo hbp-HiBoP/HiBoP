@@ -136,6 +136,80 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public async Task LoadingOverlay_RendersOverNearerWindowsAndSurvivesThemeRefresh()
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Loading Manager.prefab"));
+            var head = new GameObject("Overlay render camera", typeof(Camera));
+            var window = new GameObject("Near window", typeof(RectTransform), typeof(Canvas));
+            var texture = new RenderTexture(256, 256, 24);
+            var pixels = new Texture2D(256, 256, TextureFormat.RGB24, false);
+            var previous = RenderTexture.active;
+            try
+            {
+                var camera = head.GetComponent<Camera>();
+                camera.nearClipPlane = .01f;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.black;
+                camera.targetTexture = texture;
+                var follower = root.GetComponentInChildren<QuestLoadingFollower>();
+                follower.enabled = false;
+                follower.SetCamera(camera);
+                var presenter = root.GetComponentInChildren<QuestLoadingCircle>(true);
+                presenter.Open(true, true);
+                follower.Step(0, true);
+                var overlay = follower.GetComponent<QuestLoadingOverlay>();
+                var overlayMaterial = (Material)new SerializedObject(overlay).FindProperty("material").objectReferenceValue;
+                var image = presenter.GetComponentInChildren<Image>();
+                foreach (var theme in presenter.GetComponentsInChildren<HBP.Theme.ThemeElement>(true)) theme.Set();
+                Canvas.ForceUpdateCanvases();
+                foreach (var graphic in presenter.GetComponentsInChildren<Graphic>(true))
+                    Assert.That(graphic.material, Is.SameAs(overlayMaterial), "Theme refresh must preserve foreground rendering for texts and images alike.");
+
+                // Isolate one existing loading graphic to make the render assertion unambiguous.
+                foreach (var graphic in presenter.GetComponentsInChildren<Graphic>(true)) graphic.enabled = graphic == image;
+                image.sprite = null;
+                image.type = Image.Type.Simple;
+                image.color = Color.green;
+                image.rectTransform.position = Vector3.forward * 1.15f;
+                image.rectTransform.sizeDelta = Vector2.one * 200;
+                var canvas = window.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.WorldSpace;
+                canvas.worldCamera = camera;
+                window.transform.position = Vector3.forward * .5f;
+                window.transform.localScale = Vector3.one * .001f;
+                var background = new GameObject("Opaque window background", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+                background.transform.SetParent(window.transform, false);
+                background.GetComponent<RectTransform>().sizeDelta = Vector2.one * 1000;
+                background.GetComponent<Image>().color = Color.red;
+                await UniTask.NextFrame();
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = texture;
+                pixels.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
+                pixels.Apply();
+                Color center = pixels.GetPixel(128, 128);
+                Assert.That(center.g, Is.GreaterThan(.8f), "The farther loading graphic must be visible above the nearer opaque window.");
+                Assert.That(center.r, Is.LessThan(.2f));
+                image.enabled = false;
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                pixels.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
+                pixels.Apply();
+                Assert.That(pixels.GetPixel(128, 128).r, Is.GreaterThan(.8f), "The test window must actually cover the same pixel.");
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                head.GetComponent<Camera>().targetTexture = null;
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(window);
+                Object.DestroyImmediate(head);
+                Object.DestroyImmediate(pixels);
+                Object.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
         public void QuestLoadingFollow_UsesDeadZoneDelayAndFreezesWithoutTracking()
         {
             var root = new GameObject("Loading follower", typeof(QuestLoadingFollower));

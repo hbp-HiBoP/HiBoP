@@ -206,6 +206,169 @@ namespace HBP.Tests.Quest
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ToolbarRail_FollowsAnArcWithoutRollWithHeadPitchAndRoll(bool tilted)
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Window.prefab"));
+            var head = new GameObject("Head");
+            try
+            {
+                var window = root.GetComponent<QuestWindow>();
+                var follower = root.GetComponent<QuestWindowFollower>();
+                Set(window, "placement", new Vector3(0, -.7f, .9f));
+                Set(follower, "horizontalOnly", true);
+                Set(follower, "tiltTowardHead", tilted);
+                Set(follower, "exitAngle", 10f);
+                Set(follower, "returnAngle", 3f);
+                follower.Configure(head.transform, window);
+                follower.Recall();
+                Vector3 initial = root.transform.position;
+                Quaternion initialRotation = root.transform.rotation;
+                head.transform.rotation = Quaternion.Euler(35, 9, 40);
+                follower.Step(2, true);
+                Assert.That(root.transform.position, Is.EqualTo(initial), "The angular dead zone ignores pitch and roll.");
+                Assert.That(Quaternion.Angle(root.transform.rotation, initialRotation), Is.LessThan(.01f));
+                head.transform.rotation = Quaternion.Euler(35, 90, 40);
+                follower.Step(.4f, true);
+                Assert.That(root.transform.position, Is.EqualTo(initial), "The existing delay still applies.");
+                for (int frame = 0; frame < 20; frame++)
+                {
+                    follower.Step(.1f, true);
+                    Assert.That(Vector3.ProjectOnPlane(root.transform.position, Vector3.up).magnitude, Is.EqualTo(.9f).Within(.0001));
+                    Assert.That(root.transform.position.y, Is.EqualTo(-.7f).Within(.0001));
+                    Assert.That(root.transform.right.y, Is.EqualTo(0).Within(.0001), "The panel's left/right axis stays parallel to the floor.");
+                    if (tilted)
+                        Assert.That(Vector3.Angle(root.transform.forward, root.transform.position - head.transform.position), Is.LessThan(.1f), "The control surface faces the head throughout the arc.");
+                    else
+                        Assert.That(Vector3.Angle(root.transform.up, Vector3.up), Is.LessThan(.01f));
+                }
+
+                Assert.That(root.transform.position.x, Is.GreaterThan(.86f));
+                Assert.That(root.transform.position.z, Is.GreaterThan(0), "Hysteresis stops before exact alignment.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(head);
+            }
+        }
+
+        [TestCase(.2f, 0f)]
+        [TestCase(0f, .2f)]
+        public void ToolbarRail_FiltersSmallTranslationsAndFollowsLargerOnesWithoutTurning(float x, float y)
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Window.prefab"));
+            var head = new GameObject("Head");
+            try
+            {
+                var window = root.GetComponent<QuestWindow>();
+                var follower = root.GetComponent<QuestWindowFollower>();
+                Set(window, "placement", new Vector3(0, -.7f, .9f));
+                Set(follower, "horizontalOnly", true);
+                Set(follower, "tiltTowardHead", true);
+                follower.Configure(head.transform, window);
+                follower.Recall();
+                Vector3 initial = root.transform.position;
+                head.transform.position = new Vector3(.03f, .02f, 0);
+                follower.Step(3, true);
+                Assert.That(root.transform.position, Is.EqualTo(initial));
+                head.transform.position = new Vector3(x, y, 0);
+                follower.Step(.1f, true);
+                Assert.That(Vector3.Distance(root.transform.position, initial), Is.GreaterThan(0));
+                Assert.That(Vector3.Distance(root.transform.position, initial), Is.LessThan(.2f), "The center follows smoothly.");
+                follower.Step(4, true);
+                Assert.That(Vector3.Distance(root.transform.position, head.transform.position + window.Placement), Is.LessThan(.005f));
+                Vector3 settled = root.transform.position;
+                Quaternion settledRotation = root.transform.rotation;
+                head.transform.position += new Vector3(.01f, .01f, 0);
+                follower.Step(3, true);
+                Assert.That(root.transform.position, Is.EqualTo(settled), "Micro movements are filtered again once the rail settles.");
+                Assert.That(Quaternion.Angle(root.transform.rotation, settledRotation), Is.LessThan(.01f), "The inclined panel must not wobble toward unfiltered head positions.");
+                window.SetHovered(0, true);
+                head.transform.position += Vector3.one;
+                follower.Step(3, true);
+                Assert.That(root.transform.position, Is.EqualTo(settled), "Hover suspends translation too.");
+                window.SetHovered(0, false);
+                window.SetPinned(true);
+                follower.Step(3, true);
+                Assert.That(root.transform.position, Is.EqualTo(settled));
+                window.SetPinned(false);
+                follower.Step(3, false);
+                Assert.That(root.transform.position, Is.EqualTo(settled));
+                follower.Recall();
+                Assert.That(Vector3.Distance(root.transform.position, head.transform.position + window.Placement), Is.LessThan(.0001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(head);
+            }
+        }
+
+        [Test]
+        public void ToolbarRail_AuthoredAngularAndCenterFollowStartTogetherWithMatchingSmoothing()
+        {
+            var source = AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Toolbar.prefab");
+            var settings = new SerializedObject(source.GetComponent<QuestWindowFollower>());
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Window.prefab"));
+            var head = new GameObject("Head");
+            try
+            {
+                var window = root.GetComponent<QuestWindow>();
+                var follower = root.GetComponent<QuestWindowFollower>();
+                Set(window, "placement", source.GetComponent<QuestWindow>().Placement);
+                foreach (string field in new[] { "exitAngle", "returnAngle", "delay", "speed", "horizontalThreshold", "verticalThreshold" })
+                    Set(follower, field, settings.FindProperty(field).floatValue);
+                foreach (string field in new[] { "horizontalOnly", "tiltTowardHead" })
+                    Set(follower, field, settings.FindProperty(field).boolValue);
+                follower.Configure(head.transform, window);
+                follower.Recall();
+                Vector3 initial = root.transform.position;
+                head.transform.SetPositionAndRotation(new Vector3(.02f, .02f, 0), Quaternion.Euler(0, 4, 0));
+                follower.Step(.1f, true);
+                Assert.That(root.transform.position, Is.EqualTo(initial), "Small rotations and translations both stay in the dead zone.");
+                head.transform.SetPositionAndRotation(new Vector3(.1f, .1f, 0), Quaternion.Euler(0, 6, 0));
+                follower.Step(.1f, true);
+                float angularFraction = Vector3.SignedAngle(Vector3.forward, Vector3.ProjectOnPlane(root.transform.forward, Vector3.up), Vector3.up) / 6;
+                float heightFraction = (root.transform.position.y - initial.y) / head.transform.position.y;
+                Assert.That(angularFraction, Is.GreaterThan(0), "Angular follow starts on the first frame beyond 5 degrees.");
+                Assert.That(heightFraction, Is.GreaterThan(0));
+                Assert.That(angularFraction, Is.EqualTo(heightFraction).Within(.001f), "Rotation and rail translation must use the same smoothing.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(head);
+            }
+        }
+
+        [Test]
+        public void ToolbarRail_KeepsLastHeadingWhenLookingStraightUp()
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Window.prefab"));
+            var head = new GameObject("Head");
+            try
+            {
+                var follower = root.GetComponent<QuestWindowFollower>();
+                Set(follower, "horizontalOnly", true);
+                follower.Configure(head.transform, root.GetComponent<QuestWindow>());
+                head.transform.rotation = Quaternion.Euler(0, 70, 0);
+                follower.Recall();
+                Vector3 initial = root.transform.position;
+                head.transform.rotation = Quaternion.Euler(-90, 70, 40);
+                follower.Step(3, true);
+                Assert.That(Vector3.Distance(root.transform.position, initial), Is.LessThan(.0001f));
+                follower.Recall();
+                Assert.That(Vector3.Distance(root.transform.position, initial), Is.LessThan(.0001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                Object.DestroyImmediate(head);
+            }
+        }
+
         [Test]
         public async Task Toolbar_ConnectionCanReopenAndDisplayIsRegisteredWithoutDuplicates()
         {
@@ -238,6 +401,8 @@ namespace HBP.Tests.Quest
                 Assert.That(connection.IsOpen, Is.True);
                 Assert.That(connection.transform.Find("Background").gameObject.activeSelf, Is.True);
                 openConnection.onClick.Invoke();
+                Assert.That(connection.IsOpen, Is.False);
+                openConnection.onClick.Invoke();
                 ((Button)fields.FindProperty("displayButton").objectReferenceValue).onClick.Invoke();
                 Assert.That(display.IsOpen, Is.True);
                 Assert.That(root.GetComponentsInChildren<QuestWindow>(true).Length, Is.EqualTo(3));
@@ -248,6 +413,12 @@ namespace HBP.Tests.Quest
                 await UniTask.NextFrame();
                 Canvas.ForceUpdateCanvases();
                 Capture(camera, "Quest Windows and Toolbar.png");
+                camera.fieldOfView = 100;
+                Capture(camera, "Quest Toolbar Peripheral.png"); // Wide-FOV preview; comfort still needs the headset.
+                camera.fieldOfView = 65;
+                camera.transform.rotation = Quaternion.LookRotation(toolbar.transform.position - camera.transform.position, Vector3.up);
+                Capture(camera, "Quest Toolbar Desk.png");
+                camera.transform.rotation = Quaternion.identity;
                 connection.Close();
                 var closedPosition = connection.transform.position;
                 display.transform.position = Vector3.one * 3;

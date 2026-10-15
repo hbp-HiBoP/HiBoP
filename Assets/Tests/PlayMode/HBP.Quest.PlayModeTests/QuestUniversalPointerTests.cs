@@ -385,6 +385,35 @@ namespace HBP.Tests.Quest
                 manipulator.InvalidateRayTarget();
                 Assert.That(manipulator.Raycast(oldRay, 3, out _), Is.False);
                 Assert.That(manipulator.Raycast(new Ray(new Vector3(.35f, .15f, 0), Vector3.forward), 3, out _), Is.True);
+
+                // The loading cancel button stays targetable behind a closer independent window.
+                var loading = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Loading Manager.prefab"), root.transform);
+                var presenter = loading.GetComponentInChildren<QuestLoadingCircle>(true);
+                var loadingFollower = loading.GetComponentInChildren<QuestLoadingFollower>();
+                loadingFollower.enabled = false;
+                loadingFollower.SetCamera(camera);
+                loadingFollower.GetComponent<Canvas>().worldCamera = camera;
+                presenter.Open(true, true);
+                loadingFollower.Step(0, true);
+                var cancel = presenter.GetComponentInChildren<Button>();
+                int cancellations = 0;
+                presenter.OnCancel.AddListener(() => cancellations++);
+                await UniTask.NextFrame(); // Newly enabled loading graphics need their initial raycast depth.
+                Canvas.ForceUpdateCanvases();
+                var cancelRect = (RectTransform)cancel.transform;
+                Vector3 cancelPoint = cancelRect.TransformPoint(cancelRect.rect.center);
+                window.transform.position = new Vector3(cancelPoint.x, cancelPoint.y, .5f);
+                Track(leftDevice, new Vector3(cancelPoint.x, cancelPoint.y, 0));
+                Tick();
+                var loadingHits = new List<RaycastResult>();
+                ui.GetComponent<EventSystem>().RaycastAll(sampledData, loadingHits);
+                Assert.That(sampledData.pointerCurrentRaycast.gameObject.GetComponentInParent<Button>(), Is.SameAs(cancel), $"The production ray must select the loading cancel button before pressing. Hits: {string.Join(",", loadingHits.ConvertAll(hit => hit.gameObject.name + ":" + hit.distance))}");
+                Press(leftDevice, true);
+                Tick();
+                Press(leftDevice, false);
+                Tick();
+                Assert.That(cancellations, Is.EqualTo(1), "Visual loading priority must also determine the actual trigger target.");
+                Assert.That(clicks, Is.EqualTo(1), "The window underneath must not receive the cancel click.");
             }
             catch (System.Exception exception)
             {
