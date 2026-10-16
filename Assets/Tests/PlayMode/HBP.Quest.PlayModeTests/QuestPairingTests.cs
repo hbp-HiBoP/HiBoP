@@ -12,6 +12,8 @@ using System.IO;
 using System.Security.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Reflection;
+using Cysharp.Threading.Tasks;
 using HBP.Quest;
 using HBP.Quest.Legacy;
 using HBP.Transfer.Anatomy;
@@ -72,7 +74,7 @@ namespace HBP.Tests.Quest
             Assert.That(prefab.GetComponentInChildren<QuestAnatomyDiagnostic>(true), Is.Null);
             var status = prefab.GetComponentInChildren<QuestStatusPanel>(true);
             var statusFields = new SerializedObject(status);
-            foreach (string name in new[] { "countdown", "lifetimeGauge", "timer", "retry", "newAssociation", "retryLabel", "newAssociationLabel", "unpairedContent", "pairedContent", "pairedDesktop" })
+            foreach (string name in new[] { "countdown", "lifetimeGauge", "timer", "newAssociation", "unpairedContent", "pairedContent", "pairedDesktop" })
                 Assert.That(statusFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
             var input = prefab.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(input, Is.Not.Null);
@@ -134,7 +136,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void PairingCardShowsRequestedCodeAndConfirmedForgetWithoutLocalReconnect()
+        public void PairingCardShowsRequestedCodeAndRequestsExternalForgetConfirmation()
         {
             var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"));
             try
@@ -143,23 +145,23 @@ namespace HBP.Tests.Quest
                 var fields = new SerializedObject(card);
                 var countdown = (Text)fields.FindProperty("countdown").objectReferenceValue;
                 var gauge = (Image)fields.FindProperty("lifetimeGauge").objectReferenceValue;
-                var retry = (Button)fields.FindProperty("retry").objectReferenceValue;
+                var address = (Text)fields.FindProperty("address").objectReferenceValue;
                 var replace = (Button)fields.FindProperty("newAssociation").objectReferenceValue;
                 int replacements = 0;
                 card.OnNewAssociationRequested.AddListener(() => replacements++);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "");
+                Assert.That(address.gameObject.activeSelf, Is.False, "USB alone supplies no network IP.");
                 Assert.That(countdown.text, Is.EqualTo("01:30"));
                 Assert.That(((Text)fields.FindProperty("code").objectReferenceValue).text, Is.EqualTo("123 456"));
                 Assert.That(gauge.fillAmount, Is.EqualTo(0.3f).Within(0.001));
-                Assert.That(retry.gameObject.activeSelf, Is.False);
                 Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Authenticating), "");
                 Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.Zero, 0, PairingPhase.AttemptsExhausted), "");
-                Assert.That(retry.gameObject.activeSelf, Is.False);
                 Assert.That(replace.gameObject.activeSelf, Is.False);
-                Assert.That(((Text)fields.FindProperty("newAssociationLabel").objectReferenceValue).text, Is.EqualTo("Forget association"));
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");
+                Assert.That(address.gameObject.activeSelf, Is.True);
+                Assert.That(address.text, Is.EqualTo("192.168.1.18"));
                 Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowUnavailable("Unavailable");
                 Assert.That(replace.gameObject.activeSelf, Is.False);
@@ -167,16 +169,9 @@ namespace HBP.Tests.Quest
                 Assert.That(replace.gameObject.activeSelf, Is.True);
                 Assert.That(((GameObject)fields.FindProperty("unpairedContent").objectReferenceValue).activeSelf, Is.False);
                 Assert.That(((GameObject)fields.FindProperty("pairedContent").objectReferenceValue).activeSelf, Is.True);
-                Assert.That(((Text)fields.FindProperty("pairedDesktop").objectReferenceValue).text, Is.EqualTo("Desktop\n192.168.1.2"));
+                Assert.That(((Text)fields.FindProperty("pairedDesktop").objectReferenceValue).text, Is.EqualTo("Desktop (192.168.1.2)"));
                 replace.onClick.Invoke();
-                card.ShowPaired("192.168.1.2", true);
-                Assert.That(replacements, Is.Zero);
-                retry.onClick.Invoke(); // Cancel confirmation.
-                card.ShowPaired("192.168.1.2", true);
-                replace.onClick.Invoke();
-                card.ShowPaired("192.168.1.2", true);
-                replace.onClick.Invoke();
-                Assert.That(replacements, Is.EqualTo(1));
+                Assert.That(replacements, Is.EqualTo(1), "A single click requests the external confirmation.");
                 card.Hide();
                 Assert.That(ui.GetComponent<QuestWindow>().IsOpen, Is.False);
                 card.ShowPaired("192.168.1.2", true);
@@ -185,6 +180,83 @@ namespace HBP.Tests.Quest
             finally
             {
                 Object.DestroyImmediate(ui);
+            }
+        }
+
+        [TestCase("paired"), TestCase("refused"), TestCase("receiving"), TestCase("cancelled")]
+        public async Task PairingProgress_ClosesCodeWindowAndHandsOffLoading(string outcome)
+        {
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"));
+            var loading = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab"));
+            var host = new GameObject("Inactive pairing controller test");
+            host.SetActive(false);
+            using var lifetime = new CancellationTokenSource();
+            var receiverDone = new TaskCompletionSource<bool>();
+            Task receiving = null;
+            try
+            {
+                var controller = host.AddComponent<QuestConnectionPanel>();
+                var card = ui.GetComponent<QuestStatusPanel>();
+                var window = ui.GetComponent<QuestWindow>();
+                var presenter = loading.GetComponentInChildren<QuestLoadingCircle>(true);
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                void SetController(string name, object value) => typeof(QuestConnectionPanel).GetField(name, flags).SetValue(controller, value);
+                void SetPairing(string name, object value) => typeof(QuestPairing).GetField(name, flags).SetValue(pairing, value);
+
+                void Refresh()
+                {
+                    SetController("nextRefresh", 0f);
+                    typeof(QuestConnectionPanel).GetMethod("Update", flags).Invoke(controller, null);
+                }
+
+                SetController("pairing", pairing);
+                SetController("lifetime", lifetime);
+                SetController("statusPanel", card);
+                SetController("networkChanged", 0);
+                SetController("session", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab").GetComponentInChildren<HBP.Quest.QuestAnatomySession>(true));
+                SetPairing("codeRequest", Guid.NewGuid());
+                SetPairing("displayExpires", TimeSpan.FromMinutes(5));
+                Refresh();
+                Assert.That(window.IsOpen, Is.True);
+                SetPairing("authenticating", true);
+                Refresh();
+                Assert.That(window.IsOpen, Is.False, "Close before the code content becomes empty.");
+                Assert.That(presenter.gameObject.activeSelf, Is.True);
+                await UniTask.NextFrame(stop.Token);
+                if (outcome == "receiving")
+                {
+                    receiving = LoadingManager.LoadAsync(async _ => { await receiverDone.Task; }).AsTask();
+                    SetPairing("preparing", 1);
+                    SetPairing("ownerClaimed", 1);
+                }
+                else if (outcome == "paired") SetPairing("paired", 1);
+                else if (outcome == "cancelled") lifetime.Cancel();
+
+                SetPairing("authenticating", false);
+                await UniTask.WaitUntil(() => !(bool)typeof(QuestConnectionPanel).GetField("showingPairingProgress", flags).GetValue(controller), cancellationToken: stop.Token);
+                Assert.That(presenter.gameObject.activeSelf, Is.EqualTo(outcome == "receiving"), "Keep the receiver's existing progress visible during handoff.");
+                if (outcome != "cancelled")
+                {
+                    Refresh();
+                    Assert.That(window.IsOpen, Is.EqualTo(outcome == "refused"), "Reopen the requested code after authentication is refused, keep closed on success.");
+                }
+
+                if (receiving != null)
+                {
+                    receiverDone.SetResult(true);
+                    await receiving;
+                    Assert.That(presenter.gameObject.activeSelf, Is.False);
+                }
+            }
+            finally
+            {
+                lifetime.Cancel();
+                receiverDone.TrySetResult(true);
+                if (receiving != null) await receiving;
+                await UniTask.NextFrame();
+                Object.DestroyImmediate(host);
+                Object.DestroyImmediate(ui);
+                Object.DestroyImmediate(loading);
             }
         }
 

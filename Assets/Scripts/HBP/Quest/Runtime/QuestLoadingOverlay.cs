@@ -10,7 +10,13 @@ namespace HBP.Quest
         [SerializeField] private Material material;
         private Graphic[] graphics;
 
-        private void Awake() => graphics = GetComponentsInChildren<Graphic>(true);
+        private void Awake() => RefreshGraphics();
+
+        public void RefreshGraphics()
+        {
+            graphics = GetComponentsInChildren<Graphic>(true);
+            ApplyMaterial();
+        }
 
         private void OnEnable()
         {

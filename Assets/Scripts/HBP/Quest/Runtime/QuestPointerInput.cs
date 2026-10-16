@@ -28,10 +28,13 @@ namespace HBP.Quest
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
+        [SerializeField] private Material overlayFeedbackMaterial;
         private readonly Hand[] hands = { new Hand(), new Hand() };
         private readonly List<RaycastResult> hits = new();
         private bool focused = true, paused;
+        private QuestDialogBox modalDialog;
         private MaterialPropertyBlock feedbackProperties;
+        private readonly Dictionary<Renderer, (Material Material, int SortingOrder)> feedbackDefaults = new();
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
         private string diagnosticOutput;
         private readonly object[] diagnosticHands = new object[2];
@@ -80,6 +83,7 @@ namespace HBP.Quest
         {
             base.OnEnable();
             feedbackProperties = new MaterialPropertyBlock();
+            feedbackDefaults.Clear();
             for (int i = 0; i < hands.Length; i++)
             {
                 hands[i].Data = new QuestPointerEventData(eventSystem) { pointerId = -10 - i };
@@ -99,6 +103,7 @@ namespace HBP.Quest
         public override void Process()
         {
             if (policy == null) return;
+            RefreshModal();
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             diagnosticProcessCount++;
 #endif
@@ -106,6 +111,7 @@ namespace HBP.Quest
             if (policy.EnableDistantAnatomy) Physics.SyncTransforms();
             if (cuts != null) cuts.Refresh();
             ProcessHand(0, left, leftRay, leftReticle);
+            RefreshModal(); // The first hand's click may open or close a dialog in this same frame.
             ProcessHand(1, right, rightRay, rightReticle);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
@@ -119,6 +125,15 @@ namespace HBP.Quest
                 }, Newtonsoft.Json.Formatting.Indented));
             }
 #endif
+        }
+
+        private void RefreshModal()
+        {
+            var dialog = QuestDialogBox.Current;
+            if (ReferenceEquals(modalDialog, dialog)) return;
+            foreach (var hand in hands) Cancel(hand);
+            if (siteProbe != null) siteProbe.Cancel();
+            modalDialog = dialog;
         }
 
         private void ProcessHand(int index, QuestDevicePoseTracker tracker, LineRenderer line, Transform reticle)
@@ -136,7 +151,7 @@ namespace HBP.Quest
 
             if (cuts != null) cuts.SetHand(index, valid, tracker != null ? tracker.transform.position : Vector3.zero, data.Ray.origin);
 
-            if (index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
+            if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
                 Cancel(hand);
                 Feedback(line, reticle, false, default, default);
@@ -160,7 +175,7 @@ namespace HBP.Quest
             eventSystem.RaycastAll(data, hits);
             data.pointerCurrentRaycast = default;
             foreach (var hit in hits)
-                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && IsUiHitAbove(hit, data.pointerCurrentRaycast))
+                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && (modalDialog == null || hit.gameObject.GetComponentInParent<QuestDialogBox>() == modalDialog) && IsUiHitAbove(hit, data.pointerCurrentRaycast))
                 {
                     data.pointerCurrentRaycast = hit;
                 }
@@ -178,7 +193,7 @@ namespace HBP.Quest
             data.position = data.pointerCurrentRaycast.screenPosition;
             data.delta = data.position - hand.LastPosition;
             hand.LastPosition = data.position;
-            bool loadingOverlay = IsLoadingOverlay(data.pointerCurrentRaycast);
+            bool loadingOverlay = modalDialog != null || IsLoadingOverlay(data.pointerCurrentRaycast);
             var candidate = loadingOverlay ? null : AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
             bool near = candidate != null;
             float distantDistance = policy.RayDistance;
@@ -241,13 +256,13 @@ namespace HBP.Quest
                 }
             }
 
-            bool actionable = target != null && (window != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
+            bool actionable = target != null && (window != null || modalDialog != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
             bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
             bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (cutCandidate == null && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
-            Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback);
+            Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback, IsLoadingOverlay(data.pointerCurrentRaycast));
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -392,15 +407,18 @@ namespace HBP.Quest
             return nearest;
         }
 
-        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool showReticle = true)
+        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool showReticle = true, bool foreground = false)
         {
+            bool overlay = foreground && overlayFeedbackMaterial != null;
             if (line != null)
             {
+                SetFeedbackOverlay(line, overlay);
                 line.enabled = visible;
                 line.positionCount = 2;
                 line.useWorldSpace = true;
                 line.startWidth = line.endWidth = policy != null ? policy.RayWidth : 0.002f;
-                if (policy != null && policy.FeedbackColor != null) line.startColor = line.endColor = policy.FeedbackColor.Value;
+                // The overlay shader multiplies vertex color by the shared feedback tint.
+                if (policy != null && policy.FeedbackColor != null) line.startColor = line.endColor = overlay ? Color.white : policy.FeedbackColor.Value;
                 ApplyFeedbackColor(line);
                 if (visible)
                 {
@@ -412,9 +430,24 @@ namespace HBP.Quest
             if (reticle != null)
             {
                 reticle.gameObject.SetActive(visible && showReticle);
-                ApplyFeedbackColor(reticle.GetComponent<Renderer>());
+                var renderer = reticle.GetComponent<Renderer>();
+                SetFeedbackOverlay(renderer, overlay);
+                ApplyFeedbackColor(renderer);
                 if (visible) reticle.position = end;
             }
+        }
+
+        private void SetFeedbackOverlay(Renderer renderer, bool overlay)
+        {
+            if (renderer == null) return;
+            if (!feedbackDefaults.TryGetValue(renderer, out var original))
+            {
+                original = (renderer.sharedMaterial, renderer.sortingOrder);
+                feedbackDefaults.Add(renderer, original);
+            }
+
+            renderer.sharedMaterial = overlay ? overlayFeedbackMaterial : original.Material;
+            renderer.sortingOrder = overlay ? short.MaxValue : original.SortingOrder;
         }
 
         private void ApplyFeedbackColor(Renderer renderer)

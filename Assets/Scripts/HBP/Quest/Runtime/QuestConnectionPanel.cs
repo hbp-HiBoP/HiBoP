@@ -6,6 +6,9 @@ using System.Net.Sockets;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
+using HBP.UI.Tools;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -24,11 +27,16 @@ namespace HBP.Quest
         private float nextRefresh;
         private readonly SemaphoreSlim advertisementWake = new(0, 1);
         private bool showingRequestedCode;
+        private bool confirmingAssociation;
+        private CancellationTokenSource associationConfirmation;
         private AndroidJavaObject networkMonitor;
         private NetworkListener networkListener;
+        private int networkChanged = 1;
+        private bool showingPairingProgress;
 
         private void WakeAdvertisement()
         {
+            Interlocked.Exchange(ref networkChanged, 1);
             try
             {
                 advertisementWake.Release();
@@ -81,7 +89,29 @@ namespace HBP.Quest
 
         private void NewAssociation()
         {
-            if (CanChangePairing) RestartAsync(true).Forget();
+            if (CanChangePairing && !confirmingAssociation) ConfirmNewAssociationAsync().Forget(Debug.LogException);
+        }
+
+        private async UniTask ConfirmNewAssociationAsync()
+        {
+            confirmingAssociation = true;
+            var owner = pairing;
+            using var stop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, this.GetCancellationTokenOnDestroy());
+            associationConfirmation = stop;
+            try
+            {
+                int choice = await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Forget association?", "Forget the Desktop association? You will need to enter a new code on Desktop.", stop.Token, "Forget association", "Cancel");
+                if (choice == 0 && ReferenceEquals(owner, pairing) && CanChangePairing)
+                    await RestartAsync(true);
+            }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
+            {
+            }
+            finally
+            {
+                associationConfirmation = null;
+                confirmingAssociation = false;
+            }
         }
 
         public async UniTask RestartAsync(bool renew = false)
@@ -119,7 +149,6 @@ namespace HBP.Quest
                 });
                 stop.ThrowIfCancellationRequested();
                 pairing = nextPairing;
-                address = string.Join(" / ", NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up).SelectMany(n => n.GetIPProperties().UnicastAddresses).Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)).Select(a => a.Address.ToString()).Distinct());
                 status = "Select this Quest on Desktop, then click Pair.";
                 while (!stop.IsCancellationRequested)
                 {
@@ -186,16 +215,54 @@ namespace HBP.Quest
         {
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
-            bool requested = pairing?.IsCodeRequested == true;
+            if (Interlocked.Exchange(ref networkChanged, 0) != 0)
+                address = string.Join(" / ", NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up).SelectMany(n => n.GetIPProperties().UnicastAddresses).Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)).Select(a => a.Address.ToString()).Distinct());
+            var state = pairing?.GetStatus();
+            bool pairingInProgress = state?.Phase is PairingPhase.Authenticating or PairingPhase.InstallingGlobals;
+            bool requested = pairing?.IsCodeRequested == true && !pairingInProgress;
             if (requested && !showingRequestedCode) statusPanel.ShowRequestedCode();
             if (!requested && showingRequestedCode) statusPanel.Hide();
             showingRequestedCode = requested;
+            if (associationConfirmation != null && !CanChangePairing) associationConfirmation.Cancel();
             if (pairing == null)
                 statusPanel.ShowUnavailable(status);
             else if (pairing.IsPaired)
-                statusPanel.ShowPaired(pairing.DesktopAddress, CanChangePairing);
+                statusPanel.ShowPaired(pairing.DesktopAddress, CanChangePairing && !confirmingAssociation);
             else
-                statusPanel.ShowPairing(pairing.GetStatus(), address);
+            {
+                if (pairingInProgress)
+                {
+                    statusPanel.Hide();
+                    if (!showingPairingProgress && !pairing.IsPreparing)
+                        ShowPairingProgressAsync(pairing, lifetime.Token).Forget(Debug.LogException);
+                }
+
+                statusPanel.ShowPairing(state.Value, address);
+            }
+        }
+
+        private async UniTask ShowPairingProgressAsync(QuestPairing owner, CancellationToken stop)
+        {
+            showingPairingProgress = true;
+            try
+            {
+                await LoadingManager.LoadAsync(async update =>
+                {
+                    update(0, 0, new LoadingText("Pairing with Desktop"));
+                    try
+                    {
+                        // The globals receiver owns the same loading presenter once data starts arriving.
+                        await UniTask.WaitUntil(() => !ReferenceEquals(owner, pairing) || owner.IsPreparing || owner.GetStatus().Phase is not (PairingPhase.Authenticating or PairingPhase.InstallingGlobals), cancellationToken: stop);
+                    }
+                    catch (OperationCanceledException) when (stop.IsCancellationRequested)
+                    {
+                    }
+                });
+            }
+            finally
+            {
+                showingPairingProgress = false;
+            }
         }
 
         private void OnApplicationPause(bool paused)
@@ -207,6 +274,7 @@ namespace HBP.Quest
 
         private void OnDisable()
         {
+            associationConfirmation?.Cancel();
             statusPanel.OnNewAssociationRequested.RemoveListener(NewAssociation);
             networkMonitor?.Call("close");
             networkMonitor?.Dispose();

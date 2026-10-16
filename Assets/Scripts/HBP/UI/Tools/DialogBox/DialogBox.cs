@@ -17,6 +17,7 @@ namespace HBP.UI.Tools
         [SerializeField] TMPro.TMP_Text m_Title;
         [SerializeField] Transform m_ButtonsParent;
         [SerializeField] GameObject m_ButtonPrefab;
+        private UniTaskCompletionSource<int> completion;
 
         #endregion
 
@@ -29,36 +30,52 @@ namespace HBP.UI.Tools
 
         public async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, string[] buttons, CancellationToken token = default)
         {
-            m_Icon.sprite = m_Icons.FirstOrDefault(i => i.type == type).icon;
-            SetRect();
-            SetMessages(title, message);
+            completion = new UniTaskCompletionSource<int>();
             try
             {
-                return await SetButtons(buttons, token);
+                token.ThrowIfCancellationRequested();
+                SetIcon(type);
+                SetRect();
+                SetMessages(title, message);
+                SetButtons(buttons.Length == 0 ? new[] { "OK" } : buttons);
+                ButtonsCreated();
+                return await completion.Task.AttachExternalCancellation(token);
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 if (this) Close();
             }
         }
 
         public void Close()
         {
+            completion?.TrySetResult(-1);
+            gameObject.SetActive(false);
             Destroy(gameObject);
         }
+
+        protected virtual void OnDisable() => completion?.TrySetResult(-1);
+
+        protected virtual void OnDestroy() => completion?.TrySetResult(-1);
 
         #endregion
 
         #region Private Methods
 
-        void SetRect()
+        protected virtual void SetIcon(DialogBoxType type)
+        {
+            if (m_Icon != null) m_Icon.sprite = m_Icons.FirstOrDefault(i => i.type == type).icon;
+        }
+
+        protected virtual void SetRect()
         {
             RectTransform rect = (transform as RectTransform);
             rect.offsetMin = new Vector2(0, 0);
             rect.offsetMax = new Vector2(0, 0);
         }
 
-        void SetMessages(string title, string message)
+        protected virtual void SetMessages(string title, string message)
         {
             m_Title.text = title;
             m_Message.text = message;
@@ -67,22 +84,19 @@ namespace HBP.UI.Tools
                 layoutElement.preferredWidth = Mathf.Min(Mathf.Max(m_Title.preferredWidth, m_Message.preferredWidth), layoutElement.preferredWidth);
         }
 
-        async UniTask<int> SetButtons(string[] buttons, CancellationToken token)
+        protected virtual void ButtonsCreated()
         {
-            int result = -1;
-            foreach (string button in buttons)
-            {
-                GameObject buttonObject = Instantiate(m_ButtonPrefab, m_ButtonsParent);
-                buttonObject.GetComponentInChildren<Text>().text = button;
-                buttonObject.GetComponent<Button>().onClick.AddListener(() =>
-                {
-                    result = System.Array.IndexOf(buttons, button);
-                    Close();
-                });
-            }
+        }
 
-            await UniTask.WaitUntil(() => result != -1, cancellationToken: token);
-            return result;
+        void SetButtons(string[] buttons)
+        {
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                int index = i;
+                GameObject buttonObject = Instantiate(m_ButtonPrefab, m_ButtonsParent);
+                buttonObject.GetComponentInChildren<Text>().text = buttons[i];
+                buttonObject.GetComponent<Button>().onClick.AddListener(() => completion.TrySetResult(index));
+            }
         }
 
         #endregion
