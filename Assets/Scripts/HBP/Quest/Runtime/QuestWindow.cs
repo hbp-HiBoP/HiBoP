@@ -13,6 +13,8 @@ namespace HBP.Quest
         [SerializeField] private Behaviour raycaster;
         [SerializeField] private Button close, pin;
         [SerializeField] private Text pinLabel;
+        [SerializeField] private HBP.Theme.ThemeElement pinIconTheme;
+        [SerializeField] private HBP.Theme.State pinnedState;
         [SerializeField] private bool initiallyOpen = true;
         [SerializeField] private Vector3 placement = new Vector3(0, 0, 1.15f);
         private int hovered;
@@ -30,7 +32,6 @@ namespace HBP.Quest
             if (close != null) close.onClick.AddListener(Close);
             if (pin != null) pin.onClick.AddListener(TogglePin);
             SetOpen(initiallyOpen);
-            RefreshPin();
         }
 
         public void Open() => SetOpen(true);
@@ -48,6 +49,7 @@ namespace HBP.Quest
             if (canvas != null) canvas.enabled = value;
             if (content != null) content.SetActive(value);
             if (raycaster != null) raycaster.enabled = value;
+            RefreshPin();
             OnChanged.Invoke(this);
         }
 
@@ -63,6 +65,7 @@ namespace HBP.Quest
         private void RefreshPin()
         {
             if (pinLabel != null) pinLabel.text = IsPinned ? "Follow" : "Pin";
+            if (pinIconTheme != null) pinIconTheme.Set(IsPinned ? pinnedState : pinIconTheme.Element.DefaultState);
         }
 
         public void SetHovered(int hand, bool value)

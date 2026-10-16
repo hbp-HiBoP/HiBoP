@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace HBP.Quest
 {
-    /// <summary>Optional ray-operated edge handle. Changes the layout area while keeping the opposite edge fixed.</summary>
+    /// <summary>Ray-operated edge or corner handle. Resizes the layout while keeping the opposite edge or corner fixed.</summary>
     public sealed class QuestWindowResizer : MonoBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         [SerializeField] private QuestWindow window;
@@ -13,7 +13,9 @@ namespace HBP.Quest
             Left,
             Right,
             Top,
-            Bottom
+            Bottom,
+            BottomLeft,
+            BottomRight
         }
 
         [SerializeField] private WindowEdge edge = WindowEdge.Right;
@@ -62,16 +64,21 @@ namespace HBP.Quest
             if (!plane.Raycast(pointer.Ray, out float distance)) return;
             // Use the captured frame, not the resizing panel's moving frame, to avoid feedback and drift.
             Vector3 delta = worldToLocal.MultiplyPoint3x4(pointer.Ray.GetPoint(distance)) - initialPoint;
-            bool horizontal = edge == WindowEdge.Left || edge == WindowEdge.Right;
-            bool positive = edge == WindowEdge.Right || edge == WindowEdge.Top;
-            int axis = horizontal ? 0 : 1;
-            float sign = positive ? 1 : -1;
-            float minimum = Mathf.Max(1, minimumSize[axis]);
-            float size = Mathf.Clamp(initialSize[axis] + sign * delta[axis], minimum, Mathf.Max(minimum, maximumSize[axis]));
-            float movement = sign * (size - initialSize[axis]);
+            bool corner = edge == WindowEdge.BottomLeft || edge == WindowEdge.BottomRight;
             Vector3 pivotOffset = Vector3.zero;
-            pivotOffset[axis] = movement * (positive ? target.pivot[axis] : 1 - target.pivot[axis]);
-            target.SetSizeWithCurrentAnchors(horizontal ? RectTransform.Axis.Horizontal : RectTransform.Axis.Vertical, size);
+            for (int axis = 0; axis < 2; axis++)
+            {
+                bool horizontal = axis == 0;
+                if (!corner && horizontal != (edge == WindowEdge.Left || edge == WindowEdge.Right)) continue;
+                bool positive = horizontal ? edge == WindowEdge.Right || edge == WindowEdge.BottomRight : edge == WindowEdge.Top;
+                float sign = positive ? 1 : -1;
+                float minimum = Mathf.Max(1, minimumSize[axis]);
+                float size = Mathf.Clamp(initialSize[axis] + sign * delta[axis], minimum, Mathf.Max(minimum, maximumSize[axis]));
+                float movement = sign * (size - initialSize[axis]);
+                pivotOffset[axis] = movement * (positive ? target.pivot[axis] : 1 - target.pivot[axis]);
+                target.SetSizeWithCurrentAnchors(horizontal ? RectTransform.Axis.Horizontal : RectTransform.Axis.Vertical, size);
+            }
+
             target.position = localToWorld.MultiplyPoint3x4(pivotOffset);
         }
 
