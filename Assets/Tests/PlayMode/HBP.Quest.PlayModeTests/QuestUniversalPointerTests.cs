@@ -387,7 +387,7 @@ namespace HBP.Tests.Quest
                 Assert.That(manipulator.Raycast(new Ray(new Vector3(.35f, .15f, 0), Vector3.forward), 3, out _), Is.True);
 
                 // The loading cancel button stays targetable behind a closer independent window.
-                var loading = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Loading Manager.prefab"), root.transform);
+                var loading = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab"), root.transform);
                 var presenter = loading.GetComponentInChildren<QuestLoadingCircle>(true);
                 var loadingFollower = loading.GetComponentInChildren<QuestLoadingFollower>();
                 loadingFollower.enabled = false;

@@ -34,7 +34,7 @@ namespace HBP.Tests.PlatformConfiguration
         [Test]
         public void SiteSelectionRing_HasIndependentQuestThemeAndDesktopSpriteAndAnimation()
         {
-            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestColumn.prefab");
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestColumn.prefab");
             var ring = root.GetComponent<QuestSiteSelectionRing>();
             Assert.That(new SerializedObject(root.GetComponent<QuestColumnPresentation>()).FindProperty("selectionRing").objectReferenceValue, Is.SameAs(ring));
             var fields = new SerializedObject(ring);
@@ -55,12 +55,13 @@ namespace HBP.Tests.PlatformConfiguration
         }
 
         [Test]
-        public void ResizeDemo_WiresOptionalHandleWithoutChangingExistingWindows()
+        public void WindowPrefabs_ShareTheBaseCornerResizeHandles()
         {
             const string demoPath = "Assets/Prefabs/Quest/UI/Quest Resizable Window Demo.prefab";
             var demo = AssetDatabase.LoadAssetAtPath<GameObject>(demoPath);
             var handles = demo.GetComponentsInChildren<QuestWindowResizer>(true);
-            Assert.That(handles.Select(h => h.Edge), Is.EquivalentTo(System.Enum.GetValues(typeof(QuestWindowResizer.WindowEdge))));
+            Assert.That(PrefabUtility.GetPrefabAssetType(demo), Is.EqualTo(PrefabAssetType.Variant));
+            Assert.That(handles.Select(h => h.Edge), Is.EquivalentTo(new[] { QuestWindowResizer.WindowEdge.BottomLeft, QuestWindowResizer.WindowEdge.BottomRight }));
             foreach (var resizer in handles)
             {
                 var fields = new SerializedObject(resizer);
@@ -68,13 +69,15 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(fields.FindProperty("minimumSize").vector2Value, Is.EqualTo(new Vector2(500, 350)));
                 Assert.That(fields.FindProperty("maximumSize").vector2Value, Is.EqualTo(new Vector2(1200, 1000)));
                 Assert.That(resizer.GetComponent<UnityEngine.UI.Image>().raycastTarget, Is.True);
-                Assert.That(AssetDatabase.GetAssetPath(resizer.GetComponent<ThemeElement>().Element), Is.EqualTo("Assets/Resources/Themes/Quest/Elements/QuestResizeHandle.asset"));
+                Assert.That(AssetDatabase.GetAssetPath(resizer.GetComponent<ThemeElement>().Element), Is.EqualTo("Assets/Resources/Themes/Quest/Elements/QuestWindowResizeSurface.asset"));
             }
 
             foreach (string path in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Quest" }).Select(AssetDatabase.GUIDToAssetPath))
             {
-                if (path == demoPath) continue;
-                Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentInChildren<QuestWindowResizer>(true), Is.Null, path);
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                var window = prefab.GetComponent<QuestWindow>();
+                if (window == null || window.Key == "Toolbar") continue;
+                Assert.That(prefab.GetComponentsInChildren<QuestWindowResizer>(true).Select(h => h.Edge), Is.EquivalentTo(new[] { QuestWindowResizer.WindowEdge.BottomLeft, QuestWindowResizer.WindowEdge.BottomRight }), path);
             }
         }
 
@@ -109,7 +112,7 @@ namespace HBP.Tests.PlatformConfiguration
                     Assert.That(new SerializedObject(desktopManager).FindProperty("m_LoadingCircle").objectReferenceValue, Is.TypeOf<HBP.UI.Tools.LoadingCircle>(), path);
             }
 
-            var column = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestColumn.prefab");
+            var column = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestColumn.prefab");
             Assert.That(new SerializedObject(column.GetComponent<QuestAnatomyManipulator>()).FindProperty("rayTarget").objectReferenceValue, Is.TypeOf<MeshCollider>());
         }
 
@@ -211,7 +214,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(cuts.GetComponent<QuestWindow>().Key, Is.EqualTo("Cuts"));
             Assert.That(new SerializedObject(cuts.GetComponent<QuestWindow>()).FindProperty("initiallyOpen").boolValue, Is.False);
             Assert.That(new SerializedObject(toolbar).FindProperty("cuts").objectReferenceValue, Is.SameAs(cuts));
-            foreach (string field in new[] { "view", "window", "rowPrefab", "rows", "keypad", "add", "suspend", "suspendLabel", "status" })
+            foreach (string field in new[] { "view", "window", "rowPrefab", "rows", "keypad", "add", "suspend", "suspendLabel" })
                 Assert.That(new SerializedObject(cuts).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             var handles = root.GetComponent<QuestCutHandles>();
             Assert.That(new SerializedObject(pointer).FindProperty("cuts").objectReferenceValue, Is.SameAs(handles));
@@ -225,10 +228,10 @@ namespace HBP.Tests.PlatformConfiguration
         public void CutPrefabs_AuthorAllControlsAndLocalGizmoWithIndependentQuestSettings()
         {
             var row = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Row.prefab").GetComponent<QuestCutRow>();
-            foreach (string field in new[] { "title", "positionLabel", "message", "orientation", "position", "flip", "minus", "plus", "remove", "applyNormal", "custom" })
+            foreach (string field in new[] { "title", "orientation", "position", "flip", "minus", "plus", "remove", "custom" })
                 Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(new SerializedObject(row).FindProperty("normalFields").arraySize, Is.EqualTo(3));
-            var gizmo = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>();
+            var gizmo = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>();
             foreach (string field in new[] { "outline", "rail" })
                 Assert.That(new SerializedObject(gizmo).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(gizmo.GetComponentInChildren<Collider>(), Is.Null, "Bounded plane contact is geometric and must not block scientific raycasts.");

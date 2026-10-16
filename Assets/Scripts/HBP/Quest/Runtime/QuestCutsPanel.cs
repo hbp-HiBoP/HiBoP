@@ -16,7 +16,7 @@ namespace HBP.Quest
         [SerializeField] private RectTransform rows;
         [SerializeField] private QuestNumericKeypad keypad;
         [SerializeField] private Button add, suspend;
-        [SerializeField] private Text suspendLabel, status;
+        [SerializeField] private Text suspendLabel;
         private readonly Dictionary<Cut, QuestCutRow> controls = new();
         private Base3DScene scene;
         private bool suspended;
@@ -82,7 +82,6 @@ namespace HBP.Quest
             add.interactable = Ready && !scene.AutomaticCutAroundSelectedSite;
             suspend.interactable = Ready;
             suspendLabel.text = suspended ? "Show guides" : "Hide guides";
-            status.text = !Ready ? "Waiting for a visualization" : scene.AutomaticCutAroundSelectedSite ? "Automatic cuts: manual editing is disabled." : "Cuts affect every column in this visualization.";
         }
 
         private void OnDestroy()

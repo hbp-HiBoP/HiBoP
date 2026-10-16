@@ -140,7 +140,7 @@ namespace HBP.Tests.Quest
         public async Task SelectionRing_TracksWorldRadiusVisibilityAndDesktopAnimation()
         {
             using var fixture = new Fixture();
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestColumn.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestColumn.prefab"));
             var cameraObject = new GameObject("Selection ring test camera", typeof(Camera));
             var camera = cameraObject.GetComponent<Camera>();
             cameraObject.tag = "MainCamera";

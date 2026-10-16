@@ -64,7 +64,7 @@ namespace HBP.Tests.Quest
             await UniTask.NextFrame();
             Canvas.ForceUpdateCanvases();
             var row = f.Panel.Rows.Single(r => r.Cut == f.Scene.Cuts[0]);
-            var plus = row.transform.Find("Plus").GetComponent<Button>();
+            var plus = row.transform.Find("Controls/Position Row/Plus").GetComponent<Button>();
             input.AimAt((RectTransform)plus.transform);
             Assert.That(input.Target.GetComponentInParent<Button>(), Is.SameAs(plus), "Actual ray target: " + input.Target.name + " at " + input.Target.transform.parent.name + ". The production ray must reach the visible row button, not an overlapping graphic.");
             float before = row.Cut.Position;
@@ -72,32 +72,31 @@ namespace HBP.Tests.Quest
             input.Track(plus.transform.TransformPoint(((RectTransform)plus.transform).rect.center) - Vector3.forward * .6f + Vector3.right * .02f);
             input.Press(false);
             Assert.That(row.Cut.Position, Is.EqualTo(before + .002f).Within(1e-6));
-            var minus = row.transform.Find("Minus").GetComponent<Button>();
+            var minus = row.transform.Find("Controls/Position Row/Minus").GetComponent<Button>();
             input.Click((RectTransform)minus.transform);
             Assert.That(row.Cut.Position, Is.EqualTo(before).Within(1e-6));
-            var slider = row.transform.Find("Position").GetComponent<Slider>();
+            var slider = row.transform.Find("Controls/Position Row/Position").GetComponent<Slider>();
             input.AimAt((RectTransform)slider.transform);
             input.Press(true);
             input.Track(slider.transform.TransformPoint(((RectTransform)slider.transform).rect.center) - Vector3.forward * .6f + Vector3.right * .15f);
             input.Press(false);
             Assert.That(row.Cut.Position, Is.GreaterThan(.6f), "The real slider drag must modify the cut.");
-            input.Click((RectTransform)row.transform.Find("Custom/X"));
+            input.Click((RectTransform)row.transform.Find("Controls/Custom/X"));
             Assert.That(f.Keypad.IsOpen, Is.True);
             await UniTask.NextFrame(); // Register and lay out the newly activated modal graphics.
             Canvas.ForceUpdateCanvases();
-            var keys = f.Window.transform.Find("Background/Keypad");
+            var keys = f.Window.transform.Find("Keypad");
             foreach (string key in new[] { "Clear", "1", "Decimal", "5", "Apply" })
             {
-                input.AimAt((RectTransform)keys.Find(key));
-                Assert.That(input.Target != null ? input.Target.GetComponentInParent<Button>() : null, Is.SameAs(keys.Find(key).GetComponent<Button>()), "Numeric key first hit: " + key + " => " + (input.Target != null ? input.Target.name : "none"));
+                input.AimAt((RectTransform)keys.Find(key == "Apply" ? "Keypad Actions/Apply" : "Numeric Grid/" + key));
+                Assert.That(input.Target != null ? input.Target.GetComponentInParent<Button>() : null, Is.SameAs(keys.Find(key == "Apply" ? "Keypad Actions/Apply" : "Numeric Grid/" + key).GetComponent<Button>()), "Numeric key first hit: " + key + " => " + (input.Target != null ? input.Target.name : "none"));
                 input.Press(true);
                 input.Press(false);
             }
 
             Assert.That(f.Keypad.IsOpen, Is.False);
-            input.Click((RectTransform)row.transform.Find("Custom/Apply"));
             Assert.That(row.Cut.Normal.x, Is.EqualTo(1.5f));
-            var dropdown = row.transform.Find("Orientation").GetComponent<QuestDropdown>();
+            var dropdown = row.transform.Find("Controls/Header/Orientation").GetComponent<QuestDropdown>();
             input.Click((RectTransform)dropdown.transform);
             await UniTask.NextFrame();
             Canvas.ForceUpdateCanvases();
@@ -109,7 +108,7 @@ namespace HBP.Tests.Quest
             Assert.That(row.Cut.Orientation, Is.EqualTo(CutOrientation.Axial));
             await UniTask.Delay(250, ignoreTimeScale: true);
             row.Refresh();
-            input.Click((RectTransform)row.transform.Find("Flip"));
+            input.Click((RectTransform)row.transform.Find("Controls/Header/Flip"));
             Assert.That(row.Cut.Flip, Is.True);
             // Remove uses the actual domain command, without the fixture's unwired column renderers.
             f.Scene.Columns.Clear();
@@ -140,11 +139,11 @@ namespace HBP.Tests.Quest
             Assert.That(scroll.verticalNormalizedPosition, Is.LessThan(.95f), "A row background still delegates dragging to the scroll view.");
             scroll.verticalNormalizedPosition = 1;
             Canvas.ForceUpdateCanvases();
-            var dropdown = row.transform.Find("Orientation").GetComponent<QuestDropdown>();
+            var dropdown = row.transform.Find("Controls/Header/Orientation").GetComponent<QuestDropdown>();
             input.Click((RectTransform)dropdown.transform);
             await UniTask.NextFrame();
             Assert.That(dropdown.transform.Find("Dropdown List"), Is.Not.Null);
-            input.Click((RectTransform)f.Window.transform.Find("Background/Heading"));
+            input.Click((RectTransform)f.Window.transform.Find("Background/Header"));
             await UniTask.Delay(250, ignoreTimeScale: true);
             Assert.That(dropdown.transform.Find("Dropdown List"), Is.Null, "The popup blocker must intercept clicks outside the options.");
             Assert.That(row.Cut.Orientation, Is.EqualTo(CutOrientation.Custom));
@@ -213,7 +212,7 @@ namespace HBP.Tests.Quest
             input.Press(true);
             Assert.That(f.Handles.IsCaptured(0), Is.True);
 
-            var plus = f.Panel.Rows.First(r => r.Cut == gizmo.Cut).transform.Find("Plus");
+            var plus = f.Panel.Rows.First(r => r.Cut == gizmo.Cut).transform.Find("Controls/Position Row/Plus");
             await UniTask.NextFrame(); // Reopened Canvas graphics must register before testing their ray hits.
             input.AimAt((RectTransform)plus);
             Assert.That(f.Handles.IsCaptured(0), Is.True, "A cut capture stays a cut when its ray reaches UI.");
@@ -346,7 +345,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task CutRows_ExposeEveryCutRefreshWithoutEchoAndProvideControllerNumericDrafts()
+        public async Task CutRows_ExposeEveryCutRefreshWithoutEchoAndApplyConfirmedNormalComponents()
         {
             using var f = new Fixture();
             f.Window.Open();
@@ -360,39 +359,39 @@ namespace HBP.Tests.Quest
                 intents++;
                 return false;
             };
-            row.transform.Find("Plus").GetComponent<Button>().onClick.Invoke();
+            row.transform.Find("Controls/Position Row/Plus").GetComponent<Button>().onClick.Invoke();
             Assert.That(row.Cut.Position, Is.EqualTo(.502f).Within(1e-6));
-            row.transform.Find("Position").GetComponent<Slider>().value = .7f;
+            row.transform.Find("Controls/Position Row/Position").GetComponent<Slider>().value = .7f;
             Assert.That(row.Cut.Position, Is.EqualTo(.7f));
             Assert.That(intents, Is.EqualTo(2));
             row.Cut.Position = .25f;
             row.Cut.Normal = new Vector3(0, 1, 1); // Incoming scientific state.
             row.Refresh();
-            Assert.That(row.transform.Find("Position").GetComponent<Slider>().value, Is.EqualTo(.25f));
+            Assert.That(row.transform.Find("Controls/Position Row/Position").GetComponent<Slider>().value, Is.EqualTo(.25f));
             Assert.That(intents, Is.EqualTo(2), "Remote refresh never invokes controls.");
-            Assert.That(row.transform.Find("Flip").gameObject.activeSelf, Is.False, "Desktop hides flip for Custom.");
-            row.transform.Find("Custom/X").GetComponent<Button>().onClick.Invoke();
+            Assert.That(row.transform.Find("Controls/Header/Flip").gameObject.activeSelf, Is.False, "Desktop hides flip for Custom.");
+            row.transform.Find("Controls/Custom/X").GetComponent<Button>().onClick.Invoke();
             Assert.That(f.Keypad.IsOpen, Is.True);
             f.Keypad.Enter("Clear");
             f.Keypad.Enter("1");
             f.Keypad.Enter(".");
             f.Keypad.Enter("5");
+            row.Cut.Normal = new Vector3(0, .12345678f, 3); // Incoming state while the keypad is open.
+            row.Refresh();
             f.Keypad.Apply();
-            Assert.That(row.Cut.Normal, Is.EqualTo(new Vector3(0, 1, 1)), "A numeric draft is local until the complete normal is applied.");
-            row.ApplyNormal();
-            Assert.That(row.Cut.Normal, Is.EqualTo(new Vector3(1.5f, 1, 1)));
+            Assert.That(row.Cut.Normal, Is.EqualTo(new Vector3(1.5f, .12345678f, 3)), "Confirmation preserves the latest other components without rounding them.");
             Assert.That(intents, Is.EqualTo(3));
             foreach (string axis in new[] { "X", "Y", "Z" })
             {
-                row.transform.Find("Custom/" + axis).GetComponent<Button>().onClick.Invoke();
+                row.transform.Find("Controls/Custom/" + axis).GetComponent<Button>().onClick.Invoke();
                 f.Keypad.Enter("Clear");
                 f.Keypad.Enter("0");
                 f.Keypad.Apply();
             }
 
-            row.ApplyNormal();
-            Assert.That(intents, Is.EqualTo(3), "A zero normal must not publish.");
-            Assert.That(row.transform.Find("Message").GetComponent<Text>().text, Is.Not.Empty);
+            Assert.That(intents, Is.EqualTo(5), "Only the first two valid component changes publish; a zero normal must not publish.");
+            Assert.That(f.Keypad.IsOpen, Is.True, "Keep the rejected value editable.");
+            Assert.That(row.Cut.Normal, Is.EqualTo(new Vector3(0, 0, 3)));
             Assert.That(QuestCutCommands.TryNormal("NaN", "1", "0", out _), Is.False);
             Assert.That(QuestCutCommands.TryNormal("Infinity", "0", "1", out _), Is.False);
             Assert.That(QuestCutCommands.TryNormal("1,5", "-2", "0", out _), Is.True);
@@ -401,7 +400,7 @@ namespace HBP.Tests.Quest
             f.Window.GetComponent<Canvas>().worldCamera = f.Camera;
             Canvas.ForceUpdateCanvases();
             QuestWindowInteractionTests.Capture(f.Camera, "cuts-window.png");
-            row.transform.Find("Custom/X").GetComponent<Button>().onClick.Invoke();
+            row.transform.Find("Controls/Custom/X").GetComponent<Button>().onClick.Invoke();
             Canvas.ForceUpdateCanvases();
             QuestWindowInteractionTests.Capture(f.Camera, "cuts-keypad.png");
             f.Window.Close();
@@ -475,20 +474,20 @@ namespace HBP.Tests.Quest
             Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
             capture.Cancel();
             Assert.That(capture.Sample(true, true, false, true, true, true), Is.False, "A cancelled held trigger must release before another capture.");
-            f.Panel.transform.Find("Background/Suspend").GetComponent<Button>().onClick.Invoke();
+            f.Panel.transform.Find("Background/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
             f.Handles.Refresh();
             Assert.That(f.Handles.IsCaptured(0) || f.Handles.IsCaptured(1), Is.False);
             f.Window.Close();
             f.Window.Open();
             Assert.That(f.Panel.Suspended, Is.True, "Recall keeps the user's suspension state.");
-            f.Panel.transform.Find("Background/Suspend").GetComponent<Button>().onClick.Invoke();
+            f.Panel.transform.Find("Background/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
             f.Handles.Refresh();
             Assert.That(f.Handles.Begin(0, first), Is.True);
             f.Handles.SetHand(0, false, default, default);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
             f.Handles.SetHand(0, true, first.PlaneCenter, first.PlaneCenter);
             Assert.That(f.Handles.Begin(0, first), Is.True);
-            f.Panel.Rows.Single(r => r.Cut == first.Cut).transform.Find("Custom/X").GetComponent<Button>().onClick.Invoke();
+            f.Panel.Rows.Single(r => r.Cut == first.Cut).transform.Find("Controls/Custom/X").GetComponent<Button>().onClick.Invoke();
             Assert.That(f.Keypad.IsOpen, Is.True);
             f.Scene.Cuts.Remove(first.Cut); // A remote roster mutation invalidates the target before disposal.
             Assert.That(f.Handles.Move(0), Is.False);
@@ -786,7 +785,7 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(Handles, "view", View);
                 QuestWindowInteractionTests.Set(Handles, "panel", Panel);
                 QuestWindowInteractionTests.Set(Handles, "policy", policy);
-                QuestWindowInteractionTests.Set(Handles, "gizmoPrefab", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>());
+                QuestWindowInteractionTests.Set(Handles, "gizmoPrefab", AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>());
                 Camera = new GameObject("Fixture camera", typeof(Camera)).GetComponent<Camera>();
                 Camera.transform.SetParent(root.transform);
                 Camera.clearFlags = CameraClearFlags.SolidColor;

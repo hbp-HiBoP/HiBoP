@@ -72,7 +72,7 @@ namespace HBP.Quest
                 if (!corner && horizontal != (edge == WindowEdge.Left || edge == WindowEdge.Right)) continue;
                 bool positive = horizontal ? edge == WindowEdge.Right || edge == WindowEdge.BottomRight : edge == WindowEdge.Top;
                 float sign = positive ? 1 : -1;
-                float minimum = Mathf.Max(1, minimumSize[axis]);
+                float minimum = Mathf.Max(Mathf.Max(1, minimumSize[axis]), UnityEngine.UI.LayoutUtility.GetMinSize(target, axis));
                 float size = Mathf.Clamp(initialSize[axis] + sign * delta[axis], minimum, Mathf.Max(minimum, maximumSize[axis]));
                 float movement = sign * (size - initialSize[axis]);
                 pivotOffset[axis] = movement * (positive ? target.pivot[axis] : 1 - target.pivot[axis]);

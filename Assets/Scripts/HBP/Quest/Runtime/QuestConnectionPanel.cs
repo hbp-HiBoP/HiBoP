@@ -6,7 +6,6 @@ using System.Net.Sockets;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HBP.Transfer.Transport;
-using HBP.Sync.Scene;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -78,7 +77,7 @@ namespace HBP.Quest
 
         private static void LogTiming(string message) => Debug.Log(message);
 
-        private bool CanChangePairing => !restarting && !session.IsReady && session.ReceptionState == AnatomyReceptionState.Idle && pairing?.IsPreparing != true && pairing?.GetStatus().Phase != PairingPhase.Authenticating;
+        private bool CanChangePairing => pairing?.IsPaired == true && !restarting && !session.IsReady && session.ReceptionState == AnatomyReceptionState.Idle && !pairing.IsPreparing;
 
         private void NewAssociation()
         {
@@ -191,20 +190,12 @@ namespace HBP.Quest
             if (requested && !showingRequestedCode) statusPanel.ShowRequestedCode();
             if (!requested && showingRequestedCode) statusPanel.Hide();
             showingRequestedCode = requested;
-            if (session.ReceptionState != AnatomyReceptionState.Idle || pairing?.IsPreparing == true)
-                statusPanel.ShowSession(session.IsSynchronizationConnected, true);
-            else if (pairing == null)
+            if (pairing == null)
                 statusPanel.ShowUnavailable(status);
-            else if (!pairing.IsPaired && requested)
-                statusPanel.ShowPairing(pairing.GetStatus(), address);
-            else if (!pairing.IsPaired)
-                statusPanel.ShowAvailable(address);
-            else if (!session.IsReady)
-                statusPanel.ShowWaiting();
-            else if (session.Reconciliation is { } record && record.Status != ReconciliationStatus.Synchronized)
-                statusPanel.ShowReconciliation(record, pairing.IsConnected);
+            else if (pairing.IsPaired)
+                statusPanel.ShowPaired(pairing.DesktopAddress, CanChangePairing);
             else
-                statusPanel.ShowSession(session.IsSynchronizationConnected, false);
+                statusPanel.ShowPairing(pairing.GetStatus(), address);
         }
 
         private void OnApplicationPause(bool paused)

@@ -381,7 +381,7 @@ namespace HBP.Tests.Quest
                 camera.nearClipPlane = .01f;
                 camera.fieldOfView = 65;
                 var manager = root.AddComponent<QuestWindowsManager>();
-                var connection = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"), root.transform).GetComponent<QuestWindow>();
+                var connection = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"), root.transform).GetComponent<QuestWindow>();
                 var display = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Display Window.prefab"), root.transform).GetComponent<QuestWindow>();
                 var toolbar = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Toolbar.prefab"), root.transform).GetComponent<QuestToolbar>();
                 Set(manager, "head", viewer.transform);
@@ -393,7 +393,7 @@ namespace HBP.Tests.Quest
                 var card = connection.GetComponent<QuestStatusPanel>();
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");
                 connection.Close();
-                card.ShowWaiting();
+                card.ShowPaired("192.168.1.2", true);
                 Assert.That(connection.IsOpen, Is.False);
                 var fields = new SerializedObject(toolbar);
                 var openConnection = (Button)fields.FindProperty("connectionButton").objectReferenceValue;

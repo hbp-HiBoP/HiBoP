@@ -11,7 +11,7 @@ namespace HBP.Quest
         [SerializeField] private Text title, display;
         [SerializeField] private Button[] keys;
         [SerializeField] private Button apply, cancel;
-        private Action<string> completed;
+        private Func<string, bool> completed;
         private UnityEngine.Object owner;
         private string draft;
         private bool replace;
@@ -21,7 +21,7 @@ namespace HBP.Quest
         {
             foreach (var key in keys)
             {
-                string value = key.GetComponentInChildren<Text>().text;
+                string value = key.GetComponentInChildren<Text>(true).text;
                 key.onClick.AddListener(() => Enter(value));
             }
 
@@ -31,6 +31,15 @@ namespace HBP.Quest
         }
 
         public void Open(UnityEngine.Object requester, string label, string value, Action<string> callback)
+        {
+            OpenValidated(requester, label, value, result =>
+            {
+                callback?.Invoke(result);
+                return true;
+            });
+        }
+
+        public void OpenValidated(UnityEngine.Object requester, string label, string value, Func<string, bool> callback)
         {
             owner = requester;
             completed = callback;
@@ -60,11 +69,14 @@ namespace HBP.Quest
 
         public void Apply()
         {
-            var callback = completed;
-            string result = draft;
-            bool alive = owner != null;
+            if (!IsOpen) return;
+            if (owner != null && !completed(draft))
+            {
+                display.text = draft + "\nInvalid normal";
+                return;
+            }
+
             Cancel();
-            if (alive) callback?.Invoke(result);
         }
 
         public void Cancel()

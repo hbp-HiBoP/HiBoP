@@ -17,7 +17,7 @@ namespace HBP.Tests.PlatformConfiguration
 {
     public class QuestBootstrapTests
     {
-        private const string RigPath = "Assets/Prefabs/Quest/QuestRig.prefab";
+        private const string RigPath = "Assets/Prefabs/Quest/3D/QuestRig.prefab";
         private const string BootstrapPath = "Assets/Prefabs/Quest/QuestBootstrap.prefab";
 
         [Test]

@@ -34,7 +34,7 @@ namespace HBP.Tests.Quest
                 var resizable = manager.Find("Display");
                 Assert.That(standard, Is.Not.Null);
                 Assert.That(resizable, Is.Not.Null);
-                Assert.That(standard.GetComponentInChildren<QuestWindowResizer>(), Is.Null);
+                Assert.That(standard.GetComponentInChildren<QuestWindowResizer>(), Is.Not.Null);
                 Assert.That(resizable.GetComponentInChildren<QuestWindowResizer>(), Is.Not.Null);
                 Assert.That(standard.transform.position.x, Is.LessThan(resizable.transform.position.x));
                 Assert.That(components.OfType<QuestConnectionPanel>(), Is.Empty);
@@ -54,7 +54,7 @@ namespace HBP.Tests.Quest
                 Assert.That(camera, Is.Not.Null);
                 camera.fieldOfView = 85;
                 var handles = resizable.GetComponentsInChildren<QuestWindowResizer>();
-                Assert.That(handles.Length, Is.EqualTo(4));
+                Assert.That(handles.Length, Is.EqualTo(2));
                 Canvas.ForceUpdateCanvases();
                 foreach (var handle in handles)
                 {
@@ -74,12 +74,12 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Capture(camera, "Quest UI Edges Initial.png");
                 Vector3 scale = resizable.transform.localScale;
                 int fontSize = information.fontSize;
-                var top = handles.Single(h => h.Edge == QuestWindowResizer.WindowEdge.Top);
-                var drag = Pointer(pointer.gameObject, -10, top.transform.position, resizable.transform.forward);
-                top.OnBeginDrag(drag);
-                drag.Ray = RayTo(top.transform.position + resizable.transform.TransformVector(Vector3.up * 400), resizable.transform.forward);
-                top.OnDrag(drag);
-                top.OnEndDrag(drag);
+                var corner = handles.Single(h => h.Edge == QuestWindowResizer.WindowEdge.BottomRight);
+                var drag = Pointer(pointer.gameObject, -10, corner.transform.position, resizable.transform.forward);
+                corner.OnBeginDrag(drag);
+                drag.Ray = RayTo(corner.transform.position + resizable.transform.TransformVector(Vector3.down * 400), resizable.transform.forward);
+                corner.OnDrag(drag);
+                corner.OnEndDrag(drag);
                 Canvas.ForceUpdateCanvases();
                 Assert.That(information.preferredHeight, Is.LessThanOrEqualTo(((RectTransform)viewport.transform).rect.height), "Increasing the area reveals the complete text.");
                 Assert.That(information.fontSize, Is.EqualTo(fontSize));
@@ -104,7 +104,8 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
-                var resizer = root.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == edge);
+                var resizer = root.GetComponentsInChildren<QuestWindowResizer>().First();
+                QuestWindowInteractionTests.Set(resizer, "edge", edge);
                 var rect = (RectTransform)root.transform;
                 rect.pivot = new Vector2(.2f, .8f); // The opposite edge must also stay fixed with a non-central pivot.
                 root.transform.SetPositionAndRotation(new Vector3(0.2f, 0.3f, 1), Quaternion.Euler(10, 25, 0));
@@ -173,8 +174,8 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
-                var resizer = root.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == QuestWindowResizer.WindowEdge.Right);
-                var otherEdge = root.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == QuestWindowResizer.WindowEdge.Left);
+                var resizer = root.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == QuestWindowResizer.WindowEdge.BottomRight);
+                var otherEdge = root.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == QuestWindowResizer.WindowEdge.BottomLeft);
                 var dragger = root.GetComponentInChildren<QuestWindowDragger>();
                 root.transform.position = Vector3.forward;
                 Vector3 scale = root.transform.localScale, position = root.transform.position;

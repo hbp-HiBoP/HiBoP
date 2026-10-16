@@ -72,7 +72,7 @@ namespace HBP.Tests.Quest
             Assert.That(prefab.GetComponentInChildren<QuestAnatomyDiagnostic>(true), Is.Null);
             var status = prefab.GetComponentInChildren<QuestStatusPanel>(true);
             var statusFields = new SerializedObject(status);
-            foreach (string name in new[] { "countdown", "lifetimeGauge", "retry", "newAssociation", "retryLabel", "newAssociationLabel" })
+            foreach (string name in new[] { "countdown", "lifetimeGauge", "timer", "retry", "newAssociation", "retryLabel", "newAssociationLabel", "unpairedContent", "pairedContent", "pairedDesktop" })
                 Assert.That(statusFields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
             var input = prefab.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(input, Is.Not.Null);
@@ -110,7 +110,7 @@ namespace HBP.Tests.Quest
         [Test]
         public void RequestedCodeOpensAndRecallsTheInitiallyClosedWindow()
         {
-            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"));
             var head = new GameObject("Code request head");
             try
             {
@@ -136,7 +136,7 @@ namespace HBP.Tests.Quest
         [Test]
         public void PairingCardShowsRequestedCodeAndConfirmedForgetWithoutLocalReconnect()
         {
-            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"));
             try
             {
                 var card = ui.GetComponent<QuestStatusPanel>();
@@ -148,29 +148,38 @@ namespace HBP.Tests.Quest
                 int replacements = 0;
                 card.OnNewAssociationRequested.AddListener(() => replacements++);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "");
-                Assert.That(countdown.text, Does.Contain("01:30"));
+                Assert.That(countdown.text, Is.EqualTo("01:30"));
                 Assert.That(((Text)fields.FindProperty("code").objectReferenceValue).text, Is.EqualTo("123 456"));
                 Assert.That(gauge.fillAmount, Is.EqualTo(0.3f).Within(0.001));
                 Assert.That(retry.gameObject.activeSelf, Is.False);
-                Assert.That(replace.gameObject.activeSelf, Is.True);
+                Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Authenticating), "");
                 Assert.That(replace.gameObject.activeSelf, Is.False);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.Zero, 0, PairingPhase.AttemptsExhausted), "");
                 Assert.That(retry.gameObject.activeSelf, Is.False);
+                Assert.That(replace.gameObject.activeSelf, Is.False);
                 Assert.That(((Text)fields.FindProperty("newAssociationLabel").objectReferenceValue).text, Is.EqualTo("Forget association"));
-                card.ShowWaiting();
+                card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");
+                Assert.That(replace.gameObject.activeSelf, Is.False);
+                card.ShowUnavailable("Unavailable");
+                Assert.That(replace.gameObject.activeSelf, Is.False);
+                card.ShowPaired("192.168.1.2", true);
+                Assert.That(replace.gameObject.activeSelf, Is.True);
+                Assert.That(((GameObject)fields.FindProperty("unpairedContent").objectReferenceValue).activeSelf, Is.False);
+                Assert.That(((GameObject)fields.FindProperty("pairedContent").objectReferenceValue).activeSelf, Is.True);
+                Assert.That(((Text)fields.FindProperty("pairedDesktop").objectReferenceValue).text, Is.EqualTo("Desktop\n192.168.1.2"));
                 replace.onClick.Invoke();
-                card.ShowWaiting();
+                card.ShowPaired("192.168.1.2", true);
                 Assert.That(replacements, Is.Zero);
                 retry.onClick.Invoke(); // Cancel confirmation.
-                card.ShowWaiting();
+                card.ShowPaired("192.168.1.2", true);
                 replace.onClick.Invoke();
-                card.ShowWaiting();
+                card.ShowPaired("192.168.1.2", true);
                 replace.onClick.Invoke();
                 Assert.That(replacements, Is.EqualTo(1));
                 card.Hide();
                 Assert.That(ui.GetComponent<QuestWindow>().IsOpen, Is.False);
-                card.ShowWaiting();
+                card.ShowPaired("192.168.1.2", true);
                 Assert.That(ui.GetComponent<QuestWindow>().IsOpen, Is.False, "Connection refresh must not reopen a closed window.");
             }
             finally
@@ -182,14 +191,17 @@ namespace HBP.Tests.Quest
         [Test]
         public void PairingCardContentFitsBackgroundAndGaugeGeometryShrinks()
         {
-            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Status Panel.prefab"));
+            var ui = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab"));
             try
             {
                 var card = ui.GetComponent<QuestStatusPanel>();
+                ui.GetComponent<QuestWindow>().Open();
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(150), 5, PairingPhase.Available), "192.168.1.18");
                 Canvas.ForceUpdateCanvases();
+                ui.GetComponent<QuestWindowContentSizeClamper>().RefreshSize();
+                Canvas.ForceUpdateCanvases();
                 var background = (RectTransform)ui.transform.Find("Background");
-                foreach (var rect in ui.GetComponentsInChildren<RectTransform>(true))
+                foreach (var rect in background.GetComponentsInChildren<RectTransform>(false))
                 {
                     if (rect == ui.transform || rect == background) continue;
                     var corners = new Vector3[4];

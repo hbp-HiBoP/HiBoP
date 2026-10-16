@@ -11,7 +11,7 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomyView view;
         [SerializeField] private QuestAnatomyInput input;
         [SerializeField] private Button surface, projection, recenterBrains;
-        [SerializeField] private Text surfaceLabel, status;
+        [SerializeField] private Text surfaceLabel;
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private Button openPatient;
         [SerializeField] private Transform rows;
@@ -44,7 +44,6 @@ namespace HBP.Quest
             if (view == null)
             {
                 surface.interactable = projection.interactable = recenterBrains.interactable = openPatient.interactable = false;
-                if (status != null) status.text = "Waiting for a visualization";
                 return;
             }
 
@@ -66,7 +65,6 @@ namespace HBP.Quest
             openPatient.interactable = session != null && session.CanOpenPatient;
             surface.interactable = projection.interactable = recenterBrains.interactable = Ready;
             if (surfaceLabel != null) surfaceLabel.text = view != null && view.SurfaceHidden ? "Show brain surface" : "Hide brain surface";
-            if (status != null) status.text = session?.ActionStatus ?? (Ready ? "Interact with a column to select its visualization." : "Interact with a visible visualization to select it.");
         }
     }
 }

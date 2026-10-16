@@ -118,7 +118,7 @@ namespace HBP.Tests.SceneTransfer
             using var scope = new PlayModeSceneScope("T17MultipleVisualizations");
             await PrepareReferencesAsync();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
                 for (int index = 0; index < 2; index++)
@@ -196,7 +196,7 @@ namespace HBP.Tests.SceneTransfer
             };
             string file = Path.Combine(temp.Path, "cuts.hbscene");
             source.Write(payload, file);
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             var window = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cuts Window.prefab"), scope.Root.transform).GetComponent<QuestWindow>();
             var panel = window.GetComponent<QuestCutsPanel>();
             typeof(QuestCutsPanel).GetField("view", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(panel, view);
@@ -206,7 +206,7 @@ namespace HBP.Tests.SceneTransfer
                      {
                          ["view"] = view, ["panel"] = panel,
                          ["policy"] = AssetDatabase.LoadAssetAtPath<QuestInteractionPolicy>("Assets/Resources/Themes/Quest/Quest Interaction Policy.asset"),
-                         ["gizmoPrefab"] = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>()
+                         ["gizmoPrefab"] = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>()
                      }) typeof(QuestCutHandles).GetField(entry.Key, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(handles, entry.Value);
             window.Open(); // The window can already be open while receiving the scene.
             try
@@ -410,7 +410,7 @@ namespace HBP.Tests.SceneTransfer
             await PrepareReferencesAsync();
             RestoredScene desktop = null;
             Base3DScene localDesktop = null;
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             IDisposable desktopSession = null, questSession = null;
             Task desktopRun = null, questRun = null;
             GameObject ownedDialogManager = null;
@@ -1348,7 +1348,7 @@ namespace HBP.Tests.SceneTransfer
             var token = timeout.Token;
             RestoredScene desktop = null;
             LocalizerProtocol transferredLocalizer = null;
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
                 using var source = new SceneArchive(Path.Combine(root, "source"));
@@ -1672,7 +1672,7 @@ namespace HBP.Tests.SceneTransfer
             Debug.Log($"Scene qualification {fixtureName}: project/model loaded in {clock.Elapsed.TotalSeconds:F1}s.");
             await UniTask.SwitchToMainThread();
             var desktop = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
-            var quest = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var quest = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
                 desktop.Initialize(model);
@@ -1745,7 +1745,7 @@ namespace HBP.Tests.SceneTransfer
             await PrepareReferencesAsync();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(4));
             var token = timeout.Token;
-            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            var view = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
             try
             {
                 await UniTask.SwitchToMainThread();

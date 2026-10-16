@@ -65,6 +65,7 @@ namespace HBP.Transfer.Transport
         private long lastContact;
         private int attempts, paired, ownerClaimed, preparing, receiving;
         private string globalsId;
+        private string desktopAddress;
         private Guid codeRequest;
         private TimeSpan displayExpires, nextDisplayRequest;
 
@@ -81,6 +82,7 @@ namespace HBP.Transfer.Transport
         public string Fingerprint => FormatPin(Pin);
         public string Announcement => QuestDiscovery.Encode(Pin, deviceName);
         public bool IsPaired => Volatile.Read(ref paired) != 0;
+        public string DesktopAddress => Volatile.Read(ref desktopAddress);
         public bool IsConnected => IsPaired && (Volatile.Read(ref receiving) != 0 || DateTime.UtcNow.Ticks - Interlocked.Read(ref lastContact) < TimeSpan.FromSeconds(15).Ticks);
         public bool IsPreparing => Volatile.Read(ref preparing) != 0;
         public bool IsLocked => GetStatus().Phase is PairingPhase.AttemptsExhausted or PairingPhase.InstallingGlobals or PairingPhase.Paired;
@@ -350,6 +352,7 @@ namespace HBP.Transfer.Transport
                                 throw;
                             }
 
+                            Volatile.Write(ref desktopAddress, ((IPEndPoint)peer.Client.RemoteEndPoint).Address.ToString());
                             if (receiveGlobals == null) Interlocked.Exchange(ref paired, 1);
                             Touch();
                             state(receiveGlobals == null ? "Paired. Ready to receive." : "Desktop recognized. Waiting for shared data...");
@@ -368,6 +371,7 @@ namespace HBP.Transfer.Transport
                         Array.Clear(offered, 0, offered.Length);
                         await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                         if (!allowed) return;
+                        Volatile.Write(ref desktopAddress, ((IPEndPoint)peer.Client.RemoteEndPoint).Address.ToString());
                         Touch();
                         if (command == 12)
                         {

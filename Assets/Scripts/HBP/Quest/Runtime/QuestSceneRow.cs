@@ -9,7 +9,8 @@ namespace HBP.Quest
     public sealed class QuestSceneRow : MonoBehaviour
     {
         [SerializeField] private Text title, details;
-        [SerializeField] private Button visibility, close;
+        [SerializeField] private Toggle visibility;
+        [SerializeField] private Button close;
         [SerializeField] private HBP.Theme.State selectedState;
         private QuestAnatomyView.Presentation presentation;
         private QuestAnatomySession session;
@@ -18,9 +19,9 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            visibility.onClick.AddListener(() =>
+            visibility.onValueChanged.AddListener(value =>
             {
-                if (QuestAnatomySession.CanInteractWith(presentation?.Scene) && !closing) presentation.Scene.UpdateVisibleState(!presentation.Scene.IsVisible, false);
+                if (QuestAnatomySession.CanInteractWith(presentation?.Scene) && !closing) presentation.Scene.UpdateVisibleState(value, false);
             });
             close.onClick.AddListener(() => CloseAsync().Forget());
         }
@@ -76,7 +77,7 @@ namespace HBP.Quest
                 _ => "Local / disconnected"
             };
             details.text = error ?? $"{scene.Columns.Count} columns · {state}";
-            visibility.GetComponentInChildren<Text>().text = scene.IsVisible ? "Hide" : "Show";
+            visibility.SetIsOnWithoutNotify(scene.IsVisible);
             visibility.interactable = close.interactable = !closing && QuestAnatomySession.CanInteractWith(scene);
         }
     }

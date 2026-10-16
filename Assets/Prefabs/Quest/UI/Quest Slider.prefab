@@ -31,10 +31,10 @@ RectTransform:
   - {fileID: 851592207892771560}
   m_Father: {fileID: 7235861399487195897}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.03125, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -24, y: 48}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1674349357850977172
 GameObject:
@@ -67,10 +67,10 @@ RectTransform:
   - {fileID: 1417071685369064346}
   m_Father: {fileID: 7235861399487195897}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.25}
-  m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -5, y: 0}
-  m_SizeDelta: {x: -20, y: 0}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -8, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2710674219854940101
 GameObject:
@@ -83,6 +83,8 @@ GameObject:
   - component: {fileID: 7235861399487195897}
   - component: {fileID: 2745764043478832910}
   - component: {fileID: 6046297605191378848}
+  - component: {fileID: 2356939428137961869}
+  - component: {fileID: 8478490648390974283}
   m_Layer: 0
   m_Name: Quest Slider
   m_TagString: Untagged
@@ -110,7 +112,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 420, y: 72}
+  m_SizeDelta: {x: 420, y: 64}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2745764043478832910
 MonoBehaviour:
@@ -133,13 +135,13 @@ MonoBehaviour:
     m_SelectOnRight: {fileID: 0}
   m_Transition: 1
   m_Colors:
-    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
-    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
-    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_NormalColor: {r: 0.25490198, g: 0.25490198, b: 0.25490198, a: 1}
+    m_HighlightedColor: {r: 0.29411766, g: 0.29411766, b: 0.29411766, a: 1}
+    m_PressedColor: {r: 0.33333334, g: 0.33333334, b: 0.33333334, a: 1}
+    m_SelectedColor: {r: 0.29411766, g: 0.29411766, b: 0.29411766, a: 1}
+    m_DisabledColor: {r: 0.25490198, g: 0.25490198, b: 0.25490198, a: 1}
     m_ColorMultiplier: 1
-    m_FadeDuration: 0.1
+    m_FadeDuration: 0
   m_SpriteState:
     m_HighlightedSprite: {fileID: 0}
     m_PressedSprite: {fileID: 0}
@@ -175,8 +177,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
-  ActualState: {fileID: 0}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
   Element: {fileID: 11400000, guid: d5289b3c241c7164ebb67d4936ec6743, type: 2}
+--- !u!222 &2356939428137961869
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2710674219854940101}
+  m_CullTransparentMesh: 1
+--- !u!114 &8478490648390974283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2710674219854940101}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &4719416611797035293
 GameObject:
   m_ObjectHideFlags: 0
@@ -212,8 +252,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.03125, y: 0}
-  m_SizeDelta: {x: 44, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 24, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3067605458229709721
 CanvasRenderer:
@@ -243,13 +283,13 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: 8e0ffac27fc8d8e4d955da46a27e4767, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
+  m_FillMethod: 0
+  m_FillAmount: 0
+  m_FillClockwise: 0
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
@@ -265,8 +305,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
-  ActualState: {fileID: 0}
-  Element: {fileID: 11400000, guid: 24fd5b27dccc3934ca120453925ac920, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 916068eda25fe7c4da530eea0c404bdd, type: 2}
 --- !u!1 &5074390646513854540
 GameObject:
   m_ObjectHideFlags: 0
@@ -302,8 +342,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0.03125, y: 0}
-  m_SizeDelta: {x: 10, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8776660669294992931
 CanvasRenderer:
@@ -326,20 +366,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.23137255, g: 0.47843137, b: 0.7607843, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: 8e0ffac27fc8d8e4d955da46a27e4767, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
+  m_FillMethod: 0
+  m_FillAmount: 0
+  m_FillClockwise: 0
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
@@ -355,8 +395,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
-  ActualState: {fileID: 0}
-  Element: {fileID: 11400000, guid: ca8bd4f6dcfe3824fb2837884d871b32, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 9a08ee20545b88240b3ad784db9e8c40, type: 2}
 --- !u!1 &6450966470635084870
 GameObject:
   m_ObjectHideFlags: 0
@@ -390,10 +430,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7235861399487195897}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.25}
-  m_AnchorMax: {x: 1, y: 0.75}
-  m_AnchoredPosition: {x: -0.03125, y: 0}
-  m_SizeDelta: {x: 0, y: 14}
+  m_AnchorMin: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -8, y: 24}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4023416861439513791
 CanvasRenderer:
@@ -416,20 +456,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.21960784, g: 0.21960784, b: 0.21960784, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: 8e0ffac27fc8d8e4d955da46a27e4767, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
+  m_FillMethod: 0
+  m_FillAmount: 0
+  m_FillClockwise: 0
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
@@ -445,5 +485,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
-  ActualState: {fileID: 0}
-  Element: {fileID: 11400000, guid: 0600e2f645b36834abf99ae057d11762, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: a608de158e92a5c4e915f4516a260f3d, type: 2}

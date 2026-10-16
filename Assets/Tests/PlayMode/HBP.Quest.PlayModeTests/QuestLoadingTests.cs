@@ -19,7 +19,7 @@ namespace HBP.Tests.Quest
         [TestCase(true, true), TestCase(true, false), TestCase(false, true), TestCase(false, false)]
         public async Task OverlappingLoads_KeepPresenterUntilLastTransferCompletes(bool quest, bool finishCancelableFirst)
         {
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(quest ? "Assets/Prefabs/Quest/Quest Loading Manager.prefab" : "Assets/Prefabs/LoadingCircle/Loading Manager.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(quest ? "Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab" : "Assets/Prefabs/LoadingCircle/Loading Manager.prefab"));
             var firstDone = new TaskCompletionSource<int>();
             var secondDone = new TaskCompletionSource<int>();
             try
@@ -63,7 +63,7 @@ namespace HBP.Tests.Quest
         [Test]
         public async Task QuestLoading_ProgressCancellationAndSharedManagerRemainFunctional()
         {
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Loading Manager.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab"));
             var cameraObject = new GameObject("Loading test camera", typeof(Camera));
             try
             {
@@ -138,7 +138,7 @@ namespace HBP.Tests.Quest
         [Test]
         public async Task LoadingOverlay_RendersOverNearerWindowsAndSurvivesThemeRefresh()
         {
-            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/Quest Loading Manager.prefab"));
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab"));
             var head = new GameObject("Overlay render camera", typeof(Camera));
             var window = new GameObject("Near window", typeof(RectTransform), typeof(Canvas));
             var texture = new RenderTexture(256, 256, 24);

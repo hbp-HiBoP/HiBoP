@@ -1009,7 +1009,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
   m_IgnoreLayout: 0
   m_MinWidth: -1
-  m_MinHeight: 42
+  m_MinHeight: 60
   m_PreferredWidth: -1
   m_PreferredHeight: -1
   m_FlexibleWidth: 1
@@ -1181,6 +1181,7 @@ GameObject:
   - component: {fileID: 2637542135934120214}
   - component: {fileID: 846296017479959984}
   - component: {fileID: 2853932684746156159}
+  - component: {fileID: 2364422399584243313}
   m_Layer: 0
   m_Name: Quest Window
   m_TagString: Untagged
@@ -1320,6 +1321,29 @@ MonoBehaviour:
   tiltTowardHead: 0
   horizontalThreshold: 0.05
   verticalThreshold: 0.04
+--- !u!114 &2364422399584243313
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7729683909345893942}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc14940b55de63b45b349ed74982fe87, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestWindowContentSizeClamper
+  m_MaxHorizontalClamp: 3
+  m_MaxHorizontalCustomValue: 1200
+  m_MinHorizontalClamp: 1
+  m_MinHorizontalCustomValue: 0
+  m_MaxVerticalClamp: 3
+  m_MaxVerticalCustomValue: 1000
+  m_MinVerticalClamp: 1
+  m_MinVerticalCustomValue: 0
+  layoutRoot: {fileID: 4531512383505030816}
+  minimumSize: {x: 500, y: 160}
+  fitHeightWhenContentChanges: 0
 --- !u!1 &7928571294349298382
 GameObject:
   m_ObjectHideFlags: 0
@@ -1392,7 +1416,7 @@ MonoBehaviour:
     m_FontStyle: 1
     m_BestFit: 0
     m_MinSize: 3
-    m_MaxSize: 40
+    m_MaxSize: 46
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 0
