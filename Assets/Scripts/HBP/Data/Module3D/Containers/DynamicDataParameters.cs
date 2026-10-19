@@ -1,6 +1,8 @@
 ﻿using HBP.Core.DLL;
 using UnityEngine;
 using UnityEngine.Events;
+using HBP.Core.Data;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Module3D
 {
@@ -65,6 +67,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public float SpanMax { get; private set; } = 0.0f;
 
+        private (float Min, float Middle, float Max)? m_SpanRatios;
+        private bool m_HasConfiguredSpan;
+        private bool m_HasAmplitudeData;
+
         #endregion
 
         #region Events
@@ -83,6 +89,103 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public void LoadConfiguration(DynamicConfiguration configuration) => LoadSpanValues(configuration.SpanMin, configuration.Middle, configuration.SpanMax, configuration.SpanMinRatio, configuration.MiddleRatio, configuration.SpanMaxRatio);
+
+        public void LoadConfiguration(StaticConfiguration configuration) => LoadSpanValues(configuration.SpanMin, configuration.Middle, configuration.SpanMax, configuration.SpanMinRatio, configuration.MiddleRatio, configuration.SpanMaxRatio);
+
+        public void CaptureConfiguration(DynamicConfiguration configuration)
+        {
+            configuration.SpanMinRatio = m_SpanRatios?.Min;
+            configuration.MiddleRatio = m_SpanRatios?.Middle;
+            configuration.SpanMaxRatio = m_SpanRatios?.Max;
+            configuration.SpanMin = m_SpanRatios.HasValue ? 0 : SpanMin;
+            configuration.Middle = m_SpanRatios.HasValue ? 0 : Middle;
+            configuration.SpanMax = m_SpanRatios.HasValue ? 0 : SpanMax;
+        }
+
+        public void CaptureConfiguration(StaticConfiguration configuration)
+        {
+            configuration.SpanMinRatio = m_SpanRatios?.Min;
+            configuration.MiddleRatio = m_SpanRatios?.Middle;
+            configuration.SpanMaxRatio = m_SpanRatios?.Max;
+            configuration.SpanMin = m_SpanRatios.HasValue ? 0 : SpanMin;
+            configuration.Middle = m_SpanRatios.HasValue ? 0 : Middle;
+            configuration.SpanMax = m_SpanRatios.HasValue ? 0 : SpanMax;
+        }
+
+        private void LoadSpanValues(float min, float middle, float max, float? minRatio, float? middleRatio, float? maxRatio)
+        {
+            m_SpanRatios = null;
+            m_HasConfiguredSpan = ThresholdRatioUtility.Validate(minRatio, middleRatio, maxRatio);
+            if (m_HasConfiguredSpan)
+            {
+                m_SpanRatios = (minRatio.Value, middleRatio.Value, maxRatio.Value);
+                RestoreSpanRatios();
+            }
+            else if (!IsAutomaticSpan(min, middle, max))
+            {
+                SetSpanValues(min, middle, max);
+            }
+            else
+            {
+                RememberSpanRatios();
+            }
+        }
+
+        /// <summary>Resolve pending thresholds only against actual data, after both bounds have been computed.</summary>
+        public void RefreshSpanValues(Column3DDynamic column)
+        {
+            m_HasAmplitudeData = column.ActivityStatistics.Count > 0 && (column is not Column3DCCEP ccep || ccep.IsSourceSelected);
+            if (!RefreshConfiguredSpan()) ResetSpanValues(column);
+        }
+
+        public void RefreshSpanValues(Column3DStatic column)
+        {
+            m_HasAmplitudeData = column.ActivityValuesOfUnmaskedSites.Length > 0;
+            if (!RefreshConfiguredSpan()) ResetSpanValues(column);
+        }
+
+        private bool RefreshConfiguredSpan()
+        {
+            if (!m_HasConfiguredSpan) return false;
+            if (m_SpanRatios.HasValue) RestoreSpanRatios();
+            else RememberSpanRatios();
+            return true;
+        }
+
+        private bool HasUsableAmplitudeRange => m_HasAmplitudeData && ThresholdRatioUtility.IsFinite(MinimumAmplitude) && ThresholdRatioUtility.IsFinite(MaximumAmplitude) && MaximumAmplitude > MinimumAmplitude;
+
+        private void RememberSpanRatios()
+        {
+            if (!HasUsableAmplitudeRange) return;
+            double range = (double)MaximumAmplitude - MinimumAmplitude;
+            float min = (float)(((double)SpanMin - MinimumAmplitude) / range);
+            float middle = (float)(((double)Middle - MinimumAmplitude) / range);
+            float max = (float)(((double)SpanMax - MinimumAmplitude) / range);
+            if (ThresholdRatioUtility.IsFinite(min) && ThresholdRatioUtility.IsFinite(middle) && ThresholdRatioUtility.IsFinite(max))
+            {
+                m_SpanRatios = (min, middle, max);
+                m_HasConfiguredSpan = true;
+            }
+        }
+
+        private void RestoreSpanRatios()
+        {
+            if (!HasUsableAmplitudeRange) return;
+            var ratios = m_SpanRatios.Value;
+            double range = (double)MaximumAmplitude - MinimumAmplitude;
+            float min = (float)(MinimumAmplitude + ratios.Min * range);
+            float middle = (float)(MinimumAmplitude + ratios.Middle * range);
+            float max = (float)(MinimumAmplitude + ratios.Max * range);
+            if (!ThresholdRatioUtility.IsFinite(min) || !ThresholdRatioUtility.IsFinite(middle) || !ThresholdRatioUtility.IsFinite(max)) return;
+            SpanMin = min;
+            Middle = middle;
+            SpanMax = max;
+            OnUpdateSpanValues.Invoke();
+        }
+
+        private static bool IsAutomaticSpan(float min, float middle, float max) => Mathf.Approximately(min, 0f) && Mathf.Approximately(middle, 0f) && Mathf.Approximately(max, 0f);
+
         /// <summary>
         /// Set the span values all together
         /// </summary>
@@ -91,13 +194,16 @@ namespace HBP.Data.Module3D
         /// <param name="max">Span max value</param>
         public void SetSpanValues(float min, float mid, float max)
         {
-            if (Mathf.Approximately(min, 0f) && Mathf.Approximately(mid, 0f) && Mathf.Approximately(max, 0f)) return;
+            if (IsAutomaticSpan(min, mid, max)) return;
 
             if (min > max) min = max;
             mid = Mathf.Clamp(mid, min, max);
             SpanMin = min;
             Middle = mid;
             SpanMax = max;
+            m_HasConfiguredSpan = true;
+            m_SpanRatios = null;
+            RememberSpanRatios();
             OnUpdateSpanValues.Invoke();
         }
 
@@ -106,11 +212,14 @@ namespace HBP.Data.Module3D
         {
             if (min > mid || mid > max || float.IsNaN(min) || float.IsNaN(mid) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(mid) || float.IsInfinity(max))
                 throw new System.ArgumentOutOfRangeException(nameof(min), "Invalid synchronized span.");
-            if (SpanMin == min && Middle == mid && SpanMax == max) return;
+            bool changed = SpanMin != min || Middle != mid || SpanMax != max;
             SpanMin = min;
             Middle = mid;
             SpanMax = max;
-            OnUpdateSpanValues.Invoke();
+            m_HasConfiguredSpan = true;
+            m_SpanRatios = null;
+            RememberSpanRatios();
+            if (changed) OnUpdateSpanValues.Invoke();
         }
 
         /// <summary>
@@ -119,6 +228,9 @@ namespace HBP.Data.Module3D
         /// <param name="column">Column associated with this class</param>
         public void ResetSpanValues(Column3DDynamic column)
         {
+            m_HasConfiguredSpan = false;
+            m_SpanRatios = null;
+            m_HasAmplitudeData = column.ActivityStatistics.Count > 0 && (column is not Column3DCCEP ccep || ccep.IsSourceSelected);
             if (column is Column3DCCEP ccepColumn)
             {
                 if (!ccepColumn.IsSourceSelected)
@@ -148,11 +260,15 @@ namespace HBP.Data.Module3D
             Middle = middle;
             SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
             SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
+            RememberSpanRatios();
             OnUpdateSpanValues.Invoke();
         }
 
         public void ResetSpanValues(Column3DStatic column)
         {
+            m_HasConfiguredSpan = false;
+            m_SpanRatios = null;
+            m_HasAmplitudeData = column.ActivityValuesOfUnmaskedSites.Length > 0;
             if (column.ActivityValuesOfUnmaskedSites.Length == 0)
             {
                 SpanMin = 0;
@@ -167,6 +283,7 @@ namespace HBP.Data.Module3D
             Middle = middle;
             SpanMin = Mathf.Clamp(limits[0], MinimumAmplitude, MaximumAmplitude);
             SpanMax = Mathf.Clamp(limits[1], MinimumAmplitude, MaximumAmplitude);
+            RememberSpanRatios();
             OnUpdateSpanValues.Invoke();
         }
 

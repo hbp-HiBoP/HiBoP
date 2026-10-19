@@ -90,9 +90,9 @@ namespace HBP.Tests.PlayMode.Utilities
             Column[] columns =
             {
                 new AnatomicColumn("playmode-anatomic-alpha", CreateBaseConfiguration("anatomic"), new AnatomicConfiguration("playmode-anatomic-config-001"), "playmode-column-anatomic-001"),
-                new IEEGColumn("playmode-ieeg-alpha", CreateBaseConfiguration("ieeg"), dataset, "playmode-signal-alpha", bloc, new DynamicConfiguration(12, -1, 0, 1, "playmode-dynamic-config-001"), "playmode-column-ieeg-001"),
-                new CCEPColumn("playmode-ccep-alpha", CreateBaseConfiguration("ccep"), dataset, "playmode-response-alpha", bloc, new CCEPConfiguration(10, -2, 0, 2, false, null, -1, "playmode-ccep-config-001"), "playmode-column-ccep-001"),
-                new StaticColumn("playmode-static-alpha", CreateBaseConfiguration("static"), dataset, "playmode-static-alpha", new StaticConfiguration(9, -1, 0, 1, "playmode-static-config-001"), "playmode-column-static-001")
+                new IEEGColumn("playmode-ieeg-alpha", CreateBaseConfiguration("ieeg"), dataset, "playmode-signal-alpha", bloc, new DynamicConfiguration(12, -1, 0, 1, null, null, null, "playmode-dynamic-config-001"), "playmode-column-ieeg-001"),
+                new CCEPColumn("playmode-ccep-alpha", CreateBaseConfiguration("ccep"), dataset, "playmode-response-alpha", bloc, new CCEPConfiguration(10, -2, 0, 2, null, null, null, false, null, -1, "playmode-ccep-config-001"), "playmode-column-ccep-001"),
+                new StaticColumn("playmode-static-alpha", CreateBaseConfiguration("static"), dataset, "playmode-static-alpha", new StaticConfiguration(9, -1, 0, 1, null, null, null, 0, "playmode-static-config-001"), "playmode-column-static-001")
             };
 
             return new Visualization("playmode-visualization-alpha", new[] { patient }, columns, new VisualizationConfiguration(), VisualizationId);

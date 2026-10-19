@@ -226,6 +226,7 @@ namespace HBP.Data.Module3D
                     site.State.IsMasked = false;
                 }
             }
+            DynamicParameters.RefreshSpanValues(this);
         }
 
         /// <summary>
@@ -316,7 +317,6 @@ namespace HBP.Data.Module3D
             ActivityStatistics = statistics;
             DynamicParameters.MinimumAmplitude = minimum;
             DynamicParameters.MaximumAmplitude = maximum;
-            DynamicParameters.ResetSpanValues(this);
         }
 
         private void SetActivityDataSourceArea()
@@ -455,8 +455,6 @@ namespace HBP.Data.Module3D
                 DynamicParameters.MaximumAmplitude = 1f;
             }
 
-            DynamicParameters.ResetSpanValues(this);
-
             // Set value by site ID
             int mainEventIndex = ProjectionTimeline.Frequency.ConvertToFlooredNumberOfSamples(ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
             int subTimelineLength = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
@@ -588,7 +586,7 @@ namespace HBP.Data.Module3D
             SelectedSourceSite = configuration.SiteID == null ? null : Sources.FirstOrDefault(site => site.Information.FullID == configuration.SiteID);
             SelectedSourceMarsAtlasLabel = configuration.MarsAtlasLabel;
             DynamicParameters.InfluenceDistance = configuration.MaximumInfluence;
-            DynamicParameters.SetSpanValues(configuration.SpanMin, configuration.Middle, configuration.SpanMax);
+            DynamicParameters.LoadConfiguration(configuration);
             base.LoadConfiguration(false);
         }
 
@@ -604,9 +602,7 @@ namespace HBP.Data.Module3D
             configuration.SiteID = SelectedSourceSite?.Information.FullID;
             configuration.MarsAtlasLabel = SelectedSourceMarsAtlasLabel;
             configuration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            configuration.SpanMin = DynamicParameters.SpanMin;
-            configuration.Middle = DynamicParameters.Middle;
-            configuration.SpanMax = DynamicParameters.SpanMax;
+            DynamicParameters.CaptureConfiguration(configuration);
             base.CaptureConfiguration(target);
         }
 

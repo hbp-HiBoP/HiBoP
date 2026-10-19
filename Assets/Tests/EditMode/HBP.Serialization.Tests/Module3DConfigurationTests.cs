@@ -47,7 +47,7 @@ namespace HBP.Tests.Serialization
         public void CCEPConfiguration_ConstructCloneCopyAndSerializationPreserveInheritedAndSourceState()
         {
             using TempDirectoryScope temp = new();
-            var source = new CCEPConfiguration(23, -7, 2, 19, true, "patient_A1", 12, "ccep-configuration");
+            var source = new CCEPConfiguration(23, -7, 2, 19, null, null, null, true, "patient_A1", 12, "ccep-configuration");
             var copied = new CCEPConfiguration();
             copied.Copy(source);
             DynamicConfiguration polymorphic = source;
@@ -95,7 +95,7 @@ namespace HBP.Tests.Serialization
             Assert.That(clone.SurfaceRepresentation, Is.EqualTo(SurfaceRepresentation.Inflated));
             Assert.That(new FMRIConfiguration(.1f, .2f, .3f, .4f, true, false, true, "fmri-config", 2).SelectedResourceIndex, Is.EqualTo(2));
             Assert.That(new MEGConfiguration(.1f, .2f, .3f, .4f, true, false, true, "meg-config", 3).SelectedResourceIndex, Is.EqualTo(3));
-            Assert.That(new StaticConfiguration(23, -7, 2, 19, "static-config", 4).SelectedResourceIndex, Is.EqualTo(4));
+            Assert.That(new StaticConfiguration(23, -7, 2, 19, null, null, null, 4, "static-config").SelectedResourceIndex, Is.EqualTo(4));
             Assert.That(new AnatomicConfiguration(27, "anatomy-config").MaximumInfluence, Is.EqualTo(27));
         }
 

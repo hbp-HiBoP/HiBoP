@@ -133,7 +133,7 @@ namespace HBP.Data.Module3D
 
                         if (val > StaticParameters.MaximumAmplitude)
                             StaticParameters.MaximumAmplitude = val;
-                        else if (val < StaticParameters.MinimumAmplitude)
+                        if (val < StaticParameters.MinimumAmplitude)
                             StaticParameters.MinimumAmplitude = val;
                     }
                 }
@@ -142,6 +142,7 @@ namespace HBP.Data.Module3D
             if (StaticParameters.MinimumAmplitude == float.MaxValue) StaticParameters.MinimumAmplitude = -1;
             if (StaticParameters.MaximumAmplitude == float.MinValue) StaticParameters.MaximumAmplitude = 1;
             ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            StaticParameters.RefreshSpanValues(this);
         }
 
         /// <summary>
@@ -316,7 +317,7 @@ namespace HBP.Data.Module3D
             if (firstCall) ResetConfiguration();
             SelectedLabelIndex = ColumnStaticData.StaticConfiguration.SelectedResourceIndex;
             StaticParameters.InfluenceDistance = ColumnStaticData.StaticConfiguration.MaximumInfluence;
-            StaticParameters.SetSpanValues(ColumnStaticData.StaticConfiguration.SpanMin, ColumnStaticData.StaticConfiguration.Middle, ColumnStaticData.StaticConfiguration.SpanMax);
+            StaticParameters.LoadConfiguration(ColumnStaticData.StaticConfiguration);
             base.LoadConfiguration(false);
         }
 
@@ -329,9 +330,7 @@ namespace HBP.Data.Module3D
         {
             ((StaticColumn)target).StaticConfiguration.SelectedResourceIndex = SelectedLabelIndex;
             ((StaticColumn)target).StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
-            ((StaticColumn)target).StaticConfiguration.SpanMin = StaticParameters.SpanMin;
-            ((StaticColumn)target).StaticConfiguration.Middle = StaticParameters.Middle;
-            ((StaticColumn)target).StaticConfiguration.SpanMax = StaticParameters.SpanMax;
+            StaticParameters.CaptureConfiguration(((StaticColumn)target).StaticConfiguration);
             base.CaptureConfiguration(target);
         }
 

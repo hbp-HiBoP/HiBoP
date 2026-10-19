@@ -97,7 +97,7 @@ namespace HBP.Tests.Transfer
         {
             using var source = new SceneArchive(Path.Combine(directory, "source"));
             var payload = Fixture(source);
-            ((CCEPColumn)payload.Visualization.Columns[2]).CCEPConfiguration = new CCEPConfiguration(23, -7, 2, 19, false, null, -1, "legacy-ccep");
+            ((CCEPColumn)payload.Visualization.Columns[2]).CCEPConfiguration = new CCEPConfiguration(23, -7, 2, 19, null, null, null, false, null, -1, "legacy-ccep");
             string file = Path.Combine(directory, "legacy.hbscene");
             source.Write(payload, file);
             using (var zip = ZipFile.Open(file, ZipArchiveMode.Update))

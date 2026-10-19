@@ -126,6 +126,7 @@ namespace HBP.Data.Module3D
             ActivityStatistics = statistics;
             DynamicParameters.MinimumAmplitude = minimum;
             DynamicParameters.MaximumAmplitude = maximum;
+            DynamicParameters.RefreshSpanValues(this);
         }
 
         #endregion
@@ -292,7 +293,7 @@ namespace HBP.Data.Module3D
         {
             if (firstCall) ResetConfiguration();
             DynamicParameters.InfluenceDistance = ColumnIEEGData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.SetSpanValues(ColumnIEEGData.DynamicConfiguration.SpanMin, ColumnIEEGData.DynamicConfiguration.Middle, ColumnIEEGData.DynamicConfiguration.SpanMax);
+            DynamicParameters.LoadConfiguration(ColumnIEEGData.DynamicConfiguration);
             base.LoadConfiguration(false);
         }
 
@@ -304,9 +305,7 @@ namespace HBP.Data.Module3D
         public override void CaptureConfiguration(Core.Data.Column target)
         {
             ((IEEGColumn)target).DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ((IEEGColumn)target).DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
-            ((IEEGColumn)target).DynamicConfiguration.Middle = DynamicParameters.Middle;
-            ((IEEGColumn)target).DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
+            DynamicParameters.CaptureConfiguration(((IEEGColumn)target).DynamicConfiguration);
             base.CaptureConfiguration(target);
         }
 
