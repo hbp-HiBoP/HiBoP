@@ -68,6 +68,8 @@ namespace HBP.Quest
             await UniTask.SwitchToMainThread(token);
             if (globals == null || request.ContextId != Guid.ParseExact(globals.Id, "N") || request.Generation != controlGeneration)
                 return new(request.OperationId, SessionControlStatus.Stale, "The Quest connection generation has changed.");
+            if (request.Kind == SessionControlKind.DefinitionsRevision)
+                return new(request.OperationId, SessionControlStatus.Applied, globals.Data.DefinitionsRevision.ToString(System.Globalization.CultureInfo.InvariantCulture));
             var bytes = SessionControlCodec.Encode(request);
             if (sceneControls.TryGetValue(request.OperationId, out var previous))
                 return bytes.SequenceEqual(previous.Bytes) ? await previous.Work : new(request.OperationId, SessionControlStatus.Rejected, "Scene operation identity reused.");
@@ -381,6 +383,8 @@ namespace HBP.Quest
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeGridDimension = candidate.Data.Grid;
                     HBP.Core.DLL.ActivityProjectionSettings.VolumeInterpolation = candidate.Data.Interpolation;
                     var previous = globalArchive;
+                    ReleaseRetiredGlobalArchives();
+                    definitionsHash = hash;
                     globals = candidate;
                     globalArchive = archive;
                     consumed = true;
@@ -1112,6 +1116,7 @@ namespace HBP.Quest
                 if (!ReferenceEquals(view, null)) await view.ClearAsync();
                 globalArchive?.Dispose();
                 globalArchive = null;
+                ReleaseRetiredGlobalArchives();
             }
             catch (Exception exception)
             {

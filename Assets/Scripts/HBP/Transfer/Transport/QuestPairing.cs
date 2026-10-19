@@ -202,7 +202,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
             // Keep eight admission slots available beside the 64 persistent replica slots.
@@ -226,7 +226,7 @@ namespace HBP.Transfer.Transport
                     try
                     {
                         await slots.WaitAsync(stop).ConfigureAwait(false);
-                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals));
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions));
                         handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
                     }
                     catch
@@ -243,11 +243,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals)
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions)
         {
             try
             {
-                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals).ConfigureAwait(false);
+                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions).ConfigureAwait(false);
             }
             finally
             {
@@ -255,7 +255,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals)
+        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions)
         {
             using (peer)
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -363,11 +363,11 @@ namespace HBP.Transfer.Transport
                             pairingGate.Release();
                         }
                     }
-                    else if (command == 2 || command == 12 || command == 13 || command == 14 || command == 15)
+                    else if (command == 2 || command == 12 || command == 13 || command == 14 || command == 15 || command == 16)
                     {
                         byte[] offered = new byte[32];
                         await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
-                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null) && (command != 15 || receiveSessionControl != null);
+                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null) && (command != 15 || receiveSessionControl != null) && (command != 16 || receiveDefinitions != null);
                         Array.Clear(offered, 0, offered.Length);
                         await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                         if (!allowed) return;
@@ -399,6 +399,24 @@ namespace HBP.Transfer.Transport
                                 await monitor.ConfigureAwait(false);
                             }
 
+                            return;
+                        }
+
+                        if (command == 16)
+                        {
+                            deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                            var request = SessionControlCodec.DecodeRequest(await SessionControlCodec.ReadAsync(tls, deadline.Token).ConfigureAwait(false));
+                            if (request.Kind != SessionControlKind.Definitions) throw new InvalidDataException("Invalid definitions update.");
+                            Interlocked.Increment(ref receiving);
+                            try
+                            {
+                                await receiveDefinitions(request, tls, deadline.Token).ConfigureAwait(false);
+                                Touch();
+                            }
+                            finally
+                            {
+                                Interlocked.Decrement(ref receiving);
+                            }
                             return;
                         }
 
@@ -464,14 +482,14 @@ namespace HBP.Transfer.Transport
                         else
                         {
                             DeliveryReceipt receipt;
-                            Interlocked.Exchange(ref receiving, 1);
+                            Interlocked.Increment(ref receiving);
                             try
                             {
                                 receipt = await receive(tls, deadline.Token).ConfigureAwait(false);
                             }
                             finally
                             {
-                                Interlocked.Exchange(ref receiving, 0);
+                                Interlocked.Decrement(ref receiving);
                             }
 
                             Touch();
@@ -595,6 +613,18 @@ namespace HBP.Transfer.Transport
         {
             DeliveryReceipt receipt = null;
             await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false)).ConfigureAwait(false);
+            return receipt;
+        }
+
+        public static async Task<DeliveryReceipt> UpdateDefinitionsAsync(string host, byte[] pin, byte[] credential, SessionControlRequest request, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send)
+        {
+            if (request.Kind != SessionControlKind.Definitions) throw new ArgumentException("Invalid definitions update.");
+            DeliveryReceipt receipt = null;
+            await AuthorizedAsync(host, pin, credential, 16, stop, async (stream, token) =>
+            {
+                await SessionControlCodec.WriteAsync(stream, SessionControlCodec.Encode(request), token).ConfigureAwait(false);
+                receipt = await send(stream, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
             return receipt;
         }
 

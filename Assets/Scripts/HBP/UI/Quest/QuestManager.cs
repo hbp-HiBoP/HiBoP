@@ -127,6 +127,7 @@ namespace HBP.Quest.Desktop
 
         private void SessionConnectionLost()
         {
+            definitionsAttempt?.Cancel();
             connected = false;
             LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
@@ -156,6 +157,7 @@ namespace HBP.Quest.Desktop
             usb = new QuestUsbDiscovery(adb);
             PairingTiming.OnMeasured += LogPairingTiming;
             InitializeSceneLifecycle();
+            InitializeDefinitions();
             InitializeDiscovery();
         }
 
@@ -163,6 +165,7 @@ namespace HBP.Quest.Desktop
 
         private void Update()
         {
+            TickDefinitions();
             TickSceneLifecycle();
             TickDiscovery();
             if (!busy && reconnect && credential != null && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
@@ -193,6 +196,7 @@ namespace HBP.Quest.Desktop
 
         private void DisconnectTransport()
         {
+            definitionsAttempt?.Cancel();
             connected = reconnect = false;
             LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
@@ -269,6 +273,7 @@ namespace HBP.Quest.Desktop
                             DisconnectTransport();
                             globals?.Dispose();
                             globals = null;
+                            ClearDefinitions();
                         }
                     }
 
@@ -408,7 +413,7 @@ namespace HBP.Quest.Desktop
         {
             SetStatus("Preparing Quest pairing");
             await UniTask.NextFrame(cancellationToken: token);
-            globals ??= await PairingSnapshot.CaptureAsync(token);
+            globals ??= await PairingSnapshot.CaptureAsync(token, definitionsRevision: definitionsRevision);
             sessionPreferences?.Dispose();
             var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
             sessionPreferences = controls;
@@ -423,12 +428,20 @@ namespace HBP.Quest.Desktop
             try
             {
                 SetStatus("Applying shared preferences and definitions on Quest");
+                bool installedGlobals = false;
                 using (PairingTiming.Measure("desktop.globals-resume"))
-                    await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, SendGlobalsAsync);
+                    await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, async (stream, stop) =>
+                    {
+                        installedGlobals = true;
+                        return await SendGlobalsAsync(stream, stop);
+                    });
                 SetStatus("Opening the Quest session");
                 await controls.StartAsync(token);
                 token.ThrowIfCancellationRequested();
                 connected = reconnect = true;
+                await RestoreDefinitionsHistoryAsync(token);
+                if (installedGlobals) await controls.SynchronizeCurrentPreferencesAsync();
+                await FlushDefinitionsAsync(token);
                 LastOperationSucceeded = true;
                 long date = DateTime.UtcNow.Ticks;
                 history[ConnectedId] = date;
@@ -495,7 +508,8 @@ namespace HBP.Quest.Desktop
             var transfer = PairingTiming.Measure("desktop.globals-transfer");
             try
             {
-                return await globals.Delivery.SendAsync(stream, token, null, (sent, total) =>
+                var snapshot = retiredDefinitionSnapshots.FirstOrDefault() ?? globals;
+                return await snapshot.Delivery.SendAsync(stream, token, null, (sent, total) =>
                 {
                     if (sent < total) return;
                     transfer?.Dispose();
@@ -670,6 +684,7 @@ namespace HBP.Quest.Desktop
             credential = pin = null;
             globals?.Dispose();
             globals = null;
+            ClearDefinitions();
             endpoint = null;
             connected = reconnect = failedDelivery = false;
             OnChanged.Invoke();
@@ -687,11 +702,12 @@ namespace HBP.Quest.Desktop
             PairingTiming.OnMeasured -= LogPairingTiming;
             DisposeDiscovery();
             DisposeSceneLifecycle();
+            DisposeDefinitions();
             lifetime.Cancel();
             operation?.Cancel();
             try
             {
-                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
+                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork, definitionsWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
             }
             catch (Exception)
             {

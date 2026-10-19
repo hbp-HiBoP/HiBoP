@@ -222,6 +222,12 @@ namespace HBP.UI.Quest
 
         public Task FlushPreferencesAsync() => m_PendingPreferences;
 
+        public Task SynchronizeCurrentPreferencesAsync()
+        {
+            OnPreferencesSaved();
+            return FlushPreferencesAsync();
+        }
+
         public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken token = default)
         {
             if (SessionAtlasCatalog.CanUse(id)) return;

@@ -20,7 +20,9 @@ namespace HBP.Transfer.Transport
         SceneInventory = 10,
         CloseScene = 11,
         DetachScene = 12,
-        DisplayBatch = 13
+        DisplayBatch = 13,
+        Definitions = 14,
+        DefinitionsRevision = 15
     }
 
     public enum SessionControlStatus : byte

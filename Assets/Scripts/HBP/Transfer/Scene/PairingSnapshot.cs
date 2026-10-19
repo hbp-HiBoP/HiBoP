@@ -65,7 +65,7 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        public static async UniTask<PairingSnapshot> CaptureAsync(CancellationToken token)
+        public static async UniTask<PairingSnapshot> CaptureAsync(CancellationToken token, string contextId = null, long definitionsRevision = 0)
         {
             using var timing = PairingTiming.Measure("desktop.globals-capture");
             await UniTask.SwitchToMainThread();
@@ -78,6 +78,8 @@ namespace HBP.Transfer.Scene
             {
                 var data = new GlobalDataPayload
                 {
+                    Id = contextId ?? Guid.NewGuid().ToString("N"),
+                    DefinitionsRevision = definitionsRevision,
                     Preferences = PersistentDataManager.UserPreferences,
                     Tags = PersistentDataManager.Tags,
                     Protocols = DatabaseManager.Database.Protocols.ToList(),
@@ -91,7 +93,9 @@ namespace HBP.Transfer.Scene
                 using (PairingTiming.Measure("desktop.globals-managed-capture"))
                 {
                     var source = new PairingContext(data, deferFingerprints: true);
-                    source.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
+                    // Definition updates do not publish Desktop presets. A preset can still reference
+                    // a removed protocol; that must not prevent the definitions themselves from syncing.
+                    source.CaptureFilterPresets(contextId == null ? PersistentDataManager.FilterConditionsPresets : new HBP.Core.Data.FilterConditionsPresetCollection(), archive);
                     references = source.Deferred;
                     metadata = archive.CaptureDetachedGlobalMetadata(data);
                 }

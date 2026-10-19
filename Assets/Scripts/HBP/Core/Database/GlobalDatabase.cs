@@ -176,6 +176,7 @@ namespace HBP.Core.Database
         #region Events
 
         public UnityEvent OnUpdateDatabases { get; } = new();
+        public UnityEvent OnProtocolsChanged { get; } = new();
 
         #endregion
 
@@ -184,6 +185,7 @@ namespace HBP.Core.Database
         public void SetProtocols(IEnumerable<Protocol> protocols, ValidationRequest validationRequest = null)
         {
             m_Protocols = protocols.ToList();
+            OnProtocolsChanged.Invoke();
             if (validationRequest?.Aspects != ValidationAspect.None) RefreshAfterProtocolChangeAsync(validationRequest).Forget();
         }
 
@@ -1040,6 +1042,8 @@ namespace HBP.Core.Database
             await RunDatabaseTasksAsync(m_Protocols.Select(protocol => (Func<UniTask>)(() => ClassLoaderSaver.SaveToJsonAsync(protocol, Path.Combine(protocolTempDirectory.FullName, protocol.Name + Protocol.EXTENSION), true))), "Saving database protocols", null);
             protocolDirectory.Delete(true);
             protocolTempDirectory.MoveTo(protocolDirectory.FullName);
+            await UniTask.SwitchToMainThread();
+            OnProtocolsChanged.Invoke();
         }
 
         private void CopyProtocolsImages()

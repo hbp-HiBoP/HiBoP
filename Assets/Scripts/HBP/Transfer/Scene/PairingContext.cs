@@ -16,6 +16,7 @@ namespace HBP.Transfer.Scene
     {
         public const int FormatVersion = 2;
         public int Version = FormatVersion;
+        public long DefinitionsRevision;
         public string Id = Guid.NewGuid().ToString("N");
         public UserPreferences Preferences;
         public TagCollection Tags;
@@ -37,6 +38,17 @@ namespace HBP.Transfer.Scene
         private readonly Dictionary<string, string> hashes = new(StringComparer.Ordinal);
         private readonly JsonSerializer fingerprintSerializer = CreateFingerprintSerializer();
         internal DeferredReferences Deferred { get; }
+        private PairingContext previous;
+
+        // Retryable scene archives can still reference any earlier definition in this pairing.
+        public void RetainPreviousDefinitions(PairingContext context)
+        {
+            if (context == null || context.Id != Id || ReferenceEquals(context, this)) throw new ArgumentException("Definitions must belong to the same pairing.");
+            if (previous != null) throw new InvalidOperationException("The previous definitions are already retained.");
+            for (var ancestor = context; ancestor != null; ancestor = ancestor.previous)
+                if (ReferenceEquals(ancestor, this)) throw new ArgumentException("Definitions history cannot contain a cycle.");
+            previous = context;
+        }
 
         public PairingContext(GlobalDataPayload data) : this(data, false)
         {
@@ -120,9 +132,9 @@ namespace HBP.Transfer.Scene
 
         internal BaseData ResolveReference(string key, string hash, Type type)
         {
-            if (key == null || !objects.TryGetValue(key, out var value) || !type.IsInstanceOfType(value) || hash != hashes[key])
-                throw new InvalidDataException("Unknown or incompatible global definition. Pair again before sending this visualization.");
-            return value;
+            for (var context = this; context != null; context = context.previous)
+                if (key != null && context.objects.TryGetValue(key, out var value) && type.IsInstanceOfType(value) && hash == context.hashes[key]) return value;
+            throw new InvalidDataException("Unknown or incompatible global definition. Synchronize shared definitions before sending this visualization.");
         }
 
         internal JsonConverter ReferenceConverter(SceneGlobalReferences references = null) => new GlobalReferenceConverter(this, references);
@@ -135,7 +147,7 @@ namespace HBP.Transfer.Scene
 
             // This converter belongs to one serializer/capture, never to the paired session.
             // BaseData equality is ID-based; separate objects sharing an ID must each be checked.
-            private readonly HashSet<BaseData> validated = new(ReferenceComparer.Instance);
+            private readonly Dictionary<BaseData, string> validated = new(ReferenceComparer.Instance);
             private readonly JsonSerializer fingerprintSerializer = CreateFingerprintSerializer();
 
             public GlobalReferenceConverter(PairingContext context, SceneGlobalReferences references)
@@ -158,7 +170,7 @@ namespace HBP.Transfer.Scene
                 if (context.Deferred != null)
                 {
                     if (!context.objects.ContainsKey(key)) throw new InvalidOperationException("Missing global filter definition: " + key);
-                    if (validated.Add((BaseData)value)) context.Deferred.Definitions.Add((key, JToken.FromObject(value, fingerprintSerializer)));
+                    if (validated.TryAdd((BaseData)value, null)) context.Deferred.Definitions.Add((key, JToken.FromObject(value, fingerprintSerializer)));
                     writer.WriteStartObject();
                     writer.WritePropertyName("global");
                     writer.WriteValue(key);
@@ -168,9 +180,13 @@ namespace HBP.Transfer.Scene
                     return;
                 }
 
-                if (!context.hashes.TryGetValue(key, out string hash) || (!validated.Contains((BaseData)value) && hash != MeasuredFingerprint((BaseData)value)))
-                    throw new InvalidOperationException("A protocol or tag definition is absent or changed since pairing. Pair again before sending this visualization: " + key);
-                validated.Add((BaseData)value);
+                if (!validated.TryGetValue((BaseData)value, out string hash))
+                {
+                    hash = MeasuredFingerprint((BaseData)value);
+                    try { context.ResolveReference(key, hash, value.GetType()); }
+                    catch (InvalidDataException error) { throw new InvalidOperationException("A protocol or tag definition is absent or changed. Synchronize shared definitions before sending this visualization: " + key, error); }
+                    validated.Add((BaseData)value, hash);
+                }
                 if (references != null)
                 {
                     writer.WriteValue(references.Add(key, hash));
@@ -203,9 +219,8 @@ namespace HBP.Transfer.Scene
 
                 var reference = JObject.Load(reader);
                 string key = (string)reference["global"];
-                if (reference.Count != 2 || key == null || !context.objects.TryGetValue(key, out var value) || !type.IsInstanceOfType(value) || (string)reference["hash"] != context.hashes[key])
-                    throw new InvalidDataException("Unknown or incompatible global definition. Pair again before sending this visualization.");
-                return value;
+                if (reference.Count != 2 || key == null) throw new InvalidDataException("Invalid global definition reference.");
+                return context.ResolveReference(key, (string)reference["hash"], type);
             }
         }
 

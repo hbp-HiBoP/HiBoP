@@ -258,6 +258,7 @@ namespace HBP.Quest.Desktop
 
         private async Task PrepareSceneOfferAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, long maximumBytes = long.MaxValue)
         {
+            await FlushDefinitionsAsync(token);
             bool reuse = entry.Offer != null && entry.Owner?.CanRetryTransfer == true && (entry.PreparedForDisplay && !entry.OfferWasSent || retry && entry.Offer.CanRetry);
             if (!reuse && (entry.OfferWasSent || entry.UncertainTransfers.Count != 0) && entry.Binding == null)
             {
