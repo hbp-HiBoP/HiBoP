@@ -2,6 +2,7 @@ using UnityEngine.Events;
 using System;
 using HBP.Core.DLL;
 using HBP.Core.Enums;
+using HBP.Data.Module3D;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -101,39 +102,135 @@ namespace HBP.Tests.Serialization
             Assert.Throws<ArgumentOutOfRangeException>(() => settings.CalculateDimensions(new Vector3Int(1, 256, 219)));
         }
 
-        [Test]
+        [TestCase("m_LogDLLToUnity")]
+        [TestCase("m_LogDLLToFile")]
+        [TestCase("m_GetInformationAboutDLLObjects")]
         [Category("NativeMigration")]
-        public void DLLDebugManager_AppliesSerializedProjectionSettings()
+        public void DLLDebugManager_EditingDebugOptions_PreservesSessionProjectionSettings(string propertyName)
         {
-            GameObject gameObject = new("DLL Debug Manager test");
+            GameObject root = PrefabUtility.LoadPrefabContents("Assets/Prefabs/Managers/DLL Debug Manager.prefab");
+            int changeCount = 0;
+            UnityAction onChanged = () => ++changeCount;
             try
             {
-                DLLDebugManager manager = gameObject.AddComponent<DLLDebugManager>();
-                SerializedObject serializedManager = new(manager);
-                SerializedProperty dimension = serializedManager.FindProperty("m_VolumeGridDimension");
-                SerializedProperty interpolation = serializedManager.FindProperty("m_VolumeInterpolation");
+                ActivityProjectionSettings.VolumeGridDimension = 96;
+                ActivityProjectionSettings.VolumeInterpolation = VolumeInterpolation.Nearest;
+                ActivityProjectionSettings.OnChanged.AddListener(onChanged);
+
+                SerializedObject serializedManager = new(root.GetComponent<DLLDebugManager>());
+                SerializedProperty option = serializedManager.FindProperty(propertyName);
+                option.boolValue = !option.boolValue;
+                serializedManager.ApplyModifiedPropertiesWithoutUndo();
+
+                Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(96));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
+                Assert.That(changeCount, Is.Zero);
+            }
+            finally
+            {
+                ActivityProjectionSettings.OnChanged.RemoveListener(onChanged);
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ActivityProjectionConfiguration_AppliesSerializedSettingsAndValidatesOverrides()
+        {
+            GameObject gameObject = new("Activity projection configuration test");
+            try
+            {
+                ActivityProjectionSettings.ResetDefaults();
+                ActivityProjectionConfiguration configuration = gameObject.AddComponent<ActivityProjectionConfiguration>();
+                SerializedObject serializedConfiguration = new(configuration);
+                SerializedProperty dimension = serializedConfiguration.FindProperty("m_VolumeGridDimension");
+                SerializedProperty interpolation = serializedConfiguration.FindProperty("m_VolumeInterpolation");
 
                 dimension.intValue = 96;
-                interpolation.intValue = (int)VolumeInterpolation.Trilinear;
-                serializedManager.ApplyModifiedPropertiesWithoutUndo();
-                manager.ApplyActivityProjectionSettings();
+                interpolation.intValue = (int)VolumeInterpolation.Nearest;
+                serializedConfiguration.ApplyModifiedPropertiesWithoutUndo();
+                Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+                configuration.Apply();
 
-                Assert.That(manager.ActivityProjectionVolumeGridDimension, Is.EqualTo(96));
-                Assert.That(manager.ActivityProjectionVolumeInterpolation, Is.EqualTo(VolumeInterpolation.Trilinear));
+                Assert.That(configuration.VolumeGridDimension, Is.EqualTo(96));
+                Assert.That(configuration.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
                 Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(96));
-                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Trilinear));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
 
                 dimension.intValue = 1;
                 interpolation.intValue = 99;
-                serializedManager.ApplyModifiedPropertiesWithoutUndo();
-                manager.ApplyActivityProjectionSettings();
+                serializedConfiguration.ApplyModifiedPropertiesWithoutUndo();
+                configuration.Apply();
 
-                Assert.That(manager.ActivityProjectionVolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
-                Assert.That(manager.ActivityProjectionVolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+                Assert.That(configuration.VolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+                Assert.That(configuration.VolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+                Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(gameObject);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ActivityProjectionConfiguration_ValidationPreservesSessionSettings()
+        {
+            GameObject gameObject = new("Activity projection validation test");
+            int changeCount = 0;
+            UnityAction onChanged = () => ++changeCount;
+            try
+            {
+                ActivityProjectionConfiguration configuration = gameObject.AddComponent<ActivityProjectionConfiguration>();
+                ActivityProjectionSettings.VolumeGridDimension = 96;
+                ActivityProjectionSettings.VolumeInterpolation = VolumeInterpolation.Nearest;
+                ActivityProjectionSettings.OnChanged.AddListener(onChanged);
+
+                SerializedObject serializedConfiguration = new(configuration);
+                serializedConfiguration.FindProperty("m_VolumeGridDimension").intValue = 1;
+                serializedConfiguration.FindProperty("m_VolumeInterpolation").intValue = 99;
+                serializedConfiguration.ApplyModifiedPropertiesWithoutUndo();
+
+                Assert.That(configuration.VolumeGridDimension, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeGridDimension));
+                Assert.That(configuration.VolumeInterpolation, Is.EqualTo(ActivityProjectionSettings.DefaultVolumeInterpolation));
+                Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(96));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
+                Assert.That(changeCount, Is.Zero);
+            }
+            finally
+            {
+                ActivityProjectionSettings.OnChanged.RemoveListener(onChanged);
+                UnityEngine.Object.DestroyImmediate(gameObject);
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        public void ThreeDPrefab_OwnsMigratedProjectionConfigurationWithoutApplyingItInEditMode()
+        {
+            ActivityProjectionSettings.VolumeGridDimension = 96;
+            ActivityProjectionSettings.VolumeInterpolation = VolumeInterpolation.Nearest;
+            GameObject root = PrefabUtility.LoadPrefabContents("Assets/Prefabs/3D/3D.prefab");
+            try
+            {
+                ActivityProjectionConfiguration configuration = root.GetComponent<ActivityProjectionConfiguration>();
+                Assert.That(configuration, Is.Not.Null);
+                Assert.That(configuration.VolumeGridDimension, Is.EqualTo(80));
+                Assert.That(configuration.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Trilinear));
+                Assert.That(ActivityProjectionSettings.VolumeGridDimension, Is.EqualTo(96));
+                Assert.That(ActivityProjectionSettings.VolumeInterpolation, Is.EqualTo(VolumeInterpolation.Nearest));
+
+                GameObject debugPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/DLL Debug Manager.prefab");
+                Assert.That(debugPrefab.GetComponent<ActivityProjectionConfiguration>(), Is.Null);
+                SerializedObject serializedManager = new(debugPrefab.GetComponent<DLLDebugManager>());
+                Assert.That(serializedManager.FindProperty("m_VolumeGridDimension"), Is.Null);
+                Assert.That(serializedManager.FindProperty("m_VolumeInterpolation"), Is.Null);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
             }
         }
     }

@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using HBP.Core.Tools;
 using HBP.Core.DLL.HbpCore;
-using HBP.Core.Enums;
 using AOT;
 
 namespace HBP.Core.DLL
@@ -49,10 +48,6 @@ namespace HBP.Core.DLL
         /// </summary>
         [SerializeField] private bool m_GetInformationAboutDLLObjects = true;
 
-        [Header("Activity Projection")] [SerializeField, Min(2)] private int m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
-
-        [SerializeField] private VolumeInterpolation m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
-
         /// <summary>
         /// Enum used to know how a DLL object has been cleaned
         /// </summary>
@@ -77,8 +72,6 @@ namespace HBP.Core.DLL
         }
 
         public static string CurrentLogFilePath { get; private set; } = string.Empty;
-        public int ActivityProjectionVolumeGridDimension => m_VolumeGridDimension;
-        public VolumeInterpolation ActivityProjectionVolumeInterpolation => m_VolumeInterpolation;
 
         #endregion;
 
@@ -87,7 +80,6 @@ namespace HBP.Core.DLL
         protected override void Initialization()
         {
             base.Initialization();
-            ApplyActivityProjectionSettings();
             if (m_LogDLLToUnity)
             {
                 TryAttachHbpCoreLogger(out _);
@@ -107,11 +99,6 @@ namespace HBP.Core.DLL
                     Debug.LogWarning($"Unable to initialize the hbp_core log file: {error}");
                 }
             }
-        }
-
-        private void OnValidate()
-        {
-            ApplyActivityProjectionSettings();
         }
 
         private void OnDestroy()
@@ -205,22 +192,6 @@ namespace HBP.Core.DLL
             TryResetHbpCoreLogger(out _);
             HbpCoreRuntime.TryResetLogFile(out _);
             CurrentLogFilePath = string.Empty;
-        }
-
-        public void ApplyActivityProjectionSettings()
-        {
-            if (m_VolumeGridDimension < 2)
-            {
-                m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
-            }
-
-            if (!Enum.IsDefined(typeof(VolumeInterpolation), m_VolumeInterpolation))
-            {
-                m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
-            }
-
-            ActivityProjectionSettings.VolumeGridDimension = m_VolumeGridDimension;
-            ActivityProjectionSettings.VolumeInterpolation = m_VolumeInterpolation;
         }
 
         #endregion

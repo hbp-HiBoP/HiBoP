@@ -12,15 +12,8 @@ namespace HBP.Core.DLL
 
         public override void OnInspectorGUI()
         {
-            EditorGUI.BeginChangeCheck();
             base.OnInspectorGUI();
             DLLDebugManager manager = (DLLDebugManager)target;
-            if (EditorGUI.EndChangeCheck())
-            {
-                manager.ApplyActivityProjectionSettings();
-            }
-
-            EditorGUILayout.HelpBox("Activity projection settings are used the next time a projection is created. " + "Relaunch the projection after changing them; the current projection is not rebuilt automatically.", MessageType.Info);
             m_DLLObjectsPanelOpen = EditorGUILayout.Foldout(m_DLLObjectsPanelOpen, "DLL Objects");
             if (m_DLLObjectsPanelOpen)
             {
