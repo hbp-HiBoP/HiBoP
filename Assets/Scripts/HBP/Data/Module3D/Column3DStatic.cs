@@ -218,9 +218,9 @@ namespace HBP.Data.Module3D
 
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
-
+            // Base initialization updates sites and can publish threshold changes.
             ActivityGenerator = new Core.DLL.IEEGGenerator();
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
         }
 
         /// <summary>

@@ -178,6 +178,9 @@ namespace HBP.Quest.Desktop
                 {
                     token.ThrowIfCancellationRequested();
                     validate?.Invoke();
+                    if (restart > 0 && sessionPreferences != null)
+                        foreach (string atlas in entry.Scene.RequiredAtlasIds())
+                            await sessionPreferences.EnsureAtlasReadyAsync(atlas, token, reportError: reportAtlasErrors);
                     await PrepareSceneOfferAsync(entry, retry, token, update);
                     entry.PreparedForDisplay = false;
 
@@ -483,6 +486,8 @@ namespace HBP.Quest.Desktop
                         entry.Owner = null;
                         var identity = entry.Binding.CreateIdentity();
                         using var sceneStop = CancellationTokenSource.CreateLinkedTokenSource(token, entry.Lifetime.Token);
+                        foreach (string atlas in entry.Scene.RequiredAtlasIds())
+                            await sessionPreferences.EnsureAtlasReadyAsync(atlas, sceneStop.Token, reportError: false);
                         await QuestPairing.OpenReplicaAsync(endpoint, pin, credential, sceneStop.Token, async (stream, stop) =>
                         {
                             await ReplicaRoute.WriteAsync(stream, identity.SessionId, identity.SceneId, identity.IncarnationId, stop);
@@ -500,15 +505,15 @@ namespace HBP.Quest.Desktop
                     {
                         await UniTask.SwitchToMainThread(token);
                         if (entry.Removed) return;
-                        entry.Error = "Reconnection failed for " + entry.VisualizationId + ": " + TransferError.Describe(error);
-                        entry.UserRetryRequired = true;
-                        reconciliationNeedsRetry = true;
+                        RecordSceneReconnectionFailure(entry, error);
                     }
                 }
 
                 await Task.WhenAll(candidates.Where(value => value.Binding != null).Select(ReconnectAsync));
                 await FlushClosesAsync(token);
                 if (autoSync && manualScene == null) await SynchronizeInventoryAsync(token);
+                // An atlas may have remained in use by the old Quest scene until reconciliation.
+                foreach (var intent in atlasIntents.Where(value => !value.Value)) sessionPreferences?.RequestAtlasSynchronization(intent.Key);
             }
             finally
             {
@@ -516,6 +521,23 @@ namespace HBP.Quest.Desktop
                 restoringScenes = false;
                 OnChanged.Invoke();
             }
+        }
+
+        private void RecordSceneReconnectionFailure(Publication entry, Exception error)
+        {
+            if (IsQuestConnectionInterruption(error))
+            {
+                // Sleeping again is recoverable on the next heartbeat. Keep actual merge or
+                // data failures on the explicit Retry path.
+                entry.Error = null;
+                entry.UserRetryRequired = false;
+                SessionConnectionLost();
+                return;
+            }
+
+            entry.Error = "Reconnection failed for " + entry.VisualizationId + ": " + TransferError.Describe(error);
+            entry.UserRetryRequired = true;
+            reconciliationNeedsRetry = true;
         }
 
         private void SceneSelected(Base3DScene scene) => SendContext(scene, scene?.SelectedColumn);

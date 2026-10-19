@@ -26,6 +26,12 @@ namespace HBP.UI.Quest
         private readonly UserPreferences m_Preferences;
         private readonly UserPreferences m_PairingPreferences;
         private readonly Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> m_Send;
+        private readonly IReadOnlyDictionary<string, bool> m_AtlasIntents;
+        private readonly Func<CancellationToken, Task<bool>> m_PeerReady;
+        private readonly TimeSpan m_ControlTimeout;
+        private long m_CatalogGeneration;
+        private string m_SynchronizingAtlas;
+        private CancellationTokenSource m_AtlasAttempt;
         private readonly CancellationTokenSource m_Stop = new();
         private readonly SemaphoreSlim m_Gate = new(1, 1);
         private Task m_PendingPreferences = Task.CompletedTask;
@@ -45,14 +51,25 @@ namespace HBP.UI.Quest
         public UnityEvent OnChanged { get; } = new();
         public UnityEvent OnConnectionLost { get; } = new();
         public UnityEvent<string> OnAtlasError { get; } = new();
+        private readonly HashSet<string> m_PendingRemoteUnloads = new(StringComparer.Ordinal);
 
-        public DesktopSessionPreferences(Guid context, long generation, UserPreferences preferences, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> send, UserPreferences pairingPreferences = null)
+        public string GetAtlasState(string id) => m_AtlasStates.TryGetValue(id, out string state) ? state : "Quest synchronization is pending.";
+
+        public void RetryPendingAtlasUnloads()
+        {
+            foreach (string id in m_PendingRemoteUnloads.ToArray()) RequestAtlasSynchronization(id);
+        }
+
+        public DesktopSessionPreferences(Guid context, long generation, UserPreferences preferences, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> send, UserPreferences pairingPreferences = null, IReadOnlyDictionary<string, bool> atlasIntents = null, Func<CancellationToken, Task<bool>> peerReady = null, TimeSpan? controlTimeout = null)
         {
             m_Context = context;
             m_Generation = generation;
             m_Preferences = preferences;
             m_Send = send;
             m_PairingPreferences = pairingPreferences;
+            m_AtlasIntents = atlasIntents;
+            m_PeerReady = peerReady;
+            m_ControlTimeout = controlTimeout ?? TimeSpan.FromSeconds(10);
             m_Preferences.OnSavePreferences.AddListener(OnPreferencesSaved);
         }
 
@@ -61,20 +78,60 @@ namespace HBP.UI.Quest
         private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request, CancellationToken cancellationToken = default)
         {
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
+            if (request.Kind != SessionControlKind.LoadAtlas) linked.CancelAfter(m_ControlTimeout);
             m_Stop.Token.ThrowIfCancellationRequested();
             SessionControlResponse response;
             try
             {
-                response = await m_Send(request, linked.Token).ConfigureAwait(false);
+                // Long native loads keep their own budget, but a sleeping application must not hold the queue.
+                Task monitor = request.Kind == SessionControlKind.LoadAtlas && m_PeerReady != null ? MonitorPeerAsync(linked) : Task.CompletedTask;
+                try
+                {
+                    response = await m_Send(request, linked.Token).ConfigureAwait(false);
+                    linked.Token.ThrowIfCancellationRequested();
+                }
+                catch (OperationCanceledException) when (!m_Stop.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+                {
+                    throw new TimeoutException("Quest is unavailable or asleep. Wake the headset to resume atlas synchronization.");
+                }
+                finally
+                {
+                    linked.Cancel();
+                    await monitor.ConfigureAwait(false);
+                }
             }
             finally
             {
                 await UniTask.SwitchToMainThread();
             }
 
-            linked.Token.ThrowIfCancellationRequested();
+            m_Stop.Token.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
             QuestHasSharedScene = response.HasSharedScene;
             return response;
+        }
+
+        private async Task MonitorPeerAsync(CancellationTokenSource request)
+        {
+            try
+            {
+                while (!request.IsCancellationRequested)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(2), request.Token).ConfigureAwait(false);
+                    if (!await m_PeerReady(request.Token).ConfigureAwait(false))
+                    {
+                        request.Cancel();
+                        return;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (Exception)
+            {
+                request.Cancel();
+            }
         }
 
         public async UniTask StartAsync(CancellationToken cancellationToken = default)
@@ -83,12 +140,36 @@ namespace HBP.UI.Quest
             var response = await SendAsync(Request(SessionControlKind.Open), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
-            SessionAtlasCatalog.Begin();
+            m_CatalogGeneration = SessionAtlasCatalog.Begin();
             m_Started = true;
             m_Opened.TrySetResult(true);
-            SetStatus("Quest connected. Preferences and manual atlas actions are synchronized.");
+            SetStatus("Quest connected. Desktop atlases are synchronizing in the background.");
             AtlasResources.OnChanged.AddListener(AtlasChanged);
             m_InventoryWork = RefreshInventoryAsync();
+        }
+
+        /// <summary>Resume the same application session without cancelling an atlas already loading on Quest.</summary>
+        public async UniTask ReopenAsync(CancellationToken cancellationToken)
+        {
+            using var operation = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
+            try
+            {
+                await m_Gate.WaitAsync(operation.Token);
+                try
+                {
+                    var response = await SendAsync(Request(SessionControlKind.Open), operation.Token);
+                    if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability)
+                        throw new InvalidOperationException("The Quest session could not resume: " + response.Message);
+                }
+                finally
+                {
+                    m_Gate.Release();
+                }
+            }
+            catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+            {
+                throw new IOException("Quest became unavailable while resuming its atlas session.");
+            }
         }
 
         private void AtlasChanged(AtlasLoadResult result)
@@ -97,11 +178,19 @@ namespace HBP.UI.Quest
             m_AtlasChanges++;
             if (result.State == AtlasLoadState.Unloaded)
             {
+                if (m_SynchronizingAtlas == result.Id) m_AtlasAttempt?.Cancel();
                 m_ConfirmedAtlases.Remove(result.Id);
                 SessionAtlasCatalog.Remove(result.Id);
             }
 
             if (m_InventoryWork.IsCompleted) m_InventoryWork = RefreshInventoryAsync();
+        }
+
+        public void RequestAtlasSynchronization(string id)
+        {
+            if (!m_Started || m_Disposed) return;
+            m_InventoryRecoveryAttempted.Remove(id);
+            AtlasChanged(AtlasResources.Status(id));
         }
 
         private async Task RefreshInventoryAsync()
@@ -122,33 +211,44 @@ namespace HBP.UI.Quest
                         if (!response.Applied) throw new InvalidOperationException(response.Message);
                         var inventory = JsonConvert.DeserializeObject<SessionAtlasInventory>(Encoding.UTF8.GetString(response.GetBody())) ?? throw new InvalidDataException("Missing Quest atlas inventory.");
                         preparing = inventory.Preparing;
-                        foreach (var entry in inventory.Atlases)
+                        foreach (string id in inventory.Atlases.Keys.Concat(AtlasResources.Definitions.Select(value => value.Id)).Distinct(StringComparer.Ordinal))
                         {
-                            var local = AtlasResources.Status(entry.Key);
-                            var remote = entry.Value;
-                            if (m_ConfirmedAtlases.Contains(entry.Key) && (local.State != AtlasLoadState.Loaded || remote.State != AtlasLoadState.Loaded))
+                            var local = AtlasResources.Status(id);
+                            inventory.Atlases.TryGetValue(id, out var remote);
+                            var remoteState = remote?.State ?? AtlasLoadState.Unloaded;
+                            if (m_ConfirmedAtlases.Contains(id) && (local.State != AtlasLoadState.Loaded || remoteState != AtlasLoadState.Loaded))
                             {
-                                m_ConfirmedAtlases.Remove(entry.Key);
-                                SessionAtlasCatalog.Remove(entry.Key);
+                                m_ConfirmedAtlases.Remove(id);
+                                SessionAtlasCatalog.Remove(id);
                             }
 
-                            if (remote.Preload || remote.State != AtlasLoadState.Unloaded || local.State != AtlasLoadState.Unloaded)
-                                SetAtlasState(entry.Key, local.State.ToString(), remote.Error ?? remote.State.ToString());
-                            if (remote.State != AtlasLoadState.Loaded)
+                            if (remoteState != AtlasLoadState.Unloaded || local.State != AtlasLoadState.Unloaded)
+                                SetAtlasState(id, local.State.ToString(), remote?.Error ?? remoteState.ToString());
+                            bool unload = m_AtlasIntents != null && m_AtlasIntents.TryGetValue(id, out bool desired) && !desired && local.State == AtlasLoadState.Unloaded;
+                            if (unload && remoteState != AtlasLoadState.Unloaded) m_PendingRemoteUnloads.Add(id);
+                            else m_PendingRemoteUnloads.Remove(id);
+                            if ((local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(id) || unload && remoteState != AtlasLoadState.Unloaded) && m_InventoryRecoveryAttempted.Add(id))
                             {
-                                if (m_ConfirmedAtlases.Remove(entry.Key)) SessionAtlasCatalog.Remove(entry.Key);
-                                if (remote.State == AtlasLoadState.Failed && m_InventoryRecoveryAttempted.Add(entry.Key))
-                                    await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token);
-                                m_Stop.Token.ThrowIfCancellationRequested();
-                                continue;
+                                using var attempt = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token);
+                                m_AtlasAttempt = attempt;
+                                m_SynchronizingAtlas = id;
+                                try
+                                {
+                                    await SetAtlasLoadedCoreAsync(id, !unload, attempt.Token, confirmOnly: !unload && remoteState == AtlasLoadState.Loaded, reportError: false, remoteOnly: true);
+                                }
+                                catch (OperationCanceledException) when (!m_Stop.IsCancellationRequested)
+                                {
+                                    m_InventoryRecoveryAttempted.Remove(id);
+                                }
+                                finally
+                                {
+                                    m_AtlasAttempt = null;
+                                    m_SynchronizingAtlas = null;
+                                }
                             }
 
-                            if (local.State == AtlasLoadState.Failed && m_InventoryRecoveryAttempted.Add(entry.Key))
-                                await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token);
-                            else if (local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(entry.Key) && m_InventoryRecoveryAttempted.Add(entry.Key))
-                                await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token, confirmOnly: true);
                             m_Stop.Token.ThrowIfCancellationRequested();
-                            if (m_ConfirmedAtlases.Contains(entry.Key)) m_InventoryRecoveryAttempted.Remove(entry.Key);
+                            if (m_ConfirmedAtlases.Contains(id)) m_InventoryRecoveryAttempted.Remove(id);
                         }
                     }
                     finally
@@ -231,8 +331,10 @@ namespace HBP.UI.Quest
 
         public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken token = default, bool reportError = true)
         {
+            m_Stop.Token.ThrowIfCancellationRequested();
+            token.ThrowIfCancellationRequested();
             if (SessionAtlasCatalog.CanUse(id)) return;
-            await SetAtlasLoadedAsync(id, true, token, reportError: reportError);
+            await SetAtlasLoadedAsync(id, true, token, reportError: reportError, remoteOnly: AtlasResources.IsLoaded(id));
             token.ThrowIfCancellationRequested();
             m_Stop.Token.ThrowIfCancellationRequested();
             if (!SessionAtlasCatalog.CanUse(id)) throw new InvalidOperationException(Status);
@@ -262,7 +364,7 @@ namespace HBP.UI.Quest
             }
         }
 
-        public async UniTask SetAtlasLoadedAsync(string id, bool loaded, CancellationToken cancellationToken = default, bool reportError = true)
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded, CancellationToken cancellationToken = default, bool reportError = true, bool remoteOnly = false)
         {
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
             var token = operation.Token;
@@ -274,20 +376,29 @@ namespace HBP.UI.Quest
                 try
                 {
                     m_InventoryRecoveryAttempted.Add(id);
-                    await SetAtlasLoadedCoreAsync(id, loaded, token, reportError: reportError);
+                    if (loaded)
+                    {
+                        m_SynchronizingAtlas = id;
+                        m_AtlasAttempt = operation;
+                    }
+
+                    await SetAtlasLoadedCoreAsync(id, loaded, token, reportError: reportError, remoteOnly: remoteOnly);
                 }
                 finally
                 {
+                    m_AtlasAttempt = null;
+                    m_SynchronizingAtlas = null;
                     m_Gate.Release();
                 }
             }
             catch (OperationCanceledException)
             {
+                if (!AtlasResources.IsLoaded(id)) m_InventoryRecoveryAttempted.Remove(id);
             }
         }
 
         // The caller owns m_Gate throughout recovery, including the delays between attempts.
-        private async UniTask SetAtlasLoadedCoreAsync(string id, bool loaded, CancellationToken token, bool confirmOnly = false, bool reportError = true)
+        private async UniTask SetAtlasLoadedCoreAsync(string id, bool loaded, CancellationToken token, bool confirmOnly = false, bool reportError = true, bool remoteOnly = false)
         {
             for (int attempt = 0; attempt < 3; attempt++)
             {
@@ -295,7 +406,7 @@ namespace HBP.UI.Quest
                 try
                 {
                     if (confirmOnly && attempt == 0) await ConfirmAsync(id, token);
-                    else await ApplyAtlasLoadedAsync(id, loaded, token);
+                    else await ApplyAtlasLoadedAsync(id, loaded, token, remoteOnly);
                     SetAtlasState(id, loaded ? "loaded" : "unloaded", loaded ? "loaded" : "unloaded");
                     SetStatus(id + ": Desktop and Quest " + (loaded ? "loaded." : "unloaded."));
                     return;
@@ -304,6 +415,12 @@ namespace HBP.UI.Quest
                 {
                     await UniTask.SwitchToMainThread();
                     token.ThrowIfCancellationRequested();
+                    if (exception is TimeoutException)
+                    {
+                        await FailedAsync("Desktop remains usable. " + exception.Message, exception);
+                        return;
+                    }
+
                     if (attempt < 2)
                     {
                         await UniTask.Delay(500 * (attempt + 1), DelayType.Realtime, cancellationToken: token);
@@ -318,12 +435,21 @@ namespace HBP.UI.Quest
             }
         }
 
-        private async UniTask ApplyAtlasLoadedAsync(string id, bool loaded, CancellationToken token)
+        private async UniTask ApplyAtlasLoadedAsync(string id, bool loaded, CancellationToken token, bool remoteOnly = false)
         {
             SetAtlasState(id, loaded ? "loading" : "checking usage", loaded ? "loading" : "checking usage");
             SetStatus(id + ": " + (loaded ? "loading on Desktop and Quest..." : "checking Desktop and Quest usage..."));
             if (loaded)
             {
+                if (remoteOnly)
+                {
+                    if (!AtlasResources.IsLoaded(id)) throw new OperationCanceledException(token);
+                    var response = await SendAsync(Request(SessionControlKind.LoadAtlas, id), token);
+                    if (!response.Applied) throw new InvalidOperationException(response.Message);
+                    await ConfirmAsync(id, token);
+                    return;
+                }
+
                 using var attempt = CancellationTokenSource.CreateLinkedTokenSource(token);
                 // Already loaded resources are reused; a partial success is never unloaded to retry.
                 var localWork = AtlasResources.LoadAsync(id, attempt.Token).AsTask();
@@ -356,7 +482,7 @@ namespace HBP.UI.Quest
             }
             else
             {
-                using var localReservation = ResourceRetention.ReserveRelease(id);
+                using var localReservation = remoteOnly ? null : ResourceRetention.ReserveRelease(id);
                 var prepare = Request(SessionControlKind.PrepareUnload, id);
                 bool committed = false;
                 try
@@ -365,7 +491,8 @@ namespace HBP.UI.Quest
                     if (!prepared.Applied) throw new InvalidOperationException("Quest: " + prepared.Message);
                     var result = await SendAsync(Request(SessionControlKind.CommitUnload, id, body: prepare.OperationId.ToByteArray()), token);
                     if (!result.Applied) throw new InvalidOperationException("Quest: " + result.Message);
-                    AtlasResources.Unload(id, localReservation);
+                    if (!remoteOnly) AtlasResources.Unload(id, localReservation);
+                    m_PendingRemoteUnloads.Remove(id);
                     SessionAtlasCatalog.Remove(id);
                     committed = true;
                 }
@@ -386,11 +513,10 @@ namespace HBP.UI.Quest
 
         private async UniTask ConfirmAsync(string id, CancellationToken token = default)
         {
-            using var retention = ResourceRetention.Retain(id);
             if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidOperationException("Desktop atlas is not loaded: " + id);
             var response = await SendAsync(Request(SessionControlKind.ConfirmAtlas, id), token);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
-            SessionAtlasCatalog.SetReady(id);
+            SessionAtlasCatalog.SetReady(id, m_CatalogGeneration);
             m_ConfirmedAtlases.Add(id);
         }
 
@@ -418,12 +544,13 @@ namespace HBP.UI.Quest
         {
             await UniTask.SwitchToMainThread();
             if (m_Disposed) return;
+            if (exception is TimeoutException) message = "Quest is unavailable or asleep. Desktop atlases remain usable and will synchronize automatically when the headset is awake.";
             SetStatus(message);
-            if (exception is IOException || exception is System.Net.Sockets.SocketException || exception is System.Security.Authentication.AuthenticationException)
+            if (exception is TimeoutException || exception is IOException || exception is System.Net.Sockets.SocketException || exception is System.Security.Authentication.AuthenticationException)
             {
                 m_Started = false;
                 m_Stop.Cancel();
-                SessionAtlasCatalog.End();
+                SessionAtlasCatalog.End(m_CatalogGeneration);
                 OnConnectionLost.Invoke();
             }
         }
@@ -436,7 +563,7 @@ namespace HBP.UI.Quest
             m_Preferences.OnSavePreferences.RemoveListener(OnPreferencesSaved);
             AtlasResources.OnChanged.RemoveListener(AtlasChanged);
             m_Stop.Cancel();
-            SessionAtlasCatalog.End();
+            SessionAtlasCatalog.End(m_CatalogGeneration);
             m_Opened.TrySetCanceled();
             // Pending native jobs observe completion before their request owner releases resources.
         }

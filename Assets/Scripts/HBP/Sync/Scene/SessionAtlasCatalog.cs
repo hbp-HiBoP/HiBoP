@@ -11,21 +11,25 @@ namespace HBP.Sync.Scene
     {
         private static readonly HashSet<string> s_Ready = new(StringComparer.Ordinal);
         public static bool Active { get; private set; }
+        private static long s_Generation;
 
-        public static void Begin()
+        public static long Begin()
         {
             s_Ready.Clear();
             Active = true;
+            return ++s_Generation;
         }
 
-        public static void End()
+        public static void End(long? generation = null)
         {
+            if (generation.HasValue && generation != s_Generation) return;
             s_Ready.Clear();
             Active = false;
         }
 
-        public static void SetReady(string id)
+        public static void SetReady(string id, long? generation = null)
         {
+            if (generation.HasValue && (generation != s_Generation || !Active)) throw new OperationCanceledException("The Quest connection has changed.");
             if (AtlasResources.Status(id).State != AtlasLoadState.Loaded) throw new InvalidDataException("Atlas is not ready: " + id);
             s_Ready.Add(id);
         }
@@ -36,6 +40,12 @@ namespace HBP.Sync.Scene
         }
 
         public static bool CanUse(string id) => AtlasResources.IsLoaded(id) && (!Active || s_Ready.Contains(id));
+
+        public static void RequireLocal(string id)
+        {
+            ResourceRetention.EnsureCanUse(id);
+            if (!AtlasResources.IsLoaded(id)) throw new InvalidOperationException("The atlas is not loaded on Desktop: " + id);
+        }
 
         public static void Require(string id)
         {

@@ -28,6 +28,102 @@ namespace HBP.Tests.Quest
     {
         private const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
+        [TestCase("timeout"), TestCase("socket"), TestCase("cancel"), TestCase("data")]
+        public async Task SleepingDuringSceneReconnectionKeepsAutomaticRetryWhileDataFailuresRequireAttention(string kind)
+        {
+            var root = new GameObject("Scene reconnect interruption fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            var type = typeof(QuestManager);
+            var publication = type.GetNestedType("Publication", BindingFlags.NonPublic);
+            var entry = Activator.CreateInstance(publication, true);
+            publication.GetField("VisualizationId").SetValue(entry, "atlas-scene");
+            publication.GetField("Error").SetValue(entry, "old error");
+            publication.GetField("UserRetryRequired").SetValue(entry, true);
+            type.GetField("connected", Private).SetValue(manager, true);
+            type.GetField("credential", Private).SetValue(manager, new byte[32]);
+            type.GetField("reconnect", Private).SetValue(manager, true);
+            Exception error = kind switch
+            {
+                "timeout" => new TimeoutException("Quest asleep"),
+                "socket" => new IOException("Quest disconnected"),
+                "cancel" => new OperationCanceledException("Old session retired"),
+                _ => new InvalidDataException("Incompatible checkpoint")
+            };
+            try
+            {
+                type.GetMethod("RecordSceneReconnectionFailure", Private).Invoke(manager, new[] { entry, error });
+                bool manual = kind == "data";
+                Assert.That((bool)publication.GetField("UserRetryRequired").GetValue(entry), Is.EqualTo(manual));
+                Assert.That(manager.CanRetryReconciliation, Is.EqualTo(manual));
+                Assert.That(manager.IsPaired, Is.EqualTo(manual));
+                Assert.That((bool)type.GetField("reconnect", Private).GetValue(manager), Is.True, "A transient interruption must retain automatic wake recovery.");
+                if (!manual) Assert.That(publication.GetField("Error").GetValue(entry), Is.Null);
+            }
+            finally
+            {
+                type.GetMethod("DisposeDiscovery", Private).Invoke(manager, null);
+                ((CancellationTokenSource)type.GetField("lifetime", Private).GetValue(manager)).Cancel();
+                await (Task)type.GetField("listening", Private).GetValue(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task LocalOpeningFailureShowsVisualizationAndRecoveryInsteadOfTechnicalOrQuestError()
+        {
+            var root = new GameObject("Display error fixture");
+            root.SetActive(false);
+            var loading = root.AddComponent<LoadingManager>();
+            var presenter = root.AddComponent<DisplayLoadingPresenterProbe>();
+            typeof(LoadingManager).GetField("m_LoadingCircle", Private).SetValue(loading, presenter);
+            var questSingleton = typeof(Singleton<QuestManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var loadingSingleton = typeof(Singleton<LoadingManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var dialogSingleton = typeof(Singleton<DialogBoxManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldQuest = questSingleton.GetValue(null), oldLoading = loadingSingleton.GetValue(null), oldDialog = dialogSingleton.GetValue(null);
+            var oldProject = ApplicationState.LoadedProject;
+            questSingleton.SetValue(null, null);
+            loadingSingleton.SetValue(null, loading);
+            dialogSingleton.SetValue(null, null);
+            ApplicationState.LoadedProject = null;
+            var dialogs = UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab"));
+            // A missing dataset triggers an unexpected local failure before any scene opens.
+            var visualization = new Visualization { Name = "Patient activity", Columns = new() { new IEEGColumn() } };
+            var operationType = typeof(HBP.UI.Main.VisualizationGestion).Assembly.GetType("HBP.UI.Main.SceneDisplayOperation", true);
+            var operation = Activator.CreateInstance(operationType, Private | BindingFlags.Public, null, new object[] { new[] { visualization }, null }, null);
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            Task display = null;
+            try
+            {
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("NullReferenceException"));
+                display = ((UniTask)operationType.GetMethod("RunAsync", Private | BindingFlags.Public).Invoke(operation, new object[] { timeout.Token, true })).AsTask();
+                await UniTask.WaitUntil(() => dialogs.GetComponentInChildren<DialogBox>() != null, cancellationToken: timeout.Token);
+                var dialog = dialogs.GetComponentInChildren<DialogBox>();
+                var titleText = typeof(DialogBox).GetField("m_Title", Private).GetValue(dialog);
+                var messageText = typeof(DialogBox).GetField("m_Message", Private).GetValue(dialog);
+                string title = (string)titleText.GetType().GetProperty("text").GetValue(titleText);
+                string message = (string)messageText.GetType().GetProperty("text").GetValue(messageText);
+                Assert.That(title, Is.EqualTo("Visualization could not be opened"));
+                Assert.That(message, Does.Contain(visualization.Name).And.Contain("internal application error").And.Contain("Try opening").And.Contain("application log"));
+                Assert.That(message, Does.Not.Contain("NullReferenceException").And.Not.Contain("Quest").And.Not.Contain("remain available"));
+                Assert.That(presenter.Closes, Is.EqualTo(presenter.Opens));
+                dialog.GetComponentInChildren<UnityEngine.UI.Button>().onClick.Invoke();
+                await display;
+            }
+            finally
+            {
+                foreach (var dialog in dialogs.GetComponentsInChildren<DialogBox>())
+                    dialog.GetComponentInChildren<UnityEngine.UI.Button>().onClick.Invoke();
+                if (display != null) await display;
+                UnityEngine.Object.DestroyImmediate(dialogs);
+                UnityEngine.Object.DestroyImmediate(root);
+                questSingleton.SetValue(null, oldQuest);
+                loadingSingleton.SetValue(null, oldLoading);
+                dialogSingleton.SetValue(null, oldDialog);
+                ApplicationState.LoadedProject = oldProject;
+            }
+        }
+
         [TestCase(false), TestCase(true)]
         public async Task DropWindowBlockerPolicyPreservesDefaultAndCleansUpOnDestruction(bool noBlocker)
         {

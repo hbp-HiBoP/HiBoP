@@ -16,6 +16,7 @@ namespace HBP.Sync.Scene
     {
         private readonly Base3DScene m_Scene;
         private readonly string m_ManifestHash;
+        private readonly bool m_RequireSharedAtlases;
         private readonly Mesh3D[] m_Meshes;
         private readonly MRI3D[] m_Mris;
         private readonly Implantation3D[] m_Implantations;
@@ -31,8 +32,9 @@ namespace HBP.Sync.Scene
         private (LocalizerProtocol Protocol, LocalizerData Data, LocalizerBloc Resource, string Reference)[] m_LocalizerBlocs;
         private readonly Dictionary<string, (Column3D Column, object[] Resources, string[] References)> m_ColumnResources = new();
 
-        public PreparedSceneResourceCatalog(Base3DScene scene, string manifestHash)
+        public PreparedSceneResourceCatalog(Base3DScene scene, string manifestHash, bool requireSharedAtlases = true)
         {
+            m_RequireSharedAtlases = requireSharedAtlases;
             m_Scene = scene ? scene : throw new ArgumentNullException(nameof(scene));
             if (manifestHash == null || manifestHash.Length != 64 || manifestHash.Any(character => character < '0' || character > '9' && (character < 'a' || character > 'f')))
                 throw new ArgumentException("Invalid delivery manifest hash.", nameof(manifestHash));
@@ -52,6 +54,12 @@ namespace HBP.Sync.Scene
                 string[] references = column is Column3DStatic staticColumn ? staticColumn.Labels.Select(label => ContentReference("static", id, label, StaticLabelFingerprint(staticColumn, label))).ToArray() : MakeReferences(kind, manifestHash + ":" + id, resources.Length);
                 m_ColumnResources.Add(id, (column, resources, references));
             }
+        }
+
+        private void RequireAtlas(string id)
+        {
+            if (m_RequireSharedAtlases) SessionAtlasCatalog.Require(id);
+            else SessionAtlasCatalog.RequireLocal(id);
         }
 
         private void RefreshAtlases()
@@ -172,7 +180,7 @@ namespace HBP.Sync.Scene
         public string IbcContrastReference(int index)
         {
             RefreshAtlases();
-            SessionAtlasCatalog.Require("ibc");
+            SessionAtlasCatalog.RequireLocal("ibc");
             return m_Ibc != null && index >= 0 && index < m_IbcContrastRefs.Length ? m_IbcContrastRefs[index] : "";
         }
 
@@ -180,7 +188,7 @@ namespace HBP.Sync.Scene
         {
             RefreshAtlases();
             if (reference.Length == 0) return -1;
-            SessionAtlasCatalog.Require("ibc");
+            RequireAtlas("ibc");
             int index = Array.IndexOf(m_IbcContrastRefs, reference);
             if (index < 0 || m_Ibc == null || !Object3DManager.IBC.Loaded) throw new InvalidDataException("IBC contrast is absent from the prepared atlas.");
             return index;
@@ -189,7 +197,7 @@ namespace HBP.Sync.Scene
         public string DifumoReference(string atlas)
         {
             RefreshAtlases();
-            SessionAtlasCatalog.Require("difumo:" + atlas);
+            SessionAtlasCatalog.RequireLocal("difumo:" + atlas);
             for (int i = 0; i < m_DifumoAtlases.Length; i++)
                 if (m_DifumoAtlases[i].Key == atlas)
                     return m_DifumoRefs[i];
@@ -202,7 +210,7 @@ namespace HBP.Sync.Scene
             if (reference.Length == 0) return "";
             int index = Array.IndexOf(m_DifumoRefs, reference);
             if (index < 0 || !Object3DManager.DiFuMo.IsLoaded(m_DifumoAtlases[index].Key)) throw new InvalidDataException("DiFuMo atlas is absent from the prepared resources.");
-            SessionAtlasCatalog.Require("difumo:" + m_DifumoAtlases[index].Key);
+            RequireAtlas("difumo:" + m_DifumoAtlases[index].Key);
             return m_DifumoAtlases[index].Key;
         }
 
@@ -215,21 +223,21 @@ namespace HBP.Sync.Scene
         public string LocalizerProtocolReference(string name)
         {
             RefreshAtlases();
-            SessionAtlasCatalog.Require("localizer:" + name);
+            SessionAtlasCatalog.RequireLocal("localizer:" + name);
             return m_LocalizerProtocols.FirstOrDefault(entry => entry.Resource.Name == name).Reference ?? "";
         }
 
         public string LocalizerDataReference(string protocolName, string dataName)
         {
             RefreshAtlases();
-            SessionAtlasCatalog.Require("localizer:" + protocolName);
+            SessionAtlasCatalog.RequireLocal("localizer:" + protocolName);
             return m_LocalizerDatas.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Resource.Name == dataName).Reference ?? "";
         }
 
         public string LocalizerBlocReference(string protocolName, string dataName, string blocName)
         {
             RefreshAtlases();
-            SessionAtlasCatalog.Require("localizer:" + protocolName);
+            SessionAtlasCatalog.RequireLocal("localizer:" + protocolName);
             return m_LocalizerBlocs.FirstOrDefault(entry => entry.Protocol.Name == protocolName && entry.Data.Name == dataName && entry.Resource.Name == blocName).Reference ?? "";
         }
 
@@ -241,7 +249,7 @@ namespace HBP.Sync.Scene
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             var bloc = m_LocalizerBlocs.FirstOrDefault(entry => entry.Reference == blocReference && ReferenceEquals(entry.Protocol, protocol) && ReferenceEquals(entry.Data, data)).Resource;
             if (protocol == null || data == null || bloc == null || !bloc.Loaded) throw new InvalidDataException("Localizer selection is absent from the prepared atlas.");
-            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
+            RequireAtlas("localizer:" + protocol.Name);
             return bloc.FMRI;
         }
 
@@ -252,7 +260,7 @@ namespace HBP.Sync.Scene
             var protocol = m_LocalizerProtocols.FirstOrDefault(entry => entry.Reference == protocolReference).Resource;
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             if (protocol == null || data == null) throw new InvalidDataException("Localizer source is absent from the prepared atlas.");
-            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
+            RequireAtlas("localizer:" + protocol.Name);
             return (protocol.Name, data.Name);
         }
 
@@ -264,7 +272,7 @@ namespace HBP.Sync.Scene
             var data = m_LocalizerDatas.FirstOrDefault(entry => entry.Reference == dataReference && ReferenceEquals(entry.Protocol, protocol)).Resource;
             var bloc = m_LocalizerBlocs.FirstOrDefault(entry => entry.Reference == blocReference && ReferenceEquals(entry.Protocol, protocol) && ReferenceEquals(entry.Data, data)).Resource;
             if (bloc == null || !bloc.Loaded) throw new InvalidDataException("Localizer bloc is absent from the prepared atlas.");
-            SessionAtlasCatalog.Require("localizer:" + protocol.Name);
+            RequireAtlas("localizer:" + protocol.Name);
             return bloc.Name;
         }
 

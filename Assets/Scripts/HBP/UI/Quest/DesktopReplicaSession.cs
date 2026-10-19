@@ -193,6 +193,12 @@ namespace HBP.Quest.Desktop
             lock (m_Gate)
             {
                 ThrowIfAbortedLocked();
+                if (SessionAtlasCatalog.Active && m_Scene.RequiredAtlasIds().Any(id => !SessionAtlasCatalog.CanUse(id)))
+                {
+                    AbortLocked(true, "Atlas selection changed during publication; prepare Quest atlases before retrying.");
+                    ThrowIfAbortedLocked();
+                }
+
                 if (m_InitialPublicationStarted) throw new InvalidOperationException("The initial sync publication has already started.");
                 m_InitialPublicationStarted = true;
             }
@@ -330,6 +336,15 @@ namespace HBP.Quest.Desktop
             {
                 if (m_State == PublicationState.Disposed || m_State == PublicationState.Aborted) return;
                 m_Reconciliation?.QueueCanonical(mutation.CanonicalSequence, mutation.Mutation);
+                if (m_State != PublicationState.Capturing && SessionAtlasCatalog.Active && m_Scene.RequiredAtlasIds().Any(id => !SessionAtlasCatalog.CanUse(id)))
+                {
+                    // Keep this accepted local change in the reconciliation record. Never send it
+                    // through the live transport (including its short reconnect grace) before Load+Confirm.
+                    AbortLocked(m_State != PublicationState.Live, "Desktop atlas changes will synchronize after Quest atlases are ready.");
+                    CancelActivityProjectionAfterDisconnectAsync().Forget();
+                    return;
+                }
+
                 if (m_State == PublicationState.Capturing)
                 {
                     m_Journal.TryRecord(mutation);
@@ -1462,6 +1477,8 @@ namespace HBP.Quest.Desktop
 
             CancelActivityProjectionAfterDisconnectAsync().Forget();
         }
+
+        internal void SuspendForAtlasSynchronization() => MarkConnectionClosed("Desktop atlas changes will synchronize after Quest atlases are ready.");
 
         private void OnAuthorityFailure(string reason)
         {

@@ -304,9 +304,19 @@ namespace HBP.Sync.Scene
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
             m_LastSitePlacement = new MoveSites(scene.SitePlacement switch { SitePlacementMode.Left => SiteMoveCommand.Left, SitePlacementMode.Right => SiteMoveCommand.Right, _ => SiteMoveCommand.Reset });
-            m_Scene.AtlasUseValidator += SessionAtlasCatalog.Require;
+            m_Scene.AtlasUseValidator += RequireAtlas;
             BindSceneTargets(scene);
         }
+
+        private void RequireAtlas(string id)
+        {
+            if (m_LocalOrigin == OriginDevice.Desktop) SessionAtlasCatalog.RequireLocal(id);
+            else SessionAtlasCatalog.Require(id);
+        }
+
+        // A reconnect snapshot describes locally retained selections even before the new
+        // session has confirmed them. Applying/using those selections still follows RequireAtlas.
+        private static bool CanUseAtlas(string id) => AtlasResources.IsLoaded(id);
 
         /// <summary>Bind exact resources from the published delivery before enabling live resource mutations.</summary>
         public void BindPreparedResources(PreparedSceneDeliveryBinding binding)
@@ -319,7 +329,7 @@ namespace HBP.Sync.Scene
                 throw new InvalidOperationException("A prepared scene boundary cannot be rebound to another resource manifest.");
             }
 
-            var catalog = new PreparedSceneResourceCatalog(m_Scene, binding.ManifestHash);
+            var catalog = new PreparedSceneResourceCatalog(m_Scene, binding.ManifestHash, requireSharedAtlases: m_LocalOrigin != OriginDevice.Desktop);
             catalog.AssertDeliveryManifest(binding.Manifest);
             m_ResourceCatalog = catalog;
             m_ResourceManifestHash = binding.ManifestHash;
@@ -2953,7 +2963,7 @@ namespace HBP.Sync.Scene
             }
 
             if (value.MarsAtlasLabel < 0) return;
-            SessionAtlasCatalog.Require("mars");
+            RequireAtlas("mars");
             Mesh3D selectedMesh = m_Scene.MeshManager?.SelectedMesh;
             bool implantationHasMarsAtlas = m_Scene.ImplantationManager?.SelectedImplantation?.SiteInfos.Any(info => info.SiteData?.Tags?.Any(tagValue => tagValue.Tag is StringTag tag && tag.Name == "MarsAtlas") == true) == true;
             if (selectedMesh == null || !selectedMesh.SupportsMarsAtlas || !Object3DManager.MarsAtlas.Loaded || !Object3DManager.MarsAtlas.Labels().Contains(value.MarsAtlasLabel) || !implantationHasMarsAtlas)
@@ -3690,13 +3700,13 @@ namespace HBP.Sync.Scene
             {
                 if (m_Scene.AtlasManager == null) throw new InvalidOperationException("Atlas display is unavailable in the prepared scene.");
                 Mesh3D selectedMesh = GetSelectedMeshOrNull();
-                if (value.Value) SessionAtlasCatalog.Require("mars");
+                if (value.Value) RequireAtlas("mars");
                 if (value.Value && (selectedMesh == null || !Object3DManager.MarsAtlas.Loaded || !selectedMesh.SupportsMarsAtlas)) throw new InvalidOperationException("Mars atlas is not prepared for the selected mesh.");
             }
 
             if (value.Property == SceneBooleanProperty.DisplayJuBrainAtlas)
             {
-                if (value.Value) SessionAtlasCatalog.Require("jubrain");
+                if (value.Value) RequireAtlas("jubrain");
                 if (m_Scene.AtlasManager == null) throw new InvalidOperationException("Atlas display is unavailable in the prepared scene.");
                 Mesh3D selectedMesh = GetSelectedMeshOrNull();
                 if (value.Value && (selectedMesh == null || !Object3DManager.JuBrain.Loaded || !selectedMesh.SupportsMNIResources)) throw new InvalidOperationException("JuBrain atlas is not prepared for the selected mesh.");
@@ -3854,16 +3864,16 @@ namespace HBP.Sync.Scene
         private SetIbcDifumoDisplay CreateIbcDifumoDisplay()
         {
             FMRIManager manager = RequireFmriManager();
-            string ibcReference = m_ResourceCatalog != null && SessionAtlasCatalog.CanUse("ibc") ? m_ResourceCatalog.IbcContrastReference(manager.SelectedIBCContrastID) : string.Empty;
+            string ibcReference = m_ResourceCatalog != null && CanUseAtlas("ibc") ? m_ResourceCatalog.IbcContrastReference(manager.SelectedIBCContrastID) : string.Empty;
             string selectedDiFuMoAtlas = manager.SelectedDiFuMoAtlas;
-            string difumoReference = m_ResourceCatalog != null && !string.IsNullOrWhiteSpace(selectedDiFuMoAtlas) && SessionAtlasCatalog.CanUse("difumo:" + selectedDiFuMoAtlas) ? m_ResourceCatalog.DifumoReference(selectedDiFuMoAtlas) : string.Empty;
+            string difumoReference = m_ResourceCatalog != null && !string.IsNullOrWhiteSpace(selectedDiFuMoAtlas) && CanUseAtlas("difumo:" + selectedDiFuMoAtlas) ? m_ResourceCatalog.DifumoReference(selectedDiFuMoAtlas) : string.Empty;
             return new SetIbcDifumoDisplay(manager.DisplayIBCContrasts, ibcReference, manager.DisplayDiFuMo, difumoReference, Math.Max(0, manager.SelectedDiFuMoArea));
         }
 
         private SetLocalizerDisplay CreateLocalizerDisplay()
         {
             FMRIManager manager = RequireFmriManager();
-            bool ready = m_ResourceCatalog != null && !string.IsNullOrEmpty(manager.SelectedLocalizersProtocol) && SessionAtlasCatalog.CanUse("localizer:" + manager.SelectedLocalizersProtocol);
+            bool ready = m_ResourceCatalog != null && !string.IsNullOrEmpty(manager.SelectedLocalizersProtocol) && CanUseAtlas("localizer:" + manager.SelectedLocalizersProtocol);
             string protocol = ready ? m_ResourceCatalog.LocalizerProtocolReference(manager.SelectedLocalizersProtocol) : string.Empty;
             string data = ready ? m_ResourceCatalog.LocalizerDataReference(manager.SelectedLocalizersProtocol, manager.SelectedLocalizersData) : string.Empty;
             string bloc = ready ? m_ResourceCatalog.LocalizerBlocReference(manager.SelectedLocalizersProtocol, manager.SelectedLocalizersData, manager.SelectedLocalizersBloc) : string.Empty;
@@ -4288,7 +4298,7 @@ namespace HBP.Sync.Scene
             m_Cuts.Clear();
             m_CutDefinitionSnapshots.Clear();
             m_Timelines.Clear();
-            if (m_Scene != null) m_Scene.AtlasUseValidator -= SessionAtlasCatalog.Require;
+            if (m_Scene != null) m_Scene.AtlasUseValidator -= RequireAtlas;
             m_ResourceCatalog = null;
         }
 

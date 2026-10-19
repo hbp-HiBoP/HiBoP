@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
+using HBP.Core.Exceptions;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Tools;
@@ -115,6 +116,7 @@ namespace HBP.UI.Main
                     }
                     catch (Exception error)
                     {
+                        Debug.LogException(error);
                         localError = error;
                     }
                     finally
@@ -176,7 +178,12 @@ namespace HBP.UI.Main
             }
 
             if (localError != null)
-                await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Display incomplete", TransferError.Describe(localError) + "\nCompleted Desktop visualizations have been kept.", "OK");
+            {
+                var failure = localError as HBPException ?? new VisualizationLoadException(string.Join(", ", requested.Select(visualization => visualization.Name)), localError);
+                string message = failure.Message;
+                if (loaded.Count > 0) message += "\n\nVisualizations that finished opening on Desktop remain available.";
+                await DialogBoxManager.OpenAsync(DialogBoxType.Error, failure.Title, message, "OK");
+            }
             else if (failures.Count != 0 && !cancelled)
             {
                 string message = string.Join("\n", failures.Select(item => item.Key.Visualization.Name + ": " + item.Value));

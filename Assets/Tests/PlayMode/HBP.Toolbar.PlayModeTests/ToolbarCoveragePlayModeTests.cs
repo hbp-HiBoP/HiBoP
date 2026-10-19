@@ -33,6 +33,80 @@ namespace HBP.Tests.PlayMode.Toolbar
 {
     public class ToolbarCoveragePlayModeTests
     {
+        [TestCase("m_IBCToggle", "ibc", false)]
+        [TestCase("m_IBCToggle", "ibc", true)]
+        [TestCase("m_JubrainToggle", "jubrain", false)]
+        [TestCase("m_MarsAtlasToggle", "mars", false)]
+        [TestCase("m_DiFuMoToggle", "difumo:64", false)]
+        [TestCase("m_LocalizersToggle", "localizer:AUDI", false)]
+        public async Task UnconfirmedAtlasOffersQuestRecoveryWithoutThrowingOrEnablingItsDisplay(string field, string id, bool retryDisconnected)
+        {
+            using var scope = new PlayModeSceneScope("AtlasRecoveryDialog");
+            using var harness = new ToolbarSceneHarness(scope.Scene);
+            var flags = BindingFlags.Static | BindingFlags.NonPublic;
+            var dialogSingleton = typeof(Singleton<DialogBoxManager>).GetField("m_Instance", flags);
+            var questSingleton = typeof(Singleton<HBP.Quest.Desktop.QuestManager>).GetField("m_Instance", flags);
+            var oldDialog = dialogSingleton.GetValue(null);
+            var oldQuest = questSingleton.GetValue(null);
+            dialogSingleton.SetValue(null, null);
+            questSingleton.SetValue(null, null);
+            var dialogs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab"));
+            var tool = new GameObject("Atlas recovery toolbar").AddComponent<AtlasState>();
+            var toggles = new Dictionary<string, Toggle>();
+            foreach (string name in new[] { "m_IBCToggle", "m_JubrainToggle", "m_MarsAtlasToggle", "m_DiFuMoToggle", "m_LocalizersToggle" })
+            {
+                var toggle = CreateToggle(name);
+                toggle.transform.SetParent(tool.transform, false);
+                toggles[name] = toggle;
+                SetPrivateField(tool, name, toggle);
+            }
+
+            tool.SelectedScene = harness.Scene;
+            SetPrivateField(harness.Scene.FMRIManager, "m_SelectedDiFuMoAtlas", "64");
+            SetPrivateField(harness.Scene.FMRIManager, "m_SelectedLocalizersProtocol", "AUDI");
+            harness.Scene.AtlasUseValidator = atlas => throw new InvalidOperationException("The atlas is not ready on both devices: " + atlas);
+            tool.Initialize();
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+            string Text(DialogBox dialog, string member)
+            {
+                var text = GetField<object>(dialog, member);
+                return (string)text.GetType().GetProperty("text").GetValue(text);
+            }
+
+            try
+            {
+                toggles[field].isOn = true;
+                await UniTask.WaitUntil(() => dialogs.GetComponentInChildren<DialogBox>() != null, cancellationToken: timeout.Token);
+                var dialog = dialogs.GetComponentInChildren<DialogBox>();
+                Assert.That(Text(dialog, "m_Title"), Is.EqualTo("Atlas not ready on both devices"));
+                Assert.That(Text(dialog, "m_Message"), Does.Contain(id).And.Contain("Desktop and Quest").And.Contain("Wake Quest"));
+                Assert.That(toggles[field].isOn, Is.False);
+                Assert.That(harness.Scene.FMRIManager.DisplayIBCContrasts, Is.False);
+                var buttons = dialog.GetComponentsInChildren<Button>();
+                Assert.That(buttons.Select(button => button.GetComponentInChildren<Text>().text), Is.EqualTo(new[] { "Retry on Quest", "Cancel" }));
+                buttons[retryDisconnected ? 0 : 1].onClick.Invoke();
+                if (retryDisconnected)
+                {
+                    DialogBox notice = null;
+                    await UniTask.WaitUntil(() => (notice = dialogs.GetComponentsInChildren<DialogBox>().FirstOrDefault(value => Text(value, "m_Title") == "Atlas reload did not complete")) != null, cancellationToken: timeout.Token);
+                    Assert.That(Text(notice, "m_Message"), Does.Contain("Wake Quest").And.Contain("display has remained disabled"));
+                    notice.GetComponentInChildren<Button>().onClick.Invoke();
+                }
+
+                await UniTask.NextFrame();
+                Assert.That(toggles[field].isOn, Is.False);
+                Assert.That(GetField<bool>(tool, "m_AtlasRecoveryPending"), Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tool.gameObject);
+                Object.DestroyImmediate(dialogs);
+                dialogSingleton.SetValue(null, oldDialog);
+                questSingleton.SetValue(null, oldQuest);
+            }
+        }
+
         [TestCase(2), TestCase(300), Category("Sync.SceneFocused")]
         public async Task SiteActions_ProductionPrefabPublishesOneBatchAcrossColumns(int siteCount)
         {

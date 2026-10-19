@@ -11,6 +11,44 @@ namespace HBP.Tests.Transfer
 {
     public sealed class SessionControlTransportTests
     {
+        [Test]
+        public async Task HeartbeatWaitsForTheQuestApplicationAndRecoversAfterWake()
+        {
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            using var pairing = new QuestPairing();
+            var listener = new TcpListener(IPAddress.Loopback, QuestPairing.Port);
+            listener.Start();
+            bool asleep = true;
+            Task serving = pairing.ServeAsync(listener, stop.Token, (_, __) => throw new InvalidOperationException("No scene expected."), _ => { }, activeGlobals: async token =>
+            {
+                if (asleep) await Task.Delay(Timeout.Infinite, token);
+                return null;
+            });
+            try
+            {
+                byte[] pin = await QuestPairing.InspectAsync("127.0.0.1", stop.Token);
+                byte[] credential = await QuestPairing.PairAsync("127.0.0.1", pin, pairing.Code, stop.Token);
+                Exception failure = null;
+                try
+                {
+                    await QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token);
+                }
+                catch (Exception error)
+                {
+                    failure = error;
+                }
+
+                Assert.That(failure, Is.TypeOf<TimeoutException>(), "A surviving TCP socket must not report a sleeping Unity application as ready.");
+                asleep = false;
+                Assert.That(await QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token), Is.True);
+            }
+            finally
+            {
+                stop.Cancel();
+                await serving;
+            }
+        }
+
         [TestCase(false)]
         [TestCase(true)]
         public async Task AuthenticatedControlWorksWithoutSceneAndRevokesDisconnectedRequest(bool disconnect)

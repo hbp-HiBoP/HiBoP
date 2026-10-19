@@ -382,7 +382,11 @@ namespace HBP.Tests.SceneTransfer
         [Timeout(300000)]
         public Task SharedState_ReconnectMergesOfflineChangesAndPreservesLocalPose(bool interruptCommit) => VerifyM2ProductionGeometryAsync(null, reconciliationScenario: interruptCommit);
 
-        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false, bool coldInflation = false, bool desktopOnlyCache = false, bool nativeSingle = false, bool physicalInflationOnly = false, MeshPart? mutatedHemisphere = null, bool? reconciliationScenario = null)
+        [TestCase("ibc", false, false), TestCase("difumo:64", false, false)]
+        [TestCase("ibc", true, false), TestCase("ibc", false, true), Timeout(180000)]
+        public Task DesktopAtlasUsageIsLocalAndReconnectionAppliesItOnlyAfterConfirmation(string id, bool duringEncoding, bool hideAfterReconnect) => VerifyM2ProductionGeometryAsync(null, atlasScenario: id, atlasEncoding: duringEncoding, atlasHide: hideAfterReconnect);
+
+        private static async Task VerifyM2ProductionGeometryAsync(string localProject, bool physicalQuest = false, bool coldInflation = false, bool desktopOnlyCache = false, bool nativeSingle = false, bool physicalInflationOnly = false, MeshPart? mutatedHemisphere = null, bool? reconciliationScenario = null, string atlasScenario = null, bool atlasEncoding = false, bool atlasHide = false)
         {
             string protocolsFolder = Path.Combine(ApplicationState.DatabasePath, "Protocols");
             using var temp = new PlayModeTempDirectoryScope();
@@ -416,6 +420,15 @@ namespace HBP.Tests.SceneTransfer
             GameObject ownedDialogManager = null;
             using var client = new TcpClient { NoDelay = true };
             TcpClient server = null;
+            var previousIBC = Object3DManager.IBC;
+            var previousDiFuMo = Object3DManager.DiFuMo;
+            bool marsWasLoaded = AtlasResources.IsLoaded("mars");
+            if (atlasScenario != null)
+            {
+                Object3DManager.IBC = new IBCObjects();
+                Object3DManager.DiFuMo = new DiFuMoObjects();
+            }
+
             try
             {
                 using var source = new SceneArchive(Path.Combine(temp.Path, "source"));
@@ -550,6 +563,71 @@ namespace HBP.Tests.SceneTransfer
                 };
                 desktopSession = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { desktopScene, source.Globals.Id, transferId, connect }, null);
                 await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(desktopSession, new object[] { sent, "loopback", Array.Empty<byte>(), Array.Empty<byte>(), token });
+                if (atlasScenario != null)
+                {
+                    Assert.That((await AtlasResources.LoadAsync("mars", token)).Succeeded, Is.True);
+                    SessionAtlasCatalog.Begin();
+                    SessionAtlasCatalog.SetReady("mars");
+                    Assert.That((await AtlasResources.LoadAsync(atlasScenario, token)).Succeeded, Is.True);
+                    if (atlasEncoding)
+                    {
+                        // Stop at the encoding state deterministically instead of racing Task.Run.
+                        var state = desktopType.GetField("m_State", BindingFlags.Instance | BindingFlags.NonPublic);
+                        state.SetValue(desktopSession, Enum.Parse(state.FieldType, "EncodingCheckpoint"));
+                    }
+
+                    if (atlasScenario == "ibc") desktopScene.FMRIManager.DisplayIBCContrasts = true;
+                    else
+                    {
+                        desktopScene.FMRIManager.SelectedDiFuMoAtlas = "64";
+                        desktopScene.FMRIManager.DisplayDiFuMo = true;
+                    }
+
+                    Assert.That(atlasScenario == "ibc" ? desktopScene.FMRIManager.DisplayIBCContrasts : desktopScene.FMRIManager.DisplayDiFuMo, Is.True, "Desktop usage must not wait for bilateral readiness.");
+                    Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(desktopSession), Is.False, "Pause live publication before an unconfirmed atlas mutation can reach Quest, including the transport reconnect grace.");
+                    Assert.That((bool)desktopType.GetProperty("RequiresPublicationRestart").GetValue(desktopSession), Is.EqualTo(atlasEncoding), "Encoding must restart instead of silently dropping the new atlas mutation.");
+                    Assert.That(view.Scene.FMRIManager.DisplayIBCContrasts || view.Scene.FMRIManager.DisplayDiFuMo, Is.False);
+                    desktopSession.Dispose();
+                    questSession.Dispose();
+                    client.Close();
+                    server.Close();
+                    await CaptureReconciliationErrorAsync(() => desktopRun);
+                    await CaptureReconciliationErrorAsync(() => questRun);
+                    using (var localBoundary = new SceneMutationBoundary(desktopScene, OriginDevice.Desktop))
+                    {
+                        localBoundary.BindPreparedResources(sent);
+                        Assert.DoesNotThrow(() => localBoundary.CaptureCheckpoint(), "Offline checkpoints must retain stable atlas references before Quest confirmation.");
+                    }
+
+                    SessionAtlasCatalog.SetReady(atlasScenario);
+                    var result = await ReconcileRoundTripAsync(SceneReconciliationRecord.Get(desktopScene), SceneReconciliationRecord.Get(view.Scene), (_, _) => Task.FromResult(ConflictChoice.Desktop), false, token);
+                    Assert.That(result.Desktop, Is.Null);
+                    Assert.That(result.Quest, Is.Null);
+                    Assert.That(atlasScenario == "ibc" ? view.Scene.FMRIManager.DisplayIBCContrasts : view.Scene.FMRIManager.DisplayDiFuMo, Is.True, "The accepted Desktop change must arrive after atlas readiness and reconciliation.");
+                    if (atlasHide)
+                    {
+                        // Production live-owner construction releases these post-merge guards.
+                        SceneReconciliationRecord.Get(desktopScene).ReleaseReconciliationGuard();
+                        SceneReconciliationRecord.Get(view.Scene).ReleaseReconciliationGuard();
+                        SessionAtlasCatalog.Begin();
+                        SessionAtlasCatalog.SetReady("mars");
+                        desktopScene.FMRIManager.DisplayIBCContrasts = false;
+                        using (var remoteBoundary = new SceneMutationBoundary(view.Scene, OriginDevice.Quest))
+                        {
+                            remoteBoundary.BindPreparedResources(published);
+                            Assert.DoesNotThrow(() => remoteBoundary.CaptureCheckpoint(), "Quest must describe its old visible atlas after readiness resets, so Desktop hide/unload can reconcile.");
+                        }
+
+                        SessionAtlasCatalog.SetReady(atlasScenario);
+                        result = await ReconcileRoundTripAsync(SceneReconciliationRecord.Get(desktopScene), SceneReconciliationRecord.Get(view.Scene), (_, _) => Task.FromResult(ConflictChoice.Desktop), false, token);
+                        Assert.That(result.Desktop, Is.Null);
+                        Assert.That(result.Quest, Is.Null);
+                        Assert.That(view.Scene.FMRIManager.DisplayIBCContrasts, Is.False);
+                    }
+
+                    return;
+                }
+
                 if (reconciliationScenario.HasValue)
                 {
                     Assert.That(view.Scene.SitePlacement, Is.EqualTo(SitePlacementMode.Right), "Initial publication must retain hemisphere placement.");
@@ -875,6 +953,15 @@ namespace HBP.Tests.SceneTransfer
                 if (localDesktop != null) await localDesktop.CleanAsync();
                 Object.Destroy(view.gameObject);
                 if (ownedDialogManager != null) Object.Destroy(ownedDialogManager);
+                if (atlasScenario != null)
+                {
+                    SessionAtlasCatalog.End();
+                    Object3DManager.IBC.Clean();
+                    Object3DManager.IBC = previousIBC;
+                    Object3DManager.DiFuMo.Clean();
+                    Object3DManager.DiFuMo = previousDiFuMo;
+                    if (!marsWasLoaded) AtlasResources.Unload("mars");
+                }
             }
         }
 
@@ -1577,8 +1664,10 @@ namespace HBP.Tests.SceneTransfer
             string file = Path.Combine(temp.Path, "snapshot.hbscene");
             source.Write(payload, file);
             RestoredScene desktop = null, quest = null;
+            bool marsWasLoaded = AtlasResources.IsLoaded("mars");
             try
             {
+                Assert.That((await AtlasResources.LoadAsync("mars", token)).Succeeded, Is.True);
                 var desktopArchive = new SceneArchive(Path.Combine(temp.Path, "desktop"), true, source.Globals);
                 desktop = await SceneRestoration.PrepareAsync(desktopArchive.Read(file), desktopArchive, AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<Base3DScene>(), scope.Root.transform, token);
                 var questArchive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, source.Globals);
@@ -1630,6 +1719,7 @@ namespace HBP.Tests.SceneTransfer
                 if (quest != null) await quest.CloseAsync();
                 if (desktop != null) await desktop.CloseAsync();
                 await UniTask.NextFrame();
+                if (!marsWasLoaded) AtlasResources.Unload("mars");
             }
         }
 

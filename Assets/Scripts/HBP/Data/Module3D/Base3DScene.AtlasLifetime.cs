@@ -10,8 +10,18 @@ namespace HBP.Data.Module3D
     {
         public System.Collections.Generic.IEnumerable<string> RequiredAtlasIds()
         {
-            // MarsAtlas also supplies implantation tags even when its overlay is hidden.
-            yield return "mars";
+            // Prepared implantation tags survive a deliberate native atlas unload.
+            if (AtlasResources.IsLoaded("mars") || AtlasManager != null && AtlasManager.DisplayMarsAtlas || Columns.OfType<Column3DCCEP>().Any(column => column.Mode == Column3DCCEP.CCEPMode.MarsAtlas && column.SelectedSourceMarsAtlasLabel >= 0)) yield return "mars";
+            if (AtlasManager != null && AtlasManager.DisplayJuBrainAtlas) yield return "jubrain";
+            if (FMRIManager != null)
+            {
+                // Checkpoints retain selected resources even when their overlay is hidden.
+                if (FMRIManager.DisplayIBCContrasts || AtlasResources.IsLoaded("ibc")) yield return "ibc";
+                if (!string.IsNullOrEmpty(FMRIManager.SelectedDiFuMoAtlas) && (FMRIManager.DisplayDiFuMo || AtlasResources.IsLoaded("difumo:" + FMRIManager.SelectedDiFuMoAtlas))) yield return "difumo:" + FMRIManager.SelectedDiFuMoAtlas;
+                if (!string.IsNullOrEmpty(FMRIManager.SelectedLocalizersProtocol) && (FMRIManager.DisplayLocalizers || AtlasResources.IsLoaded("localizer:" + FMRIManager.SelectedLocalizersProtocol))) yield return "localizer:" + FMRIManager.SelectedLocalizersProtocol;
+                yield break;
+            }
+
             var state = Visualization?.Configuration?.AtlasConfiguration;
             if (state == null) yield break;
             if (state.JuBrain) yield return "jubrain";

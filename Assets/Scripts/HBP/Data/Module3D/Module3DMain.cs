@@ -440,7 +440,8 @@ namespace HBP.Data.Module3D
                 {
                     Debug.LogException(e);
                     visualization.Unload();
-                    throw e;
+                    if (e is HBPException) throw;
+                    throw new VisualizationLoadException(visualization.Name, e);
                 }
 
                 created.Add(scene);

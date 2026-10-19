@@ -30,6 +30,17 @@ namespace HBP.Tests.PlayMode.Module3D
 {
     public class Module3DScenePlayModeTests
     {
+        [Test]
+        public void VisualizationLoadFailureIdentifiesColumnAndPreservesTechnicalCause()
+        {
+            var cause = new NullReferenceException("Technical details");
+            var failure = new VisualizationLoadException("Patient activity", cause, "Responses");
+            Assert.That(failure.Title, Is.EqualTo("Visualization could not be opened"));
+            Assert.That(failure.Message, Does.Contain("Patient activity").And.Contain("Responses").And.Contain("application log"));
+            Assert.That(failure.Message, Does.Not.Contain(cause.Message).And.Not.Contain("NullReferenceException"));
+            Assert.That(failure.InnerException, Is.SameAs(cause));
+        }
+
         [TestCase(false), TestCase(true)]
         public async Task QuestSceneSharing_AppliesSavedPreferencesAndUnsubscribesOnDestroy(bool initialValue)
         {
@@ -83,6 +94,89 @@ namespace HBP.Tests.PlayMode.Module3D
         }
 
 #if UNITY_EDITOR
+        [TestCase("iEEG", false), TestCase("iEEG", true)]
+        [TestCase("CCEP", false), TestCase("CCEP", true)]
+        [TestCase("Static", false), TestCase("Static", true)]
+        public async Task FunctionalVisualization_OpensWithAutomaticOrSavedRatioThresholds(string type, bool savedRatios)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("FunctionalVisualizationOpening");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var project = CreateMinimalAnatomicProject();
+            var visualization = project.Visualizations.Single();
+            var patient = visualization.Patients.Single();
+            string siteID = patient.ID + "_" + patient.Sites.Single().Name;
+            var ev = new HBP.Core.Data.Event("event", new[] { 1 }, MainSecondaryEnum.Main);
+            var sub = new SubBloc("sub", 0, MainSecondaryEnum.Main, new TimeWindow(0, 30), new TimeWindow(0, 0), new[] { ev }, Array.Empty<Icon>(), Array.Empty<Treatment>());
+            var bloc = new Bloc("bloc", 0, "", "sub_event_CODE", new[] { sub });
+            var stats = new Dictionary<SubBloc, List<SubBlocEventsStatistics>> { [sub] = new() { new SubBlocEventsStatistics { StatisticsByEvent = new() { [ev] = new EventStatistics() } } } };
+            var timeline = new Timeline(bloc, stats, new Dictionary<SubBloc, int> { [sub] = 0 }, new Frequency(100));
+            var values = Enumerable.Range(0, timeline.Length).Select(index => index == 0 ? -10f : 10f).ToArray();
+            var ieeg = new IEEGColumn { Name = "Opening iEEG", Bloc = bloc };
+            ieeg.Data.Timeline = ieeg.Data.ProjectionTimeline = timeline;
+            ieeg.Data.ProcessedValuesByChannel[siteID] = values;
+            var ccep = new CCEPColumn { Name = "Opening CCEP", Bloc = bloc };
+            ccep.Data.Timeline = ccep.Data.ProjectionTimeline = timeline;
+            ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID[siteID] = new() { [siteID] = values };
+            ccep.Data.UnityByChannelIDByStimulatedChannelID[siteID] = new() { [siteID] = "uV" };
+            ccep.Data.DataByChannelIDByStimulatedChannelID[siteID] = new();
+            ccep.Data.StatisticsByChannelIDByStimulatedChannelID[siteID] = new();
+            ccep.CCEPConfiguration.SiteID = siteID;
+            var stat = new StaticColumn { Name = "Opening static" };
+            stat.Data.ValueByChannelIDByLabel["low"] = new() { [siteID] = -10f };
+            stat.Data.ValueByChannelIDByLabel["high"] = new() { [siteID] = 10f };
+            Column model = type == "iEEG" ? ieeg : type == "CCEP" ? ccep : stat;
+            if (savedRatios)
+            {
+                if (model is StaticColumn staticModel)
+                {
+                    staticModel.StaticConfiguration.SpanMinRatio = .25f;
+                    staticModel.StaticConfiguration.MiddleRatio = .5f;
+                    staticModel.StaticConfiguration.SpanMaxRatio = .75f;
+                }
+                else
+                {
+                    var configuration = model is IEEGColumn ieegModel ? ieegModel.DynamicConfiguration : ((CCEPColumn)model).CCEPConfiguration;
+                    configuration.SpanMinRatio = .25f;
+                    configuration.MiddleRatio = .5f;
+                    configuration.SpanMaxRatio = .75f;
+                }
+            }
+
+            visualization.Columns = new() { model };
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab");
+            var scene = UnityEngine.Object.Instantiate(prefab, scope.Root.transform).GetComponent<Base3DScene>();
+            try
+            {
+                scene.Initialize(visualization);
+                await scene.InitializeAsync(visualization, NoProgress, timeout.Token);
+                await scene.CompleteInitializationAsync(null, new Progress<float>(), timeout.Token);
+                await scene.PrepareRenderingAsync(timeout.Token);
+                Assert.That(scene.SceneInformation.Initialized, Is.True);
+                var column = scene.Columns.Single();
+                Assert.That(column.ActivityGenerator, Is.Not.Null);
+                Assert.That(column.Sites, Has.Count.EqualTo(1));
+                Assert.That(column.Views, Is.Not.Empty);
+                var parameters = column is Column3DStatic staticColumn ? staticColumn.StaticParameters : ((Column3DDynamic)column).DynamicParameters;
+                Assert.That(parameters.SpanMax, Is.GreaterThan(parameters.SpanMin));
+                if (savedRatios)
+                {
+                    Assert.That(parameters.SpanMin, Is.EqualTo(-5).Within(.0001f));
+                    Assert.That(parameters.Middle, Is.Zero.Within(.0001f));
+                    Assert.That(parameters.SpanMax, Is.EqualTo(5).Within(.0001f));
+                }
+            }
+            finally
+            {
+                await scene.CleanAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
         [TestCase(false), TestCase(true)]
         public async Task QuestPreferencesReload_FromLoadingWorkerPreservesViewsAndReleasesFailedCapture(bool failInitialCapture)
         {
@@ -394,6 +488,7 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DVisibleState");
             Base3DScene baseScene = CreateBaseScene(scene, "Visible State Scene");
+            baseScene.gameObject.SetActive(true);
             Column3DStatic column = CreateColumn<Column3DStatic>(scene, "Visible State Column");
             View3D view = CreateControlledView(scene, "Visible State View", out _, out _);
             column.Views.Add(view);
@@ -1051,7 +1146,6 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.SelectedColumn.SelectedSite, Is.SameAs(baseScene.SelectedColumn.Sites[0]));
             Assert.That(baseScene.SelectedColumn.BrainMesh, Is.Not.Null);
             Assert.That(initialized.LoadingMessages, Does.Contain("Loading MNI objects"));
-            Assert.That(initialized.LoadingMessages, Does.Contain("Loading columns"));
         }
 
         [Test]

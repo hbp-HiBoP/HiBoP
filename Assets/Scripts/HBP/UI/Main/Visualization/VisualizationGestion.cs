@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Exceptions;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
@@ -68,7 +69,9 @@ namespace HBP.UI.Main
             }
             catch (System.Exception error)
             {
-                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Display could not start", HBP.Transfer.Transport.TransferError.Describe(error), "OK");
+                Debug.LogException(error);
+                var failure = error as Core.Exceptions.HBPException ?? new VisualizationLoadException(string.Join(", ", visualizations.Select(visualization => visualization.Name)), error);
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, failure.Title, failure.Message, "OK");
             }
 
             await UniTask.SwitchToMainThread();

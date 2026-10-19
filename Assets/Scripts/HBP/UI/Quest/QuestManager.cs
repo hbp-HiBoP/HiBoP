@@ -61,7 +61,11 @@ namespace HBP.Quest.Desktop
         private PairingSnapshot globals;
         private DesktopSessionPreferences sessionPreferences;
         private readonly SemaphoreSlim sessionOperations = new(1, 1);
+
         private long sessionGeneration;
+
+        // User intent survives a sleeping headset and replacement connection owners.
+        private readonly Dictionary<string, bool> atlasIntents = new(StringComparer.Ordinal);
         public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
 
         public async UniTask<string> ValidatePreferencesChangeAsync(NormalizationType requested)
@@ -91,16 +95,31 @@ namespace HBP.Quest.Desktop
 
         public async UniTask SetAtlasLoadedAsync(string id, bool loaded)
         {
-            await sessionOperations.WaitAsync(lifetime.Token);
+            if (loaded)
+            {
+                var result = await AtlasResources.LoadAsync(id, lifetime.Token);
+                if (!result.Succeeded) throw new InvalidOperationException(result.Error);
+            }
+            else AtlasResources.Unload(id);
+
+            atlasIntents[id] = loaded;
+            sessionPreferences?.RequestAtlasSynchronization(id);
+            OnChanged.Invoke();
+        }
+
+        public string GetAtlasSynchronizationStatus(string id) => AtlasResources.IsLoaded(id) ? IsPaired && SessionAtlasCatalog.Active && SessionAtlasCatalog.CanUse(id) ? "Loaded on Desktop and ready on Quest." : "Loaded and usable on Desktop. Quest synchronization is pending; wake the headset to resume automatically." + (IsPaired && sessionPreferences != null ? "\n" + sessionPreferences.GetAtlasState(id) : "") : "Not loaded on Desktop. Any requested Quest unload will synchronize when the headset is available.";
+
+        /// <summary>Explicit toolbar recovery requires confirmation in the current Quest session.</summary>
+        public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken cancellationToken)
+        {
+            using var stop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, cancellationToken);
+            await sessionOperations.WaitAsync(stop.Token);
             try
             {
-                if (IsPaired && sessionPreferences != null) await sessionPreferences.SetAtlasLoadedAsync(id, loaded);
-                else if (loaded)
-                {
-                    var result = await AtlasResources.LoadAsync(id, lifetime.Token);
-                    if (!result.Succeeded) throw new InvalidOperationException(result.Error);
-                }
-                else AtlasResources.Unload(id);
+                if (!IsPaired || sessionPreferences == null)
+                    throw new InvalidOperationException("Wake Quest and connect it from Desktop before retrying the atlas load.");
+                // The toolbar owns its error dialog, including connection loss and cancellation.
+                await sessionPreferences.EnsureAtlasReadyAsync(id, stop.Token, reportError: false);
             }
             finally
             {
@@ -115,9 +134,12 @@ namespace HBP.Quest.Desktop
             connected = false;
             LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
+            foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
             UpdateDiscoveryWatch();
-            SetStatus("Quest disconnected. Pending preference and atlas operations were abandoned.");
+            SetStatus("Quest unavailable or asleep. Desktop remains usable; atlases and visualizations will synchronize when Quest is awake.");
         }
+
+        private static bool IsQuestConnectionInterruption(Exception error) => error is TimeoutException or System.Net.Sockets.SocketException or OperationCanceledException || error.GetType() == typeof(IOException) || error is EndOfStreamException;
 
         private CancellationTokenSource operation;
         private readonly CancellationTokenSource lifetime = new();
@@ -158,7 +180,15 @@ namespace HBP.Quest.Desktop
                 _ = RunAsync(async token =>
                 {
                     bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
-                    if (!ready || NeedsSceneReconnection) await RestoreAsync(token);
+                    if (!ready || !IsPaired || sessionPreferences == null) await RestoreAsync(token);
+                    // A live app may still be loading a large atlas. Keep that owner and its
+                    // in-flight native request while scenes wait for its confirmation.
+                    else if (NeedsSceneReconnection)
+                    {
+                        await sessionPreferences.ReopenAsync(token);
+                        await RestoreScenesAsync(token);
+                    }
+                    else sessionPreferences?.RetryPendingAtlasUnloads();
                 }, true);
             }
         }
@@ -398,8 +428,9 @@ namespace HBP.Quest.Desktop
             SetStatus("Preparing Quest pairing");
             await UniTask.NextFrame(cancellationToken: token);
             globals ??= await PairingSnapshot.CaptureAsync(token, definitionsRevision: definitionsRevision);
+            foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
             sessionPreferences?.Dispose();
-            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
+            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences, atlasIntents, stop => QuestPairing.PingAsync(endpoint, pin, credential, stop));
             sessionPreferences = controls;
             controls.OnAtlasError.AddListener(message =>
             {
@@ -417,6 +448,8 @@ namespace HBP.Quest.Desktop
             try
             {
                 SetStatus("Applying shared preferences and definitions on Quest");
+                // TCP/USB can remain reachable while Unity is asleep. Probe the app before a long globals transfer.
+                await QuestPairing.PingAsync(endpoint, pin, credential, token);
                 bool installedGlobals = false;
                 using (PairingTiming.Measure("desktop.globals-resume"))
                     await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, async (stream, stop) =>
@@ -459,6 +492,13 @@ namespace HBP.Quest.Desktop
             }
             catch (Exception error)
             {
+                if (!token.IsCancellationRequested && IsQuestConnectionInterruption(error))
+                {
+                    reconciliationNeedsRetry = false;
+                    SessionConnectionLost();
+                    return;
+                }
+
                 reconciliationNeedsRetry = true;
                 LastOperationCancelled = error is OperationCanceledException || token.IsCancellationRequested;
                 LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);

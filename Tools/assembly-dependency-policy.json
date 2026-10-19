@@ -51,6 +51,7 @@
     "HBP.Quest.PlayModeTests -> HBP.Data.Runtime",
     "HBP.Quest.PlayModeTests -> HBP.Quest.Prototype.Tests",
     "HBP.Quest.PlayModeTests -> HBP.Quest.Runtime",
+    "HBP.Quest.PlayModeTests -> HBP.Sync.Scene",
     "HBP.Quest.PlayModeTests -> HBP.Theme.Runtime",
     "HBP.Quest.PlayModeTests -> HBP.Transfer.Anatomy.Contracts",
     "HBP.Quest.PlayModeTests -> HBP.Transfer.Anatomy.Delivery",

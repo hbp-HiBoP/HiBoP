@@ -375,6 +375,8 @@ namespace HBP.Transfer.Transport
                         Touch();
                         if (command == 12)
                         {
+                            // Application readiness, not just a surviving Android socket.
+                            if (activeGlobals != null) await activeGlobals(deadline.Token).ConfigureAwait(false);
                             await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
                             return;
                         }
@@ -417,6 +419,7 @@ namespace HBP.Transfer.Transport
                             {
                                 Interlocked.Decrement(ref receiving);
                             }
+
                             return;
                         }
 
@@ -650,7 +653,7 @@ namespace HBP.Transfer.Transport
                 await SessionControlCodec.WriteAsync(stream, SessionControlCodec.Encode(request), token).ConfigureAwait(false);
                 response = SessionControlCodec.DecodeResponse(await SessionControlCodec.ReadAsync(stream, token).ConfigureAwait(false));
                 if (response.OperationId != request.OperationId) throw new InvalidDataException("Session response identity mismatch.");
-            }).ConfigureAwait(false);
+            }, request.Kind == SessionControlKind.LoadAtlas ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(10)).ConfigureAwait(false);
             return response;
         }
 

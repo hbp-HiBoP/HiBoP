@@ -1807,7 +1807,15 @@ namespace HBP.Data.Module3D
             }
 
             column.SetRenderLayer(m_DesktopPresentation ? m_DesktopPresentation.GetColumnLayer(Columns.Count) : LayerMask.LayerToName(column.gameObject.layer));
-            column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
+            try
+            {
+                column.Initialize(Columns.Count, baseColumn, m_ImplantationManager.SelectedImplantation, m_DisplayedObjects.SitesPatientParent);
+            }
+            catch (Exception error) when (error is not HBPException && error is not OperationCanceledException)
+            {
+                throw new VisualizationLoadException(Visualization.Name, error, baseColumn.Name);
+            }
+
             Columns.Add(column);
             if (m_DesktopPresentation) m_DesktopPresentation.InitializeColumn(column);
         }

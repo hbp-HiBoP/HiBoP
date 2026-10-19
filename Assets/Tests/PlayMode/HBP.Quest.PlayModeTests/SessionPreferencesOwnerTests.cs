@@ -13,12 +13,470 @@ using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Transfer.Transport;
 using HBP.UI.Quest;
+using HBP.Sync.Scene;
 using NUnit.Framework;
 
 namespace HBP.Tests.Quest
 {
     public sealed class SessionPreferencesOwnerTests
     {
+        [TestCase(false), TestCase(true)]
+        public async Task SceneSessionReopenPreservesTheNativeAtlasLoadAndHandlesAnotherSleep(bool sleepsAgain)
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var entered = new TaskCompletionSource<SessionControlRequest>();
+            var finish = new TaskCompletionSource<SessionControlResponse>();
+            using var watchdog = timeout.Token.Register(() =>
+            {
+                entered.TrySetCanceled();
+                finish.TrySetCanceled();
+            });
+            DesktopSessionPreferences owner = null;
+            Task reopening = null;
+            int opens = 0, loads = 0, confirmations = 0, cancelledLoads = 0;
+            try
+            {
+                Assert.That((await AtlasResources.LoadAsync("mars", timeout.Token)).Succeeded, Is.True);
+                owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), async (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.Open) opens++;
+                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    if (request.Kind == SessionControlKind.LoadAtlas)
+                    {
+                        loads++;
+                        entered.TrySetResult(request);
+                        using var cancellation = token.Register(() =>
+                        {
+                            cancelledLoads++;
+                            finish.TrySetCanceled();
+                        });
+                        return await finish.Task;
+                    }
+
+                    return AtlasReply(request, inventoryState: AtlasLoadState.Unloaded);
+                });
+                await owner.StartAsync(timeout.Token);
+                var load = await entered.Task;
+                reopening = owner.ReopenAsync(timeout.Token).AsTask();
+                await UniTask.NextFrame(cancellationToken: timeout.Token);
+                Assert.That(reopening.IsCompleted, Is.False, "Reconnection must join a long native atlas load instead of disposing its owner.");
+                Assert.That(cancelledLoads, Is.Zero);
+                if (sleepsAgain) owner.Dispose();
+                else finish.SetResult(AtlasReply(load));
+                Exception failure = null;
+                try
+                {
+                    await reopening;
+                }
+                catch (Exception error)
+                {
+                    failure = error;
+                }
+
+                await AtlasInventoryWork(owner);
+                if (sleepsAgain) Assert.That(failure, Is.TypeOf<IOException>(), "Another sleep must remain an automatic connection retry.");
+                else
+                {
+                    Assert.That(failure, Is.Null);
+                    Assert.That(SessionAtlasCatalog.Active && SessionAtlasCatalog.CanUse("mars"), Is.True, "Reopening the same generation must preserve confirmed atlases.");
+                }
+
+                Assert.That(loads, Is.EqualTo(1));
+                Assert.That(opens, Is.EqualTo(sleepsAgain ? 1 : 2));
+                Assert.That(confirmations, Is.EqualTo(sleepsAgain ? 0 : 1));
+                Assert.That(AtlasResources.IsLoaded("mars"), Is.True);
+            }
+            finally
+            {
+                owner?.Dispose();
+                finish.TrySetCanceled();
+                if (owner != null) await AtlasInventoryWork(owner);
+                if (reopening != null)
+                    try
+                    {
+                        await reopening;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                AtlasResources.Unload("mars");
+            }
+        }
+
+        [TestCase("ibc", false, false), TestCase("difumo:64", false, false), TestCase("ibc", true, false), TestCase("ibc", true, true)]
+        public async Task DesktopAtlasCompletesBeforeQuestAndLateLoadCannotReverseUnload(string id, bool unloadBeforeWake, bool sceneOwnsLoad)
+        {
+            var previousIBC = Object3DManager.IBC;
+            var previousDiFuMo = Object3DManager.DiFuMo;
+            var previousMars = Object3DManager.MarsAtlas;
+            string previousPath = HBP.Core.Tools.ApplicationState.DataPath;
+            var path = typeof(HBP.Core.Tools.ApplicationState).GetProperty("DataPath");
+            var root = new UnityEngine.GameObject("Desktop first atlas session");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var intents = (Dictionary<string, bool>)manager.GetType().GetField("atlasIntents", flags).GetValue(manager);
+            var entered = new TaskCompletionSource<SessionControlRequest>();
+            var wake = new TaskCompletionSource<SessionControlResponse>();
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            using var watchdog = timeout.Token.Register(() =>
+            {
+                entered.TrySetCanceled();
+                wake.TrySetCanceled();
+            });
+            DesktopSessionPreferences owner = null;
+            Task sceneReadiness = null;
+            int loads = 0, confirmations = 0, unloads = 0, errors = 0;
+            var remoteState = AtlasLoadState.Unloaded;
+            try
+            {
+                path.SetValue(null, Path.GetFullPath("Assets/Data"));
+                Object3DManager.IBC = new IBCObjects();
+                Object3DManager.DiFuMo = new DiFuMoObjects();
+                Object3DManager.MarsAtlas = new MarsAtlas();
+
+                async Task<SessionControlResponse> Send(SessionControlRequest request, CancellationToken token)
+                {
+                    if (request.Kind == SessionControlKind.AtlasInventory)
+                        return new(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{\"" + id + "\":{\"State\":" + (int)remoteState + "}}}"));
+                    if (request.Kind == SessionControlKind.LoadAtlas)
+                    {
+                        loads++;
+                        entered.TrySetResult(request);
+                        // Deliberately deliver a stale reply even if Desktop has cancelled the old load.
+                        var reply = await wake.Task;
+                        remoteState = AtlasLoadState.Loaded;
+                        return reply;
+                    }
+
+                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    if (request.Kind == SessionControlKind.CommitUnload)
+                    {
+                        unloads++;
+                        remoteState = AtlasLoadState.Unloaded;
+                    }
+
+                    return AtlasReply(request);
+                }
+
+                owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), Send, atlasIntents: intents);
+                owner.OnAtlasError.AddListener(_ => errors++);
+                await owner.StartAsync(timeout.Token);
+                await AtlasInventoryWork(owner);
+                manager.GetType().GetField("sessionPreferences", flags).SetValue(manager, owner);
+                manager.GetType().GetField("connected", flags).SetValue(manager, true);
+                manager.GetType().GetField("credential", flags).SetValue(manager, new byte[32]);
+                await manager.SetAtlasLoadedAsync(id, true);
+                if (sceneOwnsLoad) sceneReadiness = owner.EnsureAtlasReadyAsync(id, timeout.Token).AsTask();
+                var request = await entered.Task;
+                Assert.That(AtlasResources.IsLoaded(id), Is.True);
+                Assert.That(wake.Task.IsCompleted, Is.False, "Desktop completion must not wait for the headset.");
+                Assert.DoesNotThrow(() => SessionAtlasCatalog.RequireLocal(id));
+                Assert.That(SessionAtlasCatalog.CanUse(id), Is.False, "Quest display still requires confirmation.");
+                Assert.That(manager.GetAtlasSynchronizationStatus(id), Does.Contain("usable on Desktop").And.Contain("pending"));
+                if (unloadBeforeWake) await manager.SetAtlasLoadedAsync(id, false);
+                wake.SetResult(AtlasReply(request));
+                if (sceneReadiness != null)
+                {
+                    Exception interrupted = null;
+                    try
+                    {
+                        await sceneReadiness;
+                    }
+                    catch (Exception error)
+                    {
+                        interrupted = error;
+                    }
+
+                    Assert.That(interrupted, Is.Not.Null, "The scene request must abandon its old Load when the user unloads locally.");
+                }
+
+                await AtlasInventoryWork(owner);
+                Assert.That(AtlasResources.IsLoaded(id), Is.EqualTo(!unloadBeforeWake));
+                Assert.That(remoteState, Is.EqualTo(unloadBeforeWake ? AtlasLoadState.Unloaded : AtlasLoadState.Loaded));
+                Assert.That(confirmations, Is.EqualTo(unloadBeforeWake ? 0 : 1));
+                Assert.That(unloads, Is.EqualTo(unloadBeforeWake ? 1 : 0));
+                Assert.That(loads, Is.EqualTo(1));
+                Assert.That(errors, Is.Zero);
+            }
+            finally
+            {
+                owner?.Dispose();
+                wake.TrySetCanceled();
+                if (sceneReadiness != null)
+                    try
+                    {
+                        await sceneReadiness;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                if (owner != null) await AtlasInventoryWork(owner);
+                UnityEngine.Object.DestroyImmediate(root);
+                Object3DManager.IBC.Clean();
+                Object3DManager.IBC = previousIBC;
+                Object3DManager.DiFuMo.Clean();
+                Object3DManager.DiFuMo = previousDiFuMo;
+                Object3DManager.MarsAtlas.Dispose();
+                Object3DManager.MarsAtlas = previousMars;
+                path.SetValue(null, previousPath);
+            }
+        }
+
+        [Test]
+        public async Task SleepingInventoryTimesOutReleasesItsGateAndWakeSynchronizesLoadedAtlas()
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            int disconnected = 0, errors = 0, loads = 0, confirmations = 0;
+            try
+            {
+                await AtlasResources.LoadAsync("mars", timeout.Token);
+                using var asleep = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), async (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.AtlasInventory) await Task.Delay(Timeout.Infinite, token);
+                    return AtlasReply(request);
+                }, controlTimeout: TimeSpan.FromMilliseconds(50));
+                asleep.OnConnectionLost.AddListener(() => disconnected++);
+                asleep.OnAtlasError.AddListener(_ => errors++);
+                await asleep.StartAsync(timeout.Token);
+                await AtlasInventoryWork(asleep);
+                Assert.That(disconnected, Is.EqualTo(1));
+                Assert.That(errors, Is.Zero);
+                Assert.That(asleep.AtlasStatus, Does.Contain("asleep"));
+                Assert.That(((SemaphoreSlim)typeof(DesktopSessionPreferences).GetField("m_Gate", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(asleep)).CurrentCount, Is.EqualTo(1));
+                using var awake = new DesktopSessionPreferences(Guid.NewGuid(), 2, new UserPreferences(), (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.LoadAtlas) loads++;
+                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    return Task.FromResult(AtlasReply(request, inventoryState: AtlasLoadState.Unloaded));
+                });
+                await awake.StartAsync(timeout.Token);
+                asleep.Dispose();
+                await AtlasInventoryWork(awake);
+                Assert.That(loads, Is.EqualTo(1));
+                Assert.That(confirmations, Is.EqualTo(1));
+                Assert.That(SessionAtlasCatalog.Active && SessionAtlasCatalog.CanUse("mars"), Is.True, "Disposing an old connection must not clear the new generation.");
+            }
+            finally
+            {
+                AtlasResources.Unload("mars");
+            }
+        }
+
+        [Test]
+        public async Task SleepingDuringLongAtlasLoadStopsRemoteWorkWithoutLosingDesktopSuccess()
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            int disconnected = 0, probes = 0, errors = 0;
+            try
+            {
+                await AtlasResources.LoadAsync("mars", timeout.Token);
+                using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), async (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.LoadAtlas) await Task.Delay(Timeout.Infinite, token);
+                    return AtlasReply(request, inventoryState: AtlasLoadState.Unloaded);
+                }, peerReady: token =>
+                {
+                    probes++;
+                    return Task.FromResult(false);
+                });
+                owner.OnConnectionLost.AddListener(() => disconnected++);
+                owner.OnAtlasError.AddListener(_ => errors++);
+                await owner.StartAsync(timeout.Token);
+                await AtlasInventoryWork(owner);
+                Assert.That(disconnected, Is.EqualTo(1));
+                Assert.That(probes, Is.EqualTo(1));
+                Assert.That(errors, Is.Zero);
+                Assert.That(AtlasResources.IsLoaded("mars"), Is.True);
+            }
+            finally
+            {
+                AtlasResources.Unload("mars");
+            }
+        }
+
+        [TestCase(false), TestCase(true)]
+        public async Task UnloadIntentSurvivesReconnectionAndRemoteInventoryCannotReloadDesktop(bool remoteInitiallyInUse)
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var intents = new Dictionary<string, bool> { ["mars"] = false };
+            int loads = 0, unloads = 0;
+            AtlasResources.Unload("mars");
+            using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 2, new UserPreferences(), (request, token) =>
+            {
+                if (request.Kind == SessionControlKind.LoadAtlas) loads++;
+                if (request.Kind == SessionControlKind.CommitUnload) unloads++;
+                return Task.FromResult(AtlasReply(request, failed: remoteInitiallyInUse && request.Kind == SessionControlKind.PrepareUnload, inventoryState: AtlasLoadState.Loaded));
+            }, atlasIntents: intents);
+            await owner.StartAsync(timeout.Token);
+            await AtlasInventoryWork(owner);
+            if (remoteInitiallyInUse)
+            {
+                Assert.That(unloads, Is.Zero, "Do not unload an atlas retained by the old Quest display.");
+                remoteInitiallyInUse = false;
+                owner.RetryPendingAtlasUnloads();
+                await AtlasInventoryWork(owner);
+            }
+
+            Assert.That(loads, Is.Zero);
+            Assert.That(unloads, Is.EqualTo(1));
+            Assert.That(AtlasResources.IsLoaded("mars"), Is.False);
+        }
+
+        [Test]
+        public async Task OldConfirmationCannotMakeReplacementSessionReady()
+        {
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            var entered = new TaskCompletionSource<SessionControlRequest>();
+            var late = new TaskCompletionSource<SessionControlResponse>();
+            using var watchdog = timeout.Token.Register(() =>
+            {
+                entered.TrySetCanceled();
+                late.TrySetCanceled();
+            });
+            DesktopSessionPreferences old = null, current = null;
+            try
+            {
+                await AtlasResources.LoadAsync("mars", timeout.Token);
+                old = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.ConfirmAtlas)
+                    {
+                        entered.TrySetResult(request);
+                        return late.Task;
+                    }
+
+                    return Task.FromResult(AtlasReply(request, inventoryState: AtlasLoadState.Loaded));
+                });
+                await old.StartAsync(timeout.Token);
+                var confirmation = await entered.Task;
+                old.Dispose();
+                current = new DesktopSessionPreferences(Guid.NewGuid(), 2, new UserPreferences(), async (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.AtlasInventory) await Task.Delay(Timeout.Infinite, token);
+                    return AtlasReply(request);
+                });
+                await current.StartAsync(timeout.Token);
+                late.SetResult(AtlasReply(confirmation));
+                await AtlasInventoryWork(old);
+                Assert.That(SessionAtlasCatalog.Active, Is.True);
+                Assert.That(SessionAtlasCatalog.CanUse("mars"), Is.False);
+            }
+            finally
+            {
+                old?.Dispose();
+                current?.Dispose();
+                late.TrySetCanceled();
+                if (old != null) await AtlasInventoryWork(old);
+                if (current != null) await AtlasInventoryWork(current);
+                AtlasResources.Unload("mars");
+            }
+        }
+
+        [TestCase(false), TestCase(true)]
+        public async Task ToolbarAtlasRecoveryRequiresConfirmationAndOwnsItsFailureDialog(bool failRemoteLoad)
+        {
+            var root = new UnityEngine.GameObject("Toolbar atlas recovery session");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = manager.GetType();
+            var previousAtlas = Object3DManager.MarsAtlas;
+            var pathProperty = typeof(HBP.Core.Tools.ApplicationState).GetProperty("DataPath");
+            string previousPath = HBP.Core.Tools.ApplicationState.DataPath;
+            Object3DManager.MarsAtlas = new MarsAtlas();
+            DesktopSessionPreferences owner = null;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            int loads = 0, confirmations = 0, errors = 0;
+            try
+            {
+                pathProperty.SetValue(null, Path.GetFullPath("Assets/Data"));
+                owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
+                {
+                    if (request.Kind == SessionControlKind.LoadAtlas) loads++;
+                    if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
+                    return Task.FromResult(AtlasReply(request, failRemoteLoad && request.Kind == SessionControlKind.LoadAtlas));
+                });
+                owner.OnAtlasError.AddListener(_ => errors++);
+                await owner.StartAsync(timeout.Token);
+                await AtlasInventoryWork(owner);
+                type.GetField("connected", flags).SetValue(manager, true);
+                type.GetField("credential", flags).SetValue(manager, new byte[32]);
+                type.GetField("sessionPreferences", flags).SetValue(manager, owner);
+                Exception failure = null;
+                try
+                {
+                    await manager.EnsureAtlasReadyAsync("mars", timeout.Token);
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+
+                Assert.That(errors, Is.Zero, "The toolbar must own the only error dialog.");
+                Assert.That(((SemaphoreSlim)type.GetField("sessionOperations", flags).GetValue(manager)).CurrentCount, Is.EqualTo(1));
+                if (failRemoteLoad)
+                {
+                    Assert.That(failure, Is.TypeOf<InvalidOperationException>());
+                    Assert.That(confirmations, Is.Zero);
+                    Assert.That(loads, Is.EqualTo(3));
+                }
+                else
+                {
+                    Assert.That(failure, Is.Null);
+                    Assert.That(loads, Is.EqualTo(1));
+                    Assert.That(confirmations, Is.EqualTo(1));
+                    await manager.EnsureAtlasReadyAsync("mars", timeout.Token);
+                    Assert.That(confirmations, Is.EqualTo(1), "A confirmed atlas must be reusable without another transfer.");
+                }
+            }
+            finally
+            {
+                owner?.Dispose();
+                UnityEngine.Object.DestroyImmediate(root);
+                AtlasResources.Unload("mars");
+                Object3DManager.MarsAtlas.Dispose();
+                Object3DManager.MarsAtlas = previousAtlas;
+                pathProperty.SetValue(null, previousPath);
+            }
+        }
+
+        [Test]
+        public async Task ToolbarAtlasRecoveryCanCancelWhilePairingOwnsTheSessionGate()
+        {
+            var root = new UnityEngine.GameObject("Cancelled atlas recovery session");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var gate = (SemaphoreSlim)manager.GetType().GetField("sessionOperations", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(manager);
+            using var stop = new CancellationTokenSource();
+            await gate.WaitAsync();
+            try
+            {
+                var work = manager.EnsureAtlasReadyAsync("mars", stop.Token).AsTask();
+                Assert.That(work.IsCompleted, Is.False);
+                stop.Cancel();
+                Exception failure = null;
+                try
+                {
+                    await work;
+                }
+                catch (Exception exception)
+                {
+                    failure = exception;
+                }
+
+                Assert.That(failure, Is.InstanceOf<OperationCanceledException>());
+                Assert.That(gate.CurrentCount, Is.Zero, "Cancellation must not release the pairing operation's gate.");
+            }
+            finally
+            {
+                gate.Release();
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase(false), TestCase(true)]
         public async Task ConnectionAttemptJoinsExistingInventoryBeforeTakingTheSessionGate(bool cancel)
         {
@@ -422,8 +880,8 @@ namespace HBP.Tests.Quest
                 await AtlasResources.LoadAsync("mars", stop.Token);
                 await AtlasInventoryWork(owner);
                 Assert.That(loads, Is.EqualTo(3));
-                Assert.That(errors.Count, Is.EqualTo(1));
-                Assert.That(errors[0], Does.Contain("mars").And.Contain("Temporary Quest failure"));
+                Assert.That(errors.Count, Is.EqualTo(background ? 0 : 1), "Automatic retries update status quietly; explicit actions own their failure dialog.");
+                Assert.That(owner.AtlasStatus, Does.Contain("mars").And.Contain("Temporary Quest failure"));
                 Assert.That(AtlasResources.IsLoaded("mars"), Is.True, "Keep the Desktop success after Quest exhaustion.");
             }
             finally

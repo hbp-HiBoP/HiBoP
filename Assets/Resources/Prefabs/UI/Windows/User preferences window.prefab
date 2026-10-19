@@ -1340,7 +1340,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Text: Enable simplified mesh during cuts to optimize cuting procress
   m_Image: {fileID: 0}
@@ -14964,7 +14964,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Text: Displays raw MRI cuts (improves precision but decreases rendering)
   m_Image: {fileID: 0}
@@ -17499,7 +17499,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Text: 
   m_Image: {fileID: 0}
@@ -20658,7 +20658,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: 
   m_Text: Displays raw MRI cuts (improves precision but decreases rendering)
   m_Image: {fileID: 0}
@@ -22491,7 +22491,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1768675388127139232}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &5776554095963258778 stripped
 RectTransform:
@@ -22505,12 +22509,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 420437655865011430}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 5995063953885595256}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &5995063953885595256 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 420437655865011430}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1768675388127139232
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5995063953885595256}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &469851965704672989
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26256,7 +26285,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 136964480478487714}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &4659517728808066665 stripped
 RectTransform:
@@ -26270,12 +26303,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 1537467061951974677}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 4877716226313512843}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4877716226313512843 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 1537467061951974677}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &136964480478487714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4877716226313512843}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &1550383160729260944
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29404,7 +29462,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9001494449589257006}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &8418796154925909590 stripped
 RectTransform:
@@ -29418,12 +29480,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 2389813767739741482}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 8632659143853260724}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8632659143853260724 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 2389813767739741482}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9001494449589257006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8632659143853260724}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &2550304454810172202
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31855,7 +31942,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3735754459655242490}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!114 &8707873946671422604 stripped
 MonoBehaviour:
@@ -31863,12 +31954,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 3435625444325318148}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 8740013628442047642}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &8740013628442047642 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 3435625444325318148}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3735754459655242490
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8740013628442047642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &8814120244515851640 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6196883312493958012, guid: 54e31903444ebc443b19b8368dcf92e5,
@@ -32526,7 +32642,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 333724566093584988}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &7294745220673378642 stripped
 RectTransform:
@@ -32534,13 +32654,38 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 3513903558687230510}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7360266756605681840 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 3513903558687230510}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &333724566093584988
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7360266756605681840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &7473365961655961766 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6302046694950781576, guid: 54e31903444ebc443b19b8368dcf92e5,
     type: 3}
   m_PrefabInstance: {fileID: 3513903558687230510}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 7360266756605681840}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
@@ -35307,7 +35452,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 370640067404777713}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!114 &6983802741564608329 stripped
 MonoBehaviour:
@@ -35315,12 +35464,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 4007690759777865153}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 7023683258994747231}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &7023683258994747231 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 4007690759777865153}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &370640067404777713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7023683258994747231}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &7089207913005407933 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6196883312493958012, guid: 54e31903444ebc443b19b8368dcf92e5,
@@ -38040,15 +38214,44 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4570489291856578724}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
+--- !u!1 &1458044566106230554 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 4817458502410888580}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4570489291856578724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1458044566106230554}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1562277310249674508 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6302046694950781576, guid: 54e31903444ebc443b19b8368dcf92e5,
     type: 3}
   m_PrefabInstance: {fileID: 4817458502410888580}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1458044566106230554}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
@@ -39456,7 +39659,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 497675025458781575}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!114 &1171648235604772424 stripped
 MonoBehaviour:
@@ -39464,12 +39671,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 5131809755686814912}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1283762278860680798}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1283762278860680798 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 5131809755686814912}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &497675025458781575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1283762278860680798}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &1353359462725277628 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6196883312493958012, guid: 54e31903444ebc443b19b8368dcf92e5,
@@ -40586,7 +40818,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7988844713243729626}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!114 &2023209488816465363 stripped
 MonoBehaviour:
@@ -40594,12 +40830,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 5433237103077861211}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2126177788359347653}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2126177788359347653 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 5433237103077861211}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7988844713243729626
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2126177788359347653}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &2204930732329153575 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6196883312493958012, guid: 54e31903444ebc443b19b8368dcf92e5,
@@ -43208,7 +43469,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2044189862226826212}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &963370511646668031 stripped
 RectTransform:
@@ -43216,13 +43481,38 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 6386479110695593859}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1028610579031854365 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 6386479110695593859}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2044189862226826212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1028610579031854365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &1140548693078959371 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6302046694950781576, guid: 54e31903444ebc443b19b8368dcf92e5,
     type: 3}
   m_PrefabInstance: {fileID: 6386479110695593859}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1028610579031854365}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
@@ -43359,7 +43649,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7011220954788950931}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &924146093165141323 stripped
 RectTransform:
@@ -43373,12 +43667,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 6425785044829457975}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 1138274114855920809}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1138274114855920809 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 6425785044829457975}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7011220954788950931
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138274114855920809}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &6473760372664328005
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -45107,7 +45426,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3026679664736764067}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &577347183068154709 stripped
 RectTransform:
@@ -45121,12 +45444,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 6772541645346183209}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 800490143549469367}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &800490143549469367 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 6772541645346183209}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3026679664736764067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 800490143549469367}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &6868850619095816324
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -49088,7 +49436,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8357180609308454268}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &4060679960243859489 stripped
 RectTransform:
@@ -49102,12 +49454,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 7900912859828085597}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 4270152794726451651}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &4270152794726451651 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 7900912859828085597}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8357180609308454268
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4270152794726451651}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1001 &7993036775079597235
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50413,7 +50790,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8666972596013779592}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!114 &2615768353283452305 stripped
 MonoBehaviour:
@@ -50421,12 +50802,37 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 8302470992238505753}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2728972828346795399}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &2728972828346795399 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 8302470992238505753}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8666972596013779592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2728972828346795399}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!224 &2794358135368973413 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6196883312493958012, guid: 54e31903444ebc443b19b8368dcf92e5,
@@ -50715,7 +51121,11 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3146054208087407067}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
 --- !u!224 &2426579784618898219 stripped
 RectTransform:
@@ -50723,13 +51133,38 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 8382098304546496599}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2500692731541867209 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 8382098304546496599}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3146054208087407067
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2500692731541867209}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2532834896499614431 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6302046694950781576, guid: 54e31903444ebc443b19b8368dcf92e5,
     type: 3}
   m_PrefabInstance: {fileID: 8382098304546496599}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2500692731541867209}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
@@ -53507,15 +53942,44 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3343033561975739358}
   m_SourcePrefab: {fileID: 100100000, guid: 54e31903444ebc443b19b8368dcf92e5, type: 3}
+--- !u!1 &2947657318534416226 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6261990527878671006, guid: 54e31903444ebc443b19b8368dcf92e5,
+    type: 3}
+  m_PrefabInstance: {fileID: 9083515822500130300}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3343033561975739358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2947657318534416226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
+  m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
+    when awake.
+  m_Image: {fileID: 0}
+  m_FollowMouse: 1
+  OnBeforeDisplayTooltip:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2988841592547569524 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6302046694950781576, guid: 54e31903444ebc443b19b8368dcf92e5,
     type: 3}
   m_PrefabInstance: {fileID: 9083515822500130300}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 2947657318534416226}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}

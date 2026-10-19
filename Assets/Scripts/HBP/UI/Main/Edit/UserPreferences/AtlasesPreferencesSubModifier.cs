@@ -7,6 +7,7 @@ using HBP.UI.Tools;
 using Cysharp.Threading.Tasks;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using HBP.Quest.Desktop;
 
 namespace HBP.UI.Main
@@ -75,6 +76,7 @@ namespace HBP.UI.Main
         [SerializeField] Button m_IBCWebsite;
         [SerializeField] Button m_DiFuMoWebsite;
         [SerializeField] Button m_LocalizersWebsite;
+        private readonly Dictionary<string, bool> m_PendingAtlasOperations = new(StringComparer.Ordinal);
 
         public override bool Interactable
         {
@@ -173,15 +175,15 @@ namespace HBP.UI.Main
 
         protected void Update()
         {
-            UpdateButtonStatus(AtlasResources.IsLoaded("mars"), AtlasResources.Status("mars").State == AtlasLoadState.Loading, m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("jubrain"), AtlasResources.Status("jubrain").State == AtlasLoadState.Loading, m_LoadJuBrain, m_LoadJuBrainThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("ibc"), AtlasResources.Status("ibc").State == AtlasLoadState.Loading, m_LoadIBC, m_LoadIBCThemeElement);
+            UpdateButtonStatus("mars", m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
+            UpdateButtonStatus("jubrain", m_LoadJuBrain, m_LoadJuBrainThemeElement);
+            UpdateButtonStatus("ibc", m_LoadIBC, m_LoadIBCThemeElement);
 
-            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:64"), AtlasResources.Status("difumo:64").State == AtlasLoadState.Loading, m_LoadDiFuMo64, m_LoadDiFuMo64ThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:128"), AtlasResources.Status("difumo:128").State == AtlasLoadState.Loading, m_LoadDiFuMo128, m_LoadDiFuMo128ThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:256"), AtlasResources.Status("difumo:256").State == AtlasLoadState.Loading, m_LoadDiFuMo256, m_LoadDiFuMo256ThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:512"), AtlasResources.Status("difumo:512").State == AtlasLoadState.Loading, m_LoadDiFuMo512, m_LoadDiFuMo512ThemeElement);
-            UpdateButtonStatus(AtlasResources.IsLoaded("difumo:1024"), AtlasResources.Status("difumo:1024").State == AtlasLoadState.Loading, m_LoadDiFuMo1024, m_LoadDiFuMo1024ThemeElement);
+            UpdateButtonStatus("difumo:64", m_LoadDiFuMo64, m_LoadDiFuMo64ThemeElement);
+            UpdateButtonStatus("difumo:128", m_LoadDiFuMo128, m_LoadDiFuMo128ThemeElement);
+            UpdateButtonStatus("difumo:256", m_LoadDiFuMo256, m_LoadDiFuMo256ThemeElement);
+            UpdateButtonStatus("difumo:512", m_LoadDiFuMo512, m_LoadDiFuMo512ThemeElement);
+            UpdateButtonStatus("difumo:1024", m_LoadDiFuMo1024, m_LoadDiFuMo1024ThemeElement);
 
             UpdateLocalizerButtonStatus("AUDI", m_LoadAUDI, m_LoadAUDIThemeElement);
             UpdateLocalizerButtonStatus("LEC1", m_LoadLEC1, m_LoadLEC1ThemeElement);
@@ -217,9 +219,12 @@ namespace HBP.UI.Main
 
         private async UniTask ToggleAtlasAsync(string id)
         {
+            if (m_PendingAtlasOperations.ContainsKey(id)) return;
+            bool load = !AtlasResources.IsLoaded(id);
+            // Disable duplicate clicks until the local native operation finishes.
+            m_PendingAtlasOperations.Add(id, load);
             try
             {
-                bool load = !AtlasResources.IsLoaded(id);
                 if (QuestManager.IsInitialized) await QuestManager.Instance.SetAtlasLoadedAsync(id, load);
                 else if (load)
                 {
@@ -234,17 +239,32 @@ namespace HBP.UI.Main
             {
                 await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, "Atlas operation failed", exception.Message, "OK");
             }
+            finally
+            {
+                m_PendingAtlasOperations.Remove(id);
+            }
         }
 
-        private void UpdateButtonStatus(bool loaded, bool loading, Button button, Theme.ThemeElement element)
+        private bool UpdatePendingButtonStatus(string id, Button button, Theme.ThemeElement element)
         {
-            if (loaded)
+            if (!m_PendingAtlasOperations.TryGetValue(id, out bool load)) return false;
+            button.interactable = false;
+            button.GetComponentInChildren<Text>().text = load ? "Loading..." : "Unloading...";
+            element.Set(m_LoadingState);
+            return true;
+        }
+
+        private void UpdateButtonStatus(string id, Button button, Theme.ThemeElement element)
+        {
+            UpdateAtlasTooltip(id, button);
+            if (UpdatePendingButtonStatus(id, button, element)) return;
+            if (AtlasResources.IsLoaded(id))
             {
                 button.interactable = m_Interactable;
                 button.GetComponentInChildren<Text>().text = "Unload";
                 element.Set(m_LoadedState);
             }
-            else if (loading)
+            else if (AtlasResources.Status(id).State == AtlasLoadState.Loading)
             {
                 button.interactable = false;
                 button.GetComponentInChildren<Text>().text = "Loading...";
@@ -260,6 +280,8 @@ namespace HBP.UI.Main
 
         private void UpdateLocalizerButtonStatus(string protocolName, Button button, Theme.ThemeElement element)
         {
+            UpdateAtlasTooltip("localizer:" + protocolName, button);
+            if (UpdatePendingButtonStatus("localizer:" + protocolName, button, element)) return;
             var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == protocolName);
             if (AtlasResources.Status("localizer:" + protocolName).State == AtlasLoadState.Loading)
             {
@@ -291,6 +313,12 @@ namespace HBP.UI.Main
                 button.GetComponentInChildren<Text>().text = "Not available";
                 element.Set(m_NotLoadedState);
             }
+        }
+
+        private static void UpdateAtlasTooltip(string id, Button button)
+        {
+            var tooltip = button.GetComponent<Tooltip>();
+            if (tooltip != null) tooltip.Text = QuestManager.IsInitialized ? QuestManager.Instance.GetAtlasSynchronizationStatus(id) : AtlasResources.IsLoaded(id) ? "Loaded and usable on Desktop." : "Load this atlas on Desktop.";
         }
 
         #endregion

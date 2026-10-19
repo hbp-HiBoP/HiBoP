@@ -1,6 +1,14 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using HBP.Core.Object3D;
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Enums;
+using HBP.Core.Tools;
+using HBP.Data.Module3D;
+using HBP.Quest.Desktop;
+using HBP.UI.Tools;
 
 namespace HBP.UI.Toolbar
 {
@@ -26,6 +34,7 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_DiFuMoToggle;
 
         [SerializeField] private Toggle m_LocalizersToggle;
+        private bool m_AtlasRecoveryPending;
 
         #endregion
 
@@ -36,36 +45,89 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void Initialize()
         {
-            m_IBCToggle.onValueChanged.AddListener((isOn) =>
+            BindToggle(m_IBCToggle, () => "ibc", value => SelectedScene.FMRIManager.DisplayIBCContrasts = value);
+            BindToggle(m_JubrainToggle, () => "jubrain", value => SelectedScene.AtlasManager.DisplayJuBrainAtlas = value);
+            BindToggle(m_MarsAtlasToggle, () => "mars", value => SelectedScene.AtlasManager.DisplayMarsAtlas = value);
+            BindToggle(m_DiFuMoToggle, () => "difumo:" + SelectedScene.FMRIManager.SelectedDiFuMoAtlas, value => SelectedScene.FMRIManager.DisplayDiFuMo = value);
+            BindToggle(m_LocalizersToggle, () => "localizer:" + SelectedScene.FMRIManager.SelectedLocalizersProtocol, value => SelectedScene.FMRIManager.DisplayLocalizers = value);
+        }
+
+        private void BindToggle(Toggle toggle, Func<string> atlasId, Action<bool> apply)
+        {
+            toggle.onValueChanged.AddListener(async visible =>
             {
                 if (ListenerLock) return;
-
-                SelectedScene.FMRIManager.DisplayIBCContrasts = isOn;
+                var scene = SelectedScene;
+                if (visible && !await EnsureAtlasReadyAsync(scene, atlasId(), toggle)) return;
+                if (scene != null && !scene.IsClosing && SelectedScene == scene)
+                {
+                    apply(visible);
+                    // Read back the accepted domain state (the selected mesh may have changed during recovery).
+                    bool wasLocked = ListenerLock;
+                    ListenerLock = true;
+                    try
+                    {
+                        UpdateStatus();
+                    }
+                    finally
+                    {
+                        ListenerLock = wasLocked;
+                    }
+                }
             });
-            m_JubrainToggle.onValueChanged.AddListener((isOn) =>
+        }
+
+        private async UniTask<bool> EnsureAtlasReadyAsync(Base3DScene scene, string id, Toggle toggle)
+        {
+            try
             {
-                if (ListenerLock) return;
-
-                SelectedScene.AtlasManager.DisplayJuBrainAtlas = isOn;
-            });
-            m_MarsAtlasToggle.onValueChanged.AddListener((isOn) =>
+                scene.EnsureAtlasCanBeUsed(id);
+                return true;
+            }
+            catch (InvalidOperationException)
             {
-                if (ListenerLock) return;
+                // Rejected domain changes are expected UI failures, not bug-report exceptions.
+                toggle.SetIsOnWithoutNotify(false);
+            }
 
-                SelectedScene.AtlasManager.DisplayMarsAtlas = isOn;
-            });
-            m_DiFuMoToggle.onValueChanged.AddListener((isOn) =>
+            if (m_AtlasRecoveryPending) return false;
+            m_AtlasRecoveryPending = true;
+            var lifetime = this.GetCancellationTokenOnDestroy();
+            string message = $"The atlas '{id}' is not ready on both Desktop and Quest. It must be loaded and confirmed on both devices before it can be displayed.\n\nWake Quest, keep HiBoP Quest open, then choose Retry on Quest to try loading and confirming it again.";
+            try
             {
-                if (ListenerLock) return;
-
-                SelectedScene.FMRIManager.DisplayDiFuMo = isOn;
-            });
-            m_LocalizersToggle.onValueChanged.AddListener((isOn) =>
+                int answer = await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Atlas not ready on both devices", message, lifetime, "Retry on Quest", "Cancel");
+                if (answer != 0 || scene == null || scene.IsClosing) return false;
+                using var timeout = CancellationTokenSource.CreateLinkedTokenSource(lifetime);
+                timeout.CancelAfter(TimeSpan.FromSeconds(30));
+                try
+                {
+                    if (!QuestManager.IsInitialized) throw new InvalidOperationException("Quest is not connected.");
+                    await LoadingManager.PresentAsync(async (progress, token) =>
+                    {
+                        progress(0, 0, new LoadingText("Reloading atlas on Quest: " + id));
+                        await QuestManager.Instance.EnsureAtlasReadyAsync(id, token);
+                        progress(1, 0, new LoadingText("Atlas ready on both devices"));
+                    }, timeout.Token);
+                    if (scene == null || scene.IsClosing || SelectedScene != scene) return false;
+                    scene.EnsureAtlasCanBeUsed(id);
+                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                    return true;
+                }
+                catch (Exception) when (!lifetime.IsCancellationRequested)
+                {
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Atlas reload did not complete", $"The atlas '{id}' could not be confirmed on both Desktop and Quest.\n\nWake Quest and check its connection in the Quest window, then try again. The atlas display has remained disabled.", lifetime, "OK");
+                    return false;
+                }
+            }
+            catch (OperationCanceledException) when (lifetime.IsCancellationRequested)
             {
-                if (ListenerLock) return;
-
-                SelectedScene.FMRIManager.DisplayLocalizers = isOn;
-            });
+                return false;
+            }
+            finally
+            {
+                m_AtlasRecoveryPending = false;
+            }
         }
 
         /// <summary>
