@@ -72,14 +72,6 @@ namespace HBP.UI.Main
             set { m_NeedDataset = value; }
         }
 
-        [SerializeField] private bool m_NeedPairedQuest;
-
-        public bool NeedPairedQuest
-        {
-            get { return m_NeedPairedQuest; }
-            set { m_NeedPairedQuest = value; }
-        }
-
         #endregion
     }
 }

@@ -28,6 +28,106 @@ namespace HBP.Tests.Quest
     {
         private const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
+        [TestCase(false), TestCase(true)]
+        public async Task DropWindowBlockerPolicyPreservesDefaultAndCleansUpOnDestruction(bool noBlocker)
+        {
+            var canvas = new GameObject("Drop window canvas", typeof(RectTransform), typeof(Canvas));
+            try
+            {
+                var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CustomUI/DropWindow.prefab");
+                var instance = UnityEngine.Object.Instantiate(prefab, canvas.transform);
+                var help = instance.GetComponent<DropWindow>();
+                help.NoBlocker = noBlocker;
+                help.Open();
+                help.Open();
+                var blockers = canvas.GetComponentsInChildren<BlockerButton>();
+                Assert.That(blockers.Length, Is.EqualTo(noBlocker ? 0 : 1), "Opening twice must not create duplicate blockers.");
+                if (noBlocker) help.ChangeWindowState();
+                else blockers[0].GetComponent<UnityEngine.UI.Button>().onClick.Invoke();
+                Assert.That(help.Window.activeSelf, Is.False);
+                await UniTask.NextFrame();
+                Assert.That(canvas.GetComponentsInChildren<BlockerButton>(), Is.Empty);
+                help.Open();
+                UnityEngine.Object.Destroy(instance);
+                await UniTask.NextFrame();
+                await UniTask.NextFrame();
+                Assert.That(canvas.GetComponentsInChildren<BlockerButton>(), Is.Empty, "Closing an owner must not leave a blocker in the canvas.");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(canvas);
+            }
+        }
+
+        [Test]
+        public void AutomaticModeAfterManualAddressAllowsLaterDiscoveryToSelectAQuest()
+        {
+            var root = new GameObject("Quest selection fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            try
+            {
+                manager.SelectManual("192.168.1.25");
+                manager.SelectAutomatic();
+                Assert.That(manager.IsManualSelection, Is.False);
+                Assert.That(manager.SelectedAddress, Is.Empty);
+                Assert.That(manager.SelectedId, Is.Null);
+                var device = new QuestDevice { Pin = new byte[32], Host = "192.168.1.30", Name = "Discovered Quest" };
+                typeof(QuestManager).GetMethod("Observe", Private).Invoke(manager, new object[] { device });
+                typeof(QuestManager).GetMethod("PublishPresence", Private).Invoke(manager, null);
+                Assert.That(manager.SelectedId, Is.EqualTo(device.Id));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void QuestWindowSelectionTargetsListedScenesAndRemovesClosingScenes()
+        {
+            var root = new GameObject("Quest window selection fixture");
+            root.SetActive(false);
+            var module = root.AddComponent<Module3DMain>();
+            var singleton = typeof(Singleton<Module3DMain>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            object previous = singleton.GetValue(null);
+            singleton.SetValue(null, module);
+            try
+            {
+                var a = root.AddComponent<Base3DScene>();
+                var b = root.AddComponent<Base3DScene>();
+                var first = new Visualization { Name = "First" };
+                var second = new Visualization { Name = "Second" };
+                typeof(Base3DScene).GetField("<Visualization>k__BackingField", Private).SetValue(a, first);
+                typeof(Base3DScene).GetField("<Visualization>k__BackingField", Private).SetValue(b, second);
+                typeof(Base3DScene).GetField("m_IsSelected", Private).SetValue(a, true);
+                var open = (IList)typeof(Module3DMain).GetField("m_Scenes", Private).GetValue(module);
+                open.Add(a);
+                open.Add(b);
+                var prefab = Resources.Load<GameObject>("Prefabs/UI/Windows/Quest window");
+                var window = UnityEngine.Object.Instantiate(prefab, root.transform).GetComponent<HBP.UI.Quest.DesktopQuestWindow>();
+                var type = window.GetType();
+                type.GetMethod("AddScene", Private).Invoke(window, new object[] { a });
+                type.GetMethod("AddScene", Private).Invoke(window, new object[] { b });
+                var list = window.GetComponentInChildren<HBP.UI.Main.VisualizationList>(true);
+                list.Select(second);
+                var selected = (Base3DScene[])type.GetMethod("SelectedScenes", Private).Invoke(window, null);
+                Assert.That(selected, Is.EqualTo(new[] { b }));
+                Assert.That(Module3DMain.SelectedScene, Is.SameAs(a), "Choosing a transfer must not select another desktop scene.");
+                list.Select(first);
+                Assert.That(((Base3DScene[])type.GetMethod("SelectedScenes", Private).Invoke(window, null)).Length, Is.EqualTo(2));
+                type.GetMethod("RemoveScene", Private).Invoke(window, new object[] { b });
+                Assert.That(open.Contains(b), Is.True, "OnRemoveScene is emitted before the collection changes.");
+                Assert.That(list.Objects, Is.EqualTo(new[] { first }));
+                Assert.That((Base3DScene[])type.GetMethod("SelectedScenes", Private).Invoke(window, null), Is.EqualTo(new[] { a }));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                singleton.SetValue(null, previous);
+            }
+        }
+
         private static void SetPairedContext(QuestManager manager)
         {
             var type = typeof(QuestManager);

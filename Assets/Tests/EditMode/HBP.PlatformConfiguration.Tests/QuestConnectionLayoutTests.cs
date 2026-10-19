@@ -16,7 +16,7 @@ namespace HBP.Tests.PlatformConfiguration
         [Test]
         public void SceneControls_UseNestedPrefabsAndSerializedOwners()
         {
-            var pairing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Pairing window.prefab").GetComponent<QuestPairingWindow>();
+            var pairing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab").GetComponent<DesktopQuestWindow>();
             Assert.That(pairing.GetComponentsInChildren<Toggle>(true).Any(candidate => candidate.name == "Synchronize visualizations"), Is.False);
             var preferences = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/User preferences window.prefab").GetComponent<UserPreferencesModifier>();
             var quest = (QuestPreferencesSubModifier)new SerializedObject(preferences).FindProperty("m_QuestPreferencesSubModifier").objectReferenceValue;
@@ -45,23 +45,104 @@ namespace HBP.Tests.PlatformConfiguration
         }
 
         [Test]
-        public void QuestMenu_UsesTwoWindows()
+        public void QuestWindow_IsAvailableFromEditAndUsesStandardNestedControls()
         {
             var menu = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/General/Main menu.prefab");
-            var manager = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Quest Manager.prefab");
-            Assert.That(manager.GetComponent<QuestManager>(), Is.Not.Null);
-            var quest = menu.GetComponentInChildren<QuestMenu>(true);
-            Assert.That(quest, Is.Not.Null);
-            Assert.That(quest.GetComponentsInChildren<MenuButton>(true).Length, Is.EqualTo(2));
-            var questMenu = new SerializedObject(quest);
-            var sendCondition = (InteractableConditions)questMenu.FindProperty("sendConditions").objectReferenceValue;
-            Assert.That(sendCondition.NeedPairedQuest, Is.True);
-            var pairWindow = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Pairing window.prefab").GetComponent<QuestPairingWindow>();
-            var sendWindow = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Send window.prefab").GetComponent<QuestSendWindow>();
-            Assert.That(pairWindow, Is.Not.Null);
-            Assert.That(sendWindow, Is.Not.Null);
-            foreach (var window in new Window[] { pairWindow, sendWindow })
-                Assert.That(window.GetComponentsInChildren<Button>(true).Any(button => Enumerable.Range(0, button.onClick.GetPersistentEventCount()).Any(index => button.onClick.GetPersistentTarget(index) == window && button.onClick.GetPersistentMethodName(index) == "Close")), Is.True);
+            var edit = menu.GetComponentInChildren<EditMenu>(true);
+            Assert.That(new SerializedObject(edit).FindProperty("m_OpenQuestButton").objectReferenceValue, Is.Not.Null);
+            Assert.That(menu.transform.Find("Left/Quest"), Is.Null);
+            var window = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab").GetComponent<DesktopQuestWindow>();
+            var data = new SerializedObject(window);
+            foreach (string field in new[] { "devices", "automatic", "manual", "automaticFields", "manualFields", "address", "pair", "pairLabel", "disconnect", "visualizations", "send", "m_OKButton" })
+                Assert.That(data.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            foreach (string field in new[] { "automatic", "manual" })
+            {
+                var toggle = (Toggle)data.FindProperty(field).objectReferenceValue;
+                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(toggle), Does.EndWith("Toggle with Text.prefab"));
+                Assert.That(toggle.group, Is.Not.Null);
+            }
+
+            var list = (VisualizationList)data.FindProperty("visualizations").objectReferenceValue;
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(list), Does.EndWith("Visualization list.prefab"));
+            Assert.That(list.Actionable, Is.False);
+            Assert.That(list.ItemSelection, Is.EqualTo(HBP.UI.Tools.Lists.SelectableList<HBP.Core.Data.Visualization>.SelectionType.MultipleItems));
+            var ok = (Button)data.FindProperty("m_OKButton").objectReferenceValue;
+            foreach (string field in new[] { "pair", "disconnect", "send" })
+                Assert.That(data.FindProperty(field).objectReferenceValue, Is.Not.SameAs(ok));
+            Assert.That(window.GetComponentsInChildren<Button>(true).Any(button => Enumerable.Range(0, button.onClick.GetPersistentEventCount()).Any(index => button.onClick.GetPersistentTarget(index) == window && button.onClick.GetPersistentMethodName(index) == "Close")), Is.True);
+            var help = window.GetComponentInChildren<DropWindow>(true);
+            Assert.That(help.NoBlocker, Is.True);
+            Assert.That(help.Window, Is.Not.Null);
+            Assert.That(help.Window.GetComponent<DropWindowAdjuster>(), Is.Null);
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Pairing window.prefab"), Is.Null);
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest Send window.prefab"), Is.Null);
+        }
+
+        [Test]
+        public void QuestWindow_ResizeBordersAndCompactPairingFieldsAreWired()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab");
+            var resizer = prefab.GetComponent<Resizer>();
+            Assert.That(resizer, Is.Not.Null);
+            Assert.That(resizer.enabled, Is.True);
+            var borders = prefab.transform.Find("Borders").GetComponentsInChildren<UnityEngine.EventSystems.EventTrigger>(true);
+            Assert.That(borders.Length, Is.EqualTo(8));
+            foreach (var border in borders)
+            {
+                Assert.That(border.enabled && border.gameObject.activeSelf, Is.True, border.name);
+                foreach (var entry in border.triggers)
+                {
+                    Assert.That(entry.callback.GetPersistentEventCount(), Is.EqualTo(1), border.name);
+                    Assert.That(entry.callback.GetPersistentTarget(0), Is.SameAs(resizer), border.name + ": " + entry.eventID);
+                }
+            }
+
+            var standard = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Elements/Content/Sections/Prefix.prefab").GetComponent<LayoutElement>();
+            foreach (var row in new[] { "Automatic", "Manual" })
+            {
+                var fields = prefab.transform.Find("Content/Fields/Pairing/" + row);
+                var prefix = fields.Find("Prefix");
+                Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(prefix), Does.EndWith("Prefix.prefab"));
+                Assert.That(fields.GetComponent<HorizontalLayoutGroup>(), Is.Not.Null);
+                Assert.That(prefix.GetSiblingIndex(), Is.Zero);
+                Assert.That(prefix.GetComponent<LayoutElement>().preferredWidth, Is.EqualTo(standard.preferredWidth));
+                var text = prefix.GetComponentInChildren<Text>();
+                Assert.That(text.text, Is.EqualTo(row == "Automatic" ? "Detected Quests" : "IP Address"));
+                Assert.That(text.preferredWidth, Is.LessThanOrEqualTo(standard.preferredWidth), row);
+            }
+
+            Assert.That(prefab.transform.Find("Content/Fields/Pairing/Status"), Is.Null);
+            Assert.That(prefab.transform.Find("Content/Fields/Send visualizations/Selection status"), Is.Null);
+            Assert.That(prefab.GetComponentInChildren<ListSelectionCounter>(true).gameObject.activeSelf, Is.False);
+            var list = prefab.GetComponentInChildren<VisualizationList>(true).transform;
+            Assert.That(list.parent.Find("Actions").GetSiblingIndex(), Is.EqualTo(list.GetSiblingIndex() + 1));
+        }
+
+        [Test]
+        public void DropWindow_NoBlockerKeepsHelpOpenAndFollowsItsParent()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/CustomUI/DropWindow.prefab");
+            Assert.That(prefab.GetComponent<DropWindow>().NoBlocker, Is.False, "Existing dropdowns keep their click-outside behavior.");
+            var root = Object.Instantiate(prefab);
+            try
+            {
+                var help = root.GetComponent<DropWindow>();
+                help.NoBlocker = true;
+                help.Window.SetActive(false);
+                help.Open();
+                help.Open();
+                Assert.That(help.Window.activeSelf, Is.True);
+                Assert.That(root.transform.childCount, Is.EqualTo(prefab.transform.childCount));
+                var before = help.Window.transform.position;
+                root.transform.position += Vector3.right * 50;
+                Assert.That(help.Window.transform.position.x, Is.EqualTo(before.x + 50));
+                help.Close();
+                Assert.That(help.Window.activeSelf, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
         }
 
         [Test]

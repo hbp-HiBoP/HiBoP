@@ -33,6 +33,8 @@ namespace HBP.Quest.Desktop
         public IReadOnlyList<string> DiscoveryMessages { get; private set; } = new[] { "Searching for Quests on USB and Wi-Fi..." };
         public string Status { get; private set; } = "Select a Quest to pair.";
         public string SelectedId { get; private set; }
+        public bool IsManualSelection => manualSelected;
+        public string SelectedAddress => manualSelected ? selectedEndpoint : string.Empty;
         public bool IsBusy => busy;
         public bool LastOperationCancelled { get; private set; }
         public bool CanRetryReconciliation => reconciliationNeedsRetry;
@@ -219,6 +221,23 @@ namespace HBP.Quest.Desktop
             selectedEndpoint = address?.Trim();
             selectedPin = null;
             SelectedId = null;
+            OnChanged.Invoke();
+        }
+
+        public void SelectAutomatic()
+        {
+            if (busy) return;
+            manualSelected = false;
+            var device = devices.FirstOrDefault(candidate => candidate.Id == SelectedId) ?? devices.FirstOrDefault();
+            if (device != null)
+            {
+                Select(device);
+                return;
+            }
+
+            SelectedId = null;
+            selectedEndpoint = null;
+            selectedPin = null;
             OnChanged.Invoke();
         }
 

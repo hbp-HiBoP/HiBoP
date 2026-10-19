@@ -9,6 +9,7 @@ namespace HBP.UI.Main
         #region Properties
 
         [SerializeField] private MenuButton m_OpenPreferencesButton;
+        [SerializeField] private MenuButton m_OpenQuestButton;
 
         public MenuButton OpenPreferencesButton
         {
@@ -39,6 +40,7 @@ namespace HBP.UI.Main
             m_OpenPreferencesButton.Initialize(this, OpenPreferences);
             m_OpenTagsManagerButton.Initialize(this, OpenTagsManager);
             m_OpenAliasesManagerButton.Initialize(this, OpenAliasesManager);
+            m_OpenQuestButton.Initialize(this, OpenQuest);
         }
 
         #endregion
@@ -48,6 +50,11 @@ namespace HBP.UI.Main
         public void OpenPreferences()
         {
             WindowsManager.OpenModifier(PersistentDataManager.UserPreferences, null);
+        }
+
+        public void OpenQuest()
+        {
+            WindowsManager.Open("Quest window", null);
         }
 
         public void OpenTagsManager()

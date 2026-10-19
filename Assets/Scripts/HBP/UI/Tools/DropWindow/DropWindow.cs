@@ -19,6 +19,8 @@ namespace HBP.UI.Tools
         /// </summary>
         public GameObject BlockerPrefab;
 
+        [Tooltip("Keep the window open when clicking outside it, without creating a blocker.")] public bool NoBlocker;
+
         /// <summary>
         /// Instantiated blocker
         /// </summary>
@@ -39,21 +41,32 @@ namespace HBP.UI.Tools
             Window.SetActive(false);
         }
 
+        private void OnDestroy()
+        {
+            if (m_Blocker != null) Destroy(m_Blocker);
+        }
+
         #endregion
 
         #region Public Methods
 
         public void Open()
         {
-            m_Blocker = Instantiate(BlockerPrefab, GetComponent<RectTransform>().GetTopmostCanvas().GetComponent<RectTransform>());
-            m_Blocker.GetComponent<Button>().onClick.AddListener(() => { ChangeWindowState(); });
+            if (Window.activeSelf) return;
+            if (!NoBlocker)
+            {
+                m_Blocker = Instantiate(BlockerPrefab, GetComponent<RectTransform>().GetTopmostCanvas().GetComponent<RectTransform>());
+                m_Blocker.GetComponent<Button>().onClick.AddListener(Close);
+            }
+
             Window.SetActive(true);
             OnChangeWindowState.Invoke(true);
         }
 
         public void Close()
         {
-            Destroy(m_Blocker);
+            if (m_Blocker != null) Destroy(m_Blocker);
+            m_Blocker = null;
             Window.SetActive(false);
             OnChangeWindowState.Invoke(false);
         }
