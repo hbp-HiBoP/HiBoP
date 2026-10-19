@@ -37,14 +37,14 @@ namespace HBP.UI.Quest
         private Task m_InventoryWork = Task.CompletedTask;
         private long m_AtlasChanges;
         private readonly HashSet<string> m_ConfirmedAtlases = new(StringComparer.Ordinal);
+        private readonly HashSet<string> m_InventoryRecoveryAttempted = new(StringComparer.Ordinal);
         public bool QuestHasSharedScene { get; private set; }
         public string Status { get; private set; } = "Quest session is connecting.";
         private readonly Dictionary<string, string> m_AtlasStates = new(StringComparer.Ordinal);
         public string AtlasStatus { get; private set; } = "Quest session is connecting.";
-        public string RetryAtlasId { get; private set; }
-        private bool m_RetryLoad;
         public UnityEvent OnChanged { get; } = new();
         public UnityEvent OnConnectionLost { get; } = new();
+        public UnityEvent<string> OnAtlasError { get; } = new();
 
         public DesktopSessionPreferences(Guid context, long generation, UserPreferences preferences, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> send, UserPreferences pairingPreferences = null)
         {
@@ -137,17 +137,18 @@ namespace HBP.UI.Quest
                             if (remote.State != AtlasLoadState.Loaded)
                             {
                                 if (m_ConfirmedAtlases.Remove(entry.Key)) SessionAtlasCatalog.Remove(entry.Key);
-                                if (remote.State == AtlasLoadState.Failed)
-                                {
-                                    RetryAtlasId = entry.Key;
-                                    m_RetryLoad = true;
-                                }
-
+                                if (remote.State == AtlasLoadState.Failed && m_InventoryRecoveryAttempted.Add(entry.Key))
+                                    await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token);
+                                m_Stop.Token.ThrowIfCancellationRequested();
                                 continue;
                             }
 
-                            if (local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(entry.Key))
-                                await ConfirmAsync(entry.Key);
+                            if (local.State == AtlasLoadState.Failed && m_InventoryRecoveryAttempted.Add(entry.Key))
+                                await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token);
+                            else if (local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(entry.Key) && m_InventoryRecoveryAttempted.Add(entry.Key))
+                                await SetAtlasLoadedCoreAsync(entry.Key, true, m_Stop.Token, confirmOnly: true);
+                            m_Stop.Token.ThrowIfCancellationRequested();
+                            if (m_ConfirmedAtlases.Contains(entry.Key)) m_InventoryRecoveryAttempted.Remove(entry.Key);
                         }
                     }
                     finally
@@ -228,11 +229,12 @@ namespace HBP.UI.Quest
             return FlushPreferencesAsync();
         }
 
-        public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken token = default)
+        public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken token = default, bool reportError = true)
         {
             if (SessionAtlasCatalog.CanUse(id)) return;
-            await SetAtlasLoadedAsync(id, true, token);
+            await SetAtlasLoadedAsync(id, true, token, reportError: reportError);
             token.ThrowIfCancellationRequested();
+            m_Stop.Token.ThrowIfCancellationRequested();
             if (!SessionAtlasCatalog.CanUse(id)) throw new InvalidOperationException(Status);
         }
 
@@ -260,102 +262,19 @@ namespace HBP.UI.Quest
             }
         }
 
-        public async UniTask SetAtlasLoadedAsync(string id, bool loaded, CancellationToken cancellationToken = default)
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded, CancellationToken cancellationToken = default, bool reportError = true)
         {
             using var operation = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token, cancellationToken);
             var token = operation.Token;
+            // Record intent before waiting: a stale inventory must not reverse a queued unload.
+            m_InventoryRecoveryAttempted.Add(id);
             try
             {
                 await m_Gate.WaitAsync(token);
                 try
                 {
-                    SetAtlasState(id, loaded ? "loading" : "checking usage", loaded ? "loading" : "checking usage");
-                    SetStatus(id + ": " + (loaded ? "loading on Desktop and Quest..." : "checking Desktop and Quest usage..."));
-                    if (loaded)
-                    {
-                        // Both loads start before either is awaited. Observe both results, including native completion.
-                        var localWork = AtlasResources.LoadAsync(id, token).AsTask();
-                        var remoteWork = SendAsync(Request(SessionControlKind.LoadAtlas, id), token).AsTask();
-                        AtlasLoadResult local;
-                        try
-                        {
-                            local = await localWork;
-                        }
-                        catch
-                        {
-                            operation.Cancel();
-                            try
-                            {
-                                await remoteWork;
-                            }
-                            catch (Exception)
-                            {
-                            }
-
-                            throw;
-                        }
-
-                        SessionControlResponse remote = null;
-                        try
-                        {
-                            remote = await remoteWork;
-                        }
-                        catch (Exception exception)
-                        {
-                            await FailedAsync(id + ": Desktop " + local.State + "; Quest: " + TransferError.Describe(exception), exception);
-                        }
-
-                        SetAtlasState(id, local.State.ToString(), remote == null ? "connection lost" : remote.Applied ? "loaded" : remote.Message);
-                        if (remote == null)
-                        {
-                            RetryAtlasId = id;
-                            m_RetryLoad = true;
-                            OnChanged.Invoke();
-                            return;
-                        }
-
-                        if (!local.Succeeded || !remote.Applied)
-                        {
-                            RetryAtlasId = id;
-                            m_RetryLoad = true;
-                            SetStatus(id + ": Desktop " + local.State + "; Quest " + (remote.Applied ? "loaded" : remote.Message) + "; " + local.Error);
-                            return;
-                        }
-
-                        await ConfirmAsync(id, token);
-                    }
-                    else
-                    {
-                        using var localReservation = ResourceRetention.ReserveRelease(id);
-                        var prepare = Request(SessionControlKind.PrepareUnload, id);
-                        var prepared = await SendAsync(prepare);
-                        if (!prepared.Applied) throw new InvalidOperationException("Quest: " + prepared.Message);
-                        bool committed = false;
-                        try
-                        {
-                            var result = await SendAsync(Request(SessionControlKind.CommitUnload, id, body: prepare.OperationId.ToByteArray()));
-                            if (!result.Applied) throw new InvalidOperationException("Quest: " + result.Message);
-                            AtlasResources.Unload(id, localReservation);
-                            SessionAtlasCatalog.Remove(id);
-                            committed = true;
-                        }
-                        finally
-                        {
-                            if (!committed && !m_Stop.IsCancellationRequested)
-                                try
-                                {
-                                    await SendAsync(Request(SessionControlKind.AbortUnload, id, body: prepare.OperationId.ToByteArray()));
-                                }
-                                catch (Exception)
-                                {
-                                    /* Remote reservation also expires. */
-                                }
-                        }
-                    }
-
-                    SetAtlasState(id, loaded ? "loaded" : "unloaded", loaded ? "loaded" : "unloaded");
-                    RetryAtlasId = null;
-                    SetStatus(id + ": Desktop and Quest " + (loaded ? "loaded." : "unloaded."));
+                    m_InventoryRecoveryAttempted.Add(id);
+                    await SetAtlasLoadedCoreAsync(id, loaded, token, reportError: reportError);
                 }
                 finally
                 {
@@ -365,16 +284,105 @@ namespace HBP.UI.Quest
             catch (OperationCanceledException)
             {
             }
-            catch (Exception exception)
+        }
+
+        // The caller owns m_Gate throughout recovery, including the delays between attempts.
+        private async UniTask SetAtlasLoadedCoreAsync(string id, bool loaded, CancellationToken token, bool confirmOnly = false, bool reportError = true)
+        {
+            for (int attempt = 0; attempt < 3; attempt++)
             {
-                RetryAtlasId = id;
-                m_RetryLoad = loaded;
-                SetAtlasState(id, AtlasResources.Status(id).State.ToString(), TransferError.Describe(exception));
-                await FailedAsync(id + ": " + TransferError.Describe(exception), exception);
+                token.ThrowIfCancellationRequested();
+                try
+                {
+                    if (confirmOnly && attempt == 0) await ConfirmAsync(id, token);
+                    else await ApplyAtlasLoadedAsync(id, loaded, token);
+                    SetAtlasState(id, loaded ? "loaded" : "unloaded", loaded ? "loaded" : "unloaded");
+                    SetStatus(id + ": Desktop and Quest " + (loaded ? "loaded." : "unloaded."));
+                    return;
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    await UniTask.SwitchToMainThread();
+                    token.ThrowIfCancellationRequested();
+                    if (attempt < 2)
+                    {
+                        await UniTask.Delay(500 * (attempt + 1), DelayType.Realtime, cancellationToken: token);
+                        continue;
+                    }
+
+                    string message = id + ": " + TransferError.Describe(exception);
+                    SetAtlasState(id, AtlasResources.Status(id).State.ToString(), TransferError.Describe(exception));
+                    if (reportError) OnAtlasError.Invoke(message);
+                    await FailedAsync(message, exception);
+                }
             }
         }
 
-        public UniTask RetryAtlasAsync() => RetryAtlasId == null ? UniTask.CompletedTask : SetAtlasLoadedAsync(RetryAtlasId, m_RetryLoad);
+        private async UniTask ApplyAtlasLoadedAsync(string id, bool loaded, CancellationToken token)
+        {
+            SetAtlasState(id, loaded ? "loading" : "checking usage", loaded ? "loading" : "checking usage");
+            SetStatus(id + ": " + (loaded ? "loading on Desktop and Quest..." : "checking Desktop and Quest usage..."));
+            if (loaded)
+            {
+                using var attempt = CancellationTokenSource.CreateLinkedTokenSource(token);
+                // Already loaded resources are reused; a partial success is never unloaded to retry.
+                var localWork = AtlasResources.LoadAsync(id, attempt.Token).AsTask();
+                var remoteWork = SendAsync(Request(SessionControlKind.LoadAtlas, id), attempt.Token).AsTask();
+                AtlasLoadResult local;
+                try
+                {
+                    local = await localWork;
+                }
+                catch
+                {
+                    attempt.Cancel();
+                    try
+                    {
+                        await remoteWork;
+                    }
+                    catch (Exception)
+                    {
+                    }
+
+                    throw;
+                }
+
+                var remote = await remoteWork;
+                token.ThrowIfCancellationRequested();
+                SetAtlasState(id, local.State.ToString(), remote.Applied ? "loaded" : remote.Message);
+                if (!local.Succeeded || !remote.Applied)
+                    throw new InvalidOperationException("Desktop " + local.State + "; Quest " + (remote.Applied ? "loaded" : remote.Message) + "; " + local.Error);
+                await ConfirmAsync(id, token);
+            }
+            else
+            {
+                using var localReservation = ResourceRetention.ReserveRelease(id);
+                var prepare = Request(SessionControlKind.PrepareUnload, id);
+                bool committed = false;
+                try
+                {
+                    var prepared = await SendAsync(prepare, token);
+                    if (!prepared.Applied) throw new InvalidOperationException("Quest: " + prepared.Message);
+                    var result = await SendAsync(Request(SessionControlKind.CommitUnload, id, body: prepare.OperationId.ToByteArray()), token);
+                    if (!result.Applied) throw new InvalidOperationException("Quest: " + result.Message);
+                    AtlasResources.Unload(id, localReservation);
+                    SessionAtlasCatalog.Remove(id);
+                    committed = true;
+                }
+                finally
+                {
+                    if (!committed && !m_Stop.IsCancellationRequested)
+                        try
+                        {
+                            await SendAsync(Request(SessionControlKind.AbortUnload, id, body: prepare.OperationId.ToByteArray()));
+                        }
+                        catch (Exception)
+                        {
+                            /* Remote reservation also expires. */
+                        }
+                }
+            }
+        }
 
         private async UniTask ConfirmAsync(string id, CancellationToken token = default)
         {

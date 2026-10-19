@@ -173,7 +173,7 @@ namespace HBP.Quest.Desktop
                     if (owner.sessionPreferences != null)
                     {
                         await owner.sessionPreferences.FlushPreferencesAsync().AsUniTask().AttachExternalCancellation(entry.PreparationStop.Token);
-                        foreach (string atlas in entry.Scene.RequiredAtlasIds()) await owner.sessionPreferences.EnsureAtlasReadyAsync(atlas, entry.PreparationStop.Token);
+                        foreach (string atlas in entry.Scene.RequiredAtlasIds()) await owner.sessionPreferences.EnsureAtlasReadyAsync(atlas, entry.PreparationStop.Token, reportError: false);
                     }
 
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
@@ -290,7 +290,7 @@ namespace HBP.Quest.Desktop
                             }, null);
                     }
 
-                    bool result = await owner.SendSceneCoreAsync(entry, true, stop.Token, Update, Validate);
+                    bool result = await owner.SendSceneCoreAsync(entry, true, stop.Token, Update, Validate, reportAtlasErrors: false);
                     await UniTask.SwitchToMainThread();
                     Validate();
                     return result;

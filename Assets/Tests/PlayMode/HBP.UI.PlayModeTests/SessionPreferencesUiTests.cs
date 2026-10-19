@@ -13,7 +13,7 @@ namespace HBP.Tests.PlayMode.UI
     public sealed class SessionPreferencesUiTests
     {
         [Test]
-        public void AuthoredPreferencesControlsKeepNormalizationInDraftAndWireAtlasFeedback()
+        public void AuthoredPreferencesControlsKeepNormalizationInDraftWithoutQuestAtlasControls()
         {
             var prefab = Resources.Load<GameObject>("Prefabs/UI/Windows/User preferences window");
             Assert.That(prefab, Is.Not.Null);
@@ -27,12 +27,9 @@ namespace HBP.Tests.PlayMode.UI
             {
                 var atlas = root.GetComponentInChildren<AtlasesPreferencesSubModifier>(true);
                 var flags = BindingFlags.Instance | BindingFlags.NonPublic;
-                var text = (Text)typeof(AtlasesPreferencesSubModifier).GetField("m_SessionAtlasStatus", flags).GetValue(atlas);
-                var retry = (Button)typeof(AtlasesPreferencesSubModifier).GetField("m_RetryQuestAtlas", flags).GetValue(atlas);
-                Assert.That(text, Is.Not.Null);
-                Assert.That(retry, Is.Not.Null);
-                Assert.That(text.transform.IsChildOf(root.transform), Is.True);
-                Assert.That(retry.transform.IsChildOf(root.transform), Is.True);
+                Assert.That(atlas, Is.Not.Null);
+                foreach (var child in atlas.GetComponentsInChildren<Transform>(true))
+                    Assert.That(child.name, Is.Not.EqualTo("Quest Atlas Retry").And.Not.EqualTo("Session Atlas Status"));
                 var eeg = root.GetComponentInChildren<EEGPreferencesSubModifier>(true);
                 eeg.Object = new EEGPreferences();
                 var dropdown = (Dropdown)typeof(EEGPreferencesSubModifier).GetField("m_EEGNormalizationDropdown", flags).GetValue(eeg);

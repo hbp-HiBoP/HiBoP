@@ -76,9 +76,6 @@ namespace HBP.UI.Main
         [SerializeField] Button m_DiFuMoWebsite;
         [SerializeField] Button m_LocalizersWebsite;
 
-        [SerializeField] private Text m_SessionAtlasStatus;
-        [SerializeField] private Button m_RetryQuestAtlas;
-
         public override bool Interactable
         {
             get { return base.Interactable; }
@@ -163,13 +160,6 @@ namespace HBP.UI.Main
             m_LoadMVEB.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MVEB"));
             m_LoadMVIS.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:MVIS"));
             m_LoadVISU.onClick.AddListener(async () => await ToggleAtlasAsync("localizer:VISU"));
-            if (m_RetryQuestAtlas != null)
-                m_RetryQuestAtlas.onClick.AddListener(async () =>
-                {
-                    if (QuestManager.IsInitialized) await QuestManager.Instance.RetryAtlasAsync();
-                    Module3DMain.OnRequestUpdateInToolbar.Invoke();
-                });
-
             m_MarsAtlasWebsite.onClick.AddListener(() => Application.OpenURL(@"https://meca-brain.org/software/marsatlas/"));
             m_JuBrainWebsite.onClick.AddListener(() => Application.OpenURL(@"https://julich-brain-atlas.de/"));
             m_IBCWebsite.onClick.AddListener(() => Application.OpenURL(@"https://individual-brain-charting.github.io/docs/"));
@@ -183,19 +173,6 @@ namespace HBP.UI.Main
 
         protected void Update()
         {
-            if (m_SessionAtlasStatus != null)
-            {
-                string status = QuestManager.IsInitialized ? QuestManager.Instance.PreferencesSyncStatus : "Atlas actions are local.";
-                if (m_SessionAtlasStatus.text != status)
-                {
-                    m_SessionAtlasStatus.text = status;
-                    var layout = m_SessionAtlasStatus.GetComponentInParent<LayoutElement>();
-                    if (layout != null) layout.preferredHeight = Math.Max(96, m_SessionAtlasStatus.preferredHeight + 16);
-                }
-            }
-
-            if (m_RetryQuestAtlas != null) m_RetryQuestAtlas.interactable = QuestManager.IsInitialized && QuestManager.Instance.CanRetryAtlas;
-
             UpdateButtonStatus(AtlasResources.IsLoaded("mars"), AtlasResources.Status("mars").State == AtlasLoadState.Loading, m_LoadMarsAtlas, m_LoadMarsAtlasThemeElement);
             UpdateButtonStatus(AtlasResources.IsLoaded("jubrain"), AtlasResources.Status("jubrain").State == AtlasLoadState.Loading, m_LoadJuBrain, m_LoadJuBrainThemeElement);
             UpdateButtonStatus(AtlasResources.IsLoaded("ibc"), AtlasResources.Status("ibc").State == AtlasLoadState.Loading, m_LoadIBC, m_LoadIBCThemeElement);

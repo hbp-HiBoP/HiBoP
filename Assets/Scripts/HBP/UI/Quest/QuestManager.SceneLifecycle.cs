@@ -157,7 +157,7 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null)
+        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null, bool reportAtlasErrors = true)
         {
             using var preparation = PairingTiming.Measure("desktop.scene-publication-total");
             try
@@ -169,7 +169,7 @@ namespace HBP.Quest.Desktop
                 {
                     using var preferences = PairingTiming.Measure("desktop.scene-preferences-and-atlas");
                     await sessionPreferences.FlushPreferencesAsync().AsUniTask().AttachExternalCancellation(token);
-                    foreach (string atlas in entry.Scene.RequiredAtlasIds()) await sessionPreferences.EnsureAtlasReadyAsync(atlas, token);
+                    foreach (string atlas in entry.Scene.RequiredAtlasIds()) await sessionPreferences.EnsureAtlasReadyAsync(atlas, token, reportError: reportAtlasErrors);
                 }
 
                 await UniTask.SwitchToMainThread(token);

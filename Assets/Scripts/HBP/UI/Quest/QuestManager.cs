@@ -62,8 +62,6 @@ namespace HBP.Quest.Desktop
         private DesktopSessionPreferences sessionPreferences;
         private readonly SemaphoreSlim sessionOperations = new(1, 1);
         private long sessionGeneration;
-        public string PreferencesSyncStatus => IsPaired ? sessionPreferences?.AtlasStatus ?? "Quest session is connecting." : "Quest disconnected. Atlas actions are local.";
-        public bool CanRetryAtlas => IsPaired && sessionPreferences?.RetryAtlasId != null;
         public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
 
         public async UniTask<string> ValidatePreferencesChangeAsync(NormalizationType requested)
@@ -103,20 +101,6 @@ namespace HBP.Quest.Desktop
                     if (!result.Succeeded) throw new InvalidOperationException(result.Error);
                 }
                 else AtlasResources.Unload(id);
-            }
-            finally
-            {
-                await UniTask.SwitchToMainThread();
-                sessionOperations.Release();
-            }
-        }
-
-        public async UniTask RetryAtlasAsync()
-        {
-            await sessionOperations.WaitAsync(lifetime.Token);
-            try
-            {
-                if (sessionPreferences != null) await sessionPreferences.RetryAtlasAsync();
             }
             finally
             {
@@ -417,6 +401,11 @@ namespace HBP.Quest.Desktop
             sessionPreferences?.Dispose();
             var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences);
             sessionPreferences = controls;
+            controls.OnAtlasError.AddListener(message =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls) && !lifetime.IsCancellationRequested)
+                    DialogBoxManager.Open(DialogBoxType.Error, "Atlas operation failed", message, "OK");
+            });
             controls.OnChanged.AddListener(() =>
             {
                 if (ReferenceEquals(sessionPreferences, controls)) OnChanged.Invoke();
