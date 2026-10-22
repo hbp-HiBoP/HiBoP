@@ -248,12 +248,12 @@ namespace HBP.Data.Module3D
             if (binCount <= 0)
                 throw new System.ArgumentOutOfRangeException(nameof(binCount));
             int[] bins = new int[binCount];
-            float difference = maximum - minimum;
+            double difference = (double)maximum - minimum;
             if (difference == 0f)
             {
                 minimum -= 1f;
                 maximum += 1f;
-                difference = maximum - minimum;
+                difference = (double)maximum - minimum;
             }
 
             for (int site = 0; site < Sites.Count; ++site)
@@ -263,8 +263,8 @@ namespace HBP.Data.Module3D
                 float[] values = ActivityValuesBySiteID[site];
                 for (int index = 0; index < values.Length; ++index)
                 {
-                    float coefficient = Mathf.Abs((values[index] - minimum) / difference);
-                    int bin = Mathf.Clamp((int)(coefficient * (binCount - 1)), 0, binCount - 1);
+                    double coefficient = System.Math.Max(0.0, System.Math.Min(1.0, ((double)values[index] - minimum) / difference));
+                    int bin = Mathf.Clamp((int)(coefficient * binCount), 0, binCount - 1);
                     bins[bin]++;
                 }
             }

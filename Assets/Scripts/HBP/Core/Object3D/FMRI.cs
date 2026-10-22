@@ -19,6 +19,7 @@ namespace HBP.Core.Object3D
         private readonly string m_File = "";
         private AsyncLazy m_LoadWork;
         private readonly string m_MaskFile = "";
+        private readonly bool m_ExcludeZeroFromHistogram;
         public string SourceFile => m_File;
         public string MaskFile => m_MaskFile;
         public string SourceHash { get; private set; }
@@ -51,11 +52,12 @@ namespace HBP.Core.Object3D
         {
         }
 
-        public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true)
+        public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true, bool excludeZeroFromHistogram = false)
         {
             Name = name;
             m_File = file;
             m_MaskFile = maskFile;
+            m_ExcludeZeroFromHistogram = excludeZeroFromHistogram;
             if (loadInBackground)
                 LoadAsync().Forget();
         }
@@ -91,7 +93,7 @@ namespace HBP.Core.Object3D
                 }
 
                 ExtremeValues = nifti.ExtremeValues;
-                HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
+                HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount, excludeMinimum: true, excludeZero: m_ExcludeZeroFromHistogram);
                 if (nifti.NumberOfVolumes > 0)
                 {
                     StartTime = nifti.StartTime;

@@ -36,7 +36,7 @@ namespace HBP.Core.Object3D
         {
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
-            FMRI = new FMRI("IBC", file, loadInBackground: loadInBackground);
+            FMRI = new FMRI("IBC", file, loadInBackground: loadInBackground, excludeZeroFromHistogram: true);
             Information = new IBCInformation(csvFile);
         }
 

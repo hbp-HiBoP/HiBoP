@@ -633,6 +633,69 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         [Category("NativeDll")]
         [Category("HbpCoreOnly")]
+        public void HbpCoreHistograms_ExplicitMinimumFilterPreservesCountsAndCacheIsolation()
+        {
+            using NIFTI nifti = new();
+            Assert.That(nifti.Load(NativePath("Nifti", "mri_t1.nii")), Is.True);
+            int[] full = nifti.GetHistogramBins(50);
+            int[] filtered = nifti.GetHistogramBins(50, excludeMinimum: true);
+            Assert.That(full.Sum(), Is.EqualTo(125));
+            Assert.That(filtered.Sum(), Is.EqualTo(124));
+            Assert.That(filtered[0], Is.EqualTo(full[0] - 1), "Retain nonminimum intensities within the first bin.");
+            Assert.That(filtered.Skip(1), Is.EqualTo(full.Skip(1)));
+            filtered[0] = -1;
+            Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true)[0], Is.EqualTo(full[0] - 1), "Returned arrays must not mutate the cache.");
+            Assert.That(nifti.GetHistogramBins(50), Is.EqualTo(full), "The filter is part of the cache key.");
+            using Volume volume = nifti.ExtractVolume(0);
+            Assert.That(volume.GetHistogramBins(50), Is.EqualTo(full));
+            Assert.That(volume.GetHistogramBins(50, excludeMinimum: true).Sum(), Is.EqualTo(124));
+            Assert.That(nifti.Load(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+            Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true).Sum(), Is.EqualTo(124));
+        }
+
+        [TestCase(false, 124)]
+        [TestCase(true, 3)]
+        public async System.Threading.Tasks.Task FmriHistogram_ZeroExclusionIsOptInAndRetainsNearbyValues(bool excludeZero, int expectedCount)
+        {
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("signed-histogram.nii");
+            byte[] fixture = File.ReadAllBytes(NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)BitConverter.ToSingle(fixture, 108);
+            for (int i = 0; i < 125; ++i)
+            {
+                float value = i switch { 0 => -5, 1 => -0.001f, 2 => 0.001f, 3 => 5, _ => 0 };
+                Buffer.BlockCopy(BitConverter.GetBytes(value), 0, fixture, offset + 4 * i, 4);
+            }
+
+            File.WriteAllBytes(path, fixture);
+            using (NIFTI nifti = new())
+            {
+                Assert.That(nifti.Load(path), Is.True);
+                Assert.That(nifti.GetHistogramBins(50).Sum(), Is.EqualTo(125));
+                Assert.That(nifti.GetHistogramBins(50, excludeZero: true).Sum(), Is.EqualTo(4));
+                Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true, excludeZero: true).Sum(), Is.EqualTo(3));
+                Assert.That(nifti.GetHistogramBins(50).Sum(), Is.EqualTo(125), "Filter changes must invalidate the histogram cache.");
+            }
+
+            var fmri = new Core.Object3D.FMRI("histogram", path, loadInBackground: false, excludeZeroFromHistogram: excludeZero);
+            try
+            {
+                await fmri.LoadAsync();
+                Assert.That(fmri.HistogramBins.Sum(), Is.EqualTo(expectedCount));
+                Assert.That(fmri.HistogramBins[24], Is.EqualTo(1), "Retain the small negative nonzero value.");
+                if (excludeZero) Assert.That(fmri.HistogramBins[25], Is.EqualTo(1), "Retain the small positive nonzero value in the zero interval.");
+                Assert.That(fmri.HistogramBins[49], Is.EqualTo(1), "Include the maximum in the last regular class.");
+            }
+            finally
+            {
+                fmri.Clean();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreSurface_CreatesUnityMeshFromBuffers_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))

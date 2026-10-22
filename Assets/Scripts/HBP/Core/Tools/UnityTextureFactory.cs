@@ -95,28 +95,29 @@ namespace HBP.Core.Tools
             return texture;
         }
 
-        public static Texture2D GenerateDistributionHistogram(int[] bins, int height, int width, bool withGreyArea = true)
+        public static Texture2D GenerateDistributionHistogram(int[] bins, int height, int width, bool withGreyArea = true, float greyAreaMin = 0.0f, float greyAreaMax = 1.0f)
         {
             if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
             if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
 
             Texture2D texture = CreateTexture(width, height, FilterMode.Point);
-            UpdateDistributionHistogram(texture, bins, height, width, withGreyArea);
+            UpdateDistributionHistogram(texture, bins, height, width, withGreyArea, greyAreaMin, greyAreaMax);
             return texture;
         }
 
-        public static void UpdateDistributionHistogram(Texture2D texture, int[] bins, int height, int width, bool withGreyArea = true)
+        public static void UpdateDistributionHistogram(Texture2D texture, int[] bins, int height, int width, bool withGreyArea = true, float greyAreaMin = 0.0f, float greyAreaMax = 1.0f)
         {
             if (texture == null) throw new ArgumentNullException(nameof(texture));
             if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
             if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
 
-            if (texture.width != width || texture.height != height)
+            // Apply(false) only uploads level zero. UI minification must not sample uninitialized mipmaps.
+            if (texture.width != width || texture.height != height || texture.mipmapCount > 1)
             {
-                texture.Reinitialize(width, height);
+                texture.Reinitialize(width, height, TextureFormat.RGBA32, false);
             }
 
-            texture.SetPixels32(GenerateDistributionHistogramPixels(bins, height, width, withGreyArea));
+            texture.SetPixels32(GenerateDistributionHistogramPixels(bins, height, width, withGreyArea, greyAreaMin, greyAreaMax));
             texture.Apply(false, false);
         }
 
@@ -136,9 +137,9 @@ namespace HBP.Core.Tools
             if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
             if (width <= 0) throw new ArgumentOutOfRangeException(nameof(width));
 
-            if (texture.width != width || texture.height != height)
+            if (texture.width != width || texture.height != height || texture.mipmapCount > 1)
             {
-                texture.Reinitialize(width, height);
+                texture.Reinitialize(width, height, TextureFormat.RGBA32, false);
             }
 
             Color32[] pixels = new Color32[width * height];
@@ -168,18 +169,18 @@ namespace HBP.Core.Tools
 
             int[] bins = new int[HistogramBinCount];
             ComputeDataRange(data, ref min, ref max);
-            float diff = max - min;
+            double diff = (double)max - min;
             if (diff == 0.0f)
             {
                 min -= 1.0f;
                 max += 1.0f;
-                diff = max - min;
+                diff = (double)max - min;
             }
 
             for (int i = 0; i < data.Length; i++)
             {
-                float coeff = Mathf.Abs((data[i] - min) / diff);
-                int bin = Mathf.Clamp((int)(coeff * (HistogramBinCount - 1)), 0, HistogramBinCount - 1);
+                double coeff = Math.Max(0.0, Math.Min(1.0, ((double)data[i] - min) / diff));
+                int bin = Mathf.Clamp((int)(coeff * HistogramBinCount), 0, HistogramBinCount - 1);
                 bins[bin]++;
             }
 
@@ -187,7 +188,7 @@ namespace HBP.Core.Tools
             return pixels;
         }
 
-        public static Color32[] GenerateDistributionHistogramPixels(int[] bins, int height, int width, bool withGreyArea = true)
+        public static Color32[] GenerateDistributionHistogramPixels(int[] bins, int height, int width, bool withGreyArea = true, float greyAreaMin = 0.0f, float greyAreaMax = 1.0f)
         {
             if (bins == null) throw new ArgumentNullException(nameof(bins));
             if (height <= 0) throw new ArgumentOutOfRangeException(nameof(height));
@@ -198,7 +199,7 @@ namespace HBP.Core.Tools
 
             if (withGreyArea)
             {
-                FillVerticalBand(pixels, width, height, 0.0f, 1.0f, HistogramGreyArea);
+                FillVerticalBand(pixels, width, height, greyAreaMin, greyAreaMax, HistogramGreyArea);
             }
 
             DrawHistogramBins(pixels, width, height, bins);
@@ -218,11 +219,12 @@ namespace HBP.Core.Tools
                 return;
             }
 
-            int previousX = 0;
+            int previousX = Mathf.RoundToInt(0.5f * (width - 1) / bins.Length);
             int previousY = HistogramY(bins[0], maxBin, height);
+            DrawLine(pixels, width, height, previousX, previousY, previousX, previousY, HistogramLine, HistogramLineThickness);
             for (int i = 1; i < bins.Length; i++)
             {
-                int x = Mathf.RoundToInt(i * (width - 1) / (float)(bins.Length - 1));
+                int x = Mathf.RoundToInt((i + 0.5f) * (width - 1) / bins.Length);
                 int y = HistogramY(bins[i], maxBin, height);
                 DrawLine(pixels, width, height, previousX, previousY, x, y, HistogramLine, HistogramLineThickness);
                 previousX = x;

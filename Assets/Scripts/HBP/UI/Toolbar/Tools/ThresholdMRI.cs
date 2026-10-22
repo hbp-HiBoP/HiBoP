@@ -71,7 +71,7 @@ namespace HBP.UI.Toolbar
         /// <summary>
         /// Update MRI Histogram Texture
         /// </summary>
-        private void UpdateMRIHistogram(Core.Object3D.MRI3D mri3D)
+        private void UpdateMRIHistogram(Core.Object3D.MRI3D mri3D, float calMin, float calMax)
         {
             UnityEngine.Profiling.Profiler.BeginSample("HISTOGRAM MRI");
             if (!m_HistogramByMRI.TryGetValue(mri3D, out m_MRIHistogram))
@@ -81,10 +81,10 @@ namespace HBP.UI.Toolbar
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
 
-                int[] bins = mri3D.Volume.GetHistogramBins(UnityTextureFactory.HistogramBinCount);
+                int[] bins = mri3D.Volume.GetHistogramBins(UnityTextureFactory.HistogramBinCount, excludeMinimum: true);
                 if (bins != null)
                 {
-                    m_MRIHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440);
+                    m_MRIHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440, greyAreaMin: calMin, greyAreaMax: calMax);
                 }
                 else
                 {
@@ -155,8 +155,8 @@ namespace HBP.UI.Toolbar
 
             Core.Tools.MRICalValues values = scene.MRIManager.SelectedMRI.Volume.ExtremeValues;
             float amplitude = values.Max - values.Min;
-            float min = (values.ComputedCalMin - values.Min) / amplitude;
-            float max = 1.0f - (values.Max - values.ComputedCalMax) / amplitude;
+            float min = amplitude > 0.0f ? Mathf.Clamp01((values.ComputedCalMin - values.Min) / amplitude) : 0.0f;
+            float max = amplitude > 0.0f ? Mathf.Clamp((values.ComputedCalMax - values.Min) / amplitude, min, 1.0f) : 1.0f;
             m_HandlerZone.anchorMin = new Vector2(min, m_HandlerZone.anchorMin.y);
             m_HandlerZone.anchorMax = new Vector2(max, m_HandlerZone.anchorMax.y);
 
@@ -172,7 +172,7 @@ namespace HBP.UI.Toolbar
             m_MinHandler.MaximumPosition = m_MRICalMax - 0.1f;
             m_MaxHandler.MinimumPosition = m_MRICalMin + 0.1f;
 
-            UpdateMRIHistogram(scene.MRIManager.SelectedMRI);
+            UpdateMRIHistogram(scene.MRIManager.SelectedMRI, min, max);
 
             m_Initialized = true;
         }

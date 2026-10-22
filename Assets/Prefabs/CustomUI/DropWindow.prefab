@@ -398,6 +398,7 @@ MonoBehaviour:
   Window: {fileID: 1406272430782606}
   BlockerPrefab: {fileID: 1560527316232940, guid: d97fa162f4b661c4a8717a64b156a49a,
     type: 3}
+  NoBlocker: 0
   OnChangeWindowState:
     m_PersistentCalls:
       m_Calls: []

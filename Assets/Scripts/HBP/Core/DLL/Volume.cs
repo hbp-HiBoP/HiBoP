@@ -307,11 +307,13 @@ namespace HBP.Core.DLL
             return average;
         }
 
-        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        /// <param name="excludeMinimum">Exclude exact source minima for histogram display. This is not an anatomical background mask.</param>
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f, bool excludeMinimum = false, bool excludeZero = false)
         {
             if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
             int[] bins = new int[binCount];
-            ThrowIfFailed(hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+            int filters = (excludeMinimum ? 1 : 0) | (excludeZero ? 2 : 0);
+            ThrowIfFailed(filters != 0 ? hbp_volume_copy_histogram_bins_filtered(_handle.Handle, bins, bins.Length, min, max, filters) : hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
             return bins;
         }
 
@@ -380,6 +382,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins_filtered", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_histogram_bins_filtered(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue, int filters);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_surface_values_ptr(IntPtr volume, IntPtr surface, IntPtr values, int valueCapacity);

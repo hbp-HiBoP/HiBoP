@@ -72,18 +72,18 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1788928,
-              "sha256": "41848d920567640a28d53aea02d4b87135bc185b8344417efb604433c796ffcd"
+              "sizeBytes": 1805824,
+              "sha256": "2ba7437bfefc6ac985dc6a805a23af7d7dd8a16fd746c6a2459ec8557b5620d2"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "b9b2e5fbaa08fbb326467740beb7fa1e59dd6914",
-            "workingTreePatchSha256": "69ce962afdcd00c87845d3d7561e84c477d767ebbf9076e9d78c14ed5e75414b",
+            "baseSourceCommit": "ad9abd64a3ceda2eac5f6ec3571ddedd4632bcac",
+            "workingTreePatchSha256": "9aca457b1af3048a476819df7b3005e17d0732a4a9c5bac865ab3c704261e26a",
             "qualification": "local-build",
             "runtimeTested": true,
-            "publicExportCount": 234
+            "publicExportCount": 238
           },
           "architecture": "x86_64",
           "platform": "Windows",
@@ -97,22 +97,22 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 2026136,
-              "sha256": "fe2022c520cb8566c17f68af05972f214fe8c80fd5f768a3f83b6f39058de61c"
+              "sizeBytes": 2027592,
+              "sha256": "61f13acf1d2758bd99bd406da8a26f6ed8bf9af59b7dde20b30ba673b975f6ed"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "b9b2e5fbaa08fbb326467740beb7fa1e59dd6914",
-            "workingTreePatchSha256": "69ce962afdcd00c87845d3d7561e84c477d767ebbf9076e9d78c14ed5e75414b",
+            "baseSourceCommit": "ad9abd64a3ceda2eac5f6ec3571ddedd4632bcac",
+            "workingTreePatchSha256": "9aca457b1af3048a476819df7b3005e17d0732a4a9c5bac865ab3c704261e26a",
             "qualification": "local-build",
             "runtimeTested": false,
-            "publicExportCount": 234,
+            "publicExportCount": 238,
             "android": {
               "ndkVersion": "27.2.12479018",
-              "cmakeVersion": "3.22.1",
-              "ninjaVersion": "1.10.2",
+              "cmakeVersion": "3.23.0-rc1",
+              "ninjaVersion": "1.11.0",
               "api": 32,
               "abi": "arm64-v8a",
               "stl": "c++_static",
@@ -174,7 +174,7 @@
           "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/37953345967"
         }
       ],
-      "localRequestId": "atlas-sha-working-tree-20261009"
+      "localRequestId": "histogram-regular-classes-working-tree-20261022"
     },
     {
       "name": "hbp_math",
