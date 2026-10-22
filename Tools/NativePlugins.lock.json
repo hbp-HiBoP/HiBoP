@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-09T15:41:41.7202573+00:00",
+  "generatedAt": "2026-10-22T11:37:35.479496+00:00",
   "requestId": "hibop-native-20261009-153918-4e529775",
   "branch": "develop",
   "libraries": [
@@ -72,15 +72,15 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1805824,
-              "sha256": "2ba7437bfefc6ac985dc6a805a23af7d7dd8a16fd746c6a2459ec8557b5620d2"
+              "sizeBytes": 1806848,
+              "sha256": "d6d752b0ee4982b0d470be963e929f918f49ee453523cfc86e1109c42083eb3c"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "ad9abd64a3ceda2eac5f6ec3571ddedd4632bcac",
-            "workingTreePatchSha256": "9aca457b1af3048a476819df7b3005e17d0732a4a9c5bac865ab3c704261e26a",
+            "baseSourceCommit": "d911c35dffdaeaf0ec4791db788119219880dd74",
+            "workingTreePatchSha256": "69328b838859b85e7992bbdf52f3cc5cf94263ea9786a25dc2f4760fca6cd592",
             "qualification": "local-build",
             "runtimeTested": true,
             "publicExportCount": 238
@@ -97,15 +97,15 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 2027592,
-              "sha256": "61f13acf1d2758bd99bd406da8a26f6ed8bf9af59b7dde20b30ba673b975f6ed"
+              "sizeBytes": 2029400,
+              "sha256": "def9dea2288917944db5f82985682555cf8b7d04185c3e5c0c8241ec116a09ae"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "ad9abd64a3ceda2eac5f6ec3571ddedd4632bcac",
-            "workingTreePatchSha256": "9aca457b1af3048a476819df7b3005e17d0732a4a9c5bac865ab3c704261e26a",
+            "baseSourceCommit": "d911c35dffdaeaf0ec4791db788119219880dd74",
+            "workingTreePatchSha256": "69328b838859b85e7992bbdf52f3cc5cf94263ea9786a25dc2f4760fca6cd592",
             "qualification": "local-build",
             "runtimeTested": false,
             "publicExportCount": 238,
@@ -174,7 +174,7 @@
           "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/37953345967"
         }
       ],
-      "localRequestId": "histogram-regular-classes-working-tree-20261022"
+      "localRequestId": "anatomical-coverage-working-tree-20261022"
     },
     {
       "name": "hbp_math",

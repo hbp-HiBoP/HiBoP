@@ -81,7 +81,7 @@ namespace HBP.UI.Toolbar
                     m_MRIHistogram = new Texture2D(1, 1);
                 }
 
-                int[] bins = mri3D.Volume.GetHistogramBins(UnityTextureFactory.HistogramBinCount, excludeMinimum: true);
+                int[] bins = mri3D.Volume.GetHistogramBins(UnityTextureFactory.HistogramBinCount, excludeZero: true);
                 if (bins != null)
                 {
                     m_MRIHistogram = UnityTextureFactory.GenerateDistributionHistogram(bins, 440, 440, greyAreaMin: calMin, greyAreaMax: calMax);
