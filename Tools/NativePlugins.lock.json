@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-10-22T11:37:35.479496+00:00",
+  "generatedAt": "2026-10-22T12:33:09.486975+00:00",
   "requestId": "hibop-native-20261009-153918-4e529775",
   "branch": "develop",
   "libraries": [
@@ -72,18 +72,18 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1806848,
-              "sha256": "d6d752b0ee4982b0d470be963e929f918f49ee453523cfc86e1109c42083eb3c"
+              "sizeBytes": 1814016,
+              "sha256": "45da9297368cfd67acfe801080c81ad4d8b55d6dcfe865c9b7ae06ea941034bf"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "d911c35dffdaeaf0ec4791db788119219880dd74",
-            "workingTreePatchSha256": "69328b838859b85e7992bbdf52f3cc5cf94263ea9786a25dc2f4760fca6cd592",
+            "baseSourceCommit": "236e5701d4468da9bc3f62fecf0c27d575c8a840",
+            "workingTreePatchSha256": "2d380b5fdaa1925f5665d0dfc6c86e3b918bc2ba264c3765a7e2da856f9df4ab",
             "qualification": "local-build",
             "runtimeTested": true,
-            "publicExportCount": 238
+            "publicExportCount": 239
           },
           "architecture": "x86_64",
           "platform": "Windows",
@@ -97,18 +97,18 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 2029400,
-              "sha256": "def9dea2288917944db5f82985682555cf8b7d04185c3e5c0c8241ec116a09ae"
+              "sizeBytes": 2034824,
+              "sha256": "cdb5332580a938c3eaf3aca6624366778e3954a2e41fbe279ce61fe06adc8f9b"
             }
           ],
           "library": "hbp_core",
           "provenance": {
             "sourceMode": "working-tree",
-            "baseSourceCommit": "d911c35dffdaeaf0ec4791db788119219880dd74",
-            "workingTreePatchSha256": "69328b838859b85e7992bbdf52f3cc5cf94263ea9786a25dc2f4760fca6cd592",
+            "baseSourceCommit": "236e5701d4468da9bc3f62fecf0c27d575c8a840",
+            "workingTreePatchSha256": "2d380b5fdaa1925f5665d0dfc6c86e3b918bc2ba264c3765a7e2da856f9df4ab",
             "qualification": "local-build",
             "runtimeTested": false,
-            "publicExportCount": 238,
+            "publicExportCount": 239,
             "android": {
               "ndkVersion": "27.2.12479018",
               "cmakeVersion": "3.23.0-rc1",
@@ -174,7 +174,7 @@
           "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/37953345967"
         }
       ],
-      "localRequestId": "anatomical-coverage-working-tree-20261022"
+      "localRequestId": "cut-reconstruction-working-tree-20261022"
     },
     {
       "name": "hbp_math",

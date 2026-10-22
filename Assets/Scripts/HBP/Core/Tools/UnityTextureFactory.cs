@@ -310,6 +310,13 @@ namespace HBP.Core.Tools
             target.Apply(false, false);
         }
 
+        public static Vector2 RotateCutSize(Vector2 size, CutOrientation orientation, bool flip)
+        {
+            TextureOrientation textureOrientation = ConvertOrientation(orientation, flip);
+            bool transpose = textureOrientation is TextureOrientation.PosteriorToAnterior or TextureOrientation.AnteriorToPosterior or TextureOrientation.InferiorToSuperior or TextureOrientation.SuperiorToInferior;
+            return transpose ? new Vector2(size.y, size.x) : size;
+        }
+
         public static Color32[] RotateCutPixels(Color32[] source, int sourceWidth, int sourceHeight, CutOrientation orientation, bool flip, out int targetWidth, out int targetHeight)
         {
             if (source == null) throw new ArgumentNullException(nameof(source));

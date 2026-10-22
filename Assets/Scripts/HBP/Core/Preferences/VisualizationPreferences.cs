@@ -53,7 +53,10 @@ namespace HBP.Core.Preferences
         #region Properties
 
         [JsonProperty] public bool AutomaticEEGUpdate { get; set; }
+
+        /// <summary>Display native voxels without anatomical interpolation or blur; custom planes use nearest sampling.</summary>
         [JsonProperty] public bool RawCuts { get; set; }
+
         [JsonProperty] public bool MaskActivityOnMRIBackground { get; set; }
         [JsonProperty] public bool SmoothActivityBoundaries { get; set; }
         [JsonProperty] public LayoutDirection VisualizationsLayoutDirection { get; set; }

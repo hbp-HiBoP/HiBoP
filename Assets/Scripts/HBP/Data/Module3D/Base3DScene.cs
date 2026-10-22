@@ -309,6 +309,18 @@ namespace HBP.Data.Module3D
         /// </summary>
         public List<Core.DLL.CutGeometryGenerator> CutGeometryGenerators { get; set; } = new List<Core.DLL.CutGeometryGenerator>();
 
+        private int m_CutTextureResolution = 512;
+
+        /// <summary>Request display sampling without changing the scientific projection grid.</summary>
+        public void RequestCutTextureResolution(float displayedPixels)
+        {
+            int resolution = Mathf.Clamp(Mathf.CeilToInt(displayedPixels / 128) * 128, 512, 1024);
+            if (resolution == m_CutTextureResolution) return;
+            m_CutTextureResolution = resolution;
+            if (!PersistentDataManager.UserPreferences.Visualization._3D.RawCuts)
+                SceneInformation.CutsNeedUpdate = true;
+        }
+
         /// <summary>
         /// Material used for the brain mesh
         /// </summary>
@@ -1423,7 +1435,7 @@ namespace HBP.Data.Module3D
             UnityEngine.Profiling.Profiler.BeginSample("cut_generator Update generators");
             for (int ii = 0; ii < Cuts.Count; ++ii)
             {
-                CutGeometryGenerators[ii].Initialize(m_MRIManager.SelectedMRI.Volume, Cuts[ii], -1);
+                CutGeometryGenerators[ii].InitializeDisplay(m_MRIManager.SelectedMRI.Volume, Cuts[ii], PersistentDataManager.UserPreferences.Visualization._3D.RawCuts, m_CutTextureResolution);
                 CutGeometryGenerators[ii].UpdateSurfaceUV(generatedCutMeshes[ii]);
                 generatedCutMeshes[ii].UpdateMeshFromDLL(m_DisplayedObjects.BrainCutMeshes[ii].GetComponent<MeshFilter>().sharedMesh);
             }

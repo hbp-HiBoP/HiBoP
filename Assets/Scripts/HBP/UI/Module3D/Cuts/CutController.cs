@@ -107,6 +107,11 @@ namespace HBP.UI.Module3D
             {
                 m_MinimizedGameObject.SetActive(IsMinimized);
                 m_RectTransform.hasChanged = false;
+                if (m_Scene != null && !IsMinimized)
+                {
+                    Rect displayRect = m_RectTransform.ToScreenSpace();
+                    m_Scene.RequestCutTextureResolution(displayRect.width);
+                }
             }
 
             if (DesktopInput.WasLeftMouseButtonPressedThisFrame && m_CutParametersControllers.Any(c => c.AreControlsOpen))

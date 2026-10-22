@@ -5,6 +5,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
+using UnityEditor;
 using UnityEngine;
 using ObjectCut = HBP.Core.Object3D.Cut;
 
@@ -12,6 +13,72 @@ namespace HBP.Tests.Serialization
 {
     public class CutsTriangleErasingTests
     {
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CutTexturesUtility_3DTexturesKeepValidColorsAtEveryMipAfterUpdatesAndModeChanges(bool raw)
+        {
+            CutTexturesUtility utility = new();
+            const System.Reflection.BindingFlags flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+            var apply = typeof(CutTexturesUtility).GetMethod("ApplyPixels", flags);
+            var copy = typeof(CutTexturesUtility).GetMethod("CopyTexture", flags);
+            var rawField = typeof(CutTexturesUtility).GetField("m_RawCuts", flags);
+            Texture2D source = new(8, 8, TextureFormat.RGBA32, true);
+            Texture2D target = new(8, 8, TextureFormat.RGBA32, true);
+            try
+            {
+                foreach (bool rawMode in new[] { raw, !raw, raw })
+                {
+                    rawField.SetValue(utility, rawMode);
+                    foreach (Color32 color in new[] { new Color32(255, 255, 255, 255), new Color32(0, 255, 0, 255) })
+                    {
+                        apply.Invoke(utility, new object[] { source, Enumerable.Repeat(color, 64).ToArray(), new Vector2Int(8, 8) });
+                        copy.Invoke(utility, new object[] { source, target });
+                        foreach (Texture2D texture in new[] { source, target })
+                        {
+                            Assert.That(texture.mipmapCount, Is.EqualTo(rawMode ? 1 : 4));
+                            for (int mip = 0; mip < texture.mipmapCount; mip++)
+                                Assert.That(texture.GetPixels32(mip).All(pixel => pixel.Equals(color)), Is.True, $"Incorrect colors at mip {mip}, raw={rawMode}.");
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(source);
+                Object.DestroyImmediate(target);
+            }
+        }
+
+        [Test]
+        public void CutImage_UsesPhysicalAspectAndKeepsOverlayCoordinatesAligned()
+        {
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/Cuts/Cut.prefab");
+            GameObject instance = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            try
+            {
+                Component controller = instance.GetComponents<MonoBehaviour>().Single(component => component.GetType().FullName == "HBP.UI.Module3D.CutParametersController");
+                SerializedObject serialized = new(controller);
+                UnityEngine.UI.Image image = (UnityEngine.UI.Image)serialized.FindProperty("m_Image").objectReferenceValue;
+                var container = (RectTransform)image.rectTransform.parent;
+                container.sizeDelta = new Vector2(200, 200);
+                container.ForceUpdateRectTransforms();
+                controller.GetType().GetMethod("SetImagePhysicalSize").Invoke(controller, new object[] { new Vector2(1, 2) });
+                Assert.That(image.preserveAspect, Is.False);
+                Assert.That(image.rectTransform.rect.width / image.rectTransform.rect.height, Is.EqualTo(0.5f).Within(0.001f));
+                foreach (string field in new[] { "m_SitesRectTransform", "m_CutLinesRectTransform" })
+                {
+                    var overlay = (RectTransform)serialized.FindProperty(field).objectReferenceValue;
+                    Assert.That(overlay.parent, Is.EqualTo(image.transform));
+                    Assert.That(overlay.anchorMin, Is.EqualTo(Vector2.zero));
+                    Assert.That(overlay.anchorMax, Is.EqualTo(Vector2.one));
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
         [Test]
         public void Cut_ConfigurationRoundTripAndRuntimeDefaultsAreStable()
         {

@@ -41,6 +41,7 @@ namespace HBP.Data.Module3D
 
         private Color32[] m_BrainCutColorSchemePixels = Array.Empty<Color32>();
         private Color32[] m_CutActivityColorSchemePixels = Array.Empty<Color32>();
+        private bool m_RawCuts;
 
         /// <summary>
         /// Size of the cuts arrays
@@ -58,6 +59,7 @@ namespace HBP.Data.Module3D
         public void Resize(int size, List<Core.DLL.CutGeometryGenerator> cutGeometryGenerators, Core.DLL.ActivityGenerator activityGenerator)
         {
             var preferences = PersistentDataManager.UserPreferences.Visualization._3D;
+            m_RawCuts = preferences.RawCuts;
             activityGenerator?.SetSmoothActivityBoundaries(preferences.SmoothActivityBoundaries);
 
             while (Size < size)
@@ -85,6 +87,9 @@ namespace HBP.Data.Module3D
             for (int i = 0; i < size; i++)
             {
                 CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], preferences.RawCuts ? 0 : 4);
+                FilterMode filter = preferences.RawCuts ? FilterMode.Point : FilterMode.Trilinear;
+                BaseBrainCutTextures[i].filterMode = filter;
+                BrainCutTextures[i].filterMode = filter;
                 CutGenerators[i].SetMaskActivityOnMRIBackground(preferences.MaskActivityOnMRIBackground);
             }
         }
@@ -117,6 +122,7 @@ namespace HBP.Data.Module3D
                 if (cut.Index >= 0 && cut.Index < BrainCutTextures.Count && cut.Index < GUIBrainCutTextures.Count && BrainCutTextures[cut.Index].width > 1 && BrainCutTextures[cut.Index].height > 1)
                 {
                     UnityTextureFactory.CopyAndRotateCutTexture(BrainCutTextures[cut.Index], GUIBrainCutTextures[cut.Index], cut.Orientation, cut.Flip);
+                    GUIBrainCutTextures[cut.Index].filterMode = m_RawCuts ? FilterMode.Point : FilterMode.Bilinear;
                 }
             }
         }
@@ -318,23 +324,17 @@ namespace HBP.Data.Module3D
             return (distance * distance / normalSquaredMagnitude) < precisionSquared;
         }
 
-        private static void CopyTexture(Texture2D source, Texture2D target)
+        private void CopyTexture(Texture2D source, Texture2D target)
         {
             if (source == null || target == null)
             {
                 return;
             }
 
-            if (target.width != source.width || target.height != source.height)
-            {
-                target.Reinitialize(source.width, source.height);
-            }
-
-            target.SetPixels32(source.GetPixels32());
-            target.Apply(false, false);
+            ApplyPixels(target, source.GetPixels32(), new Vector2Int(source.width, source.height));
         }
 
-        private static void ApplyPixels(Texture2D texture, Color32[] pixels, Vector2Int size)
+        private void ApplyPixels(Texture2D texture, Color32[] pixels, Vector2Int size)
         {
             if (texture == null)
             {
@@ -343,7 +343,7 @@ namespace HBP.Data.Module3D
 
             if (pixels == null || pixels.Length == 0 || size.x <= 0 || size.y <= 0)
             {
-                texture.Reinitialize(10, 10);
+                texture.Reinitialize(10, 10, TextureFormat.RGBA32, !m_RawCuts);
                 Color32[] emptyPixels = new Color32[100];
                 for (int i = 0; i < emptyPixels.Length; ++i)
                 {
@@ -351,7 +351,7 @@ namespace HBP.Data.Module3D
                 }
 
                 texture.SetPixels32(emptyPixels);
-                texture.Apply(false, false);
+                texture.Apply(!m_RawCuts, false);
                 return;
             }
 
@@ -360,13 +360,15 @@ namespace HBP.Data.Module3D
                 throw new ArgumentException("Pixel buffer is smaller than width * height.", nameof(pixels));
             }
 
-            if (texture.width != size.x || texture.height != size.y)
+            bool needsMipmaps = !m_RawCuts && Mathf.Max(size.x, size.y) > 1;
+            if (texture.width != size.x || texture.height != size.y || (texture.mipmapCount > 1) != needsMipmaps)
             {
-                texture.Reinitialize(size.x, size.y);
+                texture.Reinitialize(size.x, size.y, TextureFormat.RGBA32, !m_RawCuts);
             }
 
             texture.SetPixels32(pixels);
-            texture.Apply(false, false);
+            // Oblique/distant 3D cuts sample lower mip levels; keep them current after every upload.
+            texture.Apply(!m_RawCuts, false);
         }
 
         #endregion

@@ -85,6 +85,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         private bool m_Destroyed = false;
 
+        private Vector2 m_PhysicalImageSize;
+        private Vector2 m_ImageContainerSize;
+
         /// <summary>
         /// Image of the cut (to hold the texture of the cut)
         /// </summary>
@@ -198,6 +201,7 @@ namespace HBP.UI.Module3D
 
         private void Update()
         {
+            if (m_PhysicalImageSize.x > 0 && m_Image.rectTransform.parent is RectTransform parent && parent.rect.size != m_ImageContainerSize) UpdateImageLayout();
             if (m_ClickedOnPlus || m_ClickedOnMinus)
             {
                 m_TimeSinceLastUpdate += Time.deltaTime;
@@ -217,6 +221,30 @@ namespace HBP.UI.Module3D
         }
 
         /// <summary>
+        /// Fit the cut image to its physical dimensions, including anisotropic voxel spacing.
+        /// </summary>
+        public void SetImagePhysicalSize(Vector2 size)
+        {
+            m_PhysicalImageSize = size;
+            UpdateImageLayout();
+        }
+
+        private void UpdateImageLayout()
+        {
+            if (m_PhysicalImageSize.x <= 0 || m_PhysicalImageSize.y <= 0) return;
+            RectTransform image = m_Image.rectTransform;
+            m_ImageContainerSize = ((RectTransform)image.parent).rect.size;
+            if (m_ImageContainerSize.x <= 0 || m_ImageContainerSize.y <= 0) return;
+            float relativeAspect = (m_PhysicalImageSize.x / m_PhysicalImageSize.y) / (m_ImageContainerSize.x / m_ImageContainerSize.y);
+            Vector2 fraction = new(Mathf.Min(1, relativeAspect), Mathf.Min(1, 1 / relativeAspect));
+            image.anchorMin = (Vector2.one - fraction) * 0.5f;
+            image.anchorMax = Vector2.one - image.anchorMin;
+            image.offsetMin = Vector2.zero;
+            image.offsetMax = Vector2.zero;
+            m_Image.preserveAspect = false;
+        }
+
+        /// <summary>
         /// Add all listeners from UI to 3D scene and inversely
         /// </summary>
         private void AddListeners()
@@ -226,9 +254,7 @@ namespace HBP.UI.Module3D
                 Destroy(m_Image.sprite);
                 Texture2D texture = m_Scene.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.Index];
                 m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
-                m_Image.sprite.texture.filterMode = FilterMode.Trilinear;
-                m_Image.sprite.texture.anisoLevel = 9;
-                m_Image.preserveAspect = true;
+                SetImagePhysicalSize(UnityTextureFactory.RotateCutSize(m_Scene.CutGeometryGenerators[Cut.Index].PhysicalSize, Cut.Orientation, Cut.Flip));
                 DrawLines();
             });
             m_Scene.OnUpdateCuts.AddListener(() =>
@@ -481,7 +507,7 @@ namespace HBP.UI.Module3D
 
             // Account for aspect ratio
             float verticalOffset = 0, horizontalOffset = 0;
-            if (m_Image.sprite != null)
+            if (m_Image.preserveAspect && m_Image.sprite != null)
             {
                 float aspectRatio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
                 if (aspectRatio > 1)
@@ -538,7 +564,7 @@ namespace HBP.UI.Module3D
 
                 // Account for aspect ratio
                 float verticalOffset = 0, horizontalOffset = 0;
-                if (m_Image.sprite != null)
+                if (m_Image.preserveAspect && m_Image.sprite != null)
                 {
                     float aspectRatio = (float)m_Image.sprite.texture.width / m_Image.sprite.texture.height;
                     if (aspectRatio > 1)

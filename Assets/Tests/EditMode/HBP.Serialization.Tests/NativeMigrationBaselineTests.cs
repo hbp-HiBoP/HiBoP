@@ -70,13 +70,13 @@ namespace HBP.Tests.Serialization
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
             // Includes scene-capture copies and the two filtered histogram imports.
-            Assert.That(imports, Has.Count.EqualTo(266));
+            Assert.That(imports, Has.Count.EqualTo(267));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/ActivityProjectionGrid.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(212));
+            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(213));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
@@ -985,6 +985,38 @@ namespace HBP.Tests.Serialization
             {
                 UnityEngine.Object.DestroyImmediate(cutMesh);
             }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void CutDisplayModes_PreserveNativeVoxelsAndReconstructWithoutAnatomicalBlur()
+        {
+            using Volume volume = new();
+            Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+            using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward) { Orientation = CutOrientation.Axial };
+            using CutGeometryGenerator geometry = new();
+            using CutGenerator generator = new();
+            Color32[] gray = Enumerable.Range(0, 256).Select(value => new Color32((byte)value, (byte)value, (byte)value, 255)).ToArray();
+            geometry.InitializeDisplay(volume, cut, true);
+            Assert.That(geometry.TextureSize, Is.EqualTo(new Vector2Int(5, 5)));
+            Assert.That(geometry.PhysicalSize.x, Is.EqualTo(5).Within(0.001f));
+            Assert.That(geometry.PhysicalSize.y, Is.EqualTo(5).Within(0.001f));
+            generator.Initialize(null, geometry, 4);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Color32[] raw = generator.CopyBasePixels();
+            // This fixture stores the ramp with Z varying fastest: the middle Z plane contains 2, 7, ..., 122.
+            int[] expected = Enumerable.Range(0, 25).Select(index => (int)((2 + 5 * index) / 124.0f * 255)).ToArray();
+            Assert.That(raw.Select(pixel => (int)pixel.r).OrderBy(value => value), Is.EqualTo(expected));
+            geometry.InitializeDisplay(volume, cut, false, 17);
+            Assert.That(geometry.TextureSize, Is.EqualTo(new Vector2Int(17, 17)));
+            generator.Initialize(null, geometry, 4);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Color32[] reconstructed = generator.CopyBasePixels();
+            generator.Initialize(null, geometry, 0);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Assert.That(generator.CopyBasePixels(), Is.EqualTo(reconstructed), "Display interpolation must replace anatomical blur.");
+            Assert.That(reconstructed.Select(pixel => pixel.r).Distinct().Count(), Is.GreaterThan(25));
         }
 
         [Test]
