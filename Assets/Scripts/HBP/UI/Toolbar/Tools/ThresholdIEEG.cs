@@ -16,6 +16,10 @@ namespace HBP.UI.Toolbar
         /// </summary>
         private Texture2D m_IEEGHistogram;
 
+        private Texture2D m_DensityHistogram;
+        private int[] m_DensityBins;
+        private bool m_Nonnegative;
+
         /// <summary>
         /// Minimum Span value
         /// </summary>
@@ -247,6 +251,20 @@ namespace HBP.UI.Toolbar
         /// <param name="maxFactor"></param>
         private void SetValues(float minFactor, float middleFactor, float maxFactor)
         {
+            if (m_Nonnegative)
+            {
+                if (!ThresholdRatioUtility.IsFinite(minFactor) || !ThresholdRatioUtility.IsFinite(middleFactor) || !ThresholdRatioUtility.IsFinite(maxFactor) || !ThresholdRatioUtility.IsFinite(minFactor * m_Amplitude) || !ThresholdRatioUtility.IsFinite(middleFactor * m_Amplitude) || !ThresholdRatioUtility.IsFinite(maxFactor * m_Amplitude))
+                {
+                    minFactor = m_SpanMinFactor;
+                    middleFactor = m_MiddleFactor;
+                    maxFactor = m_SpanMaxFactor;
+                }
+
+                minFactor = Mathf.Max(0f, minFactor);
+                middleFactor = Mathf.Max(minFactor, middleFactor);
+                maxFactor = Mathf.Max(middleFactor, maxFactor);
+            }
+
             // Logical values
             m_SpanMinFactor = minFactor;
             m_MiddleFactor = middleFactor;
@@ -262,10 +280,11 @@ namespace HBP.UI.Toolbar
             m_MaxHandler.Position = maxFactor;
 
             // Textfields
-            m_SpanMinInput.text = SpanMin.ToString("N2");
-            m_MiddleInput.text = Middle.ToString("N2");
-            m_SpanMaxInput.text = SpanMax.ToString("N2");
-            m_AmplitudeInput.text = ((SpanMax - SpanMin) / 2).ToString("N2");
+            string format = m_Nonnegative ? "0.##" : "N2";
+            m_SpanMinInput.text = SpanMin.ToString(format);
+            m_MiddleInput.text = Middle.ToString(format);
+            m_SpanMaxInput.text = SpanMax.ToString(format);
+            m_AmplitudeInput.text = ((SpanMax - SpanMin) / 2).ToString(format);
 
             // Event
             if (m_Initialized)
@@ -434,6 +453,38 @@ namespace HBP.UI.Toolbar
         /// Update IEEG values
         /// </summary>
         /// <param name="values">IEEG data values</param>
+        public void UpdateDensityValues(Column3DAnatomy column)
+        {
+            bool valuesChanged = !m_Nonnegative || !Mathf.Approximately(m_SpanMinFactor, column.AnatomyParameters.SpanMinRatio) || !Mathf.Approximately(m_MiddleFactor, column.AnatomyParameters.MiddleRatio) || !Mathf.Approximately(m_SpanMaxFactor, column.AnatomyParameters.SpanMaxRatio);
+            m_Initialized = false;
+            m_Nonnegative = true;
+            m_MinAmplitude = 0f;
+            m_MaxAmplitude = 100f;
+            m_Amplitude = 100f;
+            // Display percentages independently of the projection's changing density scale.
+            m_MinText.text = "0%";
+            m_MaxText.text = "100%";
+            if (valuesChanged) SetValues(column.AnatomyParameters.SpanMinRatio, column.AnatomyParameters.MiddleRatio, column.AnatomyParameters.SpanMaxRatio);
+
+            int[] bins = column.DensityHistogramBins ?? System.Array.Empty<int>();
+            bool changed = m_DensityBins == null || m_DensityBins.Length != bins.Length;
+            for (int i = 0; !changed && i < bins.Length; ++i) changed = m_DensityBins[i] != bins[i];
+            if (changed)
+            {
+                if (!m_DensityHistogram) m_DensityHistogram = new Texture2D(1, 1);
+                UnityTextureFactory.UpdateDistributionHistogram(m_DensityHistogram, bins, 440, 440);
+                m_DensityBins = bins;
+            }
+
+            m_Histogram.texture = m_DensityHistogram;
+            m_Initialized = true;
+        }
+
+        private void OnDestroy()
+        {
+            if (m_DensityHistogram) Destroy(m_DensityHistogram);
+        }
+
         public void UpdateIEEGValues(Column3DDynamic column)
         {
             m_Initialized = false;

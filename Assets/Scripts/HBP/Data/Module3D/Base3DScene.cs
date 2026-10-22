@@ -642,7 +642,7 @@ namespace HBP.Data.Module3D
         public ulong ActivityInputGeneration => m_ActivityInputGeneration;
         public bool ExplicitProjectionRequestPending => m_ExplicitProjectionRequestPending;
         public bool IsActivityProjectionBusy => m_UpdatingGenerators || m_CoordinatedActivityProjectionBusyCount != 0 || IsSurfaceRepresentationPreparing;
-        public bool IsActivityProjectionComputing => m_UpdatingGenerators;
+        public bool IsActivityProjectionComputing => m_UpdatingGenerators && !m_PreparingDensityReferences;
 
         /// <summary>When installed by a live session, consumes local starts until both peers are admitted.</summary>
         public Func<bool> ActivityProjectionStartHandler { get; set; }
@@ -1197,6 +1197,8 @@ namespace HBP.Data.Module3D
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
             if (SceneInformation.FunctionalSurfaceNeedsUpdate) ComputeFunctionalSurface();
             if (SceneInformation.SitesNeedUpdate) UpdateAllColumnsSitesRendering();
+            if (m_InitializationWork.Status == UniTaskStatus.Succeeded && m_AnatomyWork.Status == UniTaskStatus.Succeeded && m_DensityReferenceWork.Status.IsCompleted() && m_PreparationError == null && CanPrepareDensityReferences() && NeedsDensityReferencePreparation())
+                PrepareDensityReferencesAsync(m_SurfaceRepresentationLifetime.Token).Forget();
             if (!m_UpdatingGenerators && ShouldStartActivityProjection(m_ExplicitProjectionRequestPending || AutomaticActivityComputationEnabled)) StartActivityProjection();
         }
 
@@ -1703,6 +1705,13 @@ namespace HBP.Data.Module3D
             if (column is Column3DAnatomy anatomyColumn)
             {
                 anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance.AddListener(() => { InvalidateActivityField(false); });
+                anatomyColumn.AnatomyParameters.OnUpdateSpanValues.AddListener(() =>
+                {
+                    UpdateGeneratorParameters(anatomyColumn, "span", () => ((Core.DLL.DensityGenerator)anatomyColumn.ActivityGenerator).AdjustValues(anatomyColumn.AnatomyParameters.Middle, anatomyColumn.AnatomyParameters.SpanMin, anatomyColumn.AnatomyParameters.SpanMax));
+                    SceneInformation.FunctionalCutTexturesNeedUpdate = true;
+                    SceneInformation.FunctionalSurfaceNeedsUpdate = true;
+                    anatomyColumn.SurfaceNeedsUpdate = true;
+                });
             }
             else if (column is Column3DDynamic dynamicColumn)
             {
@@ -2616,6 +2625,7 @@ namespace HBP.Data.Module3D
             await RestoreConfiguredSurfaceRepresentationAsync(progress, token, animate: false);
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
+            await PrepareDensityReferencesAsync(token);
             InitializeAutomaticActivityProjection(AutomaticRecomputeEnabled);
         }
 
@@ -2628,7 +2638,7 @@ namespace HBP.Data.Module3D
                 if (m_PreparationError != null) throw new InvalidOperationException("Common scene preparation failed.", m_PreparationError);
                 bool geometryReady = SceneInformation.CompletelyLoaded && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.ProjectionGridNeedsUpdate && !SceneInformation.SurfaceProjectionNeedsUpdate;
                 bool explicitProjectionInProgress = m_ExplicitProjectionRequestPending || m_ProjectionState == ActivityProjectionState.Computing;
-                if (geometryReady && !explicitProjectionInProgress && (IsGeneratorUpToDate || !CanComputeFunctionalValues || (!SceneInformation.GeneratorUpdateRequested && !AutomaticActivityComputationEnabled)) && !m_UpdatingGenerators && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
+                if (geometryReady && !explicitProjectionInProgress && (IsGeneratorUpToDate || !CanComputeFunctionalValues || (!SceneInformation.GeneratorUpdateRequested && !AutomaticActivityComputationEnabled)) && !m_UpdatingGenerators && m_DensityReferenceWork.Status.IsCompleted() && !NeedsDensityReferencePreparation() && !SceneInformation.SitesNeedUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.BaseCutTexturesNeedUpdate && !SceneInformation.FunctionalCutTexturesNeedUpdate && !SceneInformation.GUICutTexturesNeedUpdate && !SceneInformation.FunctionalSurfaceNeedsUpdate) return;
                 await UniTask.Yield();
             }
         }
@@ -3125,11 +3135,7 @@ namespace HBP.Data.Module3D
                 {
                     try
                     {
-                        if (!m_DestroyRequested)
-                        {
-                            for (int i = 0; i < m_PendingGeneratorUpdates.Count; i++)
-                                m_PendingGeneratorUpdates[i]();
-                        }
+                        ApplyPendingGeneratorUpdates();
                     }
                     catch (Exception exception)
                     {
@@ -3141,13 +3147,7 @@ namespace HBP.Data.Module3D
                 }
                 finally
                 {
-                    m_PendingGeneratorUpdates.Clear();
-                    m_PendingGeneratorUpdateIndexes.Clear();
-                    m_UpdatingGenerators = false;
-                    UpdateActivityProjectionBusyState();
-                    // Complete only after the native worker and its progress monitor stop.
-                    completion.TrySetResult();
-                    if (!m_DestroyRequested) OnUpdatingGenerators.Invoke(false);
+                    CompleteGeneratorWork(completion);
                 }
             }
 

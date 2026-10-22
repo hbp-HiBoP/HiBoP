@@ -313,6 +313,7 @@ namespace HBP.Sync.Tests
                 new SetSiteLabels(new ColumnId("column"), new SiteId("site"), new[] { "first", "e\u0301", "third" }),
                 new SetActivityAlpha(new ColumnId("column"), 0.65f),
                 new SetColumnSpan(new ColumnId("column"), ColumnSpanKind.Static, -0.5f, 0f, 0.75f),
+                new SetColumnSpan(new ColumnId("anatomy"), ColumnSpanKind.Anatomy, .25f, .5f, .75f),
                 new SetFunctionalDisplay(new ColumnId("fmri"), FunctionalModality.Fmri, 0.1f, 0.4f, 0.2f, 0.8f, true, false, true),
                 new SetIbcDifumoDisplay(true, "ibc-3", true, "difumo-64", 9),
                 new SetLocalizerDisplay(true, "protocol", "data", "bloc", 7, 80f, 100f, 120f),

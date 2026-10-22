@@ -33,6 +33,93 @@ namespace HBP.Tests.PlayMode.Toolbar
 {
     public class ToolbarCoveragePlayModeTests
     {
+        [Test]
+        public void DensityToolsUseSerializedPrefabReferencesAndApplyRatiosGlobally()
+        {
+            var holder = new GameObject("Density tools test");
+            holder.SetActive(false);
+            var scene = holder.AddComponent<Base3DScene>();
+            var first = holder.AddComponent<Column3DAnatomy>();
+            var second = holder.AddComponent<Column3DAnatomy>();
+            scene.Columns.Add(first);
+            scene.Columns.Add(second);
+            first.AnatomyParameters.PublishReference(4);
+            second.AnatomyParameters.PublishReference(8);
+            first.AnatomyParameters.PublishProjectionMaximum(2);
+            second.AnatomyParameters.PublishProjectionMaximum(6);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/3D Menu.prefab");
+            var menu = Object.Instantiate(prefab, holder.transform, false);
+            var tool = menu.GetComponentInChildren<DensityParameters>(true);
+            try
+            {
+                Assert.That(tool, Is.Not.Null);
+                tool.SelectedScene = scene;
+                tool.SelectedColumn = first;
+                tool.IsGlobal = true;
+                tool.Initialize();
+                tool.UpdateInteractable();
+                tool.UpdateStatus();
+                var columnUIPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/Scenes/Column 3D UI.prefab");
+                var columnUI = Object.Instantiate(columnUIPrefab, holder.transform, false).GetComponent<HBP.UI.Module3D.Column3DUI>();
+                var overlay = columnUI.GetComponentInChildren<HBP.UI.Module3D.Colormap>(true);
+                overlay.Setup(scene, first, columnUI);
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("5%"));
+                Assert.That(GetField<Text>(overlay, "m_Mid").text, Is.EqualTo("35%"));
+                Assert.That(GetField<Text>(overlay, "m_Max").text, Is.EqualTo("65%"));
+                Assert.That(tool.transform.Find("Threshold Density/Window/Content/Reference Status"), Is.Null);
+                Assert.That(GetField<Tooltip>(tool, "m_Tooltip").Text, Does.Contain("\n").And.Contain("15 mm").And.Contain("current projection"));
+                var threshold = GetField<ThresholdIEEG>(tool, "m_Threshold");
+                Assert.That(GetField<Text>(threshold, "m_MaxText").text, Is.EqualTo("100%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                Assert.That(GetField<InputField>(threshold, "m_MiddleInput").text, Is.EqualTo("35"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMaxInput").text, Is.EqualTo("65"));
+                GetField<InputField>(threshold, "m_SpanMinInput").onEndEdit.Invoke("25");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                Assert.That(second.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                Assert.That(second.AnatomyParameters.SpanMin, Is.EqualTo(1.5f));
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("25%"));
+                first.AnatomyParameters.PublishProjectionMaximum(8);
+                tool.UpdateStatus();
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("25%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("25"));
+                Assert.That(GetField<ThresholdHandler>(threshold, "m_MinHandler").Position, Is.EqualTo(.25f));
+                GetField<InputField>(threshold, "m_SpanMinInput").onEndEdit.Invoke("NaN");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                GetField<InputField>(tool, "m_InputField").onEndEdit.Invoke("27");
+                Assert.That(second.AnatomyParameters.InfluenceDistance, Is.EqualTo(27f));
+                GetField<Button>(tool, "m_Auto").onClick.Invoke();
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.05f));
+                Assert.That(second.AnatomyParameters.SpanMaxRatio, Is.EqualTo(.65f));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                first.AnatomyParameters.PublishProjectionMaximum(0);
+                tool.UpdateStatus();
+                tool.UpdateInteractable();
+                Assert.That(GetField<Button>(tool, "m_Button").interactable, Is.True, "The nonempty reference remains accessible for an empty projection.");
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").interactable, Is.True);
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.05f));
+                GetField<InputField>(threshold, "m_MiddleInput").onEndEdit.Invoke("40");
+                Assert.That(first.AnatomyParameters.MiddleRatio, Is.EqualTo(.4f));
+                Assert.That(second.AnatomyParameters.MiddleRatio, Is.EqualTo(.4f));
+                Assert.That(first.AnatomyParameters.Middle, Is.Zero);
+                var input = GetField<InputField>(threshold, "m_SpanMinInput");
+                input.SetTextWithoutNotify("12");
+                first.AnatomyParameters.PublishProjectionMaximum(8);
+                tool.UpdateStatus();
+                Assert.That(input.text, Is.EqualTo("12"), "Recalculating the projection must not overwrite an edit in progress.");
+                input.onEndEdit.Invoke("12");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.12f).Within(1e-6f));
+                Assert.That(first.AnatomyParameters.SpanMin, Is.EqualTo(.96f).Within(1e-6f));
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("12%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").interactable, Is.True);
+                Assert.That(GetField<Button>(tool, "m_Button").GetComponent<HBP.UI.Tools.DropWindow>().Window.transform.IsChildOf(tool.transform), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(holder);
+            }
+        }
+
         [TestCase("m_IBCToggle", "ibc", false)]
         [TestCase("m_IBCToggle", "ibc", true)]
         [TestCase("m_JubrainToggle", "jubrain", false)]

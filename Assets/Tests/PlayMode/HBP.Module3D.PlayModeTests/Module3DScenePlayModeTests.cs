@@ -1148,6 +1148,81 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(initialized.LoadingMessages, Does.Contain("Loading MNI objects"));
         }
 
+        [TestCase(0), TestCase(1)]
+        public async Task DensityReferenceIsPreparedAtLoadWithoutRequestingActivityProjection(int patientCount)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("DensityReferenceAtLoad");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            var project = CreateMinimalAnatomicProject(patientCount: patientCount);
+            var scene = CreateRuntimeBase3DScene(scope);
+            bool referencePreparationObserved = false;
+            bool referenceOnly = true;
+            scene.OnUpdatingGenerators.AddListener(updating =>
+            {
+                if (!updating || !referenceOnly) return;
+                referencePreparationObserved = true;
+                Assert.That(scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(scene.IsActivityProjectionComputing, Is.False, "Reference work must not be mistaken for a cancellable activity projection.");
+            });
+            try
+            {
+                scene.Initialize(project.Visualizations.Single());
+                await scene.InitializeAsync(project.Visualizations.Single(), NoProgress, timeout.Token);
+                await scene.CompleteInitializationAsync(() =>
+                {
+                    WireRuntimeCameraGraph(scene);
+                    EnsureRuntimeSiteConfigurations(scene);
+                    EnsureRuntimeCutColorSchemes(scene);
+                    foreach (var column in scene.Columns)
+                    foreach (var site in column.Sites)
+                        column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+                }, null, timeout.Token);
+                Assert.That(((Column3DAnatomy)scene.Columns.Single()).DensityHistogramBins, Is.Not.Null, "The reference is ready when initialization returns.");
+                Assert.That(referencePreparationObserved, Is.True);
+                await scene.PrepareRenderingAsync(timeout.Token);
+                var column = (Column3DAnatomy)scene.Columns.Single();
+                var rule = PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance;
+                Assert.That(column.HasDensityReference(rule), Is.True);
+                Assert.That(column.DensityHistogramBins, Has.Length.EqualTo(UnityTextureFactory.HistogramBinCount));
+                Assert.That(column.AnatomyParameters.ReferenceMaximum, patientCount == 0 ? Is.Zero : Is.GreaterThan(0));
+                Assert.That(scene.ProjectionRequested, Is.False);
+                Assert.That(scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(scene.ActivityFieldVersion, Is.Zero);
+                Assert.That(scene.IsActivityProjectionComputing, Is.False);
+                float maximum = column.AnatomyParameters.ReferenceMaximum;
+                var bins = column.DensityHistogramBins;
+                column.AnatomyParameters.InfluenceDistance = 30;
+                await scene.PrepareRenderingAsync(timeout.Token);
+                Assert.That(column.DensityHistogramBins, Is.SameAs(bins));
+                Assert.That(column.AnatomyParameters.ReferenceMaximum, Is.EqualTo(maximum));
+
+                referenceOnly = false;
+                column.AnatomyParameters.SetSpanRatios(.1f, .4f, .8f);
+                foreach (float radius in new[] { 0f, 30f })
+                {
+                    column.AnatomyParameters.InfluenceDistance = radius;
+                    scene.RequestActivityProjection();
+                    await scene.PrepareRenderingAsync(timeout.Token);
+                    var projectedMaximum = ((HBP.Core.DLL.DensityGenerator)column.ActivityGenerator).MaxDensity;
+                    Assert.That(projectedMaximum, patientCount == 0 || radius == 0f ? Is.Zero : Is.GreaterThan(0));
+                    Assert.That(column.AnatomyParameters.DensityMaximum, Is.EqualTo(projectedMaximum));
+                    Assert.That(column.AnatomyParameters.SpanMax, Is.EqualTo(.8f * projectedMaximum));
+                    Assert.That(column.AnatomyParameters.SpanMaxRatio, Is.EqualTo(.8f));
+                    Assert.That(column.AnatomyParameters.ReferenceMaximum, Is.EqualTo(maximum));
+                    Assert.That(column.DensityHistogramBins, Is.EqualTo(bins));
+                }
+            }
+            finally
+            {
+                await scene.CleanAsync();
+            }
+        }
+
         [Test]
         [Category("PlayMode.Module3DScene")]
         [Category("MeshScene.ConfigurationRegression")]

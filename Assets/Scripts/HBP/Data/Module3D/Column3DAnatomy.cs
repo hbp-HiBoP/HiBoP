@@ -15,6 +15,31 @@ namespace HBP.Data.Module3D
         /// </summary>
         public AnatomyDataParameters AnatomyParameters { get; } = new AnatomyDataParameters();
 
+        public int[] DensityHistogramBins { get; private set; }
+        private Core.DLL.ActivityProjectionGrid m_DensityReferenceGrid;
+        private Core.Enums.SiteInfluenceByDistanceType m_DensityReferenceRule;
+
+        public bool HasDensityReference(Core.Enums.SiteInfluenceByDistanceType rule) => DensityHistogramBins != null && ReferenceEquals(m_DensityReferenceGrid, ActivityGenerator?.ProjectionGrid) && m_DensityReferenceRule == rule;
+
+        public (System.Action Compute, System.Action Publish) PrepareDensityReferenceComputation(Core.Enums.SiteInfluenceByDistanceType rule)
+        {
+            var density = (Core.DLL.DensityGenerator)ActivityGenerator;
+            var sites = RawElectrodes;
+            var grid = density.ProjectionGrid;
+            (float Maximum, int[] Bins) reference = default;
+            return (() => reference = density.PrepareReference(sites, AnatomyDataParameters.ReferenceInfluenceDistance, rule, Core.Tools.UnityTextureFactory.HistogramBinCount), () => PublishDensityReference(sites, grid, rule, reference));
+        }
+
+        private void PublishDensityReference(Core.DLL.RawSiteList sites, Core.DLL.ActivityProjectionGrid grid, Core.Enums.SiteInfluenceByDistanceType rule, (float Maximum, int[] Bins) reference)
+        {
+            if (!ReferenceEquals(sites, RawElectrodes) || !ReferenceEquals(grid, ActivityGenerator?.ProjectionGrid)) return;
+            if (!ReferenceEquals(m_DensityReferenceGrid, grid)) AnatomyParameters.PublishProjectionMaximum(null);
+            DensityHistogramBins = reference.Bins;
+            m_DensityReferenceGrid = grid;
+            m_DensityReferenceRule = rule;
+            AnatomyParameters.PublishReference(reference.Maximum);
+        }
+
         #endregion
 
         #region Events
@@ -29,27 +54,36 @@ namespace HBP.Data.Module3D
 
         public override void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
-
             ActivityGenerator = new Core.DLL.DensityGenerator();
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
         }
 
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
             AnatomyParameters.InfluenceDistance = ((Core.Data.AnatomicColumn)ColumnData).AnatomicConfiguration.MaximumInfluence;
+            AnatomyParameters.LoadConfiguration(((Core.Data.AnatomicColumn)ColumnData).AnatomicConfiguration);
             base.LoadConfiguration(false);
+        }
+
+        public override void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
+        {
+            DensityHistogramBins = null;
+            AnatomyParameters.PublishProjectionMaximum(null);
+            AnatomyParameters.PublishReference(0f);
+            base.UpdateSites(implantation, sceneSitePatientParent);
         }
 
         public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ((Core.Data.AnatomicColumn)target).AnatomicConfiguration.MaximumInfluence = AnatomyParameters.InfluenceDistance;
+            AnatomyParameters.CaptureConfiguration(((Core.Data.AnatomicColumn)target).AnatomicConfiguration);
             base.CaptureConfiguration(target);
         }
 
         public override void ResetConfiguration()
         {
             AnatomyParameters.InfluenceDistance = 15f;
+            AnatomyParameters.ResetSpanValues();
             base.ResetConfiguration();
         }
 
@@ -58,12 +92,26 @@ namespace HBP.Data.Module3D
             var updateMasks = PrepareSitesMaskUpdate(roiActive);
             var density = (Core.DLL.DensityGenerator)ActivityGenerator;
             var sites = RawElectrodes;
+            var grid = density.ProjectionGrid;
             float distance = AnatomyParameters.InfluenceDistance;
+            float minRatio = AnatomyParameters.SpanMinRatio;
+            float middleRatio = AnatomyParameters.MiddleRatio;
+            float maxRatio = AnatomyParameters.SpanMaxRatio;
+            float projectionMaximum = 0f;
+            (float Maximum, int[] Bins) reference = default;
             return (() =>
             {
                 updateMasks();
+                reference = density.PrepareReference(sites, AnatomyDataParameters.ReferenceInfluenceDistance, influenceRule, Core.Tools.UnityTextureFactory.HistogramBinCount);
                 density.ComputeActivity(sites, distance, influenceRule);
-            }, null);
+                projectionMaximum = density.MaxDensity;
+                density.AdjustValues(middleRatio * projectionMaximum, minRatio * projectionMaximum, maxRatio * projectionMaximum);
+            }, () =>
+            {
+                if (!ReferenceEquals(sites, RawElectrodes) || !ReferenceEquals(grid, ActivityGenerator?.ProjectionGrid)) return;
+                PublishDensityReference(sites, grid, influenceRule, reference);
+                AnatomyParameters.PublishProjectionMaximum(projectionMaximum);
+            });
         }
 
         /// <summary>

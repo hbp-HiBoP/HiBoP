@@ -7,6 +7,20 @@ namespace HBP.Core.DLL
 {
     public class DensityGenerator : ActivityGenerator
     {
+        public (float Maximum, int[] Bins) PrepareReference(RawSiteList sites, float distance, SiteInfluenceByDistanceType rule, int binCount)
+        {
+            if (sites == null) throw new ArgumentNullException(nameof(sites));
+            if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
+            var bins = new int[binCount];
+            ThrowIfFailed(hbp_density_generator_prepare_reference(_handle.Handle, sites.getHandle().Handle, distance, (int)rule, bins, bins.Length, out float maximum));
+            return (maximum, bins);
+        }
+
+        public void AdjustValues(float middle, float minimum, float maximum)
+        {
+            ThrowIfFailed(hbp_density_generator_adjust_values(_handle.Handle, middle, minimum, maximum));
+        }
+
         public float MaxDensity
         {
             get
@@ -35,6 +49,12 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_create", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_create(out IntPtr generator);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_prepare_reference", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_density_generator_prepare_reference(IntPtr generator, IntPtr sites, float distance, int rule, [Out] int[] bins, int binCount, out float maximum);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_adjust_values", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_density_generator_adjust_values(IntPtr generator, float middle, float minimum, float maximum);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_density_generator_destroy", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_density_generator_destroy(IntPtr generator);

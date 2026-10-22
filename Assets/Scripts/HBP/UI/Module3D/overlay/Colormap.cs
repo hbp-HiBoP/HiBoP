@@ -66,21 +66,16 @@ namespace HBP.UI.Module3D
             base.Setup(scene, column, columnUI);
             IsActive = false;
 
-            scene.OnUpdateGeneratorState.AddListener((value) =>
-            {
-                IsActive = value;
-                if (IsActive && column is Column3DAnatomy anatomyColumn)
-                {
-                    int density = Mathf.FloorToInt((anatomyColumn.ActivityGenerator as Core.DLL.DensityGenerator).MaxDensity);
-                    m_Min.text = "0";
-                    m_Mid.text = (density / 2).ToString();
-                    m_Max.text = density.ToString();
-                }
-            });
+            scene.OnUpdateGeneratorState.AddListener((value) => { IsActive = value; });
 
             scene.OnChangeColormap.AddListener((color) => m_ColormapImage.sprite = m_SpriteByColorType[color]);
 
-            if (column is Column3DDynamic dynamicColumn)
+            if (column is Column3DAnatomy densityColumn)
+            {
+                UpdateTextDensity(densityColumn);
+                densityColumn.AnatomyParameters.OnUpdateSpanValues.AddListener(() => UpdateTextDensity(densityColumn));
+            }
+            else if (column is Column3DDynamic dynamicColumn)
             {
                 dynamicColumn.DynamicParameters.OnUpdateSpanValues.AddListener(() =>
                 {
@@ -113,6 +108,13 @@ namespace HBP.UI.Module3D
         #endregion
 
         #region Private Methods
+
+        private void UpdateTextDensity(Column3DAnatomy column)
+        {
+            m_Min.text = (column.AnatomyParameters.SpanMinRatio * 100f).ToString("0.##") + "%";
+            m_Mid.text = (column.AnatomyParameters.MiddleRatio * 100f).ToString("0.##") + "%";
+            m_Max.text = (column.AnatomyParameters.SpanMaxRatio * 100f).ToString("0.##") + "%";
+        }
 
         private void UpdateTextFMRI(Column3DFMRI fmriColumn)
         {

@@ -1886,6 +1886,8 @@ namespace HBP.Sync.Scene
                 }
                 else if (column is Column3DAnatomy anatomyColumn)
                 {
+                    m_LastColumnSpans.Add(column, CreateAnatomySpan(anatomyColumn));
+                    AddColumnListener(anatomyColumn.AnatomyParameters.OnUpdateSpanValues, () => ObserveColumnSpan(anatomyColumn), listeners);
                     m_LastInfluenceDistances.Add(column, CreateInfluenceDistance(column));
                     AddColumnListener(anatomyColumn.AnatomyParameters.OnUpdateInfluenceDistance, () => ObserveInfluenceDistance(column), listeners);
                 }
@@ -2282,6 +2284,7 @@ namespace HBP.Sync.Scene
                 Add(new SetActivityAlpha(columnId, column.ActivityAlpha));
                 if (column is Column3DStatic staticColumn) Add(CreateStaticSpan(staticColumn));
                 if (column is Column3DDynamic dynamicColumn) Add(CreateDynamicSpan(dynamicColumn));
+                if (column is Column3DAnatomy anatomyColumn) Add(CreateAnatomySpan(anatomyColumn));
                 if (column is Column3DFMRI fmriColumn) Add(CreateFunctionalDisplay(fmriColumn));
                 if (column is Column3DMEG megColumn) Add(CreateFunctionalDisplay(megColumn));
             }
@@ -2409,7 +2412,7 @@ namespace HBP.Sync.Scene
 
         private void ObserveColumnSpan(Column3D column)
         {
-            ObserveT09(m_LastColumnSpans, column, column is Column3DStatic staticColumn ? CreateStaticSpan(staticColumn) : CreateDynamicSpan((Column3DDynamic)column));
+            ObserveT09(m_LastColumnSpans, column, column is Column3DAnatomy anatomyColumn ? CreateAnatomySpan(anatomyColumn) : column is Column3DStatic staticColumn ? CreateStaticSpan(staticColumn) : CreateDynamicSpan((Column3DDynamic)column));
         }
 
         private void ObserveFunctionalDisplay(Column3D column)
@@ -2700,6 +2703,7 @@ namespace HBP.Sync.Scene
         }
 
         private static SetColumnSpan CreateStaticSpan(Column3DStatic column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), ColumnSpanKind.Static, column.StaticParameters.SpanMin, column.StaticParameters.Middle, column.StaticParameters.SpanMax);
+        private static SetColumnSpan CreateAnatomySpan(Column3DAnatomy column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), ColumnSpanKind.Anatomy, column.AnatomyParameters.SpanMinRatio, column.AnatomyParameters.MiddleRatio, column.AnatomyParameters.SpanMaxRatio);
         private static SetColumnSpan CreateDynamicSpan(Column3DDynamic column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), ColumnSpanKind.Dynamic, column.DynamicParameters.SpanMin, column.DynamicParameters.Middle, column.DynamicParameters.SpanMax);
         private static SetFunctionalDisplay CreateFunctionalDisplay(Column3DFMRI column) => new SetFunctionalDisplay(new ColumnId(column.ColumnData.ID), FunctionalModality.Fmri, column.FMRIParameters.FMRINegativeCalMinFactor, column.FMRIParameters.FMRINegativeCalMaxFactor, column.FMRIParameters.FMRIPositiveCalMinFactor, column.FMRIParameters.FMRIPositiveCalMaxFactor, column.FMRIParameters.HideLowerValues, column.FMRIParameters.HideMiddleValues, column.FMRIParameters.HideHigherValues);
         private static SetFunctionalDisplay CreateFunctionalDisplay(Column3DMEG column) => new SetFunctionalDisplay(new ColumnId(column.ColumnData.ID), FunctionalModality.Meg, column.MEGParameters.FMRINegativeCalMinFactor, column.MEGParameters.FMRINegativeCalMaxFactor, column.MEGParameters.FMRIPositiveCalMinFactor, column.MEGParameters.FMRIPositiveCalMaxFactor, column.MEGParameters.HideLowerValues, column.MEGParameters.HideMiddleValues, column.MEGParameters.HideHigherValues);
@@ -2735,7 +2739,7 @@ namespace HBP.Sync.Scene
                 SetSiteHighlight value => new SetSiteHighlight(value.ColumnId, value.SiteId, ResolveSite(value.ColumnId, value.SiteId).IsHighlighted),
                 SetSiteLabels value => new SetSiteLabels(value.ColumnId, value.SiteId, ResolveSite(value.ColumnId, value.SiteId).Labels),
                 SetActivityAlpha value => new SetActivityAlpha(value.ColumnId, ResolveColumn(value.ColumnId).ActivityAlpha),
-                SetColumnSpan value => value.Kind == ColumnSpanKind.Static ? CreateStaticSpan(ResolveStaticColumn(value.ColumnId)) : CreateDynamicSpan(ResolveDynamicColumn(value.ColumnId)),
+                SetColumnSpan value => value.Kind == ColumnSpanKind.Anatomy ? CreateAnatomySpan(ResolveAnatomyColumn(value.ColumnId)) : value.Kind == ColumnSpanKind.Static ? CreateStaticSpan(ResolveStaticColumn(value.ColumnId)) : CreateDynamicSpan(ResolveDynamicColumn(value.ColumnId)),
                 SetFunctionalDisplay value => value.Modality == FunctionalModality.Fmri ? CreateFunctionalDisplay(ResolveFmriColumn(value.ColumnId)) : CreateFunctionalDisplay(ResolveMegColumn(value.ColumnId)),
                 SetIbcDifumoDisplay => CreateIbcDifumoDisplay(),
                 SetLocalizerDisplay => CreateLocalizerDisplay(),
@@ -3590,7 +3594,8 @@ namespace HBP.Sync.Scene
                 case SetSiteLabels value: ResolveSite(value.ColumnId, value.SiteId); break;
                 case SetActivityAlpha value: RequireColumnType(value.ColumnId, column => true); break;
                 case SetColumnSpan value:
-                    if (value.Kind == ColumnSpanKind.Static) ResolveStaticColumn(value.ColumnId);
+                    if (value.Kind == ColumnSpanKind.Anatomy) ResolveAnatomyColumn(value.ColumnId);
+                    else if (value.Kind == ColumnSpanKind.Static) ResolveStaticColumn(value.ColumnId);
                     else ResolveDynamicColumn(value.ColumnId);
                     break;
                 case SetFunctionalDisplay value:
@@ -3667,7 +3672,8 @@ namespace HBP.Sync.Scene
                         return true;
                     }
                 case SetColumnSpan value:
-                    if (value.Kind == ColumnSpanKind.Static) ResolveStaticColumn(value.ColumnId).StaticParameters.ApplySynchronizedSpanValues(value.Minimum, value.Middle, value.Maximum);
+                    if (value.Kind == ColumnSpanKind.Anatomy) ResolveAnatomyColumn(value.ColumnId).AnatomyParameters.SetSpanRatios(value.Minimum, value.Middle, value.Maximum);
+                    else if (value.Kind == ColumnSpanKind.Static) ResolveStaticColumn(value.ColumnId).StaticParameters.ApplySynchronizedSpanValues(value.Minimum, value.Middle, value.Maximum);
                     else ResolveDynamicColumn(value.ColumnId).DynamicParameters.ApplySynchronizedSpanValues(value.Minimum, value.Middle, value.Maximum);
                     return true;
                 case SetFunctionalDisplay value:
@@ -3912,6 +3918,7 @@ namespace HBP.Sync.Scene
         }
 
         private Column3DStatic ResolveStaticColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DStatic) as Column3DStatic;
+        private Column3DAnatomy ResolveAnatomyColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DAnatomy) as Column3DAnatomy;
         private Column3DDynamic ResolveDynamicColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DDynamic) as Column3DDynamic;
         private Column3DFMRI ResolveFmriColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DFMRI) as Column3DFMRI;
         private Column3DMEG ResolveMegColumn(ColumnId columnId) => RequireColumnType(columnId, column => column is Column3DMEG) as Column3DMEG;

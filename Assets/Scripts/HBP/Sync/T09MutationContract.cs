@@ -36,7 +36,10 @@ namespace HBP.Sync
     public enum ColumnSpanKind : byte
     {
         Static = 1,
-        Dynamic = 2
+        Dynamic = 2,
+
+        // Density payloads carry ratios of the fixed reference maximum, never absolute values.
+        Anatomy = 3
     }
 
     public enum FunctionalModality : byte
@@ -178,11 +181,12 @@ namespace HBP.Sync
         public SetColumnSpan(ColumnId columnId, ColumnSpanKind kind, float minimum, float middle, float maximum)
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
-            if (kind != ColumnSpanKind.Static && kind != ColumnSpanKind.Dynamic) throw new ArgumentOutOfRangeException(nameof(kind));
+            if (kind != ColumnSpanKind.Static && kind != ColumnSpanKind.Dynamic && kind != ColumnSpanKind.Anatomy) throw new ArgumentOutOfRangeException(nameof(kind));
             ValueValidation.ValidateFloat(minimum, nameof(minimum));
             ValueValidation.ValidateFloat(middle, nameof(middle));
             ValueValidation.ValidateFloat(maximum, nameof(maximum));
             if (minimum > middle || middle > maximum) throw new ArgumentOutOfRangeException(nameof(minimum));
+            if (kind == ColumnSpanKind.Anatomy && minimum < 0f) throw new ArgumentOutOfRangeException(nameof(minimum));
             Kind = kind;
             Minimum = minimum;
             Middle = middle;

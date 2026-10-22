@@ -96,7 +96,7 @@ namespace HBP.Tests.Serialization
             Assert.That(new FMRIConfiguration(.1f, .2f, .3f, .4f, true, false, true, "fmri-config", 2).SelectedResourceIndex, Is.EqualTo(2));
             Assert.That(new MEGConfiguration(.1f, .2f, .3f, .4f, true, false, true, "meg-config", 3).SelectedResourceIndex, Is.EqualTo(3));
             Assert.That(new StaticConfiguration(23, -7, 2, 19, null, null, null, 4, "static-config").SelectedResourceIndex, Is.EqualTo(4));
-            Assert.That(new AnatomicConfiguration(27, "anatomy-config").MaximumInfluence, Is.EqualTo(27));
+            Assert.That(new AnatomicConfiguration(27, 0.05f, 0.35f, 0.65f, "anatomy-config").MaximumInfluence, Is.EqualTo(27));
         }
 
         [Test]

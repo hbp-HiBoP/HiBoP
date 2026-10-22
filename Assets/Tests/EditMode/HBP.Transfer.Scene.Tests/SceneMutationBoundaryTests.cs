@@ -28,6 +28,29 @@ namespace HBP.Tests.Transfer.Scene
     public class SceneMutationBoundaryTests
     {
         [Test]
+        public void AnatomyThresholdRatiosAreObservedAndRestoredByCheckpointBeforeReferenceExists()
+        {
+            using var source = new BoundSceneFixture();
+            using var peer = new BoundSceneFixture();
+            var mutations = new List<Mutation>();
+            source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => mutations.Add(mutation));
+            source.Column.AnatomyParameters.SetSpanRatios(.1f, .4f, .9f);
+            source.Column.AnatomyParameters.PublishReference(10f);
+            source.Column.AnatomyParameters.PublishProjectionMaximum(50f);
+            Assert.That(mutations.OfType<SetColumnSpan>().Single().Kind, Is.EqualTo(ColumnSpanKind.Anatomy));
+            var checkpoint = source.Boundary.CaptureCheckpoint();
+            peer.Boundary.ApplyCheckpoint(checkpoint, T09Operation(400099));
+            Assert.That(peer.Column.AnatomyParameters.SpanMinRatio, Is.EqualTo(.1f));
+            Assert.That(peer.Column.AnatomyParameters.MiddleRatio, Is.EqualTo(.4f));
+            Assert.That(peer.Column.AnatomyParameters.SpanMaxRatio, Is.EqualTo(.9f));
+            peer.Column.AnatomyParameters.PublishReference(20f);
+            Assert.That(peer.Column.AnatomyParameters.SpanMax, Is.EqualTo(18f));
+            peer.Column.AnatomyParameters.PublishProjectionMaximum(10f);
+            Assert.That(peer.Column.AnatomyParameters.SpanMax, Is.EqualTo(9f), "Peers resolve the same ratios against their own projected field.");
+            Assert.That(mutations, Has.Count.EqualTo(1), "Publishing a computed scale must not propose a threshold mutation.");
+        }
+
+        [Test]
         public void CutDefinitionEvent_IsInheritedAndRunsOnceAfterEachActualChange()
         {
             using var cut = new SceneCut();
@@ -1899,7 +1922,7 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(34));
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(35));
             Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(OperationType.SetSceneBoolean));
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.ShowAllSites), Is.True);
