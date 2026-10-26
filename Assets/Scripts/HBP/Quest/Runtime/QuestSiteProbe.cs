@@ -31,6 +31,7 @@ namespace HBP.Quest
         {
             activate = new InputAction("Quest site probe (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
             activate.Enable();
+            if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
             color = new MaterialPropertyBlock();
             Cancel();
         }
@@ -76,7 +77,7 @@ namespace HBP.Quest
 
             targets.Clear();
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.Column != null && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (capturedScene == null || column.Scene == capturedScene))
+                if (anatomy.CanInteractWithColumn(column) && column.Column != null && (capturedScene == null || column.Scene == capturedScene))
                     foreach (var site in column.Column.Sites)
                     {
                         if (site == null) continue;
@@ -123,8 +124,14 @@ namespace HBP.Quest
             armed = false;
         }
 
+        private void OnPresentationChanging(Base3DScene scene)
+        {
+            if (capturedScene == null || capturedScene == scene) Cancel();
+        }
+
         private void OnDisable()
         {
+            if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
             Cancel();
             activate?.Dispose();
             activate = null;

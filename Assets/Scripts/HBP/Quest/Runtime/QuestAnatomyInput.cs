@@ -51,7 +51,7 @@ namespace HBP.Quest
             var grabbed = System.Linq.Enumerable.FirstOrDefault(view.AllColumns, column => column.Manipulator.IsGrabbed);
             foreach (var column in view.AllColumns)
             {
-                if (column == null || !column.gameObject.activeSelf || !QuestAnatomySession.CanInteractWith(column.Scene) || !column.Scene.IsVisible)
+                if (!view.CanInteractWithColumn(column))
                 {
                     column?.Manipulator.CancelGrab();
                     continue;
@@ -142,21 +142,23 @@ namespace HBP.Quest
         {
             if (view == null || head == null || !head.IsTracked) return;
             if (pointer != null) pointer.CancelCutGrabs();
+            var placed = new System.Collections.Generic.List<Rect>();
             foreach (var presentation in view.Scenes)
-                if (QuestAnatomySession.CanInteractWith(presentation.Scene))
-                    Place(presentation);
+                if (presentation.Scene.IsVisible && QuestAnatomySession.CanInteractWith(presentation.Scene))
+                {
+                    view.Place(presentation, ReadPose(head), Camera.main, placed);
+                    if (view.TryProjectedBounds(presentation, QuestSceneLayout.Projection(ReadPose(head), Camera.main), out var bounds)) placed.Add(bounds);
+                }
         }
 
         private void Place(QuestAnatomyView.Presentation presentation)
         {
-            int index = 0;
-            foreach (var column in presentation.Columns)
-            {
-                column.Manipulator.Recenter(ReadPose(head));
-                column.transform.position += head.transform.right * (index++ - (presentation.Columns.Count - 1) * 0.5f) * 0.35f;
-            }
-
-            view.CompletePlacement(presentation);
+            var occupied = new System.Collections.Generic.List<Rect>();
+            var projection = QuestSceneLayout.Projection(ReadPose(head), Camera.main);
+            foreach (var other in view.Scenes)
+                if (other != presentation && other.IsPlaced && other.Scene.IsVisible && view.TryProjectedBounds(other, projection, out var bounds))
+                    occupied.Add(bounds);
+            view.Place(presentation, ReadPose(head), Camera.main, occupied);
         }
 
         private void CancelGrabs()

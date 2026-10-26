@@ -58,8 +58,7 @@ namespace HBP.Tests.Quest
                     var opening = view.Find(scene);
                     typeof(QuestAnatomyView.Presentation).GetProperty("IsPlaced").SetValue(opening, false);
                     place.Invoke(input, new object[] { opening });
-                    Vector3 expected = head.transform.position + head.transform.forward * .65f + Vector3.up * -.12f;
-                    Assert.That(Vector3.Distance(manipulator.GrabCenter, expected), Is.LessThan(.001f));
+                    Assert.That(Vector3.Dot(manipulator.GrabCenter - head.transform.position, head.transform.forward), Is.EqualTo(.65f).Within(.001f));
                     Assert.That(opening.IsPlaced, Is.True);
                     if (index == 0)
                     {
@@ -87,7 +86,7 @@ namespace HBP.Tests.Quest
             {
                 var view = content.AddComponent<QuestAnatomyView>();
                 var scene = QuestSceneTestBinding.VisibleScene(content);
-                var columns = QuestSceneTestBinding.Attach(view, scene);
+                var columns = QuestSceneTestBinding.Attach(view, scene, QuestColumnDisplayMode.Split);
 
                 QuestAnatomyManipulator MakeColumn(string name, Vector3 position)
                 {

@@ -13,13 +13,13 @@ using UnityEngine;
 namespace HBP.Quest
 {
     /// <summary>Per-scene presentation and publication; science stays in the common scenes.</summary>
-    public sealed class QuestAnatomyView : MonoBehaviour
+    public sealed partial class QuestAnatomyView : MonoBehaviour
     {
         [SerializeField] private Base3DScene contentPrefab;
         [SerializeField] private QuestColumnPresentation columnPrefab;
         [SerializeField] private GameObject servicesPrefab;
 
-        public sealed class Presentation
+        public sealed partial class Presentation
         {
             public RestoredScene Restored { get; internal set; }
             public Base3DScene Scene => Restored.Scene;
@@ -46,17 +46,20 @@ namespace HBP.Quest
         public bool IsPreparing => preparation != null;
         public string Summary => scenes.Count == 0 ? "No visualization received" : $"{scenes.Count} visualizations | Available offline";
         public GenericEvent<Base3DScene, Column3D> OnContextSelected { get; } = new();
+        public GenericEvent<Base3DScene> OnPresentationChanging { get; } = new();
 
         private void OnEnable()
         {
             Camera.onPreCull += BeforeCamera;
             UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering += BeforePipelineCamera;
+            Module3DMain.OnSelectColumn.AddListener(OnColumnSelected);
         }
 
         private void OnDisable()
         {
             Camera.onPreCull -= BeforeCamera;
             UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering -= BeforePipelineCamera;
+            Module3DMain.OnSelectColumn.RemoveListener(OnColumnSelected);
         }
 
         private void BeforeCamera(Camera camera) => UpdateRenderingVisibility();
@@ -83,7 +86,8 @@ namespace HBP.Quest
                 if (other != target && other.Scene.IsSelected)
                     other.Scene.IsSelected = false;
             if (!scene.IsSelected) scene.IsSelected = true;
-            if (column != null) column.IsSelected = true;
+            if (column != null && !column.IsSelected) column.IsSelected = true;
+            SynchronizeSelection(target);
             if (intentional) OnContextSelected.Invoke(scene, column ?? scene.SelectedColumn);
         }
 
@@ -99,20 +103,15 @@ namespace HBP.Quest
             try
             {
                 candidate = await SceneRestoration.PrepareAsync(payload, archive, contentPrefab, transform, lifetime.Token, scene => preparingScene = scene);
+                if (candidate.Scene.SelectedColumn == null && candidate.Scene.Columns.Count > 0) candidate.Scene.Columns[0].IsSelected = true;
                 var previous = scenes.FirstOrDefault(value => value.Scene.Visualization.ID == candidate.Scene.Visualization.ID);
-                var poses = previous?.columns.Where(value => value != null && value.Column != null).ToDictionary(value => value.Column.ColumnData.ID, value => (Position: value.transform.localPosition, Rotation: value.transform.localRotation, Scale: value.transform.localScale));
+                if (previous != null) FinishTransition(previous);
                 foreach (var column in candidate.Scene.Columns)
                 {
                     var item = Instantiate(columnPrefab, transform, false);
                     item.gameObject.SetActive(false);
                     presentation.columns.Add(item);
                     item.Bind(candidate.Scene, column);
-                    if (poses != null && poses.TryGetValue(column.ColumnData.ID, out var pose))
-                    {
-                        item.transform.localPosition = pose.Position;
-                        item.transform.localRotation = pose.Rotation;
-                        item.transform.localScale = pose.Scale;
-                    }
                 }
 
                 lifetime.Token.ThrowIfCancellationRequested();
@@ -120,6 +119,7 @@ namespace HBP.Quest
                 candidate = null;
                 presentation.SurfaceHidden = previous?.SurfaceHidden == true;
                 presentation.IsPlaced = previous?.IsPlaced == true;
+                RestorePresentation(presentation, previous);
                 presentation.VisibilityListener = visible => ApplyVisibility(presentation, visible);
                 presentation.Scene.OnChangeVisibleState.AddListener(presentation.VisibilityListener);
                 if (previous != null)
@@ -159,26 +159,31 @@ namespace HBP.Quest
 
         private void ApplyVisibility(Presentation presentation, bool visible)
         {
-            visible &= presentation.IsPlaced;
+            if (!visible) FinishTransition(presentation);
             foreach (var column in presentation.columns)
             {
                 if (column == null) continue;
+                // Hidden columns must still advance their scientific timelines.
+                column.gameObject.SetActive(true);
                 if (!visible) column.Manipulator.CancelGrab();
-                column.gameObject.SetActive(visible);
-                if (visible) column.Show();
-                else column.Hide();
             }
+
+            if (!visible) OnPresentationChanging.Invoke(presentation.Scene);
+            UpdateRenderingVisibility();
         }
 
         public void CompletePlacement(Presentation presentation)
         {
             if (presentation == null || !scenes.Contains(presentation)) return;
             presentation.IsPlaced = true;
+            presentation.displayed = SelectedPresentation(presentation);
+            if (presentation.displayed != null && presentation.DisplayMode == QuestColumnDisplayMode.Single) presentation.commonPose = ColumnPose.Read(presentation.displayed.transform);
             ApplyVisibility(presentation, presentation.Scene.IsVisible);
         }
 
         private static void HidePresentation(Presentation presentation)
         {
+            presentation.transition = null;
             foreach (var column in presentation.columns)
                 if (column != null)
                 {
@@ -249,6 +254,12 @@ namespace HBP.Quest
 
         private void LateUpdate()
         {
+            foreach (var presentation in scenes)
+            {
+                SynchronizeSelection(presentation);
+                AdvanceTransition(presentation, Time.unscaledDeltaTime);
+            }
+
             var camera = Camera.main;
             if (camera != null && camera.TryGetComponent<HBP.Rendering.HBPEdgeCameraSettings>(out var edges)) edges.EdgesEnabled = Scene != null && Scene.EdgeMode;
             UpdateRenderingVisibility();
@@ -268,8 +279,12 @@ namespace HBP.Quest
                 foreach (var renderer in presentation.Scene.GetComponentsInChildren<Renderer>(true)) renderer.forceRenderingOff = true;
                 foreach (var column in presentation.columns)
                     if (column != null)
+                    {
+                        bool visible = IsColumnPresented(column);
                         foreach (var renderer in column.GetComponentsInChildren<Renderer>(true))
-                            renderer.forceRenderingOff = !presentation.IsPlaced || !presentation.Scene.IsVisible || presentation.SurfaceHidden && column.Column != null && renderer.gameObject == column.Column.BrainMesh;
+                            renderer.forceRenderingOff = !visible || presentation.SurfaceHidden && column.Column != null && renderer.gameObject == column.Column.BrainMesh;
+                        column.SetSelectionFeedbackVisible(visible);
+                    }
             }
         }
 

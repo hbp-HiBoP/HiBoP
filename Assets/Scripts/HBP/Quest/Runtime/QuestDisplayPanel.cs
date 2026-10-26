@@ -26,7 +26,7 @@ namespace HBP.Quest
             Refresh();
         }
 
-        private bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
+        private bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible && view.Find(view.Scene) is { IsPlaced: true, IsTransitioning: false };
         private void Update() => Refresh();
 
         private void Refresh()
@@ -48,11 +48,11 @@ namespace HBP.Quest
                 if (!controls.ContainsKey(value))
                 {
                     var row = Instantiate(rowPrefab, rows, false);
-                    row.Bind(value, session);
+                    row.Bind(value, session, view);
                     controls.Add(value, row);
                 }
 
-            openPatient.interactable = session != null && session.CanOpenPatient;
+            openPatient.interactable = Ready && session != null && session.CanOpenPatient;
             projection.interactable = Ready;
         }
     }

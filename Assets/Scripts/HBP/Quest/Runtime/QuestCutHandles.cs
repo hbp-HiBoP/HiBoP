@@ -36,7 +36,7 @@ namespace HBP.Quest
 
         public void Refresh()
         {
-            foreach (var old in gizmos.Where(g => g == null || view == null || !g.IsValid || !QuestAnatomySession.CanInteractWith(g.Scene) || !g.Scene.IsVisible || !view.AllColumns.Contains(g.Column)).ToArray())
+            foreach (var old in gizmos.Where(g => g == null || view == null || !g.IsValid || !view.CanInteractWithColumn(g.Column)).ToArray())
             {
                 for (int i = 0; i < drags.Length; i++)
                     if (drags[i]?.Gizmo == old)
@@ -56,7 +56,7 @@ namespace HBP.Quest
                 return;
             }
 
-            foreach (var column in view.AllColumns.Where(value => value.gameObject.activeInHierarchy && QuestAnatomySession.CanInteractWith(value.Scene) && value.Scene.IsVisible && !value.Scene.AutomaticCutAroundSelectedSite))
+            foreach (var column in view.AllColumns.Where(value => view.CanInteractWithColumn(value) && !value.Scene.AutomaticCutAroundSelectedSite))
             foreach (var cut in column.Scene.Cuts)
                 if (!gizmos.Any(g => g.Column == column && g.Cut == cut))
                 {
@@ -117,7 +117,7 @@ namespace HBP.Quest
 
         public bool Begin(int hand, QuestCutGizmo gizmo)
         {
-            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || Distance(gizmo, hand) > policy.CutContactDistance || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
+            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column) || Distance(gizmo, hand) > policy.CutContactDistance || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
             float span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             if (!float.IsFinite(span) || span <= 0) return false;
             Vector3 point = gizmo.ContactDistance(grip[hand]) <= gizmo.ContactDistance(aim[hand]) ? grip[hand] : aim[hand];
@@ -135,7 +135,7 @@ namespace HBP.Quest
             var drag = drags[hand];
             if (drag == null) return false;
             var gizmo = drag.Gizmo;
-            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !gizmo.Scene.IsVisible || !view.AllColumns.Contains(gizmo.Column))
+            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column))
             {
                 End(hand);
                 return false;
@@ -167,6 +167,15 @@ namespace HBP.Quest
         public void CancelAll()
         {
             for (int i = 0; i < drags.Length; i++) End(i);
+        }
+
+        public bool IsCapturedInScene(int hand, HBP.Data.Module3D.Base3DScene scene) => drags[hand]?.Gizmo.Scene == scene;
+
+        public void CancelScene(HBP.Data.Module3D.Base3DScene scene)
+        {
+            for (int i = 0; i < drags.Length; i++)
+                if (IsCapturedInScene(i, scene))
+                    End(i);
         }
 
         private void LateUpdate()

@@ -33,7 +33,7 @@ namespace HBP.Tests.Quest
             using var first = new Fixture();
             using var second = new Fixture();
             first.Window.Open();
-            QuestSceneTestBinding.Attach(first.View, second.Scene).AddRange(second.View.Columns);
+            QuestSceneTestBinding.Attach(first.View, second.Scene, QuestColumnDisplayMode.Split).AddRange(second.View.Columns);
             first.Handles.Refresh();
             Assert.That(first.Handles.Gizmos.Count, Is.EqualTo(12));
             var gizmo = first.Handles.Gizmos.First(value => value.Scene == first.Scene);
@@ -745,7 +745,7 @@ namespace HBP.Tests.Quest
                 }
 
                 View = data.AddComponent<QuestAnatomyView>();
-                var columns = QuestSceneTestBinding.Attach(View, Scene);
+                var columns = QuestSceneTestBinding.Attach(View, Scene, QuestColumnDisplayMode.Split);
                 mesh.bounds = new Bounds(Vector3.zero, new Vector3(160, 130, 140));
                 for (int i = 0; i < 2; i++)
                 {

@@ -2,6 +2,7 @@
     "name": "HBP.Quest.Runtime",
     "references": [
         "UniTask",
+        "Unity.TextMeshPro",
         "HBP.Core.Runtime",
         "HBP.Transfer.Transport",
         "Unity.InputSystem",

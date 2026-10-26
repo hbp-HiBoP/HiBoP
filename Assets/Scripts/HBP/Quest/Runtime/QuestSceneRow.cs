@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using HBP.Sync.Scene;
 using UnityEngine;
@@ -11,11 +13,17 @@ namespace HBP.Quest
         [SerializeField] private Text title, details;
         [SerializeField] private Toggle visibility;
         [SerializeField] private Button close;
+        [SerializeField] private Button select;
+        [SerializeField] private QuestDropdown columnSelector;
+        [SerializeField] private Toggle separateColumns;
         [SerializeField] private HBP.Theme.State selectedState;
         private QuestAnatomyView.Presentation presentation;
         private QuestAnatomySession session;
+        private QuestAnatomyView view;
         private bool closing;
         private string error;
+        private readonly List<string> columnNames = new();
+        private bool selectorHasNoSelection;
 
         private void Awake()
         {
@@ -24,12 +32,30 @@ namespace HBP.Quest
                 if (QuestAnatomySession.CanInteractWith(presentation?.Scene) && !closing) presentation.Scene.UpdateVisibleState(value, false);
             });
             close.onClick.AddListener(() => CloseAsync().Forget());
+            if (select != null)
+                select.onClick.AddListener(() =>
+                {
+                    if (CanSelect) view.SelectContext(presentation.Scene, presentation.Scene.SelectedColumn);
+                });
+            if (columnSelector != null)
+                columnSelector.onValueChanged.AddListener(index =>
+                {
+                    if (selectorHasNoSelection) index--;
+                    if (CanEditColumns && index >= 0 && index < presentation.Scene.Columns.Count)
+                        view.SelectContext(presentation.Scene, presentation.Scene.Columns[index]);
+                });
+            if (separateColumns != null)
+                separateColumns.onValueChanged.AddListener(value =>
+                {
+                    if (CanEditColumns) view.SetColumnDisplayMode(presentation.Scene, value ? QuestColumnDisplayMode.Split : QuestColumnDisplayMode.Single);
+                });
         }
 
-        public void Bind(QuestAnatomyView.Presentation value, QuestAnatomySession owner)
+        public void Bind(QuestAnatomyView.Presentation value, QuestAnatomySession owner, QuestAnatomyView context = null)
         {
             presentation = value;
             session = owner;
+            view = context;
             Refresh();
         }
 
@@ -53,6 +79,8 @@ namespace HBP.Quest
         }
 
         private void Update() => Refresh();
+        private bool CanSelect => view != null && presentation != null && presentation.Scene.IsVisible && !presentation.IsTransitioning && !closing && QuestAnatomySession.CanInteractWith(presentation.Scene);
+        private bool CanEditColumns => CanSelect && presentation.IsPlaced;
 
         private void Refresh()
         {
@@ -79,6 +107,30 @@ namespace HBP.Quest
             details.text = error ?? $"{scene.Columns.Count} columns · {state}";
             visibility.SetIsOnWithoutNotify(scene.IsVisible);
             visibility.interactable = close.interactable = !closing && QuestAnatomySession.CanInteractWith(scene);
+            if (select != null) select.interactable = CanSelect;
+            RefreshColumns();
+        }
+
+        private void RefreshColumns()
+        {
+            if (columnSelector == null || separateColumns == null) return;
+            var scene = presentation.Scene;
+            separateColumns.SetIsOnWithoutNotify(presentation.DisplayMode == QuestColumnDisplayMode.Split);
+            separateColumns.interactable = CanEditColumns && scene.Columns.Count > 1;
+            columnSelector.interactable = CanEditColumns && scene.Columns.Count > 0;
+            selectorHasNoSelection = scene.SelectedColumn == null;
+            var names = scene.Columns.Select(column => column.Name).ToList();
+            if (selectorHasNoSelection) names.Insert(0, "Select a column");
+            if (!columnNames.SequenceEqual(names))
+            {
+                columnNames.Clear();
+                columnNames.AddRange(names);
+                columnSelector.ClearOptions();
+                columnSelector.AddOptions(names);
+            }
+
+            columnSelector.SetValueWithoutNotify(selectorHasNoSelection ? 0 : Mathf.Max(0, scene.Columns.IndexOf(scene.SelectedColumn)));
+            columnSelector.RefreshShownValue();
         }
     }
 }

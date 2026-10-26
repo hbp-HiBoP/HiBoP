@@ -71,6 +71,17 @@ namespace HBP.Quest
             if (cuts != null) cuts.CancelAll();
         }
 
+        private void OnPresentationChanging(HBP.Data.Module3D.Base3DScene scene)
+        {
+            for (int i = 0; i < hands.Length; i++)
+            {
+                var hand = hands[i];
+                if (hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
+            }
+
+            if (cuts != null) cuts.CancelScene(scene);
+        }
+
         public bool TryGetAnatomyPose(bool leftHand, QuestAnatomyManipulator target, out Pose pose, out bool distant)
         {
             var hand = hands[leftHand ? 0 : 1];
@@ -82,6 +93,7 @@ namespace HBP.Quest
         protected override void OnEnable()
         {
             base.OnEnable();
+            if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
             feedbackProperties = new MaterialPropertyBlock();
             feedbackDefaults.Clear();
             for (int i = 0; i < hands.Length; i++)
@@ -348,7 +360,7 @@ namespace HBP.Quest
         {
             if (target == null || anatomy == null || target.SharedMesh == null) return false;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && column.Manipulator == target)
+                if (anatomy.CanInteractWithColumn(column) && column.Manipulator == target)
                     return true;
             return false;
         }
@@ -360,14 +372,14 @@ namespace HBP.Quest
             if (anatomy == null) return null;
             QuestAnatomyManipulator grabbed = null;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && column.Manipulator.IsGrabbed)
+                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && column.Manipulator.IsGrabbed)
                 {
                     grabbed = column.Manipulator;
                     break;
                 }
 
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
                 {
                     nearest = column.Manipulator;
                     distance = hitDistance;
@@ -380,7 +392,7 @@ namespace HBP.Quest
         {
             if (anatomy == null) return null;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
                 {
                     if (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))) return column.Manipulator;
                     // Preserve joining a direct gesture, but don't mix physical and remote poses accidentally.
@@ -394,7 +406,7 @@ namespace HBP.Quest
             QuestAnatomyManipulator nearest = null;
             float nearestCenter = float.PositiveInfinity;
             foreach (var column in anatomy.AllColumns)
-                if (column != null && column.gameObject.activeSelf && QuestAnatomySession.CanInteractWith(column.Scene) && column.Scene.IsVisible && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
                 {
                     float distance = (position - column.Manipulator.GrabCenter).sqrMagnitude;
                     if (distance < nearestCenter)
@@ -510,6 +522,7 @@ namespace HBP.Quest
 
         protected override void OnDisable()
         {
+            if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
             if (siteProbe != null) siteProbe.Cancel();
             foreach (var hand in hands)
             {

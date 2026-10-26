@@ -37,9 +37,11 @@ namespace HBP.Tests.Quest
                 Assert.That(f.Presenter.gameObject.activeSelf, Is.False);
                 foreach (var column in f.Columns)
                 {
-                    Assert.That(Vector3.Distance(column.position, new Vector3(0, -.12f, .65f)), Is.LessThan(.001f));
+                    Assert.That(column.position.z, Is.EqualTo(.65f).Within(.001f));
                     Assert.That(column.localScale, Is.EqualTo(Vector3.one * 1.5f));
                 }
+
+                Assert.That(Vector3.Distance(f.Columns[0].position, f.Columns[1].position), Is.GreaterThan(.15f));
 
                 Assert.That(f.Open.transform.position, Is.EqualTo(f.Open.Placement));
                 Assert.That(f.Closed.transform.position, Is.EqualTo(Vector3.one * 5));
@@ -143,6 +145,7 @@ namespace HBP.Tests.Quest
                     Columns[i].localScale = Vector3.one * 1.5f;
                     var brain = new GameObject("Brain", typeof(MeshFilter));
                     brain.transform.SetParent(wrapper.transform, false);
+                    brain.transform.localScale = Vector3.one * .001f;
                     brain.GetComponent<MeshFilter>().sharedMesh = mesh;
                     var column = wrapper.AddComponent<Column3DAnatomy>();
                     typeof(Column3D).GetProperty("BrainMesh").SetValue(column, brain);

@@ -21,9 +21,10 @@ namespace HBP.Tests.Quest
             return scene;
         }
 
-        public static List<QuestColumnPresentation> Attach(QuestAnatomyView view, Base3DScene scene)
+        public static List<QuestColumnPresentation> Attach(QuestAnatomyView view, Base3DScene scene, QuestColumnDisplayMode mode = QuestColumnDisplayMode.Single)
         {
             var presentation = new QuestAnatomyView.Presentation();
+            typeof(QuestAnatomyView.Presentation).GetProperty("DisplayMode").SetValue(presentation, mode);
             typeof(QuestAnatomyView.Presentation).GetProperty("IsPlaced").SetValue(presentation, true);
             var restored = typeof(QuestAnatomyView.Presentation).GetProperty("Restored");
             restored.SetValue(presentation, Activator.CreateInstance(restored.PropertyType, BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { scene, null, null }, null));
