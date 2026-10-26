@@ -9,8 +9,7 @@ namespace HBP.Quest
     public sealed class QuestDisplayPanel : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
-        [SerializeField] private QuestAnatomyInput input;
-        [SerializeField] private Button surface, projection, recenterBrains;
+        [SerializeField] private Button surface, projection;
         [SerializeField] private Text surfaceLabel;
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private Button openPatient;
@@ -29,10 +28,6 @@ namespace HBP.Quest
             {
                 if (Ready) view.RecalculateProjection();
             });
-            recenterBrains.onClick.AddListener(() =>
-            {
-                if (Ready) input.RecenterBrains();
-            });
             Refresh();
         }
 
@@ -43,7 +38,7 @@ namespace HBP.Quest
         {
             if (view == null)
             {
-                surface.interactable = projection.interactable = recenterBrains.interactable = openPatient.interactable = false;
+                surface.interactable = projection.interactable = openPatient.interactable = false;
                 return;
             }
 
@@ -63,7 +58,7 @@ namespace HBP.Quest
                 }
 
             openPatient.interactable = session != null && session.CanOpenPatient;
-            surface.interactable = projection.interactable = recenterBrains.interactable = Ready;
+            surface.interactable = projection.interactable = Ready;
             if (surfaceLabel != null) surfaceLabel.text = view != null && view.SurfaceHidden ? "Show brain surface" : "Hide brain surface";
         }
     }

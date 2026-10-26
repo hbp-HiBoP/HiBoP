@@ -54,14 +54,14 @@ namespace HBP.Tests.Quest
             float initialWidth = scope.Toolbar.GetComponent<RectTransform>().rect.width;
             var first = scope.Buttons[0];
             Vector2 size = ((RectTransform)first.transform).rect.size;
-            Assert.That(initialWidth, Is.EqualTo(324).Within(.01));
+            Assert.That(initialWidth, Is.EqualTo(244).Within(.01));
             Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.height, Is.EqualTo(size.y + 8).Within(.01), "Only a thin margin should surround the button row.");
             Assert.That(size, Is.EqualTo(new Vector2(76, 72)));
             Assert.That(scope.Toolbar.GetComponent<QuestWindow>().Placement, Is.EqualTo(new Vector3(0, -.8f, .65f)));
             Assert.That(scope.Buttons[0].transform.position.y, Is.EqualTo(scope.Buttons.Last().transform.position.y).Within(.0001), "The curvature follows the horizontal rail, even on the inclined panel.");
             var surface = scope.Content.GetComponent<QuestToolbarBackground>();
             Assert.That(scope.Buttons[0].transform.position.z, Is.LessThan(surface.transform.TransformPoint(surface.SurfacePoint(0, 0)).z));
-            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 4.png");
+            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 3.png");
             for (int i = 0; i < 8; i++)
             {
                 var extra = Object.Instantiate(first.gameObject, scope.Content, false);
@@ -80,7 +80,7 @@ namespace HBP.Tests.Quest
 
             Assert.That(Vector3.Angle(scope.Buttons[0].transform.right, scope.Buttons.Last().transform.right), Is.LessThanOrEqualTo(60), "Adding controls must not create an excessively wrapped panel.");
             Assert.That(scope.Toolbar.transform.position, Is.EqualTo(initialPosition));
-            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 12.png");
+            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 11.png");
             first.gameObject.SetActive(false);
             scope.Layout.RebuildLayout();
             Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.width, Is.EqualTo(expanded - 80).Within(.01));
@@ -140,9 +140,10 @@ namespace HBP.Tests.Quest
                 }
             }
 
-            Assert.That(clicks, Is.EqualTo(4));
+            Assert.That(clicks, Is.EqualTo(3));
             var background = scope.Content.GetComponent<QuestToolbarBackground>();
-            foreach (float x in new[] { 0f, scope.Toolbar.GetComponent<RectTransform>().rect.width * .5f - 2 })
+            float gap = (.5f - (scope.Buttons.Length - 1) * .5f) * 80;
+            foreach (float x in new[] { gap, scope.Toolbar.GetComponent<RectTransform>().rect.width * .5f - 2 })
             {
                 Vector3 point = background.transform.TransformPoint(background.SurfacePoint(x, 0));
                 var hit = Select(point);
@@ -179,7 +180,7 @@ namespace HBP.Tests.Quest
                 Assert.That(face.sprite, Is.Not.Null);
                 Assert.That(face.type, Is.EqualTo(Image.Type.Sliced));
                 Assert.That(face.canvasRenderer.GetMesh().bounds.size.z, Is.GreaterThan(.1f), "Each button must have its own curved surface.");
-                float x = (Array.IndexOf(scope.Buttons, button) - 1.5f) * 80;
+                float x = (Array.IndexOf(scope.Buttons, button) - (scope.Buttons.Length - 1) * .5f) * 80;
                 Vector3 buttonEdge = face.transform.TransformPoint(face.SurfacePoint(33, 30));
                 Vector3 sharedEdge = background.transform.TransformPoint(background.SurfacePoint(x + 33, 30));
                 Assert.That(Vector3.Distance(buttonEdge, sharedEdge), Is.LessThan(.0001), "The button curvature must continue the background arc.");
@@ -332,8 +333,6 @@ namespace HBP.Tests.Quest
             window.Close();
             await UniTask.NextFrame();
             Assert.That(theme.ActualState, Is.SameAs(theme.Element.DefaultState), "Closing from the window must update the toolbar.");
-            var recenterTheme = scope.Buttons.Last().GetComponent<HBP.Theme.ThemeElement>();
-            Assert.That(recenterTheme.ActualState, Is.SameAs(recenterTheme.Element.DefaultState));
         }
 
         private sealed class ToolbarScope : IDisposable

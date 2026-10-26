@@ -408,7 +408,9 @@ namespace HBP.Tests.Quest
                 Assert.That(root.GetComponentsInChildren<QuestWindow>(true).Length, Is.EqualTo(3));
                 Assert.That(((Button)fields.FindProperty("cutsButton").objectReferenceValue).interactable, Is.False);
                 var displayFields = new SerializedObject(display.GetComponent<QuestDisplayPanel>());
-                foreach (string action in new[] { "surface", "projection", "recenterBrains" }) Assert.That(((Button)displayFields.FindProperty(action).objectReferenceValue).interactable, Is.False, action);
+                foreach (string action in new[] { "surface", "projection" }) Assert.That(((Button)displayFields.FindProperty(action).objectReferenceValue).interactable, Is.False, action);
+                Assert.That(toolbar.transform.Find("Background/Recenter windows"), Is.Null);
+                Assert.That(display.transform.Find("Background/Content/Patient Actions/Recenter brains"), Is.Null);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");
                 await UniTask.NextFrame();
                 Canvas.ForceUpdateCanvases();
@@ -422,7 +424,7 @@ namespace HBP.Tests.Quest
                 connection.Close();
                 var closedPosition = connection.transform.position;
                 display.transform.position = Vector3.one * 3;
-                ((Button)fields.FindProperty("recenterButton").objectReferenceValue).onClick.Invoke();
+                manager.RecenterOpen();
                 Assert.That(connection.transform.position, Is.EqualTo(closedPosition));
                 Assert.That(display.transform.position, Is.Not.EqualTo(Vector3.one * 3));
             }

@@ -1,3 +1,8 @@
+using System;
+using System.Threading;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using HBP.UI.Tools;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -11,7 +16,11 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker left;
         [SerializeField] private QuestDevicePoseTracker right;
         [SerializeField] private QuestPointerInput pointer;
+        [SerializeField] private QuestWindowsManager windows;
+        private const float RecenterHoldSeconds = 2;
         private InputAction leftTrigger, rightTrigger, recenter;
+        private CancellationTokenSource recenterStop;
+        private bool recenterReleased;
         private bool focused = true;
         private bool paused;
 
@@ -19,7 +28,7 @@ namespace HBP.Quest
         {
             leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
             rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
-            recenter = new InputAction("Recenter columns (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
+            recenter = new InputAction("Hold to recenter (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
             leftTrigger.Enable();
             rightTrigger.Enable();
             recenter.Enable();
@@ -27,6 +36,7 @@ namespace HBP.Quest
 
         private void LateUpdate()
         {
+            UpdateRecenter();
             if (view == null || head == null || left == null || right == null) return;
             if (!focused || paused || !head.IsTracked)
             {
@@ -37,12 +47,6 @@ namespace HBP.Quest
             foreach (var presentation in view.Scenes)
                 if (!presentation.IsPlaced)
                     Place(presentation);
-            if (left.IsTracked && recenter.WasPressedThisFrame())
-            {
-                RecenterBrains();
-                return;
-            }
-
             // A controller belongs to at most one column for the duration of a grab.
             var grabbed = System.Linq.Enumerable.FirstOrDefault(view.AllColumns, column => column.Manipulator.IsGrabbed);
             foreach (var column in view.AllColumns)
@@ -68,6 +72,70 @@ namespace HBP.Quest
                 if (!wasGrabbed && column.Manipulator.IsGrabbed) view.SelectContext(column.Scene, column.Column);
                 if (column.Manipulator.IsGrabbed) grabbed = column;
             }
+        }
+
+        private bool CanRecenter => isActiveAndEnabled && focused && !paused && head != null && head.IsTracked && left != null && left.IsTracked;
+
+        private void UpdateRecenter()
+        {
+            if (!CanRecenter)
+            {
+                CancelRecenter();
+                return;
+            }
+
+            if (recenter.WasReleasedThisFrame()) recenterStop?.Cancel();
+            if (!recenter.IsPressed())
+            {
+                recenterStop?.Cancel();
+                recenterReleased = true;
+            }
+            else if (recenterReleased && recenter.WasPressedThisFrame() && recenterStop == null)
+            {
+                recenterReleased = false;
+                recenterStop = new CancellationTokenSource();
+                RecenterAfterHoldAsync(recenterStop).Forget();
+            }
+        }
+
+        private async UniTask RecenterAfterHoldAsync(CancellationTokenSource stop)
+        {
+            try
+            {
+                await LoadingManager.PresentAsync(async (update, token) =>
+                {
+                    float started = Time.unscaledTime;
+                    var text = new LoadingText(message: "Hold X to recenter");
+                    update(0, 0, text);
+                    while (true)
+                    {
+                        await UniTask.Yield(PlayerLoopTiming.LastPostLateUpdate, token, cancelImmediately: true);
+                        if (!CanRecenter || !recenter.IsPressed()) stop.Cancel();
+                        token.ThrowIfCancellationRequested();
+                        float progress = (Time.unscaledTime - started) / RecenterHoldSeconds;
+                        update(Mathf.Clamp01(progress), 0, text);
+                        if (progress >= 1) break;
+                    }
+
+                    RecenterBrains();
+                    if (windows != null) windows.RecenterOpen();
+                }, stop.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                // Releasing X or interrupting tracking leaves all placements untouched.
+            }
+            finally
+            {
+                recenterStop = null;
+                stop.Dispose();
+            }
+        }
+
+        private void CancelRecenter()
+        {
+            recenterReleased = false;
+            recenterStop?.Cancel();
         }
 
         public void RecenterBrains()
@@ -103,17 +171,20 @@ namespace HBP.Quest
         private void OnApplicationFocus(bool value)
         {
             focused = value;
+            if (!value) CancelRecenter();
             if (!value && view != null) CancelGrabs();
         }
 
         private void OnApplicationPause(bool value)
         {
             paused = value;
+            if (value) CancelRecenter();
             if (value && view != null) CancelGrabs();
         }
 
         private void OnDisable()
         {
+            CancelRecenter();
             leftTrigger?.Dispose();
             rightTrigger?.Dispose();
             recenter?.Dispose();

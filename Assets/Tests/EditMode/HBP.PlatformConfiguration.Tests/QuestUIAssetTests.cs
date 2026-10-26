@@ -182,6 +182,8 @@ namespace HBP.Tests.PlatformConfiguration
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var manager = root.GetComponent<QuestWindowsManager>();
+            var input = root.GetComponentInChildren<QuestAnatomyInput>(true);
+            Assert.That(new SerializedObject(input).FindProperty("windows").objectReferenceValue, Is.SameAs(manager));
             var fields = new SerializedObject(manager);
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
