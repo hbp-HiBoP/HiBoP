@@ -604,16 +604,42 @@ namespace HBP.Tests.Quest
             using var reception = new CancellationTokenSource();
             sessionType.GetField("reception", Private).SetValue(session, reception);
             string batch = Guid.NewGuid().ToString("N");
-            SessionControlRequest Request(string id, bool finished = false, float progress = 0) => new(Guid.ParseExact(contextId, "N"), 7, Guid.NewGuid(), SessionControlKind.DisplayBatch, body: Encoding.UTF8.GetBytes("{\"Id\":\"" + id + "\",\"Visualizations\":[\"display-gate\"],\"ActiveVisualizationId\":\"display-gate\",\"IncompleteVisualizations\":" + (finished && cancel ? "[\"display-gate\"]" : "[]") + ",\"Finished\":" + (finished ? "true" : "false") + ",\"Progress\":" + progress.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}"));
+            SessionControlRequest Request(string id, bool finished = false, float progress = 0, string transferMessage = null, float transferProgress = 0, bool transferring = false) => new(Guid.ParseExact(contextId, "N"), 7, Guid.NewGuid(), SessionControlKind.DisplayBatch, body: Encoding.UTF8.GetBytes("{\"Id\":\"" + id + "\",\"Visualizations\":[\"display-gate\"],\"SourceStatus\":{\"Prefix\":\"Loading data\",\"Suffix\":\" 3/119\",\"VisualizationId\":\"display-gate\"},\"ActiveVisualizationId\":\"display-gate\",\"IncompleteVisualizations\":" + (finished && cancel ? "[\"display-gate\"]" : "[]") + ",\"Finished\":" + (finished ? "true" : "false") + ",\"Progress\":" + progress.ToString(System.Globalization.CultureInfo.InvariantCulture) + (transferMessage == null ? "" : ",\"TransferStatus\":{\"Prefix\":\"" + transferMessage + "\",\"VisualizationId\":\"display-gate\",\"Transfer\":" + (transferring ? "true" : "false") + ",\"Progress\":" + transferProgress.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}") + "}"));
             try
             {
                 Assert.That((await session.ReceiveSessionControlAsync(Request(batch), CancellationToken.None)).Applied, Is.True);
                 await UniTask.NextFrame();
                 Assert.That(presenter.Opens, Is.EqualTo(1));
+                Assert.That(presenter.Text.ToString(), Is.EqualTo("Loading data 3/119"));
                 Assert.That(QuestAnatomySession.CanInteractWith(scene), Is.False);
                 await session.ReceiveSessionControlAsync(Request(batch, progress: .7f), CancellationToken.None);
                 await session.ReceiveSessionControlAsync(Request(batch, progress: .2f), CancellationToken.None);
                 Assert.That(presenter.Progress, Is.EqualTo(.7f));
+                await session.ReceiveSessionControlAsync(Request(batch, progress: .72f, transferMessage: "Sending scene", transferProgress: .99f, transferring: true), CancellationToken.None);
+                Assert.That(presenter.Progress, Is.EqualTo(.72f), "A single transfer's percentage must not replace the batch's overall progress.");
+                await session.ReceiveSessionControlAsync(Request(batch, progress: .73f, transferMessage: "Reading scene metadata", transferProgress: .85f), CancellationToken.None);
+                Assert.That(presenter.Progress, Is.EqualTo(.73f), "Starting preparation after a transfer must not move the circle backwards.");
+                await session.ReceiveSessionControlAsync(Request(batch, progress: .74f, transferMessage: "Sending another scene", transferProgress: .01f, transferring: true), CancellationToken.None);
+                Assert.That(presenter.Progress, Is.EqualTo(.74f), "The next scene's transfer starts at zero without resetting the overall circle.");
+                var statusType = sessionType.GetField("displayReceivingStatus", Private).FieldType;
+                var receiving = Activator.CreateInstance(statusType);
+                statusType.GetField("Prefix").SetValue(receiving, "Loading column ");
+                statusType.GetField("Message").SetValue(receiving, "Memory");
+                statusType.GetField("Suffix").SetValue(receiving, " [2/5]");
+                statusType.GetField("VisualizationId").SetValue(receiving, "display-gate");
+                sessionType.GetField("loadingProgress", Private).SetValue(session, new Action<float, LoadingText>((_, _) => { }));
+                sessionType.GetField("displayReceivingStatus", Private).SetValue(session, receiving);
+                await session.ReceiveSessionControlAsync(Request(batch, progress: .7f), CancellationToken.None);
+                Assert.That(presenter.Text.ToString(), Is.EqualTo("Loading column Memory [2/5]"), "Desktop status must not overwrite the current Quest loading stage.");
+                sessionType.GetField("loadingProgress", Private).SetValue(session, null);
+                statusType.GetField("Prefix").SetValue(receiving, "Synchronizing scene");
+                statusType.GetField("Message").SetValue(receiving, "");
+                statusType.GetField("Suffix").SetValue(receiving, "");
+                statusType.GetField("Progress").SetValue(receiving, 1f);
+                await session.ReceiveSessionControlAsync(Request(batch, transferMessage: "Waiting for scene preparation on Quest", transferProgress: .85f), CancellationToken.None);
+                Assert.That(presenter.Text.ToString(), Is.EqualTo("Synchronizing scene"), "Finishing reception must not restore an older Desktop preparation message.");
+                await session.ReceiveSessionControlAsync(Request(batch, transferMessage: "Scene ready", transferProgress: 1f), CancellationToken.None);
+                Assert.That(presenter.Text.ToString(), Is.EqualTo("Scene ready"), "The next explicit Desktop phase must take over after reception.");
                 Assert.That((await session.ReceiveSessionControlAsync(Request(Guid.NewGuid().ToString("N")), CancellationToken.None)).Applied, Is.False);
                 var gate = (SemaphoreSlim)sessionType.GetField("loadingGate", Private).GetValue(session);
                 await gate.WaitAsync();
@@ -634,6 +660,126 @@ namespace HBP.Tests.Quest
                 sessionType.GetField("globals", Private).SetValue(session, null);
                 UnityEngine.Object.DestroyImmediate(root);
                 singleton.SetValue(null, previous);
+            }
+        }
+
+        [TestCase(false), TestCase(true)]
+        public void QueuedReceptionMessagesKeepTheirOperationAndDeliveryKind(bool globals)
+        {
+            var root = new GameObject("Queued loading messages fixture");
+            root.SetActive(false);
+            var session = root.AddComponent<QuestAnatomySession>();
+            var type = typeof(QuestAnatomySession);
+            var context = new QueuedLoadingContext();
+            var texts = new List<string>();
+            using var oldReception = new CancellationTokenSource();
+            using var currentReception = new CancellationTokenSource();
+            type.GetField("mainThread", Private).SetValue(session, Thread.CurrentThread.ManagedThreadId);
+            type.GetField("unityContext", Private).SetValue(session, context);
+            type.GetField("receivingGlobals", Private).SetValue(session, globals);
+            type.GetField("loadingProgress", Private).SetValue(session, new Action<float, LoadingText>((_, text) => texts.Add(text.ToString())));
+            try
+            {
+                type.GetField("reception", Private).SetValue(session, oldReception);
+                var staleDecode = (Action<float, float, LoadingText>)type.GetMethod("SceneDecodeProgress", Private).Invoke(session, new object[] { oldReception.Token });
+                type.GetMethod("ReportTransferProgress", Private).Invoke(session, new object[] { 10L, 100L });
+                staleDecode(.86f, 0, new LoadingText("Restoring scene data"));
+                oldReception.Cancel();
+                type.GetField("reception", Private).SetValue(session, currentReception);
+                type.GetMethod("ReportTransferProgress", Private).Invoke(session, new object[] { 50L, 100L });
+                context.Drain();
+                Assert.That(texts, Is.EqualTo(new[] { globals ? "Receiving pairing data - 50%" : "Receiving scene - 50%" }));
+                Assert.That(session.ReceivedBytes, Is.EqualTo(50));
+            }
+            finally
+            {
+                type.GetField("reception", Private).SetValue(session, null);
+                type.GetField("loadingProgress", Private).SetValue(session, null);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private sealed class QueuedLoadingContext : SynchronizationContext
+        {
+            private readonly Queue<(SendOrPostCallback Callback, object State)> posts = new();
+            public override void Post(SendOrPostCallback callback, object state) => posts.Enqueue((callback, state));
+
+            public void Drain()
+            {
+                while (posts.Count != 0)
+                {
+                    var next = posts.Dequeue();
+                    next.Callback(next.State);
+                }
+            }
+        }
+
+        [TestCase(false), TestCase(true)]
+        public async Task DelayedQuestStatusCannotReplaceANewerTransferPhaseOrScene(bool nextScene)
+        {
+            var root = new GameObject("Delayed remote status fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            SetPairedContext(manager);
+            var managerType = typeof(QuestManager);
+            managerType.GetField("sessionGeneration", Private).SetValue(manager, 1L);
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            var received = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var release = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            using var cancelReceived = stop.Token.Register(() => received.TrySetException(new TimeoutException("The delayed progress request did not arrive.")));
+            using var receiver = new QuestPairing();
+            var listener = new TcpListener(IPAddress.Loopback, QuestPairing.Port);
+            listener.Start();
+            var serving = receiver.ServeAsync(listener, stop.Token, (_, __) => throw new InvalidOperationException(), _ => { }, receiveSessionControl: async (request, _) =>
+            {
+                received.TrySetResult(true);
+                await release.Task;
+                string body = Encoding.UTF8.GetString(request.GetBody()).Replace("\"ReceivingStatus\":null", "\"ReceivingStatus\":{\"VisualizationId\":\"first\",\"Prefix\":\"Checking received scene\",\"Progress\":0.9}");
+                return new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: Encoding.UTF8.GetBytes(body));
+            });
+            byte[] credential = null;
+            QuestManager.DisplayReservation reservation = null;
+            try
+            {
+                credential = await QuestPairing.PairAsync("127.0.0.1", receiver.Pin, receiver.Code, stop.Token);
+                managerType.GetField("credential", Private).SetValue(manager, credential);
+                managerType.GetField("pin", Private).SetValue(manager, receiver.Pin);
+                managerType.GetField("endpoint", Private).SetValue(manager, "127.0.0.1");
+                reservation = manager.ReserveDisplay(new[] { new Visualization { ID = "first" }, new Visualization { ID = "second" } });
+                var type = reservation.GetType();
+                var statusProperty = type.GetProperty("TransferStatus");
+
+                object Status(string scene, string text, float progress)
+                {
+                    object status = Activator.CreateInstance(statusProperty.PropertyType);
+                    statusProperty.PropertyType.GetField("VisualizationId").SetValue(status, scene);
+                    statusProperty.PropertyType.GetField("Prefix").SetValue(status, text);
+                    statusProperty.PropertyType.GetField("Progress").SetValue(status, progress);
+                    return status;
+                }
+
+                type.GetField("activeVisualization", Private).SetValue(reservation, "first");
+                statusProperty.SetValue(reservation, Status("first", "Waiting for scene preparation on Quest", .85f));
+                var update = reservation.UpdateRemoteAsync(.5f, false, stop.Token);
+                if (await Task.WhenAny(update, received.Task) == update) await update;
+                await received.Task;
+                string currentText = nextScene ? "Preparing scene for transfer" : "Synchronizing scene";
+                type.GetField("activeVisualization", Private).SetValue(reservation, nextScene ? "second" : "first");
+                statusProperty.SetValue(reservation, Status(nextScene ? "second" : "first", currentText, .97f));
+                release.TrySetResult(true);
+                await update;
+                Assert.That(type.GetProperty("ReceivingStatus").GetValue(reservation), Is.Null, "A response to the previous phase must not restore its receiving message.");
+                Assert.That(reservation.RemoteText.Prefix, Is.EqualTo(currentText));
+            }
+            finally
+            {
+                release.TrySetResult(true);
+                reservation?.Dispose();
+                stop.Cancel();
+                await serving;
+                ClearPairedContext(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+                if (credential != null) Array.Clear(credential, 0, credential.Length);
             }
         }
 
@@ -740,6 +886,27 @@ namespace HBP.Tests.Quest
             report.Invoke(operation, new object[] { new HBP.Core.Tools.LoadingText("Ready"), true });
             Assert.That(last, Is.EqualTo(1));
         }
+
+        [Test]
+        public void LegacyLocalProgressCannotExceedItsShareOfTheWholeBatch()
+        {
+            var visualizations = new[] { new Visualization(), new Visualization() };
+            var operationType = typeof(HBP.UI.Main.VisualizationGestion).Assembly.GetType("HBP.UI.Main.SceneDisplayOperation", true);
+            object operation = Activator.CreateInstance(operationType, Private | BindingFlags.Public, null, new object[] { visualizations, null }, null);
+            var reservation = (QuestManager.DisplayReservation)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(QuestManager.DisplayReservation));
+            var reservationType = reservation.GetType();
+            reservationType.GetField("visualizations", Private).SetValue(reservation, visualizations);
+            var sourceProperty = reservationType.GetProperty("SourceStatus");
+            sourceProperty.SetValue(reservation, Activator.CreateInstance(sourceProperty.PropertyType));
+            operationType.GetField("reservation", Private).SetValue(operation, reservation);
+            operationType.GetField("localProgress", Private).SetValue(operation, 2f);
+            var remote = (float[])operationType.GetField("remoteProgress", Private).GetValue(operation);
+            remote[0] = remote[1] = .5f;
+            float shown = 0;
+            operationType.GetField("update", Private).SetValue(operation, new Action<float, float, LoadingText>((value, _, _) => shown = value));
+            operationType.GetMethod("Report", Private).Invoke(operation, new object[] { new LoadingText("Preparing"), false });
+            Assert.That(shown, Is.EqualTo(.575f).Within(.0001f), "Local loading owns 15% of the batch even when a legacy callback reports 200%.");
+        }
     }
 
     public sealed class DisplayNativeToolProbe : HBP.UI.Toolbar.Tool
@@ -765,6 +932,7 @@ namespace HBP.Tests.Quest
     {
         public int Opens, Closes;
         public float Progress;
+        public LoadingText Text;
         public UnityEvent OnCancel { get; } = new();
 
         public void Initialize()
@@ -778,7 +946,12 @@ namespace HBP.Tests.Quest
         }
 
         public void Close() => Closes++;
-        public void ChangePercentage(float progress, float durationInSeconds, LoadingText message) => Progress = progress;
+
+        public void ChangePercentage(float progress, float durationInSeconds, LoadingText message)
+        {
+            Progress = progress;
+            Text = message;
+        }
     }
 }
 #endif

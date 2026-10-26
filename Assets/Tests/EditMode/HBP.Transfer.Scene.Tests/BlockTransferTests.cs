@@ -346,6 +346,7 @@ namespace HBP.Tests.Transfer
                 await delivery.SendAsync(wire, CancellationToken.None, null, null, () => ++firstWritten, () => ++lastWritten);
 
                 Assert.That(prepared, Is.EqualTo(1));
+                Assert.That(delivery.IsPreparingResources, Is.False, "Encoding must not remain the current stage after resources have been produced.");
                 Assert.That(firstWritten, Is.EqualTo(1));
                 Assert.That(lastWritten, Is.EqualTo(1));
             }
@@ -381,6 +382,7 @@ namespace HBP.Tests.Transfer
                 }
 
                 Assert.That(failure, Is.TypeOf<InvalidDataException>());
+                Assert.That(delivery.IsPreparingResources, Is.False, "A failed producer must not leave an encoding stage active.");
                 Assert.That(released, Is.True);
                 Assert.That(prepared, Is.Zero);
                 Assert.That(firstWritten, Is.Zero);
@@ -435,6 +437,40 @@ namespace HBP.Tests.Transfer
             Assert.That(Directory.Exists(root), Is.False);
         }
 
+        [TestCase(false), TestCase(true)]
+        public async Task SceneDeliveryReportsPayloadSentAfterBytesAndBeforeWaitingForPublication(bool streaming)
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-stage-boundary-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(root);
+            string path = Path.Combine(root, "scene");
+            var bytes = new byte[128];
+            SceneDelivery delivery;
+            if (streaming)
+                delivery = new SceneDelivery(path, "transfer", "session", "fixture", () => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None);
+            else
+            {
+                File.WriteAllBytes(path, bytes);
+                delivery = new SceneDelivery(path, "transfer", "session", "fixture");
+            }
+
+            int sent = 0, progressUpdates = 0;
+            using var wire = new ReceiptStream { BeforeReceipt = () => Assert.That(sent, Is.EqualTo(1), "Waiting for Quest preparation starts only after the complete payload has been written.") };
+            try
+            {
+                await delivery.SendAsync(wire, CancellationToken.None, detailedProgress: (_, _) =>
+                {
+                    Assert.That(sent, Is.Zero);
+                    progressUpdates++;
+                }, payloadSent: () => sent++);
+                Assert.That(sent, Is.EqualTo(1));
+                Assert.That(progressUpdates, Is.GreaterThan(0));
+            }
+            finally
+            {
+                await delivery.DisposeAsync();
+            }
+        }
+
         private sealed class IncrementingClock : IMonotonicClock
         {
             private long value;
@@ -456,14 +492,16 @@ namespace HBP.Tests.Transfer
         private sealed class ReceiptStream : MemoryStream
         {
             internal bool LoseAck;
+            internal Action BeforeReceipt;
 
             public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken token)
             {
+                BeforeReceipt?.Invoke();
                 if (LoseAck) return Task.FromException<int>(new IOException("ACK lost"));
                 Assert.That(count, Is.EqualTo(33));
                 byte[] sent = ToArray();
                 buffer[offset] = (byte)DeliveryStatus.AlreadyPublished;
-                Buffer.BlockCopy(sent, sent.Length - 64 + 28, buffer, offset + 1, 32);
+                Buffer.BlockCopy(sent, sent[3] == 3 ? 12 : sent.Length - 64 + 28, buffer, offset + 1, 32);
                 return Task.FromResult(33);
             }
         }

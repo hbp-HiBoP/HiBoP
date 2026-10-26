@@ -14,6 +14,10 @@ namespace HBP.Transfer.Scene
         public string ActiveVisualizationId;
         public float ReceivingProgress;
         public string[] IncompleteVisualizations = Array.Empty<string>();
+        public string[] Names;
+        public SceneLoadingStatus SourceStatus;
+        public SceneLoadingStatus TransferStatus;
+        public SceneLoadingStatus ReceivingStatus;
 
         public void Validate()
         {
@@ -23,6 +27,11 @@ namespace HBP.Transfer.Scene
                 throw new InvalidDataException("Invalid Display preparation progress.");
             if (IncompleteVisualizations == null || IncompleteVisualizations.Length > Visualizations.Length || IncompleteVisualizations.Any(value => !Visualizations.Contains(value)))
                 throw new InvalidDataException("Invalid incomplete Display scenes.");
+            if (Names != null && (Names.Length != Visualizations.Length || Names.Any(value => value == null || value.Length > 1024)))
+                throw new InvalidDataException("Invalid Display presentation.");
+            SourceStatus?.Validate(Visualizations);
+            TransferStatus?.Validate(Visualizations);
+            ReceivingStatus?.Validate(Visualizations);
         }
     }
 }

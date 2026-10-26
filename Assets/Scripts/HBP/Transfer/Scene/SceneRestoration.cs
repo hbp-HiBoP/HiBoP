@@ -56,8 +56,10 @@ namespace HBP.Transfer.Scene
 
     public static class SceneRestoration
     {
-        public static async UniTask<RestoredScene> PrepareAsync(ScenePayload payload, SceneArchive archive, Base3DScene prefab, Transform parent, CancellationToken token, Action<Base3DScene> onCreated = null)
+        public static async UniTask<RestoredScene> PrepareAsync(ScenePayload payload, SceneArchive archive, Base3DScene prefab, Transform parent, CancellationToken token, Action<Base3DScene> onCreated = null, Action<float, float, HBP.Core.Tools.LoadingText> progress = null)
         {
+            void Report(string message, string item = "", string suffix = "", float value = .9f) => progress?.Invoke(value, 0, new HBP.Core.Tools.LoadingText(message, item, suffix));
+            Report("Checking received scene");
             using var total = PairingTiming.Measure("quest.restore-total", payload.TransferId);
             using (PairingTiming.Measure("quest.restore-validation", payload.TransferId))
                 SceneValidation.Validate(payload, archive);
@@ -72,6 +74,7 @@ namespace HBP.Transfer.Scene
 
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
+            Report("Loading reference anatomy");
             using (PairingTiming.Measure("quest.restore-standard-resources", payload.TransferId))
                 await Base3DScene.PrepareStandardResourcesAsync();
             await UniTask.SwitchToMainThread();
@@ -93,6 +96,7 @@ namespace HBP.Transfer.Scene
                         await UniTask.SwitchToMainThread();
                         foreach (var resource in payload.MRIs)
                         {
+                            Report("Loading MRI ", resource.Name);
                             resourceToken.ThrowIfCancellationRequested();
                             MRI3D mri;
                             if (resource.Standard == "MNI")
@@ -131,6 +135,7 @@ namespace HBP.Transfer.Scene
 
                         foreach (var resource in payload.Meshes)
                         {
+                            Report("Loading brain surface ", resource.Name);
                             resourceToken.ThrowIfCancellationRequested();
                             // Resolve live scene references on Unity before giving private work to the worker.
                             var standard = resource.Standard == null ? null : resource.Standard == "grey" ? Object3DManager.MNI.GreyMatter : Object3DManager.MNI.WhiteMatter;
@@ -158,12 +163,21 @@ namespace HBP.Transfer.Scene
                         }
 
                         for (int i = 0; i < payload.Columns.Count; i++)
+                        {
+                            if (payload.Columns[i].Functional.Count == 0) continue;
+                            Report("Loading column ", payload.Visualization.Columns[i].Name, $" [{i + 1}/{payload.Columns.Count}]");
                             await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
-                    }, null, token);
+                        }
+                    }, progress, token);
+                Report("Preparing scene display", value: .95f);
                 using (PairingTiming.Measure("quest.restore-configuration", payload.TransferId))
                     await scene.CompleteInitializationAsync(null, null, token);
                 using (PairingTiming.Measure("quest.restore-render-ready", payload.TransferId))
+                {
+                    Report("Preparing scene display", value: .95f);
                     await scene.PrepareRenderingAsync(token);
+                }
+
                 token.ThrowIfCancellationRequested();
                 return result;
             }

@@ -32,16 +32,36 @@ namespace HBP.Transfer.Scene
 
             Base3DScene scene = ReferenceEquals(sourceScene, null) ? Module3DMain.SelectedScene : sourceScene;
             if (scene == null || scene.IsClosing) throw new InvalidOperationException("The visualization is unavailable or closing.");
-            update(0.05f, 0, new LoadingText("Preparing visualization resources"));
-            var progress = new Progress<string>(message => update(0.10f, 0, new LoadingText(message)));
+            update(0.05f, 0, new LoadingText("Preparing scene for transfer"));
+            var unity = SynchronizationContext.Current;
+            bool capturing = true;
+            var progress = Cysharp.Threading.Tasks.Progress.Create<string>(message =>
+            {
+                void Report()
+                {
+                    if (capturing && !token.IsCancellationRequested) update(0.10f, 0, new LoadingText(message));
+                }
+
+                if (PlayerLoopHelper.IsMainThread) Report();
+                else unity.Post(_ => Report(), null);
+            });
             bool streaming = false;
 #if UNITY_EDITOR_WIN || (UNITY_STANDALONE_WIN && !UNITY_EDITOR)
             streaming = true;
 #endif
             transferId ??= Guid.NewGuid().ToString("N");
             var telemetryIdentity = new SyncTelemetryIdentity(transferId, 1, captureGeneration == 0 ? 1 : captureGeneration);
-            SceneDelivery delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity, captureBoundary, maximumOwnedSnapshotBytes);
-            update(0.20f, 0, new LoadingText("Visualization prepared"));
+            SceneDelivery delivery;
+            try
+            {
+                delivery = await CaptureDeliveryInstrumentedAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token, progress, streaming, telemetryIdentity, captureBoundary, maximumOwnedSnapshotBytes);
+            }
+            finally
+            {
+                capturing = false;
+            }
+
+            update(0.20f, 0, new LoadingText(delivery.IsPreparingResources ? "Encoding scene data" : "Scene ready to send"));
             return delivery;
         }
 
@@ -99,7 +119,7 @@ namespace HBP.Transfer.Scene
 
             try
             {
-                Report("Preparing visualization resources");
+                Report("Preparing scene for transfer");
                 await UniTask.NextFrame(cancellationToken: token);
                 if (!Object3DManager.MNI.IsLoaded)
                     throw new InvalidOperationException("Standard resources are unavailable. Reopen the visualization.");
@@ -109,7 +129,7 @@ namespace HBP.Transfer.Scene
                 var snapshot = await scene.CapturePreparedAsync(() =>
                 {
                     using var marker = CaptureMarker.Auto();
-                    Report("Capturing visualization");
+                    Report("Preparing scene for transfer");
                     using (PairingTiming.Measure("source.begin-publication-journal", transferId))
                         captureBoundary?.Invoke(scene, transferId, globals.Id);
                     ScenePayload payload;
@@ -128,7 +148,7 @@ namespace HBP.Transfer.Scene
                 }, token, stage => PairingTiming.Measure(stage, transferId));
                 captureEnd = SyncTelemetry.CapturePoint();
                 token.ThrowIfCancellationRequested();
-                Report("Preparing visualization for transfer");
+                Report("Encoding scene data");
                 if (streaming)
                 {
                     SceneDelivery streamingDelivery = null;
@@ -158,7 +178,7 @@ namespace HBP.Transfer.Scene
                         metadata = snapshot.Metadata.Encode(archive);
                         archive.WriteCaptured(metadata, output);
                         token.ThrowIfCancellationRequested();
-                        Report("Verifying prepared visualization");
+                        Report("Checking prepared scene");
                         result = new SceneDelivery(output, transferId, sessionId, snapshot.Summary, telemetryIdentity);
                         token.ThrowIfCancellationRequested();
                         return result;
@@ -173,7 +193,6 @@ namespace HBP.Transfer.Scene
                         archive.Dispose();
                     }
                 });
-                Report("Visualization prepared");
                 delivery.EstimatedOwnedSnapshotBytes = snapshot.Metadata.EstimatedRetainedBytes;
                 delivery.SourceScene = scene;
                 delivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());

@@ -23,6 +23,7 @@ namespace HBP.Quest
         private TaskCompletionSource<bool> displayFinished;
         private Task displayPresentation;
         private Task displayDrain = Task.CompletedTask;
+        private SceneLoadingStatus displayReceivingStatus;
         private readonly Queue<string> finishedDisplayBatches = new();
         private static readonly HashSet<string> blockedDisplayVisualizations = new(StringComparer.Ordinal);
 
@@ -53,6 +54,8 @@ namespace HBP.Quest
             if (displayBatch == null)
             {
                 displayRevision = 0;
+                displayReceivingProgress = 0;
+                displayReceivingStatus = null;
                 displayBatch = state;
                 blockedDisplayVisualizations.UnionWith(state.Visualizations);
                 displayFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -62,12 +65,22 @@ namespace HBP.Quest
                 return new(request.OperationId, SessionControlStatus.Rejected, "Display batch scenes changed.");
 
             displayRevision = request.Revision;
-            if (displayBatch.ActiveVisualizationId != state.ActiveVisualizationId) displayReceivingProgress = 0;
+            if (displayBatch.ActiveVisualizationId != state.ActiveVisualizationId)
+            {
+                displayReceivingProgress = 0;
+                displayReceivingStatus = null;
+            }
+
             displayBatch.Progress = Math.Max(displayBatch.Progress, state.Progress);
             displayBatch.ActiveVisualizationId = state.ActiveVisualizationId;
             displayBatch.ReceivingProgress = displayReceivingProgress;
+            displayBatch.Names = state.Names;
+            displayBatch.SourceStatus = state.SourceStatus;
+            displayBatch.TransferStatus = state.TransferStatus;
+            if (loadingProgress == null && state.TransferStatus is { Transfer: false, Progress: >= .97f }) displayReceivingStatus = null;
+            displayBatch.ReceivingStatus = displayReceivingStatus;
             displayBatchExpires = Time.realtimeSinceStartup + 30;
-            displayProgress?.Invoke(displayBatch.Progress, .35f, new LoadingText("Preparing synchronized visualizations"));
+            RenderDisplayProgress();
             return new(request.OperationId, SessionControlStatus.Applied, body: SceneSessionState.Encode(displayBatch));
         }
 
@@ -75,9 +88,19 @@ namespace HBP.Quest
         {
             await LoadingManager.LoadAsync(async update =>
             {
+                await UniTask.SwitchToMainThread();
                 displayProgress = update;
+                RenderDisplayProgress();
                 await displayFinished.Task;
             });
+        }
+
+        private void RenderDisplayProgress()
+        {
+            if (displayBatch == null) return;
+            var status = displayReceivingStatus ?? displayBatch.TransferStatus ?? displayBatch.SourceStatus;
+            var text = status?.ToText(displayBatch.Visualizations, displayBatch.Names, receiving: true) ?? new LoadingText("Preparing scene");
+            displayProgress?.Invoke(displayBatch.Progress, .35f, text);
         }
 
         private async Task DrainDisplayBatchAsync(string[] incomplete = null, bool succeeded = false)
@@ -110,7 +133,7 @@ namespace HBP.Quest
                     }
                 }
 
-                if (succeeded) displayProgress?.Invoke(1, 0, new LoadingText("Visualizations ready"));
+                if (succeeded) displayProgress?.Invoke(1, 0, new LoadingText(batch.Visualizations.Length == 1 ? "Scene ready" : $"{batch.Visualizations.Length} scenes ready"));
             }
             finally
             {
@@ -125,6 +148,7 @@ namespace HBP.Quest
                     RememberDisplayFinished(batch.Id);
                     displayBatch = null;
                     displayProgress = null;
+                    displayReceivingStatus = null;
                 }
             }
         }

@@ -19,6 +19,8 @@ namespace HBP.Transfer.Transport
         private long bytes;
         private long rawBytes;
         private bool drained;
+        private volatile bool resourcesReady;
+        public bool IsPreparingResources => !resourcesReady && !producer.IsCompleted;
         public bool IsPrepared => producer.Status == TaskStatus.RanToCompletion;
         public long EncodedBytes => IsPrepared ? bytes : 0;
         public string ContentHash => IsPrepared ? BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant() : null;
@@ -32,6 +34,7 @@ namespace HBP.Transfer.Transport
                 try
                 {
                     var resources = prepare();
+                    resourcesReady = true;
                     // Once resources are owned, retries use the spool. Do not retain the
                     // detached JSON graph while the bounded producer waits for a sender.
                     prepare = null;

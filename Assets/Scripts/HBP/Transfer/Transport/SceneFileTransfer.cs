@@ -20,7 +20,7 @@ namespace HBP.Transfer.Transport
         }
 
         // Only the owning SceneDelivery may reuse a digest while keeping the source immutable.
-        internal static async Task<DeliveryReceipt> SendPreparedFileAsync(Stream stream, Stream source, byte[] digest, CancellationToken stop, Action<long> progress, Action writeStarted = null)
+        internal static async Task<DeliveryReceipt> SendPreparedFileAsync(Stream stream, Stream source, byte[] digest, CancellationToken stop, Action<long> progress, Action writeStarted = null, Action payloadSent = null)
         {
             stop.ThrowIfCancellationRequested();
             using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
@@ -54,6 +54,7 @@ namespace HBP.Transfer.Transport
                 progress?.Invoke(offset);
             }
 
+            payloadSent?.Invoke();
             var receipt = new byte[33];
             await ReadExactAsync(stream, receipt, 0, receipt.Length, stop).ConfigureAwait(false);
             var returnedHash = new byte[32];

@@ -21,6 +21,7 @@ namespace HBP.Transfer.Scene
     {
         private readonly SceneArchive archive;
         private JsonConverter[] operationConverters;
+        private Action columnRestored;
         internal bool InertPreferences { get; set; }
 
         private PreparedDataJson(SceneArchive archive)
@@ -36,9 +37,9 @@ namespace HBP.Transfer.Scene
             typeof(EventInformation), typeof(EventInformation.EventOccurence), typeof(EventStatistics), typeof(Frequency)
         };
 
-        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false, bool inertPreferences = false, JsonConverter numericConverter = null)
+        public static JsonSerializer Create(SceneArchive archive, PairingContext globals = null, bool compactSceneReferences = false, bool inertPreferences = false, JsonConverter numericConverter = null, Action columnRestored = null)
         {
-            var resolver = new PreparedDataJson(archive) { InertPreferences = inertPreferences };
+            var resolver = new PreparedDataJson(archive) { InertPreferences = inertPreferences, columnRestored = columnRestored };
             var converters = new List<JsonConverter>();
             if (globals != null) converters.Add(globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null));
             converters.Add(new ObjectKeyDictionaryConverter());
@@ -60,6 +61,8 @@ namespace HBP.Transfer.Scene
             // every real instance; no mutable model or validation survives the capture.
             if (contract.Converter == null)
                 contract.Converter = operationConverters.FirstOrDefault(converter => converter.CanConvert(type));
+            if (columnRestored != null && typeof(Column).IsAssignableFrom(type))
+                contract.OnDeserializedCallbacks.Add((_, _) => columnRestored());
             return contract;
         }
 

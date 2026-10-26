@@ -460,9 +460,9 @@ namespace HBP.Transfer.Scene
             }
         }
 
-        private JsonSerializer Serializer(bool globalData = false)
+        private JsonSerializer Serializer(bool globalData = false, Action columnRestored = null)
         {
-            return PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers, numericConverter: new NumericBufferConverter(this));
+            return PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers, numericConverter: new NumericBufferConverter(this), columnRestored: columnRestored);
         }
 
         public void Write(ScenePayload payload, string output)
@@ -628,7 +628,7 @@ namespace HBP.Transfer.Scene
             return target;
         }
 
-        public ScenePayload Read(string input, System.Threading.CancellationToken token = default)
+        public ScenePayload Read(string input, System.Threading.CancellationToken token = default, Action<float, float, LoadingText> progress = null)
         {
             if (Globals == null)
                 throw new InvalidOperationException("Global pairing data is required before receiving a visualization.");
@@ -636,17 +636,18 @@ namespace HBP.Transfer.Scene
             string contentHash = BitConverter.ToString(HBP.Core.Tools.Sha256.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
             source.Position = 0;
             Extract(source, "visualization.json", token);
-            ScenePayload payload = ReadPrepared();
+            ScenePayload payload = ReadPrepared(progress: progress);
             VerifiedContentHash = contentHash;
             return payload;
         }
 
-        public ScenePayload ReadPrepared(string verifiedContentHash = null)
+        public ScenePayload ReadPrepared(string verifiedContentHash = null, Action<float, float, LoadingText> progress = null)
         {
             using var total = PairingTiming.Measure("scene.decode-total");
             if (!verifiedContent || Globals == null)
                 throw new InvalidOperationException("Verified paired content is required.");
             readToken.ThrowIfCancellationRequested();
+            progress?.Invoke(.85f, 0, new LoadingText("Reading scene metadata"));
             if (packedBuffers)
                 using (PairingTiming.Measure("scene.decode-global-references"))
                     GlobalReferences = SceneGlobalReferences.Read(Path.Combine(directory, SceneGlobalReferences.FileName), Globals);
@@ -658,11 +659,27 @@ namespace HBP.Transfer.Scene
                 metadata = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
             if (reader.Read())
                 throw new InvalidDataException("Trailing scene metadata.");
+            int columns = (metadata["Visualization"]?["Columns"] as JArray)?.Count ?? 0;
+            int restored = 0;
+
+            void ReportRestored()
+            {
+                if (progress == null) return;
+                float fraction = columns == 0 ? 0 : (float)Math.Min(restored, columns) / columns;
+                progress(.86f + .03f * fraction, 0, new LoadingText("Restoring scene data", "", columns == 0 ? "" : $" - {Math.Min(restored, columns)}/{columns} columns"));
+            }
+
+            ReportRestored();
             using (PairingTiming.Measure("scene.decode-object-graph"))
-                payload = metadata.ToObject<ScenePayload>(Serializer());
+                payload = metadata.ToObject<ScenePayload>(Serializer(columnRestored: progress == null ? null : () =>
+                {
+                    restored++;
+                    ReportRestored();
+                }));
             if (payload?.GlobalContextId != Globals.Id)
                 throw new InvalidDataException("This visualization belongs to a different pairing. Send a new snapshot.");
             PairingTiming.Count("scene.decoded-numeric-bytes", numericBytesRead, payload.TransferId);
+            progress?.Invoke(.90f, 0, new LoadingText("Checking received scene"));
             using (PairingTiming.Measure("scene.decode-validation", payload.TransferId))
                 SceneValidation.Validate(payload, this);
             using (PairingTiming.Measure("scene.decode-manifest", payload.TransferId))

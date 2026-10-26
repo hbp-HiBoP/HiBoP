@@ -91,7 +91,7 @@ namespace HBP.Quest
             if (intentional) OnContextSelected.Invoke(scene, column ?? scene.SelectedColumn);
         }
 
-        public async UniTask ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop)
+        public async UniTask ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop, Action<float, float, HBP.Core.Tools.LoadingText> progress = null)
         {
             if (preparation != null) throw new InvalidOperationException("A visualization is already being prepared.");
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(stop, this.GetCancellationTokenOnDestroy());
@@ -102,7 +102,8 @@ namespace HBP.Quest
             var presentation = new Presentation();
             try
             {
-                candidate = await SceneRestoration.PrepareAsync(payload, archive, contentPrefab, transform, lifetime.Token, scene => preparingScene = scene);
+                candidate = await SceneRestoration.PrepareAsync(payload, archive, contentPrefab, transform, lifetime.Token, scene => preparingScene = scene, progress);
+                progress?.Invoke(.96f, 0, new HBP.Core.Tools.LoadingText("Setting up scene"));
                 if (candidate.Scene.SelectedColumn == null && candidate.Scene.Columns.Count > 0) candidate.Scene.Columns[0].IsSelected = true;
                 var previous = scenes.FirstOrDefault(value => value.Scene.Visualization.ID == candidate.Scene.Visualization.ID);
                 if (previous != null) FinishTransition(previous);

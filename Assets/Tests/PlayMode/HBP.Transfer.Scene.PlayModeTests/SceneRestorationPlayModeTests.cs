@@ -1845,6 +1845,16 @@ namespace HBP.Tests.SceneTransfer
                 source.Write(payload, file); // Also retained for the later invalid-replacement scenarios.
                 var archive = new SceneArchive(Path.Combine(root, "received"), true, source.Globals);
                 ScenePayload received;
+                var decodeStages = new List<LoadingText>();
+                float decodeProgress = 0;
+
+                void DecodeProgress(float value, float duration, LoadingText text)
+                {
+                    Assert.That(value, Is.GreaterThanOrEqualTo(decodeProgress));
+                    decodeProgress = value;
+                    decodeStages.Add(text);
+                }
+
                 if (blocks)
                 {
                     var packets = new List<byte[]>();
@@ -1852,14 +1862,29 @@ namespace HBP.Tests.SceneTransfer
                     using var input = new MemoryStream(packets.SelectMany(p => p).ToArray());
                     input.Position = 4;
                     await HBP.Transfer.Transport.BlockContainer.ReceiveAsync(input, archive, token);
-                    received = archive.ReadPrepared();
+                    received = archive.ReadPrepared(progress: DecodeProgress);
                 }
                 else
                 {
-                    received = archive.Read(file);
+                    received = archive.Read(file, token, DecodeProgress);
                 }
 
-                await view.ApplyAsync(received, archive, token);
+                Assert.That(decodeStages.First().ToString(), Is.EqualTo("Reading scene metadata"));
+                Assert.That(decodeStages.Where(text => text.Prefix == "Restoring scene data").Select(text => text.Suffix), Is.EqualTo(Enumerable.Range(0, 7).Select(index => $" - {index}/6 columns")));
+                Assert.That(decodeStages.Last().ToString(), Is.EqualTo("Checking received scene"));
+
+                var stages = new List<LoadingText>();
+                float restorationProgress = 0;
+                await view.ApplyAsync(received, archive, token, (value, _, text) =>
+                {
+                    Assert.That(value, Is.GreaterThanOrEqualTo(restorationProgress), "Restoration progress regressed while reporting: " + text);
+                    restorationProgress = value;
+                    stages.Add(text);
+                });
+                Assert.That(stages.Select(text => text.ToString()), Does.Contain("Loading column " + received.Visualization.Columns[5].Name + " [6/6]"));
+                Assert.That(stages.Where(text => text.Prefix == "Loading column ").Select(text => text.Message), Is.EqualTo(received.Columns.Select((column, index) => (column, index)).Where(item => item.column.Functional.Count != 0).Select(item => received.Visualization.Columns[item.index].Name)));
+                Assert.That(stages.Select(text => text.ToString()), Does.Not.Contain("Applying scene settings"));
+                Assert.That(stages.Select(text => text.ToString()), Does.Contain("Loading sites").And.Contain("Setting up columns").And.Contain("Preparing scene display"));
                 var scene = view.Scene;
                 Assert.That(scene.DesktopPresentation, Is.Null);
                 Assert.That(scene.Columns.Select(c => c.GetType()), Is.EqualTo(new[] { typeof(Column3DAnatomy), typeof(Column3DIEEG), typeof(Column3DCCEP), typeof(Column3DStatic), typeof(Column3DFMRI), typeof(Column3DMEG) }));

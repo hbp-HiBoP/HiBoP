@@ -2834,13 +2834,16 @@ namespace HBP.Data.Module3D
                 }
             }
 
+            if (loadPreparedResources != null) onChangeProgress?.Invoke(.92f, 0, new LoadingText("Preparing column data"));
             await Visualization.CompletePreparedDataAsync(token);
             await LoadConfiguredResourcesAsync(token);
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
             m_MeshManager.InitializeMeshes();
+            if (loadPreparedResources != null) onChangeProgress?.Invoke(.93f, 0, new LoadingText("Loading sites"));
             await LoadSitesAsync(visualization.Patients);
             token.ThrowIfCancellationRequested();
+            if (loadPreparedResources != null) onChangeProgress?.Invoke(.94f, 0, new LoadingText("Setting up columns"));
             await LoadColumnsAsync();
 
             // Finalization

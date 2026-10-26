@@ -12,6 +12,7 @@ using HBP.Data.Module3D;
 using HBP.Data.Tools;
 using HBP.Quest.Desktop;
 using HBP.Transfer.Transport;
+using HBP.Transfer.Scene;
 using HBP.UI.Tools;
 using UnityEngine;
 
@@ -32,6 +33,8 @@ namespace HBP.UI.Main
         private CancellationTokenSource remoteStop;
         private Task remoteWork = Task.CompletedTask;
         private QuestManager.DisplayReservation reservation;
+        private Visualization loadingVisualization;
+        private bool loadingLocally;
 
         internal SceneDisplayOperation(Visualization[] requested, Base3DScene[] existingScenes = null)
         {
@@ -100,11 +103,16 @@ namespace HBP.UI.Main
                             foreach (var scene in existingScenes) await SceneReadyAsync(scene, stop);
                         }
                         else
+                        {
+                            loadingLocally = true;
                             await Module3DMain.LoadWithResultsAsync(requested, (value, duration, text) =>
                             {
                                 localProgress = Math.Max(localProgress, value);
+                                if (reservation != null) reservation.SourceStatus = SceneLoadingStatus.From(value, text, loadingVisualization?.ID);
                                 Report(text);
-                            }, stop, SceneReadyAsync);
+                            }, stop, SceneReadyAsync, visualization => loadingVisualization = visualization);
+                            loadingLocally = false;
+                        }
 
                         await remoteWork;
                         stop.ThrowIfCancellationRequested();
@@ -121,6 +129,7 @@ namespace HBP.UI.Main
                     }
                     finally
                     {
+                        loadingLocally = false;
                         remote.Cancel();
                         monitorStop.Cancel();
                         await remoteWork;
@@ -146,6 +155,7 @@ namespace HBP.UI.Main
                                 }
                                 catch (Exception error)
                                 {
+                                    Debug.LogException(error);
                                     remoteError = "Quest completion could not be confirmed: " + TransferError.Describe(error);
                                     foreach (var scene in loaded)
                                     {
@@ -230,6 +240,7 @@ namespace HBP.UI.Main
         private async UniTask SceneReadyAsync(Base3DScene scene, CancellationToken token)
         {
             loaded.Add(scene);
+            if (reservation != null) reservation.SourceStatus = SceneLoadingStatus.From(localProgress, new LoadingText("Preparing scene display"), scene.Visualization.ID);
             await scene.PrepareRenderingAsync(token);
             if (reservation == null)
             {
@@ -247,6 +258,7 @@ namespace HBP.UI.Main
             void Progress(float value, float duration, LoadingText text)
             {
                 remoteProgress[index] = Math.Max(remoteProgress[index], value);
+                reservation.SourceStatus = SceneLoadingStatus.From(value, text, scene.Visualization.ID);
                 Report(text);
             }
 
@@ -304,6 +316,7 @@ namespace HBP.UI.Main
             catch (Exception error)
             {
                 await UniTask.SwitchToMainThread();
+                Debug.LogException(error);
                 remoteError = TransferError.Describe(error);
                 failures[scene] = remoteError;
             }
@@ -324,10 +337,10 @@ namespace HBP.UI.Main
                     {
                         float preparation = Mathf.Clamp01((reservation.ReceivingProgress - .8f) / .2f);
                         if (preparation > 0) remoteProgress[index] = Math.Max(remoteProgress[index], .85f + .12f * preparation);
-                        Report(new LoadingText("Preparing synchronized visualizations"));
                     }
 
-                    await UniTask.Delay(TimeSpan.FromSeconds(2), DelayType.Realtime, cancellationToken: token);
+                    Report(reservation.RemoteText ?? new LoadingText("Preparing scene"));
+                    await UniTask.Delay(TimeSpan.FromMilliseconds(250), DelayType.Realtime, cancellationToken: token);
                 }
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)
@@ -343,8 +356,10 @@ namespace HBP.UI.Main
 
         private void Report(LoadingText text, bool complete = false)
         {
-            float value = reservation == null ? localProgress : .15f * localProgress + .85f * remoteProgress.Average();
+            float value = reservation == null ? localProgress : .15f * Mathf.Clamp01(localProgress) + .85f * remoteProgress.Average();
             percentage = complete ? 1 : Math.Max(percentage, Math.Min(.99f, value));
+            if (!complete && reservation != null)
+                text = loadingLocally ? reservation.SourceText : reservation.RemoteText ?? reservation.SourceText;
             update(percentage, complete ? 0 : .25f, text);
         }
     }

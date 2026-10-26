@@ -42,6 +42,7 @@ namespace HBP.Transfer.Scene
         public long EncodedBytes => blocks == null ? encodedBytes : blocks.EncodedBytes;
         public long EstimatedOwnedSnapshotBytes { get; internal set; }
         public bool CanRetry => blocks == null || blocks.IsPrepared;
+        public bool IsPreparingResources => blocks?.IsPreparingResources == true;
 
         internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, SyncTelemetryIdentity telemetryIdentity = default)
         {
@@ -106,7 +107,7 @@ namespace HBP.Transfer.Scene
             return PreparedManifest = PreparedSceneManifest.FromArchiveFile(file);
         }
 
-        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null, Action<long, long> detailedProgress = null)
+        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null, Action<long, long> detailedProgress = null, Action payloadSent = null)
         {
             lock (lifetime)
             {
@@ -129,7 +130,11 @@ namespace HBP.Transfer.Scene
                 {
                     try
                     {
-                        receipt = await blocks.SendAsync(stream, stop, progress, detailedProgress, () => firstWritten = SyncTelemetry.CapturePoint(), () => lastWritten = SyncTelemetry.CapturePoint()).ConfigureAwait(false);
+                        receipt = await blocks.SendAsync(stream, stop, progress, detailedProgress, () => firstWritten = SyncTelemetry.CapturePoint(), () =>
+                        {
+                            lastWritten = SyncTelemetry.CapturePoint();
+                            payloadSent?.Invoke();
+                        }).ConfigureAwait(false);
                     }
                     catch
                     {
@@ -148,7 +153,7 @@ namespace HBP.Transfer.Scene
                             progress?.Invoke(count);
                             detailedProgress?.Invoke(count, encodedBytes);
                             if (count >= encodedBytes) lastWritten = SyncTelemetry.CapturePoint();
-                        }, () => firstWritten = SyncTelemetry.CapturePoint()).ConfigureAwait(false);
+                        }, () => firstWritten = SyncTelemetry.CapturePoint(), payloadSent).ConfigureAwait(false);
                     }
                     catch
                     {

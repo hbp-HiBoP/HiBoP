@@ -388,7 +388,7 @@ namespace HBP.Data.Module3D
         /// been applied; it can admit bounded preparation without waiting for a remote consumer.
         /// Completed openings survive cancellation or failure of a later callback/opening.
         /// </summary>
-        public static async UniTask<IReadOnlyList<Base3DScene>> LoadWithResultsAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token, Func<Base3DScene, CancellationToken, UniTask> onSceneReady = null)
+        public static async UniTask<IReadOnlyList<Base3DScene>> LoadWithResultsAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token, Func<Base3DScene, CancellationToken, UniTask> onSceneReady = null, Action<Visualization> onVisualizationLoading = null)
         {
             Visualization[] visualizationSnapshot = visualizations.ToArray();
             var created = new List<Base3DScene>(visualizationSnapshot.Length);
@@ -421,6 +421,7 @@ namespace HBP.Data.Module3D
             const float LOADING_SCENE_PROGRESS = 0.5f;
             foreach (Visualization visualization in visualizationSnapshot)
             {
+                onVisualizationLoading?.Invoke(visualization);
                 Base3DScene scene;
                 try
                 {
@@ -469,7 +470,12 @@ namespace HBP.Data.Module3D
             {
                 scene.Initialize(visualization);
                 token.ThrowIfCancellationRequested();
-                await scene.InitializeAsync(visualization, onChangeProgress, token);
+                float lastProgress = 0;
+                await scene.InitializeAsync(visualization, (value, duration, text) =>
+                {
+                    lastProgress = value;
+                    onChangeProgress(value, duration, text);
+                }, token);
                 // Add the listeners
                 scene.OnSelect.AddListener(() =>
                 {
@@ -483,8 +489,21 @@ namespace HBP.Data.Module3D
                 });
                 // Add the scene to the list
                 m_Instance.m_Scenes.Add(scene);
-                IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
-                await scene.CompleteInitializationAsync(() => OnAddScene.Invoke(scene), inflationProgress, token);
+                bool preparing = true;
+                IProgress<float> preparationProgress = new Progress<float>(value =>
+                {
+                    if (preparing && !token.IsCancellationRequested) onChangeProgress(value, 0.0f, new LoadingText("Preparing scene display"));
+                });
+                onChangeProgress(lastProgress, 0, new LoadingText("Preparing scene display"));
+                try
+                {
+                    await scene.CompleteInitializationAsync(() => OnAddScene.Invoke(scene), preparationProgress, token);
+                }
+                finally
+                {
+                    preparing = false;
+                }
+
                 return scene;
             }
             catch

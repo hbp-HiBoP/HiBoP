@@ -185,7 +185,21 @@ namespace HBP.Quest
         public string LastError { get; private set; }
         public long ReceivedBytes { get; private set; }
         public long TotalBytes { get; private set; }
-        private Action<float, string> loadingProgress;
+        private Action<float, LoadingText> loadingProgress;
+        private bool receivingGlobals;
+
+        private void ReportLoading(float value, string message) => loadingProgress?.Invoke(value, new LoadingText(message));
+
+        private Action<float, float, LoadingText> SceneDecodeProgress(CancellationToken stop)
+        {
+            var attempt = reception;
+            return (value, _, text) => unityContext.Post(_ =>
+            {
+                if (!destroyed && !stop.IsCancellationRequested && ReferenceEquals(reception, attempt))
+                    loadingProgress?.Invoke(value, text);
+            }, null);
+        }
+
         private readonly object telemetryGate = new();
         private SyncTelemetryPoint firstTransferByte;
         private SyncTelemetryPoint lastTransferByte;
@@ -298,9 +312,12 @@ namespace HBP.Quest
                         loadingProgress = (value, message) =>
                         {
                             displayReceivingProgress = Math.Max(displayReceivingProgress, value);
-                            update(value, 0, new LoadingText(message));
+                            displayReceivingStatus = SceneLoadingStatus.From(value, message, displayBatch?.ActiveVisualizationId);
+                            update(value, 0, message);
+                            RenderDisplayProgress();
                         };
-                        loadingProgress(0.02f, globalsTransfer ? "Receiving pairing data" : "Connecting to Desktop");
+                        receivingGlobals = globalsTransfer;
+                        ReportLoading(0.02f, globalsTransfer ? "Receiving pairing data" : "Waiting for scene data");
                         if (globalsTransfer)
                             return ReceiveCoreAsync(async (token, publish, progress) =>
                             {
@@ -315,7 +332,7 @@ namespace HBP.Quest
                     }, stop).ConfigureAwait(false);
                     DeliveryReceipt receipt = await work.ConfigureAwait(false);
                     await UniTask.SwitchToMainThread();
-                    loadingProgress?.Invoke(1, globalsTransfer ? "Quest paired" : "Visualization ready");
+                    ReportLoading(1, globalsTransfer ? "Quest paired" : "Synchronizing scene");
                     return new ReceiveResult(receipt, null);
                 }
                 catch (Exception error)
@@ -328,6 +345,8 @@ namespace HBP.Quest
                 {
                     await UniTask.SwitchToMainThread();
                     loadingProgress = null;
+                    receivingGlobals = false;
+                    RenderDisplayProgress();
                 }
             }
 
@@ -352,7 +371,7 @@ namespace HBP.Quest
             await OnUnityThreadAsync(() =>
             {
                 ReceptionState = AnatomyReceptionState.Preparing;
-                loadingProgress?.Invoke(0.85f, "Preparing Quest data");
+                ReportLoading(0.85f, "Preparing Quest data");
                 return 0;
             }, stop).ConfigureAwait(false);
             string directory = await OnUnityThreadAsync(() => Path.Combine(Application.temporaryCachePath, "PairingData", Guid.NewGuid().ToString("N")), stop).ConfigureAwait(false);
@@ -432,7 +451,7 @@ namespace HBP.Quest
                 }
 
                 ReceptionState = AnatomyReceptionState.Connecting;
-                loadingProgress?.Invoke(0.02f, "Connecting to Desktop");
+                ReportLoading(0.02f, receivingGlobals ? "Receiving pairing data" : "Waiting for scene data");
 
                 try
                 {
@@ -470,14 +489,20 @@ namespace HBP.Quest
 
         private void ReportTransferProgress(long received, long total)
         {
+            var attempt = reception;
             unityContext.Post(_ =>
             {
-                if (destroyed || reception == null || reception.IsCancellationRequested || ReceptionState == AnatomyReceptionState.Preparing) return;
+                if (destroyed || attempt == null || !ReferenceEquals(reception, attempt) || attempt.IsCancellationRequested || ReceptionState == AnatomyReceptionState.Preparing) return;
                 ReceivedBytes = received;
                 TotalBytes = total;
                 ReceptionState = AnatomyReceptionState.Receiving;
                 if (total > 0)
-                    loadingProgress?.Invoke(0.10f + 0.70f * Mathf.Clamp01((float)received / total), $"Receiving: {100L * Math.Min(received, total) / total}%");
+                {
+                    float fraction = Mathf.Clamp01((float)received / total);
+                    ReportLoading(0.10f + 0.70f * fraction, $"{(receivingGlobals ? "Receiving pairing data" : "Receiving scene")} - {100L * Math.Min(received, total) / total}%");
+                    displayReceivingStatus = SceneLoadingStatus.From(fraction, new LoadingText(), displayBatch?.ActiveVisualizationId, true);
+                    RenderDisplayProgress();
+                }
             }, null);
         }
 
@@ -510,18 +535,14 @@ namespace HBP.Quest
                 await OnUnityThreadAsync(() =>
                 {
                     ReceptionState = AnatomyReceptionState.Preparing;
-                    loadingProgress?.Invoke(0.85f, "Preparing visualization");
+                    ReportLoading(0.85f, "Preparing received data");
                     return 0;
                 }, stop).ConfigureAwait(false);
+                var decodeProgress = SceneDecodeProgress(stop);
                 ScenePayload payload = await Task.Run(() =>
                 {
                     using var timing = PairingTiming.Measure("quest.decode-verified-scene");
-                    return archive.ReadPrepared(hash);
-                }, stop).ConfigureAwait(false);
-                await OnUnityThreadAsync(() =>
-                {
-                    loadingProgress?.Invoke(.92f, "Preparing visualization rendering");
-                    return 0;
+                    return archive.ReadPrepared(hash, decodeProgress);
                 }, stop).ConfigureAwait(false);
                 Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
                 DeliveryStatus result = await publication.ConfigureAwait(false);
@@ -545,7 +566,7 @@ namespace HBP.Quest
             string directory = await OnUnityThreadAsync(() =>
             {
                 ReceptionState = AnatomyReceptionState.Preparing;
-                loadingProgress?.Invoke(0.85f, "Preparing visualization");
+                ReportLoading(0.85f, "Preparing received data");
                 return Path.Combine(Application.temporaryCachePath, "SceneRestoration", Guid.NewGuid().ToString("N"));
             }, stop).ConfigureAwait(false);
             var archive = new SceneArchive(directory, true, globals)
@@ -555,7 +576,8 @@ namespace HBP.Quest
             bool consumed = false;
             try
             {
-                ScenePayload payload = await Task.Run(() => { return archive.Read(file, stop); }, stop).ConfigureAwait(false);
+                var decodeProgress = SceneDecodeProgress(stop);
+                ScenePayload payload = await Task.Run(() => { return archive.Read(file, stop, decodeProgress); }, stop).ConfigureAwait(false);
                 Task<DeliveryStatus> publication = await OnUnityThreadAsync(() => PublishAsync(payload, archive, hash, stop), stop).ConfigureAwait(false);
                 DeliveryStatus result = await publication.ConfigureAwait(false);
                 consumed = result == DeliveryStatus.Published;
@@ -615,7 +637,7 @@ namespace HBP.Quest
                     }
 
                     telemetry?.Trace.CaptureApplyStart();
-                    await view.ApplyAsync(snapshot, archive, preparationStop.Token); // ACK only after complete common rendering and publication.
+                    await view.ApplyAsync(snapshot, archive, preparationStop.Token, (value, duration, text) => loadingProgress?.Invoke(value, text)); // ACK only after complete common rendering and publication.
                     telemetry?.Trace.CaptureApplyEnd();
                     if (telemetry != null)
                     {

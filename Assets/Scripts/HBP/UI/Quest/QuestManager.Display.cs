@@ -109,6 +109,11 @@ namespace HBP.Quest.Desktop
             private readonly HashSet<Publication> owned = new();
             public string ReceivingVisualization { get; private set; }
             public float ReceivingProgress { get; private set; }
+            public SceneLoadingStatus SourceStatus { get; set; } = SceneLoadingStatus.From(0, new LoadingText("Preparing scene"));
+            public SceneLoadingStatus TransferStatus { get; private set; }
+            public SceneLoadingStatus ReceivingStatus { get; private set; }
+            public LoadingText RemoteText => (ReceivingStatus ?? TransferStatus)?.ToText(visualizations.Select(value => value.ID).ToArray(), visualizations.Select(value => value.Name).ToArray());
+            public LoadingText SourceText => SourceStatus.ToText(visualizations.Select(value => value.ID).ToArray(), visualizations.Select(value => value.Name).ToArray());
             internal HBP.UI.Tools.LoadingManager.PresentationHandle Presentation { get; set; }
 
             internal DisplayReservation(QuestManager owner, Visualization[] visualizations)
@@ -170,15 +175,11 @@ namespace HBP.Quest.Desktop
                 {
                     Validate();
                     if (entry.Binding != null) return true;
-                    if (owner.sessionPreferences != null)
-                    {
-                        await owner.sessionPreferences.FlushPreferencesAsync().AsUniTask().AttachExternalCancellation(entry.PreparationStop.Token);
-                        foreach (string atlas in entry.Scene.RequiredAtlasIds()) await owner.sessionPreferences.EnsureAtlasReadyAsync(atlas, entry.PreparationStop.Token, reportError: false);
-                    }
+                    await owner.PrepareSceneDependenciesAsync(entry.Scene, progress, entry.PreparationStop.Token, reportAtlasErrors: false);
 
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
                     Validate();
-                    await owner.PrepareSceneOfferAsync(entry, true, entry.PreparationStop.Token, progress, maximumBytes);
+                    await owner.PrepareSceneOfferAsync(entry, true, entry.PreparationStop.Token, progress, maximumBytes, () => UpdateRemoteAsync(0, false, entry.PreparationStop.Token));
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
                     Validate();
                     entry.PreparedForDisplay = true;
@@ -250,8 +251,11 @@ namespace HBP.Quest.Desktop
             {
                 using var stop = CancellationTokenSource.CreateLinkedTokenSource(token, owner.lifetime.Token, entry.Lifetime.Token, entry.PreparationStop?.Token ?? CancellationToken.None);
                 var unity = SynchronizationContext.Current;
+                bool succeeded = false;
                 entry.Stop = stop;
                 activeVisualization = entry.VisualizationId;
+                TransferStatus = SceneLoadingStatus.From(0, new LoadingText(entry.Binding != null ? "Synchronizing scene" : entry.Offer != null ? entry.Offer.IsPreparingResources ? "Encoding scene data" : "Scene ready to send" : "Preparing scene for transfer"), entry.VisualizationId);
+                ReceivingStatus = null;
                 entry.Error = null;
                 try
                 {
@@ -274,6 +278,7 @@ namespace HBP.Quest.Desktop
                         entry.UserRetryRequired = false;
                         entry.Error = null;
                         progress(1, 0, new LoadingText("Visualization ready on Quest"));
+                        succeeded = true;
                         return true;
                     }
 
@@ -290,9 +295,14 @@ namespace HBP.Quest.Desktop
                             }, null);
                     }
 
-                    bool result = await owner.SendSceneCoreAsync(entry, true, stop.Token, Update, Validate, reportAtlasErrors: false);
+                    bool result = await owner.SendSceneCoreAsync(entry, true, stop.Token, Update, Validate, reportAtlasErrors: false, reportStatus: status =>
+                    {
+                        TransferStatus = status;
+                        if (!status.Transfer && status.Progress >= .97f) ReceivingStatus = null;
+                    }, announcePreparation: () => UpdateRemoteAsync(0, false, stop.Token));
                     await UniTask.SwitchToMainThread();
                     Validate();
+                    succeeded = result;
                     return result;
                 }
                 catch (Exception error)
@@ -304,6 +314,11 @@ namespace HBP.Quest.Desktop
                 finally
                 {
                     await UniTask.SwitchToMainThread();
+                    if (succeeded && SourceStatus?.VisualizationId == entry.VisualizationId)
+                        SourceStatus = SceneLoadingStatus.From(1, new LoadingText("Scene ready"), entry.VisualizationId);
+                    TransferStatus = null;
+                    ReceivingStatus = null;
+                    activeVisualization = null;
                     entry.Stop = null;
                     owner.OnChanged.Invoke();
                 }
@@ -312,7 +327,10 @@ namespace HBP.Quest.Desktop
             public async Task UpdateRemoteAsync(float progress, bool finished, CancellationToken token, string[] incomplete = null)
             {
                 if (finished ? !CanFinish : !IsCurrent) throw new InvalidOperationException("The Display target connection has changed.");
-                var state = new SceneDisplayBatchState { Id = batch, Visualizations = visualizations.Select(value => value.ID).ToArray(), Progress = progress, Finished = finished, ActiveVisualizationId = activeVisualization, IncompleteVisualizations = incomplete ?? Array.Empty<string>() };
+                var sourceStatus = SourceStatus;
+                if (sourceStatus?.Prefix == "Encoding scene data" && owned.FirstOrDefault(entry => entry.VisualizationId == sourceStatus.VisualizationId)?.Offer is { IsPreparingResources: false } && ReferenceEquals(sourceStatus, SourceStatus))
+                    SourceStatus = SceneLoadingStatus.From(.20f, new LoadingText("Scene ready to send"), sourceStatus.VisualizationId);
+                var state = new SceneDisplayBatchState { Id = batch, Visualizations = visualizations.Select(value => value.ID).ToArray(), Names = visualizations.Select(value => value.Name).ToArray(), Progress = progress, Finished = finished, ActiveVisualizationId = activeVisualization ?? SourceStatus?.VisualizationId, IncompleteVisualizations = incomplete ?? Array.Empty<string>(), SourceStatus = SourceStatus, TransferStatus = TransferStatus };
                 state.Validate();
                 long revision = Interlocked.Increment(ref nextDisplayRevision);
                 var request = new SessionControlRequest(Guid.ParseExact(context, "N"), generation, Guid.NewGuid(), SessionControlKind.DisplayBatch, revision: revision, body: SceneSessionState.Encode(state));
@@ -329,6 +347,8 @@ namespace HBP.Quest.Desktop
                     if (remote.Id != batch || !remote.Visualizations.SequenceEqual(state.Visualizations)) throw new InvalidOperationException("Wrong Quest Display progress identity.");
                     ReceivingVisualization = remote.ActiveVisualizationId;
                     ReceivingProgress = remote.ReceivingProgress;
+                    bool currentPhase = state.ActiveVisualizationId == (activeVisualization ?? SourceStatus?.VisualizationId) && ReferenceEquals(state.TransferStatus, TransferStatus);
+                    ReceivingStatus = currentPhase && remote.ActiveVisualizationId == state.ActiveVisualizationId ? remote.ReceivingStatus : null;
                 }
             }
 
