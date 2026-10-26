@@ -98,8 +98,9 @@ namespace HBP.Tests.Quest
             }
         }
 
-        [Test]
-        public void WindowDrag_KeepsItsOffsetExcludesTheOtherHandAndCancelsOnClose()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void WindowDrag_KeepsItsOffsetExcludesTheOtherHandAndCancelsOnClose(bool pinned)
         {
             var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Window.prefab"));
             var head = new GameObject("Head");
@@ -107,6 +108,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
+                window.SetPinned(pinned);
                 var dragger = root.GetComponentInChildren<QuestWindowDragger>(true);
                 dragger.Configure(window, head.transform);
                 window.transform.position = Vector3.forward;
@@ -130,6 +132,14 @@ namespace HBP.Tests.Quest
                 first.Ray = new Ray(Vector3.right, Vector3.forward);
                 dragger.OnDrag(first);
                 Assert.That(window.transform.position, Is.EqualTo(new Vector3(.2f, 0, 1)), "Closing must clear the captured drag, including after reopening.");
+                dragger.OnBeginDrag(first);
+                Assert.That(window.IsManipulated, Is.True, "A new gesture can start after reopening.");
+                dragger.enabled = false;
+                Assert.That(window.IsManipulated, Is.False);
+                dragger.enabled = true;
+                first.Ray = new Ray(Vector3.right * 2, Vector3.forward);
+                dragger.OnDrag(first);
+                Assert.That(window.transform.position, Is.EqualTo(new Vector3(.2f, 0, 1)), "Re-enabling must not resume the old gesture.");
             }
             finally
             {
@@ -151,6 +161,19 @@ namespace HBP.Tests.Quest
                 follower.Configure(head.transform, window);
                 follower.Recall();
                 Vector3 initial = root.transform.position;
+                var pin = root.transform.Find("Control Bar/Pin").GetComponent<Button>();
+                var icon = pin.transform.Find("Pin Icon").GetComponent<Image>();
+                var sprite = icon.sprite;
+                var visibility = AssetDatabase.LoadAssetAtPath<GameObject>(Folder + "Quest Scene Row.prefab").transform.Find("Header/Actions/Visibility").GetComponent<Toggle>();
+                Assert.That(window.IsPinned, Is.True);
+                Assert.That(pin.image.color, Is.EqualTo(visibility.graphic.color));
+                head.transform.rotation = Quaternion.Euler(0, 90, 0);
+                follower.Step(5, true);
+                Assert.That(root.transform.position, Is.EqualTo(initial), "Windows start pinned.");
+                pin.onClick.Invoke();
+                Assert.That(window.IsPinned, Is.False);
+                Assert.That(pin.image.color, Is.Not.EqualTo(visibility.graphic.color));
+                Assert.That(icon.sprite, Is.SameAs(sprite));
                 head.transform.rotation = Quaternion.Euler(0, 20, 0);
                 follower.Step(2, true);
                 Assert.That(root.transform.position, Is.EqualTo(initial));
@@ -167,6 +190,8 @@ namespace HBP.Tests.Quest
                 Assert.That(root.transform.position.x, Is.GreaterThan(.1f));
                 Assert.That(root.transform.position.x, Is.LessThan(window.Placement.z));
                 window.SetPinned(true);
+                Assert.That(pin.image.color, Is.EqualTo(visibility.graphic.color));
+                Assert.That(icon.sprite, Is.SameAs(sprite));
                 Vector3 pinned = root.transform.position;
                 follower.Step(5, true);
                 Assert.That(root.transform.position, Is.EqualTo(pinned));
@@ -188,6 +213,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var follower = root.GetComponent<QuestWindowFollower>();
+                root.GetComponent<QuestWindow>().SetPinned(false);
                 Set(follower, "horizontalOnly", true);
                 follower.Configure(head.transform, root.GetComponent<QuestWindow>());
                 follower.Recall();
@@ -215,6 +241,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
+                window.SetPinned(false);
                 var follower = root.GetComponent<QuestWindowFollower>();
                 Set(window, "placement", new Vector3(0, -.7f, .9f));
                 Set(follower, "horizontalOnly", true);
@@ -263,6 +290,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
+                window.SetPinned(false);
                 var follower = root.GetComponent<QuestWindowFollower>();
                 Set(window, "placement", new Vector3(0, -.7f, .9f));
                 Set(follower, "horizontalOnly", true);
@@ -316,6 +344,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var window = root.GetComponent<QuestWindow>();
+                window.SetPinned(false);
                 var follower = root.GetComponent<QuestWindowFollower>();
                 Set(window, "placement", source.GetComponent<QuestWindow>().Placement);
                 foreach (string field in new[] { "exitAngle", "returnAngle", "delay", "speed", "horizontalThreshold", "verticalThreshold" })
@@ -351,6 +380,7 @@ namespace HBP.Tests.Quest
             try
             {
                 var follower = root.GetComponent<QuestWindowFollower>();
+                root.GetComponent<QuestWindow>().SetPinned(false);
                 Set(follower, "horizontalOnly", true);
                 follower.Configure(head.transform, root.GetComponent<QuestWindow>());
                 head.transform.rotation = Quaternion.Euler(0, 70, 0);

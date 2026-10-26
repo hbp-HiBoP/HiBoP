@@ -1624,10 +1624,10 @@ MonoBehaviour:
   raycaster: {fileID: 3499365984337960196}
   close: {fileID: 0}
   pin: {fileID: 0}
-  pinLabel: {fileID: 0}
-  pinIconTheme: {fileID: 0}
+  pinTheme: {fileID: 0}
   pinnedState: {fileID: 0}
   initiallyOpen: 1
+  initiallyPinned: 0
   placement: {x: 0, y: -0.8, z: 0.65}
 --- !u!114 &2853932684746156159
 MonoBehaviour:

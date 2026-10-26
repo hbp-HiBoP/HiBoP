@@ -1294,10 +1294,10 @@ MonoBehaviour:
   raycaster: {fileID: 2637542135934120214}
   close: {fileID: 8092947956275297395}
   pin: {fileID: 3546008616348378514}
-  pinLabel: {fileID: 0}
-  pinIconTheme: {fileID: 3463024471460064889}
+  pinTheme: {fileID: 1296119267515530212}
   pinnedState: {fileID: 11400000, guid: adaf153ac57df764aae4cdc3447c0d83, type: 2}
   initiallyOpen: 1
+  initiallyPinned: 1
   placement: {x: 0, y: 0, z: 1.15}
 --- !u!114 &2853932684746156159
 MonoBehaviour:
@@ -1759,6 +1759,18 @@ PrefabInstance:
       addedObject: {fileID: 5401859397056527920}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 440a75cf75fb41649a32c80939df3580, type: 3}
+--- !u!114 &1296119267515530212 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3095099108836587268, guid: 440a75cf75fb41649a32c80939df3580,
+    type: 3}
+  m_PrefabInstance: {fileID: 4253858372473343200}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
 --- !u!114 &3546008616348378514 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 737826910262995314, guid: 440a75cf75fb41649a32c80939df3580,

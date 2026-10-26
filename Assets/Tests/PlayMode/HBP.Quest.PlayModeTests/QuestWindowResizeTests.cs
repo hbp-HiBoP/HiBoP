@@ -19,8 +19,9 @@ namespace HBP.Tests.Quest
     {
         private const string Demo = "Assets/Prefabs/Quest/UI/Quest Resizable Window Demo.prefab";
 
-        [Test]
-        public async Task DemoScene_WiresTrackedPointerAndReopensBothWindowsFromToolbar()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task DemoScene_WiresTrackedPointerAndReopensBothWindowsFromToolbar(bool pinned)
         {
             const string path = "Assets/_Scenes/QuestUIDemo.unity";
             await EditorSceneManager.LoadSceneAsyncInPlayMode(path, new LoadSceneParameters(LoadSceneMode.Additive));
@@ -34,6 +35,8 @@ namespace HBP.Tests.Quest
                 var resizable = manager.Find("Display");
                 Assert.That(standard, Is.Not.Null);
                 Assert.That(resizable, Is.Not.Null);
+                standard.SetPinned(pinned);
+                resizable.SetPinned(pinned);
                 Assert.That(standard.GetComponentInChildren<QuestWindowResizer>(), Is.Not.Null);
                 Assert.That(resizable.GetComponentInChildren<QuestWindowResizer>(), Is.Not.Null);
                 Assert.That(standard.transform.position.x, Is.LessThan(resizable.transform.position.x));
@@ -58,10 +61,12 @@ namespace HBP.Tests.Quest
                 Canvas.ForceUpdateCanvases();
                 foreach (var handle in handles)
                 {
+                    var rect = (RectTransform)handle.transform;
+                    Vector3 center = rect.TransformPoint(rect.rect.center);
                     var data = new QuestPointerEventData(pointer.GetComponent<EventSystem>())
                     {
                         trackedDevicePosition = camera.transform.position,
-                        trackedDeviceOrientation = Quaternion.LookRotation(handle.transform.position - camera.transform.position)
+                        trackedDeviceOrientation = Quaternion.LookRotation(center - camera.transform.position)
                     };
                     var hits = new System.Collections.Generic.List<RaycastResult>();
                     resizable.GetComponent<TrackedDeviceRaycaster>().Raycast(data, hits);
@@ -70,7 +75,7 @@ namespace HBP.Tests.Quest
 
                 var viewport = resizable.GetComponentInChildren<RectMask2D>();
                 var information = viewport.GetComponentInChildren<Text>();
-                Assert.That(information.preferredHeight, Is.GreaterThan(((RectTransform)viewport.transform).rect.height), "The initial window deliberately cannot display all the information.");
+                float initialHeight = ((RectTransform)viewport.transform).rect.height;
                 QuestWindowInteractionTests.Capture(camera, "Quest UI Edges Initial.png");
                 Vector3 scale = resizable.transform.localScale;
                 int fontSize = information.fontSize;
@@ -81,6 +86,7 @@ namespace HBP.Tests.Quest
                 corner.OnDrag(drag);
                 corner.OnEndDrag(drag);
                 Canvas.ForceUpdateCanvases();
+                Assert.That(((RectTransform)viewport.transform).rect.height, Is.GreaterThan(initialHeight), "Dragging the corner increases the available content area.");
                 Assert.That(information.preferredHeight, Is.LessThanOrEqualTo(((RectTransform)viewport.transform).rect.height), "Increasing the area reveals the complete text.");
                 Assert.That(information.fontSize, Is.EqualTo(fontSize));
                 Assert.That(resizable.transform.localScale, Is.EqualTo(scale));
@@ -141,6 +147,7 @@ namespace HBP.Tests.Quest
                 Assert.That(text.fontSize, Is.EqualTo(fontSize));
                 Vector3 resizedPosition = root.transform.position;
                 var follower = root.GetComponent<QuestWindowFollower>();
+                window.SetPinned(false);
                 follower.Configure(head.transform, window);
                 head.transform.rotation = Quaternion.Euler(0, 100, 0);
                 follower.Step(3, true);

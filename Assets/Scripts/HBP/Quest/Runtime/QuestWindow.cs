@@ -5,6 +5,7 @@ using UnityEngine.UI;
 namespace HBP.Quest
 {
     /// <summary>Local window lifecycle, independent of connection and scientific state.</summary>
+    [DefaultExecutionOrder(10)] // Apply the pin state after the control themes initialize.
     public sealed class QuestWindow : MonoBehaviour
     {
         [SerializeField] private string key;
@@ -12,10 +13,10 @@ namespace HBP.Quest
         [SerializeField] private GameObject content;
         [SerializeField] private Behaviour raycaster;
         [SerializeField] private Button close, pin;
-        [SerializeField] private Text pinLabel;
-        [SerializeField] private HBP.Theme.ThemeElement pinIconTheme;
+        [SerializeField] private HBP.Theme.ThemeElement pinTheme;
         [SerializeField] private HBP.Theme.State pinnedState;
         [SerializeField] private bool initiallyOpen = true;
+        [SerializeField] private bool initiallyPinned = true;
         [SerializeField] private Vector3 placement = new Vector3(0, 0, 1.15f);
         private int hovered;
         public string Key => key;
@@ -31,6 +32,7 @@ namespace HBP.Quest
         {
             if (close != null) close.onClick.AddListener(Close);
             if (pin != null) pin.onClick.AddListener(TogglePin);
+            IsPinned = initiallyPinned;
             SetOpen(initiallyOpen);
         }
 
@@ -64,8 +66,7 @@ namespace HBP.Quest
 
         private void RefreshPin()
         {
-            if (pinLabel != null) pinLabel.text = IsPinned ? "Follow" : "Pin";
-            if (pinIconTheme != null) pinIconTheme.Set(IsPinned ? pinnedState : pinIconTheme.Element.DefaultState);
+            if (pinTheme != null) pinTheme.Set(IsPinned ? pinnedState : pinTheme.Element.DefaultState);
         }
 
         public void SetHovered(int hand, bool value)

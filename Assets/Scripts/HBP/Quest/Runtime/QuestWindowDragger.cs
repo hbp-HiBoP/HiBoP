@@ -13,8 +13,21 @@ namespace HBP.Quest
 
         public void Configure(QuestWindow ownerWindow, Transform viewer)
         {
+            if (isActiveAndEnabled && window != null) window.OnChanged.RemoveListener(WindowChanged);
+            End();
             window = ownerWindow;
             head = viewer;
+            if (isActiveAndEnabled && window != null) window.OnChanged.AddListener(WindowChanged);
+        }
+
+        private void OnEnable()
+        {
+            if (window != null) window.OnChanged.AddListener(WindowChanged);
+        }
+
+        private void WindowChanged(QuestWindow changed)
+        {
+            if (!changed.IsOpen) End();
         }
 
         public void OnInitializePotentialDrag(PointerEventData data)
@@ -24,7 +37,7 @@ namespace HBP.Quest
 
         public void OnBeginDrag(PointerEventData data)
         {
-            if (window == null || !window.IsOpen || window.IsManipulated || !(data is QuestPointerEventData pointer)) return;
+            if (!isActiveAndEnabled || window == null || !window.IsOpen || window.IsManipulated || !(data is QuestPointerEventData pointer)) return;
             owner = data.pointerId;
             distance = Vector3.Distance(pointer.Ray.origin, data.pointerPressRaycast.worldPosition);
             offset = window.transform.position - pointer.Ray.GetPoint(distance);
@@ -47,10 +60,15 @@ namespace HBP.Quest
 
         private void End()
         {
+            if (owner == int.MinValue) return;
             owner = int.MinValue;
             if (window != null) window.SetManipulated(false);
         }
 
-        private void OnDisable() => End();
+        private void OnDisable()
+        {
+            if (window != null) window.OnChanged.RemoveListener(WindowChanged);
+            End();
+        }
     }
 }
