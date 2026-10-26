@@ -149,9 +149,9 @@ MonoBehaviour:
   headCamera: {fileID: 0}
   content: {fileID: 1335720559735744394}
   distance: 1.15
-  exitAngle: 25
-  returnAngle: 8
-  delay: 0.4
+  exitAngle: 5
+  returnAngle: 0.5
+  delay: 0
   speed: 3
 --- !u!114 &7347485815052143884
 MonoBehaviour:

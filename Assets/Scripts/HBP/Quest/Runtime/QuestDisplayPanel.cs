@@ -5,12 +5,11 @@ using System.Linq;
 
 namespace HBP.Quest
 {
-    /// <summary>Routes local visibility and the existing scientific projection entry point.</summary>
+    /// <summary>Routes scene controls and the existing scientific projection entry point.</summary>
     public sealed class QuestDisplayPanel : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
-        [SerializeField] private Button surface, projection;
-        [SerializeField] private Text surfaceLabel;
+        [SerializeField] private Button projection;
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private Button openPatient;
         [SerializeField] private Transform rows;
@@ -20,10 +19,6 @@ namespace HBP.Quest
         private void Awake()
         {
             openPatient.onClick.AddListener(() => session.RequestOpenPatient());
-            surface.onClick.AddListener(() =>
-            {
-                if (Ready) view.ToggleSurface();
-            });
             projection.onClick.AddListener(() =>
             {
                 if (Ready) view.RecalculateProjection();
@@ -38,7 +33,7 @@ namespace HBP.Quest
         {
             if (view == null)
             {
-                surface.interactable = projection.interactable = openPatient.interactable = false;
+                projection.interactable = openPatient.interactable = false;
                 return;
             }
 
@@ -58,8 +53,7 @@ namespace HBP.Quest
                 }
 
             openPatient.interactable = session != null && session.CanOpenPatient;
-            surface.interactable = projection.interactable = Ready;
-            if (surfaceLabel != null) surfaceLabel.text = view != null && view.SurfaceHidden ? "Show brain surface" : "Hide brain surface";
+            projection.interactable = Ready;
         }
     }
 }
