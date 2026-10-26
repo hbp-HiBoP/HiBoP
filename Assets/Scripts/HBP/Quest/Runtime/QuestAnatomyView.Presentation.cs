@@ -103,12 +103,20 @@ namespace HBP.Quest
             SynchronizeSelection(owner);
             InvalidateInteractions(owner);
             owner.commonPose = ColumnPose.Read(owner.displayed.transform);
+            var camera = Camera.main;
+            if (mode == QuestColumnDisplayMode.Single && camera != null)
+            {
+                // Center the anatomy, including meshes whose local origin is offset.
+                Vector3 center = camera.transform.position + camera.transform.forward * QuestSceneLayout.Distance;
+                owner.commonPose.Position += center - owner.displayed.Manipulator.GrabCenter;
+            }
+
             var from = owner.columns.Select(column => ColumnPose.Read(column.transform)).ToArray();
             if (owner.DisplayMode == QuestColumnDisplayMode.Single)
                 for (int i = 0; i < from.Length; i++)
                     from[i] = owner.commonPose;
             owner.DisplayMode = mode;
-            var to = mode == QuestColumnDisplayMode.Split ? SplitPoses(owner, owner.commonPose, Camera.main != null ? Camera.main.transform.position : owner.commonPose.Position - Vector3.forward) : Enumerable.Repeat(owner.commonPose, from.Length).ToArray();
+            var to = mode == QuestColumnDisplayMode.Split ? SplitPoses(owner, owner.commonPose, camera != null ? camera.transform.position : owner.commonPose.Position - Vector3.forward) : Enumerable.Repeat(owner.commonPose, from.Length).ToArray();
             owner.transition = new ColumnTransition { From = from, To = to };
             AdvanceTransition(owner, 0);
             return true;

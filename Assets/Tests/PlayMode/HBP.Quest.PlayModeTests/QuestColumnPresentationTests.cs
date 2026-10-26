@@ -48,27 +48,72 @@ namespace HBP.Tests.Quest
         public void SplitMergeUsesFrozenTargetAndRegularSubsequentSplit()
         {
             using var f = new Fixture();
-            f.Select(0);
-            f.View.CompletePlacement(f.Presentation);
-            Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split), Is.True);
-            Assert.That(f.Columns.All(column => !f.View.CanInteractWithColumn(column)), Is.True);
-            Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single), Is.False);
-            f.Advance(1);
-            Assert.That(f.Columns.All(column => f.View.CanInteractWithColumn(column)), Is.True);
-            f.Columns[1].transform.SetPositionAndRotation(new Vector3(2, 3, 4), Quaternion.Euler(30, 40, 50));
-            f.Columns[1].transform.localScale = Vector3.one * 2;
-            f.Select(1);
-            Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single), Is.True);
-            f.Advance(.4f);
-            f.Select(0);
-            f.Advance(.6f);
-            f.Tick();
-            Assert.That(f.Columns[0].transform.position, Is.EqualTo(new Vector3(2, 3, 4)));
-            Assert.That(f.Columns[0].transform.localScale.x, Is.EqualTo(2));
-            Assert.That(f.View.IsColumnPresented(f.Columns[1]), Is.False);
-            Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split), Is.True);
-            f.Advance(1);
-            Assert.That((f.Columns[0].transform.position + f.Columns[1].transform.position) * .5f, Is.EqualTo(new Vector3(2, 3, 4)));
+            var headset = new GameObject("Merge headset", typeof(Camera));
+            headset.tag = "MainCamera";
+            try
+            {
+                headset.transform.SetPositionAndRotation(new Vector3(3, 1, 2), Quaternion.Euler(-15, 40, 12));
+                f.Select(0);
+                f.View.CompletePlacement(f.Presentation);
+                Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split), Is.True);
+                Assert.That(f.Columns.All(column => !f.View.CanInteractWithColumn(column)), Is.True);
+                Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single), Is.False);
+                f.Advance(1);
+                Assert.That(f.Columns.All(column => f.View.CanInteractWithColumn(column)), Is.True);
+                var rotation = Quaternion.Euler(30, 40, 50);
+                f.Columns[1].transform.SetPositionAndRotation(new Vector3(2, 3, 4), rotation);
+                f.Columns[1].transform.localScale = Vector3.one * 2;
+                f.Select(1);
+                Vector3 center = headset.transform.position + headset.transform.forward * QuestSceneLayout.Distance;
+                Vector3 origin = f.Columns[1].transform.position + center - f.Columns[1].Manipulator.GrabCenter;
+                Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single), Is.True);
+                f.Advance(.4f);
+                headset.transform.position += Vector3.right * 2;
+                f.Select(0);
+                f.Advance(.6f);
+                f.Tick();
+                Assert.That(Vector3.Distance(f.Columns[0].Manipulator.GrabCenter, center), Is.LessThan(.0001f));
+                Assert.That(f.Columns[0].transform.localScale.x, Is.EqualTo(2));
+                Assert.That(Quaternion.Angle(f.Columns[0].transform.rotation, rotation), Is.LessThan(.001f));
+                Assert.That(f.View.IsColumnPresented(f.Columns[1]), Is.False);
+                Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split), Is.True);
+                f.Advance(1);
+                Assert.That(Vector3.Distance((f.Columns[0].transform.position + f.Columns[1].transform.position) * .5f, origin), Is.LessThan(.0001f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(headset);
+            }
+        }
+
+        [Test]
+        public void RepeatedSplitMergeCentersTheAnatomyWithoutAccumulatingDrift()
+        {
+            using var f = new Fixture();
+            var headset = new GameObject("Stable merge headset", typeof(Camera));
+            headset.tag = "MainCamera";
+            try
+            {
+                headset.transform.SetPositionAndRotation(new Vector3(-2, 1.6f, 4), Quaternion.Euler(20, 70, -10));
+                Vector3 center = headset.transform.position + headset.transform.forward * QuestSceneLayout.Distance;
+                f.View.CompletePlacement(f.Presentation);
+                for (int cycle = 0; cycle < 6; cycle++)
+                {
+                    Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split), Is.True);
+                    f.Advance(1);
+                    int selected = cycle % f.Columns.Length;
+                    f.Select(selected);
+                    f.Columns[selected].transform.position += new Vector3(cycle, .3f, -.2f);
+                    Assert.That(f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single), Is.True);
+                    f.Advance(1);
+                    foreach (var column in f.Columns)
+                        Assert.That(Vector3.Distance(column.Manipulator.GrabCenter, center), Is.LessThan(.0001f));
+                }
+            }
+            finally
+            {
+                Object.DestroyImmediate(headset);
+            }
         }
 
         [Test]
