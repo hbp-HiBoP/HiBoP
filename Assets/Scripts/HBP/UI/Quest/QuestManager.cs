@@ -42,7 +42,7 @@ namespace HBP.Quest.Desktop
         private IDisposable pairingTiming;
         public bool IsPaired => connected && credential != null;
         public string ConnectedId => pin == null ? null : Convert.ToBase64String(pin);
-        public string ConnectedLabel => devices.FirstOrDefault(device => device.Id == ConnectedId)?.Label ?? (pin == null ? "Quest" : "Quest · " + BitConverter.ToString(pin, 0, 3).Replace("-", ""));
+        public string ConnectedLabel => pin == null ? "Quest" : (devices.FirstOrDefault(device => device.Id == ConnectedId)?.Name ?? "Quest") + " · " + (activeEndpoint?.Path == QuestNetworkPath.Usb ? "USB" : "Network") + " · " + BitConverter.ToString(pin, 0, 3).Replace("-", "");
         public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId;
         public bool LastOperationSucceeded { get; private set; }
         public Exception BlockingError { get; private set; }
@@ -139,12 +139,12 @@ namespace HBP.Quest.Desktop
             SetStatus("Quest unavailable or asleep. Desktop remains usable; atlases and visualizations will synchronize when Quest is awake.");
         }
 
-        private static bool IsQuestConnectionInterruption(Exception error) => error is TimeoutException or System.Net.Sockets.SocketException or OperationCanceledException || error.GetType() == typeof(IOException) || error is EndOfStreamException;
+        private static bool IsQuestConnectionInterruption(Exception error) => error is TimeoutException or System.Net.Sockets.SocketException or OperationCanceledException or QuestRouteUnavailableException or QuestIdentityMismatchException || error.GetType() == typeof(IOException) || error is EndOfStreamException;
 
         private CancellationTokenSource operation;
         private readonly CancellationTokenSource lifetime = new();
         private Task running = Task.CompletedTask, discovering = Task.CompletedTask;
-        private QuestUsbDiscovery usb;
+        private QuestEndpoint activeEndpoint;
         private List<QuestDevice> devices = new();
         private bool busy, scanning, connected, reconnect, failedDelivery, discoveryActive;
         private bool manualSelected;
@@ -155,12 +155,6 @@ namespace HBP.Quest.Desktop
         {
             base.Initialization();
             store = Path.Combine(Application.persistentDataPath, "QuestPairings");
-            string adb = Path.Combine(Application.streamingAssetsPath, "QuestUsb", "adb.exe");
-#if UNITY_EDITOR_WIN
-            string sdk = Environment.GetEnvironmentVariable("ANDROID_HOME") ?? @"C:\Android\Sdk";
-            adb = Path.Combine(sdk, "platform-tools", "adb.exe");
-#endif
-            usb = new QuestUsbDiscovery(adb);
             PairingTiming.OnMeasured += LogPairingTiming;
             InitializeSceneLifecycle();
             InitializeDefinitions();
@@ -174,7 +168,9 @@ namespace HBP.Quest.Desktop
             TickDefinitions();
             TickSceneLifecycle();
             TickDiscovery();
-            if (!busy && reconnect && credential != null && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
+            // Once disconnected, discovery owns retry timing and endpoint selection. Probing
+            // the old address here can continuously preempt its per-headset retry backoff.
+            if (!busy && IsPaired && reconnect && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
             {
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>
@@ -227,7 +223,7 @@ namespace HBP.Quest.Desktop
             if (busy || device?.Pin == null) return;
             manualSelected = false;
             SelectedId = device.Id;
-            selectedEndpoint = device.Host;
+            selectedEndpoint = device.Endpoint.AddressText;
             selectedPin = (byte[])device.Pin.Clone();
             OnChanged.Invoke();
         }
@@ -267,7 +263,7 @@ namespace HBP.Quest.Desktop
             if (SelectedId != null) automaticExcluded.Remove(SelectedId);
             if (SelectedId != null) automaticRetryAfter.Remove(SelectedId);
             activeRequest = target;
-            return RunAsync(token => ConnectSelectedAsync(requestCode, false, token));
+            return RunAsync(token => ConnectCandidatesAsync(requestCode, false, token));
         }
 
         private async Task ConnectSelectedAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, bool automatic, CancellationToken token)
@@ -298,10 +294,11 @@ namespace HBP.Quest.Desktop
             }
 
             if (string.IsNullOrWhiteSpace(selectedEndpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
+            Debug.Log("Quest connection candidate: " + selectedEndpoint + (manualSelected ? " (Manual IP)" : " (discovery)"));
             byte[] nextPin = selectedPin;
             if (nextPin == null)
             {
-                if (selectedEndpoint.Contains(":")) throw new ArgumentException("Enter the Quest IPv4 address without a port.");
+                QuestEndpoint.Parse(selectedEndpoint, manual: true);
                 nextPin = await QuestPairing.InspectAsync(selectedEndpoint, token);
                 SelectedId = Convert.ToBase64String(nextPin);
                 selectedPin = nextPin;
@@ -317,6 +314,7 @@ namespace HBP.Quest.Desktop
             DisconnectTransport();
             pin = (byte[])nextPin.Clone();
             endpoint = selectedEndpoint;
+            activeEndpoint = presence.Values.Select(p => p.Device.Endpoint).FirstOrDefault(p => p.AddressText == endpoint) ?? QuestEndpoint.Parse(endpoint);
             if (credential == null) credential = await Task.Run(() => ReadCredential(pin), token);
             await UniTask.SwitchToMainThread(token);
             if (automatic && credential == null) throw new AuthenticationException("Pair this Quest manually before connecting automatically.");
@@ -581,7 +579,11 @@ namespace HBP.Quest.Desktop
             foreach (var entry in publications.Values) entry.Stop?.Cancel();
         }
 
-        public void CancelConnectionAttempt() => operation?.Cancel();
+        public void CancelConnectionAttempt()
+        {
+            autoConnectSuspended = true;
+            operation?.Cancel();
+        }
 
         private Task RunAsync(Func<CancellationToken, Task> action, bool automatic = false)
         {
@@ -601,6 +603,7 @@ namespace HBP.Quest.Desktop
             using var attempt = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             operation = attempt;
             long initialGeneration = sessionGeneration;
+            bool initialReconnect = reconnect;
             bool acquired = false;
 
             async Task InvokeAsync(CancellationToken token)
@@ -634,14 +637,20 @@ namespace HBP.Quest.Desktop
             catch (Exception exception)
             {
                 await UniTask.SwitchToMainThread();
-                bool restoreSession = reconnect && exception is not AuthenticationException && exception is not OperationCanceledException && !attempt.IsCancellationRequested;
+                bool restoreSession = (reconnect || initialReconnect) && exception is not AuthenticationException && exception is not OperationCanceledException && !attempt.IsCancellationRequested;
                 bool preserved = IsPaired && initialGeneration == sessionGeneration && exception is ArgumentException or InvalidOperationException or OperationCanceledException;
                 if (!preserved) DisconnectTransport();
+                if (exception is QuestRouteUnavailableException or QuestIdentityMismatchException)
+                {
+                    foreach (var key in presence.Where(item => item.Value.Device.Endpoint.AddressText == endpoint).Select(item => item.Key).ToArray()) presence.Remove(key);
+                    PublishPresence();
+                }
+
                 reconnect = preserved || restoreSession;
-                nextHeartbeat = Time.unscaledTime + 15;
-                nextAutomaticAttempt = Time.unscaledTime + 15;
-                if (automaticOperation && ConnectedId != null) automaticRetryAfter[ConnectedId] = Time.unscaledTime + 30;
-                if (!automaticOperation) autoConnectSuspended = true;
+                nextHeartbeat = Time.unscaledTime + 1;
+                nextAutomaticAttempt = Time.unscaledTime + 1;
+                if (automaticOperation && ConnectedId != null) automaticRetryAfter[ConnectedId] = Time.unscaledTime + 2;
+                if (!automaticOperation && !restoreSession) autoConnectSuspended = true;
                 if (BlockingError != null) autoConnectSuspended = true;
                 if (exception is QuestContextException)
                 {
@@ -668,7 +677,10 @@ namespace HBP.Quest.Desktop
                     SetStatus("Operation cancelled.");
                 }
                 else
+                {
+                    if (!automaticOperation && !restoreSession) BlockingError ??= exception;
                     SetStatus(exception is ArgumentException || exception is InvalidOperationException ? TransferError.Describe(exception) : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association" : "Quest unreachable. Check USB or Wi-Fi.");
+                }
 
                 Debug.LogWarning("Quest operation failed: " + exception.Message);
             }

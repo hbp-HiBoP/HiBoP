@@ -30,6 +30,7 @@ namespace HBP.Quest.Desktop
             public bool HasPendingWork => Work != null && !Work.IsCompleted;
             public string Error;
             public bool UserRetryRequired;
+            public bool TransportRecoveryPending;
             public bool OfferWasSent;
             public bool PreparedForDisplay;
             public CancellationTokenSource PreparationStop;
@@ -54,6 +55,17 @@ namespace HBP.Quest.Desktop
         public bool AutomaticallySynchronizeScenes => autoSync;
         public bool IsSceneSynchronized(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && !entry.Removed && !entry.UserRetryRequired && !entry.HasPendingWork && entry.Binding != null && entry.Owner?.IsLive == true && entry.Owner.IsInitialRenderingReady && entry.Error == null;
         public string GetSceneSynchronizationError(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) ? entry.Error : null;
+        public bool IsSceneRecoveryPending(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && entry.TransportRecoveryPending && !entry.Removed;
+
+        private bool RecoverSceneTransport(Publication entry, Exception error, CancellationToken userCancellation)
+        {
+            if (entry.Removed || entry.UserRetryRequired || userCancellation.IsCancellationRequested || autoConnectSuspended || !reconnect || !IsQuestConnectionInterruption(error) || error is OperationCanceledException && !entry.TransportRecoveryPending) return false;
+            entry.TransportRecoveryPending = true;
+            entry.Error = null;
+            reconciliationNeedsRetry = false;
+            SessionConnectionLost();
+            return true;
+        }
 
         public async Task CancelSceneSynchronizationAsync(Base3DScene scene)
         {
@@ -107,6 +119,10 @@ namespace HBP.Quest.Desktop
                 inventoryWork = SynchronizeInventorySafelyAsync();
                 return;
             }
+
+            foreach (var entry in publications.Values.Where(value => value.TransportRecoveryPending && !value.Removed && !value.UserRetryRequired && !value.HasPendingWork && !IsDisplayReserved(value.Scene)).ToArray())
+                if (entry.Binding == null)
+                    _ = SendAsync(false, entry.Scene);
 
             if (!autoSync) return;
             foreach (var scene in Module3DMain.Scenes.ToArray())
@@ -170,7 +186,7 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null, bool reportAtlasErrors = true, Action<SceneLoadingStatus> reportStatus = null, Func<Task> announcePreparation = null)
+        private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null, bool reportAtlasErrors = true, Action<SceneLoadingStatus> reportStatus = null, Func<Task> announcePreparation = null, CancellationToken? userCancellation = null)
         {
             await UniTask.SwitchToMainThread(token);
             using var preparation = PairingTiming.Measure("desktop.scene-publication-total");
@@ -262,6 +278,7 @@ namespace HBP.Quest.Desktop
                         Report(1, 0, new LoadingText("Scene ready"));
                         SetStatus(entry.Scene.Visualization.Name + " ready on Quest.");
                         entry.UserRetryRequired = false;
+                        entry.TransportRecoveryPending = false;
                         return true;
                     }
                     catch (Exception error) when (restart < 2 && !entry.Removed && (owner.RequiresPublicationRestart || error is DesktopReplicaSession.PublicationRestartException))
@@ -275,7 +292,9 @@ namespace HBP.Quest.Desktop
                 await UniTask.SwitchToMainThread();
                 if (!entry.Removed)
                 {
+                    if (RecoverSceneTransport(entry, error, userCancellation ?? token)) return false;
                     bool cancelled = token.IsCancellationRequested || error is OperationCanceledException;
+                    entry.TransportRecoveryPending = false;
                     entry.Error = cancelled ? "Visualization transfer cancelled. Retry to continue." : TransferError.Describe(error);
                     entry.UserRetryRequired = true;
                     if (entry.Binding != null && entry.Owner?.IsInitialRenderingReady != true)
@@ -314,7 +333,7 @@ namespace HBP.Quest.Desktop
             bool reuse = entry.Offer != null && entry.Owner?.CanRetryTransfer == true && (entry.PreparedForDisplay && !entry.OfferWasSent || retry && entry.Offer.CanRetry);
             if (!reuse && (entry.OfferWasSent || entry.UncertainTransfers.Count != 0) && entry.Binding == null)
             {
-                if (!retry) throw new InvalidOperationException("The interrupted Quest transfer needs an explicit retry.");
+                if (!retry && !entry.TransportRecoveryPending) throw new InvalidOperationException("The interrupted Quest transfer needs an explicit retry.");
                 update(.05f, 0, new LoadingText("Finishing previous scene transfer"));
                 await RetireInterruptedPublicationAsync(entry, token);
             }
@@ -349,6 +368,7 @@ namespace HBP.Quest.Desktop
             long expectedGeneration = sessionGeneration;
             var transfers = entry.UncertainTransfers.ToList();
             if (entry.OfferWasSent && entry.Offer != null) transfers.Add(entry.Offer.TransferId);
+            if (entry.Binding != null) transfers.Add(entry.Binding.TransferId);
             if (transfers.Count == 0) throw new InvalidOperationException("The interrupted transfer identity is unavailable. Close the Desktop visualization before sending it again.");
             foreach (string transfer in transfers.Distinct())
             {
@@ -368,6 +388,17 @@ namespace HBP.Quest.Desktop
             entry.OfferWasSent = false;
             entry.PreparedForDisplay = false;
             entry.UncertainTransfers.Clear();
+        }
+
+        private async Task RetireAbsentPublicationAsync(Publication entry, CancellationToken token)
+        {
+            // Inventory absence does not rule out a late receive. Retire the exact acknowledged
+            // incarnation before discarding its local binding and capturing a replacement.
+            await RetireInterruptedPublicationAsync(entry, token);
+            entry.Binding = null;
+            entry.Record?.Dispose();
+            entry.Record = null;
+            entry.TransportRecoveryPending = true;
         }
 
         private async Task<SessionControlResponse> SceneControlAsync(SessionControlKind kind, SceneSessionClose close, CancellationToken token)
@@ -488,6 +519,7 @@ namespace HBP.Quest.Desktop
                 if (scene == null || scene.IsClosing || !local.Contains(scene) || !Module3DMain.Scenes.Contains(scene)) continue;
                 bool present = inventory.Any(value => !value.Orphan && value.VisualizationId == entry.VisualizationId && value.TransferId == entry.Binding?.TransferId);
                 if (present) continue;
+                if (entry.Binding != null) await RetireAbsentPublicationAsync(entry, token);
                 entry.Owner?.Dispose();
                 entry.Owner = null;
                 entry.Binding = null;
@@ -524,11 +556,7 @@ namespace HBP.Quest.Desktop
                             return;
                         }
 
-                        entry.Owner?.Dispose();
-                        entry.Owner = null;
-                        entry.Binding = null;
-                        entry.Record?.Dispose();
-                        entry.Record = null;
+                        await RetireAbsentPublicationAsync(entry, token);
                         return;
                     }
 
@@ -553,6 +581,7 @@ namespace HBP.Quest.Desktop
                         await entry.Owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, sceneStop.Token);
                         await entry.Owner.WaitInitialRenderingAsync(sceneStop.Token);
                         entry.Error = null;
+                        entry.TransportRecoveryPending = false;
                     }
                     catch (Exception error) when (!token.IsCancellationRequested)
                     {

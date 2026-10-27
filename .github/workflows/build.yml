@@ -137,6 +137,27 @@ jobs:
           username: ${{ secrets.UNITY_USERNAME }}
           password: ${{ secrets.UNITY_PASSWORD }}
 
+      - name: Test Quest network primitives on host OS
+        run: |
+          set -euo pipefail
+          mkdir -p .test-results
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -buildTarget ${{ matrix.cli_target }} \
+            -runTests -testPlatform EditMode \
+            -testFilter HBP.Tests.Transfer.QuestNetworkTests \
+            -testResults "$GITHUB_WORKSPACE/.test-results/quest-network.xml" \
+            -logFile "$GITHUB_WORKSPACE/.test-results/quest-network.log"
+
+      - name: Upload Quest network test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Quest-network-tests-${{ matrix.platform }}
+          path: .test-results/quest-network.*
+          if-no-files-found: ignore
+
       - name: Build ${{ matrix.name }}
         run: |
           set -euo pipefail
@@ -267,6 +288,10 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$app"
           echo "Validated and signed application: $app"
 
+      - name: Validate absence of bundled ADB
+        shell: pwsh
+        run: ./Tools/Test-NoAdb.ps1 -Path build
+
       - name: Package build
         id: package
         run: |
@@ -282,12 +307,23 @@ jobs:
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
           ls -lh "$archive"
 
+      - name: Validate archive contains no ADB
+        shell: pwsh
+        run: ./Tools/Test-NoAdb.ps1 -Path '${{ steps.package.outputs.archive }}'
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
+
+      - name: Require platform USB/network qualification before release
+        if: github.event_name == 'release'
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: |
+          python3 -c 'import json,os,pathlib; q=json.load(open("Docs/dev/quest-autonomous/usb/qualification.json"))[os.environ["PLATFORM"]]; assert q["qualified"] and q["evidence"] and pathlib.Path(q["evidence"]).is_file(), "NCM/mDNS hardware qualification is required before publishing this platform"'
 
       - name: Attach to release
         if: github.event_name == 'release'

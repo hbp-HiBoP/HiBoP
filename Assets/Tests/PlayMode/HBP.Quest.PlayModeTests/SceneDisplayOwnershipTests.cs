@@ -28,6 +28,53 @@ namespace HBP.Tests.Quest
     {
         private const BindingFlags Private = BindingFlags.NonPublic | BindingFlags.Instance;
 
+        [TestCase("network"), TestCase("data"), TestCase("cancel"), TestCase("disconnect")]
+        public async Task DisplayDefersOnlyNetworkFailuresAndExplicitCancellationWins(string kind)
+        {
+            var root = new GameObject("Display transport recovery fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            SetPairedContext(manager);
+            var type = typeof(QuestManager);
+            type.GetField("reconnect", Private).SetValue(manager, true);
+            type.GetField("automaticallyConnect", Private).SetValue(manager, false);
+            var credential = type.GetField("credential", Private).GetValue(manager);
+            var scene = root.AddComponent<Base3DScene>();
+            var visualization = new Visualization { ID = "interrupted-display" };
+            typeof(Base3DScene).GetField("<Visualization>k__BackingField", Private).SetValue(scene, visualization);
+            using var user = new CancellationTokenSource();
+            using var reservation = manager.ReserveDisplay(new[] { visualization });
+            typeof(QuestManager.DisplayReservation).GetProperty("UserCancellation", Private).SetValue(reservation, user.Token);
+            try
+            {
+                if (kind == "cancel") user.Cancel();
+                if (kind == "disconnect") manager.Disconnect();
+                Exception error = kind == "data" ? new InvalidDataException("Invalid scene payload") : new IOException("USB removed");
+                bool deferred = reservation.RecoverConnection(error) && reservation.DeferScene(scene);
+                Assert.That(deferred, Is.EqualTo(kind == "network"));
+                Assert.That(manager.IsSceneRecoveryPending(scene), Is.EqualTo(kind == "network"));
+                Assert.That(type.GetField("credential", Private).GetValue(manager), Is.SameAs(credential));
+                if (kind == "network")
+                {
+                    Assert.That(manager.IsPaired, Is.False);
+                    Assert.That(manager.CanRetryScenes, Is.False, "Transient loss must not impose a manual Retry gate.");
+                    user.Cancel();
+                    Assert.That(reservation.DeferScene(scene), Is.False);
+                    reservation.RequireRetry(scene, "Display cancelled");
+                    Assert.That(manager.IsSceneRecoveryPending(scene), Is.False);
+                    Assert.That(manager.CanRetryScenes, Is.True);
+                }
+            }
+            finally
+            {
+                type.GetMethod("DisposeDiscovery", Private).Invoke(manager, null);
+                ((CancellationTokenSource)type.GetField("lifetime", Private).GetValue(manager)).Cancel();
+                await (Task)type.GetField("listening", Private).GetValue(manager);
+                ClearPairedContext(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
         [TestCase("timeout"), TestCase("socket"), TestCase("cancel"), TestCase("data")]
         public async Task SleepingDuringSceneReconnectionKeepsAutomaticRetryWhileDataFailuresRequireAttention(string kind)
         {
@@ -168,7 +215,7 @@ namespace HBP.Tests.Quest
                 Assert.That(manager.IsManualSelection, Is.False);
                 Assert.That(manager.SelectedAddress, Is.Empty);
                 Assert.That(manager.SelectedId, Is.Null);
-                var device = new QuestDevice { Pin = new byte[32], Host = "192.168.1.30", Name = "Discovered Quest" };
+                var device = new QuestDevice { Pin = new byte[32], Endpoint = QuestEndpoint.Parse("192.168.1.30"), Name = "Discovered Quest" };
                 typeof(QuestManager).GetMethod("Observe", Private).Invoke(manager, new object[] { device });
                 typeof(QuestManager).GetMethod("PublishPresence", Private).Invoke(manager, null);
                 Assert.That(manager.SelectedId, Is.EqualTo(device.Id));
@@ -320,8 +367,8 @@ namespace HBP.Tests.Quest
             }
         }
 
-        [TestCase(false), TestCase(true)]
-        public async Task InterruptedPublicationIsRetiredOnlyAfterExactQuestAcknowledgements(bool reject)
+        [TestCase(false, false), TestCase(true, false), TestCase(false, true), TestCase(true, true)]
+        public async Task InterruptedPublicationIsRetiredOnlyAfterExactQuestAcknowledgements(bool reject, bool published)
         {
             var root = new GameObject("Interrupted publication recovery fixture");
             root.SetActive(false);
@@ -341,7 +388,16 @@ namespace HBP.Tests.Quest
             entryType.GetField("Offer").SetValue(entry, offer);
             entryType.GetField("OfferWasSent").SetValue(entry, true);
             var previous = (HashSet<string>)entryType.GetField("UncertainTransfers").GetValue(entry);
-            previous.Add(uncertain);
+            if (!published) previous.Add(uncertain);
+            object binding = null;
+            if (published)
+            {
+                var bindingType = entryType.GetField("Binding").FieldType;
+                binding = System.Runtime.Serialization.FormatterServices.GetUninitializedObject(bindingType);
+                bindingType.GetField("<TransferId>k__BackingField", Private).SetValue(binding, transfer);
+                entryType.GetField("Binding").SetValue(entry, binding);
+            }
+
             var closed = new List<string>();
             using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(25));
             using var receiver = new QuestPairing();
@@ -363,7 +419,7 @@ namespace HBP.Tests.Quest
                 Exception failure = null;
                 try
                 {
-                    await (Task)typeof(QuestManager).GetMethod("RetireInterruptedPublicationAsync", Private).Invoke(manager, new object[] { entry, stop.Token });
+                    await (Task)typeof(QuestManager).GetMethod(published ? "RetireAbsentPublicationAsync" : "RetireInterruptedPublicationAsync", Private).Invoke(manager, new object[] { entry, stop.Token });
                 }
                 catch (Exception error)
                 {
@@ -376,14 +432,21 @@ namespace HBP.Tests.Quest
                     Assert.That(failure, Is.InstanceOf<InvalidOperationException>());
                     Assert.That(entryType.GetField("Offer").GetValue(entry), Is.SameAs(offer));
                     Assert.That(entryType.GetField("OfferWasSent").GetValue(entry), Is.True);
-                    Assert.That(previous, Does.Contain(uncertain));
+                    if (!published) Assert.That(previous, Does.Contain(uncertain));
+                    else Assert.That(entryType.GetField("Binding").GetValue(entry), Is.SameAs(binding));
                 }
                 else
                 {
                     Assert.That(failure, Is.Null);
-                    Assert.That(closed.Count, Is.EqualTo(2));
+                    Assert.That(closed.Count, Is.EqualTo(published ? 1 : 2));
                     Assert.That(closed.Any(value => value.Contains(transfer)), Is.True);
-                    Assert.That(closed.Any(value => value.Contains(uncertain)), Is.True);
+                    if (!published) Assert.That(closed.Any(value => value.Contains(uncertain)), Is.True);
+                    else
+                    {
+                        Assert.That(entryType.GetField("Binding").GetValue(entry), Is.Null);
+                        Assert.That(manager.IsSceneRecoveryPending(scene), Is.True, "A previously acknowledged scene missing after Quest restart must be republished automatically.");
+                    }
+
                     Assert.That(entryType.GetField("Offer").GetValue(entry), Is.Null);
                     Assert.That(entryType.GetField("OfferWasSent").GetValue(entry), Is.False);
                     Assert.That(previous, Is.Empty);

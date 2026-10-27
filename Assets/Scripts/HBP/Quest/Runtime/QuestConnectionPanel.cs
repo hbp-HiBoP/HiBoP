@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -25,7 +27,33 @@ namespace HBP.Quest
         private bool restarting;
         private string identityPath, deviceName;
         private float nextRefresh;
-        private readonly SemaphoreSlim advertisementWake = new(0, 1);
+
+        [Serializable]
+        private sealed class NetworkSnapshot
+        {
+            public string usbStatus;
+            public bool canRetry;
+            public NetworkLink[] networks;
+        }
+
+        [Serializable]
+        private sealed class NetworkLink
+        {
+            public long handle, generation;
+            public int index;
+            public bool usb;
+            public string[] addresses;
+        }
+
+        private sealed class NetworkReceiver
+        {
+            public long Generation;
+            public CancellationTokenSource Stop;
+            public readonly List<TcpListener> Listeners = new();
+            public readonly List<Task> Tasks = new();
+        }
+
+        private readonly Dictionary<long, NetworkReceiver> receivers = new();
         private bool showingRequestedCode;
         private bool confirmingAssociation;
         private CancellationTokenSource associationConfirmation;
@@ -34,17 +62,9 @@ namespace HBP.Quest
         private int networkChanged = 1;
         private bool showingPairingProgress;
 
-        private void WakeAdvertisement()
-        {
-            Interlocked.Exchange(ref networkChanged, 1);
-            try
-            {
-                advertisementWake.Release();
-            }
-            catch (SemaphoreFullException)
-            {
-            }
-        }
+        private void WakeAdvertisement() => Interlocked.Exchange(ref networkChanged, 1);
+
+        private void RetryUsb() => networkMonitor?.Call("retryUsb");
 
         private sealed class NetworkListener : AndroidJavaProxy
         {
@@ -73,11 +93,13 @@ namespace HBP.Quest
         private void OnEnable()
         {
             statusPanel.OnNewAssociationRequested.AddListener(NewAssociation);
+            statusPanel.OnRetryUsbRequested.AddListener(RetryUsb);
 #if UNITY_ANDROID && !UNITY_EDITOR
             using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
             networkListener = new NetworkListener(WakeAdvertisement);
             networkMonitor = new AndroidJavaObject("com.hbp.quest.NetworkMonitor", activity, networkListener);
+            networkMonitor.Call("setForeground", true);
 #endif
             PairingTiming.OnMeasured += LogTiming;
             RestartAsync().Forget(); // All failures observed by RestartAsync/RunAsync.
@@ -150,36 +172,18 @@ namespace HBP.Quest
                 stop.ThrowIfCancellationRequested();
                 pairing = nextPairing;
                 status = "Select this Quest on Desktop, then click Pair.";
-                while (!stop.IsCancellationRequested)
+                try
                 {
-                    try
+                    while (!stop.IsCancellationRequested)
                     {
-                        var listener = new TcpListener(IPAddress.Any, QuestPairing.Port);
-                        listener.Start(4);
-                        var context = SynchronizationContext.Current;
-                        using var advertising = CancellationTokenSource.CreateLinkedTokenSource(stop);
-                        UniTask discovery = AdvertiseAsync(nextPairing, advertising.Token);
-                        try
-                        {
-                            await nextPairing.ServeAsync(listener, stop, session.ReceiveStreamAsync, message => context.Post(_ =>
-                            {
-                                if (!stop.IsCancellationRequested) status = message;
-                            }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync, session.ActiveGlobalContextAsync, session.ReceiveDefinitionsAsync);
-                        }
-                        finally
-                        {
-                            advertising.Cancel();
-                            await discovery;
-                        }
+                        await RefreshReceiversAsync(nextPairing, stop);
+                        await UniTask.Delay(500, DelayType.Realtime, cancellationToken: stop);
                     }
-                    catch (Exception exception) when (!stop.IsCancellationRequested)
-                    {
-                        // Keep the same pairing owner, attempt budget and globals if the
-                        // network listener must be recreated after an interface failure.
-                        status = "Connection interrupted. Reconnecting automatically...";
-                        Debug.LogWarning("Quest listener will retry: " + exception.GetType().Name);
-                        await UniTask.Delay(TimeSpan.FromMilliseconds(5000), DelayType.Realtime, cancellationToken: stop);
-                    }
+                }
+                finally
+                {
+                    networkMonitor?.Call("stopAdvertising");
+                    foreach (long key in receivers.Keys.ToArray()) await StopReceiverAsync(key);
                 }
             }
             catch (Exception) when (stop.IsCancellationRequested)
@@ -196,16 +200,84 @@ namespace HBP.Quest
             }
         }
 
-        private async UniTask AdvertiseAsync(QuestPairing receiver, CancellationToken stop)
+        private async UniTask StopReceiverAsync(long key)
         {
+            var receiver = receivers[key];
+            receivers.Remove(key);
+            networkMonitor?.Call("stopAdvertising", key);
+            receiver.Stop.Cancel();
+            foreach (var listener in receiver.Listeners) listener.Stop();
             try
             {
-                string announcement = receiver.Announcement;
-                await System.Threading.Tasks.Task.Run(() => QuestDiscovery.AdvertiseAsync(() => announcement, stop, () => !receiver.IsConnected, advertisementWake), stop);
+                await Task.WhenAll(receiver.Tasks);
             }
-            catch (Exception exception) when (!stop.IsCancellationRequested)
+            catch (Exception error)
             {
-                Debug.LogWarning("Quest Wi-Fi discovery unavailable: " + exception.GetType().Name);
+                Debug.LogWarning("Quest network listener stopped: " + error.GetType().Name);
+            }
+            finally
+            {
+                receiver.Stop.Dispose();
+            }
+        }
+
+        private async UniTask RefreshReceiversAsync(QuestPairing owner, CancellationToken stop)
+        {
+            NetworkSnapshot snapshot;
+#if UNITY_ANDROID && !UNITY_EDITOR
+            snapshot = JsonUtility.FromJson<NetworkSnapshot>(networkMonitor.Call<string>("snapshot"));
+#else
+            snapshot = new NetworkSnapshot { usbStatus = "USB networking is available in the Quest player", networks = new[] { new NetworkLink { addresses = new[] { "0.0.0.0" } } } };
+#endif
+            snapshot.networks ??= Array.Empty<NetworkLink>();
+            statusPanel.ShowUsb(snapshot.usbStatus, snapshot.canRetry);
+            address = string.Join(" / ", snapshot.networks.SelectMany(n => n.addresses ?? Array.Empty<string>()));
+            foreach (long key in receivers.Keys.ToArray())
+                if (!snapshot.networks.Any(n => n.handle == key && n.generation == receivers[key].Generation) || receivers[key].Tasks.Any(t => t.IsCompleted))
+                    await StopReceiverAsync(key);
+            foreach (var network in snapshot.networks)
+            {
+                if (receivers.ContainsKey(network.handle))
+                {
+                    // A failed NSD registration may be retried without disturbing live sockets.
+                    networkMonitor?.Call("advertise", network.handle, Convert.ToBase64String(owner.Pin), deviceName);
+                    continue;
+                }
+
+                var receiver = new NetworkReceiver { Generation = network.generation, Stop = CancellationTokenSource.CreateLinkedTokenSource(stop) };
+                var context = SynchronizationContext.Current;
+                foreach (string text in network.addresses ?? Array.Empty<string>())
+                {
+                    TcpListener listener = null;
+                    try
+                    {
+                        if (!IPAddress.TryParse(text, out var ip) || IPAddress.IsLoopback(ip)) continue;
+                        if (ip.IsIPv6LinkLocal) ip.ScopeId = network.index;
+                        listener = new TcpListener(ip, QuestPairing.Port);
+                        if (ip.AddressFamily == AddressFamily.InterNetworkV6) listener.Server.DualMode = false;
+                        QuestNetworkBinding.Bind(listener.Server, network.handle);
+                        listener.Start(4);
+                        receiver.Listeners.Add(listener);
+                        receiver.Tasks.Add(owner.ServeAsync(listener, receiver.Stop.Token, session.ReceiveStreamAsync, message => context.Post(_ =>
+                        {
+                            if (!stop.IsCancellationRequested) status = message;
+                        }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync, session.ActiveGlobalContextAsync, session.ReceiveDefinitionsAsync));
+                    }
+                    catch (Exception error)
+                    {
+                        listener?.Stop();
+                        Debug.LogWarning("Quest network listener unavailable: " + error.GetType().Name + ": " + error.Message);
+                    }
+                }
+
+                if (receiver.Listeners.Count == 0)
+                {
+                    receiver.Stop.Dispose();
+                    continue;
+                }
+
+                receivers.Add(network.handle, receiver);
+                networkMonitor?.Call("advertise", network.handle, Convert.ToBase64String(owner.Pin), deviceName);
             }
         }
 
@@ -215,8 +287,6 @@ namespace HBP.Quest
         {
             if (Time.unscaledTime < nextRefresh) return;
             nextRefresh = Time.unscaledTime + 0.2f;
-            if (Interlocked.Exchange(ref networkChanged, 0) != 0)
-                address = string.Join(" / ", NetworkInterface.GetAllNetworkInterfaces().Where(n => n.OperationalStatus == OperationalStatus.Up).SelectMany(n => n.GetIPProperties().UnicastAddresses).Where(a => a.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(a.Address)).Select(a => a.Address.ToString()).Distinct());
             var state = pairing?.GetStatus();
             bool pairingInProgress = state?.Phase is PairingPhase.Authenticating or PairingPhase.InstallingGlobals;
             bool requested = pairing?.IsCodeRequested == true && !pairingInProgress;
@@ -269,6 +339,7 @@ namespace HBP.Quest
         {
             // Keep the identity, code attempt budget and globals across normal headset sleep.
             if (!paused && isActiveAndEnabled && running.Status.IsCompleted()) RestartAsync().Forget();
+            networkMonitor?.Call("setForeground", !paused);
             if (!paused) WakeAdvertisement();
         }
 
@@ -276,6 +347,7 @@ namespace HBP.Quest
         {
             associationConfirmation?.Cancel();
             statusPanel.OnNewAssociationRequested.RemoveListener(NewAssociation);
+            statusPanel.OnRetryUsbRequested.RemoveListener(RetryUsb);
             networkMonitor?.Call("close");
             networkMonitor?.Dispose();
             networkMonitor = null;

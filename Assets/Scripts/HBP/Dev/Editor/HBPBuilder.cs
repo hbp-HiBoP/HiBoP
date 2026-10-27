@@ -66,6 +66,7 @@ namespace HBP.Dev
 
         public static void BuildProjectAndZipIt(string buildsDirectory, bool development, BuildTarget target, ScriptingImplementation scriptingBackend, bool connectProfiler = false)
         {
+            QuestDistributionValidation.ValidateManagedDependencies();
             if (target != BuildTarget.StandaloneWindows64 && target != BuildTarget.StandaloneLinux64 && target != BuildTarget.StandaloneOSX)
                 throw new BuildFailedException($"Unsupported Desktop target: {target}.");
             SerializationTypeRegistryGenerator.EnsureUpToDateForBuild();
@@ -193,19 +194,8 @@ namespace HBP.Dev
             }
 #endif
 
-            if (target == BuildTarget.StandaloneWindows64)
-            {
-                string sdk = Environment.GetEnvironmentVariable("ANDROID_HOME") ?? @"C:\Android\Sdk";
-                string source = Path.Combine(sdk, "platform-tools");
-                string usb = Path.Combine(buildDirectory, Application.productName + "_Data", "StreamingAssets", "QuestUsb");
-                Directory.CreateDirectory(usb);
-                foreach (string file in new[] { "adb.exe", "AdbWinApi.dll", "AdbWinUsbApi.dll", "NOTICE.txt" })
-                {
-                    string input = Path.Combine(source, file);
-                    if (!File.Exists(input)) throw new BuildFailedException("Quest USB discovery requires Android platform-tools: " + input);
-                    File.Copy(input, Path.Combine(usb, file), true);
-                }
-            }
+            QuestDistributionValidation.CleanAndValidate(buildDirectory);
+            if (target == BuildTarget.StandaloneOSX) QuestDistributionValidation.ConfigureMacNetworkPrivacy(dataDirectory);
 
             FileInfo readme = new(projectPath + "README.md");
             readme.CopyTo(buildDirectory + readme.Name, true);
@@ -260,6 +250,7 @@ namespace HBP.Dev
 
         public static void BuildQuest(string buildsDirectory, bool development = false)
         {
+            QuestDistributionValidation.ValidateManagedDependencies();
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android)
                 throw new BuildFailedException("Select Quest in Build Profiles first, or use -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset on the command line.");
             BuildProfile profile = HBPBuildProfiles.Load(true);

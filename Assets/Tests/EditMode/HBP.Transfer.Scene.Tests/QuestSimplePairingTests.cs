@@ -336,7 +336,7 @@ namespace HBP.Tests.Transfer
             Assert.That(device.Pin, Is.EqualTo(receiver.Pin));
             Assert.That(receiver.IsPaired, Is.False);
             Assert.That(receiver.Announcement, Does.Not.Contain(receiver.Code));
-            Assert.That(QuestDiscovery.Decode("HiBoP-Quest-v1|bad|spoof", "127.0.0.1"), Is.Null);
+            Assert.That(QuestDescription.Decode("HiBoP-Quest-v1|bad|spoof", "127.0.0.1"), Is.Null);
         }
 
         [Test]

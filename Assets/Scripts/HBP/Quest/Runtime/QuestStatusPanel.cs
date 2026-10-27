@@ -18,8 +18,22 @@ namespace HBP.Quest
         [SerializeField] private GameObject unpairedContent;
         [SerializeField] private GameObject pairedContent;
         [SerializeField] private Text pairedDesktop;
+        [SerializeField] private Text usbStatus;
+        [SerializeField] private Button retryUsb;
         public UnityEvent OnNewAssociationRequested { get; } = new();
-        private void Awake() => newAssociation.onClick.AddListener(OnNewAssociationRequested.Invoke);
+        public UnityEvent OnRetryUsbRequested { get; } = new();
+
+        private void Awake()
+        {
+            newAssociation.onClick.AddListener(OnNewAssociationRequested.Invoke);
+            if (retryUsb) retryUsb.onClick.AddListener(OnRetryUsbRequested.Invoke);
+        }
+
+        public void ShowUsb(string message, bool canRetry)
+        {
+            if (usbStatus) usbStatus.text = message ?? "";
+            if (retryUsb) retryUsb.gameObject.SetActive(canRetry);
+        }
 
         public void ShowPairing(PairingStatus state, string ip)
         {

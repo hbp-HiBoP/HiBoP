@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -545,105 +546,87 @@ namespace HBP.Tests.Quest
             }
         }
 
-        [Test]
-        public async Task UsbApplicationAppearingAfterCableConnectionUsesOnlyTheRetainedForward()
+#if UNITY_EDITOR
+        [TestCase(false, false), TestCase(true, false), TestCase(false, true)]
+        public async Task InterruptedManualTransferKeepsSessionRecoveryUnlessExplicitlyCancelled(bool cancel, bool staleInterface)
         {
-            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            using var receiver = new QuestPairing();
-            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
-            listener.Start();
-            int port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, port);
-            int commands = 0;
-            var usb = new QuestUsbDiscovery("unused", (command, token) =>
+            var root = new UnityEngine.GameObject("Quest interrupted transfer test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var loading = root.AddComponent<HBP.UI.Tools.LoadingManager>();
+            var presenter = root.AddComponent<DisplayLoadingPresenterProbe>();
+            var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+            var type = typeof(HBP.Quest.Desktop.QuestManager);
+            typeof(HBP.UI.Tools.LoadingManager).GetField("m_LoadingCircle", flags).SetValue(loading, presenter);
+            var singleton = typeof(HBP.Core.Tools.Singleton<HBP.UI.Tools.LoadingManager>).GetField("m_Instance", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            object previous = singleton.GetValue(null);
+            singleton.SetValue(null, loading);
+            byte[] credential = new byte[32];
+            type.GetField("credential", flags).SetValue(manager, credential);
+            type.GetField("pin", flags).SetValue(manager, new byte[32]);
+            type.GetField("connected", flags).SetValue(manager, true);
+            type.GetField("reconnect", flags).SetValue(manager, true);
+            type.GetField("automaticallyConnect", flags).SetValue(manager, false);
+            Func<CancellationToken, Task> transfer = token =>
             {
-                commands++;
-                return Task.FromResult(command == "devices -l" ? "SERIAL device usb:1 product:eureka" : command.Contains("forward tcp:0") ? port.ToString() : "");
-            });
-            Assert.That(await usb.FindAsync(stop.Token), Is.Empty);
-            Assert.That(usb.HasForwards, Is.True);
-            int afterInventory = commands;
-            listener.Start();
-            var serving = receiver.ServeAsync(listener, stop.Token, (_, __) => throw new InvalidOperationException(), _ => { });
+                if (cancel) manager.CancelConnectionAttempt();
+                token.ThrowIfCancellationRequested();
+                return Task.FromException(staleInterface ? new QuestRouteUnavailableException() : new IOException("Simulated USB loss during transfer"));
+            };
             try
             {
-                var found = await usb.ProbeAsync(stop.Token);
-                Assert.That(found.Count, Is.EqualTo(1));
-                Assert.That(found[0].Id, Is.EqualTo(Convert.ToBase64String(receiver.Pin)));
-                Assert.That(found[0].UsbSerial, Is.EqualTo("SERIAL"));
-                Assert.That(commands, Is.EqualTo(afterInventory), "Probing the retained endpoint must never launch ADB again.");
+                await (Task)type.GetMethod("ExecuteAsync", flags).Invoke(manager, new object[] { transfer });
+                Assert.That((bool)type.GetField("reconnect", flags).GetValue(manager), Is.True);
+                Assert.That((bool)type.GetField("autoConnectSuspended", flags).GetValue(manager), Is.EqualTo(cancel));
+                Assert.That(type.GetField("credential", flags).GetValue(manager), Is.SameAs(credential));
+                Assert.That(manager.LastOperationCancelled, Is.EqualTo(cancel));
+                if (!cancel)
+                {
+                    Assert.That(manager.IsPaired, Is.False, "An unusable path must release discovery to select another endpoint, even when automatic connections are disabled.");
+                    type.GetField("nextHeartbeat", flags).SetValue(manager, 0f);
+                    type.GetMethod("Update", flags).Invoke(manager, null);
+                    Assert.That(type.GetField("nextHeartbeat", flags).GetValue(manager), Is.EqualTo(0f), "The old endpoint heartbeat must not preempt discovery while its retry cooldown expires.");
+                }
+
+                Assert.That(presenter.Closes, Is.EqualTo(presenter.Opens));
             }
             finally
             {
-                stop.Cancel();
-                await serving;
+                singleton.SetValue(null, previous);
+                type.GetMethod("DisposeDiscovery", flags).Invoke(manager, null);
+                ((CancellationTokenSource)type.GetField("lifetime", flags).GetValue(manager)).Cancel();
+                await (Task)type.GetField("listening", flags).GetValue(manager);
+                UnityEngine.Object.DestroyImmediate(root);
             }
         }
+#endif
 
-        [Test, Timeout(90000)]
-        public async Task IdleAutomaticDiscoveryDoesNotPollAdbForOneMinute()
+        [Test]
+        public void SameQuestOnUsbAndWifiKeepsOneEntryAndTheSavedCredential()
         {
-            var root = new UnityEngine.GameObject("Quest idle discovery test");
+            var root = new UnityEngine.GameObject("Quest network paths test");
             root.SetActive(false);
             var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
             var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
             var type = typeof(HBP.Quest.Desktop.QuestManager);
-            string directory = Path.Combine(Path.GetTempPath(), "hibop-idle-discovery-" + Guid.NewGuid().ToString("N"));
-            int commands = 0;
-            type.GetField("store", flags).SetValue(manager, directory);
-            type.GetField("sceneLifecyclePreferences", flags).SetValue(manager, new UserPreferences());
-            type.GetField("usb", flags).SetValue(manager, new QuestUsbDiscovery("unused", (_, token) =>
-            {
-                Interlocked.Increment(ref commands);
-                return Task.FromResult("");
-            }));
-            var tick = type.GetMethod("TickDiscovery", flags);
+            byte[] pin = Enumerable.Repeat((byte)7, 32).ToArray(), credential = new byte[32];
+            type.GetField("credential", flags).SetValue(manager, credential);
+            type.GetField("pin", flags).SetValue(manager, pin);
+            var wifi = new QuestDevice { Pin = pin, Name = "Remembered Quest", Endpoint = QuestEndpoint.Parse("192.168.1.7") };
+            var usb = new QuestDevice { Pin = pin, Name = wifi.Name, Endpoint = new QuestEndpoint(System.Net.IPAddress.Parse("fe80::7"), path: QuestNetworkPath.Usb, interfaceIndex: 7, generation: 1) };
             try
             {
-                type.GetMethod("InitializeDiscovery", flags).Invoke(manager, null);
-                await (Task)type.GetField("discovering", flags).GetValue(manager);
-                var warmup = System.Diagnostics.Stopwatch.StartNew();
-                while (warmup.Elapsed.TotalSeconds < 3)
-                {
-                    tick.Invoke(manager, null);
-                    await UniTask.Delay(100, DelayType.Realtime);
-                }
-
-                int initial = Volatile.Read(ref commands);
-                Assert.That(initial, Is.GreaterThanOrEqualTo(2), string.Join("; ", manager.DiscoveryMessages));
-                int scans = 0;
-                Task previous = (Task)type.GetField("discovering", flags).GetValue(manager);
-                var clock = System.Diagnostics.Stopwatch.StartNew();
-                while (clock.Elapsed.TotalSeconds < 60)
-                {
-                    tick.Invoke(manager, null);
-                    var current = (Task)type.GetField("discovering", flags).GetValue(manager);
-                    if (!ReferenceEquals(current, previous))
-                    {
-                        scans++;
-                        previous = current;
-                    }
-
-                    await UniTask.Delay(100, DelayType.Realtime);
-                }
-
-                int during = Volatile.Read(ref commands) - initial;
-                string report = "{\"seconds\":60,\"initialAdbCommands\":" + initial + ",\"adbCommandsDuringMinute\":" + during + ",\"discoveryWindowsDuringMinute\":" + scans + "}";
-                string output = Path.GetFullPath(Path.Combine(UnityEngine.Application.dataPath, "..", ".test-results", "quest-pairing"));
-                Directory.CreateDirectory(output);
-                File.WriteAllText(Path.Combine(output, "idle-discovery.json"), report);
-                Assert.That(initial, Is.GreaterThanOrEqualTo(2), "The initial USB inventory must actually run.");
-                Assert.That(during, Is.LessThanOrEqualTo(2), "Allow one external PnP event, but reject periodic ADB scans.");
+                var observe = type.GetMethod("Observe", flags);
+                observe.Invoke(manager, new object[] { wifi });
+                observe.Invoke(manager, new object[] { usb });
+                type.GetMethod("PublishPresence", flags).Invoke(manager, null);
+                Assert.That(manager.Devices.Count, Is.EqualTo(1));
+                Assert.That(manager.Devices[0].Endpoint.Path, Is.EqualTo(QuestNetworkPath.Usb));
+                Assert.That(type.GetField("credential", flags).GetValue(manager), Is.SameAs(credential));
             }
             finally
             {
-                type.GetMethod("DisposeDiscovery", flags).Invoke(manager, null);
-                ((CancellationTokenSource)type.GetField("lifetime", flags).GetValue(manager)).Cancel();
-                await (Task)type.GetField("discovering", flags).GetValue(manager);
-                await (Task)type.GetField("listening", flags).GetValue(manager);
                 UnityEngine.Object.DestroyImmediate(root);
-                if (Directory.Exists(directory)) Directory.Delete(directory, true);
             }
         }
 
@@ -660,7 +643,7 @@ namespace HBP.Tests.Quest
             typeof(HBP.Quest.Desktop.QuestManager).GetField("connected", flags).SetValue(manager, true);
             try
             {
-                var other = new QuestDevice { Pin = new byte[32], Host = "127.0.0.1", Name = "Other Quest" };
+                var other = new QuestDevice { Pin = new byte[32], Endpoint = QuestEndpoint.Parse("127.0.0.1"), Name = "Other Quest" };
                 other.Pin[0] = 1;
                 manager.Select(other);
                 Assert.That(manager.IsPaired, Is.True);

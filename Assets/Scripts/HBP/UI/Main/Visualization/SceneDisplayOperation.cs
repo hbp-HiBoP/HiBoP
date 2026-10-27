@@ -78,7 +78,11 @@ namespace HBP.UI.Main
                                 remote.Cancel();
                             }
 
-                            if (reservation != null) reservation.Presentation = presentation;
+                            if (reservation != null)
+                            {
+                                reservation.Presentation = presentation;
+                                reservation.UserCancellation = stop;
+                            }
                         }
 
                         if (reservation != null)
@@ -92,6 +96,7 @@ namespace HBP.UI.Main
                             }
                             catch (Exception error)
                             {
+                                reservation.RecoverConnection(error);
                                 remoteError = TransferError.Describe(error);
                                 remote.Cancel();
                             }
@@ -140,6 +145,12 @@ namespace HBP.UI.Main
                         {
                             foreach (var scene in loaded.Where(scene => !QuestManager.Instance.IsSceneSynchronized(scene)))
                             {
+                                if (!stop.IsCancellationRequested && reservation.DeferScene(scene))
+                                {
+                                    failures.Remove(scene);
+                                    continue;
+                                }
+
                                 string message = failures.TryGetValue(scene, out var failure) ? failure : remoteError ?? "Display interrupted. Retry to synchronize this visualization.";
                                 failures[scene] = message;
                                 reservation.RequireRetry(scene, message);
@@ -155,10 +166,18 @@ namespace HBP.UI.Main
                                 }
                                 catch (Exception error)
                                 {
-                                    Debug.LogException(error);
+                                    if (reservation.RecoverConnection(error))
+                                    {
+                                        foreach (var scene in loaded)
+                                            if (reservation.DeferScene(scene))
+                                                failures.Remove(scene);
+                                    }
+                                    else Debug.LogException(error);
+
                                     remoteError = "Quest completion could not be confirmed: " + TransferError.Describe(error);
                                     foreach (var scene in loaded)
                                     {
+                                        if (!stop.IsCancellationRequested && reservation.DeferScene(scene)) continue;
                                         failures[scene] = remoteError;
                                         reservation.RequireRetry(scene, remoteError);
                                     }
@@ -167,7 +186,7 @@ namespace HBP.UI.Main
                         }
 
                         cancelled |= stop.IsCancellationRequested;
-                        if (!cancelled && localError == null && failures.Count == 0 && remoteError == null)
+                        if (!cancelled && localError == null && failures.Count == 0 && remoteError == null && reservation?.TransportInterrupted != true)
                             Report(new LoadingText("Visualizations ready"), true);
                     }
                 }, token, handle => { presentation = handle; });
@@ -316,7 +335,7 @@ namespace HBP.UI.Main
             catch (Exception error)
             {
                 await UniTask.SwitchToMainThread();
-                Debug.LogException(error);
+                if (!reservation.RecoverConnection(error)) Debug.LogException(error);
                 remoteError = TransferError.Describe(error);
                 failures[scene] = remoteError;
             }
@@ -349,6 +368,7 @@ namespace HBP.UI.Main
             catch (Exception error)
             {
                 await UniTask.SwitchToMainThread();
+                reservation.RecoverConnection(error);
                 remoteError = TransferError.Describe(error);
                 remoteStop.Cancel();
             }

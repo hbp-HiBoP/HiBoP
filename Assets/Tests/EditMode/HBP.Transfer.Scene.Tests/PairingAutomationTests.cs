@@ -15,7 +15,7 @@ namespace HBP.Tests.Transfer
 {
     public class PairingAutomationTests
     {
-        private static QuestDevice Device(byte identity) => new() { Pin = Enumerable.Repeat(identity, 32).ToArray(), Name = "Quest", Host = "127.0.0.1" };
+        private static QuestDevice Device(byte identity) => new() { Pin = Enumerable.Repeat(identity, 32).ToArray(), Name = "Quest", Endpoint = QuestEndpoint.Parse("127.0.0.1") };
 
         [Test]
         public void OperatingSystemFailuresUseEnglishProductMessages()

@@ -18,8 +18,9 @@ namespace HBP.Dev
                 string manifestPath = Path.Combine(path, "src", "main", "AndroidManifest.xml");
                 XDocument manifest = XDocument.Load(manifestPath);
                 XNamespace android = "http://schemas.android.com/apk/res/android";
-                if (!manifest.Root.Elements("uses-permission").Any(element => (string)element.Attribute(android + "name") == "android.permission.ACCESS_NETWORK_STATE"))
-                    manifest.Root.Add(new XElement("uses-permission", new XAttribute(android + "name", "android.permission.ACCESS_NETWORK_STATE")));
+                foreach (string permission in new[] { "android.permission.INTERNET", "android.permission.ACCESS_NETWORK_STATE", "android.permission.CHANGE_NETWORK_STATE", "android.permission.CHANGE_WIFI_MULTICAST_STATE" })
+                    if (!manifest.Root.Elements("uses-permission").Any(element => (string)element.Attribute(android + "name") == permission))
+                        manifest.Root.Add(new XElement("uses-permission", new XAttribute(android + "name", permission)));
                 XElement application = manifest.Root.Element("application");
                 XElement appId = application.Elements("meta-data")
                     .FirstOrDefault(element => (string)element.Attribute(android + "name") == "com.oculus.app_id");

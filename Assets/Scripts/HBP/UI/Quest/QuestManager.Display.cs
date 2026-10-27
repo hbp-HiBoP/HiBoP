@@ -89,6 +89,7 @@ namespace HBP.Quest.Desktop
         public void RequireSceneSynchronizationRetry(Base3DScene scene, string message)
         {
             var entry = GetPublication(scene);
+            entry.TransportRecoveryPending = false;
             entry.UserRetryRequired = true;
             entry.Error = message;
             OnChanged.Invoke();
@@ -115,6 +116,24 @@ namespace HBP.Quest.Desktop
             public LoadingText RemoteText => (ReceivingStatus ?? TransferStatus)?.ToText(visualizations.Select(value => value.ID).ToArray(), visualizations.Select(value => value.Name).ToArray());
             public LoadingText SourceText => SourceStatus.ToText(visualizations.Select(value => value.ID).ToArray(), visualizations.Select(value => value.Name).ToArray());
             internal HBP.UI.Tools.LoadingManager.PresentationHandle Presentation { get; set; }
+            internal CancellationToken UserCancellation { get; set; }
+            public bool TransportInterrupted { get; private set; }
+
+            public bool RecoverConnection(Exception error)
+            {
+                if (UserCancellation.IsCancellationRequested || owner.autoConnectSuspended || !owner.reconnect || owner.ConnectedId != target || owner.globals?.Context.Id != context || !IsQuestConnectionInterruption(error) || error is OperationCanceledException) return false;
+                TransportInterrupted = true;
+                foreach (var entry in owned) owner.RecoverSceneTransport(entry, error, UserCancellation);
+                owner.SessionConnectionLost();
+                return true;
+            }
+
+            public bool DeferScene(Base3DScene scene)
+            {
+                if (!TransportInterrupted || UserCancellation.IsCancellationRequested || owner.autoConnectSuspended || !owner.reconnect || owner.ConnectedId != target || owner.globals?.Context.Id != context) return false;
+                var entry = owner.GetPublication(scene);
+                return owner.RecoverSceneTransport(entry, new System.IO.IOException("Quest connection interrupted during Display."), UserCancellation);
+            }
 
             internal DisplayReservation(QuestManager owner, Visualization[] visualizations)
             {
@@ -183,6 +202,7 @@ namespace HBP.Quest.Desktop
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
                     Validate();
                     entry.PreparedForDisplay = true;
+                    entry.UserRetryRequired = false;
                     return true;
                 }
                 catch (ScenePreparationBudgetExceededException)
@@ -193,7 +213,7 @@ namespace HBP.Quest.Desktop
                 catch (Exception error)
                 {
                     await AbandonPreparationAsync(entry);
-                    RequireRetry(entry.Scene, TransferError.Describe(error));
+                    if (!DeferScene(entry.Scene) && !RecoverConnection(error)) RequireRetry(entry.Scene, TransferError.Describe(error));
                     return false;
                 }
             }
@@ -299,16 +319,17 @@ namespace HBP.Quest.Desktop
                     {
                         TransferStatus = status;
                         if (!status.Transfer && status.Progress >= .97f) ReceivingStatus = null;
-                    }, announcePreparation: () => UpdateRemoteAsync(0, false, stop.Token));
+                    }, announcePreparation: () => UpdateRemoteAsync(0, false, stop.Token), userCancellation: UserCancellation);
                     await UniTask.SwitchToMainThread();
-                    Validate();
+                    if (owner.IsSceneRecoveryPending(entry.Scene)) TransportInterrupted = true;
+                    else Validate();
                     succeeded = result;
                     return result;
                 }
                 catch (Exception error)
                 {
                     await UniTask.SwitchToMainThread();
-                    RequireRetry(entry.Scene, stop.IsCancellationRequested || error is OperationCanceledException ? "Display cancelled. Retry to synchronize this visualization." : TransferError.Describe(error));
+                    if (!DeferScene(entry.Scene) && !RecoverConnection(error)) RequireRetry(entry.Scene, stop.IsCancellationRequested || error is OperationCanceledException ? "Display cancelled. Retry to synchronize this visualization." : TransferError.Describe(error));
                     return false;
                 }
                 finally

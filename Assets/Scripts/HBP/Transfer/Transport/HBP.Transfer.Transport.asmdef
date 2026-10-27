@@ -2,7 +2,7 @@
     "name": "HBP.Transfer.Transport",
     "references": ["HBP.Core.Runtime", "HBP.Transfer.Codecs", "HBP.Sync.Runtime"],
     "overrideReferences": true,
-    "precompiledReferences": ["BouncyCastle.Cryptography.dll"],
+    "precompiledReferences": ["BouncyCastle.Cryptography.dll", "Makaretu.Dns.dll", "Makaretu.Dns.Multicast.New.dll", "Common.Logging.dll", "Common.Logging.Core.dll"],
     "autoReferenced": false,
     "noEngineReferences": true
 }

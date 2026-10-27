@@ -14,6 +14,20 @@ namespace HBP.Tests.PlatformConfiguration
     public class QuestConnectionLayoutTests
     {
         [Test]
+        public void UsbStatusAndRetryAreAuthoredAndSerialized()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Connection Window.prefab");
+            var panel = root.GetComponent<QuestStatusPanel>();
+            var data = new SerializedObject(panel);
+            var status = (Text)data.FindProperty("usbStatus").objectReferenceValue;
+            var retry = (Button)data.FindProperty("retryUsb").objectReferenceValue;
+            Assert.That(status, Is.Not.Null);
+            Assert.That(retry, Is.Not.Null);
+            Assert.That(status.transform.parent, Is.EqualTo(root.transform.Find("Background/Content")));
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(retry), Does.EndWith("Quest Button.prefab"));
+        }
+
+        [Test]
         public void SceneControls_UseNestedPrefabsAndSerializedOwners()
         {
             var pairing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab").GetComponent<DesktopQuestWindow>();

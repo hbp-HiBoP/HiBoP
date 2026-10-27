@@ -174,6 +174,24 @@ namespace HBP.UI.Quest
             Refresh();
             try
             {
+                if (manual.isOn)
+                {
+                    try
+                    {
+                        QuestEndpoint.Parse(address.text, manual: true);
+                    }
+                    catch (QuestInterfaceRequiredException required)
+                    {
+                        var networks = QuestEndpoint.LocalIPv6Interfaces();
+                        if (networks.Length == 0) throw new InvalidOperationException("No local IPv6 interface is available.");
+                        int choice = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Quest IPv6 interface", "Select the Desktop network interface connected to this Quest.", CancellationToken.None, networks.Select(n => n.Name).Append("Cancel").ToArray());
+                        if (choice < 0 || choice >= networks.Length) return;
+                        address.text = required.AddressText + "%" + networks[choice].GetIPProperties().GetIPv6Properties().Index;
+                    }
+
+                    connection.SelectManual(address.text);
+                }
+
                 await connection.PairAsync(token => DialogBoxManager.OpenInputAsync("Pair with Quest", "Enter the six-digit code displayed in your Quest.", "• • • • • •", "Pair", "Cancel", token));
                 if (!this) return;
                 if (!connection.LastOperationCancelled && connection.BlockingError != null && !ReferenceEquals(connection.BlockingError, ApplicationManager.DatabaseInitializationPresentedError))

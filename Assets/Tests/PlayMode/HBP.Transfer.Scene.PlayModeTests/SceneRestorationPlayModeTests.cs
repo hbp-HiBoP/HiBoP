@@ -1221,10 +1221,8 @@ namespace HBP.Tests.SceneTransfer
 
         private static async Task<(QuestDevice Device, byte[] Credential)> GetM2PhysicalPairingAsync(string directory, CancellationToken token)
         {
-            Type discoveryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.UI.Quest.QuestUsbDiscovery")).First(type => type != null);
-            object discovery = Activator.CreateInstance(discoveryType, new object[] { Path.Combine(Environment.GetEnvironmentVariable("ANDROID_HOME") ?? @"C:\Android\Sdk", "platform-tools", "adb.exe") });
-            var devices = await (Task<List<QuestDevice>>)discoveryType.GetMethod("FindAsync").Invoke(discovery, new object[] { token });
-            Assert.That(devices.Count, Is.EqualTo(1), "Exactly one running HiBoP Quest USB receiver is required.");
+            var devices = (await Task.Run(() => QuestDiscovery.FindAsync(token), token)).Where(device => device.Endpoint.Path == QuestNetworkPath.Usb).ToList();
+            Assert.That(devices.Count, Is.EqualTo(1), "Exactly one running HiBoP Quest NCM receiver is required.");
             QuestDevice device = devices[0];
             string pairingFile = Path.Combine(Application.persistentDataPath, "QuestPairings", BitConverter.ToString(device.Pin).Replace("-", "") + ".pair");
             byte[] credential = PairingStorage.Read(Path.Combine(directory, "physical.pair")) ?? PairingStorage.Read(pairingFile);
@@ -1232,7 +1230,7 @@ namespace HBP.Tests.SceneTransfer
             {
                 string codeFile = Path.GetFullPath(".test-results/m2-fixes/pair-code.txt");
                 Assert.That(File.Exists(codeFile), Is.True, "Enter the code displayed on Quest in the ignored pair-code.txt file.");
-                credential = await QuestPairing.AuthenticateAsync(device.Host, device.Pin, File.ReadAllText(codeFile).Trim(), true, token);
+                credential = await QuestPairing.AuthenticateAsync(device.Endpoint.AddressText, device.Pin, File.ReadAllText(codeFile).Trim(), true, token);
                 PairingStorage.Write(pairingFile, credential);
             }
 
@@ -1249,7 +1247,7 @@ namespace HBP.Tests.SceneTransfer
             globals.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
             archive.WriteGlobalData(globals.Data, globalFile);
             using var globalDelivery = new SceneDelivery(globalFile, globals.Id, globals.Id, null);
-            await QuestPairing.ResumeAsync(device.Host, device.Pin, credential, globals.Id, token, (stream, stop) => globalDelivery.SendAsync(stream, stop));
+            await QuestPairing.ResumeAsync(device.Endpoint.AddressText, device.Pin, credential, globals.Id, token, (stream, stop) => globalDelivery.SendAsync(stream, stop));
             await UniTask.SwitchToMainThread();
             scene.RequestActivityProjection();
             await scene.PrepareRenderingAsync(token);
@@ -1262,9 +1260,9 @@ namespace HBP.Tests.SceneTransfer
             Type desktopType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Quest.Desktop.DesktopReplicaSession")).First(type => type != null);
             using var session = (IDisposable)Activator.CreateInstance(desktopType, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic, null, new object[] { scene, globals.Id, transferId }, null);
             using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(scene, transferId, Guid.NewGuid().ToString("N"), 1, globals, token);
-            DeliveryReceipt receipt = await QuestPairing.SendAsync(device.Host, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
+            DeliveryReceipt receipt = await QuestPairing.SendAsync(device.Endpoint.AddressText, device.Pin, credential, token, (stream, stop) => delivery.SendAsync(stream, stop));
             Assert.That(receipt.Status, Is.EqualTo(DeliveryStatus.Published));
-            await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(session, new object[] { PreparedSceneDeliveryBinding.FromSent(delivery, receipt), device.Host, device.Pin, credential, token });
+            await (Task)desktopType.GetMethod("StartAfterPublicationAsync").Invoke(session, new object[] { PreparedSceneDeliveryBinding.FromSent(delivery, receipt), device.Endpoint.AddressText, device.Pin, credential, token });
             await UniTask.SwitchToMainThread();
             var changes = Array.Empty<SiteConfigurationChange>();
             if (!inflationOnly)
@@ -1309,7 +1307,7 @@ namespace HBP.Tests.SceneTransfer
             }
 
             Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(session), Is.True);
-            Assert.That(await QuestPairing.PingAsync(device.Host, device.Pin, credential, token), Is.True);
+            Assert.That(await QuestPairing.PingAsync(device.Endpoint.AddressText, device.Pin, credential, token), Is.True);
             string evidence = Path.GetFullPath(".test-results/m2-fixes/physical-desktop.json");
             File.WriteAllText(evidence, Newtonsoft.Json.JsonConvert.SerializeObject(new { scene = scene.Visualization.Name, columns = scene.Columns.Count, changedSites = changes.Length, receipt = receipt.Status.ToString(), live = true, utc = DateTime.UtcNow, inflationOnly, note = "Transport/publishing and coordinated representation ACK; visible parity needs headset observation." }, Newtonsoft.Json.Formatting.Indented));
             TestContext.WriteLine("M2 Quest USB published; batch, later color, alpha/seek bursts, selection and anatomical/inflated sent; session remains live. Visible parity requires observation.");

@@ -1,7 +1,20 @@
 # Connexion Quest / Desktop en USB sans ADB
 
-Date : 2026-10-26. Statut : synthèse exploratoire de la discussion ; aucune
-implémentation ni validation matérielle de cette solution n'a été réalisée.
+Date de la discussion initiale : 2026-10-26.
+
+Migration en cours : NCM USB et mDNS USB/Wi-Fi commun. Les décisions ci-dessous
+constituent la synthèse initiale ; le protocole applicatif et les associations
+sont conservés. Voir [qualification.md](qualification.md) pour l'architecture
+implémentée, les vérifications et les obligations avant release. Aucun OS ne doit
+être déclaré qualifié sur la seule base d'une compilation.
+Les premiers résultats sont consignés dans [validation-2026-10-27.md](validation-2026-10-27.md).
+La [campagne Windows / Quest 3 du 27 octobre](windows-quest3-checklist-2026-10-27.md)
+consigne les corrections, les retests matériels réussis et les cas non exercés.
+Pour la suite, lire la [campagne courte Mac/Linux et passation à un autre agent](campagne-macos-linux.md).
+
+**État au 27 octobre 2026 : Windows 11 / Quest 3 validé ; Mac/Linux restent à
+valider sur matériel.** La suite conserve la préétude initiale ; pour l'état
+implémenté et les prochains essais, les documents liés ci-dessus font référence.
 
 ## Objectif et périmètre
 
@@ -21,18 +34,17 @@ La suppression d'ADB des builds n'interdit pas son utilisation comme outil de
 développement. Deux transports différents pour USB et Wi-Fi sont acceptables
 si leur utilisation reste transparente.
 
-## Fonctionnement actuel observé dans le code
+## Historique : fonctionnement observé avant la migration
 
-- [QuestUsbDiscovery.cs](../../../../Assets/Scripts/HBP/UI/Quest/QuestUsbDiscovery.cs)
-  utilise ADB pour détecter les casques et rediriger leur port TCP vers un port
+- `QuestUsbDiscovery.cs` (supprimé depuis) utilisait ADB pour détecter les casques et rediriger leur port TCP vers un port
   local du Desktop.
-- `Assets/Scripts/HBP/Dev/Editor/HBPBuilder.cs` copie actuellement `adb.exe` et
+- `Assets/Scripts/HBP/Dev/Editor/HBPBuilder.cs` copiait `adb.exe` et
   ses DLL dans le build Windows.
-- Les échanges applicatifs utilisent ensuite le protocole HiBoP, TLS et
-  l'appairage : ADB fournit le chemin USB, pas le protocole métier.
+- Les échanges applicatifs utilisaient ensuite le protocole HiBoP, TLS et
+  l'appairage : ADB fournissait le chemin USB, pas le protocole métier.
 - La découverte dans `QuestDiscovery.cs`, la validation des adresses dans
-  `QuestPairing.cs` et l'écoute dans `QuestConnectionPanel.cs` reposent
-  actuellement sur IPv4.
+  `QuestPairing.cs` et l'écoute dans `QuestConnectionPanel.cs` reposaient alors
+  sur IPv4.
 
 ## Piste privilégiée : USB NCM
 

@@ -17,11 +17,10 @@ namespace HBP.Quest.Desktop
         private readonly HashSet<string> automaticExcluded = new(StringComparer.Ordinal);
         private readonly Dictionary<string, float> automaticRetryAfter = new(StringComparer.Ordinal);
         private readonly Dictionary<string, (QuestDevice Device, float Expires)> presence = new(StringComparer.Ordinal);
-        private QuestDeviceNotifications notifications;
         private CancellationTokenSource discoveryWatch;
         private Task listening = Task.CompletedTask;
-        private bool automaticallyConnect, autoConnectSuspended, requestWifi, requestUsb, historyReady;
-        private float consolidateUntil, nextAutomaticAttempt, nextUsbProbe, debounceUsb;
+        private bool automaticallyConnect, autoConnectSuspended, historyReady;
+        private float consolidateUntil, nextAutomaticAttempt;
 
         private void InitializeDiscovery()
         {
@@ -64,10 +63,9 @@ namespace HBP.Quest.Desktop
 
         private void UpdateDiscoveryWatch()
         {
-            bool watch = automaticallyConnect || discoveryActive || reconnect && !IsPaired;
+            bool watch = automaticallyConnect || discoveryActive || reconnect;
             if (watch && discoveryWatch == null)
             {
-                notifications = new QuestDeviceNotifications();
                 discoveryWatch = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
                 var context = SynchronizationContext.Current;
                 listening = ListenAnnouncementsAsync(context, discoveryWatch.Token);
@@ -78,8 +76,8 @@ namespace HBP.Quest.Desktop
                 discoveryWatch.Cancel();
                 discoveryWatch.Dispose();
                 discoveryWatch = null;
-                notifications?.Dispose();
-                notifications = null;
+                presence.Clear();
+                devices.Clear();
             }
         }
 
@@ -87,13 +85,30 @@ namespace HBP.Quest.Desktop
         {
             try
             {
-                await Task.Run(() => QuestDiscovery.ListenAsync(device => context.Post(_ =>
+                while (!token.IsCancellationRequested)
                 {
-                    if (!this || token.IsCancellationRequested) return;
-                    Observe(device);
-                    consolidateUntil = Math.Max(consolidateUntil, Time.unscaledTime + 1.5f);
-                    PublishPresence();
-                }, null), token), token);
+                    await Task.Run(() => QuestDiscovery.WatchAsync((device, present) => context.Post(_ =>
+                    {
+                        if (!this || token.IsCancellationRequested) return;
+                        string key = device.Id + "|" + device.Endpoint.Key;
+                        bool added = !presence.ContainsKey(key);
+                        if (present) Observe(device);
+                        else presence.Remove(key);
+                        if (present && added)
+                        {
+                            consolidateUntil = Math.Max(consolidateUntil, Time.unscaledTime + 0.25f);
+                            automaticRetryAfter.Remove(device.Id);
+                        }
+
+                        PublishPresence();
+                    }, null), message => context.Post(_ =>
+                    {
+                        if (!this || token.IsCancellationRequested) return;
+                        DiscoveryMessages = new[] { message };
+                        OnChanged.Invoke();
+                    }, null), token), token);
+                    if (!token.IsCancellationRequested) await Task.Delay(2000, token);
+                }
             }
             catch (Exception error) when (!token.IsCancellationRequested)
             {
@@ -104,127 +119,76 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private void RequestDiscovery()
-        {
-            requestWifi = requestUsb = true;
-            consolidateUntil = Time.unscaledTime + 1.5f;
-        }
+        private void RequestDiscovery() => consolidateUntil = Time.unscaledTime + 0.25f;
 
         private void TickDiscovery()
         {
             UpdateDiscoveryWatch();
             if (!historyReady) return;
-            if (notifications?.TakeNetworkChange() == true) requestWifi = true;
-            if (notifications?.TakeUsbChange() == true)
-            {
-                requestUsb = true;
-                debounceUsb = Time.unscaledTime + 0.75f;
-            }
-
-            if (discoveryWatch == null) return;
-            if (!scanning && (!IsPaired || discoveryActive) && (requestWifi || requestUsb && Time.unscaledTime >= debounceUsb || Time.unscaledTime >= nextUsbProbe))
-            {
-                bool wifi = requestWifi, inventory = requestUsb && Time.unscaledTime >= debounceUsb;
-                requestWifi = false;
-                if (inventory) requestUsb = false;
-                discovering = DiscoverAsync(wifi, inventory, discoveryWatch.Token);
-            }
-
-            // Presence expiration is timer driven, never a network scan per frame.
-            if (Time.unscaledTime >= nextDiscovery)
-            {
-                nextDiscovery = Time.unscaledTime + 1;
-                if (presence.Values.Any(item => item.Expires <= Time.unscaledTime)) PublishPresence();
-            }
-
             if (busy || scanning || IsPaired || !(automaticallyConnect || reconnect) || autoConnectSuspended || Time.unscaledTime < consolidateUntil || Time.unscaledTime < nextAutomaticAttempt) return;
             nextAutomaticAttempt = Time.unscaledTime + 1;
-            if (devices.Count == 0 || history.Count == 0) return;
+            if (history.Count == 0) return;
             var available = devices.Where(item => !automaticRetryAfter.TryGetValue(item.Id, out float retry) || Time.unscaledTime >= retry);
             var device = reconnect ? available.FirstOrDefault(item => item.Id == ConnectedId && !automaticExcluded.Contains(item.Id)) : PairingAssociations.Choose(available, history, automaticExcluded);
-            if (device == null) return;
+            if (device == null)
+            {
+                // A remembered Manual IP also remains usable on networks that suppress mDNS.
+                // Honor the same retry cooldown; do not race the old heartbeat against it.
+                if (reconnect && manualSelected && selectedPin != null && !automaticExcluded.Contains(ConnectedId) && (!automaticRetryAfter.TryGetValue(ConnectedId, out float retry) || Time.unscaledTime >= retry))
+                {
+                    activeRequest = ConnectedId;
+                    _ = RunAsync(token => ConnectSelectedAsync(null, true, token), true);
+                }
+
+                return;
+            }
+
             Select(device);
             activeRequest = device.Id;
-            _ = RunAsync(async token =>
-            {
-                var endpoints = presence.Values.Where(item => item.Device.Id == device.Id && item.Expires > Time.unscaledTime).OrderBy(item => item.Device.UsbSerial == null).Select(item => item.Device).ToArray();
-                Exception failure = null;
-                foreach (var candidate in endpoints)
-                {
-                    selectedEndpoint = candidate.Host;
-                    try
-                    {
-                        await ConnectSelectedAsync(null, true, token);
-                        return;
-                    }
-                    catch (Exception error) when (error is not System.Security.Authentication.AuthenticationException && error is not QuestContextException && !token.IsCancellationRequested)
-                    {
-                        failure = error;
-                        if (BlockingError != null) break;
-                    }
-                }
-
-                throw failure ?? new InvalidOperationException("Quest is no longer available.");
-            }, true);
+            _ = RunAsync(token => ConnectCandidatesAsync(null, true, token), true);
         }
 
-        private async Task DiscoverAsync(bool wifi, bool inventory, CancellationToken token)
+        private async Task ConnectCandidatesAsync(Func<CancellationToken, UniTask<HBP.UI.Tools.InputDialogResult>> requestCode, bool automatic, CancellationToken token)
         {
-            scanning = true;
-            try
+            if (manualSelected || IsSelectedConnected)
             {
-                var wifiTask = wifi ? Task.Run(() => QuestDiscovery.FindAsync(token), token) : Task.FromResult(new List<QuestDevice>());
-                var usbTask = Task.Run(() => inventory ? usb.FindAsync(token) : usb.ProbeAsync(token), token);
+                await ConnectSelectedAsync(requestCode, automatic, token);
+                return;
+            }
 
-                async Task<(List<QuestDevice> Devices, string Error)> CollectAsync(Task<List<QuestDevice>> source, string transport)
+            var endpoints = presence.Values.Where(item => item.Device.Id == SelectedId && item.Expires > Time.unscaledTime).OrderBy(item => item.Device.Endpoint.Path != QuestNetworkPath.Usb).Select(item => item.Device).ToArray();
+            Exception failure = null;
+            foreach (var candidate in endpoints)
+            {
+                if (!presence.ContainsKey(candidate.Id + "|" + candidate.Endpoint.Key)) continue;
+                selectedEndpoint = candidate.Endpoint.AddressText;
+                try
                 {
-                    try
-                    {
-                        return (await source, null);
-                    }
-                    catch (Exception error) when (!token.IsCancellationRequested)
-                    {
-                        return (new List<QuestDevice>(), transport + " discovery unavailable: " + TransferError.Describe(error));
-                    }
+                    await ConnectSelectedAsync(requestCode, automatic, token);
+                    return;
                 }
+                catch (Exception error) when (error is not System.Security.Authentication.AuthenticationException && error is not QuestContextException && !token.IsCancellationRequested)
+                {
+                    failure = error;
+                    if (BlockingError != null) break;
+                }
+            }
 
-                var results = await Task.WhenAll(CollectAsync(wifiTask, "Wi-Fi"), CollectAsync(usbTask, "USB"));
-                if (token.IsCancellationRequested) return;
-                // A complete USB probe retires old mappings whose application or cable disappeared.
-                if (results[1].Error == null)
-                    foreach (string key in presence.Where(item => item.Value.Device.UsbSerial != null).Select(item => item.Key).ToArray())
-                        presence.Remove(key);
-                foreach (var device in results.SelectMany(items => items.Devices)) Observe(device);
-                PublishPresence();
-                DiscoveryMessages = results.Where(item => item.Error != null).Select(item => item.Error).Append(devices.Count == 0 ? "No Quest found. Try Manual IP." : $"{devices.Count} Quest headset(s) found").ToArray();
-            }
-            catch (Exception error) when (!token.IsCancellationRequested)
-            {
-                DiscoveryMessages = new[] { "Quest discovery unavailable: " + TransferError.Describe(error) };
-            }
-            catch (Exception) when (token.IsCancellationRequested)
-            {
-            }
-            finally
-            {
-                scanning = false;
-                nextUsbProbe = usb.HasForwards ? Time.unscaledTime + 10 : float.PositiveInfinity;
-                consolidateUntil = Time.unscaledTime + 0.25f;
-                if (this) OnChanged.Invoke();
-            }
+            throw failure ?? new InvalidOperationException("Quest is no longer available.");
         }
 
         private void Observe(QuestDevice device)
         {
-            string key = device.Id + "|" + device.Host;
+            string key = device.Id + "|" + device.Endpoint.Key;
             if (presence.Count >= 128 && !presence.ContainsKey(key)) return;
-            presence[key] = (device, Time.unscaledTime + (device.UsbSerial == null ? 15 : 30));
+            presence[key] = (device, float.PositiveInfinity);
         }
 
         private void PublishPresence()
         {
             foreach (string key in presence.Where(item => item.Value.Expires <= Time.unscaledTime && item.Value.Device.Id != (IsPaired ? ConnectedId : null)).Select(item => item.Key).ToArray()) presence.Remove(key);
-            devices = presence.Values.Select(item => item.Device).GroupBy(device => device.Id).Select(group => group.OrderBy(device => device.UsbSerial == null).First()).OrderBy(device => device.Label).ToList();
+            devices = presence.Values.Select(item => item.Device).GroupBy(device => device.Id).Select(group => group.OrderBy(device => device.Endpoint.Path != QuestNetworkPath.Usb).First()).OrderBy(device => device.Label).ToList();
+            DiscoveryMessages = new[] { devices.Count == 0 ? "No Quest found. Check USB or Wi-Fi, or use Manual IP." : $"{devices.Count} Quest headset(s) found" };
             if (!manualSelected && SelectedId == null && devices.Count != 0 && !busy) Select(devices[0]);
             OnChanged.Invoke();
         }
@@ -235,8 +199,8 @@ namespace HBP.Quest.Desktop
             discoveryWatch?.Cancel();
             discoveryWatch?.Dispose();
             discoveryWatch = null;
-            notifications?.Dispose();
-            notifications = null;
+            presence.Clear();
+            devices.Clear();
         }
     }
 }

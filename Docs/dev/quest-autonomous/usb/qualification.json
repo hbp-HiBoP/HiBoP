@@ -1,0 +1,5 @@
+{
+  "windows": { "qualified": true, "evidence": "Docs/dev/quest-autonomous/usb/windows-quest3-checklist-2026-10-27.md" },
+  "macos": { "qualified": false, "evidence": null },
+  "linux": { "qualified": false, "evidence": null }
+}

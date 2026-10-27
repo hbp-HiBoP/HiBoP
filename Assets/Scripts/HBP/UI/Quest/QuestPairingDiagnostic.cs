@@ -28,46 +28,16 @@ namespace HBP.UI.Quest
         {
             Directory.CreateDirectory(directory);
             var result = new Result { utc = DateTime.UtcNow.ToString("O"), platform = Application.platform.ToString() };
-            string adb = Path.Combine(Application.streamingAssetsPath, "QuestUsb", "adb.exe");
             using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             int exit = 0;
             try
             {
-                Check((await QuestAdbProcess.RunAsync(adb, "version", timeout.Token)).Contains("Android Debug Bridge"), "Bundled ADB native launch/output");
-                result.checks++;
-                bool rejected = false;
-                try
-                {
-                    await QuestAdbProcess.RunAsync(adb, "hibop-invalid-command", timeout.Token);
-                }
-                catch (IOException)
-                {
-                    rejected = true;
-                }
-
-                Check(rejected, "Nonzero client exit");
-                result.checks++;
-                using var cancelled = new CancellationTokenSource();
-                cancelled.Cancel();
-                rejected = false;
-                try
-                {
-                    await QuestAdbProcess.RunAsync(adb, "version", cancelled.Token);
-                }
-                catch (OperationCanceledException)
-                {
-                    rejected = true;
-                }
-
-                Check(rejected, "Cancelled client launch");
-                result.checks++;
-                var discovery = new QuestUsbDiscovery(adb);
-                var found = await discovery.FindAsync(timeout.Token);
-                Check(found.Count > 0, "Physical Quest USB discovery with TLS metadata");
-                result.checks++;
-                var repeated = await discovery.FindAsync(timeout.Token);
-                Check(repeated.Exists(x => x.Id == found[0].Id && x.Host == found[0].Host), "Stable identity and USB forward on repeat scan");
-                result.checks++;
+                var found = await Task.Run(() => QuestDiscovery.FindAsync(timeout.Token));
+                var usb = found.Find(x => x.Endpoint.Path == QuestNetworkPath.Usb);
+                Check(usb != null, "Physical Quest NCM discovery");
+                var described = await QuestPairing.DescribeAsync(usb.Endpoint.AddressText, timeout.Token);
+                Check(described.Id == usb.Id, "NCM endpoint TLS identity");
+                result.checks += 2;
                 result.passed = true;
             }
             catch (Exception exception)
@@ -130,6 +100,24 @@ namespace HBP.UI.Quest
 
             try
             {
+                foreach (string host in Socket.OSSupportsIPv6 ? new[] { "127.0.0.1", "::1" } : new[] { "127.0.0.1" })
+                {
+                    using var cancelled = new CancellationTokenSource();
+                    cancelled.Cancel();
+                    Exception failure = null;
+                    try
+                    {
+                        await QuestPairing.InspectAsync(host, cancelled.Token);
+                    }
+                    catch (Exception error)
+                    {
+                        failure = error;
+                    }
+
+                    Check(failure is OperationCanceledException stopped && stopped.CancellationToken == cancelled.Token, "Cancelled TCP connection must not dereference a cleared TcpClient socket");
+                    result.checks++;
+                }
+
                 await Start();
                 var info = await QuestPairing.DescribeAsync("127.0.0.1", timeout.Token);
                 Check(TransportIdentity.Equal(info.Pin, receiver.Pin), "Receiver discovery");
@@ -159,7 +147,7 @@ namespace HBP.UI.Quest
                 Check(installations == 2, "Remembered credential restores after restart");
                 Array.Clear(credential, 0, credential.Length);
                 result.passed = true;
-                result.checks = 8;
+                result.checks += 8;
             }
             catch (Exception exception)
             {

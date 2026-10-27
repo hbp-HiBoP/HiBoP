@@ -62,6 +62,8 @@ namespace HBP.Transfer.Transport
         private bool authenticating;
         public static readonly TimeSpan CodeLifetime = TimeSpan.FromMinutes(5);
         private readonly SemaphoreSlim pairingGate = new(1, 1);
+        private readonly SemaphoreSlim admissionSlots = new(72, 72);
+        private readonly SemaphoreSlim replicationSlots = new(64, 64);
         private long lastContact;
         private int attempts, paired, ownerClaimed, preparing, receiving;
         private string globalsId;
@@ -80,7 +82,7 @@ namespace HBP.Transfer.Transport
         public string Code => GetStatus().Code;
         public byte[] Pin => TransportIdentity.Hash(identity.RawData);
         public string Fingerprint => FormatPin(Pin);
-        public string Announcement => QuestDiscovery.Encode(Pin, deviceName);
+        public string Announcement => QuestDescription.Encode(Pin, deviceName);
         public bool IsPaired => Volatile.Read(ref paired) != 0;
         public string DesktopAddress => Volatile.Read(ref desktopAddress);
         public bool IsConnected => IsPaired && (Volatile.Read(ref receiving) != 0 || DateTime.UtcNow.Ticks - Interlocked.Read(ref lastContact) < TimeSpan.FromSeconds(15).Ticks);
@@ -206,8 +208,8 @@ namespace HBP.Transfer.Transport
         {
             using var cancelAccept = stop.Register(listener.Stop);
             // Keep eight admission slots available beside the 64 persistent replica slots.
-            using var slots = new SemaphoreSlim(72, 72);
-            using var replicaSlots = new SemaphoreSlim(64, 64);
+            var slots = admissionSlots;
+            var replicaSlots = replicationSlots;
             var handlers = new List<Task>();
             try
             {
@@ -536,7 +538,7 @@ namespace HBP.Transfer.Transport
                     buffer.Write(chunk, 0, count);
                 }
 
-                result = QuestDiscovery.Decode(Encoding.UTF8.GetString(buffer.ToArray()), host);
+                result = QuestDescription.Decode(Encoding.UTF8.GetString(buffer.ToArray()), host);
                 if (result == null || !TransportIdentity.Equal(result.Pin, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()))) throw new InvalidDataException("Unsupported Quest receiver.");
             }).ConfigureAwait(false);
             return result;
@@ -693,23 +695,39 @@ namespace HBP.Transfer.Transport
 
         private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null)
         {
-            // USB forwarding uses a per-device local port; manual UI still accepts IPv4 only.
-            string[] parts = (host ?? "").Split(':');
-            if (parts.Length > 2 || !IPAddress.TryParse(parts[0], out IPAddress address) || address.AddressFamily != AddressFamily.InterNetwork || address.Equals(IPAddress.Any) || address.Equals(IPAddress.Broadcast)) throw new ArgumentException("Enter the Quest IPv4 address.");
-            int port = Port;
-            if (parts.Length == 2 && (!IPAddress.IsLoopback(address) || !int.TryParse(parts[1], out port) || port < 1 || port > 65535)) throw new ArgumentException("Enter the Quest IPv4 address, without a port.");
+            var route = QuestEndpoint.Parse(host);
+            IPAddress address = route.Address;
+            int port = route.Port;
             pin = pin == null ? null : (byte[])pin.Clone();
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
             deadline.CancelAfter(TimeSpan.FromSeconds(5));
-            using var peer = new TcpClient();
+            using var peer = new TcpClient(address.AddressFamily);
             peer.NoDelay = true;
-            using var cancellation = deadline.Token.Register(peer.Close);
+            // TcpClient.Close nulls Client while Mono/IL2CPP EndConnect still dereferences it.
+            // Interrupt the socket without clearing that reference until ConnectAsync has drained.
+            Socket socket = peer.Client;
+            using var cancellation = deadline.Token.Register(socket.Close);
             try
             {
                 await peer.ConnectAsync(address, port).ConfigureAwait(false);
-                using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => pin == null || TransportIdentity.Matches(certificate, pin));
-                using (PairingTiming.Measure("desktop.tls"))
-                    await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+                bool identityMismatch = false;
+                using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) =>
+                {
+                    bool matches = pin == null || TransportIdentity.Matches(certificate, pin);
+                    identityMismatch = !matches;
+                    return matches;
+                });
+                try
+                {
+                    using (PairingTiming.Measure("desktop.tls"))
+                        await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+                }
+                catch (AuthenticationException error)
+                {
+                    if (identityMismatch) throw new QuestIdentityMismatchException(error);
+                    throw new IOException("Could not establish the Quest TLS connection.", error);
+                }
+
                 deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
                 await action(tls, deadline.Token).ConfigureAwait(false);
             }
@@ -766,6 +784,9 @@ namespace HBP.Transfer.Transport
         public void Dispose()
         {
             identity.Dispose();
+            pairingGate.Dispose();
+            admissionSlots.Dispose();
+            replicationSlots.Dispose();
             Array.Clear(secret, 0, secret.Length);
         }
     }
