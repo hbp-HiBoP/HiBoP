@@ -45,6 +45,7 @@ namespace HBP.Quest.Desktop
         private const int MaximumMutationsDuringCheckpointEncoding = 256;
         private readonly object m_Gate = new object();
         private readonly Base3DScene m_Scene;
+        private readonly SignalPresentationPublisher m_Signals;
         private SceneReconciliationRecord m_Reconciliation;
         private SceneMutationCheckpoint m_InitialCommon;
         private ulong m_InitialCommonSequence;
@@ -157,6 +158,7 @@ namespace HBP.Quest.Desktop
             m_Scheduler = new OutgoingScheduler(m_Identity.SessionId, m_Identity.SceneId, m_Identity.IncarnationId, OriginDevice.Desktop) { ApplicationRetentionEnabled = true };
             m_Transport = new PersistentTransport(m_Scheduler, shouldProbeClock: () => m_Boundary.IsAnyTimelinePlaying, clockProbeInterval: TimelineClockEstimator.ProbeInterval, previewFrameWaiter: WaitForPreviewFrameAsync);
             m_Transport.OnClockProbeSampleReceived += sample => m_TimelineClock.AddSampleIfPlaying(sample, m_Boundary.IsAnyTimelinePlaying);
+            m_Signals = new SignalPresentationPublisher(scene, m_Identity, m_Transport, () => IsLive && !IsClosed);
             m_SurfaceInflation = new SurfaceInflationCoordinator(scene, m_Boundary, m_Identity, true, () => IsLive && !IsClosed, () => m_Authority.CanonicalSequence, SendSurfaceInflationControl);
             m_SurfaceInflation.PreparationHandler = (prepare, token) => QuestManager.HasDisplayPresentation(m_Scene) ? prepare(token) : SurfaceInflationLoading.PrepareAsync(m_SurfaceInflation, prepare, token);
             m_SurfaceInflation.OnRemoteJobStarted.AddListener(completion => SurfaceInflationLoading.ObserveAsync(completion).Forget());
@@ -480,6 +482,21 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == ScheduleLane.SessionControl)
             {
+                if (SignalWire.IsControl(payload))
+                {
+                    await UniTask.SwitchToMainThread(stop);
+                    try
+                    {
+                        m_Signals.Receive(SignalWire.Decode(payload));
+                    }
+                    catch (Exception error) when (error is InvalidDataException || error is EndOfStreamException || error is ArgumentException || error is OverflowException)
+                    {
+                        UnityEngine.Debug.LogWarning("Signals control rejected: " + error.Message);
+                    }
+
+                    return;
+                }
+
                 if (PublicationControlCodec.TryDecodeRenderReady(payload, out var readyPolicy, out bool renderSucceeded))
                 {
                     if (!readyPolicy.Equals(m_InitialDisplayPolicy)) throw new InvalidDataException("Wrong render readiness policy.");
@@ -1603,6 +1620,7 @@ namespace HBP.Quest.Desktop
             }
 
             m_SurfaceInflation.Dispose();
+            m_Signals.Dispose();
             m_Transport.Dispose();
             m_SceneOperationBulkReceiver.Reset();
             m_DeferredIncoming.Clear();

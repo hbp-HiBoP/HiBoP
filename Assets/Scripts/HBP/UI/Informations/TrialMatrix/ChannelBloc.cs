@@ -74,6 +74,7 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 if (SetPropertyUtility.SetClass(ref m_TrialIsSelected, value))
                 {
+                    if (Data != null) Data.TrialIsSelected = value;
                     SetSelections();
                 }
             }
@@ -145,7 +146,8 @@ namespace HBP.UI.Informations.TrialMatrix
             Data = data;
             Clear();
             foreach (var subBloc in data.SubBlocs) AddSubBloc(subBloc, colors, limits);
-            m_TrialIsSelected = Enumerable.Repeat(true, SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc).Data.SubTrials.Length).ToArray();
+            m_TrialIsSelected = data.TrialIsSelected;
+            SetSelections();
             OnSet.Invoke();
         }
 

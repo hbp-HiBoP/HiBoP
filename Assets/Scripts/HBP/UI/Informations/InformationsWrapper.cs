@@ -84,6 +84,8 @@ namespace HBP.UI.Informations
             get { return m_OnChangeMinimized; }
         }
 
+        internal string ColumnIdFor(Column column) => m_ColumnDataBy3DColumn.FirstOrDefault(pair => ReferenceEquals(pair.Value, column)).Key?.ColumnData.ID ?? "";
+
         public ChannelInformations ChannelInformations;
         public GridInformations GridInformations;
 
@@ -94,6 +96,7 @@ namespace HBP.UI.Informations
             get { return m_OnChangeColorMap; }
         }
 
+        internal InformationPresentation Presentation { get; private set; }
         bool m_RequestSceneDataUpdate;
         bool m_RequestDisplayUpdate;
         bool m_RequestGraphsUpdate;
@@ -150,10 +153,7 @@ namespace HBP.UI.Informations
         public void DisplayChannelsGraphs(ChannelStruct[] channels)
         {
             m_ChannelStructs = channels;
-            if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count > 0)
-            {
-                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_SceneData.Columns.ToArray());
-            }
+            Display();
         }
 
         public void FilterChannels(ChannelStruct[] channels)
@@ -186,7 +186,7 @@ namespace HBP.UI.Informations
             });
             window.OnGenerateLocalizersGraphs.AddListener(curves =>
             {
-                ChannelInformations.SetLocalizersCurves(curves);
+                Presentation.SetLocalizers(curves);
                 m_RequestGraphsUpdate = true;
             });
             m_WindowsReferencer.Add(window);
@@ -198,10 +198,13 @@ namespace HBP.UI.Informations
 
         private void Awake()
         {
+            if (Presentation == null) SetBase3DScene();
             PersistentDataManager.UserPreferences.OnSavePreferences.AddListener(Display);
         }
 
-        private void Update()
+        private void Update() => FlushPresentation();
+
+        internal void FlushPresentation()
         {
             if (m_RequestSceneDataUpdate)
             {
@@ -232,6 +235,8 @@ namespace HBP.UI.Informations
         private void OnDestroy()
         {
             m_WindowsReferencer.CloseAll();
+            Presentation?.Dispose();
+            if (PersistentDataManager.IsInitialized) PersistentDataManager.UserPreferences.OnSavePreferences.RemoveListener(Display);
         }
 
         void GenerateSceneData()
@@ -294,18 +299,16 @@ namespace HBP.UI.Informations
 
         void Display()
         {
-            if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count != 0)
-            {
-                ChannelInformations.Display(m_ChannelStructs, m_SceneData.Columns.ToArray());
-            }
+            if (Presentation == null || m_SceneData == null) return;
+            Presentation.Rebuild(m_ChannelStructs, m_ChannelStructs.Length == 0 ? Array.Empty<Column>() : m_SceneData.Columns.ToArray());
+            ChannelInformations.DisplayPresentation();
         }
 
         void DisplayGraphs()
         {
-            if (m_ChannelStructs.Length != 0 && m_SceneData.Columns.Count > 0)
-            {
-                ChannelInformations.DisplayGraphs(m_ChannelStructs, m_SceneData.Columns.ToArray());
-            }
+            if (Presentation == null || m_SceneData == null) return;
+            Presentation.Rebuild(m_ChannelStructs, m_ChannelStructs.Length == 0 ? Array.Empty<Column>() : m_SceneData.Columns.ToArray(), rebuildMatrices: false);
+            ChannelInformations.DisplayPresentation();
         }
 
         #endregion
@@ -389,6 +392,11 @@ namespace HBP.UI.Informations
         {
             if (m_Scene != null)
             {
+                if (!Application.isPlaying) return;
+                Presentation?.Dispose();
+                Presentation = new InformationPresentation(m_Scene, this);
+                ChannelInformations.Bind(Presentation);
+                m_ChannelStructs ??= Array.Empty<ChannelStruct>();
                 m_Scene.OnRequestSiteInformation.AddListener(OnSiteInformationRequestHandler);
                 m_Scene.OnRequestFilteredSitesGraph.AddListener(OnFilteredSitesRequestHandler);
                 m_Scene.OnChangeColumnMinimizedState.AddListener(OnMinimizeColumnHandler);
@@ -400,7 +408,10 @@ namespace HBP.UI.Informations
                 foreach (var column in m_Scene.Columns)
                 {
                     column.OnSelect.AddListener(() => OnChangeSelectedColumn(column));
-                    column.OnChangeSiteState.AddListener(s => OnChangeSiteState());
+                    column.OnChangeSiteState.AddListener(s =>
+                    {
+                        if (s.State.CurrentChangeKind == SiteStateChangeKind.ScientificMask) OnChangeSiteState();
+                    });
                 }
 
                 foreach (var column in m_Scene.ColumnsDynamic)
@@ -438,6 +449,7 @@ namespace HBP.UI.Informations
         void SetColorMap()
         {
             OnChangeColorMap.Invoke(m_ColorMap);
+            Presentation?.Touch();
         }
 
         void SetMinimized()

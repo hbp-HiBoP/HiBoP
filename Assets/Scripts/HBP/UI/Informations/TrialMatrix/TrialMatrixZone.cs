@@ -18,10 +18,18 @@ namespace HBP.UI.Informations
 
         #endregion
 
+        internal InformationPresentation Presentation { get; set; }
+
         #region Public Methods
 
         public void Display(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
         {
+            Display(BuildData(channelStructs, dataStructs));
+        }
+
+        internal static data.TrialMatrixGrid BuildData(ChannelStruct[] channelStructs, Data.Informations.Data[] dataStructs)
+        {
+            if (dataStructs.Length == 0) return new data.TrialMatrixGrid(channelStructs, System.Array.Empty<data.TrialMatrixGrid.TrialMatrixData>());
             List<data.TrialMatrixGrid.TrialMatrixData> dataToDisplay = new();
             if (PersistentDataManager.UserPreferences.Visualization.TrialMatrix.ShowWholeProtocol)
             {
@@ -74,16 +82,29 @@ namespace HBP.UI.Informations
                 }
             }
 
-            SaveSettings();
+            return new data.TrialMatrixGrid(channelStructs, dataToDisplay.ToArray());
+        }
+
+        internal void Display(data.TrialMatrixGrid grid)
+        {
+            var dataToDisplay = grid.DataStructs;
+            if (Presentation == null) SaveSettings();
             foreach (var data in dataToDisplay)
             {
                 m_SettingsByData.AddIfAbsent(data, new Settings());
             }
 
-            m_TrialMatrixGridData = new data.TrialMatrixGrid(channelStructs, dataToDisplay.ToArray());
+            m_TrialMatrixGridData = grid;
             m_TrialMatrixGrid.gameObject.SetActive(true);
             m_TrialMatrixGrid.Display(m_TrialMatrixGridData);
-            ApplySettings();
+            if (Presentation != null)
+                foreach (var item in m_TrialMatrixGrid.Data)
+                {
+                    item.Limits = Presentation.GetMatrixLimits(item.GridData);
+                    item.OnChangeLimits.AddListener(value => Presentation.SetMatrixLimits(item.GridData, value));
+                }
+
+            if (Presentation == null) ApplySettings();
         }
 
         #endregion

@@ -188,7 +188,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
             var initial = fields.FindProperty("initialWindows");
-            Assert.That(initial.arraySize, Is.EqualTo(4));
+            Assert.That(initial.arraySize, Is.EqualTo(6));
             for (int i = 0; i < initial.arraySize; i++) Assert.That(initial.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
             var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(pointer, Is.Not.Null);

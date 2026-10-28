@@ -19,7 +19,8 @@
         "HBP.Sync.Runtime",
         "HBP.Rendering.Runtime",
         "HBP.UI.Runtime",
-        "HBP.Theme.Runtime"
+        "HBP.Theme.Runtime",
+        "ThirdParty.UIExtensions.Runtime"
     ],
     "includePlatforms": [
         "Android",

@@ -36,6 +36,151 @@ namespace HBP.Sync.Tests
 
         [Test]
         [Category("Sync.SceneFocused")]
+        public async Task SignalsPublisher_CapturesAnInactiveDesktopViewAndPublishesEmptyUpdates()
+        {
+            using var desktop = new SessionSceneFixture(0);
+            using var quest = new SessionSceneFixture(0);
+            var sourceRoot = new GameObject("Inactive information source");
+            sourceRoot.SetActive(false);
+            var persistentRoot = new GameObject("Presentation test preferences");
+            persistentRoot.SetActive(false);
+            var persistent = persistentRoot.AddComponent<PersistentDataManager>();
+            var persistentField = typeof(HBP.Core.Tools.Singleton<PersistentDataManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previousPersistent = persistentField.GetValue(null);
+            SetPrivateField(persistent, "m_UserPreferences", new UserPreferences());
+            persistentField.SetValue(null, persistent);
+            var wrapperType = FindLoadedType("HBP.UI.Informations.InformationsWrapper");
+            var modelType = FindLoadedType("HBP.UI.Informations.InformationPresentation");
+            var informationPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Informations/Informations.prefab");
+            UnityEngine.Object.Instantiate(informationPrefab, sourceRoot.transform, false);
+            var wrapper = sourceRoot.GetComponentInChildren(wrapperType, true);
+            var model = Activator.CreateInstance(modelType, BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { desktop.Scene, wrapper }, null);
+            SetPrivateField(wrapper, "m_Scene", desktop.Scene);
+            SetAutoProperty(wrapper, "Presentation", model);
+            LiveActivityProjectionSessionPair sessions = null;
+            try
+            {
+                var capture = Activator.CreateInstance(FindLoadedType("HBP.UI.Informations.SignalPresentationCapture"), true);
+                InvokePrivateMethod(capture, "Capture", wrapper);
+                sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktop.Scene, quest.Scene, CreatePreparedBinding());
+                await WaitUntilAsync(() => (bool)sessions.QuestOwner.GetType().GetProperty("SupportsSignals", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sessions.QuestOwner), "Desktop did not advertise its Signals publisher.");
+                var buffer = (SignalPresentationBuffer)InvokePrivateMethod(sessions.QuestOwner, "OpenSignals", SignalSnapshot.DefaultBudgetBytes);
+                string failure = null;
+                buffer.Failed += value => failure = value;
+                await WaitUntilAsync(() => buffer.Current != null || failure != null, "An inactive Desktop information source did not publish its empty state.");
+                Assert.That(failure, Is.Null);
+                Assert.That(buffer.Current.Graphs, Is.Empty);
+                var curveData = HBP.Data.Informations.Graphs.CurveData.CreateRegular(new[] { 10f, 20f, 30f }, 0, 1000, UnityEngine.Color.cyan);
+                var curveType = FindLoadedType("HBP.UI.Informations.Graphs.Graph+Curve");
+                var curves = Array.CreateInstance(curveType, 1);
+                curves.SetValue(Activator.CreateInstance(curveType, "A1", curveData, true, "curve-A1", Array.CreateInstance(curveType, 0), UnityEngine.Color.cyan), 0);
+                var graphProperty = modelType.GetProperty("Graphs", BindingFlags.Instance | BindingFlags.NonPublic);
+                var graphs = Array.CreateInstance(graphProperty.PropertyType.GetElementType(), 1);
+                graphs.SetValue(Activator.CreateInstance(graphProperty.PropertyType.GetElementType(), curves, new HBP.Core.Tools.TimeWindow(0, 1000), true), 0);
+                graphProperty.SetValue(model, graphs);
+                InvokePrivateMethod(model, "Touch");
+                await WaitUntilAsync(() => buffer.Current?.Graphs.Length == 1, "Desktop's computed curve was not published from the hidden view.");
+                var received = buffer.Current.Graphs[0].Curves[0];
+                Assert.That(received.Name, Is.EqualTo("A1"));
+                Assert.That(received.Color[1], Is.EqualTo(1));
+                CollectionAssert.AreEqual(new[] { 0f, 10f, 0f, 500f, 20f, 0f, 1000f, 30f, 0f }, buffer.Resources[received.Resource]);
+                graphProperty.SetValue(model, Array.CreateInstance(graphProperty.PropertyType.GetElementType(), 0));
+                UnityEngine.Object.DestroyImmediate(curveData);
+                InvokePrivateMethod(model, "Touch");
+                await WaitUntilAsync(() => buffer.Current != null && buffer.Current.Graphs.Length == 0, "Desktop's empty update left old scientific content on Quest.");
+                Assert.That(buffer.Resources, Is.Empty);
+                Assert.That(sourceRoot.activeSelf, Is.False);
+                InvokePrivateMethod(sessions.QuestOwner, "CloseSignals");
+            }
+            finally
+            {
+                if (sessions != null) await sessions.CloseAsync();
+                ((IDisposable)model).Dispose();
+                UnityEngine.Object.DestroyImmediate(sourceRoot);
+                persistentField.SetValue(null, previousPersistent);
+                UnityEngine.Object.DestroyImmediate(persistentRoot);
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task SignalsWindow_ReceivesBulkAndSettingsWithoutBlockingMutationsAndContainsProtocolErrors()
+        {
+            using var desktop = new SessionSceneFixture(1);
+            using var quest = new SessionSceneFixture(1);
+            var sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktop.Scene, quest.Scene, CreatePreparedBinding());
+            try
+            {
+                var buffer = (SignalPresentationBuffer)InvokePrivateMethod(sessions.QuestOwner, "OpenSignals", SignalSnapshot.DefaultBudgetBytes);
+                int loading = 0;
+                buffer.Loading += _ => loading++;
+                string matrixKey = new('A', 64), curveKey = new('B', 64);
+                var snapshot = new SignalSnapshot
+                {
+                    Revision = 1, Title = "Loopback scientific presentation", Format = 2, BlocRatio = .5f,
+                    Colormap = new byte[] { 0, 0, 0, 255, 255, 255, 255, 255 },
+                    Graphs = new[] { new SignalGraph { XMin = 0, XMax = 1000, YMin = -50, YMax = 50, Curves = new[] { new SignalCurve { Name = "site-000", Enabled = true, HasShape = true, Resource = curveKey } } } },
+                    Matrices = new[] { new SignalMatrixRow { Title = "Eight trials", Min = -50, Max = 50, Selected = Enumerable.Repeat(true, 8).ToArray(), Cells = new[] { new SignalMatrix { Resource = matrixKey, Rows = 8, Columns = 16384, End = 1000, WindowEnd = 1000, Unit = "µV" } } } }
+                };
+
+                void Send(SignalMessageKind kind, long revision, byte[] bytes = null, string key = "", int total = 0)
+                {
+                    var message = new SignalMessage { Kind = kind, Generation = buffer.Generation, Revision = revision, Body = bytes ?? Array.Empty<byte>(), Key = key, Total = total };
+                    Assert.That(sessions.DesktopTransport.EnqueueSceneOperation(SignalWire.Encode(message), ScheduleDescriptor.ForPresentation(Scene, Incarnation), bodySchema: SignalWire.BodySchema).Accepted, Is.True);
+                }
+
+                Send(SignalMessageKind.Begin, 1, key: "content");
+                await WaitUntilAsync(() => loading == 1, "Signals begin was not routed independently of mutations.");
+                Send(SignalMessageKind.Manifest, 1, SignalSnapshotCodec.Encode(snapshot));
+                await WaitUntilAsync(() => GetPrivateField<SignalSnapshot>(buffer, "pending")?.Revision == 1, "Signals manifest was not received.");
+                var matrix = Enumerable.Range(0, 8 * 16384).Select(i => (float)i).ToArray();
+                var matrixBytes = new byte[matrix.Length * 4];
+                Buffer.BlockCopy(matrix, 0, matrixBytes, 0, matrixBytes.Length);
+                Send(SignalMessageKind.Resource, 1, matrixBytes, matrixKey, matrixBytes.Length);
+                var color = new Color(.2f, .4f, .8f, 1);
+                desktop.Sites[0].State.Color = color;
+                await WaitUntilAsync(() => quest.Sites[0].State.Color == color, "A scientific resource blocked the site mutation.");
+                await WaitUntilAsync(() => buffer.Resources.TryGetValue(matrixKey, out var values) && values[values.Length - 1] == matrix[matrix.Length - 1], "Bulk matrix samples were not reconstructed.");
+                var curve = new[] { 0f, 10f, 2f, 1000f, 20f, 4f };
+                var curveBytes = new byte[curve.Length * 4];
+                Buffer.BlockCopy(curve, 0, curveBytes, 0, curveBytes.Length);
+                Send(SignalMessageKind.Resource, 1, curveBytes, curveKey, curveBytes.Length);
+                await WaitUntilAsync(() => buffer.Resources.ContainsKey(curveKey), "Final Desktop curve was not received.");
+                Send(SignalMessageKind.Commit, 1);
+                await WaitUntilAsync(() => buffer.Current?.Revision == 1, "Signals revision did not commit.");
+                CollectionAssert.AreEqual(matrix, buffer.Resources[matrixKey]);
+                CollectionAssert.AreEqual(curve, buffer.Resources[curveKey]);
+                var retained = buffer.Resources[matrixKey];
+                Send(SignalMessageKind.Begin, 2, key: "settings");
+                await WaitUntilAsync(() => loading == 2, "Settings update was not routed.");
+                snapshot.Revision = 2;
+                snapshot.Matrices[0].Min = -100;
+                Send(SignalMessageKind.Manifest, 2, SignalSnapshotCodec.Encode(snapshot));
+                await WaitUntilAsync(() => GetPrivateField<SignalSnapshot>(buffer, "pending")?.Revision == 2, "Settings manifest was not received.");
+                Send(SignalMessageKind.Commit, 2);
+                await WaitUntilAsync(() => buffer.Current?.Revision == 2, "Settings-only revision did not commit.");
+                Assert.That(buffer.Resources[matrixKey], Is.SameAs(retained), "Settings must reuse received trial values.");
+                var incompatible = SignalWire.Encode(new SignalMessage { Kind = SignalMessageKind.Error, Generation = buffer.Generation, Revision = 2 });
+                incompatible[4] = 99;
+                Assert.That(sessions.DesktopTransport.EnqueueSessionControl(incompatible, DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => sessions.QuestOwner.GetType().GetProperty("SignalsError", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(sessions.QuestOwner) != null, "Signals incompatibility was not contained locally.");
+                InvokePrivateMethod(sessions.QuestOwner, "CloseSignals");
+                Assert.That(buffer.Resources, Is.Empty);
+                Send(SignalMessageKind.Begin, 3, key: "content");
+                color = UnityEngine.Color.magenta;
+                desktop.Sites[0].State.Color = color;
+                await WaitUntilAsync(() => quest.Sites[0].State.Color == color, "A Signals protocol error or late response broke the scene connection.");
+                Assert.That(sessions.DesktopTransport.State, Is.EqualTo(PersistentTransportState.Connected));
+                Assert.That(buffer.Current, Is.Null);
+            }
+            finally
+            {
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
         public async Task QuestApplicationCompletion_MatchingEchoCompletesEvenWhenItsCallbackCancelsTheConnection()
         {
             using var fixture = new SessionSceneFixture(1);

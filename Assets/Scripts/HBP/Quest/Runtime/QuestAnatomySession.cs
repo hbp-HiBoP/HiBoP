@@ -844,6 +844,12 @@ namespace HBP.Quest
             else if (action.Kind == SceneActionKind.Result) ActionStatus = action.Message;
         }
 
+        internal QuestReplicaSession SignalsReplica(HBP.Data.Module3D.Base3DScene scene)
+        {
+            if (!CanRequest(scene)) return null;
+            return deliveries[view.Find(scene).TransferId].Replica;
+        }
+
         public bool CanOpenPatient => view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
         private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => CanInteractWith(scene) && view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
 

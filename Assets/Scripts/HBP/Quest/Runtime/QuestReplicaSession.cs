@@ -17,7 +17,7 @@ using UnityEngine;
 namespace HBP.Quest
 {
     /// <summary>Owns one published Quest scene's sync mutation boundary and duplex transport.</summary>
-    internal sealed class QuestReplicaSession : IDisposable
+    internal sealed partial class QuestReplicaSession : IDisposable
     {
         public GenericEvent<SceneAction> OnActionReceived { get; } = new();
 
@@ -293,6 +293,13 @@ namespace HBP.Quest
                 if (m_DeferredDrainPending && !m_SceneOperationBulkReceiver.IsActive)
                     await ResumeCompletedCheckpointAndDrainAsync(stop).ConfigureAwait(false);
 
+                if (record.BodySchema == SignalWire.BodySchema && record.Lane != ScheduleLane.SessionControl)
+                {
+                    await ProcessSignalRecordAsync(record, stop).ConfigureAwait(false);
+                    m_ProcessingRecord = null;
+                    continue;
+                }
+
                 if (record.Lane == ScheduleLane.SessionControl)
                 {
                     if (!record.SessionId.Equals(m_Identity.SessionId)) throw new InvalidDataException("A sync session-control record belongs to another session.");
@@ -430,6 +437,22 @@ namespace HBP.Quest
                 if (!record.SessionId.Equals(m_Identity.SessionId) || record.Kind != TransportMessageKind.Application)
                     throw new InvalidDataException("Unexpected sync session-control record.");
                 byte[] controlPayload = record.GetPayloadCopy();
+                if (SignalWire.IsControl(controlPayload))
+                {
+                    await UniTask.SwitchToMainThread(stop);
+                    try
+                    {
+                        Signals?.Receive(SignalWire.Decode(controlPayload));
+                    }
+                    catch (Exception error) when (error is InvalidDataException || error is EndOfStreamException || error is ArgumentException || error is OverflowException)
+                    {
+                        SignalsError = error.Message;
+                        Signals?.ClearData();
+                    }
+
+                    return;
+                }
+
                 if (PublicationControlCodec.TryDecodeRenderReady(controlPayload, out var readyPolicy))
                 {
                     await UniTask.SwitchToMainThread(stop);
@@ -443,6 +466,13 @@ namespace HBP.Quest
 
                 if (SceneAction.TryDecode(controlPayload, out var action))
                 {
+                    if (action.Kind == SceneActionKind.Result && action.Column == SignalWire.Capability)
+                    {
+                        if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong Signals capability scope.");
+                        SupportsSignals = true;
+                        return;
+                    }
+
                     if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong scene action incarnation.");
                     await UniTask.SwitchToMainThread(stop);
                     OnActionReceived.Invoke(action);
@@ -1809,6 +1839,8 @@ namespace HBP.Quest
             if (m_ActiveCorrelationJob != null) EndCorrelationJob(m_ActiveCorrelationJob, new OperationCanceledException("The Quest replica session was disposed."));
             m_SessionPreferences?.OnSavePreferences.RemoveListener(OnSessionPreferencesApplied);
             m_SurfaceInflation.Dispose();
+            CloseSignals();
+            signalBulk.Dispose();
             m_Transport.Dispose();
             m_Driver.Dispose();
             m_Boundary.Dispose();

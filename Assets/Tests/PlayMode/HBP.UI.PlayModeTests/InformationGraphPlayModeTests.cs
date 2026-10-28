@@ -422,6 +422,132 @@ namespace HBP.Tests.PlayMode.UI
 
         [Test]
         [Category("PlayMode.InformationGraph")]
+        public void Presentation_CalculatesTrialSelectionAndEmptyStateWithoutAnyView()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            var type = typeof(GraphZone).Assembly.GetType("HBP.UI.Informations.InformationPresentation", true);
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var presentation = Activator.CreateInstance(type, flags, null, new object[] { null, null }, null);
+            object Read(string name) => type.GetProperty(name, flags).GetValue(presentation);
+            try
+            {
+                ChannelStruct channel = new(fixture.Channel, fixture.Patient);
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
+                var rebuild = type.GetMethod("Rebuild", flags);
+                rebuild.Invoke(presentation, new object[] { new[] { channel }, new[] { column }, true });
+                var matrices = (HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)Read("Matrices");
+                var graphs = (Tuple<Graph.Curve[], TimeWindow, bool>[])Read("Graphs");
+                var curve = FlattenCurves(graphs[0].Item1).Single(c => c.Name == "A1");
+                long samples = (long)Read("SamplesRevision");
+                long revision = (long)Read("Revision");
+                matrices.Data[0].Blocs[0].ChannelBlocs[0].TrialIsSelected = new[] { false, true };
+                CollectionAssert.AreEqual(new[] { 20f, 22f }, curve.Data.Points.Select(p => p.y));
+                Assert.That(Read("SamplesRevision"), Is.EqualTo(samples));
+                Assert.That((long)Read("Revision"), Is.GreaterThan(revision));
+                rebuild.Invoke(presentation, new object[] { Array.Empty<ChannelStruct>(), Array.Empty<HBP.Data.Informations.Column>(), true });
+                Assert.That((Array)Read("Graphs"), Is.Empty);
+                Assert.That(((HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)Read("Matrices")).Data, Is.Empty);
+            }
+            finally
+            {
+                ((IDisposable)presentation).Dispose();
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public async Task SharedPresentation_BindingAfterStandaloneDisplayStaysStableAndPreservesItsOwner()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("InformationGraphSharedOwnership");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            Texture2D colormap = CreateColormap();
+            var type = typeof(GraphZone).Assembly.GetType("HBP.UI.Informations.InformationPresentation", true);
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            object first = null, second = null;
+            ChannelInformations information = null;
+            object Read(object model, string property) => type.GetProperty(property, flags).GetValue(model);
+            long[] Revisions(object model) => new[] { "Revision", "ContentRevision", "CurvesRevision", "SamplesRevision" }.Select(name => (long)Read(model, name)).ToArray();
+
+            object Build(ChannelStruct channel, HBP.Data.Informations.Column column)
+            {
+                var model = Activator.CreateInstance(type, flags, null, new object[] { null, null }, null);
+                type.GetMethod("Rebuild", flags).Invoke(model, new object[] { new[] { channel }, new[] { column }, true });
+                return model;
+            }
+
+            void Bind(object model) => typeof(ChannelInformations).GetMethod("Bind", flags).Invoke(information, new[] { model });
+            void Render() => typeof(ChannelInformations).GetMethod("DisplayPresentation", flags).Invoke(information, null);
+            try
+            {
+                ChannelStruct channel = new(fixture.Channel, fixture.Patient);
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
+                UITrialMatrixGrid grid = CreateTrialMatrixGridHarness(scene);
+                var matrixData = new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
+                grid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { matrixData }), colormap);
+                GraphZone zone = CreateGraphZoneHarness(scene, grid);
+                zone.Display(new[] { channel }, new[] { column });
+                var standalone = typeof(GraphZone).GetProperty("Presentation", flags).GetValue(zone);
+                var oldCurve = FlattenCurves(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0].Curves).Single(curve => curve.Name == "A1");
+                var oldData = oldCurve.Data;
+                oldCurve.Enabled = false;
+
+                var root = new GameObject("Bound channel information");
+                root.SetActive(false);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, scene.Scene);
+                information = root.AddComponent<ChannelInformations>();
+                SetPrivateField(information, "m_GraphZone", zone);
+                SetPrivateField(information, "m_TrialMatrixZone", CreateTrialMatrixZoneHarness(scene, grid));
+                root.SetActive(true);
+                first = Build(channel, column);
+                long[] stable = Revisions(first);
+                Bind(first);
+                Assert.That(Read(standalone, "Matrices"), Is.Null, "The old standalone model must be released on binding.");
+                Render();
+                for (int frame = 0; frame < 3; frame++)
+                {
+                    await UniTask.NextFrame();
+                    Render();
+                    CollectionAssert.AreEqual(stable, Revisions(first), "Rendering must not invalidate a shared presentation or restart its transfer.");
+                }
+
+                Assert.That(oldData == null, Is.True);
+                var displayed = GetPrivateField<List<Graph>>(zone, "m_Graphs")[0];
+                Assert.That(FlattenCurves(displayed.Curves).Single(curve => curve.Name == "A1").Enabled, Is.True, "Standalone visibility must not override the shared model.");
+                Bind(first);
+                Render();
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0], Is.SameAs(displayed), "Rebinding the same source must not rebuild the view.");
+
+                second = Build(channel, new HBP.Data.Informations.Column("Column B", column.Data, Array.Empty<ChannelStructsGroup>()));
+                CollectionAssert.AreEqual(stable, Revisions(second));
+                Bind(second);
+                Render();
+                Assert.That(GetPrivateField<HBP.Data.Informations.TrialMatrix.TrialMatrixGrid>(grid, "m_TrialMatrixGridData"), Is.SameAs(Read(second, "Matrices")), "Equal revision numbers must not hide a changed source.");
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0].Curves[0].Name, Is.EqualTo("Column B"));
+                Assert.That(Read(first, "Matrices"), Is.Not.Null, "A view must not dispose a previous shared owner.");
+                CollectionAssert.AreEqual(stable, Revisions(second));
+                information.enabled = false;
+                Object.Destroy(zone.gameObject);
+                await UniTask.NextFrame();
+                Assert.That(Read(second, "Matrices"), Is.Not.Null);
+                Assert.That(((Tuple<Graph.Curve[], TimeWindow, bool>[])Read(second, "Graphs"))[0].Item1, Is.Not.Empty, "Destroying a shared view must preserve the scientific model.");
+            }
+            finally
+            {
+                if (information != null) information.enabled = false;
+                ((IDisposable)first)?.Dispose();
+                ((IDisposable)second)?.Dispose();
+                Object.Destroy(colormap);
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
         public void GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges()
         {
             using PlayModeTempDirectoryScope temp = new();

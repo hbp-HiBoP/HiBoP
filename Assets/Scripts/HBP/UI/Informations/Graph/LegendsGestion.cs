@@ -79,7 +79,10 @@ namespace HBP.UI.Informations.Graphs
             else
             {
 #if UNITY_EDITOR
-                UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(legend.gameObject); };
+                UnityEditor.EditorApplication.delayCall += () =>
+                {
+                    if (legend != null) DestroyImmediate(legend.gameObject);
+                };
 #endif
             }
 

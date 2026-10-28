@@ -500,7 +500,7 @@ MonoBehaviour:
   forceRemoveInternetPermission: 0
   m_symmetricProjection: 0
   systemSplashScreen: {fileID: 0}
-  enableSystemKeyboard: 0
+  enableSystemKeyboard: 1
   m_optimizeBufferDiscards: 1
   lateLatchingMode: 0
   lateLatchingDebug: 0

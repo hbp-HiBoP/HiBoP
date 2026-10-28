@@ -163,6 +163,9 @@ namespace HBP.Sync
             m_TouchedKeys = new ReadOnlyCollection<TouchedKey>(copy);
         }
 
+        /// <summary>Read-only transient presentation has no scientific touched keys or barrier.</summary>
+        public static ScheduleDescriptor ForPresentation(SceneId sceneId, IncarnationId incarnationId) => new(sceneId, incarnationId, null, null, BarrierScope.None);
+
         public static ScheduleDescriptor ForMutation(SceneId sceneId, IncarnationId incarnationId, Mutation mutation)
         {
             if (mutation == null)

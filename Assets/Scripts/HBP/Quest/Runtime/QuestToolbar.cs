@@ -8,13 +8,15 @@ namespace HBP.Quest
         [SerializeField] private QuestWindowsManager windows;
         [SerializeField] private QuestConnectionPanel connection;
         [SerializeField] private QuestCutsPanel cuts;
-        [SerializeField] private Button connectionButton, cutsButton, displayButton;
+        [SerializeField] private Button connectionButton, cutsButton, displayButton, siteButton, signalsButton;
         [SerializeField] private Text connectionStatus;
 
         private void Awake()
         {
             foreach (var button in GetComponentsInChildren<QuestToolbarButton>(true)) button.Configure(windows);
             connectionButton.onClick.AddListener(() => ToggleWindow("Connection"));
+            if (siteButton != null) siteButton.onClick.AddListener(() => ToggleWindow("Site"));
+            if (signalsButton != null) signalsButton.onClick.AddListener(() => ToggleWindow("Signals"));
             displayButton.onClick.AddListener(() => ToggleWindow("Display"));
             cutsButton.onClick.AddListener(() =>
             {
