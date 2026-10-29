@@ -172,7 +172,7 @@ namespace HBP.Tests.PlatformConfiguration
                 list.Bind(new[] { "Alpha", "Gamma" }, _ => false, (_, __) => { });
                 list.Include(new[] { "Alpha", "Beta", "Gamma", "Delta" });
                 CollectionAssert.AreEqual(new[] { "Alpha", "Gamma", "Beta", "Delta" }, (string[])typeof(QuestLabelList).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(list));
-                Assert.That(root.transform.Find("Background/Content/SiteActivity").gameObject.activeSelf, Is.False);
+                Assert.That(root.transform.Find("Background/Content Viewport/Content/SiteActivity").gameObject.activeSelf, Is.False);
             }
             finally
             {

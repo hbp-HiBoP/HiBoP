@@ -18,7 +18,7 @@ namespace HBP.Quest
 
         [SerializeField] private QuestWindow window;
 
-        [SerializeField] private Text identity, status;
+        [SerializeField] private Text status;
 
         [SerializeField] private QuestSignalGraphView graph;
 
@@ -83,8 +83,6 @@ namespace HBP.Quest
                 Unbind();
                 scene = selected;
                 failure = null;
-                identity.supportRichText = false;
-                identity.text = selected != null ? selected.Visualization.Name : "Select a scene.";
 
                 if (available != null)
 
@@ -166,8 +164,6 @@ namespace HBP.Quest
             {
                 receiving = false;
                 displayed = snapshot;
-                identity.supportRichText = false;
-                identity.text = snapshot.Title;
 
                 graph.Bind(snapshot.Graphs.Length == 0 ? null : snapshot.Graphs[snapshot.ActiveGraph], buffer.Resources);
                 matrixGrid.Bind(snapshot, buffer.Resources);

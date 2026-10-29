@@ -23,7 +23,7 @@ namespace HBP.Tests.PlatformConfiguration
             var retry = (Button)data.FindProperty("retryUsb").objectReferenceValue;
             Assert.That(status, Is.Not.Null);
             Assert.That(retry, Is.Not.Null);
-            Assert.That(status.transform.parent, Is.EqualTo(root.transform.Find("Background/Content")));
+            Assert.That(status.transform.parent, Is.EqualTo(root.transform.Find("Background/Content Viewport/Content")));
             Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(retry), Does.EndWith("Quest Button.prefab"));
         }
 
@@ -61,7 +61,7 @@ namespace HBP.Tests.PlatformConfiguration
             var openPatient = (Button)site.FindProperty("openPatient").objectReferenceValue;
             Assert.That(openPatient.transform.IsChildOf(sitePanel.transform), Is.True);
             Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(openPatient), Does.EndWith("Quest Button.prefab"));
-            Assert.That(((QuestDisplayPanel)display.targetObject).transform.Find("Background/Content/Patient Actions"), Is.Null);
+            Assert.That(((QuestDisplayPanel)display.targetObject).transform.Find("Background/Content Viewport/Content/Patient Actions"), Is.Null);
             var row = (QuestSceneRow)display.FindProperty("rowPrefab").objectReferenceValue;
             foreach (string field in new[] { "title", "details", "visibility", "close", "selectedState" }) Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
         }

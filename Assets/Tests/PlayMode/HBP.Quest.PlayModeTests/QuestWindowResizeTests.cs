@@ -227,6 +227,63 @@ namespace HBP.Tests.Quest
             }
         }
 
+        [Test]
+        public async Task ContentZoom_KeepsWindowAndControlsFixedAcrossAllStepsAndReopening()
+        {
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>(Demo));
+            try
+            {
+                var window = root.GetComponent<QuestWindow>();
+                window.Open();
+                await UniTask.NextFrame();
+                Canvas.ForceUpdateCanvases();
+                var zoom = root.GetComponentInChildren<QuestWindowContentZoom>(true);
+                var fields = new SerializedObject(zoom);
+                var content = (RectTransform)fields.FindProperty("content").objectReferenceValue;
+                var viewport = (RectTransform)zoom.transform;
+                var frame = (RectTransform)root.transform;
+                var header = root.transform.Find("Background/Header");
+                var footer = root.transform.Find("Control Bar");
+                var size = frame.rect.size;
+                var text = content.GetComponentInChildren<Text>(true);
+                int fontSize = text.fontSize;
+                foreach (int percent in Enumerable.Range(0, 11).Select(i => 50 + i * 10))
+                {
+                    zoom.SetZoomPercent(percent);
+                    await UniTask.NextFrame();
+                    Canvas.ForceUpdateCanvases();
+                    Assert.That(frame.rect.size, Is.EqualTo(size), "Zoom must not resize the frame.");
+                    Assert.That(header.localScale, Is.EqualTo(Vector3.one));
+                    Assert.That(footer.localScale, Is.EqualTo(Vector3.one));
+                    Assert.That(content.rect.width * zoom.Factor, Is.EqualTo(viewport.rect.width).Within(.01f));
+                    Assert.That(content.rect.height * zoom.Factor, Is.EqualTo(viewport.rect.height).Within(.01f));
+                    Assert.That(text.fontSize, Is.EqualTo(fontSize), "Zoom must not rewrite individual text settings.");
+                    Assert.That(((Text)fields.FindProperty("percentage").objectReferenceValue).text, Is.EqualTo($"{percent} %"));
+                }
+
+                var increase = (Button)fields.FindProperty("increase").objectReferenceValue;
+                var decrease = (Button)fields.FindProperty("decrease").objectReferenceValue;
+                increase.onClick.Invoke();
+                Assert.That(zoom.ZoomPercent, Is.EqualTo(150));
+                Assert.That(increase.interactable, Is.False);
+                for (int i = 0; i < 12; i++) decrease.onClick.Invoke();
+                Assert.That(zoom.ZoomPercent, Is.EqualTo(50));
+                Assert.That(decrease.interactable, Is.False);
+                window.Close();
+                window.Open();
+                increase.onClick.Invoke();
+                Assert.That(zoom.ZoomPercent, Is.EqualTo(60), "Reopening keeps the zoom and must not duplicate button listeners.");
+                frame.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, size.x + 100);
+                await UniTask.NextFrame();
+                Canvas.ForceUpdateCanvases();
+                Assert.That(content.rect.width * zoom.Factor, Is.EqualTo(viewport.rect.width).Within(.01f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
         private static Ray RayTo(Vector3 point, Vector3 normal) => new Ray(point - normal, normal);
 
         private static Vector3 OppositeEdge(RectTransform rect, bool horizontal, bool positive) => rect.TransformPoint(horizontal ? new Vector3(positive ? rect.rect.xMin : rect.rect.xMax, 0, 0) : new Vector3(0, positive ? rect.rect.yMin : rect.rect.yMax, 0));

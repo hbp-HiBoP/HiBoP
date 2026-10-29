@@ -460,9 +460,9 @@ namespace HBP.Tests.Quest
                 Assert.That(((Button)fields.FindProperty("cutsButton").objectReferenceValue).interactable, Is.False);
                 var displayFields = new SerializedObject(display.GetComponent<QuestDisplayPanel>());
                 Assert.That(((Button)displayFields.FindProperty("projection").objectReferenceValue).interactable, Is.False);
-                Assert.That(display.transform.Find("Background/Content/Display Actions/Surface"), Is.Null);
+                Assert.That(display.transform.Find("Background/Content Viewport/Content/Display Actions/Surface"), Is.Null);
                 Assert.That(toolbar.transform.Find("Background/Recenter windows"), Is.Null);
-                Assert.That(display.transform.Find("Background/Content/Patient Actions/Recenter brains"), Is.Null);
+                Assert.That(display.transform.Find("Background/Content Viewport/Content/Patient Actions/Recenter brains"), Is.Null);
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");
                 await UniTask.NextFrame();
                 Canvas.ForceUpdateCanvases();

@@ -514,13 +514,13 @@ namespace HBP.Tests.Quest
             Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
             capture.Cancel();
             Assert.That(capture.Sample(true, false, true, false, true, true, true), Is.False, "A cancelled held trigger must release before another capture.");
-            f.Panel.transform.Find("Background/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
+            f.Panel.transform.Find("Background/Content Viewport/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
             f.Handles.Refresh();
             Assert.That(f.Handles.IsCaptured(0) || f.Handles.IsCaptured(1), Is.False);
             f.Window.Close();
             f.Window.Open();
             Assert.That(f.Panel.Suspended, Is.True, "Recall keeps the user's suspension state.");
-            f.Panel.transform.Find("Background/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
+            f.Panel.transform.Find("Background/Content Viewport/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
             f.Handles.Refresh();
             Assert.That(f.Handles.Begin(0, first), Is.True);
             f.Handles.SetHand(0, false, default, default);

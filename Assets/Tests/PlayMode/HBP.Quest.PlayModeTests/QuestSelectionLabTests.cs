@@ -259,7 +259,7 @@ namespace HBP.Tests.Quest
                     if (prefix == "R")
                     {
                         var probe = lab.GetComponentInChildren<QuestSiteProbe>();
-                        var status = lab.transform.Find("Campaign/Background/Content/Information").GetComponent<UnityEngine.UI.Text>();
+                        var status = lab.transform.Find("Campaign/Background/Content Viewport/Content/Information").GetComponent<UnityEngine.UI.Text>();
                         probe.OnSelected.Invoke(target);
                         await UniTask.NextFrame();
                         Assert.That(status.text, Does.Contain("Cible : R2"));

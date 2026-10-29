@@ -66,8 +66,8 @@ namespace HBP.Tests.PlatformConfiguration
             var display = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Display Window.prefab");
             var fields = new SerializedObject(display.GetComponent<QuestDisplayPanel>());
             Assert.That(fields.FindProperty("columnSelector"), Is.Null);
-            Assert.That(display.transform.Find("Background/Content/Column Header"), Is.Null);
-            Assert.That(display.transform.Find("Background/Content/Separate Columns"), Is.Null);
+            Assert.That(display.transform.Find("Background/Content Viewport/Content/Column Header"), Is.Null);
+            Assert.That(display.transform.Find("Background/Content Viewport/Content/Separate Columns"), Is.Null);
             var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var connected = new SerializedObject(bootstrap.GetComponentInChildren<QuestDisplayPanel>(true));
             foreach (string field in new[] { "session", "view", "rows", "rowPrefab" })
