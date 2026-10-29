@@ -184,7 +184,7 @@ MonoBehaviour:
   window: {fileID: 846296017479959984}
   edge: 5
   minimumSize: {x: 500, y: 350}
-  maximumSize: {x: 1200, y: 1000}
+  maximumSize: {x: 6000, y: 5000}
 --- !u!114 &7557972610573152663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -792,7 +792,7 @@ MonoBehaviour:
   window: {fileID: 846296017479959984}
   edge: 4
   minimumSize: {x: 500, y: 350}
-  maximumSize: {x: 1200, y: 1000}
+  maximumSize: {x: 6000, y: 5000}
 --- !u!114 &6622222364535717560
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1334,11 +1334,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestWindowContentSizeClamper
   m_MaxHorizontalClamp: 3
-  m_MaxHorizontalCustomValue: 1200
+  m_MaxHorizontalCustomValue: 6000
   m_MinHorizontalClamp: 1
   m_MinHorizontalCustomValue: 0
   m_MaxVerticalClamp: 3
-  m_MaxVerticalCustomValue: 1000
+  m_MaxVerticalCustomValue: 5000
   m_MinVerticalClamp: 1
   m_MinVerticalCustomValue: 0
   layoutRoot: {fileID: 4531512383505030816}

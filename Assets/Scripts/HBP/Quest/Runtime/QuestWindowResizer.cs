@@ -20,7 +20,7 @@ namespace HBP.Quest
 
         [SerializeField] private WindowEdge edge = WindowEdge.Right;
         [SerializeField] private Vector2 minimumSize = new Vector2(500, 350);
-        [SerializeField] private Vector2 maximumSize = new Vector2(1200, 1000);
+        [SerializeField] private Vector2 maximumSize = new Vector2(6000, 5000);
         private RectTransform target;
         private Vector2 initialSize;
         private Vector3 initialPoint;

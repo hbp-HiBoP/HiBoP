@@ -156,7 +156,7 @@ namespace HBP.Tests.Quest
 
                 data.Ray = RayTo(point + growth * 100, root.transform.forward);
                 resizer.OnDrag(data);
-                Assert.That(rect.rect.size[axis], Is.EqualTo(horizontal ? 1200 : 1000).Within(.01f));
+                Assert.That(rect.rect.size[axis], Is.EqualTo(horizontal ? 6000 : 5000).Within(.01f));
                 data.Ray = RayTo(point - growth * 100, root.transform.forward);
                 resizer.OnDrag(data);
                 Assert.That(rect.rect.size[axis], Is.EqualTo(horizontal ? 500 : 350).Within(.01f));
