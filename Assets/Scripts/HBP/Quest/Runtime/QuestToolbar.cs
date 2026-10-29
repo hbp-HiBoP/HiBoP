@@ -34,7 +34,10 @@ namespace HBP.Quest
         private void Update()
         {
             if (connectionStatus != null && connection != null) connectionStatus.text = connection.Summary;
-            cutsButton.interactable = cuts != null && cuts.Ready;
+            bool ready = cuts != null && cuts.Ready;
+            cutsButton.interactable = ready;
+            if (siteButton != null) siteButton.interactable = ready;
+            if (signalsButton != null) signalsButton.interactable = ready;
         }
     }
 }
