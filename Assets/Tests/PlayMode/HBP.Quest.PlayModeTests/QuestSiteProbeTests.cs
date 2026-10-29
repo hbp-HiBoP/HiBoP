@@ -235,9 +235,13 @@ namespace HBP.Tests.Quest
             }
         }
 
-        [TestCase(false)]
-        [TestCase(true)]
-        public async Task ATool_ArbitratesUIAndTriggerAndRequiresFreshPressAfterTrackingFocusOrSceneLoss(bool useAimPose)
+        [TestCase(false, 0)]
+        [TestCase(true, 0)]
+        [TestCase(false, 1)]
+        [TestCase(true, 1)]
+        [TestCase(false, 2)]
+        [TestCase(true, 2)]
+        public async Task ATool_ArbitratesUIAndTriggerAndRequiresFreshPressAfterTrackingFocusOrSceneLoss(bool useAimPose, int configuration)
         {
             using var fixture = new Fixture();
             var background = InputSystem.settings.backgroundBehavior;
@@ -292,9 +296,19 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(probe, "policy", policy);
                 QuestWindowInteractionTests.Set(probe, "right", right);
                 QuestWindowInteractionTests.Set(probe, "marker", marker.transform);
+                Vector3 cursorOffset = configuration == 2 ? QuestSelectionSettings.Default().CursorOffset : configuration == 1 ? new Vector3(.004f, -.006f, .008f) : Vector3.zero;
+                if (configuration == 1) probe.ExperimentSettings = new QuestSelectionSettings { CursorOffset = cursorOffset };
+                if (configuration == 2) QuestWindowInteractionTests.Set(probe, "usePreferredSelection", true);
                 int selections = 0;
                 probe.OnSelected.AddListener(_ => selections++);
                 ui.SetActive(true);
+                if (configuration == 2)
+                {
+                    Assert.That(probe.ExperimentSettings, Is.Null, "The normal application uses its accepted preset without a laboratory runner.");
+                    Assert.That(probe.Settings.Mode, Is.EqualTo(QuestSelectionMode.Depth));
+                    Assert.That(probe.Settings.CursorGuideRadius, Is.EqualTo(.004f));
+                }
+
                 await UniTask.NextFrame();
                 SetAuto(head, "IsTracked", true);
                 SetAuto(right, "IsTracked", true);
@@ -310,6 +324,7 @@ namespace HBP.Tests.Quest
 
                 void Position(Vector3 point)
                 {
+                    point -= cursorOffset;
                     right.transform.position = useAimPose ? point + new Vector3(.2f, -.1f, 0) : point;
                     if (!useAimPose) return;
                     InputSystem.QueueDeltaStateEvent(device.GetChildControl<Vector3Control>("pointerPosition"), origin.transform.InverseTransformPoint(point));
@@ -332,7 +347,7 @@ namespace HBP.Tests.Quest
                 Press("primaryButton", true);
                 Tick();
                 Assert.That(probe.IsActive, Is.True);
-                Assert.That(Vector3.Distance(marker.transform.position, a.Site.transform.position), Is.LessThan(.000001f), "The probe must use the exact ray origin, including the tracking-origin transform.");
+                Assert.That(Vector3.Distance(marker.transform.position, a.Site.transform.position), Is.LessThan(.000001f), "The visible marker and actual contact must share the offset aim position, including the tracking-origin transform.");
                 Assert.That(line.enabled, Is.False);
                 Assert.That(fixture.Column.SelectedSite, Is.SameAs(a.Site));
                 Tick();

@@ -22,8 +22,9 @@ namespace HBP.Quest
         public sealed partial class Presentation
         {
             public RestoredScene Restored { get; internal set; }
-            public Base3DScene Scene => Restored.Scene;
-            public string TransferId => Restored.Payload.TransferId;
+            internal Base3DScene LocalScene;
+            public Base3DScene Scene => !ReferenceEquals(LocalScene, null) ? LocalScene : Restored.Scene;
+            public string TransferId => Restored != null ? Restored.Payload.TransferId : LocalScene.Visualization.ID;
             public IReadOnlyList<QuestColumnPresentation> Columns => columns;
             internal readonly List<QuestColumnPresentation> columns = new();
             internal bool SurfaceHidden;
@@ -89,6 +90,69 @@ namespace HBP.Quest
             if (column != null && !column.IsSelected) column.IsSelected = true;
             SynchronizeSelection(target);
             if (intentional) OnContextSelected.Invoke(scene, column ?? scene.SelectedColumn);
+        }
+
+        /// <summary>Open an embedded visualization through the common scientific pipeline, without a transport session.</summary>
+        public async UniTask<Presentation> OpenLocalAsync(HBP.Core.Data.Visualization visualization, CancellationToken token, bool projectActivity = true)
+        {
+            if (preparation != null) throw new InvalidOperationException("A visualization is already being prepared.");
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(token, this.GetCancellationTokenOnDestroy());
+            preparation = lifetime;
+            var completed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            preparationCompletion = completed.Task;
+            var value = new Presentation();
+            IDisposable lease = null;
+            try
+            {
+                await StandardData.EnsureInstalledAsync();
+                await Base3DScene.PrepareStandardResourcesAsync();
+                await UniTask.SwitchToMainThread();
+                lifetime.Token.ThrowIfCancellationRequested();
+                value.LocalScene = Instantiate(contentPrefab, transform, false);
+                preparingScene = value.Scene;
+                lease = value.Scene.RetainForPreparation();
+                value.Scene.Initialize(visualization);
+                if (!projectActivity)
+                {
+                    value.Scene.SetCoordinatedAutomaticRecomputePolicy(false);
+                    value.Scene.SetProjectionEnabled(false);
+                }
+
+                await value.Scene.InitializeAsync(visualization, (_, _, _) => { }, lifetime.Token);
+                await value.Scene.CompleteInitializationAsync(null, null, lifetime.Token);
+                await value.Scene.PrepareRenderingAsync(lifetime.Token);
+                lifetime.Token.ThrowIfCancellationRequested();
+                foreach (var column in value.Scene.Columns)
+                {
+                    var item = Instantiate(columnPrefab, transform, false);
+                    value.columns.Add(item);
+                    item.Bind(value.Scene, column);
+                }
+
+                RestorePresentation(value, null);
+                value.VisibilityListener = visible => ApplyVisibility(value, visible);
+                value.Scene.OnChangeVisibleState.AddListener(value.VisibilityListener);
+                scenes.Add(value);
+                current = value;
+                ApplyVisibility(value, value.Scene.IsVisible);
+                SelectContext(value.Scene, value.Scene.SelectedColumn, false);
+                return value;
+            }
+            catch
+            {
+                await UniTask.SwitchToMainThread();
+                lease?.Dispose();
+                lease = null;
+                await ReleaseAsync(value);
+                throw;
+            }
+            finally
+            {
+                lease?.Dispose();
+                preparingScene = null;
+                preparation = null;
+                completed.TrySetResult(true);
+            }
         }
 
         public async UniTask ApplyAsync(ScenePayload payload, SceneArchive archive, CancellationToken stop, Action<float, float, HBP.Core.Tools.LoadingText> progress = null)
@@ -205,7 +269,8 @@ namespace HBP.Quest
         {
             try
             {
-                await presentation.Restored.CloseAsync();
+                if (presentation.Restored != null) await presentation.Restored.CloseAsync();
+                else if (!ReferenceEquals(presentation.LocalScene, null)) await presentation.LocalScene.CleanAsync();
             }
             finally
             {

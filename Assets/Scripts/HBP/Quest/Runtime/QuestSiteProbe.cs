@@ -16,6 +16,8 @@ namespace HBP.Quest
         [SerializeField] private QuestDevicePoseTracker right;
         [SerializeField] private Transform marker;
         [SerializeField] private Renderer markerRenderer;
+        [SerializeField] private bool usePreferredSelection;
+        private QuestSelectionSettings preferredSettings;
         private readonly QuestSiteContactPolicy contactPolicy = new();
         private readonly List<QuestSiteTarget> targets = new();
         private readonly Dictionary<Site, QuestSiteTarget> cache = new();
@@ -24,11 +26,19 @@ namespace HBP.Quest
         private QuestSiteTarget lastContact;
         private bool armed;
         private MaterialPropertyBlock color;
+        public QuestSelectionSettings ExperimentSettings { get; set; }
+        public QuestSelectionSettings Settings => ExperimentSettings ?? preferredSettings;
+        public QuestSiteTarget CurrentContact => lastContact;
+        public Vector3 ProbePosition { get; private set; }
+        public Pose CursorPose { get; private set; }
+        public QuestSiteAssistance Assistance { get; } = new();
+        public long StabilizedFrameCount { get; private set; }
         public bool IsActive { get; private set; }
         public GenericEvent<Site> OnSelected { get; } = new();
 
         private void OnEnable()
         {
+            preferredSettings = usePreferredSelection ? QuestSelectionSettings.Default() : null;
             activate = new InputAction("Quest site probe (A)", InputActionType.Button, "<XRController>{RightHand}/primaryButton");
             activate.Enable();
             if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
@@ -64,9 +74,12 @@ namespace HBP.Quest
                 cache.Clear();
             }
 
-            Vector3 point = aim.origin;
-            marker.SetPositionAndRotation(point, Quaternion.identity);
-            marker.localScale = Vector3.one * (2 * policy.SiteProbeRadius);
+            var settings = Settings;
+            CursorPose = ResolveCursorPose(aim, right.transform.up, settings?.CursorOffset ?? Vector3.zero);
+            Vector3 point = CursorPose.position;
+            ProbePosition = point;
+            marker.SetPositionAndRotation(point, CursorPose.rotation);
+            marker.localScale = Vector3.one * (2 * (settings?.MarkerRadius ?? policy.SiteProbeRadius));
             marker.gameObject.SetActive(true);
             if (markerRenderer != null && policy.FeedbackColor != null)
             {
@@ -85,7 +98,9 @@ namespace HBP.Quest
                         if (target.IsSelectable(column.Scene)) targets.Add(target);
                     }
 
-            var contact = contactPolicy.FindContact(point, policy.SiteProbeRadius, targets);
+            Vector3 viewAxis = Camera.main != null ? point - Camera.main.transform.position : aim.direction;
+            var contact = settings == null ? contactPolicy.FindContact(point, policy.SiteProbeRadius, targets) : Assistance.Find(point, viewAxis, new Ray(point, aim.direction), settings, targets, lastContact);
+            if (settings != null && Assistance.Retained) StabilizedFrameCount++;
             if (contact != lastContact)
             {
                 lastContact = contact;
@@ -101,12 +116,23 @@ namespace HBP.Quest
                 {
                     OnSelected.Invoke(contact.Site);
                     var device = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
-                    if (device.TryGetHapticCapabilities(out var capabilities) && capabilities.supportsImpulse)
-                        device.SendHapticImpulse(0, policy.SiteHapticAmplitude, policy.SiteHapticDuration);
+                    if ((settings?.Haptics ?? true) && device.TryGetHapticCapabilities(out var capabilities) && capabilities.supportsImpulse)
+                        device.SendHapticImpulse(0, settings?.HapticAmplitude ?? policy.SiteHapticAmplitude, policy.SiteHapticDuration);
                 }
             }
 
             return true;
+        }
+
+        /// <summary>Physical metres in the aim frame: X right, Y up, Z forward. Controller roll defines up.</summary>
+        public static Pose ResolveCursorPose(Ray aim, Vector3 up, Vector3 offset)
+        {
+            Vector3 forward = aim.direction.normalized;
+            if (forward == Vector3.zero) forward = Vector3.forward;
+            up = Vector3.ProjectOnPlane(up, forward).normalized;
+            if (up == Vector3.zero) up = Vector3.ProjectOnPlane(Mathf.Abs(forward.y) < .99f ? Vector3.up : Vector3.right, forward).normalized;
+            Quaternion rotation = Quaternion.LookRotation(forward, up);
+            return new Pose(aim.origin + rotation * offset, rotation);
         }
 
         private void Stop()

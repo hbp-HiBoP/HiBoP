@@ -219,9 +219,17 @@ namespace HBP.Dev
         }
 
         internal static bool IsQuestUIDemoBuild { get; private set; }
+        internal static bool IsQuestSelectionLabBuild { get; private set; }
 
         /// <summary>Standalone UI sandbox; production scene and player settings are restored even if the build fails.</summary>
-        public static void BuildQuestUIDemo(string buildsDirectory)
+        public static void BuildQuestUIDemo(string buildsDirectory) => BuildQuestExperiment(buildsDirectory, false);
+
+        public static void BuildQuestSelectionLab(string buildsDirectory) => BuildQuestExperiment(buildsDirectory, true);
+
+        [MenuItem("HiBoP/Quest/Build selection laboratory")]
+        private static void BuildSelectionLabFromMenu() => BuildQuestSelectionLab(".artifacts/quest-selection-lab");
+
+        private static void BuildQuestExperiment(string buildsDirectory, bool selectionLab)
         {
             var profile = HBPBuildProfiles.Load(true);
             if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android || BuildProfile.GetActiveBuildProfile() != profile)
@@ -231,15 +239,17 @@ namespace HBP.Dev
             string product = PlayerSettings.productName;
             try
             {
-                IsQuestUIDemoBuild = true;
-                profile.scenes = new[] { new EditorBuildSettingsScene(HBPBuildProfiles.QuestUIDemoScene, true) };
-                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, HBPBuildProfiles.QuestUIDemoIdentifier);
-                PlayerSettings.productName = "HiBoP UI Demo";
+                IsQuestUIDemoBuild = !selectionLab;
+                IsQuestSelectionLabBuild = selectionLab;
+                profile.scenes = new[] { new EditorBuildSettingsScene(selectionLab ? HBPBuildProfiles.QuestSelectionLabScene : HBPBuildProfiles.QuestUIDemoScene, true) };
+                PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, selectionLab ? HBPBuildProfiles.QuestSelectionLabIdentifier : HBPBuildProfiles.QuestUIDemoIdentifier);
+                PlayerSettings.productName = selectionLab ? "HiBoP Selection Lab" : "HiBoP UI Demo";
                 BuildQuest(buildsDirectory, true);
             }
             finally
             {
                 IsQuestUIDemoBuild = false;
+                IsQuestSelectionLabBuild = false;
                 profile.scenes = scenes;
                 PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, identifier);
                 PlayerSettings.productName = product;
@@ -269,7 +279,7 @@ namespace HBP.Dev
                 BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerWithProfileOptions
                 {
                     buildProfile = profile,
-                    locationPathName = Path.Combine(buildsDirectory, "HiBoP.Quest.apk"),
+                    locationPathName = Path.Combine(buildsDirectory, IsQuestSelectionLabBuild ? "HiBoP.SelectionLab.apk" : "HiBoP.Quest.apk"),
                     options = BuildOptions.DetailedBuildReport | (development ? BuildOptions.Development : BuildOptions.None)
                 });
                 HBPBuildProfiles.WriteReport(report, Path.Combine(buildsDirectory, "Quest.build-report.json"));
