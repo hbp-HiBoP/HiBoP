@@ -26,8 +26,8 @@ namespace HBP.Quest
 
         private void OnEnable()
         {
-            leftTrigger = new InputAction("Grab left", InputActionType.Button, "<XRController>{LeftHand}/triggerPressed");
-            rightTrigger = new InputAction("Grab right", InputActionType.Button, "<XRController>{RightHand}/triggerPressed");
+            leftTrigger = QuestInteractionInput.CreateAction("Grab left", true, QuestInteraction.Primary);
+            rightTrigger = QuestInteractionInput.CreateAction("Grab right", false, QuestInteraction.Primary);
             recenter = new InputAction("Hold to recenter (X)", InputActionType.Button, "<XRController>{LeftHand}/primaryButton");
             leftTrigger.Enable();
             rightTrigger.Enable();

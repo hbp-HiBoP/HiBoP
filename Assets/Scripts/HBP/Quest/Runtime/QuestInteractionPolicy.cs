@@ -30,13 +30,14 @@ namespace HBP.Quest
         Empty
     }
 
-    /// <summary>Ownership never transfers during a held trigger, including after tracking loss.</summary>
+    /// <summary>One operation per hand; each interaction must release before it can capture again.</summary>
     public sealed class QuestInteractionCapture
     {
         public QuestInteractionOwner Owner { get; private set; }
-        private bool armed;
+        public QuestInteraction Interaction => Owner == QuestInteractionOwner.Cut ? QuestInteraction.Secondary : QuestInteraction.Primary;
+        private bool primaryArmed, secondaryArmed;
 
-        public bool Sample(bool valid, bool pressed, bool ui, bool anatomy, bool preferAnatomy, bool cut = false)
+        public bool Sample(bool valid, bool primaryPressed, bool secondaryPressed, bool ui, bool anatomy, bool preferAnatomy, bool cut)
         {
             if (!valid)
             {
@@ -44,23 +45,29 @@ namespace HBP.Quest
                 return false;
             }
 
-            if (!pressed)
+            bool primaryBegan = primaryArmed && primaryPressed;
+            bool secondaryBegan = secondaryArmed && secondaryPressed;
+            primaryArmed = !primaryPressed;
+            secondaryArmed = !secondaryPressed;
+
+            if (Owner != QuestInteractionOwner.None)
             {
+                if (Interaction == QuestInteraction.Secondary ? secondaryPressed : primaryPressed) return false;
                 Owner = QuestInteractionOwner.None;
-                armed = true;
+                // As with a single trigger, the release frame cannot start another operation.
                 return false;
             }
 
-            if (!armed || Owner != QuestInteractionOwner.None) return false;
-            armed = false;
-            Owner = cut ? QuestInteractionOwner.Cut : anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
+            if (secondaryBegan && cut) Owner = QuestInteractionOwner.Cut;
+            else if (primaryBegan) Owner = anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
+            else return false;
             return true;
         }
 
         public void Cancel()
         {
             Owner = QuestInteractionOwner.None;
-            armed = false;
+            primaryArmed = secondaryArmed = false;
         }
     }
 }

@@ -17,7 +17,7 @@ namespace HBP.Quest
         }
     }
 
-    /// <summary>Universal two-hand UI pointer and trigger arbiter. No pairing dependency.</summary>
+    /// <summary>Universal two-hand UI pointer and primary/secondary interaction arbiter. No pairing dependency.</summary>
     public sealed class QuestPointerInput : BaseInputModule
     {
         [SerializeField] private QuestInteractionPolicy policy;
@@ -50,7 +50,7 @@ namespace HBP.Quest
         {
             public readonly QuestInteractionCapture Capture = new();
             public QuestPointerEventData Data;
-            public InputAction Trigger;
+            public InputAction Primary, Secondary;
             public InputAction Position, Rotation;
             public QuestWindow Hovered;
             public Vector2 LastPosition;
@@ -99,8 +99,10 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 hands[i].Data = new QuestPointerEventData(eventSystem) { pointerId = -10 - i };
-                hands[i].Trigger = new InputAction("Quest select", InputActionType.Button, i == 0 ? "<XRController>{LeftHand}/triggerPressed" : "<XRController>{RightHand}/triggerPressed");
-                hands[i].Trigger.Enable();
+                hands[i].Primary = QuestInteractionInput.CreateAction("Quest select", i == 0, QuestInteraction.Primary);
+                hands[i].Secondary = QuestInteractionInput.CreateAction("Quest secondary", i == 0, QuestInteraction.Secondary);
+                hands[i].Primary.Enable();
+                hands[i].Secondary.Enable();
                 string device = i == 0 ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";
                 hands[i].Position = new InputAction("Quest aim position", binding: device + "/pointerPosition", expectedControlType: "Vector3");
                 hands[i].Rotation = new InputAction("Quest aim rotation", binding: device + "/pointerRotation", expectedControlType: "Quaternion");
@@ -153,7 +155,8 @@ namespace HBP.Quest
             Hand hand = hands[index];
             var data = hand.Data;
             bool valid = focused && !paused && head != null && head.IsTracked && tracker != null && tracker.IsTracked;
-            bool pressed = hand.Trigger.IsPressed();
+            bool pressed = hand.Primary.IsPressed();
+            bool secondaryPressed = hand.Secondary.IsPressed();
             if (valid)
             {
                 data.Ray = new Ray(tracker.transform.position, tracker.transform.forward);
@@ -213,9 +216,9 @@ namespace HBP.Quest
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
             var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
             var oldOwner = hand.Capture.Owner;
-            bool began = hand.Capture.Sample(true, pressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null);
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate)) hand.Capture.Cancel();
-            if (oldOwner == QuestInteractionOwner.Cut && !pressed) cuts.End(index);
+            if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
             {
@@ -271,7 +274,7 @@ namespace HBP.Quest
             bool actionable = target != null && (window != null || modalDialog != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
             bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (cutCandidate == null && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner != QuestInteractionOwner.Cut && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
             Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback, IsLoadingOverlay(data.pointerCurrentRaycast));
@@ -312,7 +315,7 @@ namespace HBP.Quest
                     }
                 diagnosticHands[index] = new
                 {
-                    hand = index == 0 ? "left" : "right", pressed, near, candidate = candidate?.name,
+                    hand = index == 0 ? "left" : "right", pressed, secondaryPressed, near, candidate = candidate?.name,
                     distantCandidate = distantCandidate?.name, distantDistance, uiTarget = target?.name, uiFirst,
                     owner = hand.Capture.Owner.ToString(), capturedTarget = hand.AnatomyTarget?.name, hand.Distant, hand.AimContact, hand.GrabDistance,
                     grip = DiagnosticVector(tracker.transform.position), aim = DiagnosticVector(data.Ray.origin),
@@ -527,7 +530,8 @@ namespace HBP.Quest
             foreach (var hand in hands)
             {
                 Cancel(hand);
-                hand.Trigger?.Dispose();
+                hand.Primary?.Dispose();
+                hand.Secondary?.Dispose();
                 hand.Position?.Dispose();
                 hand.Rotation?.Dispose();
             }

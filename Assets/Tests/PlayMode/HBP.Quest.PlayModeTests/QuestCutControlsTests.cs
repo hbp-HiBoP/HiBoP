@@ -68,6 +68,9 @@ namespace HBP.Tests.Quest
             input.AimAt((RectTransform)plus.transform);
             Assert.That(input.Target.GetComponentInParent<Button>(), Is.SameAs(plus), "Actual ray target: " + input.Target.name + " at " + input.Target.transform.parent.name + ". The production ray must reach the visible row button, not an overlapping graphic.");
             float before = row.Cut.Position;
+            input.PressSecondary(true);
+            input.PressSecondary(false);
+            Assert.That(row.Cut.Position, Is.EqualTo(before), "Secondary interaction must not click cut controls in a window.");
             input.Press(true);
             input.Track(plus.transform.TransformPoint(((RectTransform)plus.transform).rect.center) - Vector3.forward * .6f + Vector3.right * .02f);
             input.Press(false);
@@ -150,7 +153,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task ProductionPointer_GrabsPlaneAwayFromCenterAndConstrainsMotionInItsOwnColumn()
+        public async Task ProductionPointer_SecondaryGripGrabsPlaneAwayFromCenterAndConstrainsMotionInItsOwnColumn()
         {
             using var f = new Fixture();
             f.Window.Open();
@@ -166,14 +169,40 @@ namespace HBP.Tests.Quest
             Vector3 start = Vector3.Lerp(outline.GetPosition(0), outline.GetPosition(2), .25f);
             Assert.That(Vector3.Distance(start, gizmo.PlaneCenter), Is.GreaterThan(.035f), "Contact must cover the surface, not just a new central handle.");
             input.Track(start);
-            input.Press(true);
-            Assert.That(f.Handles.IsCaptured(0), Is.True, "Plane contact must win over the nearby brain in the real trigger arbiter.");
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True, "The side grip must capture a nearby plane.");
             float before = gizmo.Cut.Position;
             float span = f.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             input.Track(start + gizmo.Frame.TransformVector(gizmo.Cut.Normal.normalized * span * .1f));
             Assert.That(gizmo.Cut.Position, Is.EqualTo(before + .1f).Within(1e-5));
-            input.Press(false);
+            input.PressSecondary(false);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
+        }
+
+        [Test]
+        public async Task ProductionPointer_PrimaryTriggerGrabsBrainAtCutContactAndHeldGripCannotTakeOver()
+        {
+            using var f = new Fixture();
+            f.Window.Open();
+            f.Panel.Refresh();
+            using var input = new PointerFixture(f);
+            await UniTask.NextFrame();
+            f.Handles.Refresh();
+            var gizmo = f.Handles.Gizmos.First();
+            input.Track(gizmo.Column.Manipulator.GrabCenter);
+            input.Press(true);
+            Assert.That(input.AnatomyCaptured, Is.True, "A nearby cut must not steal the primary interaction from the brain.");
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.PressSecondary(true);
+            Assert.That(input.AnatomyCaptured, Is.True);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.Press(false);
+            input.Track(gizmo.PlaneCenter);
+            Assert.That(f.Handles.IsCaptured(0), Is.False, "A grip pressed during a brain grab must release before capturing a cut.");
+            input.PressSecondary(false);
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+            Assert.That(input.AnatomyCaptured, Is.False);
         }
 
         [Test]
@@ -187,8 +216,8 @@ namespace HBP.Tests.Quest
             f.Handles.Refresh();
             var gizmo = f.Handles.Gizmos.First();
             input.Track(gizmo.PlaneCenter);
-            input.Press(false);
-            input.Press(true);
+            input.PressSecondary(false);
+            input.PressSecondary(true);
             Assert.That(f.Handles.IsCaptured(0), Is.True);
             Assert.That(input.AnatomyCaptured, Is.False);
 
@@ -196,7 +225,7 @@ namespace HBP.Tests.Quest
             input.Track(gizmo.Column.Manipulator.GrabCenter);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
             Assert.That(input.AnatomyCaptured, Is.False, "Closing cut aids cannot transfer the held trigger to the brain.");
-            input.Press(false);
+            input.PressSecondary(false);
             input.Press(true);
             Assert.That(input.AnatomyCaptured, Is.True);
 
@@ -204,19 +233,24 @@ namespace HBP.Tests.Quest
             input.Track(gizmo.PlaneCenter);
             Assert.That(input.AnatomyCaptured, Is.True, "Opening cut aids cannot replace an existing brain capture.");
             Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.PressSecondary(true); // Pressing the other trigger during a grab must not transfer ownership.
             input.LoseTracking();
             Assert.That(input.AnatomyCaptured, Is.False);
             input.Track(gizmo.PlaneCenter);
             Assert.That(f.Handles.IsCaptured(0), Is.False, "Tracking recovery requires a fresh trigger press.");
             input.Press(false);
-            input.Press(true);
+            input.PressSecondary(false);
+            input.PressSecondary(true);
             Assert.That(f.Handles.IsCaptured(0), Is.True);
 
             var plus = f.Panel.Rows.First(r => r.Cut == gizmo.Cut).transform.Find("Controls/Position Row/Plus");
             await UniTask.NextFrame(); // Reopened Canvas graphics must register before testing their ray hits.
             input.AimAt((RectTransform)plus);
             Assert.That(f.Handles.IsCaptured(0), Is.True, "A cut capture stays a cut when its ray reaches UI.");
+            input.Press(true);
             input.Press(false);
+            Assert.That(f.Handles.IsCaptured(0), Is.True, "Releasing the primary trigger must not release a secondary cut grab.");
+            input.PressSecondary(false);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
             Assert.That(input.Target != null ? input.Target.GetComponentInParent<Button>() : null, Is.SameAs(plus.GetComponent<Button>()));
             float before = gizmo.Cut.Position;
@@ -253,7 +287,7 @@ namespace HBP.Tests.Quest
                 editor = InputSystem.settings.editorInputBehaviorInPlayMode;
                 InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
                 InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-                InputSystem.RegisterLayout("{\"name\":\"QuestCutTestController\",\"extend\":\"XRController\",\"controls\":[{\"name\":\"isTracked\",\"format\":\"FLT\",\"sizeInBits\":32,\"bit\":0},{\"name\":\"triggerPressed\",\"layout\":\"Button\",\"format\":\"FLT\"},{\"name\":\"pointerPosition\",\"layout\":\"Vector3\"},{\"name\":\"pointerRotation\",\"layout\":\"Quaternion\"}]}");
+                InputSystem.RegisterLayout("{\"name\":\"QuestCutTestController\",\"extend\":\"XRController\",\"controls\":[{\"name\":\"isTracked\",\"format\":\"FLT\",\"sizeInBits\":32,\"bit\":0},{\"name\":\"triggerPressed\",\"layout\":\"Button\",\"format\":\"FLT\"},{\"name\":\"gripPressed\",\"layout\":\"Button\",\"format\":\"FLT\"},{\"name\":\"pointerPosition\",\"layout\":\"Vector3\"},{\"name\":\"pointerRotation\",\"layout\":\"Quaternion\"}]}");
                 controller = (XRController)InputSystem.AddDevice("QuestCutTestController");
                 hmd = InputSystem.AddDevice<XRHMD>();
                 InputSystem.SetDeviceUsage(controller, CommonUsages.LeftHand);
@@ -307,6 +341,12 @@ namespace HBP.Tests.Quest
             public void Press(bool pressed)
             {
                 InputSystem.QueueDeltaStateEvent(controller.GetChildControl<ButtonControl>("triggerPressed"), pressed ? 1f : 0f);
+                Tick();
+            }
+
+            public void PressSecondary(bool pressed)
+            {
+                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<ButtonControl>("gripPressed"), pressed ? 1f : 0f);
                 Tick();
             }
 
@@ -469,11 +509,11 @@ namespace HBP.Tests.Quest
             Assert.That(f.Handles.Begin(1, different), Is.True);
             Assert.That(f.Handles.IsColumnLocked(first.Column.Manipulator), Is.True);
             var capture = new QuestInteractionCapture();
-            capture.Sample(true, false, false, false, false, true);
-            Assert.That(capture.Sample(true, true, true, true, true, true), Is.True);
+            capture.Sample(true, false, false, false, false, false, true);
+            Assert.That(capture.Sample(true, false, true, true, true, true, true), Is.True);
             Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
             capture.Cancel();
-            Assert.That(capture.Sample(true, true, false, true, true, true), Is.False, "A cancelled held trigger must release before another capture.");
+            Assert.That(capture.Sample(true, false, true, false, true, true, true), Is.False, "A cancelled held trigger must release before another capture.");
             f.Panel.transform.Find("Background/Content/Cut Actions/Suspend").GetComponent<Button>().onClick.Invoke();
             f.Handles.Refresh();
             Assert.That(f.Handles.IsCaptured(0) || f.Handles.IsCaptured(1), Is.False);
@@ -555,8 +595,8 @@ namespace HBP.Tests.Quest
                 var hand = hands.GetValue(0);
                 hand.GetType().GetField("AnatomyTarget").SetValue(hand, gizmo.Column.Manipulator);
                 var handCapture = (QuestInteractionCapture)hand.GetType().GetField("Capture").GetValue(hand);
-                handCapture.Sample(true, false, false, true, true);
-                handCapture.Sample(true, true, false, true, true);
+                handCapture.Sample(true, false, false, false, true, true, false);
+                handCapture.Sample(true, true, false, false, true, true, false);
                 QuestWindowInteractionTests.Set(f.Handles, "pointer", pointer);
                 f.Handles.SetHand(1, true, near, near);
                 Assert.That(f.Handles.Begin(1, gizmo), Is.False, "Brain capture precedes Manipulator.LateUpdate in the same frame.");

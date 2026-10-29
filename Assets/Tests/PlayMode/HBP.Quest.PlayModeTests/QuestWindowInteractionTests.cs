@@ -30,29 +30,50 @@ namespace HBP.Tests.Quest
         public void TriggerCapture_SelectsOneOwnerAndNeverTransfersDuringHold(bool ui, bool brain, bool preferBrain, QuestInteractionOwner expected)
         {
             var capture = new QuestInteractionCapture();
-            Assert.That(capture.Sample(true, true, ui, brain, preferBrain), Is.False, "Initially held triggers must first release.");
-            capture.Sample(true, false, ui, brain, preferBrain);
-            Assert.That(capture.Sample(true, true, ui, brain, preferBrain), Is.True);
+            Assert.That(capture.Sample(true, true, false, ui, brain, preferBrain, true), Is.False, "Initially held triggers must first release.");
+            capture.Sample(true, false, false, ui, brain, preferBrain, true);
+            Assert.That(capture.Sample(true, true, false, ui, brain, preferBrain, true), Is.True);
             Assert.That(capture.Owner, Is.EqualTo(expected));
-            capture.Sample(true, true, !ui, !brain, !preferBrain);
+            capture.Sample(true, true, false, !ui, !brain, !preferBrain, false);
             Assert.That(capture.Owner, Is.EqualTo(expected));
-            capture.Sample(true, false, false, false, false);
+            capture.Sample(true, false, false, false, false, false, false);
             Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.None));
+        }
+
+        [Test]
+        public void SecondaryCapture_UsesItsOwnReleaseAndNeverClicksUi()
+        {
+            var capture = new QuestInteractionCapture();
+            capture.Sample(true, false, false, true, true, true, true);
+            Assert.That(capture.Sample(true, false, true, true, true, true, true), Is.True);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
+            Assert.That(capture.Interaction, Is.EqualTo(QuestInteraction.Secondary));
+            capture.Sample(true, true, true, true, true, true, true);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
+            capture.Sample(true, true, false, true, true, true, true);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.None));
+            Assert.That(capture.Sample(true, true, false, true, true, true, true), Is.False, "A primary trigger pressed during a cut grab cannot take over while held.");
+            capture.Sample(true, false, false, true, false, false, false);
+            Assert.That(capture.Sample(true, false, true, true, false, false, false), Is.False, "A side grip over UI must not create a click or an empty capture.");
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.None));
+            Assert.That(capture.Sample(true, true, true, true, false, false, false), Is.True, "An unused held grip must not block a fresh primary press.");
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.UI));
+            Assert.That(capture.Interaction, Is.EqualTo(QuestInteraction.Primary));
         }
 
         [Test]
         public void TriggerCapture_TrackingLossAndCancellationRequireRelease()
         {
             var capture = new QuestInteractionCapture();
-            capture.Sample(true, false, true, false, false);
-            capture.Sample(true, true, true, false, false);
-            capture.Sample(false, true, true, false, false);
-            Assert.That(capture.Sample(true, true, true, false, false), Is.False);
+            capture.Sample(true, false, false, true, false, false, false);
+            capture.Sample(true, true, false, true, false, false, false);
+            capture.Sample(false, true, false, true, false, false, false);
+            Assert.That(capture.Sample(true, true, false, true, false, false, false), Is.False);
             Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.None));
-            capture.Sample(true, false, true, false, false);
-            Assert.That(capture.Sample(true, true, true, false, false), Is.True);
+            capture.Sample(true, false, false, true, false, false, false);
+            Assert.That(capture.Sample(true, true, false, true, false, false, false), Is.True);
             capture.Cancel();
-            Assert.That(capture.Sample(true, true, true, false, false), Is.False);
+            Assert.That(capture.Sample(true, true, false, true, false, false, false), Is.False);
         }
 
         [Test]
