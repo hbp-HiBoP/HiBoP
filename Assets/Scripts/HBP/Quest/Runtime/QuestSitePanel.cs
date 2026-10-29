@@ -11,6 +11,8 @@ namespace HBP.Quest
     public sealed class QuestSitePanel : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
+        [SerializeField] private QuestAnatomySession session;
+        [SerializeField] private Button openPatient;
         [SerializeField] private QuestWindow window;
         [SerializeField] private Text identity, activity, patientTags, siteTags, error;
         [SerializeField] private Button highlighted, blacklisted, color, chooseLabels, newLabel, closeLabels;
@@ -32,6 +34,10 @@ namespace HBP.Quest
 
         private void Awake()
         {
+            openPatient.onClick.AddListener(() =>
+            {
+                if (CanOpenPatient) session.RequestOpenPatient();
+            });
             highlighted.onClick.AddListener(() => Change(() => site.State.IsHighlighted = !site.State.IsHighlighted));
             blacklisted.onClick.AddListener(() => Change(() => site.State.IsBlackListed = !site.State.IsBlackListed));
             color.onClick.AddListener(OpenColor);
@@ -46,6 +52,7 @@ namespace HBP.Quest
         }
 
         private bool Ready => site != null && view != null && view.Scene == scene && scene.SelectedColumn == column && column.SelectedSite == site && QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible;
+        private bool CanOpenPatient => Ready && view.Find(scene) is { IsPlaced: true, IsTransitioning: false } && session != null && session.CanOpenPatient;
 
         private bool Change(Action action)
         {
@@ -179,6 +186,7 @@ namespace HBP.Quest
             }
 
             if (!window.IsOpen) return;
+            openPatient.interactable = CanOpenPatient;
             if (lastReady != Ready)
             {
                 lastReady = Ready;

@@ -17,6 +17,8 @@ namespace HBP.Tests.PlatformConfiguration
         public void WindowsAreAuthoredClosedAndRegisteredInTheBootstrap(string key, int width, int height)
         {
             var asset = AssetDatabase.LoadAssetAtPath<GameObject>($"Assets/Prefabs/Quest/UI/Quest {key} Window.prefab");
+            Assert.That(PrefabUtility.GetPrefabAssetType(asset), Is.EqualTo(PrefabAssetType.Variant));
+            Assert.That(AssetDatabase.GetAssetPath(PrefabUtility.GetCorrespondingObjectFromSource(asset)), Is.EqualTo("Assets/Prefabs/Quest/UI/Quest Window.prefab"));
             var window = asset.GetComponent<QuestWindow>();
             var fields = new SerializedObject(window);
             Assert.That(window.Key, Is.EqualTo(key));

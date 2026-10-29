@@ -53,7 +53,15 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(selector.onValueChanged.GetPersistentMethodName(0), Is.EqualTo("SetActive"));
             var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var display = new SerializedObject(bootstrap.GetComponentInChildren<QuestDisplayPanel>(true));
-            foreach (string field in new[] { "session", "view", "input", "openPatient", "rows", "rowPrefab" }) Assert.That(display.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            foreach (string field in new[] { "session", "view", "projection", "rows", "rowPrefab" }) Assert.That(display.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            Assert.That(display.FindProperty("openPatient"), Is.Null);
+            var sitePanel = bootstrap.GetComponentInChildren<QuestSitePanel>(true);
+            var site = new SerializedObject(sitePanel);
+            foreach (string field in new[] { "session", "view", "openPatient" }) Assert.That(site.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            var openPatient = (Button)site.FindProperty("openPatient").objectReferenceValue;
+            Assert.That(openPatient.transform.IsChildOf(sitePanel.transform), Is.True);
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(openPatient), Does.EndWith("Quest Button.prefab"));
+            Assert.That(((QuestDisplayPanel)display.targetObject).transform.Find("Background/Content/Patient Actions"), Is.Null);
             var row = (QuestSceneRow)display.FindProperty("rowPrefab").objectReferenceValue;
             foreach (string field in new[] { "title", "details", "visibility", "close", "selectedState" }) Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
         }

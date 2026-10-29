@@ -11,14 +11,12 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomyView view;
         [SerializeField] private Button projection;
         [SerializeField] private QuestAnatomySession session;
-        [SerializeField] private Button openPatient;
         [SerializeField] private Transform rows;
         [SerializeField] private QuestSceneRow rowPrefab;
         private readonly Dictionary<QuestAnatomyView.Presentation, QuestSceneRow> controls = new();
 
         private void Awake()
         {
-            openPatient.onClick.AddListener(() => session.RequestOpenPatient());
             projection.onClick.AddListener(() =>
             {
                 if (Ready) view.RecalculateProjection();
@@ -33,7 +31,7 @@ namespace HBP.Quest
         {
             if (view == null)
             {
-                projection.interactable = openPatient.interactable = false;
+                projection.interactable = false;
                 return;
             }
 
@@ -52,7 +50,6 @@ namespace HBP.Quest
                     controls.Add(value, row);
                 }
 
-            openPatient.interactable = Ready && session != null && session.CanOpenPatient;
             projection.interactable = Ready;
         }
     }
