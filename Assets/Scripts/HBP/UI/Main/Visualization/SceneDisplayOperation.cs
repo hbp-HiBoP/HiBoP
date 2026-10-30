@@ -36,6 +36,31 @@ namespace HBP.UI.Main
         private Visualization loadingVisualization;
         private bool loadingLocally;
 
+        internal Guid OperationId { get; set; }
+        internal bool ExplicitSharing { get; set; }
+        internal string Error { get; private set; }
+        internal bool Succeeded => Error == null && percentage == 1;
+
+        internal static async UniTask<Base3DScene> OpenPatientAsync(Base3DScene source, Patient patient, Guid operationId, CancellationToken token)
+        {
+            SceneDisplayOperation operation = null;
+            var child = await Module3DMain.OpenSinglePatientVisualizationAsync(source, patient, (_, _, _) => { }, token, async (visualization, stop) =>
+            {
+                operation = new SceneDisplayOperation(new[] { visualization }) { ExplicitSharing = true, OperationId = operationId };
+                await operation.RunAsync(stop, showResults: false);
+                // Keep completed local openings registered even when their Quest delivery fails.
+                return operation.loaded.SingleOrDefault() ?? throw new InvalidOperationException(operation.Error ?? "The patient visualization could not be opened.");
+            });
+            if (operation == null)
+            {
+                operation = new SceneDisplayOperation(new[] { child.Visualization }, new[] { child }) { ExplicitSharing = true, OperationId = operationId };
+                await operation.RunAsync(token, showResults: false);
+            }
+
+            if (!operation.Succeeded) throw new InvalidOperationException(operation.Error ?? "The patient visualization could not be delivered. Retry from Display.");
+            return child;
+        }
+
         internal SceneDisplayOperation(Visualization[] requested, Base3DScene[] existingScenes = null)
         {
             this.requested = requested;
@@ -66,7 +91,8 @@ namespace HBP.UI.Main
                             progress(0, 0, new LoadingText("Waiting for current Quest operations"));
                             try
                             {
-                                reservation = await QuestManager.Instance.ReserveDisplayAsync(requested, stop, existingScenes != null, operationOwner: token);
+                                reservation = await QuestManager.Instance.ReserveDisplayAsync(requested, stop, ExplicitSharing || existingScenes != null, operationOwner: token, displayOperation: OperationId);
+                                if (ExplicitSharing && reservation == null) remoteError = "The Quest session is no longer connected.";
                             }
                             catch (OperationCanceledException)
                             {
@@ -199,6 +225,7 @@ namespace HBP.UI.Main
             // Open the modal in the same main-thread continuation that releases the loading
             // blocker. Release admission before any explicit retry acquires a new reservation.
             localAdmission?.Dispose();
+            Error = cancelled || token.IsCancellationRequested ? "Scene opening cancelled." : localError != null ? TransferError.Describe(localError) : remoteError ?? failures.Values.FirstOrDefault();
             if (!showResults || token.IsCancellationRequested) return;
             if (cancelled && reservation?.NeedsCancellationResolution == true)
             {

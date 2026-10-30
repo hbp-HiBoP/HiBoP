@@ -12,6 +12,7 @@
         "HBP.Transfer.Projection",
         "HBP.Core.Runtime",
         "HBP.Sync.Scene",
+        "HBP.Sync.Runtime",
         "Unity.InputSystem",
         "HBP.Quest.Prototype.Tests"
     ],

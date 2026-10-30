@@ -701,9 +701,9 @@ namespace HBP.Quest.Desktop
                 if (site == null) throw new InvalidOperationException("The selected patient site is no longer available.");
                 Module3DMain.SelectSceneContext(entry.Scene, column);
                 entry.Scene.SelectSite(column, site);
-                var child = await HBP.UI.Tools.LoadingManager.LoadAsync<Base3DScene>(async (progress, token) => await Module3DMain.OpenSinglePatientVisualizationAsync(entry.Scene, site.Information.Patient, progress, token));
+                using var opening = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, entry.Lifetime.Token);
+                var child = await HBP.UI.Main.SceneDisplayOperation.OpenPatientAsync(entry.Scene, site.Information.Patient, action.Operation, opening.Token);
                 await UniTask.SwitchToMainThread(lifetime.Token);
-                if (!await SendAsync(false, child)) throw new InvalidOperationException(GetPublication(child).Error ?? "The patient visualization could not be delivered. Retry from Display.");
                 SendContext(child, child.SelectedColumn);
                 entry.Owner?.SendAction(new(action.Scene, action.Incarnation, SceneActionKind.Result, operation: action.Operation, message: "Patient visualization ready on both devices."));
             }

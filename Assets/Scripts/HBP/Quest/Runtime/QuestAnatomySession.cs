@@ -841,7 +841,7 @@ namespace HBP.Quest
                 var column = presentation.Scene.Columns.FirstOrDefault(value => value.ColumnData.ID == action.Column);
                 if (column != null) view.SelectContext(presentation.Scene, column, false);
             }
-            else if (action.Kind == SceneActionKind.Result) ActionStatus = action.Message;
+            else if (action.Kind == SceneActionKind.Result) ReceivePatientResult(action);
         }
 
         internal QuestReplicaSession SignalsReplica(HBP.Data.Module3D.Base3DScene scene)
@@ -850,7 +850,7 @@ namespace HBP.Quest
             return deliveries[view.Find(scene).TransferId].Replica;
         }
 
-        public bool CanOpenPatient => view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
+        public bool CanOpenPatient => patientRequestOperation == Guid.Empty && patientRequestPresentation.IsCompleted && view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
         private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => CanInteractWith(scene) && view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
 
         public void RequestOpenPatient()
@@ -861,12 +861,15 @@ namespace HBP.Quest
             var identity = entry.Binding.CreateIdentity();
             try
             {
-                entry.Replica.SendAction(new SceneAction(identity.SceneId, identity.IncarnationId, SceneActionKind.OpenPatient, scene.SelectedColumn.ColumnData.ID, scene.SelectedColumn.SelectedSite.Information.FullID));
+                var action = new SceneAction(identity.SceneId, identity.IncarnationId, SceneActionKind.OpenPatient, scene.SelectedColumn.ColumnData.ID, scene.SelectedColumn.SelectedSite.Information.FullID);
+                patientRequestSource = entry;
+                BeginPatientRequest(action.Operation);
+                entry.Replica.SendAction(action);
                 ActionStatus = "Opening patient on Desktop...";
             }
             catch (IOException error)
             {
-                ActionStatus = error.Message;
+                EndPatientRequest(error.Message);
             }
         }
 
@@ -983,6 +986,7 @@ namespace HBP.Quest
 
             IsSessionConnected = false;
             IsConnected = false;
+            EndPatientRequest("Desktop disconnected while opening the patient.");
         }
 
         public void CloseSession()

@@ -59,17 +59,17 @@ namespace HBP.Quest.Desktop
 
         public DisplayReservation ReserveDisplay(IEnumerable<Visualization> visualizations, bool explicitRecovery = false) => ReserveDisplayCore(visualizations, explicitRecovery, false);
 
-        private DisplayReservation ReserveDisplayCore(IEnumerable<Visualization> visualizations, bool explicitRecovery, bool ownsOperation)
+        private DisplayReservation ReserveDisplayCore(IEnumerable<Visualization> visualizations, bool explicitRecovery, bool ownsOperation, Guid displayOperation = default)
         {
             if (!IsPaired || !autoSync && !explicitRecovery || globals == null) return null;
             if (HasPendingDisplayDependencies(ownsOperation))
                 throw new InvalidOperationException("Wait for the current Quest operation before displaying visualizations.");
-            return displayReservation = new DisplayReservation(this, visualizations.ToArray());
+            return displayReservation = new DisplayReservation(this, visualizations.ToArray(), displayOperation);
         }
 
         private bool HasPendingDisplayDependencies(bool ownsOperation) => displayReservation != null || busy && !ownsOperation || restoringScenes || reloadingScenes || !inventoryWork.IsCompleted || publications.Values.Any(value => value.HasPendingWork);
 
-        public async UniTask<DisplayReservation> ReserveDisplayAsync(IEnumerable<Visualization> visualizations, CancellationToken token, bool explicitRecovery = false, CancellationToken operationOwner = default)
+        public async UniTask<DisplayReservation> ReserveDisplayAsync(IEnumerable<Visualization> visualizations, CancellationToken token, bool explicitRecovery = false, CancellationToken operationOwner = default, Guid displayOperation = default)
         {
             await UniTask.SwitchToMainThread(token);
             if (!IsPaired || globals == null || !autoSync && !explicitRecovery) return null;
@@ -83,7 +83,7 @@ namespace HBP.Quest.Desktop
             await UniTask.WaitUntil(() => !SameSession() || !HasPendingDisplayDependencies(OwnsOperation()), cancellationToken: wait.Token);
             wait.Token.ThrowIfCancellationRequested();
             if (!SameSession()) throw new InvalidOperationException("The Quest connection changed while Display was waiting. Retry synchronization explicitly.");
-            return ReserveDisplayCore(visualizations, explicitRecovery, OwnsOperation());
+            return ReserveDisplayCore(visualizations, explicitRecovery, OwnsOperation(), displayOperation);
         }
 
         public void RequireSceneSynchronizationRetry(Base3DScene scene, string message)
@@ -103,7 +103,7 @@ namespace HBP.Quest.Desktop
             private readonly string target, context;
             private readonly long generation;
             private readonly bool automaticSharing;
-            private readonly string batch = Guid.NewGuid().ToString("N");
+            private readonly string batch;
             private bool disposed;
             private string activeVisualization;
             private long nextDisplayRevision, acceptedDisplayRevision;
@@ -135,8 +135,9 @@ namespace HBP.Quest.Desktop
                 return owner.RecoverSceneTransport(entry, new System.IO.IOException("Quest connection interrupted during Display."), UserCancellation);
             }
 
-            internal DisplayReservation(QuestManager owner, Visualization[] visualizations)
+            internal DisplayReservation(QuestManager owner, Visualization[] visualizations, Guid displayOperation = default)
             {
+                batch = (displayOperation == Guid.Empty ? Guid.NewGuid() : displayOperation).ToString("N");
                 this.owner = owner;
                 this.visualizations = visualizations;
                 target = owner.ConnectedId;

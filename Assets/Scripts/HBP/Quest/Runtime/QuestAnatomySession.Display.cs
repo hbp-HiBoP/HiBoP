@@ -25,7 +25,56 @@ namespace HBP.Quest
         private Task displayDrain = Task.CompletedTask;
         private SceneLoadingStatus displayReceivingStatus;
         private readonly Queue<string> finishedDisplayBatches = new();
+        private Guid patientRequestOperation;
+        private Guid lastPatientRequestOperation;
+        private Entry patientRequestSource;
+        private float patientRequestExpires;
+        private TaskCompletionSource<bool> patientRequestFinished;
+        private Task patientRequestPresentation = Task.CompletedTask;
         private static readonly HashSet<string> blockedDisplayVisualizations = new(StringComparer.Ordinal);
+
+        private void BeginPatientRequest(Guid operation)
+        {
+            patientRequestOperation = operation;
+            patientRequestExpires = Time.realtimeSinceStartup + 60;
+            patientRequestFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            patientRequestPresentation = PresentPatientRequestAsync(operation, patientRequestFinished.Task);
+        }
+
+        private async Task PresentPatientRequestAsync(Guid operation, Task finished)
+        {
+            await LoadingManager.LoadAsync(async update =>
+            {
+                await UniTask.SwitchToMainThread();
+                if (patientRequestOperation == operation && displayBatch?.Id != operation.ToString("N"))
+                    update(0, 0, new LoadingText("Opening patient on Desktop"));
+                await finished;
+            });
+        }
+
+        private void EndPatientRequest(string message = null)
+        {
+            if (patientRequestOperation == Guid.Empty) return;
+            if (displayBatch?.Id != patientRequestOperation.ToString("N")) RememberDisplayFinished(patientRequestOperation.ToString("N"));
+            lastPatientRequestOperation = patientRequestOperation;
+            patientRequestOperation = Guid.Empty;
+            patientRequestSource = null;
+            patientRequestFinished.TrySetResult(true);
+            if (message != null) ActionStatus = message;
+        }
+
+        private void ReceivePatientResult(HBP.Sync.SceneAction action)
+        {
+            if (action.Operation != patientRequestOperation)
+            {
+                if (patientRequestOperation == Guid.Empty && action.Operation == lastPatientRequestOperation) ActionStatus = action.Message;
+                return;
+            }
+
+            ActionStatus = action.Message;
+            // A result must not release a batch that is still draining its owned work.
+            if (displayBatch?.Id != action.Operation.ToString("N")) EndPatientRequest();
+        }
 
         public static bool CanInteractWith(Base3DScene scene) => scene != null && !scene.IsClosing && !blockedDisplayVisualizations.Contains(scene.Visualization.ID);
 
@@ -60,6 +109,8 @@ namespace HBP.Quest
                 blockedDisplayVisualizations.UnionWith(state.Visualizations);
                 displayFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
                 displayPresentation = PresentDisplayBatchAsync();
+                // Open the shared presentation before releasing the immediate click feedback.
+                if (state.Id == patientRequestOperation.ToString("N")) patientRequestFinished.TrySetResult(true);
             }
             else if (!displayBatch.Visualizations.SequenceEqual(state.Visualizations))
                 return new(request.OperationId, SessionControlStatus.Rejected, "Display batch scenes changed.");
@@ -149,6 +200,8 @@ namespace HBP.Quest
                     displayBatch = null;
                     displayProgress = null;
                     displayReceivingStatus = null;
+                    if (batch.Id == patientRequestOperation.ToString("N"))
+                        EndPatientRequest(succeeded ? "Patient visualization ready on both devices." : "Patient visualization synchronization incomplete. Retry from Display.");
                 }
             }
         }
@@ -161,12 +214,17 @@ namespace HBP.Quest
 
         private void TickDisplayBatch()
         {
+            if (patientRequestSource is { } source && (!source.Shared || source.Lifetime.IsCancellationRequested))
+                EndPatientRequest("The source visualization was closed or is no longer shared.");
+            if (patientRequestOperation != Guid.Empty && (!IsSessionConnected || displayBatch?.Id != patientRequestOperation.ToString("N") && Time.realtimeSinceStartup >= patientRequestExpires))
+                EndPatientRequest(!IsSessionConnected ? "Desktop disconnected while opening the patient." : "Desktop did not start the patient visualization. Try again.");
             if (displayBatch != null && displayDrain.IsCompleted && (Time.realtimeSinceStartup >= displayBatchExpires || !IsSessionConnected))
                 displayDrain = DrainDisplayBatchAsync();
         }
 
         private void StopDisplayBatch()
         {
+            EndPatientRequest();
             if (displayBatch != null && displayDrain.IsCompleted)
                 displayDrain = DrainDisplayBatchAsync();
         }

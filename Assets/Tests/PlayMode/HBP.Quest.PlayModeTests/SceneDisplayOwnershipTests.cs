@@ -637,8 +637,8 @@ namespace HBP.Tests.Quest
             ((CancellationTokenSource)publicationType.GetField("Lifetime").GetValue(entry)).Dispose();
         }
 
-        [TestCase(false), TestCase(true)]
-        public async Task QuestBatchKeepsOnePresentationAndDrainsBeforeReleasingItsSceneGate(bool cancel)
+        [TestCase(false, false), TestCase(true, false), TestCase(false, true), TestCase(true, true)]
+        public async Task QuestBatchKeepsOnePresentationAndDrainsBeforeReleasingItsSceneGate(bool cancel, bool patientRequest)
         {
             var root = new GameObject("Quest Display presentation fixture");
             root.SetActive(false);
@@ -670,9 +670,19 @@ namespace HBP.Tests.Quest
             SessionControlRequest Request(string id, bool finished = false, float progress = 0, string transferMessage = null, float transferProgress = 0, bool transferring = false) => new(Guid.ParseExact(contextId, "N"), 7, Guid.NewGuid(), SessionControlKind.DisplayBatch, body: Encoding.UTF8.GetBytes("{\"Id\":\"" + id + "\",\"Visualizations\":[\"display-gate\"],\"SourceStatus\":{\"Prefix\":\"Loading data\",\"Suffix\":\" 3/119\",\"VisualizationId\":\"display-gate\"},\"ActiveVisualizationId\":\"display-gate\",\"IncompleteVisualizations\":" + (finished && cancel ? "[\"display-gate\"]" : "[]") + ",\"Finished\":" + (finished ? "true" : "false") + ",\"Progress\":" + progress.ToString(System.Globalization.CultureInfo.InvariantCulture) + (transferMessage == null ? "" : ",\"TransferStatus\":{\"Prefix\":\"" + transferMessage + "\",\"VisualizationId\":\"display-gate\",\"Transfer\":" + (transferring ? "true" : "false") + ",\"Progress\":" + transferProgress.ToString(System.Globalization.CultureInfo.InvariantCulture) + "}") + "}"));
             try
             {
+                if (patientRequest)
+                {
+                    sessionType.GetMethod("BeginPatientRequest", Private).Invoke(session, new object[] { Guid.ParseExact(batch, "N") });
+                    Assert.That(presenter.Opens, Is.EqualTo(1), "Click feedback opens before any Desktop response or transfer.");
+                    var unrelated = new HBP.Sync.SceneAction(new HBP.Sync.SceneId(Guid.NewGuid()), new HBP.Sync.IncarnationId(Guid.NewGuid()), HBP.Sync.SceneActionKind.Result);
+                    sessionType.GetMethod("ReceivePatientResult", Private).Invoke(session, new object[] { unrelated });
+                    Assert.That((Guid)sessionType.GetField("patientRequestOperation", Private).GetValue(session), Is.EqualTo(Guid.ParseExact(batch, "N")));
+                }
+
                 Assert.That((await session.ReceiveSessionControlAsync(Request(batch), CancellationToken.None)).Applied, Is.True);
                 await UniTask.NextFrame();
                 Assert.That(presenter.Opens, Is.EqualTo(1));
+                Assert.That(presenter.Closes, Is.Zero, "Adopting click feedback must keep the same circle open.");
                 Assert.That(presenter.Text.ToString(), Is.EqualTo("Loading data 3/119"));
                 Assert.That(QuestAnatomySession.CanInteractWith(scene), Is.False);
                 await session.ReceiveSessionControlAsync(Request(batch, progress: .7f), CancellationToken.None);
@@ -706,6 +716,12 @@ namespace HBP.Tests.Quest
                 Assert.That((await session.ReceiveSessionControlAsync(Request(Guid.NewGuid().ToString("N")), CancellationToken.None)).Applied, Is.False);
                 var gate = (SemaphoreSlim)sessionType.GetField("loadingGate", Private).GetValue(session);
                 await gate.WaitAsync();
+                if (patientRequest && cancel)
+                {
+                    sessionType.GetMethod("EndPatientRequest", Private).Invoke(session, new object[] { "The source visualization was closed." });
+                    Assert.That((IEnumerable<string>)sessionType.GetField("finishedDisplayBatches", Private).GetValue(session), Does.Not.Contain(batch), "Closing the source must still allow the active batch to drain.");
+                }
+
                 var end = session.ReceiveSessionControlAsync(Request(batch, true, cancel ? .7f : 1), CancellationToken.None);
                 Assert.That(end.IsCompleted, Is.False);
                 Assert.That(reception.IsCancellationRequested, Is.EqualTo(cancel), "An unfinished owned receive must be cancelled before waiting for its loading gate.");
@@ -713,17 +729,198 @@ namespace HBP.Tests.Quest
                 Assert.That(QuestAnatomySession.CanInteractWith(scene), Is.False);
                 gate.Release();
                 Assert.That((await end).Applied, Is.True);
+                if (patientRequest)
+                {
+                    await (Task)sessionType.GetField("patientRequestPresentation", Private).GetValue(session);
+                    Assert.That((Guid)sessionType.GetField("patientRequestOperation", Private).GetValue(session), Is.EqualTo(Guid.Empty));
+                    var result = new HBP.Sync.SceneAction(new HBP.Sync.SceneId(Guid.NewGuid()), new HBP.Sync.IncarnationId(Guid.NewGuid()), HBP.Sync.SceneActionKind.Result, operation: Guid.ParseExact(batch, "N"), succeeded: !cancel, message: cancel ? "Patient opening cancelled by Desktop" : "Patient visualization ready on both devices.");
+                    sessionType.GetMethod("ReceivePatientResult", Private).Invoke(session, new object[] { result });
+                    Assert.That(session.ActionStatus, Is.EqualTo(result.Message), "The detailed result may arrive after the batch has drained.");
+                }
+
                 Assert.That(presenter.Closes, Is.EqualTo(1));
                 Assert.That(QuestAnatomySession.CanInteractWith(scene), Is.True);
                 Assert.That((await session.ReceiveSessionControlAsync(Request(batch), CancellationToken.None)).Status, Is.EqualTo(SessionControlStatus.Stale));
             }
             finally
             {
+                sessionType.GetMethod("EndPatientRequest", Private).Invoke(session, new object[] { null });
+                await (Task)sessionType.GetField("patientRequestPresentation", Private).GetValue(session);
                 sessionType.GetField("reception", Private).SetValue(session, null);
                 sessionType.GetField("globals", Private).SetValue(session, null);
                 UnityEngine.Object.DestroyImmediate(root);
                 singleton.SetValue(null, previous);
             }
+        }
+
+        [TestCase("failure"), TestCase("send"), TestCase("timeout"), TestCase("disconnect"), TestCase("source")]
+        public async Task PatientClickFeedbackClosesWhenDesktopCannotStartTheBatch(string reason)
+        {
+            var root = new GameObject("Patient click feedback fixture");
+            root.SetActive(false);
+            var loading = root.AddComponent<LoadingManager>();
+            var presenter = root.AddComponent<DisplayLoadingPresenterProbe>();
+            typeof(LoadingManager).GetField("m_LoadingCircle", Private).SetValue(loading, presenter);
+            var singleton = typeof(Singleton<LoadingManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            object previous = singleton.GetValue(null);
+            singleton.SetValue(null, loading);
+            var session = root.AddComponent<QuestAnatomySession>();
+            var type = typeof(QuestAnatomySession);
+            var operation = Guid.NewGuid();
+            type.GetField("mainThread", Private).SetValue(session, Thread.CurrentThread.ManagedThreadId);
+            type.GetField("<IsSessionConnected>k__BackingField", Private).SetValue(session, true);
+            try
+            {
+                type.GetMethod("BeginPatientRequest", Private).Invoke(session, new object[] { operation });
+                Assert.That(presenter.Opens, Is.EqualTo(1));
+                if (reason == "failure")
+                {
+                    var result = new HBP.Sync.SceneAction(new HBP.Sync.SceneId(Guid.NewGuid()), new HBP.Sync.IncarnationId(Guid.NewGuid()), HBP.Sync.SceneActionKind.Result, operation: operation, succeeded: false, message: "Patient data unavailable");
+                    type.GetMethod("ReceivePatientResult", Private).Invoke(session, new object[] { result });
+                    Assert.That(session.ActionStatus, Is.EqualTo(result.Message));
+                }
+                else if (reason == "send") type.GetMethod("EndPatientRequest", Private).Invoke(session, new object[] { "Scene action queue is full." });
+                else if (reason == "disconnect") session.Disconnect();
+                else
+                {
+                    if (reason == "source")
+                    {
+                        var entryType = type.GetNestedType("Entry", BindingFlags.NonPublic);
+                        object entry = Activator.CreateInstance(entryType, true);
+                        ((CancellationTokenSource)entryType.GetField("Lifetime").GetValue(entry)).Cancel();
+                        type.GetField("patientRequestSource", Private).SetValue(session, entry);
+                    }
+                    else type.GetField("patientRequestExpires", Private).SetValue(session, Time.realtimeSinceStartup - 1);
+
+                    type.GetMethod("TickDisplayBatch", Private).Invoke(session, null);
+                }
+
+                await (Task)type.GetField("patientRequestPresentation", Private).GetValue(session);
+                Assert.That(presenter.Closes, Is.EqualTo(1));
+                Assert.That((Guid)type.GetField("patientRequestOperation", Private).GetValue(session), Is.EqualTo(Guid.Empty));
+                Assert.That(session.ActionStatus, Is.Not.Empty);
+                Assert.That(((IEnumerable<string>)type.GetField("finishedDisplayBatches", Private).GetValue(session)), Does.Contain(operation.ToString("N")), "A delayed batch must not reopen abandoned click feedback.");
+            }
+            finally
+            {
+                type.GetMethod("EndPatientRequest", Private).Invoke(session, new object[] { null });
+                await (Task)type.GetField("patientRequestPresentation", Private).GetValue(session);
+                UnityEngine.Object.DestroyImmediate(root);
+                singleton.SetValue(null, previous);
+            }
+        }
+
+        [Test]
+        public async Task ExplicitPatientDisplayKeepsItsRequestIdentityWhenAutomaticSharingIsDisabled()
+        {
+            var root = new GameObject("Explicit patient Display admission fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            SetPairedContext(manager);
+            typeof(QuestManager).GetField("autoSync", Private).SetValue(manager, false);
+            try
+            {
+                var operation = Guid.NewGuid();
+                using var reservation = await manager.ReserveDisplayAsync(new[] { new Visualization() }, CancellationToken.None, explicitRecovery: true, displayOperation: operation);
+                Assert.That(reservation, Is.Not.Null);
+                Assert.That(typeof(QuestManager.DisplayReservation).GetField("batch", Private).GetValue(reservation), Is.EqualTo(operation.ToString("N")));
+                Assert.That(reservation.IsCurrent, Is.True);
+            }
+            finally
+            {
+                ClearPairedContext(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public async Task ExplicitPatientDisplayAnnouncesTheBatchBeforeLocalLoadingAndReportsFailure()
+        {
+            var root = new GameObject("Patient Display protocol fixture");
+            root.SetActive(false);
+            var loading = root.AddComponent<LoadingManager>();
+            var presenter = root.AddComponent<DisplayLoadingPresenterProbe>();
+            typeof(LoadingManager).GetField("m_LoadingCircle", Private).SetValue(loading, presenter);
+            var manager = root.AddComponent<QuestManager>();
+            SetPairedContext(manager);
+            typeof(QuestManager).GetField("autoSync", Private).SetValue(manager, false);
+            var questSingleton = typeof(Singleton<QuestManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var loadingSingleton = typeof(Singleton<LoadingManager>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            object oldQuest = questSingleton.GetValue(null), oldLoading = loadingSingleton.GetValue(null);
+            var oldProject = ApplicationState.LoadedProject;
+            questSingleton.SetValue(null, manager);
+            loadingSingleton.SetValue(null, loading);
+            ApplicationState.LoadedProject = null;
+            var batches = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            typeof(QuestManager).GetField("sessionGeneration", Private).SetValue(manager, 1L);
+            using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+            using var receiver = new QuestPairing();
+            var listener = new TcpListener(IPAddress.Loopback, QuestPairing.Port);
+            listener.Start();
+            var serving = receiver.ServeAsync(listener, stop.Token, (_, __) => throw new InvalidOperationException("A failed local opening must not transfer scene data."), _ => { }, receiveSessionControl: (request, _) =>
+            {
+                batches.Enqueue(Encoding.UTF8.GetString(request.GetBody()));
+                return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, body: request.GetBody()));
+            });
+            try
+            {
+                byte[] credential = await QuestPairing.PairAsync("127.0.0.1", receiver.Pin, receiver.Code, stop.Token);
+                typeof(QuestManager).GetField("credential", Private).SetValue(manager, credential);
+                typeof(QuestManager).GetField("pin", Private).SetValue(manager, receiver.Pin);
+                typeof(QuestManager).GetField("endpoint", Private).SetValue(manager, "127.0.0.1");
+                var visualization = new Visualization { Name = "Patient activity", Columns = new() { new IEEGColumn() } };
+                var operationType = typeof(HBP.UI.Main.VisualizationGestion).Assembly.GetType("HBP.UI.Main.SceneDisplayOperation", true);
+                object operation = Activator.CreateInstance(operationType, Private | BindingFlags.Public, null, new object[] { new[] { visualization }, null }, null);
+                Guid operationId = Guid.NewGuid();
+                operationType.GetProperty("ExplicitSharing", Private).SetValue(operation, true);
+                operationType.GetProperty("OperationId", Private).SetValue(operation, operationId);
+                bool announcedBeforeLoadFailed = false;
+
+                void ObserveFailure(string condition, string trace, LogType kind)
+                {
+                    if (kind == LogType.Exception && condition.Contains("NullReferenceException")) announcedBeforeLoadFailed = !batches.IsEmpty;
+                }
+
+                Application.logMessageReceived += ObserveFailure;
+                try
+                {
+                    UnityEngine.TestTools.LogAssert.Expect(LogType.Exception, new System.Text.RegularExpressions.Regex("NullReferenceException"));
+                    await (UniTask)operationType.GetMethod("RunAsync", Private).Invoke(operation, new object[] { stop.Token, false });
+                }
+                finally
+                {
+                    Application.logMessageReceived -= ObserveFailure;
+                }
+
+                Assert.That(announcedBeforeLoadFailed, Is.True, "The Quest must receive the Display batch before Desktop loading starts.");
+                Assert.That((bool)operationType.GetProperty("Succeeded", Private).GetValue(operation), Is.False);
+                Assert.That((string)operationType.GetProperty("Error", Private).GetValue(operation), Is.Not.Empty);
+                var states = batches.Select(json => JsonUtility.FromJson<PatientDisplayBatchProbe>(json)).ToArray();
+                Assert.That(states.All(state => state.Id == operationId.ToString("N")), Is.True);
+                Assert.That(states.First().Finished, Is.False);
+                Assert.That(states.Last().Finished, Is.True);
+                Assert.That(states.Last().Progress, Is.LessThan(1), "An opening failure must not announce success.");
+                Assert.That(presenter.Opens, Is.EqualTo(1));
+                Assert.That(presenter.Closes, Is.EqualTo(1));
+            }
+            finally
+            {
+                stop.Cancel();
+                await serving;
+                ClearPairedContext(manager);
+                UnityEngine.Object.DestroyImmediate(root);
+                questSingleton.SetValue(null, oldQuest);
+                loadingSingleton.SetValue(null, oldLoading);
+                ApplicationState.LoadedProject = oldProject;
+            }
+        }
+
+        [Serializable]
+        private sealed class PatientDisplayBatchProbe
+        {
+            public string Id = "";
+            public bool Finished = false;
+            public float Progress = 0;
         }
 
         [TestCase(false), TestCase(true)]

@@ -243,7 +243,7 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>One derived opening per source opening and patient; concurrent requests share its load.</summary>
-        public static async UniTask<Base3DScene> OpenSinglePatientVisualizationAsync(Base3DScene source, Patient patient, Action<float, float, LoadingText> progress, CancellationToken token)
+        public static async UniTask<Base3DScene> OpenSinglePatientVisualizationAsync(Base3DScene source, Patient patient, Action<float, float, LoadingText> progress, CancellationToken token, Func<Visualization, CancellationToken, UniTask<Base3DScene>> loadScene = null)
         {
             await UniTask.SwitchToMainThread(token);
             if (source == null || source.IsClosing || !Scenes.Contains(source) || source.Type != SceneType.MultiPatients || patient == null || !source.Visualization.Patients.Any(value => value.ID == patient.ID))
@@ -262,9 +262,16 @@ namespace HBP.Data.Module3D
             try
             {
                 var visualization = PrepareSinglePatientVisualizationFromMultiPatientScene(source.Visualization, patient);
-                await LoadAsync(new[] { visualization }, progress, token);
+                Base3DScene opened;
+                if (loadScene != null) opened = await loadScene(visualization, token);
+                else
+                {
+                    await LoadAsync(new[] { visualization }, progress, token);
+                    await UniTask.SwitchToMainThread();
+                    opened = Scenes.Single(scene => scene.Visualization == visualization);
+                }
+
                 await UniTask.SwitchToMainThread();
-                var opened = Scenes.Single(scene => scene.Visualization == visualization);
                 s_PatientScenes[key] = opened;
                 SelectSceneContext(opened, opened.SelectedColumn);
                 completion.TrySetResult(opened);

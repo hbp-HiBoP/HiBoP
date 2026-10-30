@@ -79,7 +79,19 @@ namespace HBP.Tests.SceneTransfer
                 {
                     var parent = restored.Scene;
                     var patient = parent.Visualization.Patients[0];
-                    var child = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token);
+                    int loads = 0;
+                    string openingId = null;
+
+                    async UniTask<Base3DScene> LoadPatient(Visualization visualization, CancellationToken token)
+                    {
+                        loads++;
+                        openingId = visualization.ID;
+                        await Module3DMain.LoadAsync(new[] { visualization }, (_, _, _) => { }, token);
+                        return Module3DMain.Scenes.Single(scene => scene.Visualization == visualization);
+                    }
+
+                    var child = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token, LoadPatient);
+                    Assert.That(child.Visualization.ID, Is.EqualTo(openingId), "The shared display must know the actual opening identity before loading.");
                     Assert.That(child.MeshManager.SelectedMesh.Type, Is.EqualTo(MeshType.Patient));
                     Assert.That(child.MeshManager.BrainSurface.NumberOfTriangles, Is.Not.EqualTo(parent.MeshManager.BrainSurface.NumberOfTriangles));
                     Assert.That(parent.Visualization.Configuration.ErasedTriangles, Is.Not.Null);
@@ -87,7 +99,8 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(child.Visualization.Columns.Select(column => (column.Name, column.GetType())), Is.EqualTo(parent.Visualization.Columns.Select(column => (column.Name, column.GetType()))));
                     child.UpdateVisibleState(false, false);
                     Assert.That(child.IsVisible, Is.False);
-                    var repeated = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token);
+                    var repeated = await Module3DMain.OpenSinglePatientVisualizationAsync(parent, patient, (_, _, _) => { }, timeout.Token, LoadPatient);
+                    Assert.That(loads, Is.EqualTo(1), "A display callback must not reload an existing patient opening.");
                     Assert.That(repeated, Is.SameAs(child));
                     Assert.That(repeated.IsVisible, Is.True, "Opening an existing patient reveals it before selecting it.");
                     Assert.That(repeated.IsSelected, Is.True);
