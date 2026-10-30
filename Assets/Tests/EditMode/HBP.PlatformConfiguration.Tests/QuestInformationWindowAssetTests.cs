@@ -135,12 +135,11 @@ namespace HBP.Tests.PlatformConfiguration
                     Assert.That(rect.pivot.x, Is.Zero);
                 }
 
-                foreach (string name in new[] { "identity", "patientTags", "siteTags" })
-                {
-                    var text = (Text)fields.FindProperty(name).objectReferenceValue;
-                    text.GetComponent<HBP.Theme.ThemeElement>().Set();
-                    Assert.That(text.supportRichText, Is.True, name);
-                }
+                var identity = (Text)fields.FindProperty("identity").objectReferenceValue;
+                identity.GetComponent<HBP.Theme.ThemeElement>().Set();
+                Assert.That(identity.supportRichText, Is.True);
+                foreach (string name in new[] { "patientTags", "siteTags" })
+                    Assert.That(fields.FindProperty(name).objectReferenceValue, Is.InstanceOf<QuestTagTable>(), name);
 
                 var input = (InputField)fields.FindProperty("labelName").objectReferenceValue;
                 Assert.That(input, Is.InstanceOf<QuestTextInputField>());
@@ -172,7 +171,7 @@ namespace HBP.Tests.PlatformConfiguration
                 list.Bind(new[] { "Alpha", "Gamma" }, _ => false, (_, __) => { });
                 list.Include(new[] { "Alpha", "Beta", "Gamma", "Delta" });
                 CollectionAssert.AreEqual(new[] { "Alpha", "Gamma", "Beta", "Delta" }, (string[])typeof(QuestLabelList).GetField("values", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(list));
-                Assert.That(root.transform.Find("Background/Content Viewport/Content/SiteActivity").gameObject.activeSelf, Is.False);
+                Assert.That(root.transform.Find("Background/Content Viewport/Content/SiteActivity"), Is.Null);
             }
             finally
             {

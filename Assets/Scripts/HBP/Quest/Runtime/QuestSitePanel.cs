@@ -14,7 +14,8 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private Button openPatient;
         [SerializeField] private QuestWindow window;
-        [SerializeField] private Text identity, activity, patientTags, siteTags, error;
+        [SerializeField] private Text identity, error;
+        [SerializeField] private QuestTagTable patientTags, siteTags;
         [SerializeField] private Button highlighted, blacklisted, color, chooseLabels, newLabel, closeLabels;
         [SerializeField] private HBP.Theme.ThemeElement highlightedIcon, blacklistedIcon;
         [SerializeField] private HBP.Theme.State activeState;
@@ -29,7 +30,6 @@ namespace HBP.Quest
         private Site site;
         private QuestSceneLabelIndex index;
         private bool dirty, lastReady;
-        private float nextActivity;
         private int catalogRevision = -1;
 
         private void Awake()
@@ -199,28 +199,6 @@ namespace HBP.Quest
                 catalogRevision = index.Revision;
                 labelList.Include(index.Snapshot());
             }
-
-            if (Time.unscaledTime < nextActivity) return;
-            nextActivity = Time.unscaledTime + .05f;
-            if (!Ready)
-            {
-                SetActivity("");
-                return;
-            }
-
-            var info = scene.ImplantationManager.GetSiteInformation(site, column);
-            SetActivity(info.Mode switch
-            {
-                Core.Enums.SiteInformationDisplayMode.IEEG => "Amplitude: " + info.IEEGAmplitude + " " + info.IEEGUnit.Replace("microV", "µV"),
-                Core.Enums.SiteInformationDisplayMode.CCEP => "Amplitude: " + info.CCEPAmplitude + "   Latency: " + info.CCEPLatency,
-                _ => ""
-            });
-        }
-
-        private void SetActivity(string value)
-        {
-            activity.text = value;
-            activity.transform.parent.gameObject.SetActive(value.Length > 0);
         }
 
         private void SetError(string value)
@@ -233,15 +211,15 @@ namespace HBP.Quest
         private void Refresh()
         {
             dirty = false;
-            identity.supportRichText = patientTags.supportRichText = siteTags.supportRichText = true;
+            identity.supportRichText = true;
             identity.text = site != null ? "<b>" + Escape(site.Information.Name) + " (" + Escape(site.Information.Patient.Name) + ")</b>" : "Select a site to inspect it.";
             foreach (var control in new Selectable[] { highlighted, blacklisted, color, chooseLabels, labelName }) control.interactable = Ready;
             RefreshAddButton();
             highlightedIcon.Set(site != null && site.State.IsHighlighted ? activeState : highlightedIcon.Element.DefaultState);
             blacklistedIcon.Set(site != null && site.State.IsBlackListed ? activeState : blacklistedIcon.Element.DefaultState);
             colorSample.color = site != null ? site.State.Color : SiteState.DefaultColor;
-            patientTags.text = site != null ? "<b>Patient tags</b>\n" + string.Join("\n", site.Information.Patient.Tags.Select(t => "<b>" + Escape(t.Tag.Name) + "</b>: " + Escape(t.DisplayableValue))) : "";
-            siteTags.text = site != null ? "<b>Site tags</b>\n" + string.Join("\n", site.Information.SiteData.Tags.Select(t => "<b>" + Escape(t.Tag.Name) + "</b>: " + Escape(t.DisplayableValue))) : "";
+            patientTags.Bind(site != null ? site.Information.Patient.Name : "", site != null ? site.Information.Patient.Tags : null);
+            siteTags.Bind(site != null ? site.Information.Name : "", site != null ? site.Information.SiteData.Tags : null);
             labelSummary.SetLabels(site != null ? site.State.Labels.ToArray() : Array.Empty<string>());
             if (labelPicker.activeSelf) labelList.Refresh();
         }
