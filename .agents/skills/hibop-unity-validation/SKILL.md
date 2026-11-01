@@ -18,6 +18,9 @@ Locate the current HiBoP checkout before resolving project-relative paths. From
 a native repository, use its integration instructions to locate HiBoP and read
 `.agents/skills/hibop-unity-validation/SKILL.md` in that checkout explicitly.
 
+When adding, renaming, diagnosing, skipping or removing tests, read
+[Testing conventions](../../../Docs/agent-knowledge/testing.md).
+
 Read only the applicable procedure:
 
 - Editor open: [MCP validation](references/mcp.md). Inspect/select HiBoP and use
