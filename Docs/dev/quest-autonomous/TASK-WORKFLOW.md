@@ -171,8 +171,10 @@ de demander une manipulation utilisateur. Les tests de pure logique ne sont
 pas une checklist manuelle à déléguer au propriétaire. Si une ressource manque,
 dire précisément ce qui n'a pas été exécuté et laisser les preuves restantes ouvertes.
 
-Appliquer Tools/format-code.cmd aux C# modifiés avant handoff, puis vérifier
-le diff. Les tests Unity async attendent directement les opérations, sans
+Selon AGENTS.md, si des C# ont changé, appliquer Tools/format-code.cmd une seule
+fois après toute implémentation, vérification et review, immédiatement avant la
+réponse finale ; aucune opération ensuite.
+Les tests Unity async attendent directement les opérations, sans
 Wait/Result ou assertions async bloquantes. Toute commande lançant Unity sur
 Windows suit les règles d'exécution hors sandbox d'AGENTS.md.
 

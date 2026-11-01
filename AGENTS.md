@@ -5,7 +5,7 @@ and high-frequency workflow rules.
 
 ## C# formatting
 
-After **all implementation, testing, validation, and review work is complete**, run this **once as the final action before responding to the user**:
+When C# files changed, after all implementation, testing, validation, and review work is complete, run this once as the final action before responding to the user:
 
 ```powershell
 .\Tools\format-code.cmd
@@ -53,8 +53,8 @@ When Unity must be started from the CLI, read its version from
 `ProjectSettings/ProjectVersion.txt`, follow the global outside-sandbox rule, wait
 for completion, and inspect exit code plus produced logs/results.
 
-Use the `hibop-unity-validation` skill for detailed MCP, CLI, licensing, and async
-test procedures.
+Use `hibop-unity-validation` for detailed MCP/CLI validation, licensing,
+async-test safety, and Quest build/device checks.
 
 Unity/UniTask tests must remain non-blocking: use `async Task` and direct `await`.
 Do not use `.Wait()`, `.Result`, `GetAwaiter().GetResult()`, sleep/busy-wait, or
@@ -66,11 +66,3 @@ exceptions with explicitly awaited `try/catch` rather than blocking NUnit helper
 For Quest ADB-over-Wi-Fi, use `Tools/Connect-QuestAdbWifi.ps1` instead of manual
 ADB configuration unless the script itself fails. If the headset is not found,
 first check that it is awake and being worn.
-
-## Verification
-
-- Start with the narrowest relevant tests and expand only when risk or failures
-  justify it.
-- Inspect Unity console errors as well as test results.
-- Run the assembly dependency gate for `.asmdef` reference changes.
-- Run the C# formatter before handoff when C# files changed.

@@ -142,5 +142,101 @@ namespace HBP.Tests.PlatformConfiguration
                 plugin.SetCompatibleWithPlatform(BuildTarget.Android, included);
             }
         }
+
+        [TestCase("keystore path")]
+        [TestCase("existing keystore file")]
+        [TestCase("key alias")]
+        [TestCase("keystore password")]
+        [TestCase("key alias password")]
+        public void QuestSigning_IncompleteConfigurationStopsBeforeBuild(string missing)
+        {
+            WithQuestSigning(path =>
+            {
+                switch (missing)
+                {
+                    case "keystore path": PlayerSettings.Android.keystoreName = ""; break;
+                    case "existing keystore file": File.Delete(path); break;
+                    case "key alias": PlayerSettings.Android.keyaliasName = ""; break;
+                    case "keystore password": PlayerSettings.Android.keystorePass = ""; break;
+                    case "key alias password": PlayerSettings.Android.keyaliasPass = ""; break;
+                }
+
+                var before = CaptureSigningSettings();
+                var profile = BuildProfile.GetActiveBuildProfile();
+                string version = PlayerSettings.bundleVersion;
+                string buildInfo = File.ReadAllText("Assets/Resources/BuildInfo.json");
+                string output = path + ".build";
+                var exception = Assert.Throws<BuildFailedException>(() => HBPBuilder.BuildQuest(output));
+                Assert.That(exception.Message, Does.Contain(missing).And.Contain("Quest Build Profile / Android Publishing Settings"));
+                Assert.That(exception.Message, Does.Not.Contain("test-store-password").And.Not.Contain("test-key-password").And.Not.Contain(path));
+                Assert.That(Directory.Exists(output), Is.False, "An incomplete signing configuration must fail before build preparation.");
+                Assert.That(PlayerSettings.bundleVersion, Is.EqualTo(version));
+                Assert.That(File.ReadAllText("Assets/Resources/BuildInfo.json"), Is.EqualTo(buildInfo));
+                Assert.That(BuildProfile.GetActiveBuildProfile(), Is.SameAs(profile));
+                Assert.That(CaptureSigningSettings() == before, Is.True, "The guard must not mutate signing settings.");
+            });
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestSigning_CompleteConfigurationPassesWithoutMutation(bool relativePath)
+        {
+            WithQuestSigning(path =>
+            {
+                if (relativePath) PlayerSettings.Android.keystoreName = "Temp/" + Path.GetFileName(path);
+                var before = CaptureSigningSettings();
+                Assert.DoesNotThrow(HBPBuilder.ValidateQuestSigning);
+                Assert.That(CaptureSigningSettings() == before, Is.True, "The guard must preserve the configured signing identity and credentials.");
+            });
+        }
+
+        [Test]
+        public void QuestSigning_DebugSigningDoesNotRequireCustomCredentials()
+        {
+            WithQuestSigning(path =>
+            {
+                PlayerSettings.Android.useCustomKeystore = false;
+                PlayerSettings.Android.keystoreName = "";
+                PlayerSettings.Android.keyaliasName = "";
+                PlayerSettings.Android.keystorePass = "";
+                PlayerSettings.Android.keyaliasPass = "";
+                var before = CaptureSigningSettings();
+                Assert.DoesNotThrow(HBPBuilder.ValidateQuestSigning);
+                Assert.That(CaptureSigningSettings() == before, Is.True);
+            });
+        }
+
+        private static (bool custom, string path, string alias, string storePassword, string keyPassword) CaptureSigningSettings()
+        {
+            return (PlayerSettings.Android.useCustomKeystore, PlayerSettings.Android.keystoreName, PlayerSettings.Android.keyaliasName, PlayerSettings.Android.keystorePass, PlayerSettings.Android.keyaliasPass);
+        }
+
+        private static void WithQuestSigning(System.Action<string> test)
+        {
+            if (EditorUserBuildSettings.activeBuildTarget != BuildTarget.Android || BuildProfile.GetActiveBuildProfile() != HBPBuildProfiles.Load(true))
+                Assert.Ignore("Run with the Quest Build Profile active.");
+            var original = CaptureSigningSettings();
+            string path = Path.Combine(Directory.GetCurrentDirectory(), "Temp", "quest-signing-" + System.Guid.NewGuid().ToString("N") + ".keystore");
+            try
+            {
+                // A placeholder proves readiness checks do not claim cryptographic validation.
+                File.WriteAllText(path, "Signing readiness test placeholder; not a private key.");
+                PlayerSettings.Android.useCustomKeystore = true;
+                PlayerSettings.Android.keystoreName = path;
+                PlayerSettings.Android.keyaliasName = "test-alias";
+                PlayerSettings.Android.keystorePass = "test-store-password";
+                PlayerSettings.Android.keyaliasPass = "test-key-password";
+                test(path);
+            }
+            finally
+            {
+                PlayerSettings.Android.useCustomKeystore = original.custom;
+                PlayerSettings.Android.keystoreName = original.path;
+                PlayerSettings.Android.keyaliasName = original.alias;
+                PlayerSettings.Android.keystorePass = original.storePassword;
+                PlayerSettings.Android.keyaliasPass = original.keyPassword;
+                File.Delete(path);
+            }
+        }
     }
 }

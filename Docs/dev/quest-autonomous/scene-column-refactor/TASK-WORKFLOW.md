@@ -41,8 +41,10 @@ Le contrat Quest historique ne doit pas réintroduire une recette par fiche.
   d’état que l’utilisateur peut clarifier.
 - Aucun test/build obligatoire durant A/B. Un obstacle concret peut justifier
   un contrôle court ; reprendre ensuite le travail.
-- Formater les C# selon AGENTS.md avant review/handoff, en respectant les travaux
-  concurrents. Ce formatage n’impose pas un build.
+- Selon AGENTS.md, si des C# ont changé, les formater une seule fois après toute
+  implémentation, vérification et review, immédiatement avant la réponse finale ;
+  aucune opération ensuite. Respecter les travaux concurrents. Ce formatage
+  n’impose pas un build.
 - Effectuer une revue indépendante bornée pour la conception et les risques de
   concurrence/intégrité selon AGENTS.md ; pas une revue imposée à chaque fiche.
 

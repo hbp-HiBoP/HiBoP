@@ -60,9 +60,8 @@ chaque fiche ni la transformer en batterie de tests.
 
 ## Stabilisation après l’intégration
 
-1. Formater les C# concernés selon AGENTS.md, vérifier les références et compiler
-   la version intégrée. Corriger les erreurs de compilation en regroupant les
-   changements autant que possible.
+1. Vérifier les références et compiler la version intégrée. Corriger les erreurs
+   de compilation en regroupant les changements autant que possible.
 2. Exécuter les tests existants ciblant les chemins modifiés : chargement et
    sauvegarde Desktop, données/calculs, capture/restauration, cycle de vie.
    Ajouter seulement les tests qui protègent un risque réel non couvert.
@@ -77,6 +76,9 @@ chaque fiche ni la transformer en batterie de tests.
 6. Fournir une recette manuelle regroupée : résultat initial, colonnes indépendantes,
    lisibilité et manipulation. Les opérations sans UI sont vérifiées par l’agent,
    pas demandées au propriétaire comme des gestes impossibles.
+7. À la clôture, selon AGENTS.md, si des C# ont changé, les formater une seule fois
+   après toute implémentation, vérification et review, immédiatement avant la
+   réponse finale ; aucune opération ensuite.
 
 Les essais réels doivent couvrir les modalités existantes avec des fixtures
 représentatives, dont plusieurs colonnes ; éviter le produit cartésien de toutes

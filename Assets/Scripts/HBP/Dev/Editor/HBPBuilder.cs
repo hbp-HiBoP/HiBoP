@@ -2,7 +2,9 @@ using HBP.Core.Data;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Profile;
@@ -266,6 +268,7 @@ namespace HBP.Dev
             BuildProfile profile = HBPBuildProfiles.Load(true);
             if (BuildProfile.GetActiveBuildProfile() != profile)
                 throw new BuildFailedException("Quest must be the active Build Profile before building.");
+            ValidateQuestSigning();
             string version = HBPBuildProfiles.ApplyProductVersion();
             WriteBuildInfo(version);
             Directory.CreateDirectory(buildsDirectory);
@@ -291,6 +294,33 @@ namespace HBP.Dev
                 EditorUserBuildSettings.buildAppBundle = bundle;
                 EditorUserBuildSettings.exportAsGoogleAndroidProject = export;
             }
+        }
+
+        public static void ValidateQuestSigning()
+        {
+            // BuildQuest has selected the effective profile. Unity supplies debug signing
+            // credentials itself when a custom keystore is not enabled.
+            if (!PlayerSettings.Android.useCustomKeystore) return;
+
+            const string settings = "Quest Build Profile / Android Publishing Settings";
+            var missing = new List<string>();
+            if (string.IsNullOrEmpty(PlayerSettings.Android.keystoreName))
+                missing.Add("keystore path");
+            else
+            {
+                // Use Unity's build-time resolver, including project-relative and dedicated locations.
+                MethodInfo resolver = typeof(PlayerSettings.Android).GetMethod("GetAndroidKeystoreFullPath", BindingFlags.Static | BindingFlags.NonPublic);
+                if (resolver == null)
+                    throw new BuildFailedException($"Cannot resolve the Quest keystore with this Unity version. Check {settings}.");
+                string path = (string)resolver.Invoke(null, null);
+                if (!File.Exists(path)) missing.Add("existing keystore file");
+            }
+
+            if (string.IsNullOrEmpty(PlayerSettings.Android.keyaliasName)) missing.Add("key alias");
+            if (string.IsNullOrEmpty(PlayerSettings.Android.keystorePass)) missing.Add("keystore password");
+            if (string.IsNullOrEmpty(PlayerSettings.Android.keyaliasPass)) missing.Add("key alias password");
+            if (missing.Count != 0)
+                throw new BuildFailedException($"Quest signing configuration is incomplete: missing {string.Join(", ", missing)}. Configure the existing signing identity in {settings} before building.");
         }
 
         private static void PrepareBuildTarget(BuildTarget target)
