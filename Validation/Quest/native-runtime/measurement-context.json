@@ -1,0 +1,19 @@
+{
+  "description": "Historical standalone hbp_math Android loader/ABI and elementary Windows/Android comparisons, retained separately from full-scene qualification.",
+  "historicalCampaign": "Shared scientific scene, continuation of 2026-09-11",
+  "archiveCommit": "003edbcf53ac2697525dee688b2a9be082159794",
+  "retainedFiles": [
+    {
+      "path": "math-abi-comparison.json",
+      "originalPath": "Docs/dev/quest-autonomous/scene-column-refactor/evidence/final/resume-2026-09-11/math-device-probe.json",
+      "sha256": "a6db1c25bf4479db6d4289d59d420c03c2b246994f70e8aea5efc270beacaef5"
+    },
+    {
+      "path": "math-android-build-context.json",
+      "originalPath": "Docs/dev/quest-autonomous/scene-column-refactor/evidence/final/resume-2026-09-11/math-android-build.json",
+      "sha256": "9b342b340d708b36171609e35a30768e6a4e10d99b49fe0912f1ebf36105e8f2"
+    }
+  ],
+  "scope": "17 public exports and four elementary numerical results. Zero observed deltas are not a universal scientific tolerance or a Unity/headset scene qualification.",
+  "referencePolicy": "Paths inside original records identify historical artifacts; no binaries or original local logs are distributed here. The Android library hash in the comparison must match the build context."
+}

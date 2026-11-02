@@ -71,12 +71,15 @@ palette position. On the brain mesh, eligibility follows the activity field;
 using nearest MRI intensity as another mask creates artificial triangle holes
 in geometry that already defines the anatomical domain.
 
-For cuts, low intensities below the stricter user/tissue-robust threshold are
-background candidates. When robust minimum equals raw minimum, use 5% of the
-range toward the recalculated robust maximum. Only eight-connected candidates
-reaching the cut border are exterior; enclosed dark tissue remains colorable.
-Nonfinite values are excluded. Blur the binary interior mask separately, then
-multiply by its raw mask after projection to prevent exterior halos.
+For cuts, `hbp_core/src/volume/anatomy_support.h` defines intrinsic tissue
+support independently of palette and display window: a finite nonzero value,
+a finite positive robust calibration range, and
+`(value - recomputed_cal_min) / range * 254 >= 1`. This supersedes the older
+5%-threshold/border-flood-fill rule. `CutGeometryGenerator` caches fractional
+coverage from a 4×4 subpixel footprint (binary in Raw mode), with uniform-region
+shortcuts. `CutGenerator` removes black-background contamination when reconstructing
+edge colors and applies that coverage separately from activity values/weights.
+Do not reinstate the old mask or alter scientific influence to fix an edge.
 
 The default-on preferences are independent:
 
@@ -87,9 +90,13 @@ The default-on preferences are independent:
 
 ## Transparency, contours, sites and ROI
 
-Transparent brain surfaces use `ZWrite Off`, `Cull Back`; preserve useful internal
-geometry, sites, cuts, clipping and exports. Historical sorting artifacts are not
-a required behavior. Edges affect only brains/cuts: depth/normals contours for
+Transparent brain surfaces use a dedicated `HBPTransparentBrainSurface` pass
+with `Cull Back` and `ZWrite On` into isolated color/depth targets. The
+`HBPEdgeRendererFeature` composites that surface against scene depth before
+ordinary transparents, even when Edges is disabled. Keep this composition when
+changing contour settings; do not replace it with the former ordinary
+`ZWrite Off` brain blending description. Preserve useful internal geometry,
+sites, cuts, clipping and exports. Edges affect only brains/cuts: depth/normals contours for
 opaque geometry, outer silhouette for transparent geometry. They do not alter
 scientific interiors and remain optional with stable apparent thickness.
 Exclude sites, ROI and interactive camera/cut markers from edge buffers while

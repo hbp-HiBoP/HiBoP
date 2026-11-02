@@ -71,13 +71,20 @@ not a chain of generic Remove/Add/Copy operations or subclass `Copy` as a parser
 Conversions explicitly succeed or fail. Float-to-int needs a finite integral value;
 modern enums convert through their text. Apply min/max/clamp only after semantic
 conversion, and report loss. Ambiguous filter transformations (such as text
-contains into a non-text type) require an explicit removal decision during editing.
+contains into a non-text type) are removed with a warning in the proposed migration
+plan; editing confirms that complete plan, not a separate removal dialog.
 Do not extend a proposed enum schema implicitly while converting its filters.
 
 Prepare writes and validate the complete plan before publication. Failure restores
-memory, owners and bindings. Persist loaded global/base changes transactionally;
+memory, owners and bindings. Persist loaded global/base changes with rollback;
 mark the open project dirty without silently saving it. Closed projects/workspaces
-are migrated on their next opening.
+are migrated on their next opening. Report a failed file restoration explicitly;
+the sequence of saves is not an OS-level atomic multi-file transaction.
+
+Current imports build their policy from `UserPreferences.Data.TagImport`, but
+manual and deferred migrations in `TagCollectionModifier`, `Project`,
+`GlobalDatabase` and `PersistentDataManager` use `TagParsingPolicy.Default`.
+Do not assume customized import tokens also apply to those migrations.
 
 ## Repair on opening
 

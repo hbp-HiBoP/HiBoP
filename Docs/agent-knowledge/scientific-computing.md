@@ -58,7 +58,8 @@ claim about every input format: readers normalize formats into native space.
 `Vector3` means Unity space by default; `Vec3`/`hbp_Vec3` mean native space.
 Arithmetic must combine values in the same space. `Vec3.FromVector3`/`ToVector3`
 normally convert. The current `convertReferenceSystem: false` exceptions are
-`RawSiteList.AddSite(nativePosition)` and unsigned `Volume.Spacing`. A native
+`RawSiteList.AddSite(nativePosition)`, `RawSiteList.GetNativePositions()` (native
+scientific coordinates), and unsigned `Volume.Spacing`. A native
 value temporarily stored in `Vector3` includes `Native` in its name/documentation;
 preserve the conversion allowlist tests. Do not add scattered axis flips, negative
 scene scales or another transform to compensate for an uncertain boundary.

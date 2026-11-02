@@ -1,6 +1,0 @@
-{
-  "finiteExactControl": true,
-  "rejectsNaN": true,
-  "rejectsCategoryMismatch": true,
-  "reportsNumericalDifferenceWithoutAcceptingTolerance": true
-}

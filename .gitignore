@@ -13,7 +13,7 @@
 /.test-results/
 /.native-plugin-update/
 /LoadingBenchmarks/
-/Tools/InflationBaseline/__pycache__/
+/Tools/InflationReference/__pycache__/
 /.codex-temp/
 /.artifacts/
 

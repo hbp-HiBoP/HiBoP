@@ -2,3 +2,6 @@
 /Assets/Plugins/Native/**/*.dll -text
 /Assets/Plugins/Native/**/*.so -text
 /Assets/Plugins/Native/**/*.bundle/** -text
+
+# Keep reference-transform hashes stable across Windows and Unix checkouts.
+/Tools/InflationReference/reference-data/transforms/*.trm text eol=lf

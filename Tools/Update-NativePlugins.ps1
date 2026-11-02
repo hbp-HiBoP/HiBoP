@@ -7,6 +7,9 @@ The script pins the latest commit from the selected branch (master by default),
 dispatches the selected native workflows, waits for the requested platforms,
 validates every artifact manifest, and replaces the Unity plugins as one
 rollback-capable transaction.
+After installation, copies the available native license notices from the same
+source revisions into Licenses/native. Notice download failures are reported
+as warnings and do not gate plugin installation.
 
 .EXAMPLE
 .\Tools\Update-NativePlugins.ps1
@@ -199,6 +202,50 @@ function Invoke-GitHub
         throw "GitHub CLI failed: gh $($Arguments -join ' ')$([Environment]::NewLine)$($output -join [Environment]::NewLine)"
     }
     return $output -join [Environment]::NewLine
+}
+
+function Copy-NativeLicenseNotices
+{
+    param([hashtable]$RepositoryState)
+
+    $apiRoot = "repos/$($RepositoryState.repository)/contents"
+    $ref = $RepositoryState.sourceSha
+    $destination = Join-Path $repositoryRoot "Licenses/native/$($RepositoryState.name)"
+    $notices = @{}
+    # Also picks up an explicit project license if one is introduced later.
+    $entries = Invoke-GitHub -Arguments @('api', "$apiRoot`?ref=$ref") | ConvertFrom-Json
+    foreach ($entry in $entries)
+    {
+        if ($entry.type -eq 'file' -and $entry.name -match '^(LICENSE|LICENCE|COPYING|NOTICE)(\.(txt|md))?$')
+        {
+            $notices[$entry.name] = Invoke-GitHub -Arguments @('api', "$apiRoot/$($entry.path)?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+        }
+    }
+    if ($RepositoryState.name -eq 'hbp_core')
+    {
+        $notices['THIRD_PARTY_NOTICES.md'] = Invoke-GitHub -Arguments @('api', "$apiRoot/docs/third_party/THIRD_PARTY_NOTICES.md?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+    }
+    elseif ($RepositoryState.name -eq 'EEGFormat')
+    {
+        # This older dependency embeds its notices in the source headers.
+        $headers = Invoke-GitHub -Arguments @('api', "$apiRoot/EEGFormat/utf8?ref=$ref") | ConvertFrom-Json
+        $paths = @('EEGFormat/utf8.h') + @($headers | Where-Object { $_.type -eq 'file' -and $_.name -like '*.h' } | ForEach-Object { $_.path })
+        $texts = @($paths | ForEach-Object {
+            $source = Invoke-GitHub -Arguments @('api', "$apiRoot/$_`?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+            [regex]::Match($source, '(?s)\A.*?\*/').Value.Trim()
+        } | Select-Object -Unique)
+        $notices['UTF8-CPP.txt'] = $texts -join "`n`n"
+    }
+    if ($notices.Count)
+    {
+        New-Item -ItemType Directory -Path $destination -Force | Out-Null
+        foreach ($name in $notices.Keys)
+        {
+            Set-Content -LiteralPath (Join-Path $destination $name) -Value $notices[$name] -Encoding utf8
+        }
+        Write-Host "Copied license notices for $($RepositoryState.name)."
+    }
+    else { Write-Host "No standalone license notices in $($RepositoryState.name); see Licenses/INDEX.md for its current status." }
 }
 
 function Invoke-GitHubRawDownload
@@ -1751,6 +1798,12 @@ try
         $state.phase = "rolled_back"
         Write-State -State $state -StatePath $statePath
         throw
+    }
+
+    foreach ($repositoryState in $state.repositories)
+    {
+        try { Copy-NativeLicenseNotices -RepositoryState $repositoryState }
+        catch { Write-Warning "Could not copy license notices for $($repositoryState.name): $($_.Exception.Message)" }
     }
 
     $state.phase = "completed"

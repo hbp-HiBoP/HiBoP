@@ -1,4 +1,4 @@
-"""Deterministic QUEST-020 Desktop fixture; no acquired patient signals.
+"""Deterministic synthetic iEEG Desktop fixture; no acquired patient signals.
 Uses the shipped VISU/FACE protocol, raw uV without normalization, MNI contacts.
 """
 import json
@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / '.artifacts/quest-020/fixture'
 OUTPUT.mkdir(parents=True, exist_ok=True)
-CONTACTS = ROOT / 'Docs/dev/quest-autonomous/fixtures/mni-contacts'
+CONTACTS = ROOT / 'Validation/Quest/fixtures/mni-contacts'
 protocol = json.loads((ROOT / 'Assets/Data/DefaultDatabase/Protocols/VISU.prov').read_text(encoding='utf-8-sig'))
 bloc = next(b for b in protocol['Blocs'] if b['Name'] == 'FACE')
 protocol.update({'Name': 'QUEST-020 synthetic', 'ID': 'quest-020-protocol', 'Blocs': [bloc]})

@@ -1,0 +1,233 @@
+{
+  "description": "Historical measurement context, curated without rerunning the campaign. Original JSON fields selected below are unchanged.",
+  "historicalTask": "QUEST-024",
+  "archiveCommit": "003edbcf53ac2697525dee688b2a9be082159794",
+  "originalManifest": {
+    "path": "Docs/dev/quest-autonomous/evidence/QUEST-024/manifest.json",
+    "sha256": "8f1930491d4ba0dd4aca12814fe799a3022dbfcdfe93c33bc9aaf5aa562d1017"
+  },
+  "referencePolicy": "Paths inside original records are historical provenance, not current runnable commands or guaranteed available artifacts. Resolve relocated records with retainedFiles; recover other versioned records from archiveCommit.",
+  "retainedFiles": [
+    {
+      "path": "mni-comparison-results.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/mni-parity-revision-2.json",
+      "sha256": "3059b417538b410bdf2959e37085270389f8afc101ff92c9dc3b6a86bc1d8c34"
+    },
+    {
+      "path": "synthetic-patient-comparison-results.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-parity.json",
+      "sha256": "4a021152f7d719df6fc843cc999b9bf24e36210967759e3e8955169a2d1547a1"
+    },
+    {
+      "path": "mni-warm-repeat-comparison.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/quest-mni-revision-2-repeat.json",
+      "sha256": "41eb60e6bdcbacbae5bd5a4ce0b7a3df0d64f60daf85e270ebe29380f3b25ce5"
+    },
+    {
+      "path": "synthetic-patient-warm-repeat-comparison.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-quest-repeat.json",
+      "sha256": "40a4193426fba9ea228054ce7058f1c57e04e9c1ac2388d0bf808ca5e79dc01a"
+    },
+    {
+      "path": "mni-offline-repeat-comparison.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/mni-outage-revision-2-repeat.json",
+      "sha256": "5cdc16f1ffa118c705a6d778ae028d3d45146e9b9c1484117bbe1566f9c52b0c"
+    },
+    {
+      "path": "synthetic-patient-offline-repeat-comparison.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-outage-repeat.json",
+      "sha256": "a6eb189a3862756b09de178e1a9dc6e4ecbfbda5e859716dd2b12e5dc790d7b2"
+    },
+    {
+      "path": "mni-and-desktop-resource-measurements.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/runtime-memory-revision-2.json",
+      "sha256": "9d12ff304a7fa13a822f33fd5a1b2c8fe28e7a34e879bc93b1b3de89246f6d3d"
+    },
+    {
+      "path": "synthetic-patient-resource-measurements.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/patient-final-runtime-memory.json",
+      "sha256": "d18fdeaccec646cdf76fc15f3800120055fcb02b7c2f2deaef9d73179dbaa94d"
+    },
+    {
+      "path": "numerical-acceptance.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/scientific-acceptance.json",
+      "sha256": "d5d9f2f4b8705fa72de4cd6ec8470e8540fb95312b93e4e78506cc75e708fee4"
+    },
+    {
+      "path": "device-validation.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/manual-validation.json",
+      "sha256": "3727c28666a883e9d8acc23b8d2c6b7e67c71983962ba1d3c96f7c53b1d7c8b8"
+    },
+    {
+      "path": "synthetic-patient-provenance.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/prototype-patient-provenance.json",
+      "sha256": "c4a01de6c49ae78fc1eed09700c7f846f1153f0f5942a3f05a03acfd4c7d1a5e"
+    },
+    {
+      "path": "player-provenance.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/players-revision-2.json",
+      "sha256": "df6e1d7822a387afe97532cdd6f16d47f90dea74ef076b3d41bfb5653e647524"
+    }
+  ],
+  "originalManifestFields": {
+    "recordedUtc": "2026-09-14T10:47:28.284125+00:00",
+    "sourceBase": "03cd45220b2082902a33b59682086f43ab03cb93",
+    "invalidUnityVerdicts": {
+      "unity/complete-scene.xml": "Canceled Task reported Passed by Unity; no final marker.",
+      "unity/desktop-mni.xml": "Ten cuts tests valid; desktop/restored integration incomplete despite Passed.",
+      "unity/resource-count-before.xml": "Incorrect test filter selected zero tests; no validation."
+    },
+    "currentConclusions": {
+      "integrationFinal": "4/4 tests plus complete exports and final markers, scene-final.xml",
+      "editorParity": "MNI:72 buffers+12 cut textures exact; patient:78 buffers+12 cut textures exact",
+      "revision1Windows": "Three successful MNI passes, exact scientific repeat/regression; FAILED memory stability: +22 meshes and approximately116MB each pass",
+      "revision2Cuts": "10/10 tests passed including warmed mesh count stability, resource-sharedmesh-fixed.xml",
+      "revision2Players": "Windows and Android built; installed APK hash verified, players-revision-2.json",
+      "revision2MNI": "3 Quest passes with stable meshes/textures/materials and memory; exact warm and outage repeats; owner validated gestures during60.292s outage",
+      "patientFixture": "Corrected synthetic MNI-derived patient recipe visually validated on Desktop and Quest; three Quest passes stable at21 meshes/48 textures/56 materials, warm and outage repeats exact; owner validated60.163s outage.",
+      "firstPatientFinalCollection": "ADB pull completed but stderr progress triggered PowerShell Stop; original wrapper failure preserved, all diagnostic files verified independently; wrapper fixed and subsequent runs successful.",
+      "scientificAcceptance": "Owner explicitly accepted absolute activity5e-7/alpha2e-7 for MNI and corrected synthetic patient fixtures on revision2 binaries only; both pass, raw comparisons remain strict."
+    },
+    "transportScope": "USB only; Wi-Fi not qualified.",
+    "knownLimits": [
+      "USB transport only; Wi-Fi untested.",
+      "Small retained empty mesh growth on Desktop; absent from three Quest passes on both final fixtures.",
+      "Patient fixture is synthetic and MNI-derived, not real patient data.",
+      "Three recalculation passes per fixture; long endurance and exhaustive frame-time qualification not performed.",
+      "Mac/Linux and future features/UI outside this prototype qualification."
+    ],
+    "qualifiedScope": "Windows and Quest3 prototype, MNI and corrected synthetic patient fixtures, revision2 binaries, USB transfer and60s disconnect, three repeated diagnostic passes and owner visual/gesture validation."
+  },
+  "extractedSources": [
+    {
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/source-final.json",
+      "sha256": "71b8309368de669c7665003d29efa562a224f274b2d93aa9ec62cf0f8b1499b7",
+      "storedAt": "source"
+    },
+    {
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-024/source-final-format-verification.json",
+      "sha256": "6df81e7ee55ca95dac1d36c990a098a2995bba04e0b9fd5680511883893f88b1",
+      "storedAt": "compiledSourceAdjustment"
+    }
+  ],
+  "source": {
+    "recordedUtc": "2026-09-14T10:43:42.926439+00:00",
+    "baseCommit": "03cd45220b2082902a33b59682086f43ab03cb93",
+    "compiledSourceCheckpoint": "source-revision-2.json",
+    "csharp": [
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs",
+        "sha256": "9616de37e72c00dc1a0e11a0a7b4bc9fbbd7c890cb0d868ac9462ac2d0d29a8c",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Column3D.cs",
+        "sha256": "70e149d04607b2645a3fe17d0747ebbe62352383d33c3e8fcc12a0d9327f90de",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/AtlasManager.cs",
+        "sha256": "ffeb6519c2ba0ceb05dd3c9f41c2641f4f01f5e7275c3eb65a8cdc07a7c535c6",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/CutTexturesUtility.cs",
+        "sha256": "7d9477aecfd4e0dd2b857f9702ff7af21c4cd4b5cd5d8cbe9f9a8f0611a1664d",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/DisplayedObjects.cs",
+        "sha256": "076e22e9e59e0765394a4d464f4492f5ffb97e9325241ce1bb046521d0d67769",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/FMRIManager.cs",
+        "sha256": "082331fee7b5773910b970020cffa0cf31060037f7d39f62edb46e775f14bb73",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/MeshManager.cs",
+        "sha256": "d5fd2b9cfd48e9639e75d9074b54c9755a7c742347817830212e6956cc99c1fc",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Data/Module3D/Modules/TriangleEraser.cs",
+        "sha256": "4eca70a3db29e1ee8b3583a1215daf02b706635d896c16e0410c5ac975d5d8a4",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Dev/SceneQualificationDiagnostic.cs",
+        "sha256": "7326769c35edae00a93e2297f8dfd939983d857e468344d7dc1d13cdf5eaf646",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+        "sha256": "1f199110135291774c6080d593c81ba295454df59373cc6ceee314c424f8a26e",
+        "matchesCompiledSource": false,
+        "verifiedFormattingOnly": true
+      },
+      {
+        "path": "Assets/Tests/EditMode/HBP.Transfer.Anatomy.Desktop.Tests/DensityProjectionTests.cs",
+        "sha256": "a705340296eabe1610faf45299f84130704d5be9349c7a03bd6d2fdd74464ee1",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/CutsTriangleErasingPlayModeTests.cs",
+        "sha256": "16ef1c8f0646ea4d8a1de6c8041e72617cee560e5e4ce34ed27099d4f6962611",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      },
+      {
+        "path": "Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs",
+        "sha256": "fde68bc6b9ceff38aecd12633b5019f01abf72e5f493f6ad816805a1e06470bf",
+        "matchesCompiledSource": true,
+        "verifiedFormattingOnly": false
+      }
+    ],
+    "tools": [
+      {
+        "path": "Tools/Compare-SceneQualification.py",
+        "sha256": "351a029d50da0f891ade1ef9ed776e8fd0a47de73a0ec9e0cd36f4e33e551e71"
+      },
+      {
+        "path": "Tools/Test-SceneQualificationComparator.py",
+        "sha256": "1f19128a62cb3a0445578e41e6663260816498a1d5587f1a0261a7e06c5ed571"
+      },
+      {
+        "path": "Tools/Prepare-QuestPrototypePatientFixture.py",
+        "sha256": "8daf3cc9bb4e43c02dcec750ec636f4949abe784162455c4905d0cdcd2c5f3d4"
+      },
+      {
+        "path": "Tools/Run-SceneQualification.ps1",
+        "sha256": "6070264675a01e2937db5873a0dbe08cf1dfe2830550e0b995bfc86a0ef22b3d"
+      },
+      {
+        "path": "Tools/Run-QuestSceneQualification.ps1",
+        "sha256": "fc5e40a75fd0cc4f8569971d6d237b56eb839f2c0a106ae5acf140c32767039c"
+      },
+      {
+        "path": "Tools/Run-QuestPrototypePatientValidation.cmd",
+        "sha256": "b8837aa96cae854bb16e5a2f36d34232893ffc419017cd46442255ddc21342ab"
+      }
+    ]
+  },
+  "compiledSourceAdjustment": {
+    "sourceCheckpoint": ".test-results/quest-024/source-revision-2.json",
+    "changedFile": "Assets/Scripts/HBP/Transfer/Scene/SceneQualification.cs",
+    "change": "Final formatter normalized one LF line ending to CRLF only; all other bytes match the build checkpoint.",
+    "line": 192,
+    "currentSha256": "1f199110135291774c6080d593c81ba295454df59373cc6ceee314c424f8a26e",
+    "buildSha256": "155cb3dc18734382ea21198e1fc8e321bf8ab141b17ef19b4b8437f58622bfd5",
+    "matchesBuildExceptSingleLineEnding": true
+  }
+}

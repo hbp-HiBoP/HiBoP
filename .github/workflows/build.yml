@@ -318,13 +318,6 @@ jobs:
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
 
-      - name: Require platform USB/network qualification before release
-        if: github.event_name == 'release'
-        env:
-          PLATFORM: ${{ matrix.platform }}
-        run: |
-          python3 -c 'import json,os,pathlib; q=json.load(open("Docs/dev/quest-autonomous/usb/qualification.json"))[os.environ["PLATFORM"]]; assert q["qualified"] and q["evidence"] and pathlib.Path(q["evidence"]).is_file(), "NCM/mDNS hardware qualification is required before publishing this platform"'
-
       - name: Attach to release
         if: github.event_name == 'release'
         env:

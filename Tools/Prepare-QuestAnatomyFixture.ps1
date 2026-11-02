@@ -7,7 +7,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$fixtureRoot = Join-Path $repositoryRoot "Docs/dev/quest-autonomous/fixtures/$Fixture"
+$fixtureRoot = Join-Path $repositoryRoot "Validation/Quest/fixtures/$Fixture"
 $manifest = Get-Content -LiteralPath (Join-Path $fixtureRoot 'manifest.json') -Raw | ConvertFrom-Json
 foreach ($source in $manifest.sources) {
     $sourcePath = Join-Path $repositoryRoot $source.path

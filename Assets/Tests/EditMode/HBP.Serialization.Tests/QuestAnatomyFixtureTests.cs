@@ -65,7 +65,7 @@ namespace HBP.Tests.Serialization
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
-            string sources = Path.Combine(RepositoryRoot, "Docs/dev/quest-autonomous/fixtures/mni-anatomy");
+            string sources = Path.Combine(RepositoryRoot, "Validation/Quest/fixtures/mni-anatomy");
             string archivePath = Path.Combine(temp.Path, "quest-mni-anatomy.hibop");
             using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
             {
@@ -148,7 +148,7 @@ namespace HBP.Tests.Serialization
             using TempDirectoryScope temp = new();
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
-            string sources = Path.Combine(RepositoryRoot, "Docs/dev/quest-autonomous/fixtures/mni-contacts");
+            string sources = Path.Combine(RepositoryRoot, "Validation/Quest/fixtures/mni-contacts");
             string archivePath = Path.Combine(temp.Path, "quest-mni-contacts.hibop");
             using (ZipArchive archive = ZipFile.Open(archivePath, ZipArchiveMode.Create))
             {

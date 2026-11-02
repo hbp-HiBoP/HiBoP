@@ -74,7 +74,9 @@ xattr -rc HiBoP.app
 Copyright © 2026  
 Benjamin BONTEMPS, Adrien GANNERIE, Florian LANCE
 
-This license allows unrestricted use, modification, and redistribution of the software, while prohibiting the use of the author's name for endorsement without permission. See the [`LICENSE`](LICENSE) file for details.
+See the [`LICENSE`](LICENSE) file for the permissions and conditions applying to HiBoP's own code. Bundled libraries and third-party resources retain their separate licenses; HiBoP's BSD-3-Clause license does not relicense them.
+
+See [Licenses and credits](Licenses/INDEX.md) for dependency licenses, native library status and third-party notices.
 
 ## Acknowledgements
 
@@ -85,21 +87,3 @@ This open source software code was developed in part or in whole in the [Human B
 ### EBRAINS 2.0
 
 This project has received funding from the European Union's Research and Innovation Program Horizon Europe under Grant Agreement [No. 101147319](https://doi.org/10.3030/101147319) (EBRAINS 2.0).
-
-### Used third-party resources
-
-#### Unity / C\#
-
-*  [DotNetZip](https://archive.codeplex.com/?p=dotnetzip)
-*  [Unity Standalone File Browser](https://github.com/gkngkc/UnityStandaloneFileBrowser)
-*  [Unity UI Extensions](https://bitbucket.org/UnityUIExtensions/unity-ui-extensions)
-
-#### C++
-
-*  [Boost](https://www.boost.org/)
-*  [zlib](https://www.zlib.net/)
-*  [OpenCV](https://opencv.org/) with [Plot contribution](https://github.com/opencv/opencv_contrib/tree/master/modules/plot)
-*  [Json for Modern C++](https://github.com/nlohmann/json)
-*  [NiftiLib](http://niftilib.sourceforge.net/)
-*  [Fast Quadric Mesh Simplification](https://github.com/sp4cerat/Fast-Quadric-Mesh-Simplification)
-*  [GPC](http://www.cs.man.ac.uk/~toby/gpc/)

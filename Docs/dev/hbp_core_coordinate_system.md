@@ -1,34 +1,36 @@
-# hbp_core coordinate-system integration
+# Frontière de coordonnées hbp_core / Unity
 
-HiBoP applies one project-level spatial convention at the `hbp_core` boundary:
+Les lecteurs natifs normalisent leurs formats dans le repère scientifique
+natif droitier. La frontière HiBoP vers la scène Unity gauchère applique une
+seule réflexion : `R = diag(-1, 1, 1)`, donc `p_unity = R * p_native` et
+`p_native = R * p_unity`. Ce n’est pas une affirmation universelle sur les
+coordonnées brutes de chaque format d’entrée.
 
-```text
-R = diag(-1, 1, 1)
+| Donnée | Conversion |
+|---|---|
+| Points, directions, normales, sommets | Réflexion X une fois |
+| Triangles | Inversion du winding une fois avec la réflexion |
+| Bounding box | Conversion puis recalcul min/max |
+| Affine | `A_unity = R * A_native * R` |
+| Rotation | Matrice conjuguée; pas un changement arbitraire de composante quaternion |
+| Distances, rayons, dimensions, spacing, indices, UV, couleurs, labels | Aucune réflexion |
 
-p_unity  = R * p_native
-p_native = R * p_unity
-```
+`Vector3` est Unity par défaut; `Vec3`/`hbp_Vec3` sont natifs. Les conversions
+`Vec3.FromVector3` et `ToVector3` reflètent X. Les exceptions explicites actuelles
+à `convertReferenceSystem` sont `RawSiteList.AddSite(nativePosition)`,
+`RawSiteList.GetNativePositions()` (coordonnées scientifiques natives) et
+`Volume.Spacing` (magnitudes non signées). Un `Vector3` temporairement natif doit
+être identifiable comme tel; les calculs ne mélangent jamais les deux repères.
 
-The convention is based on the following invariants:
+La production charge `hbp_core` depuis `Assets/Plugins/Native/` par plateforme.
+`Assets/Plugins/Editor/LegacyNative/` conserve `hbp_export` comme oracle de tests,
+sans fallback runtime. Ne pas appliquer une adaptation legacy à un résultat
+déjà converti par le wrapper actuel.
 
-- `UnityEngine.Vector3` is in Unity's left-handed scene space by default;
-- `HBP.Core.DLL.Vec3` and `hbp_Vec3` are in hbp_core's native right-handed space by default;
-- normal `Vector3`/`Vec3` conversion reflects X;
-- spatial arithmetic never mixes the two spaces;
-- a `Vector3` that intentionally stores native coordinates includes `Native` in its name and documentation.
-
-The only current calls using `convertReferenceSystem: false` are:
-
-- `RawSiteList.AddSite`, because `nativePosition` is explicitly a native position stored in a `Vector3`;
-- `Volume.Spacing`, because spacing is an unsigned component magnitude.
-
-Points, directions and normals reflect X. Mesh triangle winding is reversed once because a one-axis reflection changes handedness. Bounding boxes are converted by reflecting their corners and recomputing min/max. Native affine transformations are exposed through `A_unity = R * A_native * R`.
-
-Distances, radii, dimensions, spacing, indices, UVs, colors, masks and labels are not reflected.
-
-Production uses `hbp_core` only. The former `hbp_export` backend is retained only
-as an editor-side parity-test oracle, not as a runtime fallback. Legacy-coordinate
-adaptation belongs to those test bridges and must never run on values already
-returned in Unity space by `hbp_core`.
-
-The detailed native contract and the permanent test obligations are maintained in `hbp_core/docs/coordinate_system_contract.md`.
+Références : [types de valeur](../../Assets/Scripts/HBP/Core/DLL/HbpCoreValueTypes.cs),
+[transformations](../../Assets/Scripts/HBP/Core/DLL/Transformation3.cs),
+[bounds](../../Assets/Scripts/HBP/Core/DLL/BBox.cs),
+[sites natifs](../../Assets/Scripts/HBP/Core/DLL/Electrodes.cs),
+[contrat du dépôt natif voisin](../../../hbp_core/docs/coordinate_system_contract.md).
+Vérifier bounds asymétriques, winding/normales, affines obliques et distances
+site/coupe; une sphère symétrique ne détecte pas une double réflexion.
