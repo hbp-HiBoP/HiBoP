@@ -2,16 +2,16 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Serial,
-    [string]$Apk = "$PSScriptRoot/../.artifacts/quest-016/Android/HiBoP.Quest.apk",
+    [Parameter(Mandatory)][string]$Apk,
     [ValidateRange(1, 5)][int]$Repetitions = 3,
     [switch]$SkipInstall,
-    [string]$AdbPath = 'C:/Android/Sdk/platform-tools/adb.exe'
+    [string]$AdbPath = 'adb'
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path -Parent $PSScriptRoot
 $package = 'fr.crnl.hibop.quest'
 $remote = "/sdcard/Android/data/$package/files"
-$run = "$repo/.test-results/quest-016/device-$([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss'))"
+$run = "$repo/.test-results/native-probe/device-$([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss-fff'))"
 New-Item -ItemType Directory -Force -Path $run | Out-Null
 $commands = [Collections.Generic.List[object]]::new()
 $results = [Collections.Generic.List[object]]::new()

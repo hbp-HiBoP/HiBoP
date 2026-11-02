@@ -10,6 +10,10 @@ without reopening an old plan. This does not request a bulk rename of existing t
 Use synthetic/anonymized fixtures and the existing versioned MNI fixtures where
 appropriate. Automated tests must be reconstructible on another workstation,
 without private datasets or unexplained local `.artifacts` prerequisites.
+`SyntheticSceneProjectFixture` in `HBP.PlayModeTestUtilities` generates the shared
+iEEG/multimodal archives from versioned inputs into test-owned temporary paths;
+both serialization and scene-restoration tests use it directly. Its historical
+IDs/type shapes are compatibility fixtures, not dependencies on old builds.
 Use the existing state scopes to restore paths, statics and singletons after tests,
 including failure/teardown: a later Play session must not inherit temporary paths.
 

@@ -1,39 +1,19 @@
 # Fixture iEEG synthétique sur anatomie MNI
 
-Générer depuis la racine du dépôt :
+Le test `QuestAnatomyFixtureTests.IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples`
+construit cette fixture automatiquement dans son répertoire temporaire avec
+[SyntheticSceneProjectFixture](../../../Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/SyntheticSceneProjectFixture.cs).
+Les sources sont le protocole VISU/FACE et les
+[contacts synthétiques MNI](mni-contacts/contacts-fixture.md), tous versionnés.
+Aucune préparation Python, ancien Player ou entrée `.artifacts` n'est nécessaire.
 
-```powershell
-python Tools/Prepare-QuestIEEGFixture.py
-```
-
-Résultat local : `.artifacts/quest-020/fixture/quest-mni-ieeg.hibop`, protocole
-`quest-020.prov` et deux triplets BrainVision `synthetic-left/right.vhdr/.vmrk/.eeg`.
-Le générateur et les [contacts synthétiques MNI](mni-contacts/contacts-fixture.md) sont les sources versionnées.
-Le protocole synthétique reprend la fenêtre FACE de VISU (-500 à 1000 ms), sans
-traitement, avec des identifiants propres à cette fixture. La normalisation de
-chaque source vaut `None`. Aucun signal acquis n'est utilisé.
-
-Le lanceur historique `Tools/Run-QuestIEEGCapture.ps1 -Index 50 -KeepOpen`
-attend l'ancien Player de capture iEEG à son chemin 6.1.0 codé en dur ; il n'est pas un
-lanceur générique du Player courant. Pour reproduire ce diagnostic, vérifier
-le binaire visé et ses options. Il ajoute `-questIEEGProtocol` **avant** `-pf` : ce
-diagnostic de développement charge le protocole dans la mémoire du Player,
-sans écrire dans la base personnelle. L'archive seule ne contient pas de protocole
-importable par le chargeur de projets ; son ouverture sans ce lanceur peut donc
-aboutir au mode récupération. Les chemins des signaux sont générés pour le
-checkout courant ; régénérer la fixture après déplacement du dépôt.
-
-Si PowerShell bloque l'exécution des scripts, utiliser une autorisation limitée
-à ce lancement :
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\HBP\Software\HiBoP\Tools\Run-QuestIEEGCapture.ps1" -Index 50 -KeepOpen
-```
-
-Sans `-KeepOpen`, le lanceur utilise le mode batch du Player avec périphérique
-graphique et quitte après la capture. `-captureIEEGIndex` demande explicitement
-la préparation iEEG si nécessaire ; il ne modifie pas la préférence utilisateur
-de calcul automatique et refuse un avertissement de couverture de projection.
+La génération produit l'archive, le protocole et deux triplets BrainVision
+`synthetic-left/right.vhdr/.vmrk/.eeg`. Le protocole est installé dans l'état
+isolé du test avant le chargement du projet : une archive HiBoP ne remplace pas
+les protocoles globaux. Les fichiers et les rapports générés sont temporaires.
+La fenêtre FACE de VISU (-500 à 1000 ms) et la normalisation `None` sont conservées.
+Aucun signal acquis n'est utilisé. Les anciennes recettes de capture Player
+restent consultables dans Git, avec les résultats historiques ci-dessous.
 
 La visualisation `MNI iEEG` contient une colonne `Synthetic uV`, les huit contacts
 MNI décrits dans la fixture de contacts et 151 échantillons préparés à 100 Hz. Chaque patient possède

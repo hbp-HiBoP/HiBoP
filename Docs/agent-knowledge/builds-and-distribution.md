@@ -25,6 +25,13 @@ integrity are governed by [Runtime and state](runtime-and-state.md).
 
 ## Native artifacts and signing
 
+Versioned tools must be reproducible from versioned sources/configuration and
+declared toolchains or hash-pinned dependencies. Never require an unexplained
+pre-existing `.artifacts` build, fixture, capture or workstation-specific path.
+Generated outputs/caches are allowed when the tool creates or acquires them;
+builds and measurements being inspected must be explicit inputs. Prefer the
+owning native repository's build tooling and `Assets/Tests` for product tests.
+
 Use the [native updater](../../Tools/Update-NativePlugins.ps1) and its help, not
 manual copies. Quest requires both `libhbp_core.so` and `libhbp_math.so`.
 For each library, the Desktop/Android pair being qualified must use the same

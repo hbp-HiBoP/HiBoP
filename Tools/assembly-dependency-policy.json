@@ -83,6 +83,7 @@
     "HBP.Serialization.Tests -> HBP.Core.Runtime",
     "HBP.Serialization.Tests -> HBP.Data.Runtime",
     "HBP.Serialization.Tests -> HBP.Dev.Editor",
+    "HBP.Serialization.Tests -> HBP.PlayModeTestUtilities",
     "HBP.Sync.Runtime -> HBP.Core.Runtime",
     "HBP.Sync.Scene -> HBP.Core.Runtime",
     "HBP.Sync.Scene -> HBP.Data.Runtime",

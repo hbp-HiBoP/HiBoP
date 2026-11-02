@@ -3,7 +3,7 @@
 param(
     [Parameter(Mandatory)][string]$Serial,
     [Parameter(Mandatory)][string]$Evidence,
-    [string]$AdbPath = 'C:/Android/Sdk/platform-tools/adb.exe',
+    [string]$AdbPath = 'adb',
     [ValidateRange(1, 3)][int]$Passes = 2,
     [switch]$UsbOutage
 )
@@ -127,4 +127,4 @@ finally {
         $commands | ConvertTo-Json -Depth 6 | Set-Content "$Evidence/commands.json"
     }
 }
-# Keep the scene available for the owner's visual checks. Stop HiBoP only after that feedback (D23).
+# Keep the scene available for visual checks after collecting numerical evidence.

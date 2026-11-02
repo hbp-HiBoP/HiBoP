@@ -42,16 +42,11 @@ contact de la liste transportée ; ils sont capturés séparément de la visibil
 
 ## Reproduire
 
-Depuis `C:\HBP\Software\HiBoP` :
-
-```powershell
-.\Tools\Prepare-QuestAnatomyFixture.ps1 -Fixture mni-contacts -OutputDirectory .artifacts/quest-013/fixture
-```
-
-Archive déterministe :
-`C:\HBP\Software\HiBoP\.artifacts\quest-013\fixture\quest-mni-contacts.hibop`.
-Le script vérifie les sources, normalise UTF-8/LF et fixe les dates ZIP.
-La fixture anatomique existante reste accessible avec `-Fixture mni-anatomy`.
+Le test `QuestAnatomyFixtureTests.ContactsArchive_LoadsStableSyntheticPatientsAndMniAssociations`
+reconstruit l'archive dans un dossier temporaire à partir des fichiers de ce
+répertoire, puis vérifie ses patients, coordonnées et associations MNI.
+La fixture iEEG et les projets multimodaux réutilisent ces mêmes sources via
+`SyntheticSceneProjectFixture`. Aucun artefact local préexistant n'est requis.
 
 Pour la review propriétaire, examiner le tableau et les fichiers source ; aucun
 casque requis. La [synthèse de validation](../../../../Docs/dev/quest-autonomous/validation.md) décrit la portée

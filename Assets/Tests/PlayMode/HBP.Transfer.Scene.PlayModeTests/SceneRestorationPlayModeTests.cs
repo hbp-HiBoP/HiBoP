@@ -1744,86 +1744,101 @@ namespace HBP.Tests.SceneTransfer
 
         private static async Task DesktopProjectScenarioAsync(string fixtureName)
         {
-            string fixture = Path.GetFullPath(".artifacts/scene-008/fixture/" + fixtureName + ".hibop");
-            Assert.That(File.Exists(fixture), Is.True, "Run Tools/Prepare-SceneQualificationFixture.py.");
             using var temp = new PlayModeTempDirectoryScope();
+            string fixtureDirectory = Path.Combine(temp.Path, "fixture");
+            SyntheticSceneProjectFixture.CreateMultimodal(Path.GetFullPath("."), fixtureDirectory);
+            string fixture = Path.Combine(fixtureDirectory, fixtureName + ".hibop");
             using var app = new PlayModeApplicationStateScope(temp.Path);
             typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Public | BindingFlags.Static).SetValue(null, Path.GetFullPath("Assets/Data"));
             using var settings = new PlayModePersistentDataScope(temp.Path);
             using var scope = new PlayModeSceneScope("FullDesktopScene");
-            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
-            await PrepareReferencesAsync();
-            // Two complete buffer exports plus installed-reference hashing exceed four
-            // minutes on the Editor's Mono runtime; Players are measured separately.
-            using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(6));
-            var clock = System.Diagnostics.Stopwatch.StartNew();
-            var token = timeout.Token;
-            var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.GetFullPath(".artifacts/scene-008/fixture/scene-008.prov"));
-            Core.Database.DatabaseManager.Database.SetProtocols(new[] { protocol });
-            var info = new ProjectInfo(fixture);
-            var project = new Project(info.Name, new ProjectPreferences("placeholder"));
-            ApplicationState.LoadedProject = project;
-            ApplicationState.LoadedProjectLocation = temp.Path;
-            await project.LoadAsync(info, (_, _, _) => { }, token);
-            await project.CurrentLoadingOperation.EnsureValidatedAsync(token);
-            Assert.That(project.StructuralRecoveryReport.HasIssues, Is.False);
-            var model = project.Visualizations.Single();
-            Assert.That(model.IsVisualizable, Is.True, "Incompatible columns: " + string.Join(", ", model.Columns.Where(c => !c.IsCompatible(model.Patients)).Select(c => c.Name)));
-            await model.LoadAsync((_, _, _) => { }, token);
-            Debug.Log($"Scene qualification {fixtureName}: project/model loaded in {clock.Elapsed.TotalSeconds:F1}s.");
-            await UniTask.SwitchToMainThread();
-            var desktop = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
-            var quest = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+            DataManager.Clear();
             try
             {
-                desktop.Initialize(model);
-                await desktop.InitializeAsync(model, (_, _, _) => { }, token);
-                await desktop.CompleteInitializationAsync(null, null, token);
-                await desktop.PrepareRenderingAsync(token);
-                Debug.Log($"Scene qualification {fixtureName}: Desktop prepared at {clock.Elapsed.TotalSeconds:F1}s.");
-                Assert.That(desktop.Columns.Count, Is.EqualTo(6));
-                Assert.That(desktop.Columns.All(c => c.Views.Count == 1), Is.True);
-                var ccep = desktop.Columns.OfType<Column3DCCEP>().Single();
-                ccep.SelectedSourceSite = ccep.Sources.First();
-                await desktop.PrepareRenderingAsync(token);
-                Assert.That(ccep.ActivityValues.Any(v => v != 0), Is.True);
-                await SceneQualification.RunAsync(desktop, Path.GetFullPath(".artifacts/scene-008/editor-desktop-" + fixtureName), token);
-                Debug.Log($"Scene qualification {fixtureName}: Desktop diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
-                var globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = PersistentDataManager.Tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
-                using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop, "desktop", "qualification", 1, globals, token);
-                string file = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
-                var archive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, globals);
-                await quest.ApplyAsync(archive.Read(file), archive, token);
-                byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
-                var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
-                var desktopBinding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
-                var questBinding = PreparedSceneDeliveryBinding.FromPublished(receipt, quest.PublishedScene);
-                using var desktopBoundary = new SceneMutationBoundary(desktop, OriginDevice.Desktop);
-                using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
-                desktopBoundary.BindPreparedResources(desktopBinding);
-                questBoundary.BindPreparedResources(questBinding);
+                PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = true;
+                await PrepareReferencesAsync();
+                // Two complete buffer exports plus installed-reference hashing exceed four
+                // minutes on the Editor's Mono runtime; Players are measured separately.
+                using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+                var clock = System.Diagnostics.Stopwatch.StartNew();
+                var token = timeout.Token;
+                var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.Combine(fixtureDirectory, "scene-008.prov"));
+                Core.Database.DatabaseManager.Database.SetProtocols(new[] { protocol });
+                var info = new ProjectInfo(fixture);
+                var project = new Project(info.Name, new ProjectPreferences("placeholder"));
+                ApplicationState.LoadedProject = project;
+                ApplicationState.LoadedProjectLocation = temp.Path;
+                await project.LoadAsync(info, (_, _, _) => { }, token);
+                await project.CurrentLoadingOperation.EnsureValidatedAsync(token);
+                Assert.That(project.StructuralRecoveryReport.HasIssues, Is.False);
+                var model = project.Visualizations.Single();
+                Assert.That(model.IsVisualizable, Is.True, "Incompatible columns: " + string.Join(", ", model.Columns.Where(c => !c.IsCompatible(model.Patients)).Select(c => c.Name)));
+                await model.LoadAsync((_, _, _) => { }, token);
+                Debug.Log($"Scene qualification {fixtureName}: project/model loaded in {clock.Elapsed.TotalSeconds:F1}s.");
+                await UniTask.SwitchToMainThread();
+                var desktop = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"), scope.Root.transform).GetComponent<Base3DScene>();
+                var quest = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestAnatomy.prefab"), scope.Root.transform).GetComponent<QuestAnatomyView>();
+                try
+                {
+                    desktop.Initialize(model);
+                    await desktop.InitializeAsync(model, (_, _, _) => { }, token);
+                    await desktop.CompleteInitializationAsync(null, null, token);
+                    await desktop.PrepareRenderingAsync(token);
+                    Debug.Log($"Scene qualification {fixtureName}: Desktop prepared at {clock.Elapsed.TotalSeconds:F1}s.");
+                    Assert.That(desktop.Columns.Count, Is.EqualTo(6));
+                    Assert.That(desktop.Columns.All(c => c.Views.Count == 1), Is.True);
+                    var ccep = desktop.Columns.OfType<Column3DCCEP>().Single();
+                    ccep.SelectedSourceSite = ccep.Sources.First();
+                    await desktop.PrepareRenderingAsync(token);
+                    Assert.That(ccep.ActivityValues.Any(v => v != 0), Is.True);
+                    string desktopEvidence = Path.Combine(temp.Path, "desktop-evidence");
+                    await SceneQualification.RunAsync(desktop, desktopEvidence, token);
+                    AssertSixModalitiesEvidence(desktopEvidence);
+                    Debug.Log($"Scene qualification {fixtureName}: Desktop diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
+                    var globals = new PairingContext(new GlobalDataPayload { Preferences = PersistentDataManager.UserPreferences, Tags = PersistentDataManager.Tags, Protocols = new() { protocol }, Aliases = PersistentDataManager.Aliases, Grid = Core.DLL.ActivityProjectionSettings.VolumeGridDimension, Interpolation = Core.DLL.ActivityProjectionSettings.VolumeInterpolation });
+                    using var delivery = await DesktopSceneCapture.CaptureDeliveryAsync(desktop, "desktop", "qualification", 1, globals, token);
+                    string file = (string)typeof(SceneDelivery).GetField("file", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(delivery);
+                    var archive = new SceneArchive(Path.Combine(temp.Path, "quest"), true, globals);
+                    await quest.ApplyAsync(archive.Read(file), archive, token);
+                    byte[] digest = Enumerable.Range(0, 32).Select(index => Convert.ToByte(delivery.ContentHash.Substring(index * 2, 2), 16)).ToArray();
+                    var receipt = new HBP.Transfer.Transport.DeliveryReceipt(digest, HBP.Transfer.Transport.DeliveryStatus.Published);
+                    var desktopBinding = PreparedSceneDeliveryBinding.FromSent(delivery, receipt);
+                    var questBinding = PreparedSceneDeliveryBinding.FromPublished(receipt, quest.PublishedScene);
+                    using var desktopBoundary = new SceneMutationBoundary(desktop, OriginDevice.Desktop);
+                    using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
+                    desktopBoundary.BindPreparedResources(desktopBinding);
+                    questBoundary.BindPreparedResources(questBinding);
 
-                Debug.Log($"Scene qualification {fixtureName}: Quest scene restored at {clock.Elapsed.TotalSeconds:F1}s.");
-                Assert.That(quest.Scene.Columns.Count, Is.EqualTo(6));
-                await SceneQualification.RunAsync(quest.Scene, Path.GetFullPath(".artifacts/scene-008/editor-restored-" + fixtureName), token);
-                Debug.Log($"Scene qualification {fixtureName}: restored diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
-                // Save a test-owned project, then resolve it afresh through the normal project loader.
-                await project.SaveAsync(temp.Path, (_, _, _) => { }, token);
-                var savedInfo = new ProjectInfo(Path.Combine(temp.Path, project.FileName));
-                var reloaded = new Project(savedInfo.Name, new ProjectPreferences("reload"));
-                ApplicationState.LoadedProject = reloaded;
-                await reloaded.LoadAsync(savedInfo, (_, _, _) => { }, token);
-                await reloaded.CurrentLoadingOperation.EnsureValidatedAsync(token);
-                Assert.That(reloaded.StructuralRecoveryReport.HasIssues, Is.False);
-                Assert.That(reloaded.Visualizations.Single().Columns.Select(c => c.GetType()), Is.EqualTo(model.Columns.Select(c => c.GetType())));
-                Debug.Log($"Scene qualification {fixtureName}: save/reload verified at {clock.Elapsed.TotalSeconds:F1}s.");
+                    Debug.Log($"Scene qualification {fixtureName}: Quest scene restored at {clock.Elapsed.TotalSeconds:F1}s.");
+                    Assert.That(quest.Scene.Columns.Count, Is.EqualTo(6));
+                    string restoredEvidence = Path.Combine(temp.Path, "restored-evidence");
+                    await SceneQualification.RunAsync(quest.Scene, restoredEvidence, token);
+                    AssertSixModalitiesEvidence(restoredEvidence);
+                    Debug.Log($"Scene qualification {fixtureName}: restored diagnostic completed at {clock.Elapsed.TotalSeconds:F1}s.");
+                    // Save a test-owned project, then resolve it afresh through the normal project loader.
+                    await project.SaveAsync(temp.Path, (_, _, _) => { }, token);
+                    var savedInfo = new ProjectInfo(Path.Combine(temp.Path, project.FileName));
+                    var reloaded = new Project(savedInfo.Name, new ProjectPreferences("reload"));
+                    ApplicationState.LoadedProject = reloaded;
+                    await reloaded.LoadAsync(savedInfo, (_, _, _) => { }, token);
+                    await reloaded.CurrentLoadingOperation.EnsureValidatedAsync(token);
+                    Assert.That(reloaded.StructuralRecoveryReport.HasIssues, Is.False);
+                    Assert.That(reloaded.Visualizations.Single().Columns.Select(c => c.GetType()), Is.EqualTo(model.Columns.Select(c => c.GetType())));
+                    Debug.Log($"Scene qualification {fixtureName}: save/reload verified at {clock.Elapsed.TotalSeconds:F1}s.");
+                }
+                finally
+                {
+                    await quest.ClearAsync();
+                    await desktop.CleanAsync();
+                    Object.Destroy(quest.gameObject);
+                    await UniTask.NextFrame();
+                }
             }
             finally
             {
-                await quest.ClearAsync();
-                await desktop.CleanAsync();
-                Object.Destroy(quest.gameObject);
-                await UniTask.NextFrame();
+                // Loading failures can resume on a worker; Unity-owned scopes must dispose on the main thread.
+                await UniTask.SwitchToMainThread();
+                DataManager.Clear();
             }
         }
 
@@ -1914,7 +1929,7 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Restored erasure must survive geometry preparation.");
                 Assert.That(ccep.SelectedSourceSite.Information.FullID, Is.EqualTo("patient_A1"));
                 Assert.That(ccep.ActivityValues, Does.Contain(8f));
-                await SceneQualification.RunAsync(scene, Path.GetFullPath(".artifacts/scene-008/editor-six-modalities"), token);
+                await SceneQualification.RunAsync(scene, Path.Combine(root, "scene-evidence"), token);
                 Assert.That(ieeg.Timeline, Is.Not.SameAs(ccep.Timeline));
                 int otherIndex = ccep.Timeline.CurrentIndex;
                 ieeg.Timeline.CurrentIndex = 2;
@@ -2040,6 +2055,16 @@ namespace HBP.Tests.SceneTransfer
             }
 
             Assert.That(failure, Is.TypeOf<AssertionException>());
+        }
+
+        private static void AssertSixModalitiesEvidence(string directory)
+        {
+            var report = Newtonsoft.Json.Linq.JObject.Parse(File.ReadAllText(Path.Combine(directory, "result.json")));
+            Assert.That((bool)report["success"], Is.True);
+            Assert.That(report["states"].Count(), Is.GreaterThanOrEqualTo(12));
+            string[] expected = { "AnatomicColumn", "CCEPColumn", "FMRIColumn", "IEEGColumn", "MEGColumn", "StaticColumn" };
+            foreach (var state in report["states"])
+                Assert.That(state["columns"].Select(column => (string)column["type"]).ToArray(), Is.EquivalentTo(expected), (string)state["name"]);
         }
 
         private static async Task FailOnUnexpectedCancellation(Func<Task> scenario)

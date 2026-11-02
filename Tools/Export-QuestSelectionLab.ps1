@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)][string]$Serial,
-    [string]$AdbPath = 'C:/Android/Sdk/platform-tools/adb.exe',
+    [string]$AdbPath = 'adb',
     [string]$OutputDirectory = "$PSScriptRoot/../Logs/SelectionLab/device-$([DateTime]::UtcNow.ToString('yyyyMMdd-HHmmss'))"
 )
 $ErrorActionPreference = 'Stop'

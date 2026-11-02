@@ -10,7 +10,7 @@ param(
     [string]$Endpoint,
     [int]$HoldSeconds = 0,
     [string]$Condition = 'release-usb',
-    [string]$Adb = 'C:/Android/Sdk/platform-tools/adb.exe'
+    [string]$Adb = 'adb'
 )
 $ErrorActionPreference = 'Stop'
 if ($Repetitions -lt 1 -or $Repetitions -gt 10) { throw 'Repetitions must be between 1 and 10.' }

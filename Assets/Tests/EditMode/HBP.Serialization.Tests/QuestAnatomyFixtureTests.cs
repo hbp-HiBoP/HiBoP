@@ -10,6 +10,7 @@ using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Tests.Serialization.Helpers;
+using HBP.Tests.PlayMode.Utilities;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -23,12 +24,13 @@ namespace HBP.Tests.Serialization
         [Test]
         public async Task IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples()
         {
-            string archivePath = Path.Combine(RepositoryRoot, ".artifacts/quest-020/fixture/quest-mni-ieeg.hibop");
-            if (!File.Exists(archivePath)) Assert.Ignore("Run python Tools/Prepare-QuestIEEGFixture.py first.");
+            DataManager.Clear();
             using TempDirectoryScope temp = new();
+            string fixtureDirectory = Path.Combine(temp.Path, "fixture");
+            string archivePath = SyntheticSceneProjectFixture.CreateIEEG(RepositoryRoot, fixtureDirectory);
             using ApplicationStateTestScope appState = new(temp.Path);
             using PersistentDataTestScope persistentData = new(temp.Path);
-            var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.Combine(RepositoryRoot, ".artifacts/quest-020/fixture/quest-020.prov"));
+            var protocol = ClassLoaderSaver.LoadFromJson<Protocol>(Path.Combine(fixtureDirectory, "quest-020.prov"));
             HBP.Core.Database.DatabaseManager.Database.SetProtocols(new[] { protocol });
             ProjectInfo info = new(archivePath);
             Project project = new(info.Name, new ProjectPreferences("placeholder"));
@@ -55,7 +57,9 @@ namespace HBP.Tests.Serialization
             }
             finally
             {
+                await UniTask.SwitchToMainThread();
                 visualization.Unload();
+                DataManager.Clear();
             }
         }
 
