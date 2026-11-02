@@ -1,44 +1,44 @@
-# Laboratoire de sélection Quest
+# Quest selection laboratory
 
-Le laboratoire est une application indépendante pour comparer les profils de sélection sur un MNI fixe. Il ne synchronise pas un Desktop. Le code courant annonce **Campagne v5**, champ `Build=<version produit>/selection-lab-5` ; les versions des anciennes campagnes restent attachées à leurs mesures.
+The laboratory is an independent application for comparing selection profiles on a fixed MNI. It does not synchronize with a Desktop. Current code announces **Campaign v5**, field `Build=<product version>/selection-lab-5`; earlier campaign versions remain attached to their measurements.
 
-## Construire et utiliser
+## Building and using
 
-Suivre le [workflow Quest](../../../.agents/skills/hibop-unity-validation/references/quest.md), activer le profil Quest puis `HiBoP > Quest > Build selection laboratory`. La scène est `QuestSelectionLab`, le package `fr.crnl.hibop.quest.selectionlab`, la sortie `.artifacts/quest-selection-lab/HiBoP.SelectionLab.apk`. Le package est distinct de HiBoP. Ne pas attribuer au produit le choix du laboratoire de désactiver la projection d'activité.
+Follow the [Quest workflow](../../../.agents/skills/hibop-unity-validation/references/quest.md), activate the Quest profile, then `HiBoP > Quest > Build selection laboratory`. The scene is `QuestSelectionLab`, package `fr.crnl.hibop.quest.selectionlab`, output `.artifacts/quest-selection-lab/HiBoP.SelectionLab.apk`. The package is distinct from HiBoP. Do not attribute the laboratory's choice to disable activity projection to the product.
 
-| Contrôle | Usage |
+| Control | Use |
 | --- | --- |
-| Maintenir A à droite | Sélection continue avec la sonde. |
-| Méthode | Contact, tolérance de profondeur ou rayon ; ne déplace pas les sites. |
-| Commencer / refaire | Démarre un essai sur la disposition courante. |
-| Valider / cible suivante | Termine/avance selon la disposition ; ne signifie pas nécessairement échec d'acquisition. |
-| Comparer sélection A/B | Rappelle deux configurations sauvegardées sur les mêmes sites. |
-| Maintenir X à gauche deux secondes | Recentre cerveau et fenêtres ; conserver ensuite échelle/position comparables. |
+| Hold right A | Continuous selection with the probe. |
+| Method | Contact, depth tolerance or ray; does not move sites. |
+| Start / retry | Starts a trial on the current layout. |
+| Validate / next target | Finishes/advances according to the layout; does not necessarily mean acquisition failure. |
+| Compare selection A/B | Recalls two saved configurations on the same sites. |
+| Hold left X for two seconds | Recenters brain and windows; keep comparable scale/position afterwards. |
 
-La rangée R1→R8 avance automatiquement à la bonne acquisition, A maintenu. Les autres dispositions utilisent les commandes de validation. Le repère de cible peut être masqué ; noter ce réglage dans la comparaison.
+The R1→R8 row advances automatically on correct acquisition while A is held. Other layouts use validation commands. The target marker can be hidden; record this setting in the comparison.
 
-## Dispositions reproductibles
+## Reproducible layouts
 
-[QuestSelectionLayouts](../../../Assets/Scripts/HBP/Quest/Runtime/QuestSelectionLayouts.cs) fournit six cas : site isolé, rangée de huit sites, voisins proches, deux profondeurs, groupe dense et nuage de **2 000 sites**. Le nuage utilise `System.Random(20261029)` dans la **bbox MNI**, pas dans le volume cortical. Les cibles guidées sont prises dans la moitié dégagée par la coupe ; tous les sites restent actifs dans la disposition et peuvent être explorés. Cette population ne représente pas une implantation clinique.
+[QuestSelectionLayouts](../../../Assets/Scripts/HBP/Quest/Runtime/QuestSelectionLayouts.cs) provides six cases: isolated site, eight-site row, close neighbors, two depths, dense group and a cloud of **2,000 sites**. The cloud uses `System.Random(20261029)` within the **MNI bbox**, not within cortical volume. Guided targets are selected from the half exposed by the cut; all sites remain active in the layout and can be explored. This population does not represent a clinical implantation.
 
-Comparer un seul paramètre à la fois, mêmes disposition, pose, échelle et cible. Alterner l'ordre A/B entre blocs/utilisateurs. Une courte série suggérée est 20 cibles guidées par profil dans le nuage, puis exploration libre depuis plusieurs points de vue ; elle ne remplace pas une étude ergonomique contrôlée.
+Compare one parameter at a time, with the same layout, pose, scale and target. Alternate A/B order between blocks/users. A suggested short series is 20 guided targets per profile in the cloud, then free exploration from several viewpoints; it does not replace a controlled ergonomic study.
 
-## Réglages et interprétation
+## Settings and interpretation
 
-Le [profil courant](interactions.md#sélection-de-sites) est Depth, contact 3 mm, profondeur ±10 mm, attraction 3 mm et stabilisation 0,15. Les rayons sont des **rayons physiques**, pas des diamètres ni des millimètres anatomiques après changement d'échelle. Avec contact et attraction de 3 mm, la recherche latérale peut atteindre 6 mm avant ajout du rayon du site, tandis que le contact prioritaire reste à 3 mm. Le cône Ray dépend de sa longueur et de son demi-angle ; un site exactement derrière un autre peut demander un déplacement du point de vue.
+The [current profile](interactions.md#site-selection) is Depth, contact 3 mm, depth ±10 mm, attraction 3 mm and stabilization 0.15. Radii are **physical radii**, not diameters or anatomical millimeters after scaling. With 3 mm contact and attraction, lateral search can reach 6 mm before adding site radius, while priority contact remains at 3 mm. The Ray cone depends on its length and half-angle; a site exactly behind another may require moving the viewpoint.
 
-Sphere, Halo, Cage et Stylus changent l'indication visuelle, pas les colliders scientifiques ni les paramètres d'attraction. Le preset visuel est un halo blanc de rayon 4 mm. Le stylet ajoute une tige de 40 mm dont l'extrémité correspond au point de sélection. Les couleurs disponibles sont blanc, ambre et cyan. La boule visible reste indépendante du rayon de contact.
+Sphere, Halo, Cage and Stylus change the visual indication, not scientific colliders or attraction parameters. The visual preset is a white halo with a 4 mm radius. The stylus adds a 40 mm shaft whose tip corresponds to the selection point. Available colors are white, amber and cyan. The visible ball remains independent of contact radius.
 
-Les offsets X/Y/Z sont physiques dans le repère aim : X à droite, Y vers le haut et Z vers l'avant. Ils déplacent ensemble curseur et origine de sélection ; les rayons des menus restent inchangés. Le défaut est Z=+30 mm. Réglages, styles et offsets sont persistés et rappelés par A/B. Le volume de diagnostic jaune n'inclut pas le rayon du site.
+X/Y/Z offsets are physical in the aim coordinate system: X right, Y up and Z forward. They move the cursor and selection origin together; menu rays remain unchanged. The default is Z=+30 mm. Settings, styles and offsets are persisted and recalled by A/B. The yellow diagnostic volume does not include site radius.
 
-La stabilisation est une hystérésis de **score normalisé**, sans dwell et sans maintien hors volume. `StabilizedFrames` compte les frames où elle retient le candidat précédent ; ce n'est ni le nombre d'erreurs évitées ni un taux de succès.
+Stabilization is **normalized-score** hysteresis, without dwell or retention outside the volume. `StabilizedFrames` counts frames in which it retains the previous candidate; it is neither the number of errors avoided nor a success rate.
 
-## Journaux et analyse
+## Logs and analysis
 
-[QuestSelectionLab](../../../Assets/Scripts/HBP/Quest/Runtime/QuestSelectionLab.cs) écrit dans `Application.persistentDataPath/selection-lab` : `settings.json` et journaux JSONL. Utiliser [Export-QuestSelectionLab.ps1](../../../Tools/Export-QuestSelectionLab.ps1) pour extraire les données. Conserver version, session, disposition, profil complet, cible, sélection, résultat, temps, transitions et indicateurs de feedback. Un champ absent d'un ancien format reste inconnu, pas zéro.
+[QuestSelectionLab](../../../Assets/Scripts/HBP/Quest/Runtime/QuestSelectionLab.cs) writes to `Application.persistentDataPath/selection-lab`: `settings.json` and JSONL logs. Use [Export-QuestSelectionLab.ps1](../../../Tools/Export-QuestSelectionLab.ps1) to extract data. Retain version, session, layout, full profile, target, selection, result, time, transitions and feedback indicators. A field absent from an older format remains unknown, not zero.
 
-Distinguer **première acquisition de la cible**, durée jusqu'à terminaison de l'essai et motif de fin. `next-target` peut survenir après une bonne acquisition et n'est pas automatiquement un échec. Les transitions entre sites ne donnent pas un taux de faux positifs sans trajectoire et intention de référence. Une cadence moyenne proche de 72 Hz ne mesure pas la marge GPU ou les pires frames.
+Distinguish **first target acquisition**, duration until trial termination and termination reason. `next-target` can occur after correct acquisition and is not automatically a failure. Transitions between sites do not yield a false-positive rate without a reference trajectory and intent. An average rate near 72 Hz does not measure GPU headroom or worst frames.
 
-La campagne historique du **29 octobre 2026, v2**, comprend **173 essais / 1 093 événements**, un sujet et un ordre non contrebalancé. Les 107 événements de la première version affectés par le placement des cibles sont exclus. Ces observations ont servi aux réglages de profondeur/attraction et à l'instrumentation ; elles ne permettent pas un classement général des profils ou une preuve de supériorité statistique. Les champs de stabilisation ajoutés ensuite ne peuvent pas être reconstruits pour v2. Les données locales sont référencées sous `Logs/SelectionLab/campaign-20261029` ; leur présence dans un autre clone n'est pas garantie.
+The historical campaign of **October 29, 2026, v2**, comprises **173 trials / 1,093 events**, one subject and a non-counterbalanced order. The first version's 107 events affected by target placement are excluded. These observations informed depth/attraction settings and instrumentation; they do not support a general profile ranking or proof of statistical superiority. Stabilization fields added later cannot be reconstructed for v2. Local data is referenced under `Logs/SelectionLab/campaign-20261029`; its presence in another clone is not guaranteed.
 
-La performance des 2 000 sites en usage prolongé et l'ergonomie pour plusieurs utilisateurs restent à mesurer ; ni ce guide ni une compilation ne les déclarent qualifiées.
+Performance of the 2,000 sites during prolonged use and ergonomics across multiple users remain to be measured; neither this guide nor compilation declares them qualified.

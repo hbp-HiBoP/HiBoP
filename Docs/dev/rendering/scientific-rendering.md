@@ -1,39 +1,39 @@
-# Rendu scientifique
+# Scientific rendering
 
-Le projet utilise URP 17.5, Universal Forward, Render Graph et l’espace Linear.
-La migration Built-in est implémentée; ses anciens audits décrivaient un état
-remplacé. Les packages PPv2/AGM ne sont plus des dépendances actives.
+The project uses URP 17.5, Universal Forward, Render Graph and Linear color space.
+The Built-in migration is implemented; its earlier audits described a superseded
+state. PPv2/AGM packages are no longer active dependencies.
 
-## Pipeline et responsabilités
+## Pipeline and responsibilities
 
-Les assets de `Assets/Settings/Rendering/` séparent les profils : Desktop utilise
-MSAA 1, HDR/ombres/lumières additionnelles désactivés; Quest utilise notamment
-MSAA 4 et active ombres principales/lumières additionnelles. Les réglages desktop
-ne sont donc pas une description universelle du profil XR. Le cerveau scientifique
-utilise son éclairage propre relatif à la caméra, indépendamment des lumières
-de scène.
+Assets in `Assets/Settings/Rendering/` separate profiles: Desktop uses
+MSAA 1, with HDR/shadows/additional lights disabled; Quest uses, among other
+settings, MSAA 4 and enables main-light shadows/additional lights. Desktop
+settings are therefore not a universal description of the XR profile. The
+scientific brain uses its own camera-relative lighting, independently of
+scene lights.
 
-| Propriétaire | Responsabilité |
+| Owner | Responsibility |
 |---|---|
-| `BrainMaterial.cs`, shaders `Assets/Shaders/HBP/Brain/` | Anatomie, overlays, extrusion, clipping, inflation |
-| `Includes/HBPColor.hlsl`, `HBPLighting.hlsl` | Conversion, composition et relief scientifique |
-| `HBPEdgeRendererFeature` | Composite cerveau transparent et contours Render Graph |
-| `HBPRenderTextureDescriptorFactory`, `HBPRenderTextureOwner` | Descripteurs et durée de vie des cibles de vue |
-| `View3D`, `View3DUI`, `Scene3DWindow` | Taille des vues, captures et exports |
-| Générateurs natifs activité/coupes | Valeurs, support et composition scientifique |
+| `BrainMaterial.cs`, `Assets/Shaders/HBP/Brain/` shaders | Anatomy, overlays, extrusion, clipping, inflation |
+| `Includes/HBPColor.hlsl`, `HBPLighting.hlsl` | Conversion, composition and scientific relief |
+| `HBPEdgeRendererFeature` | Transparent brain composite and Render Graph outlines |
+| `HBPRenderTextureDescriptorFactory`, `HBPRenderTextureOwner` | View target descriptors and lifetime |
+| `View3D`, `View3DUI`, `Scene3DWindow` | View sizing, captures and exports |
+| Native activity/cut generators | Values, support and scientific composition |
 
-Le faible nombre de lumières et le coût multiplié par les vues expliquent le
-choix Forward; Deferred/Forward+, HDRP et un SRP complet n’apportaient pas de
-bénéfice démontré. Les shaders HLSL dédiés conservent l’API des matériaux et les
-20 plans de clipping. Extrusion, clipping et déformation d’inflation doivent
-rester cohérents dans toutes les passes concernées.
+The low light count and cost multiplied across views explain the Forward
+choice; Deferred/Forward+, HDRP and a complete custom SRP offered no demonstrated
+benefit. Dedicated HLSL shaders retain the material API and 20 clipping planes.
+Extrusion, clipping and inflation deformation must remain consistent across
+all relevant passes.
 
-## Couleurs et activité
+## Colors and activity
 
-Les palettes/UI sont sRGB; conversion vers Linear **une fois** avant composition.
-Textures de scalaires, masque, indices et alpha ne sont pas sRGB. Une couleur
-portée par vertex, texture ou palette doit avoir le même mapping. Atlas et
-sélection/hover restent sémantiquement distincts. La composition courante est :
+Palettes/UI are sRGB; convert to Linear **once** before composition.
+Scalar, mask, index and alpha textures are not sRGB. A color carried by
+vertex, texture or palette must have the same mapping. Atlases and
+selection/hover remain semantically distinct. Current composition is:
 
 ```text
 paletteAlpha = 1 - (1 - clamp(scientificAlpha, 0, 1))²
@@ -41,100 +41,98 @@ mesh = lerp(litAnatomy, scientificLinear * controlledRelief, paletteAlpha)
 cut  = lerp(anatomy, scientificLinear, paletteAlpha)
 ```
 
-À alpha 0,8, le poids palette vaut 0,96. Les coupes et légendes sont des
-références non éclairées. Le relief scientifique diffuse multiplie la couleur,
-est borné à 1,08 et par la marge des canaux; un reflet neutre très localisé
-est une exception visuelle volontaire. Il ne modifie ni normalisation, ni LUT,
-ni seuils. Tone mapping, grading ou modification des palettes ne servent pas
-à compenser une erreur de couleur.
+At alpha 0.8, palette weight is 0.96. Cuts and legends are unlit references.
+Diffuse scientific relief multiplies color, bounded by 1.08 and channel
+headroom; a very localized neutral highlight is an intentional visual exception.
+It changes neither normalization, LUT nor thresholds. Tone mapping, grading
+or palette changes are not used to compensate for a color error.
 
-En interpolation continue, le champ volumique commun subit deux passes d’un
-noyau binomial séparable à cinq taps par axe pour valeurs/poids, puis une
-interpolation trilinéaire pondérée. Le cache est partagé par instant entre
-mesh et coupes. Le support reçoit séparément une seule passe de rayon deux :
-atténuation sur deux couches intérieures et halo au plus deux cellules extérieures.
-Le mode nearest reste la référence discrète. On ne floute pas séparément les RGB
-après LUT. Le mesh n’ajoute pas un masque basé sur le voxel IRM nearest.
+In continuous interpolation, the shared volumetric field undergoes two passes
+of a separable five-tap binomial kernel per axis for values/weights, followed
+by weighted trilinear interpolation. The cache is shared per time point between
+mesh and cuts. Support separately receives a single radius-two pass:
+attenuation over two inner layers and a halo of at most two outer cells.
+Nearest mode remains the discrete reference. RGB is not separately blurred
+after the LUT. The mesh does not add a mask based on the nearest MRI voxel.
 
-Les préférences `Mask activity on MRI background` (coupes seulement) et
-`Smooth activity boundaries` (alpha du support) sont indépendantes, activées par
-défaut; désactiver le lissage ne change pas les valeurs ni le mapping de palette.
+The `Mask activity on MRI background` (cuts only) and
+`Smooth activity boundaries` (support alpha) preferences are independent,
+enabled by default; disabling smoothing changes neither values nor palette mapping.
 
-### Support anatomique actuel des coupes
+### Current anatomical support for cuts
 
-Le code natif courant a remplacé l’ancienne règle « seuil 5 % puis flood-fill
-relié au bord ». `anatomy_value_is_supported` utilise une calibration intrinsèque,
-indépendante de la fenêtre d’affichage et de la palette : valeur finie non nulle,
-plage robuste `calMax - calMin` finie positive et
+Current native code has replaced the former "5% threshold then border-connected
+flood-fill" rule. `anatomy_value_is_supported` uses intrinsic calibration,
+independent of the display window and palette: finite nonzero value,
+finite positive robust range `calMax - calMin` and
 `(value - calMin) / range * 254 >= 1`.
 
-`CutGeometryGenerator` intègre ce prédicat sur une empreinte **4 × 4** par pixel,
-avec raccourci pour les régions uniformes; le mode Raw garde une couverture
-binaire. Cette couverture géométrique est mise en cache indépendamment de
-l’activité. `CutGenerator` reconstruit les couleurs au bord pour enlever la
-contribution de fond noir puis applique la couverture fractionnaire. Les
-valeurs/poids d’activité et leur lissage restent distincts. Références natives :
+`CutGeometryGenerator` integrates this predicate over a **4 × 4** footprint
+per pixel, with a shortcut for uniform regions; Raw mode retains binary
+coverage. This geometric coverage is cached independently of activity.
+`CutGenerator` reconstructs edge colors to remove the black-background
+contribution, then applies fractional coverage. Activity values/weights
+and their smoothing remain separate. Native references:
 `src/volume/anatomy_support.h`, `src/generators/cut_geometry_generator.cpp`,
 `cut_generator.cpp`, test `test_calibrated_anatomy_support`.
 
-## Transparence, contours, sites et ROI
+## Transparency, outlines, sites and ROI
 
-Le cerveau transparent n’est plus seulement un matériau à alpha blending
-classique. `HBPTransparentBrainSurface` écrit la surface visible et sa profondeur
-dans des cibles dédiées (`Cull Back`, `ZWrite On`), puis un composite compare
-profondeur cerveau/scène avant les transparents ordinaires. Cette passe de
-`HBPEdgeRendererFeature` est exécutée pour les caméras Game même si Edges est off.
-Elle évite de composer indistinctement toutes les couches du cerveau. Ne pas
-supprimer la feature en supposant qu’elle ne porte que les contours.
+The transparent brain is no longer just a classic alpha-blended material.
+`HBPTransparentBrainSurface` writes the visible surface and its depth into
+dedicated targets (`Cull Back`, `ZWrite On`), then a composite compares
+brain/scene depth before ordinary transparents. This `HBPEdgeRendererFeature`
+pass runs for Game cameras even when Edges is off.
+It avoids indiscriminately compositing every brain layer. Do not remove
+the feature on the assumption that it only handles outlines.
 
-La passe Edges optionnelle s’exécute avant post-processing : discontinuités
-profondeur/normales sur cerveau/coupes opaques et silhouette externe des
-transparents. Les tags `HBPEdgeData`/`HBPEdgeMask` excluent sites, ROI et repères
-interactifs. Les repères conservent leur occultation normale. Une variation de
-pente, plutôt qu’une pente régulière, déclenche les contours de profondeur.
-Les données de passe sont isolées par caméra; le composite préserve l’alpha.
+The optional Edges pass runs before post-processing: depth/normal
+discontinuities on opaque brain/cuts and the outer silhouette of transparents.
+`HBPEdgeData`/`HBPEdgeMask` tags exclude sites, ROI and interactive markers.
+Markers retain normal occlusion. A change in slope, rather than a uniform
+slope, triggers depth outlines. Pass data is isolated per camera;
+the composite preserves alpha.
 
-La ROI réelle est une **cage analytique**, malgré le nom du fichier
-`ROI/HBPROIWireframe.shader` : sept cercles, silhouette, sous-trait contrasté et
-épaisseur stabilisée par `fwidth`, sans geometry shader ni besoin de barycentriques.
-Elle utilise un mesh indexé compact.
+The actual ROI is an **analytical cage**, despite the filename
+`ROI/HBPROIWireframe.shader`: seven circles, silhouette, contrasting understroke
+and thickness stabilized by `fwidth`, without a geometry shader or need for
+barycentric coordinates. It uses a compact indexed mesh.
 
-Les sites conservent un petit mesh partagé, shader RGBA spécialisé, matériaux
-par état et objets/colliders individuels pour le picking. Le shader accepte une
-variante d’instancing, ce qui ne signifie pas que le renderer produit est
-instancié. Une refonte doit préserver sélection, hover, filtres, taille et
-visibilité par colonne; les mesures historiques expliquent le maintien du
-chemin simple.
+Sites retain a small shared mesh, specialized RGBA shader, per-state materials
+and individual objects/colliders for picking. The shader supports an instancing
+variant, which does not mean the product renderer uses instancing.
+A redesign must preserve selection, hover, filters, size and per-column
+visibility; historical measurements explain retaining the simple path.
 
-## Vues, ressources et export
+## Views, resources and export
 
-Les RenderTextures de vue ont un descripteur explicite RGBA8 sRGB, D24/S8,
-MSAA 1, sans mipmaps ni random-write. La taille suit les pixels physiques après
-scaling Canvas. Réutiliser un descripteur compatible; libérer/détruire au
-remplacement, masquage, minimisation ou destruction. Une vue inactive arrête
-sa caméra; aucune cible de dimension nulle n’est allouée.
+View RenderTextures have an explicit RGBA8 sRGB, D24/S8 descriptor,
+MSAA 1, without mipmaps or random-write. Size follows physical pixels after
+Canvas scaling. Reuse a compatible descriptor; release/destroy on
+replacement, hiding, minimization or destruction. An inactive view stops
+its camera; no zero-sized target is allocated.
 
-L’export utilise les mêmes caméras, shaders et état qu’une vue équivalente.
-PNG individuel : fond alpha zéro, résolution demandée (2048² par défaut),
-straight alpha. Pour une cible sRGB prémultipliée, décoder vers Linear, diviser
-RGB par alpha, clamp/réencoder sRGB; RGB zéro si alpha zéro. Diviser directement
-les octets sRGB ou déprémultiplier deux fois crée des halos. Les composites
-historiques gardent le fond opaque `#282828`.
+Export uses the same cameras, shaders and state as an equivalent view.
+Individual PNG: zero-alpha background, requested resolution (2048² by default),
+straight alpha. For a premultiplied sRGB target, decode to Linear, divide
+RGB by alpha, clamp/re-encode sRGB; zero RGB when alpha is zero. Dividing
+sRGB bytes directly or unpremultiplying twice creates halos. Historical
+composites retain the opaque `#282828` background.
 
-Les blocs `finally` restaurent cible/aspect/fond caméra, scroll de matrice et
-indices temporels; ils libèrent captures et vidéo. Une frame JPEG écrit sa
-longueur courante, pas la capacité d’un ancien buffer.
+`finally` blocks restore camera target/aspect/background, matrix scroll and
+time indices; they release captures and video. A JPEG frame writes its
+current length, not an older buffer's capacity.
 
-## Sources et qualification
+## Sources and qualification
 
-[Code de rendu](../../../Assets/Scripts/HBP/Rendering/),
+[Rendering code](../../../Assets/Scripts/HBP/Rendering/),
 [shaders](../../../Assets/Shaders/HBP/),
-[tests de rendu](../../../Assets/Tests/EditMode/HBP.Rendering.Tests/),
-[protocole et mesures historiques](rendering-validation.md).
-Les [contrats de projection](../activity-projection.md) et
-[d’inflation](../surface-inflation.md) expliquent la géométrie scientifique.
+[rendering tests](../../../Assets/Tests/EditMode/HBP.Rendering.Tests/),
+[protocol and historical measurements](rendering-validation.md).
+The [projection](../activity-projection.md) and
+[inflation](../surface-inflation.md) contracts explain scientific geometry.
 
-La qualification Windows de la migration date d’août 2026. Elle ne prouve pas
-la qualification actuelle de tous les desktops ou du casque; la compilation
-Metal ne vaut pas un essai matériel. Les anciens reports de VR concernent la
-migration desktop passée, pas le périmètre actuel de Quest.
+Windows qualification of the migration dates from August 2026. It does not
+prove current qualification of every desktop or headset; Metal compilation
+is not a hardware trial. Earlier VR deferrals concern the past Desktop
+migration, not the current Quest scope.

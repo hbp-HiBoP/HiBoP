@@ -1,104 +1,104 @@
-# Vérifier le rendu et interpréter les mesures
+# Verifying rendering and interpreting measurements
 
-Cette référence décrit les contrôles réutilisables et une comparaison historique
-qui explique les choix du renderer. Elle ne certifie pas le build courant.
-Pour lancer Unity, suivre le
-[workflow de validation](../../../.agents/skills/hibop-unity-validation/SKILL.md).
+This reference describes reusable checks and a historical comparison that
+explains renderer choices. It does not certify the current build.
+To run Unity, follow the
+[validation workflow](../../../.agents/skills/hibop-unity-validation/SKILL.md).
 
-## Campagne reproductible
+## Reproducible campaign
 
-Le collecteur permanent est
+The permanent collector is
 [RenderingBaselineCapture](../../../Assets/Scripts/HBP/Dev/Rendering/RenderingBaselineCapture.cs).
-Il charge `visu_full_test.hibop` / `Small`; un autre chemin peut être fourni par
-`HIBOP_RENDERING_BASELINE_PROJECT`. Il écrit captures, manifeste et
-`latest-run.txt` sous `.test-results/rendering/`, hors documentation versionnée.
-Ces résultats locaux peuvent être absents d’un autre checkout.
+It loads `visu_full_test.hibop` / `Small`; another path can be supplied through
+`HIBOP_RENDERING_BASELINE_PROJECT`. It writes captures, a manifest and
+`latest-run.txt` under `.test-results/rendering/`, outside versioned documentation.
+These local results may be absent from another checkout.
 
-Fixer source/build, dataset, caméra, timeline, paramètres scientifiques, taille
-physique des vues, résolution et thème. Attendre chargements/animations puis
-vérifier deux captures stables. Le manifeste doit identifier Unity, OS, GPU,
-driver/API, qualité, colonnes/vues/sites, VSync/focus et verdict humain.
-Mesurer sur PNG brut SDR, sans gestion de couleur externe. Le collecteur suspend
-le mode idle et restaure l’état; une série `IdleThrottled` ou non `Normative`
-ne sert pas à conclure sur les performances.
+Fix source/build, dataset, camera, timeline, scientific parameters, physical
+view size, resolution and theme. Wait for loading/animations, then check two
+stable captures. The manifest must identify Unity, OS, GPU, driver/API,
+quality, columns/views/sites, VSync/focus and human verdict.
+Measure on raw SDR PNGs, without external color management. The collector suspends
+idle mode and restores state; an `IdleThrottled` or non-`Normative` series
+cannot support performance conclusions.
 
-| Contrôle | Cas nécessaires |
+| Check | Required cases |
 |---|---|
-| Données/couleur | Patchs uniforme/vertex/texture sRGB/Linear, LUT, seuils positifs/négatifs, alpha, interpolation temporelle |
-| Géométrie | Anatomie opaque/transparente, extrusion, clipping 0/1/20, inflation et coupes |
-| Interaction | Atlas hover/sélection, sites filtrés/blacklistés, picking, ROI normale/sélectionnée |
-| Contours | Off/on, relief opaque/silhouette transparente, exclusion sites/ROI/repères |
-| Export | PNG individuel/composite/vidéo, alpha de fond, recomposition sur blanc et `#282828`, restauration d’état |
-| Ressources | 100 cycles resize/export; 1×1, 8×3, 9×3 vues; retour au plateau des ressources possédées |
+| Data/color | Uniform/vertex/texture sRGB/Linear patches, LUT, positive/negative thresholds, alpha, temporal interpolation |
+| Geometry | Opaque/transparent anatomy, extrusion, clipping 0/1/20, inflation and cuts |
+| Interaction | Atlas hover/selection, filtered/blacklisted sites, picking, normal/selected ROI |
+| Outlines | Off/on, opaque relief/transparent silhouette, exclusion of sites/ROI/markers |
+| Export | Individual/composite/video PNG, background alpha, recomposition over white and `#282828`, state restoration |
+| Resources | 100 resize/export cycles; 1×1, 8×3, 9×3 views; return to an owned-resource plateau |
 
-Tolérances de référence : patchs scientifiques plats à une unité par canal 8 bits
-au plus dans le même environnement; export/vue offscreen équivalente identiques
-hors bords anti-aliasés; cible cross-platform `DeltaE00 <= 2`. Le relief contrôlé
-du mesh n’impose pas une égalité RGB avec une coupe non éclairée sous toutes
-les normales. Ne pas comparer toute l’anatomie pixel par pixel comme seul verdict.
-Les masques fond/anatomie/science/bords évitent qu’une bonne moyenne cache une
-petite région scientifique erronée.
+Reference tolerances: flat scientific patches at most one unit per 8-bit channel
+in the same environment; export/equivalent offscreen view identical outside
+anti-aliased edges; cross-platform target `DeltaE00 <= 2`. Controlled mesh relief
+does not require RGB equality with an unlit cut under every normal.
+Do not use pixel-by-pixel comparison of the entire anatomy as the sole verdict.
+Background/anatomy/science/edge masks prevent a good average from hiding
+a small incorrect scientific region.
 
-La validation humaine porte sur lisibilité anatomique, ambiguïté des couleurs,
-profondeur/transparence, contours et écarts intentionnels. Consigner capture,
-configuration, validateur/date et verdict. Présence de tests, compilation shader
-et qualification matérielle sont trois preuves différentes.
+Human validation covers anatomical readability, color ambiguity,
+depth/transparency, outlines and intentional differences. Record capture,
+configuration, validator/date and verdict. Test presence, shader compilation
+and hardware qualification are three different forms of evidence.
 
-Tests : `HBP.Rendering.Tests` (couleur, shaders, inventaire matériaux, ROI/sites,
-textures, Edges/exports), `HBP.Module3D.PlayModeTests`, tests natifs de générateurs.
-Les noms historiques `Phase*` des tests restent des points d’entrée actuels.
+Tests: `HBP.Rendering.Tests` (color, shaders, material inventory, ROI/sites,
+textures, Edges/exports), `HBP.Module3D.PlayModeTests`, native generator tests.
+Historical `Phase*` test names remain current entry points.
 
-## Protocole performance
+## Performance protocol
 
-Mesurer CPU main/render/GPU, médiane/P95/P99, SetPass/batches, géométrie, culling,
-allocations GC et ressources vivantes. Même machine, état, résolution et
-warm-up; les FPS sous VSync ne suffisent pas. Le comparatif historique retenait
-investigation au-delà de 5 % et refus au-delà de 10 % de régression P95 soutenue,
-sauf acceptation explicite. Ces critères relatifs ne sont pas des limites produit.
+Measure main/render CPU/GPU, median/P95/P99, SetPass/batches, geometry, culling,
+GC allocations and live resources. Same machine, state, resolution and warm-up;
+FPS under VSync is insufficient. The historical comparison called for
+investigation above 5% and rejection above 10% sustained P95 regression,
+unless explicitly accepted. These relative criteria are not product limits.
 
-Le cas isolé 30 000 sites × 1 vue mesure le renderer : les sites temporaires
-n’ont pas les colliders du modèle réel. Le cas 9 colonnes × 3 vues, éventuellement
-30 000 sites par colonne, est un stress de stabilité, sans promesse de fluidité.
+The isolated 30,000 sites × 1 view case measures the renderer: temporary sites
+do not have the real model's colliders. The 9 columns × 3 views case, possibly
+with 30,000 sites per column, is a stability stress test, without a smoothness promise.
 
-## Comparaison historique finale du 7 août 2026
+## Final historical comparison of August 7, 2026
 
-Windows 11, RTX 2070 SUPER, D3D11, Unity `6000.5.2f1`, qualité Fantastic, Linear;
-120 frames de chauffe puis 900 mesurées, focus conservé, idle désactivé.
-`Small` : 3 × 348×516 pixels; 30 000 sites : 1 × 348×516;
-9×3 : 27 × 112×200. Runs locaux Built-in `20260807-191903` et URP
-`20260807-211822`, sous `baseline-birp-phase5` / `urp-phase5`.
+Windows 11, RTX 2070 SUPER, D3D11, Unity `6000.5.2f1`, Fantastic quality, Linear;
+120 warm-up frames followed by 900 measured frames, focus retained, idle disabled.
+`Small`: 3 × 348×516 pixels; 30,000 sites: 1 × 348×516;
+9×3: 27 × 112×200. Local Built-in `20260807-191903` and URP
+`20260807-211822` runs, under `baseline-birp-phase5` / `urp-phase5`.
 
-| Scénario | Médiane BIRP / URP (ms) | P95 BIRP / URP (ms) |
+| Scenario | BIRP / URP median (ms) | BIRP / URP P95 (ms) |
 |---|---:|---:|
-| Témoin caméras 3D coupées | 3,249 / 2,850 | 25,757 / 3,455 |
-| Opaque, Edges off | 4,546 / 3,872 | 60,256 / 4,577 |
-| Opaque, Edges on | 4,493 / 4,040 | 15,704 / 4,910 |
-| Transparent, Edges off | 3,975 / 3,859 | 16,806 / 4,472 |
-| Transparent, Edges on | 4,473 / 4,104 | 16,635 / 4,958 |
-| Rotation | 4,521 / 4,223 | 17,374 / 5,183 |
-| Activité temporelle | 16,581 / 19,512 | 20,053 / 20,785 |
-| Hover atlas | 4,717 / 4,605 | 28,125 / 5,630 |
-| Déplacement coupe | 13,308 / 14,355 | 16,260 / 16,584 |
-| 30 000 sites, 1 vue | 38,075 / 17,573 | 58,872 / 19,501 |
-| 9×3 vues | 10,129 / 10,011 | 23,104 / 11,068 |
+| Control with 3D cameras off | 3.249 / 2.850 | 25.757 / 3.455 |
+| Opaque, Edges off | 4.546 / 3.872 | 60.256 / 4.577 |
+| Opaque, Edges on | 4.493 / 4.040 | 15.704 / 4.910 |
+| Transparent, Edges off | 3.975 / 3.859 | 16.806 / 4.472 |
+| Transparent, Edges on | 4.473 / 4.104 | 16.635 / 4.958 |
+| Rotation | 4.521 / 4.223 | 17.374 / 5.183 |
+| Temporal activity | 16.581 / 19.512 | 20.053 / 20.785 |
+| Atlas hover | 4.717 / 4.605 | 28.125 / 5.630 |
+| Cut movement | 13.308 / 14.355 | 16.260 / 16.584 |
+| 30,000 sites, 1 view | 38.075 / 17.573 | 58.872 / 19.501 |
+| 9×3 views | 10.129 / 10.011 | 23.104 / 11.068 |
 
-Ces mesures justifiaient le maintien des sites simples et l’acceptation Windows.
-Elles ne montrent pas un gain uniforme : médiane activité +17,7 %, coupe +7,9 %,
-mais P95 respectifs +3,7 % et +2,0 %. Elles ne prédisent pas les temps actuels,
-ni ceux d’un autre GPU/API ou de Quest.
+These measurements justified retaining simple sites and Windows acceptance.
+They do not show a uniform gain: activity median +17.7%, cut +7.9%,
+but respective P95 +3.7% and +2.0%. They do not predict current timings
+or those of another GPU/API or Quest.
 
-La réutilisation de trois buffers natifs et la fusion des parcours de lissage
-avaient réduit le P95 activité d’une candidate intermédiaire de 38,816 à
-20,785 ms sans changer les noyaux. Un cache global du support serait incorrect
-car il dépend des instants et seuils. Les vues statiques n’ajoutaient pas de GC
-au témoin (10 513 octets/frame communs à l’application/éditeur/collecteur);
-ce résultat ne signifie pas zéro GC total.
+Reusing three native buffers and merging smoothing traversals had reduced
+activity P95 from an intermediate candidate's 38.816 to 20.785 ms without
+changing kernels. A global support cache would be incorrect because it depends
+on time points and thresholds. Static views added no GC over the control
+(10,513 bytes/frame common to application/editor/collector);
+this result does not mean zero total GC.
 
-Après le stress 9×3 puis retour à Small, textures possédées 27→3 et mémoire
-graphique 354,6→318,7 Mo (322,3 avant stress); la mémoire réservée Unity reste
-un high-water mark. Le rapport historique indique acceptation visuelle Windows
-et suites 79 tests rendering, 43 PlayMode, 13 natives réussies. Aucune de ces
-campagnes n’a été réexécutée pour la refonte documentaire. Les validations
-macOS Apple Silicon/Metal et Linux/Vulkan étaient encore reportées dans ce
-rapport; leur état matériel actuel n’est pas établi ici. OpenGL Core Linux
-était seulement un fallback à qualifier, pas une plateforme implicitement validée.
+After the 9×3 stress and return to Small, owned textures went from 27→3 and
+graphics memory from 354.6→318.7 MB (322.3 before stress); Unity reserved memory
+remains a high-water mark. The historical report indicates Windows visual
+acceptance and passing suites of 79 rendering, 43 PlayMode and 13 native tests.
+None of these campaigns was rerun for the documentation overhaul. macOS Apple
+Silicon/Metal and Linux/Vulkan validations were still deferred in that report;
+their current hardware status is not established here. Linux OpenGL Core was
+only a fallback to qualify, not an implicitly validated platform.

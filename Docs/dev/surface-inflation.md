@@ -1,119 +1,118 @@
-# Inflation : représentation affichée et référence anatomique
+# Inflation: displayed representation and anatomical reference
 
-L’inflation est implémentée comme une représentation dérivée du `Mesh3D`
-sélectionné, générée à la demande et conservée en mémoire par ce mesh. Elle ne
-crée pas une seconde anatomie dans la liste des ressources. L’admissibilité est
-géométrique; le nom du mesh ne garantit pas sa nature corticale.
+Inflation is implemented as a derived representation of the selected `Mesh3D`,
+generated on demand and retained in memory by that mesh. It does not create
+a second anatomy in the resource list. Eligibility is geometric;
+the mesh name does not guarantee its cortical nature.
 
-## Contrat scientifique
+## Scientific contract
 
-| Propriété | Anatomique | Inflated / transition |
+| Property | Anatomical | Inflated / transition |
 |---|---|---|
-| `BrainSurface`, centrage caméra | Surface anatomique | Géométrie affichée dérivée |
-| `ReferenceSurface`, activité, atlas, fMRI, mesures | Anatomique | Anatomique |
-| Sites/électrodes | Coordonnées anatomiques | Mêmes coordonnées, visibles et sélectionnables |
-| Coupes et colliders de coupe | Anatomiques | Anatomiques et éditables |
-| Clipping de l’enveloppe cérébrale | Coupes courantes | Aucun |
+| `BrainSurface`, camera centering | Anatomical surface | Derived displayed geometry |
+| `ReferenceSurface`, activity, atlases, fMRI, measurements | Anatomical | Anatomical |
+| Sites/electrodes | Anatomical coordinates | Same coordinates, visible and selectable |
+| Cuts and cut colliders | Anatomical | Anatomical and editable |
+| Brain envelope clipping | Current cuts | None |
 
-Les UV/labels/couleurs scientifiques sont transportés par les mêmes indices de
-sommets; on ne rééchantillonne pas les données aux coordonnées gonflées. Une
-bascule de représentation conserve grille, champ d’activité et timeline. Les
-meshes de section anatomique sont masqués dans la vue principale inflated,
-mais restent disponibles dans les vues de coupe dédiées. Au retour, ce sont
-les **coupes courantes**, y compris leurs modifications récentes, qui découpent
-l’anatomie.
+Scientific UVs/labels/colors are carried by the same vertex indices;
+data is not resampled at inflated coordinates. Switching representation
+preserves the grid, activity field and timeline. Anatomical cross-section
+meshes are hidden in the main inflated view, but remain available in dedicated
+cut views. On return, the **current cuts**, including their recent changes,
+clip the anatomy.
 
-Les masques complets peuvent être conservés seulement à topologie identique;
-une surface simplifiée indépendamment n’hérite pas aveuglément de leurs indices.
+Full-resolution masks may be retained only with identical topology;
+an independently simplified surface does not blindly inherit their indices.
 
-## Entrée, algorithme et cache
+## Input, algorithm and cache
 
-Le calcul version **2** consomme les buffers anatomiques complets déjà chargés
-et transformés (`CurrentSurfaceCoordinates`) : MNI, GIfTI patient ou preview IRM.
-Il ne relit pas le fichier, ne gonfle pas une surface déjà gonflée ou tronquée,
-ne réapplique pas le `.trm` et ne conserve pas une copie permanente dans un ancien
-repère. Une transformation anisotrope modifie le résultat numérique; ce choix
-est accepté pour partager le chemin Desktop/Quest.
+Computation version **2** consumes the full anatomical buffers already loaded
+and transformed (`CurrentSurfaceCoordinates`): MNI, patient GIfTI or MRI preview.
+It does not reread the file, inflate an already inflated or truncated surface,
+reapply the `.trm`, or retain a permanent copy in an older coordinate system.
+An anisotropic transformation changes the numerical result; this choice is
+accepted to share the Desktop/Quest path.
 
-Pour un mesh gauche/droite, les hémisphères sont calculés séparément; ils ne
-sont publiés qu’ensemble, puis fusionnés et simplifiés. Le cache inclut identité
-et `GeometryVersion` des sources, version d’algorithme et tous les paramètres.
-Un résultat devenu obsolète pendant le travail n’est pas publié.
+For a left/right mesh, hemispheres are computed separately; they are
+published only together, then merged and simplified. The cache includes source
+identity and `GeometryVersion`, algorithm version and all parameters.
+A result that becomes stale during the work is not published.
 
-Le preset `Inflated` courant utilise `MetricRegularized`, conservation isotrope
-du rayon RMS, 160 itérations, lissage 0,35, régularisation 0,12, pas maximal
-0,20, tolérance `1e-5`, huit retours arrière au maximum et frontières fixes.
-Le prototype `NonShrinkingSmoothing` reste disponible comme baseline technique.
-Les composantes connexes sont traitées autour de leur propre centre; petits
-composants et sommets isolés ne sont pas supprimés silencieusement. Les entrées
-non finies, indices invalides, dégénérescences et topologies non-manifold sont
-refusées avec diagnostic. Seules positions et normales changent : ordre des
-sommets, triangles, UV, couleurs et visibilité compatible sont préservés.
+The current `Inflated` preset uses `MetricRegularized`, isotropic RMS radius
+preservation, 160 iterations, smoothing 0.35, regularization 0.12, maximum step
+0.20, tolerance `1e-5`, at most eight backtracking steps and fixed boundaries.
+The `NonShrinkingSmoothing` prototype remains available as a technical baseline.
+Connected components are processed around their own center; small components
+and isolated vertices are not silently removed. Non-finite input, invalid
+indices, degeneracies and non-manifold topologies are rejected with diagnostics.
+Only positions and normals change: vertex order, triangles, UVs, colors
+and compatible visibility are preserved.
 
-L’implémentation géométrique est indépendante; Workbench est un oracle externe,
-pas une dépendance runtime. Une correspondance topologique ne démontre ni
-équivalence numérique avec Workbench/FreeSurfer, ni validité anatomique d’un
-mesh quelconque. Les états interpolés sont purement visuels.
+The geometric implementation is independent; Workbench is an external oracle,
+not a runtime dependency. Topological correspondence demonstrates neither
+numerical equivalence with Workbench/FreeSurfer nor anatomical validity of
+an arbitrary mesh. Interpolated states are purely visual.
 
-## Exécution, interaction et persistance
+## Execution, interaction and persistence
 
-Le job natif prend un snapshot, s’exécute une seule fois sur un worker et expose
-progression/annulation thread-safe. `take_result` transfère un résultat possédé
-une seule fois. L’annulation ne publie pas de résultat partiel; le wrapper attend
-la fin du worker avant de détruire le job. Les représentations restent attachées
-à leur owner et sont libérées avec lui.
+The native job takes a snapshot, runs once on a worker and exposes thread-safe
+progress/cancellation. `take_result` transfers an owned result exactly once.
+Cancellation does not publish a partial result; the wrapper waits for the worker
+to finish before destroying the job. Representations remain attached to their
+owner and are released with it.
 
-`SurfaceRepresentation` est sérialisée; les anciens projets prennent
-`Anatomical` par défaut. La première coexistence inflated/coupes affiche un seul
-message informatif OK par visualisation, qu’elle résulte d’une inflation avec
-coupes ou de la première coupe créée en inflated. Ce marqueur appartient à
-l’instance de scène et n’est pas sérialisé. Elle n’interdit pas les coupes.
+`SurfaceRepresentation` is serialized; old projects default to `Anatomical`.
+The first coexistence of inflated representation and cuts displays a single
+informational OK message per visualization, whether caused by inflation with
+cuts or by the first cut created while inflated. This marker belongs to the
+scene instance and is not serialized. It does not prohibit cuts.
 
-La transition GPU interpole positions et normales préparées dans les passes
-couleur, profondeur, normales et contours. Elle conserve les attributs
-scientifiques, suspend les interactions dépendant précisément de la géométrie
-et actualise le collider final. Les jobs partagés et leur publication coordonnée
-relèvent de la [synchronisation](quest-autonomous/sync/synchronization-architecture.md).
+The GPU transition interpolates prepared positions and normals in the color,
+depth, normals and outline passes. It preserves scientific attributes,
+suspends interactions that depend on precise geometry and updates the final
+collider. Shared jobs and their coordinated publication belong to
+[synchronization](quest-autonomous/sync/synchronization-architecture.md).
 
-Une transition annulée avant publication conserve la représentation acceptée
-précédemment. Le clipping reste désactivé pendant la transition; sa restauration
-relit la liste courante des coupes, y compris celles ajoutées ou retirées depuis
-le début de l’animation. Les six états de l’ancienne spécification correspondaient
-aux combinaisons représentation/coupes et aux deux directions de transition,
-pas à six valeurs de représentation persistées.
+A transition cancelled before publication retains the previously accepted
+representation. Clipping remains disabled during the transition; restoring it
+rereads the current cut list, including cuts added or removed since the
+animation began. The six states of the earlier specification corresponded to
+representation/cut combinations and the two transition directions,
+not to six persisted representation values.
 
-Les anciennes valeurs d’enum `NativeGifti`/`NativeGiftiThenTransformed` restent
-reconnues pour rejeter explicitement une représentation préparée incompatible
-et demander sa préparation/livraison à nouveau. Le conteneur de scène reste en
-version 4; Desktop et Quest doivent utiliser le contrat de calcul version 2.
+The historical `NativeGifti`/`NativeGiftiThenTransformed` enum values remain
+recognized to explicitly reject an incompatible prepared representation and
+request preparation/delivery again. The scene container remains at version 4;
+Desktop and Quest must use computation contract version 2.
 
-La projection des électrodes vers l’inflated, le cache disque et l’export GIfTI
-avec métadonnées arbitraires restent des extensions non livrées par ce chemin.
+Electrode projection onto the inflated surface, disk caching and GIfTI export
+with arbitrary metadata remain extensions not delivered by this path.
 
-## Sources et vérification
+## Sources and verification
 
 - [Surface / job / options](../../Assets/Scripts/HBP/Core/DLL/Surface.cs),
   [Mesh3D / cache](../../Assets/Scripts/HBP/Core/Object3D/Mesh3D.cs),
   [MeshManager](../../Assets/Scripts/HBP/Data/Module3D/Modules/MeshManager.cs),
   [Base3DScene](../../Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs).
-- Natifs : `hbp_core/src/surface/surface_inflation.cpp`,
-  `src/api/surface_inflation_api.cpp` et tests natifs d’inflation.
-- Tests EditMode `SurfaceInflationPhase3Tests` à `SurfaceInflationPhase7Tests`
-  sous `Assets/Tests/EditMode/HBP.Serialization.Tests/` : layouts, ownership,
-  annulation, source transformée sans fichiers, cache, publication atomique,
-  surfaces de référence, sérialisation, transition et visibilité des coupes.
+- Native: `hbp_core/src/surface/surface_inflation.cpp`,
+  `src/api/surface_inflation_api.cpp` and native inflation tests.
+- EditMode tests `SurfaceInflationPhase3Tests` through `SurfaceInflationPhase7Tests`
+  under `Assets/Tests/EditMode/HBP.Serialization.Tests/`: layouts, ownership,
+  cancellation, transformed source without files, cache, atomic publication,
+  reference surfaces, serialization, transition and cut visibility.
 
-La couverture du comportement produit appartient à ces tests, indépendamment
-du corpus géométrique : `SurfaceInflationPhase5Tests` vérifie référence anatomique
-et clipping, `SurfaceInflationPhase6Tests` la valeur par défaut et le message
-unique, `SurfaceInflationPhase7Tests` les UV/couleurs et vues de coupe. Le scénario
-d’inflation de
+Product behavior coverage belongs to these tests, independently of the
+geometric corpus: `SurfaceInflationPhase5Tests` checks anatomical reference
+and clipping, `SurfaceInflationPhase6Tests` the default value and one-time
+message, `SurfaceInflationPhase7Tests` UVs/colors and cut views. The inflation
+scenario in
 [SceneRestorationPlayModeTests](../../Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/SceneRestorationPlayModeTests.cs)
-vérifie notamment le retour à Anatomical et la conservation des masques après
-annulation d’une animation synchronisée. Leur présence ne vaut pas exécution
-récente de ces tests.
+checks, among other things, return to Anatomical and mask retention after
+cancellation of a synchronized animation. Their presence does not establish
+recent execution of these tests.
 
-Le [corpus historique conservé](../../Tools/InflationReference/reference-corpus.md) documente MNI, fixtures et
-comparaisons Workbench reproductibles. Il n’établit pas une qualification actuelle
-sur un corpus patient réel. Les anciens plans de phases ne sont plus des
-instructions d’implémentation ni la preuve que tous les matériels ont été testés.
+The [retained historical corpus](../../Tools/InflationReference/reference-corpus.md) documents MNI, fixtures and
+reproducible Workbench comparisons. It does not establish current qualification
+on a real patient corpus. Earlier phase plans are no longer implementation
+instructions or proof that all hardware has been tested.

@@ -1,139 +1,143 @@
-# Résultats de référence Quest
+# Quest reference results
 
-La [synthèse de validation](../../Docs/dev/quest-autonomous/validation.md) explique
-les résultats, les choix techniques et leurs limites. Ce dossier contient les
-comparaisons finales qui permettent d'en vérifier les chiffres. Ces campagnes de
-septembre 2026 ne qualifient pas le code courant.
+The [validation overview](../../Docs/dev/quest-autonomous/validation.md) explains
+the results, technical choices and their limits. This directory contains final
+comparisons that allow the figures to be checked. These September 2026 campaigns
+do not qualify current code.
 
-## Lire les résultats par sujet
+## Reading results by topic
 
-| Sujet | Contexte et résultats principaux | Portée |
+| Topic | Context and main results | Scope |
 | --- | --- | --- |
-| Densité | [Contexte](scientific-parity/density/measurement-context.json), [comparaisons](scientific-parity/density/comparison-results.json), [acceptation numérique](scientific-parity/density/numerical-acceptance.json), [validation casque](scientific-parity/density/device-validation.json) | Neuf variantes, deux répétitions par plateforme ; 18 comparaisons Windows/Quest. Acceptation du 9 septembre 2026. |
-| iEEG | [Contexte](scientific-parity/ieeg/measurement-context.json), [comparaisons](scientific-parity/ieeg/comparison-results.json), [acceptation numérique](scientific-parity/ieeg/numerical-acceptance.json), [provenance des entrées](scientific-parity/ieeg/fixture-provenance.json), [validation hors ligne](scientific-parity/ieeg/offline-device-validation.json) | 18 fixtures, deux répétitions par plateforme ; 36 comparaisons Windows/Quest. Acceptation du 10 septembre 2026. |
-| Scènes multimodales | [Contexte](scientific-parity/multimodal-scenes/measurement-context.json), [comparaison MNI](scientific-parity/multimodal-scenes/mni-comparison-results.json), [comparaison patient synthétique](scientific-parity/multimodal-scenes/synthetic-patient-comparison-results.json), [acceptation numérique](scientific-parity/multimodal-scenes/numerical-acceptance.json), [validation casque](scientific-parity/multimodal-scenes/device-validation.json) | Six modalités, 72/78 comparaisons, 12 textures de coupe par fixture. Binaires révision 2, USB uniquement ; acceptation du 14 septembre 2026. |
+| Density | [Context](scientific-parity/density/measurement-context.json), [comparisons](scientific-parity/density/comparison-results.json), [numerical acceptance](scientific-parity/density/numerical-acceptance.json), [headset validation](scientific-parity/density/device-validation.json) | Nine variants, two repetitions per platform; 18 Windows/Quest comparisons. Acceptance on September 9, 2026. |
+| iEEG | [Context](scientific-parity/ieeg/measurement-context.json), [comparisons](scientific-parity/ieeg/comparison-results.json), [numerical acceptance](scientific-parity/ieeg/numerical-acceptance.json), [input provenance](scientific-parity/ieeg/fixture-provenance.json), [offline validation](scientific-parity/ieeg/offline-device-validation.json) | 18 fixtures, two repetitions per platform; 36 Windows/Quest comparisons. Acceptance on September 10, 2026. |
+| Multimodal scenes | [Context](scientific-parity/multimodal-scenes/measurement-context.json), [MNI comparison](scientific-parity/multimodal-scenes/mni-comparison-results.json), [synthetic patient comparison](scientific-parity/multimodal-scenes/synthetic-patient-comparison-results.json), [numerical acceptance](scientific-parity/multimodal-scenes/numerical-acceptance.json), [headset validation](scientific-parity/multimodal-scenes/device-validation.json) | Six modalities, 72/78 comparisons, 12 cut textures per fixture. Revision-2 binaries, USB only; acceptance on September 14, 2026. |
 
-Pour les scènes multimodales, les [binaires](scientific-parity/multimodal-scenes/player-provenance.json)
-et la [recette du patient synthétique](scientific-parity/multimodal-scenes/synthetic-patient-provenance.json)
-définissent le périmètre exact. Les répétitions finales sont conservées parce
-qu'elles établissent des propriétés distinctes de la première comparaison :
+For multimodal scenes, the [binaries](scientific-parity/multimodal-scenes/player-provenance.json)
+and [synthetic patient procedure](scientific-parity/multimodal-scenes/synthetic-patient-provenance.json)
+define the exact scope. Final repetitions are retained because they establish
+properties distinct from the first comparison:
 
-| Propriété | MNI | Patient synthétique |
+| Property | MNI | Synthetic patient |
 | --- | --- | --- |
-| Répétition à chaud sur Quest | [Comparaison](scientific-parity/multimodal-scenes/mni-warm-repeat-comparison.json) | [Comparaison](scientific-parity/multimodal-scenes/synthetic-patient-warm-repeat-comparison.json) |
-| Répétition après coupure | [Comparaison](scientific-parity/multimodal-scenes/mni-offline-repeat-comparison.json) | [Comparaison](scientific-parity/multimodal-scenes/synthetic-patient-offline-repeat-comparison.json) |
-| Comptages de ressources et mémoire | [Mesures MNI et Desktop](scientific-parity/multimodal-scenes/mni-and-desktop-resource-measurements.json) | [Mesures patient corrigé](scientific-parity/multimodal-scenes/synthetic-patient-resource-measurements.json) |
+| Warm repetition on Quest | [Comparison](scientific-parity/multimodal-scenes/mni-warm-repeat-comparison.json) | [Comparison](scientific-parity/multimodal-scenes/synthetic-patient-warm-repeat-comparison.json) |
+| Repetition after interruption | [Comparison](scientific-parity/multimodal-scenes/mni-offline-repeat-comparison.json) | [Comparison](scientific-parity/multimodal-scenes/synthetic-patient-offline-repeat-comparison.json) |
+| Resource and memory counts | [MNI and Desktop measurements](scientific-parity/multimodal-scenes/mni-and-desktop-resource-measurements.json) | [Corrected patient measurements](scientific-parity/multimodal-scenes/synthetic-patient-resource-measurements.json) |
 
-Les mesures de ressources conservent aussi le reliquat de meshes Desktop. Trois
-passages stables sur Quest ne démontrent pas une stabilité en endurance. Les
-observations manuelles et les acceptations restent séparées des écarts numériques.
-Le relevé MNI et Desktop contient également la première cohorte patient Windows ;
-pour la recette patient corrigée, utiliser le relevé patient dédié. Ces cohortes
-ne doivent pas être fusionnées.
+Resource measurements also retain the residual Desktop meshes. Three stable
+Quest runs do not demonstrate endurance stability. Manual observations and
+acceptances remain separate from numerical differences.
+The MNI and Desktop record also contains the first Windows patient cohort;
+for the corrected patient procedure, use the dedicated patient record.
+These cohorts must not be merged.
 
-## Fixtures reproductibles
+## Reproducible fixtures
 
-Les entrées réutilisables sont conservées à côté des résultats de validation :
+Reusable inputs are retained alongside validation results:
 
-| Fixture | Contenu et génération |
+| Fixture | Content and generation |
 | --- | --- |
-| [Anatomie MNI](fixtures/mni-anatomy/anatomy-fixture.md) | Projet minimal et visualisation anatomique ; génération d'une archive déterministe à partir des références MNI du dépôt. |
-| [Contacts synthétiques MNI](fixtures/mni-contacts/contacts-fixture.md) | Deux patients synthétiques et huit contacts aux identités et coordonnées connues ; entrées utilisées par les tests et le générateur iEEG. |
-| [iEEG synthétique](fixtures/synthetic-ieeg-fixture.md) | Recette de génération des signaux BrainVision, du protocole et de l'archive ; valeurs attendues et conditions de chargement. |
+| [MNI anatomy](fixtures/mni-anatomy/anatomy-fixture.md) | Minimal project and anatomical visualization; deterministic archive generation from repository MNI references. |
+| [Synthetic MNI contacts](fixtures/mni-contacts/contacts-fixture.md) | Two synthetic patients and eight contacts with known identities and coordinates; inputs used by tests and the iEEG generator. |
+| [Synthetic iEEG](fixtures/synthetic-ieeg-fixture.md) | Generation procedure for BrainVision signals, protocol and archive; expected values and loading conditions. |
 
-Les manifestes des fixtures décrivent les sources, leurs empreintes et les entrées
-des archives. Ils sont lus par le générateur et restent des données opérationnelles.
-Les identifiants sérialisés et noms d'artefacts contenant d'anciens numéros de tâche
-restent stables pour les tests et lanceurs existants ; les guides décrivent leur
-fonction sans nécessiter la connaissance de ces tâches. Les fichiers générés sont
-locaux et ne sont pas ajoutés aux résultats historiques qualifiés.
+Fixture manifests describe sources, their fingerprints and archive entries.
+They are read by the generator and remain operational data.
+Serialized identifiers and artifact names containing old task numbers remain
+stable for existing tests and launchers; guides describe their function
+without requiring knowledge of those tasks. Generated files are local
+and are not added to historically qualified results.
 
-## Chargement natif Android
+## Android native loading
 
-Le [contrôle élémentaire de `hbp_math`](native-runtime/math-abi-comparison.json),
-son [contexte de build](native-runtime/math-android-build-context.json) et sa
-[provenance](native-runtime/measurement-context.json) complètent les comparaisons
-de scènes. Conservés de la campagne du 11 septembre 2026, ils portent sur
-**17 exports publics** et quatre résultats élémentaires : erreur standard de la
-moyenne, corrélation de Pearson et deux tests de Wilcoxon. Les écarts observés
-Windows/Android sont tous nuls sur ces entrées. Cela ne définit ni une tolérance
-universelle, ni une qualification Unity, ni une qualification scientifique complète.
-Le hash de la bibliothèque comparée correspond à celui du contexte de build.
+The [elementary `hbp_math` check](native-runtime/math-abi-comparison.json),
+its [build context](native-runtime/math-android-build-context.json) and
+[provenance](native-runtime/measurement-context.json) supplement scene comparisons.
+Retained from the September 11, 2026 campaign, they cover **17 public exports**
+and four elementary results: standard error of the mean, Pearson correlation
+and two Wilcoxon tests. Observed Windows/Android differences are all zero
+on these inputs. This defines neither a universal tolerance, Unity qualification
+nor full scientific qualification.
+The compared library's hash matches the one in the build context.
 
-## Connectivité USB et réseau
+## USB and network connectivity
 
-La [qualification Windows 11 / Quest 3 du 27 octobre 2026](connectivity/windows-quest3-qualification-2026-10-27.md)
-conserve les conditions d'essai, les délais observés de repli/reprise et les limites
-de la recette NCM. macOS, Linux et Quest 3S ne sont pas qualifiés par cette campagne.
-Le refus du consentement NCM n'a pas été exercé. Ce rapport est une référence
-documentaire, sans contrôle bloquant de publication dans la CI.
+The [October 27, 2026 Windows 11 / Quest 3 qualification](connectivity/windows-quest3-qualification-2026-10-27.md)
+retains trial conditions, observed fallback/recovery delays and NCM acceptance
+limits. macOS, Linux and Quest 3S are not qualified by this campaign.
+NCM consent refusal was not exercised. This report is a documentation reference,
+without a blocking publication gate in CI.
 
-## Provenance et fichiers historiques
+## Provenance and historical files
 
-Les 21 fichiers de résultats, d'acceptation et de provenance ont été déplacés et
-renommés **sans modifier leurs octets**. Chaque `measurement-context.json` associe
-leur nom actuel à leur ancien chemin et à leur SHA-256 dans `retainedFiles`.
-Pour les campagnes de parité scientifique, il extrait aussi le contexte utile du manifeste d'origine : versions, état source
-(y compris les fichiers non commités), identité des binaires et portée. Pour les
-scènes multimodales, il conserve le rapprochement entre source finale et source
-compilée, avec la seule différence de fin de ligne documentée.
-Pour le contrôle natif, la source et la chaîne de compilation sont directement
-décrites dans le fichier de contexte de build d'origine.
+The 21 result, acceptance and provenance files were originally moved and
+renamed **without changing their bytes**. Each `measurement-context.json` maps
+their current name to their former path and SHA-256 in `retainedFiles`.
+Human-readable French text in six acceptance/device-validation JSON files has
+since been translated into English, including quoted user feedback. Those
+translations preserve the meaning, measurements and technical status values;
+they are not the original verbatim statements. The recorded SHA-256 values
+still identify the original files before translation, retrievable from Git
+as described below; they are not hashes of the translated copies.
+For scientific parity campaigns, the context also extracts useful information
+from the original manifest: versions, source state (including uncommitted files),
+binary identity and scope. For multimodal scenes, it retains the reconciliation
+between final and compiled source, with the sole documented line-ending difference.
+For the native check, source and toolchain are described directly in the original
+build-context file.
 
-Les chemins et commandes à l'intérieur des enregistrements d'origine restent
-historiques. Un ancien nom de fichier se résout par `retainedFiles` ; il ne désigne
-pas nécessairement un fichier voisin portant encore ce nom. Les autres chemins
-vers `.artifacts`, `.test-results` ou une machine locale ne garantissent pas la
-disponibilité des gros buffers, APK et logs. Les comparaisons conservées permettent
-de vérifier les agrégats par cas, pas de recalculer tous les écarts sans les buffers
-originaux. Aucune mesure n'a été recréée pendant ce classement.
+Paths and commands inside original records remain historical.
+An old filename resolves through `retainedFiles`; it does not necessarily refer
+to a neighboring file still bearing that name. Other paths to `.artifacts`,
+`.test-results` or a local machine do not guarantee availability of large
+buffers, APKs and logs. Retained comparisons allow per-case aggregates to be
+checked, not all differences to be recalculated without original buffers.
+No measurement was recreated during this organization.
 
-Les identifiants de tâches restent uniquement des clés de provenance : densité
-`QUEST-019`, iEEG `QUEST-023`, scènes multimodales `QUEST-024`. Les essais remplacés,
-rapports de compilation, captures redondantes et journaux intermédiaires ont été
-retirés du checkout. Leurs conclusions encore utiles sont dans la documentation.
+Task identifiers remain provenance keys only: density `QUEST-019`, iEEG
+`QUEST-023`, multimodal scenes `QUEST-024`. Superseded trials, compilation reports,
+redundant captures and intermediate logs were removed from the checkout.
+Their still-useful conclusions are in the documentation.
 
-### Retrouver une ancienne preuve
+### Finding earlier evidence
 
-Le commit `003edbcf53ac2697525dee688b2a9be082159794` contient tous les artefacts
-versionnés avant cette consolidation. Ce repère d'archivage n'est **pas** le commit
-d'exécution de chaque campagne : celui-ci est enregistré dans son contexte.
-Depuis la racine du dépôt, par exemple :
+Commit `003edbcf53ac2697525dee688b2a9be082159794` contains all versioned artifacts
+before this consolidation. This archive reference is **not** each campaign's
+execution commit: that is recorded in its context.
+From the repository root, for example:
 
 ```powershell
 git show 003edbcf53ac2697525dee688b2a9be082159794:Docs/dev/quest-autonomous/evidence/QUEST-009/manifest.json
 ```
 
-La même commande permet de consulter les manifestes des premières fixtures
-(`QUEST-001`, `QUEST-013`) et de la livraison TLS (`QUEST-010`), ou un rapport sous
-`Docs/dev/quest-autonomous/reports/`. Les traces qui n'étaient jamais versionnées
-ne deviennent pas disponibles par cette méthode.
+The same command can inspect manifests of the first fixtures (`QUEST-001`,
+`QUEST-013`) and TLS delivery (`QUEST-010`), or a report under
+`Docs/dev/quest-autonomous/reports/`. Traces that were never versioned do not
+become available through this method.
 
-Les anciens artefacts sous `Docs/dev/quest-autonomous/scene-column-refactor/evidence/`
-et les deux CSV de `Docs/dev/quest-autonomous/sync/M2-Small-inputs/` sont également
-consultables à ce commit. Les comparaisons Editor et la première publication de
-scène des 10–11 septembre étaient partielles ; la qualification multimodale du
-14 septembre conservée ici fournit la référence matérielle plus aboutie. Les
-états de pause/reprise, sauvegardes de déploiement, builds intermédiaires et modèle
-de manifeste n'ajoutent pas de qualification à ces résultats.
+Earlier artifacts under `Docs/dev/quest-autonomous/scene-column-refactor/evidence/`
+and the two CSVs in `Docs/dev/quest-autonomous/sync/M2-Small-inputs/` are also
+available at that commit. Editor comparisons and first scene publication on
+September 10–11 were partial; the retained September 14 multimodal qualification
+provides the more complete hardware reference. Pause/resumption states,
+deployment backups, intermediate builds and the manifest template add no
+qualification to these results.
 
-Les mesures de synchronisation et leurs limites sont dans la
-[référence de validation](../../Docs/dev/quest-autonomous/sync/synchronization-validation.md).
-Les anciens rapports et listes de tâches sous `Docs/dev/quest-autonomous/sync/`
-restent consultables par la même commande ; les noms historiques servent à
-retrouver une source, pas à organiser la documentation courante.
+Synchronization measurements and their limits are in the
+[validation reference](../../Docs/dev/quest-autonomous/sync/synchronization-validation.md).
+Old reports and task lists under `Docs/dev/quest-autonomous/sync/` remain
+available through the same command; historical names serve to locate a source,
+not to organize current documentation.
 
-## Ajouter une nouvelle référence
+## Adding a new reference
 
-Conserver une mesure lorsqu'elle justifie une conclusion, un choix ou une limite
-encore utile. Documenter contenu, paramètres, matériel, versions, transport,
-conditions de cache, répétitions, unités et critères d'acceptation. Distinguer
-la mesure, son interprétation et la validation manuelle ; garder aussi les échecs
-qui expliquent une limite. Remplacer une référence dépassée plutôt qu'accumuler
-toutes les étapes de développement.
+Retain a measurement when it justifies a still-useful conclusion, choice or limit.
+Document content, parameters, hardware, versions, transport, cache conditions,
+repetitions, units and acceptance criteria. Distinguish measurement,
+interpretation and manual validation; also retain failures that explain a limit.
+Replace an outdated reference rather than accumulating every development stage.
 
-Les mesures de transfert et de Display sont déjà documentées dans la
-[synthèse](../../Docs/dev/quest-autonomous/validation.md#transfert-small--septembre-2026).
-Cette sélection ne crée pas de fichiers de mesures brutes à partir de leurs
-résumés. Les prochaines campagnes pourront ajouter ces sujets avec leurs
-véritables résultats et leur contexte.
+Transfer and Display measurements are already documented in the
+[overview](../../Docs/dev/quest-autonomous/validation.md#small-transfer-september-2026).
+This selection does not create raw measurement files from their summaries.
+Future campaigns can add these topics with their actual results and context.

@@ -1,42 +1,42 @@
-# Fixture iEEG synthétique sur anatomie MNI
+# Synthetic iEEG fixture on MNI anatomy
 
-Le test `QuestAnatomyFixtureTests.IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples`
-construit cette fixture automatiquement dans son répertoire temporaire avec
+The `QuestAnatomyFixtureTests.IEEGArchive_LoadsRawSyntheticUnitsAndExactPreparedSamples`
+test automatically constructs this fixture in its temporary directory with
 [SyntheticSceneProjectFixture](../../../Assets/Tests/PlayMode/HBP.PlayModeTestUtilities/SyntheticSceneProjectFixture.cs).
-Les sources sont le protocole VISU/FACE et les
-[contacts synthétiques MNI](mni-contacts/contacts-fixture.md), tous versionnés.
-Aucune préparation Python, ancien Player ou entrée `.artifacts` n'est nécessaire.
+Sources are the VISU/FACE protocol and
+[synthetic MNI contacts](mni-contacts/contacts-fixture.md), all versioned.
+No Python preparation, old Player or `.artifacts` input is needed.
 
-La génération produit l'archive, le protocole et deux triplets BrainVision
-`synthetic-left/right.vhdr/.vmrk/.eeg`. Le protocole est installé dans l'état
-isolé du test avant le chargement du projet : une archive HiBoP ne remplace pas
-les protocoles globaux. Les fichiers et les rapports générés sont temporaires.
-La fenêtre FACE de VISU (-500 à 1000 ms) et la normalisation `None` sont conservées.
-Aucun signal acquis n'est utilisé. Les anciennes recettes de capture Player
-restent consultables dans Git, avec les résultats historiques ci-dessous.
+Generation produces the archive, protocol and two BrainVision triplets
+`synthetic-left/right.vhdr/.vmrk/.eeg`. The protocol is installed into the test's
+isolated state before project loading: a HiBoP archive does not replace
+global protocols. Generated files and reports are temporary.
+The VISU FACE window (-500 to 1000 ms) and `None` normalization are retained.
+No acquired signal is used. Earlier Player capture procedures remain
+available in Git, along with the historical results below.
 
-La visualisation `MNI iEEG` contient une colonne `Synthetic uV`, les huit contacts
-MNI décrits dans la fixture de contacts et 151 échantillons préparés à 100 Hz. Chaque patient possède
-les canaux A1, A2 et B1 ; B2 est absent et masqué. A2 du patient droit est
-blacklisté. Pour chaque fichier, l'événement S20 est au sample fichier 100
-(position BrainVision 101), soit l'index préparé **50**, temps local **0 ms**.
+The `MNI iEEG` visualization contains a `Synthetic uV` column, the eight MNI contacts
+described in the contact fixture and 151 prepared samples at 100 Hz. Each patient has
+channels A1, A2 and B1; B2 is missing and masked. A2 of the right patient is
+blacklisted. In each file, event S20 is at file sample 100
+(BrainVision position 101), that is prepared index **50**, local time **0 ms**.
 
-| Contact par patient | Valeur à 0 ms | Unité | Disponibilité |
+| Contact per patient | Value at 0 ms | Unit | Availability |
 | --- | ---: | --- | --- |
-| A1 | -1 | uV | disponible |
-| A2 | 0 | uV | disponible ; blacklisté à droite |
-| B1 | +1 | uV | disponible |
-| B2 | 0 de remplacement | non renseignée | absent, masqué |
+| A1 | -1 | uV | Available |
+| A2 | 0 | uV | Available; blacklisted on the right |
+| B1 | +1 | uV | Available |
+| B2 | Replacement 0 | Unspecified | Missing, masked |
 
-La préparation contient aussi des valeurs -10 et +10 ; les plages sérialisées
-restent **SpanMin=-10, Middle=0, SpanMax=10** à tous les instants. À l'index 75
-(250 ms), A1/B1 valent -1,25/+1,25. Le générateur explicite chaque sample et fixe
-les dates ZIP ; la provenance des artefacts qualifiés est dans le
-[contexte de comparaison iEEG](../scientific-parity/ieeg/measurement-context.json).
+Preparation also contains -10 and +10 values; serialized ranges remain
+**SpanMin=-10, Middle=0, SpanMax=10** at all time points. At index 75
+(250 ms), A1/B1 are -1.25/+1.25. The generator explicitly defines each sample and
+fixes ZIP dates; provenance of qualified artifacts is in the
+[iEEG comparison context](../scientific-parity/ieeg/measurement-context.json).
 
-La fixture à une colonne est alignée (Alpha temporel=0). Les tests de capture
-utilisent aussi navigation 200 Hz/projection 100 Hz : à 15 ms, index de projection
-1 et Alpha=0,5. La surface conserve l'entrée à l'index 1, tandis que les sites
-utilisent exactement `TemporalSample.Evaluate`. Les politiques Floor/Round
-restent celles du Desktop et sont transportées explicitement ; le transfert
-n'ajoute aucun arrondi. `ActivityAlpha` est un autre paramètre : l'opacité.
+The single-column fixture is aligned (temporal Alpha=0). Capture tests also use
+200 Hz navigation/100 Hz projection: at 15 ms, projection index 1 and Alpha=0.5.
+The surface retains the input at index 1, while sites use exactly
+`TemporalSample.Evaluate`. Floor/Round policies remain those of Desktop and
+are explicitly transported; transfer adds no rounding.
+`ActivityAlpha` is another parameter: opacity.

@@ -1,69 +1,69 @@
-# Opérations partagées et calculs
+# Shared operations and computations
 
-La [frontière de mutation](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs) possède validation, application, invalidation et checkpoints des familles ci-dessous. Les identifiants D1–D39 servent uniquement à retrouver les anciennes preuves ; les noms numériques du protocole sont définis dans [MutationContract](../../../../Assets/Scripts/HBP/Sync/MutationContract.cs) et les contrats `T09` à `T13` du même dossier. L'existence d'un handler ne prouve pas sa qualification matérielle : voir [validation](synchronization-validation.md).
+The [mutation boundary](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs) owns validation, application, invalidation and checkpoints for the families below. D1–D39 identifiers serve only to locate earlier evidence; numerical protocol names are defined in [MutationContract](../../../../Assets/Scripts/HBP/Sync/MutationContract.cs) and contracts `T09` through `T13` in the same directory. A handler's existence does not prove hardware qualification: see [validation](synchronization-validation.md).
 
-## Matrice actuelle
+## Current matrix
 
-« Dernière valeur » autorise le remplacement d'une valeur **non envoyée** sur la même clé ; la dernière valeur restante reste fiable. Structure, résultats et transactions sont fiables et ordonnés. « Sûr » signifie autorisé pendant une projection d'activité ; le rendu ciblé peut néanmoins travailler. Un batch mixte prend la contrainte scientifique la plus forte.
+"Latest value" allows replacement of an **unsent** value on the same key; the last remaining value remains reliable. Structure, results and transactions are reliable and ordered. "Safe" means allowed during activity projection; targeted rendering can nevertheless be working. A mixed batch takes the strongest scientific constraint.
 
-| Famille | Opération / état transmis | Effet et contrainte |
+| Family | Transmitted operation / state | Effect and constraint |
 | --- | --- | --- |
-| D1–D2 | `SetSelectedColumn`, `SetSelectedSite` | Sélection scientifique partagée ; nouveau site soumis à sa visibilité effective. Coupes automatiques dérivées localement. Sûr. |
-| D3–D6 | `CreateCut`, `DeleteCut`, `SetCutOrder`, `SetCutDefinition`, Strong/Soft, AutomaticCut policy | Identités stables, trois axes automatiques sémantiques. Définition complète atomique, dernière valeur par coupe ; structure fiable. Sûr, géométrie/textures/colliders ciblés. |
-| D7–D9 | Création/nom/suppression ROI, ROI active, sphères, sélection de sphère | Import = contenu résultant, sans chemin. Géométrie/rayon scientifique sensibles ; sélection de sphère sûre ; rayon animé local. Masque ROI calculé localement. |
-| D10 | Commande de filtre puis `SetSiteFilterResult` | `IsFiltered` et identité du roster + bitset. Job canonique Desktop en ligne ; détails ci-dessous. |
-| D11–D13 | Blacklist, highlight, couleur demandée, labels ordonnés, HideBlacklisted, ShowAllSites, gain | Blacklist/ShowAllSites affectent le masque scientifique ; highlight/couleur/labels/gain et politique de masquage visuel n'invalident pas le champ d'activité. |
-| D14 | `MoveSites(Left|Right|Reset)` | Commande scientifique fiable, pas trajectoire ni tableau de positions substitué. Placement absolu conservé dans configurations/checkpoints. Parité numérique Windows/ARM à distinguer de l'acceptation visuelle. |
-| D15 | Calcul/chargement de corrélations, reset/affichage | Matrices/provenance canoniques, jamais chemin Desktop ; calcul/chargement par job, affichage sûr. |
-| D16 | `SetMeshDisplay` : ressource préparée, hémisphère, représentation | Barrière de ressource/topologie sensible. Inflation calculée localement par job coordonné ; aucune nouvelle livraison pour la dérivée. |
-| D17–D18 | IRM, calibration min/max, implantation | Choix de ressource sensible, identité préparée et nettoyage des références dépendantes. Contraste IRM atomique sûr pour le champ d'activité, actualise les coupes. |
-| D19–D21 | Couleurs cerveau/coupes, colormap, arêtes, alpha/transparence, activité ; masque triangles | Apparence sûre. `ApplyTriangleMask` sensible pendant calcul : IDs de topologie originale, liste éparse ou bitset atomique, pas gestes d'effacement. Undo éventuel = nouveau masque résultant. |
-| D22–D26 | Influence ; label statique ; span iEEG/CCEP ; source CCEP ; ressource fMRI/MEG, seuils et plages cachées | Ressources/influence/source sont sensibles ; spans et paramètres d'une sortie déjà préparée peuvent conserver la dernière valeur sûre pendant calcul. Source CCEP explicite, distincte du simple site sélectionné. |
-| D27 | `SetTimelineAnchor` : index/play/loop/step, temps monotone et intention | Sûr, lecture locale ; aucun message par tick. Règles d'horloge ci-dessous. |
-| D28–D31 | Mars/JuBrain, IBC/DiFuMo, localizer, calibration atlas fMRI | Choix logiques de source/aire/temps/paramètres. Dépendances installées prêtes sur les deux appareils ; overlays dérivés localement. Aucun transfert atlas. |
-| D32 | Demande/retrait/automatique d'activité | Calcul local sur chaque appareil ; coordination de génération et disponibilité, pas transfert du résultat d'activité. |
-| D33 | `SetConfigurationTransaction` | Une transaction typée prévalidée sur ressources et identités mises en scène ; barrière la plus forte, application atomique, restauration en cas d'échec. |
-| D34 | `SetSiteConfigurationBatch` | Un geste/import = affectations finales blacklist/highlight/couleur/labels ordonnés. Filtre et positions exclus. Champs désactivés et fusion ordonnée des labels préservés. |
-| D35–D38 | Caméras/vues, poses Quest, hover, panneaux, outils/brush, exports et édition de projet | Locaux. Un changement de ressource source nécessite une nouvelle livraison ; un export ne devient pas une mutation live. |
-| D39 | Livraison, close/replace, perte réseau | Voir [cycle de vie](synchronization-architecture.md#inventaire-visibilité-et-scène-patient). |
+| D1–D2 | `SetSelectedColumn`, `SetSelectedSite` | Shared scientific selection; a new site is subject to effective visibility. Automatic cuts derived locally. Safe. |
+| D3–D6 | `CreateCut`, `DeleteCut`, `SetCutOrder`, `SetCutDefinition`, Strong/Soft, AutomaticCut policy | Stable identities, three semantic automatic axes. Atomic full definition, latest value per cut; reliable structure. Safe, targeted geometry/textures/colliders. |
+| D7–D9 | ROI creation/name/deletion, active ROI, spheres, sphere selection | Import = resulting content, without path. Scientific geometry/radius sensitive; sphere selection safe; animated radius local. ROI mask computed locally. |
+| D10 | Filter command then `SetSiteFilterResult` | `IsFiltered` and roster identity + bitset. Canonical Desktop job online; details below. |
+| D11–D13 | Blacklist, highlight, requested color, ordered labels, HideBlacklisted, ShowAllSites, gain | Blacklist/ShowAllSites affect the scientific mask; highlight/color/labels/gain and visual masking policy do not invalidate the activity field. |
+| D14 | `MoveSites(Left|Right|Reset)` | Reliable scientific command, not a trajectory or substituted position array. Absolute placement retained in configurations/checkpoints. Windows/ARM numerical parity distinct from visual acceptance. |
+| D15 | Correlation computation/loading, reset/display | Canonical matrices/provenance, never Desktop path; computation/loading by job, display safe. |
+| D16 | `SetMeshDisplay`: prepared resource, hemisphere, representation | Sensitive resource/topology barrier. Inflation computed locally by coordinated job; no new delivery for the derivative. |
+| D17–D18 | MRI, min/max calibration, implantation | Sensitive resource choice, prepared identity and cleanup of dependent references. Atomic MRI contrast safe for the activity field, updates cuts. |
+| D19–D21 | Brain/cut colors, colormap, edges, alpha/transparency, activity; triangle mask | Safe appearance. `ApplyTriangleMask` sensitive during computation: original topology IDs, sparse list or atomic bitset, not erasure gestures. Possible undo = new resulting mask. |
+| D22–D26 | Influence; static label; iEEG/CCEP span; CCEP source; fMRI/MEG resource, thresholds and hidden ranges | Resources/influence/source are sensitive; spans and parameters of an already prepared output can retain the latest safe value during computation. Explicit CCEP source, distinct from merely the selected site. |
+| D27 | `SetTimelineAnchor`: index/play/loop/step, monotonic time and intent | Safe, local playback; no message per tick. Clock rules below. |
+| D28–D31 | Mars/JuBrain, IBC/DiFuMo, localizer, fMRI atlas calibration | Logical source/area/time/parameter choices. Installed dependencies ready on both devices; overlays derived locally. No atlas transfer. |
+| D32 | Activity request/removal/automatic policy | Local computation on each device; coordination of generation and availability, not transfer of the activity result. |
+| D33 | `SetConfigurationTransaction` | One typed transaction prevalidated against staged resources and identities; strongest barrier, atomic application, restoration on failure. |
+| D34 | `SetSiteConfigurationBatch` | One gesture/import = final blacklist/highlight/color/ordered-label assignments. Filter and positions excluded. Disabled fields and ordered label merging preserved. |
+| D35–D38 | Cameras/views, Quest poses, hover, panels, tools/brush, exports and project editing | Local. A source resource change requires new delivery; an export does not become a live mutation. |
+| D39 | Delivery, close/replace, network loss | See [lifecycle](synchronization-architecture.md#inventory-visibility-and-patient-scene). |
 
-Le mode global d'une toolbar n'est pas l'état partagé ; les affectations résultantes le sont. Une sélection déjà retenue peut survivre à une visibilité changée via checkpoint/correction, sans autoriser une nouvelle sélection d'un site invisible. Les effets dérivés d'un événement distant ne réémettent pas une seconde opération.
+A toolbar's global mode is not shared state; resulting assignments are. An already retained selection can survive changed visibility through checkpoint/correction, without allowing new selection of an invisible site. Effects derived from a remote event do not re-emit a second operation.
 
-Les masques correspondent aux deux topologies originales complète/simplifiée. La validation contrôle tailles et identité avant mutation ; un masque canonique peut viser une topologie préparée momentanément inactive à cause d'une sélection optimiste Quest. La géométrie sélectionnée est reconstruite avant application ; le driver conserve le dernier masque autoritaire par topologie et rebase les propositions restantes. Ne pas contourner une erreur en sautant le masque ou en avançant seulement son watermark.
+Masks correspond to the two original full/simplified topologies. Validation checks sizes and identity before mutation; a canonical mask can target a prepared topology temporarily inactive because of optimistic Quest selection. Selected geometry is rebuilt before application; the driver retains the latest authoritative mask per topology and rebases remaining proposals. Do not work around an error by skipping the mask or only advancing its watermark.
 
-## Timeline et horloge
+## Timeline and clock
 
-[TimelineClockEstimator](../../../../Assets/Scripts/HBP/Sync/Scene/TimelineClockEstimator.cs) n'est consulté que pour l'intention `Play`. `Pause`, `Seek`, `Step`, `Loop` appliquent exactement l'index transmis, même si la lecture reste active. Sans estimation utilisable, Play démarre à l'index reçu, y compris au dernier index d'une timeline non bouclée.
+[TimelineClockEstimator](../../../../Assets/Scripts/HBP/Sync/Scene/TimelineClockEstimator.cs) is consulted only for `Play` intent. `Pause`, `Seek`, `Step`, `Loop` apply exactly the transmitted index, even if playback remains active. Without a usable estimate, Play starts at the received index, including the last index of a non-looping timeline.
 
-Le transport sonde toutes les 250 ms pendant lecture. L'estimateur conserve au plus 32 observations sur deux secondes, exige trois observations et la plus récente âgée d'au plus une seconde, choisit le RTT minimal parmi les observations fraîches et refuse une incertitude supérieure à un demi-échantillon. Une lecture n'est corrigée qu'au-delà d'un échantillon plus cette incertitude. Les horloges sont monotones 64 bits avec fréquence déclarée, jamais l'heure civile ni un `float` Unity durable. Play/Pause/Step/Loop constituent des frontières qui arrêtent la fusion des seeks.
+Transport probes every 250 ms during playback. The estimator retains at most 32 observations over two seconds, requires three observations with the newest at most one second old, chooses the minimum RTT among fresh observations and rejects uncertainty above half a sample. Playback is corrected only beyond one sample plus that uncertainty. Clocks are monotonic 64-bit with declared frequency, never wall-clock time or a long-lived Unity `float`. Play/Pause/Step/Loop form boundaries stopping seek coalescing.
 
-## Jobs, invalidation et annulation
+## Jobs, invalidation and cancellation
 
-Chaque calcul est identifié par incarnation, type, ID et génération monotone. Seule la génération courante publie/déverrouille. Annuler A, terminer B, puis recevoir A tardivement doit laisser B intact. La préparation retient les buffers/handles réellement utilisés jusqu'au retour natif ; annuler une attente ne libère pas un buffer encore emprunté.
+Each computation is identified by incarnation, type, ID and monotonic generation. Only the current generation publishes/unlocks. Cancelling A, finishing B, then receiving A late must leave B intact. Preparation retains actually used buffers/handles until native return; cancelling a wait does not release a still-borrowed buffer.
 
-| Job | Exécution et résultat |
+| Job | Execution and result |
 | --- | --- |
-| Filtre | Desktop seul en ligne, masque complet lié au roster, Quest valide/applique atomiquement puis Ready exact. |
-| Corrélation | Desktop calcule ou charge, résultat borné/versionné avec provenance, Quest publie toutes les matrices ensemble puis Ready. |
-| Projection d'activité | Les deux calculent sur leurs entrées communes ; les commandes sensibles attendent les deux états terminaux, les commandes sûres et le réseau continuent. |
-| Inflation | Les deux préparent le cache exact, puis transitions locales et commit canonique coordonné. |
+| Filter | Desktop only online, full roster-bound mask, Quest validates/applies atomically then exact Ready. |
+| Correlation | Desktop computes or loads, bounded/versioned result with provenance, Quest publishes all matrices together then Ready. |
+| Activity projection | Both compute on their shared inputs; sensitive commands await both terminal states, safe commands and network continue. |
+| Inflation | Both prepare the exact cache, then local transitions and coordinated canonical commit. |
 
-Filtres/corrélations s'excluent mutuellement. Une perte confirmée après 500 ms annule les jobs en ligne sans les redémarrer automatiquement hors ligne. Une demande locale explicite Quest peut ensuite utiliser les capacités livrées. Une erreur Desktop abandonne le partiel ; une erreur d'application Quest ne vaut pas synchronisation réussie. Ressource/roster manquant impose un nouvel envoi. Un résultat périmé est abandonné sans être présenté comme échec de la nouvelle génération.
+Filters/correlations are mutually exclusive. Confirmed loss after 500 ms cancels online jobs without automatically restarting them offline. An explicit local Quest request can then use delivered capabilities. A Desktop error abandons partial results; a Quest application error is not successful synchronization. Missing resource/roster requires resending. A stale result is discarded without being presented as failure of the new generation.
 
-Projection demandée, politique automatique, état Absent/Stale/Computing/Ready/Failed et génération sont distincts. En manuel, invalidation marque Stale et attend une demande ; en automatique elle programme la génération la plus récente. Retirer l'activité annule et nettoie sa présentation. Sont sensibles : filtre/blacklist, ROI active/géométrie, positions scientifiques, influence, source CCEP, ressource/topologie, triangles et réglages natifs. Sélections, coupes, couleurs/labels/highlight, timeline et paramètres de sortie prouvés sûrs restent applicables. Les batches mixtes sont sensibles.
+Requested projection, automatic policy, Absent/Stale/Computing/Ready/Failed state and generation are distinct. In manual mode, invalidation marks Stale and awaits a request; in automatic mode it schedules the newest generation. Removing activity cancels and clears its presentation. Sensitive: filter/blacklist, active ROI/geometry, scientific positions, influence, CCEP source, resource/topology, triangles and native settings. Selections, cuts, colors/labels/highlight, timeline and output parameters proven safe remain applicable. Mixed batches are sensitive.
 
-## Contrats de filtre et corrélation
+## Filter and correlation contracts
 
-[SiteFilterJob](../../../../Assets/Scripts/HBP/Sync/Scene/SiteFilterJob.cs) garde les sémantiques distinctes : fenêtre Site Filters = sites non masqués uniquement ; reset toolbar = tous inclus, même masqués ; `FilterChannels` = remplacement sur tous les sites par couples patient/nom. Le vieux parseur Basic/Advanced désactivé n'est pas le contrat de l'interface active.
+[SiteFilterJob](../../../../Assets/Scripts/HBP/Sync/Scene/SiteFilterJob.cs) retains distinct semantics: Site Filters window = unmasked sites only; toolbar reset = all included, even masked; `FilterChannels` = replacement across all sites by patient/name pairs. The disabled old Basic/Advanced parser is not the active interface contract.
 
-Hors ligne, reset et sélection de canaux sont locaux. Les conditions autorisées sont nom, patient, attributs, position brute, tags résolus et présents, activité si statistiques disponibles, localisation ROI, avec groupes All/Any valides. Masques IRM, atlas, géométrie mesh/coupe et autres conditions non prises en charge sont refusés avant modification de `IsFiltered`.
+Offline, reset and channel selection are local. Allowed conditions are name, patient, attributes, raw position, resolved and present tags, activity if statistics are available, ROI location, with valid All/Any groups. MRI masks, atlases, mesh/cut geometry and other unsupported conditions are rejected before modifying `IsFiltered`.
 
-[CorrelationResultResource](../../../../Assets/Scripts/HBP/Sync/Scene/CorrelationResultResource.cs) porte le roster complet et les matrices corrélation/moyenne, plus provenance Computed/Imported/Unknown, patient/colonne/dataset/protocole/bloc/data-info, normalisation, seuil et Bonferroni. Limite : 8 Mio. Les valeurs et toutes les dimensions sont validées avant remplacement du premier tableau. Le checkpoint garde indépendamment résultat (ou absence explicite) et `DisplayCorrelations` ; recharger un résultat live active l'affichage, restaurer un checkpoint rétablit son flag capturé.
+[CorrelationResultResource](../../../../Assets/Scripts/HBP/Sync/Scene/CorrelationResultResource.cs) carries the full roster and correlation/mean matrices, plus Computed/Imported/Unknown provenance, patient/column/dataset/protocol/bloc/data-info, normalization, threshold and Bonferroni. Limit: 8 MiB. Values and all dimensions are validated before replacing the first array. The checkpoint independently retains the result (or explicit absence) and `DisplayCorrelations`; loading a live result enables display, restoring a checkpoint restores its captured flag.
 
-## Inflation coordonnée
+## Coordinated inflation
 
-[SurfaceInflationCoordinator](../../../../Assets/Scripts/HBP/Sync/Scene/SurfaceInflationCoordinator.cs) capture ressource, hémisphère, options exactes, version d'algorithme et références/GeometryVersion des surfaces anatomiques. Quest draine d'abord le watermark canonique précédent. L'ancien affichage reste visible pendant la préparation.
+[SurfaceInflationCoordinator](../../../../Assets/Scripts/HBP/Sync/Scene/SurfaceInflationCoordinator.cs) captures resource, hemisphere, exact options, algorithm version and anatomical surface references/GeometryVersion. Quest first drains the previous canonical watermark. The old display remains visible during preparation.
 
-L'algorithme courant **2** travaille dans les coordonnées anatomiques déjà transformées en mémoire. Aucun GIFTI/transform supplémentaire n'est envoyé pour inflation. Seul `CurrentSurfaceCoordinates` est accepté pour un résultat préparé ; les anciens marqueurs `NativeGifti`/`NativeGiftiThenTransformed` sont refusés sans recalcul silencieux ni changement de leurs numéros historiques.
+Current algorithm **2** works in anatomical coordinates already transformed in memory. No additional GIFTI/transform is sent for inflation. Only `CurrentSurfaceCoordinates` is accepted for a prepared result; old `NativeGifti`/`NativeGiftiThenTransformed` markers are rejected without silent recomputation or changes to their historical numbers.
 
-Quand les deux caches sont prêts, une demande animée effectue la transition locale existante de 0,6 s sur chaque pair. Les deux fins précèdent le `SetMeshDisplay` canonique ; Quest confirme après application du watermark et vérification de la représentation. Sans animation, cette barrière est sautée. Les attentes de pair/barrière sont bornées à dix minutes. LoadingManager couvre uniquement préparation/attente du pair et se ferme **avant** animation/commit. Une annulation prépublication conserve l'ancien affichage ; après commit elle ne l'annule pas. Masques, UV/couleurs et poses locales sont conservés. Le [contrat scientifique](../../surface-inflation.md) décrit topologie, cache et précision.
+When both caches are ready, an animated request performs the existing 0.6 s local transition on each peer. Both completions precede canonical `SetMeshDisplay`; Quest confirms after applying the watermark and checking the representation. Without animation, this barrier is skipped. Peer/barrier waits are bounded to ten minutes. LoadingManager covers only preparation/waiting for the peer and closes **before** animation/commit. Pre-publication cancellation retains the old display; after commit it does not undo it. Masks, UVs/colors and local poses are retained. The [scientific contract](../../surface-inflation.md) describes topology, cache and precision.

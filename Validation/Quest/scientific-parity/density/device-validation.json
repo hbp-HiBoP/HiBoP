@@ -2,17 +2,17 @@
   "date": "2026-09-09",
   "M1": {
     "status": "VALIDE",
-    "reply": "M1 validée, prêt pour l’essai manuel hors ligne",
+    "reply": "M1 validated, ready for the offline manual trial",
     "scope": "Projection visible, manipulation and hide/show on the real automatic TLS delivery; no new manual click on Desktop send claimed"
   },
   "M2": {
     "status": "VALIDE",
-    "reply": "M2 validée",
+    "reply": "M2 validated",
     "scope": "Right stick recalculation and manipulation/hide-show during requested radio outage"
   },
   "scientific": {
     "decision": "D30",
-    "reply": "Accepter pour ce banc et ces versions"
+    "reply": "Accept for this test bench and these versions"
   },
   "outage": {
     "startUptimeSeconds": 22730.58,

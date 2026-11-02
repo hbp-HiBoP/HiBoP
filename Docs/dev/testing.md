@@ -1,67 +1,67 @@
-# Tests et preuves de non-régression
+# Tests and regression evidence
 
-Cette référence remplace la chronologie des campagnes de juillet 2026 par les frontières et contrats encore utiles. La présence d'un test dans le dépôt ne signifie pas qu'il a été exécuté dans la session courante. Cette consolidation du 2 novembre 2026 a inspecté les sources et passé le contrôle statique des assemblies ; elle n'a lancé ni Unity, ni campagne native, ni validation de casque.
+This reference replaces the chronology of the July 2026 campaigns with boundaries and contracts that remain useful. A test's presence in the repository does not mean it has run in the current session. This November 2, 2026 consolidation inspected sources and passed the static assembly gate; it ran neither Unity, a native campaign nor headset validation.
 
-## Choisir la preuve
+## Choosing evidence
 
-| Comportement | Preuve et emplacement |
+| Behavior | Evidence and location |
 |---|---|
-| Modèles, parsing, sérialisation, calcul déterministe, cache | EditMode ciblé, principalement `Assets/Tests/EditMode/HBP.Serialization.Tests`. |
-| Archive et orchestration de projet | `ProjectArchiveTests` et `HBP.ProjectWorkflow.Tests`, avec dépendances contrôlées. |
-| Références Unity, composants, prefabs, matériaux | Tests d'intégrité des assets, sans démarrer toute l'application. |
-| Cycle de vie, publication à la frame, scène, interaction | Harness minimal dans les assemblies PlayMode Module3D, Toolbar ou UI. |
-| Bootstrap et parcours multi-fenêtres | Quelques smokes Workflow avec le bootstrap réel lorsqu'il fait partie du contrat. |
-| Bibliothèque native, pixels, Player, transport réel ou Quest | Suite/qualification explicite dans l'environnement approprié ; un pass Editor ne prouve pas ces frontières. |
+| Models, parsing, serialization, deterministic computation, cache | Targeted EditMode, mainly `Assets/Tests/EditMode/HBP.Serialization.Tests`. |
+| Archive and project orchestration | `ProjectArchiveTests` and `HBP.ProjectWorkflow.Tests`, with controlled dependencies. |
+| Unity references, components, prefabs, materials | Asset integrity tests, without starting the entire application. |
+| Lifetime, frame-boundary publication, scene, interaction | Minimal harness in the Module3D, Toolbar or UI PlayMode assemblies. |
+| Bootstrap and multi-window workflows | A few Workflow smoke tests with the real bootstrap when it is part of the contract. |
+| Native library, pixels, Player, real transport or Quest | Explicit suite/qualification in the appropriate environment; an Editor pass does not prove these boundaries. |
 
-Réutiliser les assemblies et helpers existants, nommer le test d'après le comportement et affirmer un résultat observable. Le seul héritage de `MonoBehaviour` ne justifie pas PlayMode ; inversement, EditMode ne prouve pas `Start`, `Update` ou la destruction différée. Un screenshot vérifie une apparence, pas l'identité des données ni la correction des références.
+Reuse existing assemblies and helpers, name tests after behavior and assert an observable result. Inheriting from `MonoBehaviour` alone does not justify PlayMode; conversely, EditMode does not prove `Start`, `Update` or deferred destruction. A screenshot checks appearance, not data identity or reference correctness.
 
-## Carte des contrats existants
+## Map of existing contracts
 
-Les chemins ci-dessous sont relatifs à `Assets/Tests`. Les listes regroupent les familles principales, sans figer les nombres de tests ou les anciens numéros de phase.
+Paths below are relative to `Assets/Tests`. Lists group the main families without fixing test counts or old phase numbers.
 
-| Famille | Entrées actuelles et contrat à préserver |
+| Family | Current entry points and contract to preserve |
 |---|---|
-| Sérialisation | `EditMode/HBP.Serialization.Tests/ClassLoaderSaverTests.cs`, `LegacyProjectCompatibilityTests.cs`, `SerializationContractAuditTests.cs` : lecture historique, aller-retour courant, noms/types des membres, constructibilité, callbacks et contrats `Clone`, `Copy`, `GenerateID`, `GetAllIdentifiable`. |
-| Archives | `ProjectArchiveTests.cs` : structure, identités et références, protocole externe à l'archive, aliases, chemins portables, noms invalides/doublons, sauvegarde répétée sans entrées obsolètes, archives malformées et entrées dangereuses, annulation/nettoyage, récupération lecture seule et progression Ready. |
-| Workflow projet | `EditMode/HBP.ProjectWorkflow.Tests/ProjectWorkflowServiceTests.cs` : succès/échec/annulation, restauration du projet et de son emplacement, Save As, confirmations, Quick Start, sauvegarde des configurations, conservation des scènes en cas d'ouverture annulée. |
-| Patients/groupes/tags/sites | `PatientsGroupsTagsSitesTests.cs` : identités, copie, références, filtres et import/export tabulaire. Préserver les clés scientifiques, pas seulement les libellés affichés. |
-| Protocoles/datasets/conteneurs | `ProtocolDatasetDataContainerTests.cs` : familles de données, traitements et liens aux protocoles ; PlayMode UI/Workflow complète les interactions et la persistance. |
-| BIDS/localizer/base | `BidsLocalizerDatabaseWorkflowTests.cs` : découverte, chemins et export reproductibles ; vérifier formats et culture numérique, sans donnée privée. |
-| Lecture/traitement/caches | `DataLoadingProcessingCacheTests.cs` et les suites ciblées du domaine : valeurs, normalisation, clé/cache et réutilisation, invalidation, annulation et propriété des ressources. Un test de stockage seul ne prouve pas la publication du résultat. |
-| Données d'information | `InformationDataTests.cs`, `EditMode/HBP.ProjectWorkflow.Tests/InformationPresentationTests.cs`, `TrialMatrixValidationScopeTests.cs` : données et portée de validation ; les fenêtres sont couvertes séparément. |
-| Module3D | `PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs`, `CutsTriangleErasingPlayModeTests.cs` : configuration/scènes, coupes et effacement avec petits volumes/maillages déterministes. |
-| Toolbar | `PlayMode/HBP.Toolbar.PlayModeTests/ToolbarCoveragePlayModeTests.cs`, `CompareSiteToolbarPlayModeTests.cs` : commandes et état observable ; les actions externes passent par des adaptateurs contrôlés. |
-| Graphiques/UI | `PlayMode/HBP.UI.PlayModeTests/InformationGraphPlayModeTests.cs`, `ProtocolDatasetUiPlayModeTests.cs` : courbes, matrices, filtres, champs et événements ; jeux synthétiques pour les valeurs et fixture native explicite pour le chemin NIfTI. |
-| Parcours utilisateur | `PlayMode/HBP.Workflow.PlayModeTests/MainWorkflowPlayModeTests.cs`, `ProtocolDatasetPlayModeTests.cs` : création/ouverture/enregistrement, fenêtres et intégration des modèles. |
-| Architecture et assets | `UnityAssetIntegrityEditModeTests.cs`, `*PlayModeArchitectureTests.cs`, assemblies `HBP.PlatformConfiguration.Tests` et `HBP.Rendering.Tests` : frontières des fixtures, références et configuration. Les tests de structure ne remplacent pas les assertions de comportement. |
-| Transfert/synchronisation/Quest | Assemblies dédiées EditMode/PlayMode et utilitaires sous `Assets/Tests` ; sélectionner la famille touchée et le niveau de preuve au lieu de relancer systématiquement le casque. |
+| Serialization | `EditMode/HBP.Serialization.Tests/ClassLoaderSaverTests.cs`, `LegacyProjectCompatibilityTests.cs`, `SerializationContractAuditTests.cs`: historical reading, current round-trip, member names/types, constructibility, callbacks and `Clone`, `Copy`, `GenerateID`, `GetAllIdentifiable` contracts. |
+| Archives | `ProjectArchiveTests.cs`: structure, identities and references, protocol external to the archive, aliases, portable paths, invalid/duplicate names, repeated saves without stale entries, malformed archives and unsafe entries, cancellation/cleanup, read-only recovery and Ready progress. |
+| Project workflow | `EditMode/HBP.ProjectWorkflow.Tests/ProjectWorkflowServiceTests.cs`: success/failure/cancellation, project and location restoration, Save As, confirmations, Quick Start, configuration saving, scene retention when opening is cancelled. |
+| Patients/groups/tags/sites | `PatientsGroupsTagsSitesTests.cs`: identities, copying, references, filters and tabular import/export. Preserve scientific keys, not just display labels. |
+| Protocols/datasets/containers | `ProtocolDatasetDataContainerTests.cs`: data families, processing and protocol links; UI/Workflow PlayMode supplements interactions and persistence. |
+| BIDS/localizer/database | `BidsLocalizerDatabaseWorkflowTests.cs`: reproducible discovery, paths and export; check formats and numeric culture, without private data. |
+| Reading/processing/caches | `DataLoadingProcessingCacheTests.cs` and targeted domain suites: values, normalization, key/cache and reuse, invalidation, cancellation and resource ownership. A storage-only test does not prove result publication. |
+| Information data | `InformationDataTests.cs`, `EditMode/HBP.ProjectWorkflow.Tests/InformationPresentationTests.cs`, `TrialMatrixValidationScopeTests.cs`: data and validation scope; windows are covered separately. |
+| Module3D | `PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs`, `CutsTriangleErasingPlayModeTests.cs`: configuration/scenes, cuts and erasure with small deterministic volumes/meshes. |
+| Toolbar | `PlayMode/HBP.Toolbar.PlayModeTests/ToolbarCoveragePlayModeTests.cs`, `CompareSiteToolbarPlayModeTests.cs`: commands and observable state; external actions use controlled adapters. |
+| Graphs/UI | `PlayMode/HBP.UI.PlayModeTests/InformationGraphPlayModeTests.cs`, `ProtocolDatasetUiPlayModeTests.cs`: curves, matrices, filters, fields and events; synthetic datasets for values and an explicit native fixture for the NIfTI path. |
+| User workflows | `PlayMode/HBP.Workflow.PlayModeTests/MainWorkflowPlayModeTests.cs`, `ProtocolDatasetPlayModeTests.cs`: creation/opening/saving, windows and model integration. |
+| Architecture and assets | `UnityAssetIntegrityEditModeTests.cs`, `*PlayModeArchitectureTests.cs`, `HBP.PlatformConfiguration.Tests` and `HBP.Rendering.Tests` assemblies: fixture boundaries, references and configuration. Structural tests do not replace behavioral assertions. |
+| Transfer/synchronization/Quest | Dedicated EditMode/PlayMode assemblies and utilities under `Assets/Tests`; select the affected family and evidence level rather than systematically rerunning the headset. |
 
-Les empreintes et nombres attendus de `SerializationContractAuditTests` évoluent avec les migrations approuvées ; leur source courante est le test, pas un ancien compte de 515 membres ou 376 descripteurs. En cas de différence, inspecter le manifeste, expliquer les ajouts/suppressions/renommages et couvrir la compatibilité avant d'approuver la nouvelle empreinte. Les membres historiques peuvent être pris en charge par le registre d'alias plutôt que rester sur le modèle.
+Expected fingerprints and counts in `SerializationContractAuditTests` evolve with approved migrations; their current source is the test, not an earlier count of 515 members or 376 descriptors. On a difference, inspect the manifest, explain additions/removals/renames and cover compatibility before approving the new fingerprint. Historical members can be supported through the alias registry rather than remaining on the model.
 
-## Fixtures et isolation
+## Fixtures and isolation
 
-Les fixtures doivent être petites, anonymisées/synthétiques, avec identifiants stables. Conserver les formes historiques `$type` nécessaires à la compatibilité. Générer une archive lorsque cela suffit ; ajouter un binaire `.hibop` seulement si la forme binaire protège un cas que le générateur ne représente pas. Les fixtures MNI versionnées sont réutilisables ; un chemin personnel ou un fichier `.artifacts` inexpliqué ne l'est pas.
+Fixtures must be small, anonymized/synthetic, with stable identifiers. Retain historical `$type` forms needed for compatibility. Generate an archive when that suffices; add a `.hibop` binary only if its binary form protects a case the generator does not represent. Versioned MNI fixtures are reusable; a personal path or unexplained `.artifacts` file is not.
 
-`ApplicationStateTestScope`, `PersistentDataTestScope` et `TempDirectoryScope` isolent les tests EditMode. `HBP.PlayModeTestUtilities` fournit notamment `PlayModeApplicationStateScope`, `PlayModePersistentDataScope`, `PlayModeTempDirectoryScope`, `PlayModeSceneScope`, `PlayModeWindowHarness`, `PlayModeProjectHarness` et `PlayModeModule3DTestHarness`. Ces helpers organisent le cycle de vie ; les assertions produit restent dans la suite concernée. Attendre la fermeture des opérations, scènes et objets avant de restaurer les états globaux. La restauration doit aussi fonctionner après échec ou annulation, pour qu'une session Play ultérieure n'hérite pas de répertoires temporaires.
+`ApplicationStateTestScope`, `PersistentDataTestScope` and `TempDirectoryScope` isolate EditMode tests. `HBP.PlayModeTestUtilities` provides, among others, `PlayModeApplicationStateScope`, `PlayModePersistentDataScope`, `PlayModeTempDirectoryScope`, `PlayModeSceneScope`, `PlayModeWindowHarness`, `PlayModeProjectHarness` and `PlayModeModule3DTestHarness`. These helpers organize lifetime; product assertions remain in the relevant suite. Wait for operations, scenes and objects to close before restoring global state. Restoration must also work after failure or cancellation, so a later Play session does not inherit temporary directories.
 
-Ne jamais lire/modifier les préférences, aliases, historiques, bases ou workspaces personnels pour simplifier une fixture. Pour un cache, vérifier aussi le nettoyage puis la réutilisation : confondre `Clear` et la fermeture définitive du gestionnaire peut invalider un test suivant ou la session utilisateur.
+Never read/modify personal preferences, aliases, histories, databases or workspaces to simplify a fixture. For a cache, also check cleanup followed by reuse: confusing `Clear` with final manager shutdown can invalidate a subsequent test or the user session.
 
-Les dialogues OS, ouverture de fichiers et actions externes sont substitués dans les tests ciblés. Cela prouve la demande et ses paramètres ; une vérification manuelle reste nécessaire lorsque l'intégration réelle au système est le comportement modifié. Le bootstrap complet reste réservé aux parcours qui en dépendent : il masque sinon les responsabilités et alourdit inutilement les suites.
+OS dialogs, file opening and external actions are substituted in targeted tests. This proves the request and its parameters; manual verification remains necessary when actual system integration is the behavior being changed. Full bootstrap remains reserved for workflows that depend on it: otherwise it obscures responsibilities and adds unnecessary suite overhead.
 
-## Asynchronisme et niveau de preuve
+## Asynchrony and evidence level
 
-Les tests Unity/UniTask utilisent `async Task` et `await` directement. Ne pas bloquer le PlayerLoop avec `.Wait()`, `.Result`, `GetAwaiter().GetResult()`, sommeil ou boucle d'attente ; capturer une exception asynchrone attendue avec un `try/catch` réellement attendu. Les exceptions et annulations doivent être observées par le test. Des rapports historiques Quest T13/T15 ont été invalidés parce qu'un résultat affiché `Passed` masquait une Task annulée : ces résultats ne constituent pas une preuve de réussite. La procédure de validation actuelle protège explicitement ce cas.
+Unity/UniTask tests use `async Task` and direct `await`. Do not block the PlayerLoop with `.Wait()`, `.Result`, `GetAwaiter().GetResult()`, sleep or a wait loop; capture an expected asynchronous exception with an actually awaited `try/catch`. Exceptions and cancellations must be observed by the test. Historical Quest T13/T15 reports were invalidated because a displayed `Passed` result concealed a cancelled Task: these results are not evidence of success. The current validation procedure explicitly protects against this case.
 
-Piloter les courses avec une horloge injectée, des barrières et des sources de complétion : démarrer A, le remplacer/annuler, compléter B, puis A, et prouver que seul B publie ou libère l'UI. Vérifier le partage d'opération, l'annulation d'un seul consommateur, les générations obsolètes, le nettoyage d'erreur et l'absence de loader vide lorsqu'un résultat est déjà prêt. Ne pas faire dépendre la course d'un délai réel arbitraire, ni répéter une suite jusqu'à obtenir du vert.
+Control races through an injected clock, barriers and completion sources: start A, replace/cancel it, complete B, then A, and prove that only B publishes or releases the UI. Check operation sharing, cancellation of a single consumer, stale generations, error cleanup and absence of an empty loader when a result is already ready. Do not make races depend on an arbitrary real delay or repeat a suite until it turns green.
 
-Les suites de synchronisation distinguent contrats/ordonnancement (`Sync.Fast`), transport local (`Sync.Loopback`), handlers de scène (`Sync.SceneFocused`) et qualification/appareil (`Sync.Qualification`, `Sync.Device`). Vérifier les deux origines, identités, application atomique, suppression d'écho, invalidations ciblées et présentation locale conservée. Un effet dérivé se prouve à sa cause ; chaque geste UI ne demande pas une opération réseau supplémentaire.
+Synchronization suites distinguish contracts/scheduling (`Sync.Fast`), local transport (`Sync.Loopback`), scene handlers (`Sync.SceneFocused`) and qualification/device (`Sync.Qualification`, `Sync.Device`). Check both origins, identities, atomic application, echo suppression, targeted invalidations and retained local presentation. A derived effect is proven at its cause; every UI gesture does not require an additional network operation.
 
-`NativeFixtureIntegrationTests` sépare les catégories `NativeFixtures` et `NativeDll`. Les chemins natifs des graphiques portent aussi `NativeDll`. Certaines dépendances natives indisponibles déclenchent explicitement `Assert.Ignore` : comptabiliser ces cas comme non exécutés, jamais comme une qualification scientifique réussie. Les tests synthétiques restent utiles, mais ne prouvent ni ABI, ni chargement du plugin, ni rendu final. De même, une comparaison numérique ou une médiane de frame historique ne vaut pas qualification du matériel actuel ; voir [validation du rendu](rendering/rendering-validation.md).
+`NativeFixtureIntegrationTests` separates `NativeFixtures` and `NativeDll` categories. Native graph paths also carry `NativeDll`. Some unavailable native dependencies explicitly trigger `Assert.Ignore`: count these cases as not executed, never as successful scientific qualification. Synthetic tests remain useful, but prove neither ABI, plugin loading nor final rendering. Similarly, a numerical comparison or historical frame median does not qualify current hardware; see [rendering validation](rendering/rendering-validation.md).
 
-## Exécuter et rendre compte
+## Running and reporting
 
-Les instructions opérationnelles à jour sont dans le skill [hibop-unity-validation](../../.agents/skills/hibop-unity-validation/SKILL.md) : sélection de l'instance Editor, MCP/CLI, résultats, sécurité async et validation appareil. Les anciens lanceurs mentionnés dans la stratégie de juillet ne constituent plus l'entrée de référence. Cette page n'autorise pas une campagne supplémentaire lorsque la mission est documentaire.
+Current operational instructions are in the [hibop-unity-validation](../../.agents/skills/hibop-unity-validation/SKILL.md) skill: Editor instance selection, MCP/CLI, results, async safety and device validation. Earlier launchers mentioned in the July strategy are no longer the reference entry point. This page does not authorize an additional campaign when the task is documentation-only.
 
-Choisir les tests proportionnés à la frontière modifiée, examiner leur résultat réel et distinguer compilation, reload, démarrage, exécution et qualification Player/appareil. Rapporter tests réussis, échoués, ignorés, non exécutés et limitations d'environnement. Un crash utile doit être diagnostiqué ; le marquer ignoré pour obtenir un succès masquerait la couverture manquante. Les workflows GitHub actuels sont déclenchés manuellement : l'ancienne proposition « toutes les suites sur chaque changement » n'est pas une politique CI livrée.
+Choose tests proportionate to the modified boundary, inspect their actual results and distinguish compilation, reload, startup, execution and Player/device qualification. Report passed, failed, ignored and unexecuted tests and environment limitations. A relevant crash must be diagnosed; marking it ignored to obtain success would conceal missing coverage. Current GitHub workflows are manually triggered: the earlier proposal to run "all suites on every change" is not a delivered CI policy.
 
-Pour un changement d'assembly, exécuter également [check-assembly-dependencies.ps1](../../Tools/check-assembly-dependencies.ps1). Pour des changements de rendu ou scientifiques, conserver paramètres, entrée, version native, plateforme et métrique afin qu'une comparaison soit reproductible. Les validations supplémentaires découlent d'une modification, d'un échec ou d'une incertitude concrète, sans relancer des suites inchangées par défaut.
+For an assembly change, also run [check-assembly-dependencies.ps1](../../Tools/check-assembly-dependencies.ps1). For rendering or scientific changes, retain parameters, input, native version, platform and metric so comparisons are reproducible. Additional validation follows from a change, failure or concrete uncertainty, without rerunning unchanged suites by default.

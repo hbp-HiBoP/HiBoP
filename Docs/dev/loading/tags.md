@@ -1,103 +1,103 @@
-# Tags : import, conversion et réparation
+# Tags: import, conversion and repair
 
-Les définitions sont globales; les valeurs patient/site et les filtres les
-référencent par ID. Cette référence décrit le code vérifié le 2 novembre 2026.
-Les conventions opérationnelles restent dans
+Definitions are global; patient/site values and filters reference them
+by ID. This reference describes code checked on November 2, 2026.
+Operational conventions remain in
 [Tags and imports](../../agent-knowledge/tags-and-imports.md).
 
 ## Import
 
-`GlobalDatabase.UpdateDatabaseAsync` utilise le scan de toutes les références de
-métadonnées configurées, même non sélectionnées pour l'update, avant de construire
-un draft. [TagImportScanner et les importeurs](../../../Assets/Scripts/HBP/Core/Database)
-alimentent les services de [Core/Data/Tags](../../../Assets/Scripts/HBP/Core/Data/Tags).
-La clé associe scope patient/site et nom normalisé; un `GeneralTag` existant est
-résolu explicitement. L'ordre des sources ne doit pas changer le résultat.
+`GlobalDatabase.UpdateDatabaseAsync` uses a scan of all configured metadata
+references, even those not selected for the update, before constructing
+a draft. [TagImportScanner and importers](../../../Assets/Scripts/HBP/Core/Database)
+feed the services in [Core/Data/Tags](../../../Assets/Scripts/HBP/Core/Data/Tags).
+The key combines patient/site scope and normalized name; an existing `GeneralTag`
+is explicitly resolved. Source order must not change the result.
 
-`TagInferenceService` ignore les cellules vides et les tokens exclus, puis choisit
-Bool → Int → Float → String. Sans valeur significative, il choisit String.
-Zéro seul est un entier, et Enum reste un choix manuel. Un import ne retype
-jamais un tag existant : il rapporte les valeurs incompatibles et laisse la
-source externe intacte. Il peut étendre un enum par ajout ordonné en fin de liste.
+`TagInferenceService` ignores empty cells and excluded tokens, then chooses
+Bool → Int → Float → String. Without a meaningful value, it chooses String.
+Zero alone is an integer, and Enum remains a manual choice. An import never
+retypes an existing tag: it reports incompatible values and leaves the external
+source intact. It can extend an enum by ordered appending to the list.
 
-La politique immuable trimme les tokens, ignore leur casse, les déduplique et
-rejette les chevauchements. Valeurs par défaut : `true, yes`; `false, no`;
-valeurs ignorées `n/a, na, nan, null, none, -, not found`. `0/1` ne sont pas
-booléens par défaut. Le scan ne publie ni ne sauvegarde de tags; le draft et
-la base sont validés avant publication, avec restauration sur erreur de persistance.
+The immutable policy trims tokens, ignores their case, deduplicates them and
+rejects overlaps. Defaults: `true, yes`; `false, no`;
+ignored values `n/a, na, nan, null, none, -, not found`. `0/1` are not
+booleans by default. Scanning neither publishes nor saves tags; the draft and
+database are validated before publication, with restoration on persistence errors.
 
-## Enums et identité
+## Enums and identity
 
-`EnumTagValue` et `EnumTagFilterValue` conservent `Value` (index historique) et
-`StringValue` (label faisant autorité). Après résolution,
-`Tag.Values[Value] == StringValue`. Une divergence se répare par comparaison
-ordinale exacte du label, jamais par clamp vers l'option zéro. Les labels sont
-uniques; l'ajout append-only préserve les indices existants.
+`EnumTagValue` and `EnumTagFilterValue` retain `Value` (historical index) and
+`StringValue` (authoritative label). After resolution,
+`Tag.Values[Value] == StringValue`. A mismatch is repaired by exact ordinal
+label comparison, never by clamping to option zero. Labels are unique;
+append-only additions preserve existing indices.
 
-Un enum ancien sans texte peut retrouver son label par un index valide dans la
-définition courante, avec avertissement d'ambiguïté. Si la définition a changé
-vers un type non-enum, le sens ancien est irrécupérable : aucun historique de
-schéma ni identifiant stable d'option n'existe. Réordonner, renommer ou supprimer
-des options doit donc informer des conséquences sur les anciens fichiers.
+A historical enum without text can recover its label through a valid index in
+the current definition, with an ambiguity warning. If the definition has changed
+to a non-enum type, the old meaning is unrecoverable: no schema history or
+stable option identifier exists. Reordering, renaming or deleting options must
+therefore inform users of the consequences for older files.
 
-`TagCollection` maintient des vues stables et un index ordinal O(1) moyen,
-reconstruits ensemble après mutation. L'ordre `AllTags` reste patient, site,
-général. Deux objets différents ayant le même ID sont refusés sans altérer la
-collection précédente; une même instance peut figurer dans plusieurs catégories.
+`TagCollection` maintains stable views and an average O(1) ordinal index,
+rebuilt together after mutation. `AllTags` order remains patient, site,
+general. Two different objects with the same ID are rejected without altering
+the previous collection; the same instance can appear in multiple categories.
 
-## Changement manuel
+## Manual changes
 
 [TagCollectionModifier](../../../Assets/Scripts/HBP/UI/Main/Tags/TagCollectionModifier.cs)
-prépare un `TagSchemaMigrationPlan` sur clones de la base chargée, du projet ouvert
-et des filtres globaux, puis demande confirmation du plan. Les changements de
-contexte pendant la confirmation sont détectés et imposent une nouvelle préparation.
+prepares a `TagSchemaMigrationPlan` on clones of the loaded database, open project
+and global filters, then requests confirmation of the plan. Context changes
+during confirmation are detected and require preparation again.
 
-La conversion centrale préserve ID de définition, IDs des valeurs/filtres,
-propriétaire exact et position. Les références sont rebondées vers la définition
-canonique. Float → Int exige une valeur finie entière; un enum moderne se convertit
-par son texte; contraintes Min/Max/Clamp s'appliquent après conversion sémantique
-et les pertes sont rapportées.
+Central conversion preserves definition ID, value/filter IDs,
+exact owner and position. References are rebound to the canonical definition.
+Float → Int requires a finite integral value; a modern enum converts through
+its text; Min/Max/Clamp constraints apply after semantic conversion
+and losses are reported.
 
-Les valeurs impossibles sont retirées et rapportées; un filtre incompatible
-(par exemple `contains` texte vers entier) est retiré dans le plan avec
-avertissement. Il ne bloque pas à lui seul le plan et n'exige pas un second
-dialogue de suppression. Le rollback restaure les collections et bindings.
-La sauvegarde des définitions, filtres et base suit la confirmation; le projet
-ouvert n'est pas sauvegardé silencieusement. Si la restauration des fichiers
-échoue elle aussi, l'UI expose cette erreur : l'atomicité mémoire n'est pas une
-garantie de transaction de fichiers résistante à tout incident système.
+Impossible values are removed and reported; an incompatible filter
+(for example text `contains` to integer) is removed in the plan with
+a warning. It does not by itself block the plan or require a second
+deletion dialog. Rollback restores collections and bindings.
+Saving definitions, filters and database follows confirmation; the open project
+is not silently saved. If restoring files also fails, the UI exposes that error:
+in-memory atomicity is not a guarantee of a file transaction resilient to
+every system incident.
 
-## Réparation à l'ouverture
+## Repair on opening
 
-`DeferredTagMigrationService` intervient sur le graphe non publié, avant la
-résolution générique de `LoadingContext`. Il conserve les valeurs compatibles,
-convertit les autres si possible et rapporte les valeurs supprimées par patient
-et site. Les valeurs brutes supprimées ne sont pas sérialisées dans un refuge.
-Les enums modernes peuvent étendre les options; les indices legacy invalides
-sont supprimés avec rapport.
+`DeferredTagMigrationService` operates on the unpublished graph, before generic
+`LoadingContext` resolution. It retains compatible values, converts others
+where possible and reports removed values by patient and site.
+Removed raw values are not serialized in a recovery store.
+Modern enums can extend options; invalid legacy indices
+are removed with a report.
 
-Les presets conservent leur nom et leur ID, même vides. La réparation descend
-dans les conditions : seules les feuilles invalides sont retirées; All/Any à
-un enfant devient cet enfant avec `child.IsNot ^= group.IsNot`; un groupe vide
-est supprimé. L'UI informe après publication. Une sauvegarde normale persiste la
-réparation, sans `.bak` dédié et sans répéter le rapport au prochain chargement.
+Presets retain their name and ID, even when empty. Repair descends into
+conditions: only invalid leaves are removed; All/Any with one child becomes
+that child with `child.IsNot ^= group.IsNot`; an empty group is removed.
+The UI informs users after publication. A normal save persists the repair,
+without a dedicated `.bak` and without repeating the report on the next load.
 
-Les données structurelles corrompues ont un autre traitement : récupération en
-lecture seule, conservation de la source et interdiction de sauvegarder un
-sous-graphe incomplet. Cela concerne aussi un fichier global Tags/presets illisible.
+Corrupt structural data receives different treatment: read-only recovery,
+preservation of the source and prohibition on saving an incomplete subgraph.
+This also applies to an unreadable global Tags/presets file.
 
-## Limite observée et vérification
+## Observed limit and verification
 
-L'import construit sa politique depuis `UserPreferences.Data.TagImport`.
-En revanche, les appels actuels de migration dans `Project`, `GlobalDatabase`,
-`PersistentDataManager` et `TagCollectionModifier` passent `TagParsingPolicy.Default`.
-Les préférences personnalisées d'import ne sont donc pas garanties lors d'une
-migration; l'ancien plan qui les promettait à l'ouverture dépassait le code.
-Ce constat documentaire ne modifie pas le produit.
+Import constructs its policy from `UserPreferences.Data.TagImport`.
+However, current migration calls in `Project`, `GlobalDatabase`,
+`PersistentDataManager` and `TagCollectionModifier` pass `TagParsingPolicy.Default`.
+Custom import preferences are therefore not guaranteed during migration;
+the earlier plan promising them on opening went beyond the code.
+This documentation finding does not modify the product.
 
-Tests existants : `TagInferenceTests`, `EnumTagReferenceTests`,
+Existing tests: `TagInferenceTests`, `EnumTagReferenceTests`,
 `TagCollectionIndexTests`, `TagSchemaMigrationTests`, `DeferredTagMigrationTests`
-dans [HBP.Serialization.Tests](../../../Assets/Tests/EditMode/HBP.Serialization.Tests).
-Ils vérifient notamment ordre des sources, propriétaires/IDs, rollback,
-suppression ciblée des filtres et réparation idempotente. Leur présence n'est pas
-une exécution récente ni une qualification Player.
+in [HBP.Serialization.Tests](../../../Assets/Tests/EditMode/HBP.Serialization.Tests).
+They check, among other things, source order, owners/IDs, rollback,
+targeted filter removal and idempotent repair. Their presence is neither
+recent execution nor Player qualification.

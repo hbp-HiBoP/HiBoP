@@ -1,50 +1,50 @@
-# Qualification USB et réseau Windows 11 / Quest 3 — 27 octobre 2026
+# Windows 11 / Quest 3 USB and network qualification — October 27, 2026
 
-**Windows 11 / Quest 3 a été accepté fonctionnellement pour les builds testés.**
-Cette campagne terminée ne qualifie pas le checkout courant, macOS, Linux ou
-Quest 3S. Le refus/retry du consentement NCM n'a pas été exercé et a été accepté
-non bloquant. Ce résultat documente une validation matérielle ; il ne conditionne
-pas la publication des plateformes dans la CI.
+**Windows 11 / Quest 3 was functionally accepted for the tested builds.**
+This completed campaign does not qualify the current checkout, macOS, Linux or
+Quest 3S. NCM consent refusal/retry was not exercised and was accepted as
+non-blocking. This result documents hardware validation; it does not gate
+platform publication in CI.
 
-## Conditions de mesure
+## Measurement conditions
 
-Windows 11, Quest 3, Android 14, identifiant système `52433670048800520` ; version
-commerciale Horizon non confirmée. Le Player final était `WindowsRelease2`,
-Release IL2CPP, avec l'APK déjà installé. La préférence Desktop
-`AutomaticallyConnect` est restée désactivée pendant la campagne.
+Windows 11, Quest 3, Android 14, system identifier `52433670048800520`;
+commercial Horizon version unconfirmed. The final Player was `WindowsRelease2`,
+Release IL2CPP, with the APK already installed. The Desktop
+`AutomaticallyConnect` preference remained disabled throughout the campaign.
 
-Les artefacts locaux de campagne et de retest étaient sous `.artifacts/quest-ncm/`,
-avec les preuves additionnelles sans mode développeur sous `usb-debug-off-20261027/`.
-Ces chemins ne garantissent pas la disponibilité des fichiers sur un autre clone.
-Aucun nouveau build, test ou essai casque n'a été effectué pour cette consolidation.
+Local campaign and retest artifacts were under `.artifacts/quest-ncm/`,
+with additional evidence without developer mode under `usb-debug-off-20261027/`.
+These paths do not guarantee file availability on another clone.
+No new build, test or headset trial was performed for this consolidation.
 
-## Résultats observés
+## Observed results
 
-| Parcours | Résultat final | Portée de l'observation |
+| Workflow | Final result | Scope of observation |
 | --- | --- | --- |
-| USB seul, Wi-Fi Quest coupé, mode développeur désactivé depuis Meta Horizon | Connexion sans nouveau code, Small visible, modification Desktop reçue dans le casque. TLS sur NCM IPv6, scope Desktop 54 lors de l'essai. | Confirmation utilisateur et absence d'appareil accessible par ADB ; aucune relecture de `adb_enabled=0` pendant la coupure revendiquée. |
-| IPv6 manuelle | Connexion avec adresse complète et interface Desktop correcte. | Le timeout antérieur utilisait une adresse tronquée ; ce n'était pas une preuve de panne IPv6. |
-| Repli USB vers LAN | Premiers TCP LAN environ **4,20 s** après disparition NCM, sans nouveau code. | Délai réseau, pas délai de restauration complète de la scène. |
-| Interruption pendant le transfert | Après correction, reprise TCP Wi-Fi en **7,06 s**, publication Small **10 504,53 ms**, synchronisation initiale **1 232,87 ms**, sans Retry/Send/Reconnect ni code. | Durées distinctes ; la restauration complète en moins de 15 s n'est pas démontrée. |
-| Redémarrage de HiBoP Quest depuis son menu | Retour automatique de Small sous **30 s** et réglages dans les deux sens confirmés par l'utilisateur ; logs Desktop : publication **9 881,07 ms**, synchronisation **857,76 ms**. | ADB indisponible à cette étape : aucun nouveau PID ni log Quest revendiqué. |
+| USB only, Quest Wi-Fi off, developer mode disabled through Meta Horizon | Connection without a new code, Small visible, Desktop change received in headset. TLS over NCM IPv6, Desktop scope 54 during the trial. | User confirmation and no ADB-accessible device; no readback of `adb_enabled=0` during the claimed interruption. |
+| Manual IPv6 | Connection with full address and correct Desktop interface. | The earlier timeout used a truncated address; it was not evidence of IPv6 failure. |
+| USB-to-LAN fallback | First LAN TCP activity approximately **4.20 s** after NCM disappeared, without a new code. | Network delay, not full scene restoration delay. |
+| Interruption during transfer | After correction, Wi-Fi TCP recovery in **7.06 s**, Small publication **10,504.53 ms**, initial synchronization **1,232.87 ms**, without Retry/Send/Reconnect or code. | Separate durations; full restoration in under 15 s is not demonstrated. |
+| Restarting HiBoP Quest from its menu | Automatic return of Small within **30 s** and bidirectional settings confirmed by the user; Desktop logs: publication **9,881.07 ms**, synchronization **857.76 ms**. | ADB unavailable at this step: no new PID or Quest log claimed. |
 
-Deux échecs de reprise du transfert avaient précédé la correction de l'admission
-et du heartbeat. Les corrections Desktop empêchent le heartbeat de préempter la
-découverte pendant une session déconnectée et son délai d'attente. Le verdict
-repose sur les retests finaux, sans reclasser les échecs initiaux en succès.
-Le contrôle du Player sans ADB avait réussi et les trois variantes ciblées de
-reprise avaient été rejouées.
+Two transfer-recovery failures preceded the admission and heartbeat correction.
+Desktop corrections prevent heartbeat from preempting discovery during a
+disconnected session and its wait period. The verdict rests on final retests,
+without reclassifying initial failures as successes.
+The Player check without ADB had passed and the three targeted recovery
+variants had been replayed.
 
-## Limites et interprétation
+## Limits and interpretation
 
-Le refus/retry NCM reste non exercé. La désactivation du débogage USB seul n'a pas
-été testée indépendamment de celle du mode développeur. Les messages OpenXR
-caméra/boundary et avertissements DontDestroyOnLoad déjà présents n'ont pas été
-déclarés corrigés. Une réassociation manuelle intermédiaire explique la ressaisie
-du code à cette étape, sans démontrer une perte spontanée de secret.
+NCM refusal/retry remains unexercised. Disabling USB debugging alone was not
+tested independently from disabling developer mode. Pre-existing OpenXR
+camera/boundary messages and DontDestroyOnLoad warnings were not declared fixed.
+An intermediate manual re-pairing explains code re-entry at that step,
+without demonstrating spontaneous secret loss.
 
-Le fonctionnement actuel et la recette pour un autre OS sont décrits dans
-[USB et connectivité réseau](../../../Docs/dev/quest-autonomous/usb-and-network-connectivity.md).
-La [provenance des anciennes preuves](../retained-results.md#retrouver-une-ancienne-preuve)
-permet de consulter le rapport à son ancien chemin dans Git :
+Current operation and the acceptance procedure for another OS are described in
+[USB and network connectivity](../../../Docs/dev/quest-autonomous/usb-and-network-connectivity.md).
+The [provenance of earlier evidence](../retained-results.md#finding-earlier-evidence)
+allows the report to be consulted at its former Git path:
 `Docs/dev/quest-autonomous/usb/windows-quest3-checklist-2026-10-27.md`.

@@ -1,36 +1,36 @@
-# HiBoP autonome sur Quest
+# Standalone HiBoP on Quest
 
-Référence de développement relue contre le code le 2 novembre 2026. Les résultats matériels datés sont regroupés dans [validation.md](validation.md) ; ils ne constituent pas une nouvelle qualification du code courant.
+Development reference checked against the code on November 2, 2026. Dated hardware results are grouped in [validation.md](validation.md); they do not constitute new qualification of the current code.
 
-## Répartition des responsabilités
+## Division of responsibilities
 
-Desktop prépare et ouvre les visualisations. Quest reçoit les données préparées et utilise localement le modèle de scène, les configurations, les générateurs et le rendu communs. Une coupure réseau ne transforme pas Quest en lecteur vidéo : les scènes déjà publiées restent locales. Le transport d'une scène, la réplication de ses mutations et les fichiers projet sont trois contrats distincts.
+Desktop prepares and opens visualizations. Quest receives prepared data and locally uses the shared scene model, configurations, generators and rendering. A network interruption does not turn Quest into a video player: already published scenes remain local. Scene transport, mutation replication and project files are three distinct contracts.
 
-Le dépôt Unity contient les profils Desktop et Quest. `HBP.Core.Runtime` reste le socle sans dépendance vers les autres assemblies `HBP.*`. Data porte les scènes ; Transfer leur capture et restauration ; Sync les commandes ; Quest et UI les adaptateurs de plateforme. La composition Quest part de [QuestBootstrap](../../../Assets/Scripts/HBP/Quest/Runtime/QuestBootstrap.cs) et de [QuestAnatomySession](../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs). Les règles d'assembly et de travail Unity sont dans [AGENTS.md](../../../AGENTS.md).
+The Unity repository contains Desktop and Quest profiles. `HBP.Core.Runtime` remains the foundation without dependencies on other `HBP.*` assemblies. Data owns scenes; Transfer their capture and restoration; Sync commands; Quest and UI platform adapters. Quest composition starts from [QuestBootstrap](../../../Assets/Scripts/HBP/Quest/Runtime/QuestBootstrap.cs) and [QuestAnatomySession](../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs). Assembly and Unity workflow rules are in [AGENTS.md](../../../AGENTS.md).
 
-| État | Propriétaire et portée |
+| State | Owner and scope |
 | --- | --- |
-| Scènes, colonnes, patients, données préparées, coupes, sélection, paramètres scientifiques | Modèle commun ; mutations répliquées selon le [contrat Sync](sync/synchronization-architecture.md). |
-| Placement physique, taille du cerveau dans la pièce, caméra, fenêtres, guides, feedback des manettes | Présentation locale Quest. |
-| Installation MNI/atlas, caches et handles natifs | Ressources locales possédées ; une identité logique ne vaut pas empreinte universelle de tous les fichiers installés. |
-| État de connexion et publications | Session authentifiée, incarnations et livraisons identifiées ; aucune déduction à partir du seul nom de visualisation. |
+| Scenes, columns, patients, prepared data, cuts, selection, scientific parameters | Shared model; mutations replicated according to the [Sync contract](sync/synchronization-architecture.md). |
+| Physical placement, brain size in the room, camera, windows, guides, controller feedback | Local Quest presentation. |
+| MNI/atlas installation, caches and native handles | Owned local resources; a logical identity is not a universal fingerprint of all installed files. |
+| Connection state and publications | Authenticated session, identified incarnations and deliveries; nothing inferred from the visualization name alone. |
 
-La [référence scène/colonne](shared-scientific-scenes.md) précise scènes multi-patients, vues mono-patient, colonnes et visibilité. Une scène multi-patients n'embarque pas les anatomies individuelles simplement parce qu'elles ont été préchargées sur Desktop. Les définitions globales de protocoles/tags sont transmises lors de l'association puis leurs sauvegardes sont synchronisées pendant la session.
+The [scene/column reference](shared-scientific-scenes.md) details multi-patient scenes, single-patient views, columns and visibility. A multi-patient scene does not carry individual anatomies simply because they were preloaded on Desktop. Global protocol/tag definitions are transmitted during pairing, then their saves are synchronized during the session.
 
-## Données et calcul local
+## Data and local computation
 
-[SceneRestoration](../../../Assets/Scripts/HBP/Transfer/Scene/SceneRestoration.cs) reconstruit les données préparées et les ressources natives privées, initialise la scène commune, applique sa configuration et attend `PrepareRenderingAsync` avant publication. Les résultats dérivés sont reconstruits à partir des données et paramètres ; la livraison ne remplace pas cette préparation par une image figée. Elle n'impose pas non plus un calcul scientifique non demandé pour satisfaire une mesure de performance.
+[SceneRestoration](../../../Assets/Scripts/HBP/Transfer/Scene/SceneRestoration.cs) reconstructs prepared data and private native resources, initializes the shared scene, applies its configuration and awaits `PrepareRenderingAsync` before publication. Derived results are rebuilt from data and parameters; delivery does not replace this preparation with a frozen image. Nor does it impose unrequested scientific computation to satisfy a performance measurement.
 
-La capture courante prend en charge les modalités représentées par les colonnes communes, leurs essais et séries préparées. La présence du code et des tests de restauration ne prouve pas une recette matérielle exhaustive de chaque protocole. L'import EEG brut sur Quest, l'édition complète Desktop et l'ouverture d'un projet portable depuis le casque ne sont pas à déduire du transfert de scène. Un cache de ressources n'est pas une sauvegarde de session ; aucune garantie générale de conservation du travail non sauvegardé après arrêt du processus n'est apportée ici.
+Current capture supports modalities represented by shared columns, their trials and prepared series. Code and restoration tests do not prove exhaustive hardware acceptance of every protocol. Raw EEG import on Quest, full Desktop editing and opening a portable project from the headset must not be inferred from scene transfer. A resource cache is not a session save; no general guarantee of preserving unsaved work after process termination is provided here.
 
-Les coordonnées scientifiques sont en millimètres. Les wrappers à la frontière `hbp_core` réalisent le changement de repère natif/Unity (X et winding) décrit dans [le contrat de coordonnées](../hbp_core_coordinate_system.md). La présentation Quest applique ensuite la conversion mm→m et sa pose locale, sans nouvelle réflexion native. Les matrices, normales, indices, couleurs linéaires et états de surface ne doivent pas subir une seconde conversion lors du transport. Points d'entrée : [ReferenceSystemConversion](../../../Assets/Scripts/HBP/Core/DLL/HbpCoreValueTypes.cs), [QuestColumnPresentation](../../../Assets/Scripts/HBP/Quest/Runtime/QuestColumnPresentation.cs).
+Scientific coordinates are in millimeters. Wrappers at the `hbp_core` boundary perform the native/Unity coordinate conversion (X and winding) described in [the coordinate contract](../hbp_core_coordinate_system.md). Quest presentation then applies mm→m conversion and its local pose, without another native reflection. Matrices, normals, indices, linear colors and surface states must not undergo a second conversion during transport. Entry points: [ReferenceSystemConversion](../../../Assets/Scripts/HBP/Core/DLL/HbpCoreValueTypes.cs), [QuestColumnPresentation](../../../Assets/Scripts/HBP/Quest/Runtime/QuestColumnPresentation.cs).
 
-La calibration `SpanMin/Middle/SpanMax` porte sur les données préparées, sans renormalisation à l'instant sélectionné. Pour une navigation temporelle non alignée, la surface et les sites suivent leurs règles communes : le site évalue `TemporalSample`, la surface utilise l'index de projection défini par sa politique. L'alpha temporel d'interpolation ne doit pas être confondu avec `ActivityAlpha`, qui règle l'opacité. Les masques scientifiques et la visibilité de présentation sont également distincts.
+`SpanMin/Middle/SpanMax` calibration applies to prepared data, without renormalization at the selected time point. For unaligned temporal navigation, surface and sites follow their shared rules: the site evaluates `TemporalSample`, the surface uses the projection index defined by its policy. Temporal interpolation alpha must not be confused with `ActivityAlpha`, which controls opacity. Scientific masks and presentation visibility are also distinct.
 
-## Durée de vie et concurrence
+## Lifetime and concurrency
 
-Les objets Unity, les mutations du graphe vivant et la publication restent sur le thread Unity. Les workers reçoivent des données détachées ou des ressources retenues explicitement. Annuler une tâche n'interrompt pas un appel natif synchrone : rejoindre le travail précède toute destruction de fichier, buffer ou handle.
+Unity objects, live-graph mutations and publication remain on the Unity thread. Workers receive detached data or explicitly retained resources. Cancelling a task does not interrupt a synchronous native call: joining the work precedes any destruction of files, buffers or handles.
 
-Les lectures GIFTI de géométrie et MarsAtlas partagent le verrou statique de [Surface](../../../Assets/Scripts/HBP/Core/DLL/Surface.cs), car le parseur possède un état global. Ce verrou ne remplace pas l'ordonnancement des jobs scientifiques. [MRI3D](../../../Assets/Scripts/HBP/Core/Object3D/MRI3D.cs) sérialise chargement, lecture paresseuse et nettoyage de son volume ; cette protection ne dispense pas les propriétaires de drainer leurs lecteurs avant fermeture.
+GIFTI geometry and MarsAtlas reads share [Surface](../../../Assets/Scripts/HBP/Core/DLL/Surface.cs)'s static lock, because the parser has global state. This lock does not replace scientific job scheduling. [MRI3D](../../../Assets/Scripts/HBP/Core/Object3D/MRI3D.cs) serializes loading, lazy reading and cleanup of its volume; this protection does not exempt owners from draining their readers before closing.
 
-Consulter [transfert et Display](transfer.md), [interactions](interactions.md), [déploiement](deployment.md) et [USB/réseau](usb-and-network-connectivity.md) pour leurs contrats. Les anciennes étapes du prototype et leurs listes de tâches ont été absorbées dans ces références ; elles ne constituent pas un backlog courant.
+See [transfer and Display](transfer.md), [interactions](interactions.md), [deployment](deployment.md) and [USB/network](usb-and-network-connectivity.md) for their contracts. Earlier prototype stages and task lists have been absorbed into these references; they do not constitute a current backlog.

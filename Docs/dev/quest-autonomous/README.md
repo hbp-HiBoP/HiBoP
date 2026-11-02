@@ -1,18 +1,18 @@
-# Développement Quest autonome
+# Standalone Quest development
 
-Le Quest reçoit des scènes préparées par Desktop, utilise le moteur scientifique commun et conserve une présentation locale. Référence révisée le 2 novembre 2026 ; les qualifications matérielles restent datées et limitées à leurs campagnes.
+Quest receives scenes prepared by Desktop, uses the shared scientific engine and retains local presentation. Reference revised on November 2, 2026; hardware qualifications remain dated and limited to their campaigns.
 
-| Besoin | Référence |
+| Need | Reference |
 | --- | --- |
-| Comprendre les couches, ressources et calculs locaux | [Architecture](architecture.md) |
-| Capturer, livrer et ouvrir un lot synchronisé | [Transfert et Display](transfer.md) |
-| Fenêtres, manettes, sélection et coupes | [Interactions](interactions.md) |
-| Builds, plugins natifs et signature | [Déploiement](deployment.md) |
-| Lire les résultats et leurs limites | [Validation](validation.md) |
-| Connexion USB NCM, Wi-Fi et qualification OS | [USB et réseau](usb-and-network-connectivity.md) |
-| Expérimenter la sélection | [Laboratoire](selection-lab-guide.md) |
-| Modèle scène/colonne et mutations répliquées | [Scènes](shared-scientific-scenes.md), [Sync](sync/synchronization-architecture.md) |
+| Understand layers, resources and local computation | [Architecture](architecture.md) |
+| Capture, deliver and open a synchronized batch | [Transfer and Display](transfer.md) |
+| Windows, controllers, selection and cuts | [Interactions](interactions.md) |
+| Builds, native plugins and signing | [Deployment](deployment.md) |
+| Read results and their limits | [Validation](validation.md) |
+| USB NCM connection, Wi-Fi and OS qualification | [USB and network](usb-and-network-connectivity.md) |
+| Experiment with selection | [Laboratory](selection-lab-guide.md) |
+| Scene/column model and replicated mutations | [Scenes](shared-scientific-scenes.md), [Sync](sync/synchronization-architecture.md) |
 
-Les [fixtures](validation.md#fixtures-et-preuves) permettent de reproduire les entrées. Les [résultats de référence](../../../Validation/Quest/retained-results.md), classés par sujet hors de la documentation, conservent les comparaisons finales utiles et leur provenance. Les anciennes tâches et étapes de prototype ne définissent plus un backlog courant.
+The [fixtures](validation.md#fixtures-and-evidence) allow inputs to be reproduced. The [reference results](../../../Validation/Quest/retained-results.md), organized by topic outside the documentation, retain useful final comparisons and their provenance. Earlier tasks and prototype stages no longer define a current backlog.
 
-Pour exécuter Unity, des tests ou une recette casque : suivre [AGENTS.md](../../../AGENTS.md) et le [skill de validation](../../../.agents/skills/hibop-unity-validation/SKILL.md).
+To run Unity, tests or a headset acceptance procedure: follow [AGENTS.md](../../../AGENTS.md) and the [validation skill](../../../.agents/skills/hibop-unity-validation/SKILL.md).

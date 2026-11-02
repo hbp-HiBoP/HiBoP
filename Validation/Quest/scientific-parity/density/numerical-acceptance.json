@@ -1,6 +1,6 @@
 {
   "decision": "D30",
-  "ownerReply": "Accepter pour ce banc et ces versions",
+  "ownerReply": "Accept for this test bench and these versions",
   "date": "2026-09-09",
   "scope": "Only the 18 runs, inputs and final binary versions recorded in this manifest",
   "absoluteLimits": {

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Corpus reproductible et non clinique pour la baseline d'inflation corticale.",
+  "description": "Reproducible, nonclinical corpus for the cortical inflation baseline.",
   "surfaces": [
     {
       "id": "mni_left_anatomical",

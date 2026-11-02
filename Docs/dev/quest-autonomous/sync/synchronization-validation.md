@@ -1,56 +1,56 @@
-# Validation, diagnostics et limites
+# Validation, diagnostics and limits
 
-Les contrats actuels sont décrits dans [architecture](synchronization-architecture.md), [opérations](synchronized-operations.md) et [wire](wire-protocol.md). Cette page sépare les points à vérifier aujourd'hui des résultats historiques. **Aucun test Unity, build ni essai physique n'a été exécuté pour la consolidation du 2 novembre 2026.**
+Current contracts are described in [architecture](synchronization-architecture.md), [operations](synchronized-operations.md) and [wire](wire-protocol.md). This page separates points to verify today from historical results. **No Unity tests, builds or physical trials were run for the November 2, 2026 consolidation.**
 
-## Couverture exécutable
+## Executable coverage
 
-Les tests sont les points d'entrée à sélectionner selon le changement, pas une attestation de réussite courante.
+Tests are entry points to select according to the change, not an attestation of current success.
 
-| Domaine | Sources de vérification |
+| Domain | Verification sources |
 | --- | --- |
-| Codecs, bornes, identités et scheduler | [HBP.Sync.Tests](../../../../Assets/Tests/EditMode/HBP.Sync.Tests), notamment `ContractCodecTests`, `SchedulerTests` |
-| Application, rebase, publication, merge, horloge | [HBP.Transfer.Scene.Tests](../../../../Assets/Tests/EditMode/HBP.Transfer.Scene.Tests) : `SceneMutationBoundaryTests`, `OnlineMutationDriverTests`, `SceneCheckpointMergeTests`, `TimelineClockEstimatorTests` |
-| Transport réel en loopback, bulk et sessions | `PersistentTransportLoopbackTests`, `MultiSceneTransportTests`, `SessionControlTransportTests`, `SessionPreferencesTests`, `SessionDefinitionsTests` dans le même dossier |
-| Ressources et calculs | `PreparedSceneArchiveTests`, `ActivityProjectionTests`, puis [NativePreparationTests](../../../../Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/NativePreparationTests.cs) |
-| Fermeture, remplacement, ownership et présentation | [QuestSceneLifecycleTests](../../../../Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/QuestSceneLifecycleTests.cs), [QuestAnatomyLifetimeTests](../../../../Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestAnatomyLifetimeTests.cs), [SceneDisplayOwnershipTests](../../../../Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/SceneDisplayOwnershipTests.cs) |
+| Codecs, bounds, identities and scheduler | [HBP.Sync.Tests](../../../../Assets/Tests/EditMode/HBP.Sync.Tests), notably `ContractCodecTests`, `SchedulerTests` |
+| Application, rebase, publication, merge, clock | [HBP.Transfer.Scene.Tests](../../../../Assets/Tests/EditMode/HBP.Transfer.Scene.Tests): `SceneMutationBoundaryTests`, `OnlineMutationDriverTests`, `SceneCheckpointMergeTests`, `TimelineClockEstimatorTests` |
+| Real loopback transport, bulk and sessions | `PersistentTransportLoopbackTests`, `MultiSceneTransportTests`, `SessionControlTransportTests`, `SessionPreferencesTests`, `SessionDefinitionsTests` in the same directory |
+| Resources and computations | `PreparedSceneArchiveTests`, `ActivityProjectionTests`, then [NativePreparationTests](../../../../Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/NativePreparationTests.cs) |
+| Closing, replacement, ownership and presentation | [QuestSceneLifecycleTests](../../../../Assets/Tests/PlayMode/HBP.Transfer.Scene.PlayModeTests/QuestSceneLifecycleTests.cs), [QuestAnatomyLifetimeTests](../../../../Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/QuestAnatomyLifetimeTests.cs), [SceneDisplayOwnershipTests](../../../../Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/SceneDisplayOwnershipTests.cs) |
 
-Pour exécuter Unity, suivre le workflow du dépôt et le skill `hibop-unity-validation`. Les tests qui ont besoin du PlayerLoop attendent directement leurs opérations asynchrones ; un timeout observé n'autorise pas à laisser le travail actif puis lancer une autre suite. Un handle natif reste vivant jusqu'à la fin effective du travail commencé.
+To run Unity, follow the repository workflow and `hibop-unity-validation` skill. Tests needing the PlayerLoop directly await their asynchronous operations; an observed timeout does not authorize leaving work active and starting another suite. A native handle remains alive until the started work actually finishes.
 
-Un essai réseau utile distingue : admission socket, application Unity, génération scientifique terminée et observation visuelle. « NextVisible » désignait une éligibilité CPU au rendu, pas la première image vue dans le casque. Ne pas soustraire des timestamps de deux appareils sans estimation d'horloge. La frontière historique `ScientificStable` n'a pas reçu de qualification complète.
+A useful network trial distinguishes socket admission, Unity application, completed scientific generation and visual observation. "NextVisible" meant CPU eligibility for rendering, not the first image seen in the headset. Do not subtract timestamps from two devices without clock estimation. The historical `ScientificStable` boundary did not receive full qualification.
 
-## Mesures de référence
+## Reference measurements
 
-Ces mesures datées expliquent des choix et des limites ; elles ne qualifient pas les performances du checkout courant. Les échantillons et les frontières de mesure diffèrent : ils ne forment pas une série de benchmarks directement comparables.
+These dated measurements explain choices and limits; they do not qualify current checkout performance. Samples and measurement boundaries differ: they do not form a directly comparable benchmark series.
 
-| Sujet et conditions | Résultat observé | Portée |
+| Topic and conditions | Observed result | Scope |
 | --- | --- | --- |
-| Latence de l'ancien échange par snapshot, 22 septembre 2026 ; Windows Editor + Quest Wi-Fi, Unity 6000.5.2f1 | Médiane setter → visible ACK : couleur **1130,9862 ms** (n=8), coupe **1387,7274 ms** (n=9), timeline **1693,3038 ms** (n=25). Un transfert initial : **37,402764 s**. | Architecture remplacée depuis. Échantillons insuffisants pour les qualifications p95 prévues (100/300/100). Aucune latence du runtime actuel n'en est déduite. |
-| Frontière inline/bulk du scheduler, 24 septembre ; en processus, 8 échauffements puis 24 mesures | Corps de **4096 octets : 3,98 µs** ; **4097 octets : 53,08 µs**. | Mesure du coût de changement de chemin, sans réseau ni rendu. |
-| Checkpoint de 30 000 sites, fin septembre | **3 064 297 octets**, 13 records, 188 chunks ; loopback **1840,4 ms**, autre matrice **1725,7 ms**. | Deux essais distincts ; pas de garantie de performance en casque. |
-| Livraison d'inflation, 6 octobre ; trois colonnes, hémisphère MNI gauche utilisé comme patient, échelle 2/1/0,5 et translation 5/7/11 | Payload **5 901 503 octets** ; retrait de **804 940 octets** de GIFTI/TRM compressés, soit environ **12 %** du total précédent reconstitué de 6 706 443 octets. | Compression Fastest des ressources ; gain de métadonnées exclu. La cible de parité matérielle à 0,001 mm n'était pas qualifiée par cet essai Windows. |
+| Latency of the old snapshot exchange, September 22, 2026; Windows Editor + Quest Wi-Fi, Unity 6000.5.2f1 | Median setter → visible ACK: color **1130.9862 ms** (n=8), cut **1387.7274 ms** (n=9), timeline **1693.3038 ms** (n=25). One initial transfer: **37.402764 s**. | Architecture since replaced. Insufficient samples for planned p95 qualifications (100/300/100). No current runtime latency is inferred. |
+| Scheduler inline/bulk boundary, September 24; in-process, 8 warm-ups then 24 measurements | **4096-byte body: 3.98 µs**; **4097-byte body: 53.08 µs**. | Cost of switching paths, without network or rendering. |
+| Checkpoint of 30,000 sites, late September | **3,064,297 bytes**, 13 records, 188 chunks; loopback **1840.4 ms**, another matrix **1725.7 ms**. | Two separate trials; no headset performance guarantee. |
+| Inflation delivery, October 6; three columns, left MNI hemisphere used as patient, scale 2/1/0.5 and translation 5/7/11 | Payload **5,901,503 bytes**; removal of **804,940 bytes** of compressed GIFTI/TRM, approximately **12%** of the reconstructed previous total of 6,706,443 bytes. | Fastest resource compression; metadata gain excluded. The 0.001 mm hardware parity target was not qualified by this Windows trial. |
 
-L'analyseur [analyze-sync-baseline.py](../../../../Tools/analyze-sync-baseline.py) lit les anciens exports. Il ne réintroduit pas la télémétrie snapshot/visible ACK retirée du runtime. Son ancien collecteur borné à 8192 enregistrements invalidait une mesure en cas de pertes. Les seuils numériques de performance ont été différés le 8 octobre 2026 ; aucune nouvelle garantie n'est définie ici.
+The [analyze-sync-baseline.py](../../../../Tools/analyze-sync-baseline.py) analyzer reads earlier exports. It does not reintroduce snapshot/visible ACK telemetry removed from the runtime. Its former collector, bounded to 8192 records, invalidated a measurement on loss. Numerical performance thresholds were deferred on October 8, 2026; no new guarantee is defined here.
 
-## Comportements vérifiés et limites
+## Verified behaviors and limits
 
-| Comportement | Observation historique | Ce qui reste distinct |
+| Behavior | Historical observation | What remains separate |
 | --- | --- | --- |
-| Rétention et changement de topologie | Le 6 octobre, session matérielle de **8192 couleurs et 64 cycles de coupes** acceptée ; correction de topologie revue sur deux parcours de huit états. | Toutes les opérations, modalités et interruptions ne sont pas couvertes. |
-| Contrôles Quest | Acceptation utilisateur du périmètre d'interface le 8 octobre. | Elle ne qualifie pas chaque opération scientifique, ni le routage multiscène ajouté ensuite. |
-| Reconnexion et fusion hors ligne | Le 8 octobre, placement initial des sites, reconnexion sans changement, combinaison d'éditions indépendantes, choix Desktop/Quest en cas de conflit et parcours de reprise acceptés sur casque. Les poses locales devaient rester préservées. | Le texte final des dialogues a changé après le build testé ; l'annulation du dialogue avait été testée avant son remplacement par un choix obligatoire. Le statut d'une scène fermée sur Desktop restait à clarifier dans la recette multiscène. |
-| Inventaire et rechargement des scènes | Le 12 octobre, envoi manuel et une partie de la recette matérielle acceptés. Le rechargement après changement de normalisation avait exposé un accès Unity depuis un worker, corrigé avec des régressions automatisées. | La recette physique de normalisation devait être répétée après correction ; les derniers parcours de rechargement n'étaient pas tous validés. Aucune acceptation matérielle complète n'est déduite des tests. |
-| Vérification automatisée après reprise séquentielle | Le 12 octobre : **1067 réussis, 1 ignoré, 337,25 s** en CLI ; **16 réussis, 92,36 s** en PlayMode. | Résultats datés, pas une exécution actuelle. Le test ignoré dépendait d'une fixture HBNA externe. |
+| Retention and topology change | On October 6, hardware session of **8192 colors and 64 cut cycles** accepted; topology correction reviewed over two eight-state paths. | Not all operations, modalities and interruptions are covered. |
+| Quest controls | User acceptance of the interface scope on October 8. | It qualifies neither every scientific operation nor multi-scene routing added later. |
+| Reconnection and offline merge | On October 8, initial site placement, unchanged reconnection, combination of independent edits, Desktop/Quest conflict choice and recovery paths accepted on headset. Local poses were to remain preserved. | Final dialog text changed after the tested build; dialog cancellation had been tested before replacement by a mandatory choice. The status of a scene closed on Desktop remained to be clarified in the multi-scene acceptance procedure. |
+| Scene inventory and reloading | On October 12, manual sending and part of the hardware acceptance procedure accepted. Reloading after a normalization change exposed Unity access from a worker, corrected with automated regression tests. | Physical normalization acceptance needed repeating after correction; not all latest reload paths were validated. No full hardware acceptance is inferred from tests. |
+| Automated verification after sequential resumption | On October 12: **1067 passed, 1 ignored, 337.25 s** in CLI; **16 passed, 92.36 s** in PlayMode. | Dated results, not a current run. The ignored test depended on an external HBNA fixture. |
 
-La recette Small ne couvrait pas CCEP, statique, fMRI et MEG ; les corrélations n'y avaient pas été testées et plusieurs opérations sur les ressources n'avaient qu'une couverture bidirectionnelle partielle. Le déplacement des sites avait été accepté visuellement sur Small, sans démontrer la parité numérique Windows/ARM. Des positions brutes ne doivent pas remplacer le contrat commande pour masquer un écart.
+The Small acceptance procedure did not cover CCEP, static, fMRI or MEG; correlations were not tested there and several resource operations had only partial bidirectional coverage. Site movement had been visually accepted on Small, without demonstrating Windows/ARM numerical parity. Raw positions must not replace the command contract to conceal a discrepancy.
 
-## Points à qualifier
+## Points to qualify
 
-- **Frontière d'erreur applicative.** Dans [QuestAnatomySession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs), `IsTransientReplicaInterruption` classe encore `InvalidOperationException` avec les interruptions IO/socket/disposal. Qualifier ce chemin avant de promettre qu'une erreur métier ne déclenche jamais une reconnexion. Ce constat de code ne constitue pas une reproduction d'un défaut utilisateur actuel.
-- **Parcours matériels.** Ressources bidirectionnelles, longues coupures/reconnexion, préférences pendant travail natif, inventaire, fermeture et ouverture patient nécessitent leurs propres essais. Les tests de codecs ou loopback ne remplacent ni ces parcours ni les comparaisons de buffers scientifiques.
-- **Symptômes à isoler s'ils réapparaissent.** Une scène devenue invisible après retrait puis reprojection d'activité avait été signalée le 5 octobre, sans reproduction isolée ni correction globale démontrée. Le parseur statistique historique désactivé de [SiteConditions](../../../../Assets/Scripts/HBP/Data/Module3D/SiteConditions.cs) conserve aussi un TODO de plage temporelle : ses helpers parcourent `Trial.AllValues`. Ce dernier constat ne concerne pas le job de filtre actif.
+- **Application error boundary.** In [QuestAnatomySession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs), `IsTransientReplicaInterruption` still groups `InvalidOperationException` with IO/socket/disposal interruptions. Qualify this path before promising that a domain error never triggers reconnection. This code finding is not a reproduction of a current user defect.
+- **Hardware workflows.** Bidirectional resources, long interruptions/reconnection, preferences during native work, inventory, closing and patient opening require their own trials. Codec or loopback tests replace neither these workflows nor scientific buffer comparisons.
+- **Symptoms to isolate if they recur.** A scene becoming invisible after activity removal and reprojection was reported on October 5, without isolated reproduction or demonstrated global correction. The disabled historical statistical parser in [SiteConditions](../../../../Assets/Scripts/HBP/Data/Module3D/SiteConditions.cs) also retains a time-range TODO: its helpers traverse `Trial.AllValues`. This last finding does not concern the active filter job.
 
-Une violation d'accès native Mono du 12 octobre était survenue pendant `RestoreSceneManagerSetup` / `UnloadUnusedAssets`, dans un contexte de suites concurrentes ou annulées. La cause racine n'est pas établie et la reprise séquentielle réussie ne prouve pas une correction native. Pour un diagnostic similaire, les traces locales historiques étaient sous `.test-results/unitask/crash-2026-10-12/`, rapport `Crash_2026-10-12_134308403` : lecture `0x100000000`, code `0xC0000005`, pile `mono_add_process_object`, sans heap managé dans le dump. L'absence de plugin dans cette pile n'exclut pas une corruption antérieure.
+A native Mono access violation on October 12 occurred during `RestoreSceneManagerSetup` / `UnloadUnusedAssets`, in a context of concurrent or cancelled suites. Root cause is not established and successful sequential resumption does not prove a native fix. For similar diagnostics, historical local traces were under `.test-results/unitask/crash-2026-10-12/`, report `Crash_2026-10-12_134308403`: read `0x100000000`, code `0xC0000005`, stack `mono_add_process_object`, without a managed heap in the dump. Absence of a plugin from that stack does not exclude earlier corruption.
 
 ## Provenance
 
-Les [résultats de référence Quest](../../../../Validation/Quest/retained-results.md) contiennent les comparaisons scientifiques et les instructions de consultation des anciens rapports dans Git. Les listes de tâches, états de reprise et CSV de recette Small ne font plus partie de la documentation courante. Certains rapports liés et gros artefacts locaux n'étaient jamais disponibles dans le dépôt ; aucun résultat n'a été reconstruit à partir de leur absence.
+The [Quest reference results](../../../../Validation/Quest/retained-results.md) contain scientific comparisons and instructions for consulting old reports in Git. Task lists, resumption states and Small acceptance CSVs are no longer part of current documentation. Some linked reports and large local artifacts were never available in the repository; no result was reconstructed from their absence.

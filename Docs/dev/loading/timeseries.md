@@ -1,135 +1,135 @@
-# Séries temporelles, grilles et mémoire
+# Time series, grids and memory
 
-Référence du code courant, vérifiée le 2 novembre 2026. Les mesures anciennes
-sont isolées dans [Performance](performance.md). Les contrats spatiaux sont dans
+Reference for the current code, checked on November 2, 2026. Earlier measurements
+are isolated in [Performance](performance.md). Spatial contracts are in
 [Projection](../activity-projection.md).
 
-## Du fichier aux époques
+## From files to epochs
 
-[DataManager](../../../Assets/Scripts/HBP/Core/Data/DataManager.cs) possède les
-données chargées et les dérivés. Pour iEEG, CCEP et MEG continu,
+[DataManager](../../../Assets/Scripts/HBP/Core/Data/DataManager.cs) owns
+loaded data and derivatives. For iEEG, CCEP and continuous MEG,
 [RawRecordingCache](../../../Assets/Scripts/HBP/Core/Data/Loaded/RawRecordingCache.cs)
-partage le chargement brut par clé de source avec `ConcurrentDictionary` et
-`Lazy<DynamicData>`. Une erreur retire l'entrée fautive. La clé inclut le format,
-les chemins, tailles et dates de modification des fichiers associés (y compris
-les fichiers référencés par un header BrainVision). Elle n'inclut pas le protocole.
-La construction EEG/époques se fait hors du verrou de publication du DataManager;
-ceci ne décrit pas tous les autres chargeurs, notamment fMRI/statique.
+shares raw loading by source key using `ConcurrentDictionary` and
+`Lazy<DynamicData>`. An error removes the faulty entry. The key includes format,
+paths, sizes and modification times of associated files (including
+files referenced by a BrainVision header). It does not include the protocol.
+EEG/epoch construction happens outside the DataManager publication lock;
+this does not describe all other loaders, notably fMRI/static data.
 
-[EpochedData](../../../Assets/Scripts/HBP/Core/Data/Loaded/EpochedData.cs) prépare
-tous les blocs du protocole : Trial Matrix et changement de bloc en ont besoin.
-[SubTrial](../../../Assets/Scripts/HBP/Core/Data/Loaded/SubTrial.cs) copie une
-plage compacte par canal couvrant l'union contiguë fenêtre/baseline, puis expose
-des `EpochView`. Les deux plages partagent ce stockage, même lorsqu'elles se
-recouvrent. Ce n'est plus l'ancienne proposition de vues conservant nécessairement
-l'enregistrement brut complet. Le cache garde seulement le dernier brut non
-épinglé après un chargement époché; les époques sont autonomes. Une réouverture
-compatible peut réutiliser les caches, mais aucune absence universelle de
-relecture disque n'est garantie.
+[EpochedData](../../../Assets/Scripts/HBP/Core/Data/Loaded/EpochedData.cs) prepares
+all protocol blocs: Trial Matrix and bloc switching need them.
+[SubTrial](../../../Assets/Scripts/HBP/Core/Data/Loaded/SubTrial.cs) copies a
+compact range per channel covering the contiguous union of window/baseline,
+then exposes `EpochView` instances. Both ranges share this storage, even when
+they overlap. This is no longer the earlier proposal for views necessarily
+retaining the entire raw recording. The cache keeps only the last unpinned raw
+recording after an epoched load; epochs are self-contained. A compatible
+reopening can reuse caches, but no universal absence of disk rereads
+is guaranteed.
 
-Les [descripteurs](../../../Assets/Scripts/HBP/Core/Data/Loaded/EpochDescriptor.cs)
-conservent essais, sous-blocs, événements et bornes inclusives. Pour une fenêtre,
-le début est arrondi au premier échantillon admissible (`ceil`) et la fin au
-dernier (`floor`). Les sous-blocs successifs sont juxtaposés. Des sous-blocs
-alignés de durées différentes utilisent le segment le plus long et leur
-alignement événementiel `Before`/`After`.
+[Descriptors](../../../Assets/Scripts/HBP/Core/Data/Loaded/EpochDescriptor.cs)
+retain trials, sub-blocs, events and inclusive bounds. For a window,
+the start is rounded to the first admissible sample (`ceil`) and the end to
+the last (`floor`). Successive sub-blocs are juxtaposed. Aligned sub-blocs
+with different durations use the longest segment and their
+`Before`/`After` event-relative alignment.
 
-## Traitements et statistiques
+## Processing and statistics
 
-Les traitements s'appliquent dans l'ordre du protocole avec buffers de travail
-réutilisés. Les paramètres et dérivés dépendent du protocole et de la normalisation;
-un stockage compact d'époques ne peut avoir la durée de vie indépendante du
-protocole d'un enregistrement complet.
+Processing follows protocol order with reused working buffers.
+Parameters and derivatives depend on the protocol and normalization;
+compact epoch storage cannot have the protocol-independent lifetime
+of a complete recording.
 
 [StreamingStatistics](../../../Assets/Scripts/HBP/Core/Data/Loaded/StreamingStatistics.cs)
-utilise Welford en double pour l'accumulation, puis produit des flottants :
-écart-type d'échantillon `sqrt(M2/(n-1))`, nul pour `n <= 1`, et
-`SEM = écart-type / sqrt(n)`, nul pour zéro observation. La médiane loue un seul
-buffer inter-essais, rendu dans `finally`. Elle conserve le calcul du SEM sur les
-observations, sans construire une matrice temporaire échantillons × essais.
-Les tests analytiques utilisent notamment `1e-6`, et les chemins complets de
-normalisation `1e-4`; ce ne sont pas des tolérances universelles pour tout calcul.
+uses double-precision Welford accumulation, then produces floats:
+sample standard deviation `sqrt(M2/(n-1))`, zero for `n <= 1`, and
+`SEM = standard deviation / sqrt(n)`, zero for no observations. The median
+leases a single cross-trial buffer, returned in `finally`. It retains SEM
+calculation over observations without building a temporary samples × trials
+matrix. Analytical tests use, among other tolerances, `1e-6`, and full
+normalization paths `1e-4`; these are not universal tolerances for every computation.
 
-`NormalizationType.Auto` sur un `DataInfo` suit la préférence utilisateur;
-`Auto` comme préférence est ramené à `None`. Les changements d'agrégation
-invalident les statistiques correspondantes. Le rechargement lié aux préférences
-préserve les sources compatibles et suspend temporairement l'éviction pendant
-la reconstruction, puis rétablit le budget, y compris en cas d'échec.
+`NormalizationType.Auto` on a `DataInfo` follows the user preference;
+`Auto` as a preference is reduced to `None`. Aggregation changes
+invalidate the corresponding statistics. Preference-driven reloading
+preserves compatible sources and temporarily suspends eviction during
+reconstruction, then restores the budget, including on failure.
 
-## Deux grilles temporelles
+## Two temporal grids
 
-La navigation `Timeline` utilise la fréquence maximale des colonnes affichées.
-Chaque colonne conserve une `ProjectionTimeline` à sa fréquence maximale interne.
-Ainsi `[0; 1500 ms]` contient 97 positions à 64 Hz et 3073 à 2048 Hz : deux
-colonnes gardent leurs grilles propres; une colonne mixte utilise 2048 Hz.
+`Timeline` navigation uses the maximum frequency of displayed columns.
+Each column retains a `ProjectionTimeline` at its maximum internal frequency.
+Thus `[0; 1500 ms]` contains 97 positions at 64 Hz and 3073 at 2048 Hz: two
+columns retain their own grids; a mixed column uses 2048 Hz.
 
 [Column3DDynamic](../../../Assets/Scripts/HBP/Data/Module3D/Column3DDynamic.cs)
-lit `EEGPreferences.TemporalSampling` : `Floor`, `Round` (`Mathf.RoundToInt`) ou
-`Interpolate` par défaut. Le mapping utilise le temps physique, y compris origines
-décalées, temps négatifs et fréquences non commensurables. Les sites et
-l'implantation évaluent `TemporalSample.Evaluate`, donc interpolent entre les
-valeurs lorsque demandé. La surface et les textures de coupe utilisent seulement
-`CurrentProjectionSample.Index` : elles ne combinent pas les deux instants avec
-son alpha temporel. `ActivityAlpha` transmis au générateur règle l'opacité,
-pas l'interpolation temporelle. L'ancien champ
-`Temporal Sampling` d'une configuration est ignoré sans migration de préférence.
-L'export NIfTI suit exactement la grille de projection.
+reads `EEGPreferences.TemporalSampling`: `Floor`, `Round` (`Mathf.RoundToInt`) or
+`Interpolate` by default. Mapping uses physical time, including shifted origins,
+negative times and noncommensurable frequencies. Sites and implantation
+evaluate `TemporalSample.Evaluate`, and therefore interpolate between values
+when requested. Surface and cut textures use only
+`CurrentProjectionSample.Index`: they do not combine the two time points using
+its temporal alpha. `ActivityAlpha` passed to the generator controls opacity,
+not temporal interpolation. A configuration's historical
+`Temporal Sampling` field is ignored without preference migration.
+NIfTI export follows the projection grid exactly.
 
-L'interpolation est une reconstruction explicite entre mesures, pas une nouvelle
-mesure scientifique. Aucun sous-échantillonnage temporel automatique n'est utilisé
-pour faire tenir les données dans le budget. Le pré-calcul natif exact reste
-proportionnel au nombre de points × instants; cache de blocs/compression/GPU ne
-sont pas des stratégies actives à déduire des anciens plans.
+Interpolation is an explicit reconstruction between measurements, not a new
+scientific measurement. No automatic temporal downsampling is used
+to fit data within the budget. Exact native precomputation remains
+proportional to points × time points; block caching/compression/GPU processing
+are not active strategies to infer from earlier plans.
 
-## Préparation et restitution
+## Preparation and presentation
 
 [ProjectionBufferBuilder](../../../Assets/Scripts/HBP/Core/Data/Loaded/ProjectionBufferBuilder.cs)
-remplit le tableau contigu `temps × sites` et calcule les statistiques des sites
-non masqués. Les valeurs préparées par site servent aux tooltips; la matrice
-aplatie est une copie distincte nécessaire au natif. Les séries zéro sont
-partagées par colonne. Limites et histogrammes n'exigent pas une concaténation
-persistante de toutes les valeurs non masquées.
+fills the contiguous `time × sites` array and computes statistics for
+unmasked sites. Prepared per-site values serve tooltips; the flattened matrix
+is a separate copy required by native code. Zero series are shared per column.
+Limits and histograms do not require a persistent concatenation of all
+unmasked values.
 
 [TrialMatrixTileBuilder](../../../Assets/Scripts/HBP/Core/Data/Loaded/TrialMatrixTileBuilder.cs)
-pave les deux axes selon la taille maximale de texture. Le lissage bilinéaire
-emploie un halo d'un pixel recadré dans les UV, avec coordonnées et événements
-globaux. `Color32` et `SetPixelData` évitent le tableau `Color[]`; les textures
-sont réutilisées à taille égale et libérées à la destruction. Toutes les tuiles
-sont matérialisées : il n'y a pas de virtualisation des seules tuiles visibles.
-La comparaison de référence admet un niveau RGBA32 sur 255 par canal dû à
-l'arrondi, sans décimation scientifique.
+tiles both axes according to the maximum texture size. Bilinear smoothing
+uses a one-pixel halo cropped through UVs, with global coordinates and events.
+`Color32` and `SetPixelData` avoid the `Color[]` array; textures are reused at
+equal sizes and released on destruction. All tiles are materialized:
+there is no virtualization limited to visible tiles.
+The reference comparison allows one RGBA32 level out of 255 per channel due
+to rounding, without scientific decimation.
 
 [CurveData](../../../Assets/Scripts/HBP/Data/Informations/Graph/CurveData.cs)
-représente une série régulière par ordonnées, origine et pas. `GetPoint` reconstruit
-l'abscisse; `Points` peut matérialiser une copie de compatibilité. Les courbes
-irrégulières restent explicites. Le renderer prépare le viewport et réutilise ses
-buffers; les exports CSV/SVG parcourent tous les points, indépendamment de la
-réduction visuelle du renderer.
+represents a regular series by ordinates, origin and step. `GetPoint` reconstructs
+the abscissa; `Points` can materialize a compatibility copy. Irregular curves
+remain explicit. The renderer prepares the viewport and reuses its buffers;
+CSV/SVG exports traverse all points, independently of the renderer's
+visual reduction.
 
-## Budget et limites
+## Budget and limits
 
 [MemoryCacheBudget](../../../Assets/Scripts/HBP/Core/Data/Loaded/MemoryCacheBudget.cs)
-interprète `MemoryCacheLimit` en Mio. Zéro sélectionne
-`min(floor(0,9 × RAM_Mio), max(0, RAM_Mio - 2048))`; RAM inconnue donne une limite
-non bornée. L'éviction porte sur les entrées inactives, dans l'ordre dérivés
-managés, projections natives, textures, brut, puis LRU dans chaque catégorie.
-Les entrées actives restent épinglées; un dépassement est signalé sans altérer
-leurs valeurs. Ce budget mesure les buffers connus de HiBoP, pas toute la RAM
-du processus, du pilote ou d'Unity. Le nettoyage normal ne force pas de GC.
+interprets `MemoryCacheLimit` in MiB. Zero selects
+`min(floor(0.9 × RAM_MiB), max(0, RAM_MiB - 2048))`; unknown RAM gives an
+unbounded limit. Eviction targets inactive entries, in the order managed
+derivatives, native projections, textures, raw recordings, then LRU within each
+category. Active entries remain pinned; overruns are reported without altering
+their values. This budget measures buffers known to HiBoP, not all process,
+driver or Unity RAM. Normal cleanup does not force GC.
 
-Les très longues grilles exactes et toutes les tuiles actives peuvent dépasser le
-budget. Les profils GPU, plateaux mémoire et acceptations visuelles sur données
-produit restent des vérifications distinctes des tests numériques. L'ancienne
-estimation de gains mémoire ne constitue pas une mesure du checkout actuel.
+Very long exact grids and all active tiles can exceed the budget.
+GPU profiles, memory plateaus and visual acceptance on product data remain
+separate checks from numerical tests. The earlier memory-gain estimate
+is not a measurement of the current checkout.
 
-## Vérifier une modification
+## Verifying a change
 
-Les tests sous
+Tests under
 [HBP.Serialization.Tests](../../../Assets/Tests/EditMode/HBP.Serialization.Tests)
-incluent `RawRecordingCacheTests`, `EpochIndexTests`, `DataLoadingProcessingCacheTests`
-et `Stage3StreamingStatisticsTests` à `Stage8CurveDataTests`. Garder ces noms
-historiques pour retrouver les tests; ils ne sont pas une chronologie documentaire.
-Ils couvrent cache, bornes, identité des valeurs, temporalité, buffers et budget.
-Compléter selon le changement par les scénarios UI de graphes/Trial Matrix et
-les mesures de [performance](performance.md). Aucun test Unity n'a été exécuté
-pour cette migration documentaire.
+include `RawRecordingCacheTests`, `EpochIndexTests`, `DataLoadingProcessingCacheTests`
+and `Stage3StreamingStatisticsTests` through `Stage8CurveDataTests`. Retain these
+historical names to locate tests; they are not a documentation timeline.
+They cover caching, bounds, value identity, temporal behavior, buffers and budget.
+Depending on the change, supplement them with graph/Trial Matrix UI scenarios
+and [performance](performance.md) measurements. No Unity tests were run
+for this documentation migration.

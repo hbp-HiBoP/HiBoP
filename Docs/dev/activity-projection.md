@@ -1,19 +1,19 @@
-# Projection d’activité et export NIfTI
+# Activity projection and NIfTI export
 
-Le champ d’activité est volumique. La surface est une cible d’échantillonnage,
-indépendante de la géométrie du champ. Le code actuel emploie
-`ActivityProjectionGrid`; l’ancien `GeneratorSurface` et son ABI de production
-ont été supprimés. Les adaptateurs `LegacyNative` des tests restent des oracles.
+The activity field is volumetric. The surface is a sampling target,
+independent of the field geometry. The current code uses
+`ActivityProjectionGrid`; the former `GeneratorSurface` and its production ABI
+have been removed. The `LegacyNative` test adapters remain oracles.
 
-## Propriétaires et géométrie
+## Owners and geometry
 
-`Base3DScene` possède la grille; celle-ci conserve le volume de référence.
-`ActivityGenerator` conserve la grille et possède le champ natif.
-`SurfaceGenerator` conserve le générateur et une surface explicite. Lors du
-remplacement d’une grille, les consommateurs sont rattachés avant de libérer
-l’ancienne. Un objet `ActivityField` managé distinct n’est pas nécessaire.
+`Base3DScene` owns the grid, which retains the reference volume.
+`ActivityGenerator` retains the grid and owns the native field.
+`SurfaceGenerator` retains the generator and an explicit surface. When a grid
+is replaced, consumers are rebound before the old grid is released.
+A separate managed `ActivityField` object is not needed.
 
-Pour chaque axe d’un volume dont les dimensions sont toutes au moins deux :
+For each axis of a volume whose dimensions are all at least two:
 
 ```text
 gridAxis = max(2, truncate(maximumDimension * sourceAxis / largestSourceAxis))
@@ -21,118 +21,118 @@ stepAxis = (sourceAxis - 1) / (gridAxis - 1)
 gridToWorld = sourceVoxelToWorld × diag(stepX, stepY, stepZ, 1)
 ```
 
-Les centres extrêmes sont conservés, y compris pour une affine oblique ou
-anisotrope. Les échelles multiplient les **colonnes** de l’affine. La grille
-ne contient aucun sommet de surface et n’effectue aucune union de bounding boxes.
-Le stockage natif est `i * dimY * dimZ + j * dimZ + k`.
-La [convention de coordonnées](hbp_core_coordinate_system.md) s’applique à
-la frontière Unity; l’affine d’export reste dans le repère natif.
+The outermost voxel centers are preserved, including with an oblique or
+anisotropic affine. Scales multiply the affine's **columns**. The grid
+contains no surface vertices and performs no bounding-box union.
+Native storage is `i * dimY * dimZ + j * dimZ + k`.
+The [coordinate convention](hbp_core_coordinate_system.md) applies at
+the Unity boundary; the export affine remains in the native coordinate system.
 
 ## Invalidation
 
-| Changement | Ressources à actualiser |
+| Change | Resources to update |
 |---|---|
-| Volume de référence, dimension ou interpolation de grille | Grille, champ et bindings |
-| Activité, sites/implantation, source ou mode, ROI/masque, rayon | Champ sur la grille existante |
-| Surface ou hémisphère | Binding et UV; champ et timeline conservés |
-| Visibilité/effacement des triangles | Mesh et application des UV existantes |
-| Géométrie de coupe | Échantillonnage/textures de coupe |
-| Temps, alpha, palette, calibration d’affichage | Échantillonnage/couleurs, sans recalcul du champ brut |
+| Reference volume, grid dimension or interpolation | Grid, field and bindings |
+| Activity, sites/implantation, source or mode, ROI/mask, radius | Field on the existing grid |
+| Surface or hemisphere | Binding and UVs; field and timeline retained |
+| Triangle visibility/erasure | Mesh and application of existing UVs |
+| Cut geometry | Cut sampling/textures |
+| Time, alpha, palette, display calibration | Sampling/colors, without recomputing the raw field |
 
-Les entrées sont `InvalidateProjectionGrid`, `InvalidateActivityField`,
-`InvalidateSurfaceProjection`, `InvalidateSurfaceMesh` et
-`UpdateProjectionResources`. Les compteurs `ProjectionGridVersion`,
-`ActivityFieldVersion`, `SurfaceProjectionVersion` rendent les responsabilités
-observables. Un changement réel de source/mode CCEP invalide le champ; un
-changement de mesh compatible ne le fait pas. Les overlays directs de
-`FMRIManager` restent un chemin distinct.
+Entry points are `InvalidateProjectionGrid`, `InvalidateActivityField`,
+`InvalidateSurfaceProjection`, `InvalidateSurfaceMesh` and
+`UpdateProjectionResources`. The `ProjectionGridVersion`,
+`ActivityFieldVersion`, `SurfaceProjectionVersion` counters make responsibilities
+observable. An actual CCEP source/mode change invalidates the field;
+a compatible mesh change does not. Direct `FMRIManager` overlays
+remain a separate path.
 
-## Couverture d’une surface
+## Surface coverage
 
-Le binding natif est indexé par identité/version de la grille et de la surface,
-plus l’interpolation. `Surface.GeometryVersion` suit les positions (remplacement,
-transformation, fusion), pas UV, couleurs, normales ou visibilité des triangles.
-La première validation ou projection construit les indices nearest/stencils
-trilinéaires et compte les sommets valides **dans la même passe**. Le résultat
-est réutilisé, sans scan par frame.
+The native binding is keyed by grid and surface identity/version,
+plus interpolation. `Surface.GeometryVersion` tracks positions (replacement,
+transformation, merge), not UVs, colors, normals or triangle visibility.
+The first validation or projection builds nearest indices/trilinear stencils
+and counts valid vertices **in the same pass**. The result
+is reused, without a per-frame scan.
 
-Le rapport expose nombres total/valide/invalide, ratio, classification
-`Unavailable`, `None`, `Partial`, `Complete`, version et durée de construction.
-Une couverture partielle devient significative lorsque :
+The report exposes total/valid/invalid counts, ratio, classification
+`Unavailable`, `None`, `Partial`, `Complete`, version and build duration.
+Partial coverage becomes significant when:
 
 ```text
 invalidVertexCount > max(32, floor(totalVertexCount * 0.01))
 ```
 
-Les sommets hors grille reçoivent des UV neutres, jamais un échantillon de bord
-rabattu. Sélectionner volume ou surface reste silencieux. Une demande manuelle
-incompatible propose Continue/Cancel avant calcul; l’autorisation porte seulement
-sur le couple de versions courant. Un changement pendant le dialogue impose un
-nouveau contrôle. Le calcul automatique attend silencieusement une géométrie
-compatible ou une autorisation explicite et conserve son état obsolète. Les
-coupes et l’export restent utilisables même sans couverture de la surface.
+Vertices outside the grid receive neutral UVs, never a clamped edge sample.
+Selecting a volume or surface remains silent. An incompatible manual request
+offers Continue/Cancel before computation; authorization applies only to
+the current pair of versions. A change during the dialog requires a new check.
+Automatic computation silently waits for compatible geometry or explicit
+authorization and retains its stale state. Cuts and export remain usable
+even without surface coverage.
 
-## Export Localizer
+## Localizer export
 
-`LocalizerExportGridSettings` appartient à l’opération d’export, indépendamment
-d’`ActivityProjectionSettings` et des scènes ouvertes : dimension maximale par
-défaut **80**, intervalle **2–512**, interpolation **trilinéaire**. La fenêtre ne
-mémorise pas la saisie entre ouvertures.
+`LocalizerExportGridSettings` belongs to the export operation, independently
+of `ActivityProjectionSettings` and open scenes: default maximum dimension
+**80**, range **2–512**, **trilinear** interpolation. The window does not
+remember input between openings.
 
-L’aperçu calcule sans grille native les dimensions, le nombre de voxels et les
-volumes non compressés : activité float par instant et masque. Il ne prédit pas
-la taille gzip. Au-delà de **8 000 000 voxels spatiaux**, une confirmation précède
-la fermeture des visualisations. La saisie est revalidée avant tout effet de
-bord; la mémoire augmente aussi avec la timeline.
+Without a native grid, the preview computes dimensions, voxel count and
+uncompressed sizes: float activity per time point and mask. It does not predict
+gzip size. Above **8,000,000 spatial voxels**, confirmation precedes
+closing visualizations. Input is revalidated before any side effect;
+memory also increases with the timeline.
 
-L’export natif copie l’affine exacte de la grille dans `sform`, calcule `sto_ijk`
-par inversion et dérive quaternion, `qform` et `pixdim` avec niftilib. Si un
-cisaillement ne peut pas être représenté fidèlement, `qform_code` est désactivé;
-`sform` reste la référence. Activité et masque partagent dimensions et affine.
-Les wrappers dédiés sont libérés en fin d’export.
+Native export copies the exact grid affine into `sform`, computes `sto_ijk`
+by inversion and derives the quaternion, `qform` and `pixdim` using niftilib.
+If shear cannot be represented faithfully, `qform_code` is disabled;
+`sform` remains the reference. Activity and mask share dimensions and affine.
+Dedicated wrappers are released at the end of export.
 
-Exemple : MNI `208 × 256 × 219`, dimension maximale 80 → `65 × 80 × 68`,
-353 600 voxels, environ 1,35 MiB d’activité par instant et 0,34 MiB de masque.
+Example: MNI `208 × 256 × 219`, maximum dimension 80 → `65 × 80 × 68`,
+353,600 voxels, approximately 1.35 MiB of activity per time point and 0.34 MiB of mask.
 
-## Implémentations et vérification
+## Implementations and verification
 
-- [Grille et réglages C#](../../Assets/Scripts/HBP/Core/DLL/Generators/ActivityProjectionGrid.cs),
-  [réglages d’export](../../Assets/Scripts/HBP/Core/DLL/Generators/LocalizerExportGridSettings.cs),
-  [cycle de scène](../../Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs).
-- Dans le checkout `hbp_core` : `src/generators/activity_projection_grid.cpp`,
+- [C# grid and settings](../../Assets/Scripts/HBP/Core/DLL/Generators/ActivityProjectionGrid.cs),
+  [export settings](../../Assets/Scripts/HBP/Core/DLL/Generators/LocalizerExportGridSettings.cs),
+  [scene lifecycle](../../Assets/Scripts/HBP/Data/Module3D/Base3DScene.cs).
+- In the `hbp_core` checkout: `src/generators/activity_projection_grid.cpp`,
   `surface_projection_binding.cpp`, `activity_generator_nifti_io.cpp`.
-- [Tests de couverture](../../Assets/Tests/EditMode/HBP.Serialization.Tests/ActivityProjectionPhase3Tests.cs),
-  [réglages](../../Assets/Tests/EditMode/HBP.Serialization.Tests/ActivityProjectionSettingsTests.cs),
-  [cycle PlayMode](../../Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs)
-  et `hbp_core/tests/native/hbp_core_generator_functional_test.cpp`.
+- [Coverage tests](../../Assets/Tests/EditMode/HBP.Serialization.Tests/ActivityProjectionPhase3Tests.cs),
+  [settings](../../Assets/Tests/EditMode/HBP.Serialization.Tests/ActivityProjectionSettingsTests.cs),
+  [PlayMode lifecycle](../../Assets/Tests/PlayMode/HBP.Module3D.PlayModeTests/Module3DScenePlayModeTests.cs)
+  and `hbp_core/tests/native/hbp_core_generator_functional_test.cpp`.
 
-Contrôler notamment centres extrêmes et axes obliques, activité/masque relus,
-couverture nulle/partielle, cache conservé après triangle eraser et changement
-de représentation, recalcul après mutation scientifique. Ces tests sont des
-points d’entrée; leur présence ne prouve pas une exécution sur le build courant.
+Check outermost centers and oblique axes, activity/mask readback,
+zero/partial coverage, cache retention after triangle erasure and representation
+changes, and recomputation after scientific mutations. These tests are entry
+points; their presence does not prove execution against the current build.
 
-## Mesure historique utile
+## Useful historical measurement
 
-Le 13 août 2026, l’A/B natif dans **un même processus et une même DLL** utilisait
-MNI `208 × 256 × 219` (0,72 mm), 69 104 sommets, dimension 80, 30 000 sites
-Halton, 100 instants, rayon linéaire 15 et trois répétitions. Environnement de
-référence : Windows 11, i7-12700K, environ 32 Go.
+On August 13, 2026, the native A/B comparison in **the same process and DLL** used
+MNI `208 × 256 × 219` (0.72 mm), 69,104 vertices, dimension 80, 30,000
+Halton sites, 100 time points, linear radius 15 and three repetitions. Reference
+environment: Windows 11, i7-12700K, approximately 32 GB.
 
-| Mesure | Ancien hybride | Grille seule |
+| Measurement | Former hybrid | Grid only |
 |---|---:|---:|
-| Points calculés | 422 704 | 353 600 |
-| Valeurs + poids | 170 772 416 octets | 142 854 400 octets |
-| Médiane du calcul A/B | 4 703,06 ms | 3 516,82 ms |
+| Computed points | 422,704 | 353,600 |
+| Values + weights | 170,772,416 bytes | 142,854,400 bytes |
+| Median A/B computation | 4,703.06 ms | 3,516.82 ms |
 
-La suppression des sommets du champ explique −16,35 % de stockage et le gain
-observé. Les temps Unity isolés ne sont pas comparables à cet A/B. Le binding MNI
-mesuré ensuite couvrait 100 % des sommets en 1,89 ms et conservait sa version au
-second échantillonnage. Ce sont des résultats historiques, non des performances
-actuelles garanties.
+Removing vertices from the field accounts for the −16.35% storage reduction and
+the observed gain. Isolated Unity timings are not comparable to this A/B test.
+The MNI binding measured afterwards covered 100% of vertices in 1.89 ms and
+retained its version on the second sampling. These are historical results,
+not guaranteed current performance.
 
-Reproduction : `NativeProjectionLoadBenchmarkCli.Run` dans
-[le benchmark permanent](../../Assets/Tests/EditMode/HBP.Serialization.Tests/NativeProjectionLoadBenchmarkCli.cs)
-(profil Product, dimension 80, timeline 100, répétitions 3, interpolation
-Trilinear), ou cible native `hbp_core_activity_projection_grid_benchmark`.
-Suivre le [workflow de validation](../../.agents/skills/hibop-unity-validation/SKILL.md)
-pour toute exécution Unity.
+Reproduction: `NativeProjectionLoadBenchmarkCli.Run` in
+[the permanent benchmark](../../Assets/Tests/EditMode/HBP.Serialization.Tests/NativeProjectionLoadBenchmarkCli.cs)
+(Product profile, dimension 80, timeline 100, repetitions 3, Trilinear
+interpolation), or native target `hbp_core_activity_projection_grid_benchmark`.
+Follow the [validation workflow](../../.agents/skills/hibop-unity-validation/SKILL.md)
+for any Unity execution.

@@ -1,15 +1,15 @@
-# Fixture anatomique MNI
+# MNI anatomy fixture
 
-Projet `quest-mni-anatomy`, visualisation et unique colonne `MNI Anatomy`, sans patient, groupe, dataset, site, coupe ou vue enregistrée. Elle sélectionne `MNI Grey matter`, les deux hémisphères, la représentation anatomique et l'IRM `MNI`. Les six IDs fixes et huit hashes source sont dans [manifest.json](manifest.json).
+Project `quest-mni-anatomy`, visualization and single column `MNI Anatomy`, without any saved patient, group, dataset, site, cut or view. It selects `MNI Grey matter`, both hemispheres, the anatomical representation and `MNI` MRI. The six fixed IDs and eight source hashes are in [manifest.json](manifest.json).
 
-Les tests EditMode `QuestAnatomyFixtureTests` lisent directement les sources
-versionnées de ce répertoire et chargent l'anatomie complète via `MNIObjects`.
-Ils ne nécessitent ni archive préparée dans `.artifacts`, ni lanceur de campagne.
-Le manifeste conserve la provenance de l'ancienne archive déterministe ; sa
-recette de création reste consultable dans Git.
+The `QuestAnatomyFixtureTests` EditMode tests directly read versioned sources
+from this directory and load the full anatomy through `MNIObjects`.
+They require neither a prepared `.artifacts` archive nor a campaign launcher.
+The manifest retains provenance of the earlier deterministic archive;
+its creation procedure remains available in Git.
 
-La référence est celle de `Assets/Data/IRM/MNI.nii`, `MNI.trm` et des quatre GII gris/blanc de `Assets/Data/Meshes` au commit `b230166204024b5dd350d8fe897aa854160ff384`. L'origine scientifique amont exacte n'est pas déduite du nom MNI. Les petits GII sous `Assets/Tests/Fixtures/Native/Meshes` sont synthétiques et ne constituent pas ce cerveau complet. Cette fixture n'ajoute aucun signal ni dossier patient ; cela ne qualifie pas le volume de référence de synthétique.
+The reference is `Assets/Data/IRM/MNI.nii`, `MNI.trm` and the four gray/white GII files in `Assets/Data/Meshes` at commit `b230166204024b5dd350d8fe897aa854160ff384`. Exact upstream scientific origin is not inferred from the MNI name. Small GII files under `Assets/Tests/Fixtures/Native/Meshes` are synthetic and do not constitute this full brain. This fixture adds no signal or patient directory; that does not classify the reference volume as synthetic.
 
-Le chargeur commun `MNIObjects.LoadDataAsync` charge NIfTI/GII/TRM, adapte le winding, assemble les hémisphères et calcule les normales. Les distances restent en mm avec conversion X native/Unity existante ; cette fixture n'ajoute ni conversion Quest mm→m ni caméra XR.
+The shared `MNIObjects.LoadDataAsync` loader loads NIfTI/GII/TRM, adapts winding, assembles hemispheres and computes normals. Distances remain in mm with the existing native/Unity X conversion; this fixture adds neither Quest mm→m conversion nor an XR camera.
 
-Ces tests ne prouvent pas le rendu matériel. Une archive déterministe n'implique pas un Player bit-identique, notamment à cause de la date de build. Le build complet sur un second PC n'avait pas été exécuté lors de la campagne d'origine ; son manifeste `QUEST-001` reste [consultable dans Git](../../retained-results.md#retrouver-une-ancienne-preuve).
+These tests do not prove hardware rendering. A deterministic archive does not imply a bit-identical Player, notably because of the build date. A full build on a second PC had not been run during the original campaign; its `QUEST-001` manifest remains [available in Git](../../retained-results.md#finding-earlier-evidence).

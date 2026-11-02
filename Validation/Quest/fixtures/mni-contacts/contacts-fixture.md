@@ -1,27 +1,27 @@
-# Fixture de contacts synthétiques MNI
+# Synthetic MNI contact fixture
 
-Huit contacts entièrement synthétiques, deux patients et deux électrodes par
-patient. Le nombre huit est une donnée de fixture, jamais une limite du produit.
-Les surfaces et l'IRM MNI restent celles du dépôt, épinglées par les hashes
-du [manifeste](manifest.json). Aucun enregistrement patient réel ni EEG.
+Eight entirely synthetic contacts, two patients and two electrodes per
+patient. Eight is fixture data, never a product limit.
+MNI surfaces and MRI remain those of the repository, pinned by the
+[manifest](manifest.json) hashes. No real patient recording or EEG.
 
-Les `.patient` sont les entrées produit ; [contacts.json](contacts.json) est la
-correspondance attendue pour la review et les tests. La visualisation
-[MNI Contacts](MNI Contacts.visualization) référence les patients par ID,
-l'implantation **MNI**, la surface **MNI Grey matter** et les deux hémisphères.
-Le projet conserve l'ordre des patients gauche puis droite. Chacun a A1, A2,
-B1, B2, avec IDs de coordonnées et sites stables. Les noms A1/A2 sont
-volontairement répétés entre patients pour tester les associations.
+The `.patient` files are product inputs; [contacts.json](contacts.json) is the
+expected mapping for review and tests. The
+[MNI Contacts](MNI Contacts.visualization) visualization references patients by ID,
+**MNI** implantation, **MNI Grey matter** surface and both hemispheres.
+The project retains left-then-right patient order. Each has A1, A2,
+B1, B2, with stable coordinate and site IDs. A1/A2 names are
+deliberately repeated across patients to test associations.
 
-## Coordonnées et ordre
+## Coordinates and order
 
-Les coordonnées des `.patient` sont natives MNI en mm, droitières.
-`Implantation3D.SiteInfo.UnityPosition` applique `ReferenceSystemConversion.ConvertX` :
-`(x,y,z) -> (-x,y,z)`. `Site.Information.DefaultPosition` est la position capturée,
-dans le même repère `hibop-mni-unity-mm-v1` que la surface préparée. La matrice
-`AssetToBrain` est l'identité. Aucune position monde Quest n'est transportée.
+Coordinates in `.patient` files are native MNI mm, right-handed.
+`Implantation3D.SiteInfo.UnityPosition` applies `ReferenceSystemConversion.ConvertX`:
+`(x,y,z) -> (-x,y,z)`. `Site.Information.DefaultPosition` is the captured position,
+in the same `hibop-mni-unity-mm-v1` coordinate system as the prepared surface.
+The `AssetToBrain` matrix is identity. No Quest world position is transported.
 
-| Ordre natif | ID site | Index patient | Index source patient | Nom / électrode | Natif XYZ (mm) | Transport Unity XYZ (mm) |
+| Native order | Site ID | Patient index | Patient source index | Name / electrode | Native XYZ (mm) | Transported Unity XYZ (mm) |
 | ---: | --- | ---: | ---: | --- | --- | --- |
 | 0 | `quest-013-site-00` | 0 | 0 | A1 / A | (-31.25, -18.5, 26.75) | (31.25, -18.5, 26.75) |
 | 1 | `quest-013-site-01` | 0 | 1 | A2 / A | (-27.5, -15.25, 29.0) | (27.5, -15.25, 29.0) |
@@ -32,23 +32,24 @@ dans le même repère `hibop-mni-unity-mm-v1` que la surface préparée. La matr
 | 6 | `quest-013-site-06` | 1 | 2 | B1 / B | (38.75, 8.25, -12.5) | (-38.75, 8.25, -12.5) |
 | 7 | `quest-013-site-07` | 1 | 3 | B2 / B | (42.0, 11.75, -9.25) | (-42.0, 11.75, -9.25) |
 
-Les repères sont asymétriques entre hémisphères et entre axes. Ils sont à
-l'intérieur de l'enveloppe de coordonnées du MNI préparé ; cette affirmation
-ne signifie pas appartenance à une structure anatomique ou localisation clinique.
-L'apparence provient du pipeline Desktop : couleur RGBA linéaire du matériau,
-diamètre anatomique de la sphère (2 mm avant gain), visibilité préparée.
-Le gain de fixture vaut 1 et `ShowAllSites=true` conserve les huit contacts visibles sans ROI. Les états ROI/filtre/blacklist ne retranchent aucun
-contact de la liste transportée ; ils sont capturés séparément de la visibilité.
+Landmarks are asymmetric between hemispheres and axes. They are inside the
+prepared MNI's coordinate envelope; this statement does not imply membership
+of an anatomical structure or clinical localization.
+Appearance comes from the Desktop pipeline: linear RGBA material color,
+anatomical sphere diameter (2 mm before gain), prepared visibility.
+Fixture gain is 1 and `ShowAllSites=true` keeps all eight contacts visible without ROI.
+ROI/filter/blacklist states do not remove any contact from the transported list;
+they are captured separately from visibility.
 
-## Reproduire
+## Reproduction
 
-Le test `QuestAnatomyFixtureTests.ContactsArchive_LoadsStableSyntheticPatientsAndMniAssociations`
-reconstruit l'archive dans un dossier temporaire à partir des fichiers de ce
-répertoire, puis vérifie ses patients, coordonnées et associations MNI.
-La fixture iEEG et les projets multimodaux réutilisent ces mêmes sources via
-`SyntheticSceneProjectFixture`. Aucun artefact local préexistant n'est requis.
+The `QuestAnatomyFixtureTests.ContactsArchive_LoadsStableSyntheticPatientsAndMniAssociations`
+test rebuilds the archive in a temporary directory from this directory's
+files, then checks its patients, coordinates and MNI associations.
+The iEEG fixture and multimodal projects reuse these same sources through
+`SyntheticSceneProjectFixture`. No pre-existing local artifact is required.
 
-Pour la review propriétaire, examiner le tableau et les fichiers source ; aucun
-casque requis. La [synthèse de validation](../../../../Docs/dev/quest-autonomous/validation.md) décrit la portée
-des campagnes retenues ; le manifeste d'origine `QUEST-013` reste
-[consultable dans Git](../../retained-results.md#retrouver-une-ancienne-preuve).
+For owner review, inspect the table and source files; no headset required.
+The [validation overview](../../../../Docs/dev/quest-autonomous/validation.md) describes the scope
+of retained campaigns; the original `QUEST-013` manifest remains
+[available in Git](../../retained-results.md#finding-earlier-evidence).

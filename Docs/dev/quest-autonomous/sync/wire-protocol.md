@@ -1,65 +1,65 @@
-# Protocole de synchronisation
+# Synchronization protocol
 
-Le wire transporte des opérations absolues et résultats bornés sur le flux duplex authentifié de l'appairage. Il ne transporte ni événements UI ni snapshots différentiels par interaction. Les codecs cités ici sont l'autorité exécutable ; valeurs vérifiées le 2 novembre 2026.
+The wire carries absolute operations and bounded results over the authenticated duplex pairing stream. It carries neither UI events nor differential snapshots per interaction. The codecs cited here are the executable authority; values checked on November 2, 2026.
 
-## Formats et compatibilité
+## Formats and compatibility
 
-| Couche | Format courant et source |
+| Layer | Current format and source |
 | --- | --- |
-| Mutation | `HBS2`, protocole 2, header 136 octets ; [MutationEnvelopeCodec / MutationPayloadCodec](../../../../Assets/Scripts/HBP/Sync/MutationCodec.cs). Payload schema **2** uniquement, borne logique 16 Mio. |
-| Transport auxiliaire | `HBT2`, protocole 2, header 136 octets, payload maximal 64 Kio ; [TransportFrameCodec](../../../../Assets/Scripts/HBP/Transfer/Transport/TransportProtocol.cs). |
-| Checkpoint de publication | Schema **7** uniquement ; [SceneMutationCheckpointCodec](../../../../Assets/Scripts/HBP/Sync/Scene/PublicationJournal.cs). |
-| Corrélation dans checkpoint | Record schema **2** uniquement ; [CorrelationCheckpointRecord](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs). |
-| Progrès applicatif | `HBRP`, schema **1**, 86 octets ; [RetentionProgress](../../../../Assets/Scripts/HBP/Sync/RetentionProgress.cs). |
-| Réconciliation | `HBR3` ; [SceneReconciliationProtocol](../../../../Assets/Scripts/HBP/Sync/Scene/SceneReconciliationProtocol.cs). |
+| Mutation | `HBS2`, protocol 2, 136-byte header; [MutationEnvelopeCodec / MutationPayloadCodec](../../../../Assets/Scripts/HBP/Sync/MutationCodec.cs). Payload schema **2** only, logical bound 16 MiB. |
+| Auxiliary transport | `HBT2`, protocol 2, 136-byte header, maximum payload 64 KiB; [TransportFrameCodec](../../../../Assets/Scripts/HBP/Transfer/Transport/TransportProtocol.cs). |
+| Publication checkpoint | Schema **7** only; [SceneMutationCheckpointCodec](../../../../Assets/Scripts/HBP/Sync/Scene/PublicationJournal.cs). |
+| Correlation in checkpoint | Record schema **2** only; [CorrelationCheckpointRecord](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs). |
+| Application progress | `HBRP`, schema **1**, 86 bytes; [RetentionProgress](../../../../Assets/Scripts/HBP/Sync/RetentionProgress.cs). |
+| Reconciliation | `HBR3`; [SceneReconciliationProtocol](../../../../Assets/Scripts/HBP/Sync/Scene/SceneReconciliationProtocol.cs). |
 
-Le retrait des anciens noms V2 n'a pas renuméroté ces protocoles. Les schémas expérimentaux, anciens checkpoints et ancien payload timeline ne sont plus acceptés ; déployer les pairs compatibles ensemble. Le format de [livraison complète](../transfer.md) et les fichiers projets Desktop sont des contrats séparés.
+Removing the old V2 names did not renumber these protocols. Experimental schemas, old checkpoints and the old timeline payload are no longer accepted; deploy compatible peers together. The [full delivery](../transfer.md) format and Desktop project files are separate contracts.
 
-Le header mutation encode, dans l'ordre : magic/version/kind/flags/longueurs (16 octets), UUID session/scene/incarnation/opération/stream (5 × 16), séquences reliable/origin/canonical/observed (4 × 8), origine (1), puis sept octets réservés nuls. Offsets : 16/32/48/64/80 pour les UUID, 96/104/112/120 pour les séquences, 128 pour l'origine. Flags bits 0/1 indiquent canonical/observed ; valeur absente = zéro. Desktop transmet canonical non nul, Quest observed (zéro initial autorisé). `HBT2` utilise ses champs lane/chunk/schema dans les octets 129–135 ; ne pas appliquer le layout réservé `HBS2` à ces frames.
+The mutation header encodes, in order: magic/version/kind/flags/lengths (16 bytes), session/scene/incarnation/operation/stream UUIDs (5 × 16), reliable/origin/canonical/observed sequences (4 × 8), origin (1), then seven zero reserved bytes. Offsets: 16/32/48/64/80 for UUIDs, 96/104/112/120 for sequences, 128 for origin. Flag bits 0/1 indicate canonical/observed; absent value = zero. Desktop sends nonzero canonical, Quest observed (initial zero allowed). `HBT2` uses its lane/chunk/schema fields in bytes 129–135; do not apply the `HBS2` reserved layout to those frames.
 
-Entiers et binary32 sont little-endian. Les UUID utilisent les octets `Guid.ToByteArray()` du codec, sans conversion implicite vers l'ordre réseau d'une chaîne UUID. Identités texte : UTF-8 strict, NFC, non vides, sans contrôles, au plus 256 octets. Les flottants doivent être finis ; les contrats concernés rejettent `-0`. La frontière de coupe canonicalise les zéros issus des normales natives en `+0`, sans détendre le wire. Une coupe transmet orientation/flip/nombre/position normalisée/normal complet, avec normal non nul et position dans [0,1]. Les contrôles de longueur/version/réserves ont lieu avant allocation du corps ; octets finaux inattendus refusés. TLS fournit l'intégrité de trame ; les hashes de contenu valident les dépendances/bodies, pas une seconde passe systématique par frame.
+Integers and binary32 are little-endian. UUIDs use the codec's `Guid.ToByteArray()` bytes, without implicit conversion to a UUID string's network order. Text identities: strict UTF-8, NFC, nonempty, without control characters, at most 256 bytes. Floats must be finite; relevant contracts reject `-0`. The cut boundary canonicalizes zeros from native normals to `+0`, without relaxing the wire. A cut transmits orientation/flip/number/normalized position/full normal, with nonzero normal and position in [0,1]. Length/version/reserved-field checks occur before body allocation; unexpected trailing bytes are rejected. TLS provides frame integrity; content hashes validate dependencies/bodies, not a systematic second pass per frame.
 
-## Ordre et ordonnancement
+## Order and scheduling
 
-[Scheduler](../../../../Assets/Scripts/HBP/Sync/Scheduler.cs) distingue lanes de priorité et streams fiables. Il existe un stream de contrôle par direction, un stream d'opérations par incarnation/direction, et un stream bulk indépendant par body. Une opération structurelle reste dans l'ordre du stream scène même si elle utilise une priorité contrôle. Seule une fermeture invalidante peut dépasser cet ordre en déclarant les watermarks à appliquer/abandonner.
+[Scheduler](../../../../Assets/Scripts/HBP/Sync/Scheduler.cs) distinguishes priority lanes and reliable streams. There is one control stream per direction, one operation stream per incarnation/direction, and one independent bulk stream per body. A structural operation stays in scene-stream order even if it uses control priority. Only an invalidating close can overtake this order by declaring watermarks to apply/abandon.
 
-Les clés de coalescing, clés touchées et barrières viennent des handlers validés, jamais d'une liste libre de l'UI. Un remplacement n'affecte qu'un slot non envoyé de même clé ; une barrière structurelle/job/transaction scelle les slots précédents. La séquence d'origine est attribuée à l'engagement wire après coalescing, donc aucun faux trou pour une preview remplacée. Une frame déjà écrite garde octets, ID et séquences jusqu'à ACK ou expiration de grâce.
+Coalescing keys, touched keys and barriers come from validated handlers, never a free-form UI list. Replacement affects only an unsent slot with the same key; a structural/job/transaction barrier seals previous slots. Origin sequence is assigned at wire commitment after coalescing, so a replaced preview creates no false gap. An already written frame retains bytes, ID and sequences until ACK or grace expiry.
 
-Les gros corps utilisent un petit descripteur ordonné (identités, schema, longueur, digest, stream et barrières), puis chunks bulk. Validation complète avant une application atomique. Les opérations déjà décodées indépendantes peuvent progresser ; les clés qui se chevauchent attendent leur barrière. Cela inclut les grosses corrections autoritaires, reconnues par [SceneOperationBulkReceiver](../../../../Assets/Scripts/HBP/Sync/Scene/SceneOperationBulkReceiver.cs), et pas seulement les mutations.
+Large bodies use a small ordered descriptor (identities, schema, length, digest, stream and barriers), then bulk chunks. Full validation precedes one atomic application. Independent already decoded operations can progress; overlapping keys await their barrier. This includes large authoritative corrections, recognized by [SceneOperationBulkReceiver](../../../../Assets/Scripts/HBP/Sync/Scene/SceneOperationBulkReceiver.cs), not just mutations.
 
-| Borne par défaut | Valeur |
+| Default bound | Value |
 | --- | --- |
-| Inline / chunk / rafale interactive | 4 Kio / 16 Kio / 8 opérations avant service bulk |
-| File scène | 256 records, 256 Kio ; réserve contrôle 16 records/16 Kio |
-| File contrôle session | 64 records, 64 Kio ; réserve 8 records/8 Kio |
-| Retry fiable | 128 frames, 256 Kio ; réserve 8 frames/16 Kio |
-| Bodies bulk retenus | 8 transferts ; 16 Mio chacun, 32 Mio cumulés |
-| Clés touchées d'un record | 128 |
-| Décisions non terminées / clés de conflit / watermarks scène | 4096 / 65536 / 4096 |
-| Réception transport | 256 records / 4 Mio ; 128 records hors ordre |
-| Reprise | 128 streams dont 126 ordinals bulk non retirés par direction |
+| Inline / chunk / interactive burst | 4 KiB / 16 KiB / 8 operations before bulk service |
+| Scene queue | 256 records, 256 KiB; control reserve 16 records/16 KiB |
+| Session control queue | 64 records, 64 KiB; reserve 8 records/8 KiB |
+| Reliable retry | 128 frames, 256 KiB; reserve 8 frames/16 KiB |
+| Retained bulk bodies | 8 transfers; 16 MiB each, 32 MiB total |
+| Touched keys per record | 128 |
+| Unfinished decisions / conflict keys / scene watermarks | 4096 / 65536 / 4096 |
+| Transport reception | 256 records / 4 MiB; 128 out-of-order records |
+| Resumption | 128 streams including 126 unretired bulk ordinals per direction |
 
-Ces plafonds sont des bornes d'admission, pas une promesse de performance ou une taille scientifique conseillée. Sous pression, previews non envoyées coalescent et bulk attend ; le dernier état et le contrôle requis ne sont jamais silencieusement perdus. L'impossibilité de retenir un travail fiable devient une erreur explicite. Unity n'attend pas la capacité socket. Reader/writer indépendants, writer réveillé par signal, TCP NoDelay ; le liveness ne dépend pas du PlayerLoop.
+These caps are admission bounds, not a performance promise or recommended scientific size. Under pressure, unsent previews coalesce and bulk waits; latest state and required control are never silently lost. Inability to retain reliable work becomes an explicit error. Unity does not wait for socket capacity. Independent reader/writer, signal-awakened writer, TCP NoDelay; liveness does not depend on the PlayerLoop.
 
-## Acquittements et mémoire bornée
+## Acknowledgments and bounded memory
 
-L'ACK réseau signifie admission dans la file bornée, **pas application Unity**. Les ACK/pings éphémères ne consomment pas de séquence fiable et ne créent pas de boucle ACK-d'ACK. Les jobs et checkpoints possèdent leurs barrières métier séparées.
+A network ACK means admission to the bounded queue, **not Unity application**. Ephemeral ACKs/pings consume no reliable sequence and create no ACK-of-ACK loop. Jobs and checkpoints own their separate domain barriers.
 
-HBRP encode magic (4), schema/origine (1+1), UUID session/scene/incarnation (48), puis quatre `u64` : `AppliedOriginThrough`, `MinimumObservedCanonicalSequence`, `RetiredCanonicalThrough`, `CurrentCanonicalSequence`. Scope, direction, monotonie et bornes connues sont vérifiés.
+HBRP encodes magic (4), schema/origin (1+1), session/scene/incarnation UUIDs (48), then four `u64` values: `AppliedOriginThrough`, `MinimumObservedCanonicalSequence`, `RetiredCanonicalThrough`, `CurrentCanonicalSequence`. Scope, direction, monotonicity and known bounds are checked.
 
-- Quest annonce un **préfixe contigu terminé**, pas le maximum reçu. Bulk incomplet, correction ou checkpoint non committé laisse un trou.
-- Le minimum observé comprend toutes les propositions Quest, différées ou déjà envoyées. Desktop ne retire une clé/tombstone de conflit qu'après cette preuve et conserve un plancher empêchant une vieille proposition de contourner le conflit.
-- Desktop renvoie le préfixe appliqué et le plancher canonique sûr. Quest peut alors libérer identités reçues et clés devenues inutiles, en conservant ce qui protège rollback et replay.
-- Un seul progrès immuable est en vol par direction, avec la dernière valeur non envoyée et une notification reçue remplaçable. Chaque progrès reçu est contrôlé avant remplacement.
+- Quest announces a **completed contiguous prefix**, not the maximum received. Incomplete bulk, correction or an uncommitted checkpoint leaves a gap.
+- The observed minimum includes all Quest proposals, deferred or already sent. Desktop retires a conflict key/tombstone only after this proof and retains a floor preventing an old proposal from bypassing the conflict.
+- Desktop returns the applied prefix and safe canonical floor. Quest can then release received identities and obsolete keys, retaining what protects rollback and replay.
+- Only one immutable progress record is in flight per direction, with the latest unsent value and a replaceable received notification. Each received progress record is checked before replacement.
 
-Ainsi 4096 borne le travail **non résolu**, pas le total d'éditions d'une session. La réutilisation d'un UUID avec payload différent est refusée dans la fenêtre active ; aucun registre universel des UUID de toute la vie du processus n'est promis.
+Thus 4096 bounds **unresolved** work, not a session's total edits. Reuse of a UUID with a different payload is rejected within the active window; no universal registry of every UUID over the process lifetime is promised.
 
-Les records courants, lookahead de réduction des previews et bodies reconstitués appartiennent à la session Quest jusqu'au succès. Une coupure après ACK ne peut les faire disparaître. L'enregistrement de fin d'application sur Unity est indépendant de l'annulation de cette connexion ; les pompes de réception ne se chevauchent pas.
+Current records, preview-reduction lookahead and reconstructed bodies belong to the Quest session until success. An interruption after ACK cannot make them disappear. Recording completion of application on Unity is independent of that connection's cancellation; receive pumps do not overlap.
 
-Les bulk IDs portent un ordinal par session/origine. Après achèvement ou annulation, le préfixe retiré est transmis dans ResumeHello/`BulkStreamRetirement` ; il permet d'ignorer les anciens duplicatas sans conserver leurs GUID indéfiniment. Pendant la grâce de 500 ms, chaque stream rejoue ses frames non acquittées avant ses nouvelles séquences, en conservant la priorité interactive/contrôle par rapport au bulk. Après grâce, le [protocole de réconciliation](synchronization-architecture.md#coupure-et-réconciliation) prend le relais.
+Bulk IDs carry an ordinal per session/origin. After completion or cancellation, the retired prefix is transmitted in ResumeHello/`BulkStreamRetirement`; it allows old duplicates to be ignored without retaining their GUIDs indefinitely. During the 500 ms grace period, each stream replays its unacknowledged frames before new sequences, preserving interactive/control priority over bulk. After grace, the [reconciliation protocol](synchronization-architecture.md#interruption-and-reconciliation) takes over.
 
-## Rejets et contrôle de session
+## Rejections and session control
 
-Un rejet métier contient ID et raison bornée : cible/valeur invalide, dépendance absente, schema non pris en charge ou opération sensible occupée. Il ne termine pas les opérations indépendantes. Un défaut de framing/authentification/négociation peut fermer la session ; la [réserve sur la classification des erreurs Quest](synchronization-validation.md#points-à-qualifier) demeure explicitement documentée.
+A domain rejection contains an ID and bounded reason: invalid target/value, missing dependency, unsupported schema or busy sensitive operation. It does not terminate independent operations. A framing/authentication/negotiation fault can close the session; the [caveat about Quest error classification](synchronization-validation.md#points-to-qualify) remains explicitly documented.
 
-Les préférences utilisent le contrôle authentifié de session, séparé des opérations scène : commande pairing 15, corps maximal 1 Mio, résultat 1024 caractères, atlas 128 caractères, génération de connexion/UUID/révision. Historique Quest et file de sauvegardes Desktop bornés à 64. L'ACK suit l'application ; une réutilisation UUID avec contenu changé est rejetée. Voir [SessionControlProtocol](../../../../Assets/Scripts/HBP/Transfer/Transport/SessionControlProtocol.cs) et les [contrats de session](synchronization-architecture.md#préférences-et-atlas-de-session).
+Preferences use authenticated session control, separate from scene operations: pairing command 15, maximum body 1 MiB, result 1024 characters, atlas 128 characters, connection generation/UUID/revision. Quest history and Desktop save queue are bounded to 64. ACK follows application; UUID reuse with changed content is rejected. See [SessionControlProtocol](../../../../Assets/Scripts/HBP/Transfer/Transport/SessionControlProtocol.cs) and the [session contracts](synchronization-architecture.md#session-preferences-and-atlases).

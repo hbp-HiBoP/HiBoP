@@ -1,72 +1,72 @@
-# Synchronisation Desktop–Quest
+# Desktop–Quest synchronization
 
-Le runtime échange des opérations métier typées entre un Desktop et un Quest autonome. Desktop séquence les opérations acceptées ; Quest applique immédiatement ses propres gestes puis reçoit leur confirmation ou correction. Les deux appareils exécutent le même modèle scientifique. La livraison initiale des ressources et la synchronisation courante ont des propriétaires distincts.
+The runtime exchanges typed domain operations between a Desktop and a standalone Quest. Desktop sequences accepted operations; Quest immediately applies its own gestures, then receives their confirmation or correction. Both devices execute the same scientific model. Initial resource delivery and ongoing synchronization have distinct owners.
 
-État vérifié par lecture du checkout le 2 novembre 2026. L'implémentation est présente ; les [limites de qualification](synchronization-validation.md) distinguent tests, observations historiques et matériel non requalifié.
+State checked by reading the checkout on November 2, 2026. The implementation is present; [qualification limits](synchronization-validation.md) distinguish tests, historical observations and hardware not requalified.
 
-- [Opérations, invalidation et calculs coordonnés](synchronized-operations.md).
-- [Protocole, ordonnancement et rétention](wire-protocol.md).
-- [Vérification, mesures et limites](synchronization-validation.md).
-- [Scènes et colonnes communes](../shared-scientific-scenes.md), [livraison complète](../transfer.md).
+- [Operations, invalidation and coordinated computation](synchronized-operations.md).
+- [Protocol, scheduling and retention](wire-protocol.md).
+- [Verification, measurements and limits](synchronization-validation.md).
+- [Shared scenes and columns](../shared-scientific-scenes.md), [full delivery](../transfer.md).
 
-## Propriétaires et chemin courant
+## Owners and current path
 
-| Propriétaire | Responsabilité |
+| Owner | Responsibility |
 | --- | --- |
-| [SceneMutationBoundary](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs) | Observe les opérations ciblées, valide/applique les familles typées, exporte et restaure leurs checkpoints. |
-| [DesktopReplicaSession](../../../../Assets/Scripts/HBP/UI/Quest/DesktopReplicaSession.cs) / [QuestReplicaSession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestReplicaSession.cs) | Séquençage/propositions, réception, confirmations applicatives et coordination des jobs d'une incarnation. |
-| [OnlineMutationDriver](../../../../Assets/Scripts/HBP/Sync/Scene/OnlineMutationDriver.cs) | Autorité Desktop, état optimiste Quest, corrections et rebasage des modifications suivantes. |
-| [PersistentTransport](../../../../Assets/Scripts/HBP/Transfer/Transport/PersistentTransport.cs) | Lecture, écriture, reprise et liveness du flux authentifié ; aucune manipulation Unity depuis les boucles réseau. |
-| [QuestManager.SceneLifecycle](../../../../Assets/Scripts/HBP/UI/Quest/QuestManager.SceneLifecycle.cs) / [QuestAnatomySession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs) | Inventaire, publication, routage multiscène, fermeture, sélection et reprise. |
+| [SceneMutationBoundary](../../../../Assets/Scripts/HBP/Sync/Scene/SceneMutationBoundary.cs) | Observes targeted operations, validates/applies typed families, exports and restores their checkpoints. |
+| [DesktopReplicaSession](../../../../Assets/Scripts/HBP/UI/Quest/DesktopReplicaSession.cs) / [QuestReplicaSession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestReplicaSession.cs) | Sequencing/proposals, reception, application confirmations and job coordination for an incarnation. |
+| [OnlineMutationDriver](../../../../Assets/Scripts/HBP/Sync/Scene/OnlineMutationDriver.cs) | Desktop authority, optimistic Quest state, corrections and rebasing of subsequent changes. |
+| [PersistentTransport](../../../../Assets/Scripts/HBP/Transfer/Transport/PersistentTransport.cs) | Reading, writing, resumption and liveness of the authenticated stream; no Unity manipulation from network loops. |
+| [QuestManager.SceneLifecycle](../../../../Assets/Scripts/HBP/UI/Quest/QuestManager.SceneLifecycle.cs) / [QuestAnatomySession](../../../../Assets/Scripts/HBP/Quest/Runtime/QuestAnatomySession.cs) | Inventory, publication, multi-scene routing, closing, selection and recovery. |
 
-La frontière métier produit un petit payload détaché. L'application distante appelle les mêmes handlers et garde leurs invalidations, avec un contexte supprimant la réémission. Un écho équivalent confirme la proposition optimiste ; une valeur différente emprunte la correction autoritaire. Une modification ordinaire ne capture pas toute la scène et n'attend ni rendu stable ni acquittement visible. Le registre de clés détecte les conflits concurrents réels : Desktop ne rejette pas systématiquement une proposition Quest ancienne portant sur une clé indépendante.
+The domain boundary produces a small detached payload. Remote application calls the same handlers and retains their invalidations, with a context suppressing re-emission. An equivalent echo confirms the optimistic proposal; a different value follows authoritative correction. An ordinary change does not capture the entire scene or await stable rendering or a visible acknowledgment. The key registry detects actual concurrent conflicts: Desktop does not systematically reject an old Quest proposal targeting an independent key.
 
-Les DTO/codecs et le scheduler sont dans `HBP.Sync.Runtime`, la composition scientifique dans `HBP.Sync.Scene`. Les événements de Core restent neutres. Les contraintes de dépendances et les règles de développement ont pour propriétaire [AGENTS](../../../../AGENTS.md) et les [connaissances agents](../../../agent-knowledge/synchronization.md) ; ce dossier explique leur mise en œuvre.
+DTOs/codecs and the scheduler are in `HBP.Sync.Runtime`, scientific composition in `HBP.Sync.Scene`. Core events remain neutral. Dependency constraints and development rules are owned by [AGENTS](../../../../AGENTS.md) and [agent knowledge](../../../agent-knowledge/synchronization.md); this directory explains their implementation.
 
-## Identités et publication
+## Identities and publication
 
-`sessionId` identifie la session, `sceneId` la visualisation logique, `incarnationId` son ouverture concrète, `resourceManifestId` les ressources préparées. Les colonnes, sites, coupes, ROI et sphères ont des identités stables ; un index de liste ou un nom affiché ne remplace pas cette identité. Une fermeture/réouverture ou un remplacement crée une nouvelle incarnation. Les messages et calculs tardifs de l'ancienne ne peuvent pas s'y appliquer.
+`sessionId` identifies the session, `sceneId` the logical visualization, `incarnationId` its concrete opening, `resourceManifestId` the prepared resources. Columns, sites, cuts, ROIs and spheres have stable identities; a list index or display name does not replace that identity. Closing/reopening or replacement creates a new incarnation. Late messages and computations from the old one cannot apply to it.
 
-[PublicationJournal](../../../../Assets/Scripts/HBP/Sync/Scene/PublicationJournal.cs) commence à la capture cohérente. Pendant la livraison, les mutations représentables sont retenues puis rejouées après publication Quest. Un débordement impose un checkpoint courant ; une mutation de ressource/topologie non représentable fait recommencer la livraison. La scène n'est déclarée live qu'après le rejeu/checkpoint et l'acquittement de sa barrière initiale. Le heartbeat ne doit pas remplacer le propriétaire d'une publication encore en cours ; une réponse d'inventaire obsolète est réévaluée contre son identité et sa tâche.
+[PublicationJournal](../../../../Assets/Scripts/HBP/Sync/Scene/PublicationJournal.cs) starts at consistent capture. During delivery, representable mutations are retained, then replayed after Quest publication. Overflow requires a current checkpoint; an unrepresentable resource/topology mutation restarts delivery. The scene is not declared live until replay/checkpoint and acknowledgment of its initial barrier are complete. Heartbeat must not replace the owner of a publication still in progress; a stale inventory response is reevaluated against its identity and task.
 
-Le checkpoint contient les états typés partagés, masques, résultats canoniques disponibles et placement scientifique Original/Left/Right. Il exclut fichiers sources, GameObjects et poses locales. Sa capture est permise aux frontières de publication/reconnexion, jamais comme détecteur de changement ordinaire. Les ressources utilisateur nouvelles nécessitent une nouvelle livraison complète ; les atlas installés suivent l'exception ci-dessous.
+The checkpoint contains shared typed states, masks, available canonical results and scientific Original/Left/Right placement. It excludes source files, GameObjects and local poses. Capture is allowed at publication/reconnection boundaries, never as an ordinary change detector. New user resources require a new full delivery; installed atlases follow the exception below.
 
-## Coupure et réconciliation
+## Interruption and reconciliation
 
-Pendant la grâce de **500 ms**, la vue reste utilisable et les trames fiables sont réessayées avec les mêmes identités/octets. Après expiration : avertissement de déconnexion, abandon de l'historique de retry, annulation des jobs coordonnés et poursuite locale. Il n'existe pas de reprise persistante après arrêt/crash du processus.
+During the **500 ms** grace period, the view remains usable and reliable frames are retried with the same identities/bytes. After expiry: disconnection warning, retry-history abandonment, coordinated-job cancellation and local continuation. There is no persistent recovery after process shutdown/crash.
 
-[SceneReconciliationProtocol](../../../../Assets/Scripts/HBP/Sync/Scene/SceneReconciliationProtocol.cs) restaure d'abord les préférences Desktop, puis réconcilie les incarnations communes avec leur manifeste. [SceneCheckpointMerge](../../../../Assets/Scripts/HBP/Sync/Scene/SceneCheckpointMerge.cs) compare les états courants à la dernière base commune retenue :
+[SceneReconciliationProtocol](../../../../Assets/Scripts/HBP/Sync/Scene/SceneReconciliationProtocol.cs) first restores Desktop preferences, then reconciles common incarnations with their manifest. [SceneCheckpointMerge](../../../../Assets/Scripts/HBP/Sync/Scene/SceneCheckpointMerge.cs) compares current states to the last retained common base:
 
-- modifications identiques : aucune question ; attributs/entités indépendants : combinaison ;
-- conflit sur un même champ, suppression contre modification/sélection dépendante, ressource contre paramètres dépendants : choix Desktop/Quest pour le groupe cohérent ;
-- base commune indisponible : choix d'une scène entière.
+- identical changes: no question; independent attributes/entities: combination;
+- conflict on the same field, deletion versus dependent modification/selection, resource versus dependent parameters: Desktop/Quest choice for the coherent group;
+- common base unavailable: whole-scene choice.
 
-L'avance naturelle d'une timeline n'est pas une édition explicite. Les poses restent locales. Le dialogue de conflit impose Desktop ou Quest, sans bouton Cancel ; annulation de transport/application demeure possible.
+Natural timeline progression is not an explicit edit. Poses remain local. The conflict dialog requires Desktop or Quest, without a Cancel button; transport/application cancellation remains possible.
 
-Les interactions sont gardées pendant choix, préparation et application. Toute la candidate est validée et ses représentations locales préparées avant commit. Un échec avant commit ne modifie rien ; un échec après son début conserve la candidate exacte et la garde, avec état désynchronisé et reprise explicite. Une reprise ne devient pas un nouvel envoi écrasant les éditions hors ligne. La réussite établit une nouvelle base commune. Il n'y a pas de rollback transactionnel entre plusieurs scènes.
+Interactions are guarded during choice, preparation and application. The entire candidate is validated and its local representations prepared before commit. A pre-commit failure changes nothing; a failure after commit begins retains the exact candidate and guard, with desynchronized state and explicit recovery. Recovery does not become a new send overwriting offline edits. Success establishes a new common base. There is no transactional rollback across multiple scenes.
 
-## Inventaire, visibilité et scène patient
+## Inventory, visibility and patient scene
 
-Le réglage Desktop `AutomaticallySynchronizeScenes`, activé par défaut et commun aux casques, gouverne seulement l'appartenance des scènes :
+The Desktop `AutomaticallySynchronizeScenes` setting, enabled by default and shared across headsets, governs only scene membership:
 
-| Réglage | Comportement |
+| Setting | Behavior |
 | --- | --- |
-| Activé | L'inventaire Desktop est autoritaire à la connexion/reconnexion : livraison des scènes manquantes, fermeture des copies Quest supplémentaires, fermetures connectées dans les deux sens. Une fermeture Quest est traitée avant comparaison des inventaires. |
-| Désactivé | Les scènes communes continuent à synchroniser mutations, sélection et visibilité ; les fermetures suivantes restent locales. Une copie Quest dont la source Desktop disparaît devient orpheline, jamais rattachée à une nouvelle ouverture de la même source. |
-| Réactivé | L'inventaire Desktop est réappliqué, y compris fermeture des orphelines. |
+| Enabled | Desktop inventory is authoritative on connection/reconnection: delivery of missing scenes, closing extra Quest copies, connected closes in both directions. A Quest close is handled before comparing inventories. |
+| Disabled | Common scenes continue synchronizing mutations, selection and visibility; subsequent closes remain local. A Quest copy whose Desktop source disappears becomes orphaned, never attached to a new opening of the same source. |
+| Re-enabled | Desktop inventory is reapplied, including closing orphans. |
 
-Une fermeture transporte les watermarks d'opérations/bulk à terminer ou abandonner et attend les utilisateurs de cette incarnation. Elle ne bloque pas les autres scènes. Une scène cachée conserve ressources et synchronisation, mais suspend rendu/interactions et termine les gestes ; la réafficher ne reprend pas une capture ancienne.
+A close carries operation/bulk watermarks to finish or abandon and awaits users of that incarnation. It does not block other scenes. A hidden scene retains resources and synchronization, but suspends rendering/interactions and ends gestures; showing it again does not resume an old capture.
 
-Une interaction intentionnelle sur cerveau/site/coupe sélectionne son contexte scène/colonne ; le survol ne le fait pas. Le geste conserve sa cible initiale même si la sélection change. Pose, rotation, échelle et disposition Single/Split restent locales. Une nouvelle scène est placée devant le casque avant de devenir visible, sans déplacer les scènes précédentes.
+An intentional interaction with a brain/site/cut selects its scene/column context; hover does not. The gesture retains its initial target even if selection changes. Pose, rotation, scale and Single/Split layout remain local. A new scene is placed in front of the headset before becoming visible, without moving previous scenes.
 
-Depuis un site d'une scène multi-patients partagée, Quest peut demander **en ligne** l'ouverture du patient à Desktop. Le chemin commun réutilise une ouverture enfant existante pour `(ouverture source, patient)`, la montre et la sélectionne ; sinon il la crée et la livre aux deux appareils, même avec appartenance automatique désactivée. Les définitions des colonnes et préférences anatomiques sont conservées, mais les masques d'effacement de la topologie source et la sélection d'aperçu IRM transitoire sont abandonnés. Parent et enfant évoluent ensuite indépendamment ; fermer le parent ne ferme pas ses enfants.
+From a site in a shared multi-patient scene, Quest can request **online** that Desktop open the patient. The shared path reuses an existing child opening for `(source opening, patient)`, shows and selects it; otherwise it creates and delivers it to both devices, even with automatic membership disabled. Column definitions and anatomical preferences are retained, but source-topology erasure masks and transient MRI preview selection are discarded. Parent and child then evolve independently; closing the parent does not close its children.
 
-## Préférences et atlas de session
+## Session preferences and atlases
 
-[DesktopSessionPreferences](../../../../Assets/Scripts/HBP/UI/Quest/DesktopSessionPreferences.cs) et [SessionPreferencesReceiver](../../../../Assets/Scripts/HBP/Sync/Scene/SessionPreferencesReceiver.cs) synchronisent **toutes** les `UserPreferences`, même sans scène. Les définitions tags/protocoles/alias sont également actualisées après appairage. Le snapshot est validé avant effet, appliqué sur Unity en conservant l'objet/listeners Quest, puis acquitté ; aucune sauvegarde implicite du fichier Quest. Génération de connexion, UUID d'opération et révision monotone empêchent les applications obsolètes. Une opération abandonnée à la déconnexion n'est pas rejouée : reconnect installe l'état actuel Desktop.
+[DesktopSessionPreferences](../../../../Assets/Scripts/HBP/UI/Quest/DesktopSessionPreferences.cs) and [SessionPreferencesReceiver](../../../../Assets/Scripts/HBP/Sync/Scene/SessionPreferencesReceiver.cs) synchronize **all** `UserPreferences`, even without a scene. Tag/protocol/alias definitions are also updated after pairing. The snapshot is validated before effects, applied on Unity while preserving the Quest object/listeners, then acknowledged; no implicit save of the Quest file. Connection generation, operation UUID and monotonic revision prevent stale applications. An operation abandoned on disconnection is not replayed: reconnection installs current Desktop state.
 
-Les préférences exigeant rechargement capturent les vues sur Unity, ferment/attendent les anciennes incarnations des deux côtés, appliquent les réglages, puis rechargent et livrent de nouvelles incarnations. Les ouvertures patient indépendantes sont préservées. Connexion absente, transfert/réconciliation en cours ou scène Quest locale/orpheline non rechargeable imposent un refus avant application/sauvegarde. Les erreurs restent par scène avec reprise ; une capture échouée libère aussi la garde.
+Preferences requiring reload capture views on Unity, close/await old incarnations on both sides, apply settings, then reload and deliver new incarnations. Independent patient openings are preserved. An absent connection, ongoing transfer/reconciliation or a non-reloadable local/orphan Quest scene requires rejection before application/saving. Errors remain per scene with retry; a failed capture also releases the guard.
 
-Les atlas/MNI installés sont des références locales : identité logique et disponibilité native, **sans comparaison globale de hashes des contenus installés**. L'utilisateur assure leur cohérence. Cette exception ne retire ni provenance lors du chargement FMRI/Volume ni intégrité des données utilisateur transférées. Aucun fichier atlas ne voyage par synchronisation ; le manifeste Android sert à l'installation, pas à l'autorisation runtime.
+Installed atlases/MNI are local references: logical identity and native availability, **without global hash comparison of installed contents**. The user ensures their consistency. This exception removes neither provenance during FMRI/Volume loading nor integrity of transferred user data. No atlas file travels through synchronization; the Android manifest serves installation, not runtime authorization.
 
-Les chargements sont séquencés/partagés par atlas, publication après préparation native complète ; Load d'un atlas déjà prêt ne rescane pas le disque. Unload puis Load prend en compte des fichiers changés. Les succès partiels restent disponibles. Unload réserve les deux côtés et attend l'absence d'utilisateurs ; la réservation distante expire après 30 s. Les retries sont bornés à trois tentatives, pauses annulables 500/1000 ms, puis erreur Desktop unique. Déconnexion/annulation abandonne les retries. Les boutons agissent immédiatement et Cancel de la fenêtre ne les annule pas ; les flags auto-load s'appliquent au démarrage/nouvelle session, pas à chaque sauvegarde.
+Loads are sequenced/shared per atlas, with publication after full native preparation; Load on an already ready atlas does not rescan disk. Unload then Load accounts for changed files. Partial successes remain available. Unload reserves both sides and waits for the absence of users; the remote reservation expires after 30 s. Retries are bounded to three attempts, cancellable 500/1000 ms pauses, then one Desktop error. Disconnection/cancellation abandons retries. Buttons act immediately and the window's Cancel does not undo them; auto-load flags apply at startup/new session, not on every save.
