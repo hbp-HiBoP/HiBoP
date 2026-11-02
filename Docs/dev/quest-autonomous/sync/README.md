@@ -14,7 +14,7 @@ The initial scene delivery remains a separate workflow. Live synchronization sta
 - Both directions use the same business setters and targeted invalidations. Remote application suppresses re-emission without bypassing domain behavior.
 - Filter and correlation jobs run only on Desktop while online; Quest waits for the canonical result. Activity projection runs locally on both devices.
 - A 500 ms disconnection grace queues and retries operations. Beyond it, both peers continue locally. Reconciliation combines independent changes and asks the user to choose only for conflicting dependent groups, as approved during T16.
-- Source resource files are transferred only with a full scene delivery. Installed atlases may become available during the pairing session after both peers load identical verified content. Other missing source resources require a full resend.
+- Source resource files are transferred only with a full scene delivery. Installed atlases may become available during the pairing session after both peers report them loaded, using logical references without comparing installed content. The [session atlas contract](tasks/SessionPreferencesAndAtlases.md) owns this exception and the user's responsibility for content consistency. Other missing source resources require a full resend.
 - Local camera, Quest wrapper pose/scale, tracked poses, hover and UI layout remain local. Scientific selections and parameters are shared.
 - Multi-scene routing, shared selection/visibility and scene lifecycle use stable scene/incarnation identities. T17's Desktop-authoritative automatic membership policy can be disabled without disabling mutations on common shared scenes.
 - Automated tests are a development-loop feature: the fast sync suite must stay deterministic and short. Real sockets, sleeps, full scene loads and device tests do not belong in the per-edit tier.
@@ -43,9 +43,7 @@ Approved Quest product controls: [Interfaces et interactions Quest HiBoP](../que
 
 Implementation evidence: [T00 baseline instrumentation and provisional budgets](T00-baseline-and-budgets.md).
 
-M1 physical test: [Windows/Quest procedure and evidence collection](M1-physical-test.md).
-
-M1 physical result (2026-09-28): [Windows/Quest test report](M1-physical-test-report-2026-09-28.md).
+M1 physical procedure and result (2026-09-28): [Windows/Quest test report](M1-physical-test-report-2026-09-28.md).
 
 M1 cut-ID fix retest (2026-09-28): [editor-signed build and physical result](M1-cut-id-fix-retest-2026-09-28.md).
 

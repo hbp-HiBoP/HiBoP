@@ -15,11 +15,18 @@ Editor script compilation needed to edit serialized references is distinct from
 building an APK; use a distinction already established in the conversation.
 
 Locate the current HiBoP checkout before resolving project-relative paths. From
-a native repository, use its integration instructions to locate HiBoP and read
-`.agents/skills/hibop-unity-validation/SKILL.md` in that checkout explicitly.
+a native repository, locate HiBoP and use this project-local skill in that
+checkout explicitly, rather than assuming workstation-specific paths.
 
 When adding, renaming, diagnosing, skipping or removing tests, read
 [Testing conventions](../../../Docs/agent-knowledge/testing.md).
+
+For player builds or packaging changes, read
+[Builds and distribution](../../../Docs/agent-knowledge/builds-and-distribution.md)
+for version ownership, excluded resources and existing artifact tooling.
+
+For sync tiers, use the [existing runner and preflight](references/cli.md#sync-tier-runner)
+to select the checks, including when execution will use MCP.
 
 Read only the applicable procedure:
 
@@ -36,8 +43,8 @@ Read only the applicable procedure:
 Separate implementation, technical results, and manual acceptance. Inspect a
 completed job/process and its console/logs before reporting a result. Evidence
 must correspond to the tested source/build; an earlier successful run does not
-verify later behavioral changes. Use the existing project report template where
-the task requires a durable report, without adding a reporting framework.
+verify later behavioral changes. For a requested durable report, record source/build, behavior, evidence and
+remaining acceptance separately, without adding a reporting framework.
 
-Follow AGENTS.md for the final C# formatting action. This workflow adds no work
+Follow project instructions for the final C# formatting action. This workflow adds no work
 after that action and no formatting step to read-only reviews or audits.

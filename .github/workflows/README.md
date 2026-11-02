@@ -22,9 +22,9 @@ Unity.exe -batchmode -quit -nographics -projectPath <checkout> -activeBuildProfi
 
 On Windows, launch Unity outside the Codex sandbox using `Start-Process -Wait
 -PassThru -WindowStyle Hidden` as documented in AGENTS.md. Desktop keeps its
-data/documentation packaging. Quest produces only the APK and report, with no
-copy of `Assets/Data`. The minimal camera scene does not initialize XR yet;
-the Quest loader/rig/passthrough are the next task, QUEST-004. Both profiles
+data/documentation packaging. Quest produces the APK and report; its embedded
+scientific resources follow the Quest standard-data build path rather than a
+Desktop `Assets/Data` copy. Both profiles
 serialize Input System only (`activeInputHandler=1`).
 
 The workflow calls `HBP.Dev.HBPBuilder.BuildFromCommandLine`. That entry point
@@ -45,8 +45,9 @@ then run from the HiBoP checkout:
 
 The script resolves and pins the latest commit on GitHub `master` for
 `EEGFormat`, `hbp_core` and `hbp_math`. It dispatches the three native workflows,
-waits for ten artifacts (Windows x64, Linux x64 and macOS ARM64 for each library,
-plus Android ARM64 for `hbp_core`), validates
+waits for the artifacts declared in `Tools/NativePlugins.json` (Windows x64,
+Linux x64 and macOS ARM64 for each library, plus Android ARM64 for `hbp_core`
+and `hbp_math`), validates
 their manifests and SHA-256 hashes, and only then replaces the Unity payloads.
 The existing Unity `.meta` files are never replaced.
 
@@ -64,7 +65,7 @@ validation fails. Before replacing files it saves all current payloads under
 `.native-plugin-update/<request-id>`, and restores them if installation fails.
 On success it writes `Tools/NativePlugins.lock.json` with the source commits,
 GitHub run URLs and installed hashes. Commit that lock file together with the
-ten native payloads, then run **Build HiBoP** with `platform: all` for Desktop
+declared native payloads, then run **Build HiBoP** with `platform: all` for Desktop
 and `platform: quest` for Android.
 
 The local validation suite does not use GitHub or modify the real plugins:
@@ -74,9 +75,9 @@ pwsh .\Tools\Test-NativePluginUpdater.ps1
 pwsh .\Tools\Test-NativePluginAndroidUpdater.ps1
 ```
 
-The `Test native plugin updater` workflow runs these network-free tests on PRs
-touching the native updater tools, or on manual dispatch. They simulate three
-GitHub dispatches and ten downloads, including missing/corrupt artifacts,
+The `Test native plugin updater` workflow runs these network-free tests on
+manual dispatch. They simulate GitHub dispatches and declared target downloads,
+including missing/corrupt artifacts,
 installation/lock failures and interrupted recovery. They do not claim a real
 remote compilation. The native `hbp_core` workflow adds an `android` choice;
 `all` includes it. Android builds twice from the same immutable scientific Git
@@ -90,7 +91,7 @@ already-pinned Desktop commit can be imported with
 It verifies the installed Desktop `hbp_core` binaries and the package's source,
 hash and Android metadata, preserves Desktop lock entries, and labels the new
 artifact `origin: local` with no GitHub run. The normal update command above
-continues to use GitHub for all ten artifacts. Neither mode modifies Unity
+continues to use GitHub for all declared artifacts. Neither mode modifies Unity
 `.meta` files. Integrate the native workflow changes into `hbp_core/master`
 before using the updated orchestrator; it refuses workflows without Android.
 

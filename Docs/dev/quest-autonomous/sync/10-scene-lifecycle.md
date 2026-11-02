@@ -11,7 +11,11 @@ Closing and reopening always changes incarnation. A retry of the same interrupte
 
 ## Initial full delivery boundary
 
-All selectable meshes, MRI, implantations, functional resources, atlas/localizer dependencies and site/topology rosters required by live operations are included/prepared in the initial delivery. Ordinary live sync cannot introduce a new heavy resource.
+Selectable user meshes, MRI, implantations, functional resources and site/topology
+rosters required by live operations are included/prepared in the initial delivery.
+Installed atlas/MNI dependencies use references rather than carrying their files;
+the [session atlas contract](tasks/SessionPreferencesAndAtlases.md) governs later
+atlas readiness. Ordinary live sync cannot introduce a new heavy user resource.
 
 Desktop interaction should not be frozen for the whole transfer. At a coherent initial capture boundary:
 
@@ -32,6 +36,10 @@ A topology/resource change during publication that cannot be represented by alre
 The manifest contains stable resource IDs, type, dimensions/counts and content fingerprints. A dependent operation validates manifest/resource/topology identity before application. Runtime list index or filename is not sufficient.
 
 Fingerprints are cached from resource preparation or accumulated over serialization. Quest verifies them while receiving. Production code must actually compare the fingerprints it paid to compute.
+
+These content-integrity rules apply to transferred user resources. Installed
+atlas/MNI references use the logical-identity/readiness exception above; do not
+reintroduce global content hashing of installed resources from this section.
 
 ## Online close and replacement
 

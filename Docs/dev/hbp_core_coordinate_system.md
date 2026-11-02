@@ -26,6 +26,9 @@ Points, directions and normals reflect X. Mesh triangle winding is reversed once
 
 Distances, radii, dimensions, spacing, indices, UVs, colors, masks and labels are not reflected.
 
-Compatibility conversions required by the transitional `hbp_export` backend must be guarded by an explicit legacy branch. They must never run on values already returned in Unity space by `hbp_core`.
+Production uses `hbp_core` only. The former `hbp_export` backend is retained only
+as an editor-side parity-test oracle, not as a runtime fallback. Legacy-coordinate
+adaptation belongs to those test bridges and must never run on values already
+returned in Unity space by `hbp_core`.
 
 The detailed native contract and the permanent test obligations are maintained in `hbp_core/docs/coordinate_system_contract.md`.

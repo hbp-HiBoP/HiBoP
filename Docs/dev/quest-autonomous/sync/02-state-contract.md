@@ -90,9 +90,15 @@ A failed operation does not terminate the session. It is rejected with a scoped 
 
 ## Resource references
 
-All selectable heavy resources are part of the initial prepared-scene manifest. Live operations use stable resource IDs plus cached content fingerprints. Resource list positions, paths and display names are not identities.
+Transferred user resources are part of the initial prepared-scene manifest. Live operations use stable resource IDs plus cached content fingerprints for those resources. Resource list positions, paths and display names are not identities for transferred data.
 
 Fingerprints are calculated once after resource preparation on immutable buffers, preferably on a worker. If unavailable when send begins, the digest is accumulated over the exact outgoing bytes and verified over the same incoming bytes. There is no extra traversal, Unity-main-thread geometry read or duplicate copy solely for hashing.
+
+Installed atlas/MNI references follow the later
+[session atlas contract](tasks/SessionPreferencesAndAtlases.md): logical references
+and readiness, without a global installed-content hash or mismatch comparison.
+That exception does not remove transferred-data integrity or provenance during
+actual FMRI/Volume loads. Localizer atlas files are not part of scene delivery.
 
 ## Special representations
 

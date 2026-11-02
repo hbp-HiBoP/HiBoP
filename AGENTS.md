@@ -9,8 +9,10 @@ Project conventions and decisions are indexed in `Docs/agent-knowledge/INDEX.md`
 At the start of a substantive project task, including analysis and review, read
 that index and the entries matching the intended behavior and affected code
 before making design choices. Revisit the routing when the scope changes.
-Load only relevant entries; follow linked technical contracts or skills when
-their scope applies. Routine status replies do not require reloading the index.
+Load only relevant entries and applicable skills. Keep durable knowledge in
+`Docs/agent-knowledge/`, with workflow references beside their skill; neither
+should depend on general project documentation. Code/tool references are fine.
+Routine status replies do not require reloading the index.
 
 ## C# formatting
 

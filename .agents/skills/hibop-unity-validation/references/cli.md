@@ -25,7 +25,7 @@ $Process = Start-Process `
     -ArgumentList $Args `
     -Wait `
     -PassThru `
-    -NoNewWindow
+    -WindowStyle Hidden
 
 exit $Process.ExitCode
 ```
@@ -65,3 +65,15 @@ Then inspect the Unity log. Healthy runs should connect successfully to the
 Licensing Client, resolve a license group, and register packages without repeated
 connection-loss messages.
 
+
+## Sync tier runner
+
+Use `Tools/run-sync-tests.ps1` for the established Fast, Loopback, SceneFocused
+or Qualification selection; `-TestFilter` narrows it, while `-AllInAssemblies`
+explicitly broadens beyond the category. The runner first executes
+`Tools/check-assembly-dependencies.ps1`. With an open editor, `-PlanOnly` runs
+that static preflight and returns assemblies/category/version/filter without
+launching Unity; execute the selection through MCP. Do not delete a Unity lock
+to force a CLI run. With the editor closed, the actual runner launches Unity
+and therefore needs escalated execution. Inspect its fresh XML, log and summary;
+missing/zero/skipped/inconclusive tests are not a fully passed tier.

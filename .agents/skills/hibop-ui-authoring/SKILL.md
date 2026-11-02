@@ -8,11 +8,12 @@ description: Create or modify HiBoP Desktop or Quest UI prefabs, windows, contro
 Read [UI and UX conventions](../../../Docs/agent-knowledge/ui-and-ux.md).
 If the change affects shared behavior or synchronization, also read
 [Runtime and state](../../../Docs/agent-knowledge/runtime-and-state.md)
-and its applicable contract.
+and [Synchronization](../../../Docs/agent-knowledge/synchronization.md) when applicable.
 
-1. Inspect the nearest existing control/window, prefab inheritance, serialized
+1. Identify whether the request changes structure/interaction or only displayed
+   text. Inspect the nearest existing control/window, prefab inheritance, serialized
    references and theme role; identify manual edits to preserve.
-2. Apply the authoring rules in AGENTS.md and the knowledge entry. Use the Unity
+2. Apply the project authoring rules and the knowledge entry. Use the Unity
    MCP skill for editor operations when needed; do not duplicate its tool schemas.
 3. Inspect the changed prefab preview and required references. Use existing
    `QuestUIAssetTests`, `QuestInformationWindowAssetTests`, or relevant window

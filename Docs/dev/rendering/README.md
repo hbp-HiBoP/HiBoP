@@ -30,8 +30,10 @@ pas explicitement amendées dans ce dossier :
    compliqueraient la parité, le MSAA et les plateformes.
 3. Le projet reste en espace colorimétrique **Linear**.
 4. Les couleurs d'atlas, de fMRI, d'iEEG et des autres données scientifiques
-   sont des données, pas un matériau décoratif. Leur couleur affichée doit être
-   indépendante de l'éclairage, de l'orientation de la surface et de la caméra.
+   sont des données, pas un matériau décoratif. Le mapping de palette, la teinte
+   et la chroma restent stables ; le mesh peut appliquer le relief de luminance
+   contrôlé défini par le [contrat visuel](02-visual-and-color-contract.md),
+   indépendamment des lumières de scène. Coupes et légendes restent non éclairées.
 5. Le cerveau anatomique peut rester éclairé. Les overlays scientifiques sont
    composités après le calcul de cet éclairage.
 6. L'export d'une vue doit correspondre à l'affichage, à l'exception explicite
