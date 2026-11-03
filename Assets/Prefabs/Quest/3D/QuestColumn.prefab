@@ -68,7 +68,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rayTarget: {fileID: 209215420478295569}
   minimumScale: 0.25
-  maximumScale: 4
+  maximumScale: 20
   minimumHandDistanceMeters: 0.08
   recenterDistanceMeters: 0.8
   recenterHeightMeters: -0.12
@@ -249,7 +249,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
