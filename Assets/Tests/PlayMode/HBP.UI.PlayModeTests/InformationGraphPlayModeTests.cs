@@ -769,12 +769,17 @@ namespace HBP.Tests.PlayMode.UI
             using PlayModeSceneScope scene = new("InformationGraphTrialMatrixExplorerInformationPanels");
 
             BoolTag patientTag = new("Included", "information-graph-info-patient-tag-001");
+            StringTag secondPatientTag = new("Group", "information-graph-info-patient-tag-002");
             StringTag siteTag = new("Location", "information-graph-info-site-tag-001");
-            PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
+            PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag, secondPatientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
             Site site = new("A1", new[] { new Coordinate("information-graph-space", Vector3.one, "information-graph-info-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "information-graph-info-site-tag-value-001") }, "information-graph-info-site-001");
-            Patient patient = new("patient-info", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001") }, string.Empty, "information-graph-info-patient-001");
+            Patient patient = new("patient-info", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, new BaseTagValue[]
+            {
+                new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001"),
+                new StringTagValue(secondPatientTag, "A", "information-graph-info-patient-tag-value-002")
+            }, string.Empty, "information-graph-info-patient-001");
 
             DBInformationPanels panels = CreateInformationPanelsHarness(scene);
             DBTagDisplaySettingsContextMenu patientMenu = GetPrivateField<DBTagDisplaySettingsContextMenu>(panels, "m_PatientTagDisplaySettingsContextMenu");
@@ -784,18 +789,24 @@ namespace HBP.Tests.PlayMode.UI
 
             patientMenu.SelectAll();
             siteMenu.SelectAll();
+            panels.gameObject.SetActive(false);
             panels.Set(new ChannelStruct("A1", patient));
+            panels.gameObject.SetActive(true);
 
-            Assert.That(patientText.text, Does.Contain("Included"));
-            Assert.That(patientText.text, Does.Contain("True"));
-            Assert.That(siteText.text, Does.Contain("Location"));
-            Assert.That(siteText.text, Does.Contain("temporal"));
+            var patientCells = patientText.transform.parent.GetComponentsInChildren<Text>();
+            Assert.That(patientCells.Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Included", "True", "Group", "A" }));
+            Assert.That(siteText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Location", "temporal" }));
+            Assert.That(patientCells.Select(cell => cell.fontStyle), Is.EqualTo(new[] { FontStyle.Bold, FontStyle.Bold, FontStyle.Bold, FontStyle.Normal, FontStyle.Bold, FontStyle.Normal }));
+            var backgrounds = patientText.transform.parent.GetComponentsInChildren<Image>();
+            Assert.That(backgrounds, Has.Length.EqualTo(3));
+            Assert.That(backgrounds[0].color.r, Is.GreaterThan(backgrounds[1].color.r));
+            Assert.That(backgrounds[1].color.r, Is.GreaterThan(backgrounds[2].color.r));
 
             siteMenu.DeselectAll();
             panels.Refresh();
 
-            Assert.That(patientText.text, Does.Contain("Included"));
-            Assert.That(siteText.text, Is.EqualTo("No site information available."));
+            Assert.That(patientText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Included", "True", "Group", "A" }));
+            Assert.That(siteText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "No site information available." }));
         }
 
         [Test]
@@ -1106,9 +1117,18 @@ namespace HBP.Tests.PlayMode.UI
             panelsObject.SetActive(false);
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(panelsObject, scene.Scene);
             DBInformationPanels panels = panelsObject.AddComponent<DBInformationPanels>();
-            SetPrivateField(panels, "m_PatientInformationText", CreateTextChild(panelsObject.transform, "PatientText"));
+            var patientContent = new GameObject("Patient content", typeof(RectTransform));
+            patientContent.transform.SetParent(panelsObject.transform, false);
+            var siteContent = new GameObject("Site content", typeof(RectTransform));
+            siteContent.transform.SetParent(panelsObject.transform, false);
+            var prefab = Resources.Load<GameObject>("Prefabs/UI/Windows/Trial matrix explorer window");
+            var authoredPanels = prefab.GetComponentInChildren<DBInformationPanels>(true);
+            SetPrivateField(panels, "m_TagRowTemplate", GetPrivateField<GameObject>(authoredPanels, "m_TagRowTemplate"));
+            SetPrivateField(panels, "m_TagHeaderState", GetPrivateField<ScriptableObject>(authoredPanels, "m_TagHeaderState"));
+            SetPrivateField(panels, "m_AlternateTagRowState", GetPrivateField<ScriptableObject>(authoredPanels, "m_AlternateTagRowState"));
+            SetPrivateField(panels, "m_PatientInformationText", CreateTextChild(patientContent.transform, "PatientText"));
             SetPrivateField(panels, "m_PatientTagDisplaySettingsContextMenu", CreateTagDisplaySettingsContextMenu(panelsObject.transform, DBTagDisplaySettingsContextMenu.TagsType.Patient));
-            SetPrivateField(panels, "m_SiteInformationText", CreateTextChild(panelsObject.transform, "SiteText"));
+            SetPrivateField(panels, "m_SiteInformationText", CreateTextChild(siteContent.transform, "SiteText"));
             SetPrivateField(panels, "m_SiteTagDisplaySettingsContextMenu", CreateTagDisplaySettingsContextMenu(panelsObject.transform, DBTagDisplaySettingsContextMenu.TagsType.Site));
             panelsObject.SetActive(true);
             return panels;

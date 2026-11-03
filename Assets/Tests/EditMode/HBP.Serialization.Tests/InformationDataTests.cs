@@ -325,7 +325,7 @@ namespace HBP.Tests.Serialization
             AssertSerializedReferences(explorer, "m_SelectPatientsButton", "m_PatientsSelectedText", "m_DataDropdown", "m_DisplayMatrixButton", "m_TrialMatrixDisplayer", "m_ConfigurationContainer");
             AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixDisplayer"), "m_TrialMatrixGrid", "m_TrialMatrixGridContainer", "m_NoDataContainer", "m_NoDataText", "m_ChannelList", "m_PatientDropdown", "m_TrialMatrixActionsButton", "m_ProtocolDropdown", "m_InformationPanels", "m_Colormap");
             AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.TrialMatrixGrid"), "m_DataContainer", "m_DataPrefab", "m_TitleHeaderContainer", "m_TitleHeaderPrefab");
-            AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.InformationPanels"), "m_PatientInformationText", "m_PatientTagDisplaySettingsContextMenu", "m_SiteInformationText", "m_SiteTagDisplaySettingsContextMenu");
+            AssertSerializedReferences(FindComponent(trialMatrixExplorerWindow, "HBP.UI.Database.InformationPanels"), "m_PatientInformationText", "m_PatientTagDisplaySettingsContextMenu", "m_SiteInformationText", "m_SiteTagDisplaySettingsContextMenu", "m_TagRowTemplate", "m_TagHeaderState", "m_AlternateTagRowState");
 
             Component siteTools = FindComponent(siteToolsWindow, "HBP.UI.Module3D.SiteToolsWindow");
             AssertSerializedReferences(siteTools, "m_SelectToolDropdown", "m_ApplyForDropdown", "m_ApplyChangesButton");
