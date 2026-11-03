@@ -261,7 +261,7 @@ namespace HBP.Quest
                         receiver.Tasks.Add(owner.ServeAsync(listener, receiver.Stop.Token, session.ReceiveStreamAsync, message => context.Post(_ =>
                         {
                             if (!stop.IsCancellationRequested) status = message;
-                        }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync, session.ActiveGlobalContextAsync, session.ReceiveDefinitionsAsync));
+                        }, null), session.ReceiveGlobalsAsync, session.ReceiveReplicaAsync, session.ReceiveSessionControlAsync, session.ActiveGlobalContextAsync, session.ReceiveDefinitionsAsync, session.IsHeadsetActiveAsync));
                     }
                     catch (Exception error)
                     {

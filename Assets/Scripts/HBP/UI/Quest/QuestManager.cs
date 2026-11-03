@@ -13,6 +13,7 @@ using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Core.Enums;
 using HBP.Data.Module3D;
+using HBP.Data.Tools;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using HBP.Sync.Scene;
@@ -132,6 +133,7 @@ namespace HBP.Quest.Desktop
         {
             definitionsAttempt?.Cancel();
             connected = false;
+            ResetHeadsetActivity();
             LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
             foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
@@ -150,6 +152,10 @@ namespace HBP.Quest.Desktop
         private bool manualSelected;
         private float nextDiscovery, nextHeartbeat;
         private long nextTransferCaptureGeneration;
+        private Task headsetActivityProbe = Task.CompletedTask;
+        private float nextHeadsetActivityProbe;
+        private int headsetActivityGeneration;
+        private IDisposable headsetAwake;
 
         protected override void Initialization()
         {
@@ -168,6 +174,13 @@ namespace HBP.Quest.Desktop
             TickDefinitions();
             TickSceneLifecycle();
             TickDiscovery();
+            // Transfers and reconciliation can keep the regular heartbeat busy.
+            if (IsPaired && headsetActivityProbe.IsCompleted && Time.unscaledTime >= nextHeadsetActivityProbe)
+            {
+                nextHeadsetActivityProbe = Time.unscaledTime + 5;
+                headsetActivityProbe = RefreshHeadsetActivityAsync(headsetActivityGeneration);
+            }
+
             // Once disconnected, discovery owns retry timing and endpoint selection. Probing
             // the old address here can continuously preempt its per-headset retry backoff.
             if (!busy && IsPaired && reconnect && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
@@ -189,6 +202,41 @@ namespace HBP.Quest.Desktop
             }
         }
 
+        private async Task RefreshHeadsetActivityAsync(int generation)
+        {
+            bool active = false;
+            try
+            {
+                active = await QuestPairing.IsHeadsetActiveAsync(endpoint, pin, credential, lifetime.Token);
+            }
+            catch (Exception error) when (IsQuestConnectionInterruption(error) || error is IOException or AuthenticationException)
+            {
+                // A failed presence probe releases the sleep hold. The session owns reconnects.
+            }
+
+            if (generation != headsetActivityGeneration || !isActiveAndEnabled || !IsPaired) return;
+            if (active)
+            {
+                if (headsetAwake == null && PerformanceManager.IsInitialized)
+                    headsetAwake = UnityEngine.Object.FindAnyObjectByType<PerformanceManager>()?.KeepAwake();
+            }
+            else
+            {
+                headsetAwake?.Dispose();
+                headsetAwake = null;
+            }
+        }
+
+        private void ResetHeadsetActivity()
+        {
+            headsetActivityGeneration++;
+            nextHeadsetActivityProbe = 0;
+            headsetAwake?.Dispose();
+            headsetAwake = null;
+        }
+
+        private void OnDisable() => ResetHeadsetActivity();
+
         public void SetDiscoveryActive(bool active)
         {
             discoveryActive = active;
@@ -208,6 +256,7 @@ namespace HBP.Quest.Desktop
         {
             definitionsAttempt?.Cancel();
             connected = reconnect = false;
+            ResetHeadsetActivity();
             LastOperationSucceeded = false;
             sessionPreferences?.Dispose();
             sessionPreferences = null;
@@ -728,6 +777,7 @@ namespace HBP.Quest.Desktop
             ClearDefinitions();
             endpoint = null;
             connected = reconnect = failedDelivery = false;
+            ResetHeadsetActivity();
             OnChanged.Invoke();
         }
 
@@ -748,7 +798,7 @@ namespace HBP.Quest.Desktop
             operation?.Cancel();
             try
             {
-                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork, definitionsWork }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
+                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork, definitionsWork, headsetActivityProbe }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
             }
             catch (Exception)
             {

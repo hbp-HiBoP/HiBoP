@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using HBP.Transfer.Scene;
 using HBP.Transfer.Transport;
 using UnityEngine;
+using UnityEngine.XR;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Tools;
 using HBP.UI.Tools;
@@ -362,6 +363,8 @@ namespace HBP.Quest
             Task<DeliveryReceipt> work = await OnUnityThreadAsync(() => ReceiveWithLoadingAsync(stream, stop, true), stop).ConfigureAwait(false);
             return await work.ConfigureAwait(false);
         }
+
+        public Task<bool> IsHeadsetActiveAsync(CancellationToken stop) => OnUnityThreadAsync(() => isActiveAndEnabled && InputDevices.GetDeviceAtXRNode(XRNode.Head).TryGetFeatureValue(CommonUsages.userPresence, out bool worn) && worn, stop);
 
         public Task<string> ActiveGlobalContextAsync(CancellationToken stop) => OnUnityThreadAsync(() => IsReady ? globals?.Id ?? string.Empty : null, stop);
 

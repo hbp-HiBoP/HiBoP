@@ -204,7 +204,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions = null)
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions = null, Func<CancellationToken, Task<bool>> isHeadsetActive = null)
         {
             using var cancelAccept = stop.Register(listener.Stop);
             // Keep eight admission slots available beside the 64 persistent replica slots.
@@ -228,7 +228,7 @@ namespace HBP.Transfer.Transport
                     try
                     {
                         await slots.WaitAsync(stop).ConfigureAwait(false);
-                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions));
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions, isHeadsetActive));
                         handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
                     }
                     catch
@@ -245,11 +245,11 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions)
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions, Func<CancellationToken, Task<bool>> isHeadsetActive)
         {
             try
             {
-                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions).ConfigureAwait(false);
+                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions, isHeadsetActive).ConfigureAwait(false);
             }
             finally
             {
@@ -257,7 +257,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions)
+        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions, Func<CancellationToken, Task<bool>> isHeadsetActive)
         {
             using (peer)
             using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
@@ -379,7 +379,16 @@ namespace HBP.Transfer.Transport
                         {
                             // Application readiness, not just a surviving Android socket.
                             if (activeGlobals != null) await activeGlobals(deadline.Token).ConfigureAwait(false);
-                            await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
+                            if (isHeadsetActive == null)
+                                await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
+                            else
+                            {
+                                bool active = await isHeadsetActive(deadline.Token).ConfigureAwait(false);
+                                // Keep the readiness byte first for clients that only read that byte.
+                                var reply = new[] { (byte)(IsPaired ? 1 : 0), (byte)(active ? 1 : 0) };
+                                await tls.WriteAsync(reply, 0, reply.Length, deadline.Token).ConfigureAwait(false);
+                            }
+
                             return;
                         }
 
@@ -595,6 +604,19 @@ namespace HBP.Transfer.Transport
             bool ready = false;
             await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) => ready = await ReadByteAsync(tls, token).ConfigureAwait(false) == 1, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
             return ready;
+        }
+
+        public static async Task<bool> IsHeadsetActiveAsync(string host, byte[] pin, byte[] credential, CancellationToken stop)
+        {
+            bool active = false;
+            await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) =>
+            {
+                if (await ReadByteAsync(tls, token).ConfigureAwait(false) != 1) return;
+                // Older receivers close after the readiness byte.
+                var presence = new byte[1];
+                active = await tls.ReadAsync(presence, 0, presence.Length, token).ConfigureAwait(false) == 1 && presence[0] == 1;
+            }, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            return active;
         }
 
         public static Task ResumeAsync(string host, byte[] pin, byte[] credential, string contextId, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals)
