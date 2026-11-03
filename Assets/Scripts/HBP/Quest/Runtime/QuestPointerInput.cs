@@ -246,11 +246,12 @@ namespace HBP.Quest
                 if (data.pointerPress == null) data.pointerPress = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target);
                 data.rawPointerPress = target;
                 data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
-                // A click control owns its trigger gesture. Do not let an ancestor ScrollRect
-                // turn controller jitter into a scroll and cancel the button/toggle/dropdown.
-                // Sliders and explicit drag surfaces retain their own drag handler.
-                if (data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
+                // Tag checkboxes share their list's drag gesture after the scroll threshold.
+                // Other click controls retain their gesture against an ancestor ScrollRect.
+                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll);
+                if (!tagChoiceScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
                     data.pointerDrag = null;
+                if (tagChoiceScroll) data.useDragThreshold = true;
                 if (!loadingOverlay && data.pointerPress == null && data.pointerDrag == null && window != null)
                     data.pointerDrag = window.GetBackgroundDragTarget(target);
                 if (data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.initializePotentialDrag);

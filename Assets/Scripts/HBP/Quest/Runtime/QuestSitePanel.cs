@@ -47,6 +47,8 @@ namespace HBP.Quest
             if (labelName is QuestTextInputField questInput) questInput.KeyboardError += SetError;
             newLabel.onClick.AddListener(AddLabel);
             window.OnChanged.AddListener(OnWindowChanged);
+            patientTags.SettingsOpening += OnTagSettingsOpening;
+            siteTags.SettingsOpening += OnTagSettingsOpening;
             CancelDrafts();
             dirty = true;
         }
@@ -111,6 +113,7 @@ namespace HBP.Quest
         private void OpenColor()
         {
             if (!Ready) return;
+            CloseTagSettings();
             CloseLabels();
             var target = site;
             var targetColumn = column;
@@ -130,6 +133,7 @@ namespace HBP.Quest
             }
 
             colorPicker.Cancel();
+            CloseTagSettings();
             labelPicker.SetActive(true);
             labelPicker.transform.SetAsLastSibling();
             labelList.Bind(index.Snapshot(), value => site != null && site.State.Labels.Contains(value), SetLabel);
@@ -157,8 +161,25 @@ namespace HBP.Quest
         private void CancelDrafts()
         {
             if (colorPicker != null) colorPicker.Cancel();
+            CloseTagSettings();
             CloseLabels();
         }
+
+        private void CloseTagSettings()
+        {
+            if (patientTags != null) patientTags.CloseSettings();
+            if (siteTags != null) siteTags.CloseSettings();
+        }
+
+        private void OnTagSettingsOpening(QuestTagTable owner)
+        {
+            if (owner != patientTags) patientTags.CloseSettings();
+            if (owner != siteTags) siteTags.CloseSettings();
+            CloseLabels();
+            colorPicker.Cancel();
+        }
+
+        internal bool IsTagSettingsScroll(ScrollRect scroll) => patientTags.OwnsSettingsScroll(scroll) || siteTags.OwnsSettingsScroll(scroll);
 
         private void OnStateChanged() => dirty = true;
 
@@ -218,8 +239,8 @@ namespace HBP.Quest
             highlightedIcon.Set(site != null && site.State.IsHighlighted ? activeState : highlightedIcon.Element.DefaultState);
             blacklistedIcon.Set(site != null && site.State.IsBlackListed ? activeState : blacklistedIcon.Element.DefaultState);
             colorSample.color = site != null ? site.State.Color : SiteState.DefaultColor;
-            patientTags.Bind(site != null ? site.Information.Patient.Name : "", site != null ? site.Information.Patient.Tags : null);
-            siteTags.Bind(site != null ? site.Information.Name : "", site != null ? site.Information.SiteData.Tags : null);
+            patientTags.Bind("Patient tags", site != null ? site.Information.Patient.Tags : null);
+            siteTags.Bind("Site tags", site != null ? site.Information.SiteData.Tags : null, forSite: true);
             labelSummary.SetLabels(site != null ? site.State.Labels.ToArray() : Array.Empty<string>());
             if (labelPicker.activeSelf) labelList.Refresh();
         }
@@ -233,6 +254,8 @@ namespace HBP.Quest
             CancelDrafts();
             if (labelName is QuestTextInputField questInput) questInput.KeyboardError -= SetError;
             if (window != null) window.OnChanged.RemoveListener(OnWindowChanged);
+            if (patientTags != null) patientTags.SettingsOpening -= OnTagSettingsOpening;
+            if (siteTags != null) siteTags.SettingsOpening -= OnTagSettingsOpening;
         }
     }
 }
