@@ -106,7 +106,7 @@ namespace HBP.Quest
                 rotateWithWrist.SetIsOnWithoutNotify(panel?.IsWristRotationEnabled(Cut) == true);
             }
 
-            for (int i = 0; i < normalFields.Length; i++) normalFields[i].GetComponentInChildren<Text>().text = "XYZ"[i] + "  " + Cut.Normal[i].ToString("G7", CultureInfo.InvariantCulture);
+            for (int i = 0; i < normalFields.Length; i++) normalFields[i].GetComponentInChildren<Text>().text = "XYZ"[i] + " " + Cut.Normal[i].ToString("F2", CultureInfo.InvariantCulture);
             if ((!ready || Cut.Orientation != CutOrientation.Custom) && keypad != null) keypad.CancelFor(this);
         }
 
