@@ -299,7 +299,7 @@ namespace HBP.Sync.Scene
         }
 
         /// <summary>Bind the currently prepared scene once; per-edit target resolution uses object-keyed lookups.</summary>
-        public SceneMutationBoundary(Base3DScene scene, OriginDevice localOrigin, IMonotonicClock clock = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null, Func<SetTimelineAnchor, TimelineAnchorTimingEstimate?> timelineTimingEstimate = null) : this(CreateSiteTargets(scene), CreateCutTargets(scene), CreateTimelineTargets(scene), localOrigin, clock, cut => scene.UpdateCutPlane(cut, preserveDefinitionNormal: true), timelineAgeSeconds, timelineTimingEstimate)
+        public SceneMutationBoundary(Base3DScene scene, OriginDevice localOrigin, IMonotonicClock clock = null, Func<SetTimelineAnchor, double?> timelineAgeSeconds = null, Func<SetTimelineAnchor, TimelineAnchorTimingEstimate?> timelineTimingEstimate = null) : this(CreateSiteTargets(scene), CreateCutTargets(scene), CreateTimelineTargets(scene), localOrigin, clock, cut => scene.UpdateCutPlane(cut, changedByUser: true, preserveDefinitionNormal: true), timelineAgeSeconds, timelineTimingEstimate)
         {
             if (!scene) throw new ArgumentNullException(nameof(scene));
             m_Scene = scene;
