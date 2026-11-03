@@ -238,6 +238,7 @@ namespace HBP.Quest
 
             if (began && hand.Capture.Owner == QuestInteractionOwner.UI)
             {
+                if (!loadingOverlay) window?.Select();
                 data.pressPosition = data.position;
                 data.pointerPressRaycast = data.pointerCurrentRaycast;
                 data.eligibleForClick = true;
@@ -339,6 +340,14 @@ namespace HBP.Quest
             if (loading != IsLoadingOverlay(previous)) return loading;
             var canvas = hit.module.GetComponent<Canvas>();
             var other = previous.module.GetComponent<Canvas>();
+            if (canvas != null && other != null && canvas != other)
+            {
+                var window = canvas.GetComponentInParent<QuestWindow>();
+                var otherWindow = other.GetComponentInParent<QuestWindow>();
+                if (window != null && otherWindow != null && window != otherWindow && window.SortingOrder != otherWindow.SortingOrder)
+                    return window.SortingOrder > otherWindow.SortingOrder;
+            }
+
             // TrackedDeviceRaycaster does not fill sortingLayer/sortingOrder. EventSystem
             // otherwise compares a popup's local graphic depth to the window underneath.
             if (canvas != null && other != null && canvas.rootCanvas == other.rootCanvas)

@@ -25,7 +25,9 @@ namespace HBP.Quest
         public bool IsManipulated { get; private set; }
         public bool IsBusy => hovered != 0 || IsManipulated;
         public Vector3 Placement => placement;
+        public int SortingOrder => canvas != null ? canvas.sortingOrder : 0;
         public GenericEvent<QuestWindow> OnChanged { get; } = new();
+        public GenericEvent<QuestWindow> OnSelected { get; } = new();
         public GenericEvent<QuestWindow> OnDestroyed { get; } = new();
 
         private void Awake()
@@ -36,8 +38,27 @@ namespace HBP.Quest
             SetOpen(initiallyOpen);
         }
 
-        public void Open() => SetOpen(true);
+        public void Open()
+        {
+            SetOpen(true);
+            Select();
+        }
+
         public void Close() => SetOpen(false);
+
+        public void Select()
+        {
+            if (IsOpen) OnSelected.Invoke(this);
+        }
+
+        internal void SetSortingOrder(int order)
+        {
+            if (canvas == null) return;
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = order;
+            foreach (var dropdown in GetComponentsInChildren<QuestDropdown>(true))
+                dropdown.SetWindowSortingOrder(order);
+        }
 
         private void SetOpen(bool value)
         {

@@ -7,6 +7,12 @@ namespace HBP.Quest
     [DefaultExecutionOrder(100)]
     public sealed class QuestWindowsManager : MonoBehaviour
     {
+        // Each window reserves two extra orders for its dropdown blocker and popup.
+        // The loading canvas starts at 30000, followed by the dialog canvas at 31000.
+        private const int FirstWindowSortingOrder = 10;
+        private const int LastWindowSortingOrder = 29997;
+        private const int WindowSortingOrderStep = 3;
+
         [Serializable]
         public struct Definition
         {
@@ -19,6 +25,7 @@ namespace HBP.Quest
         [SerializeField] private QuestWindow[] initialWindows = Array.Empty<QuestWindow>();
         [SerializeField] private Definition[] catalogue = Array.Empty<Definition>();
         private readonly Dictionary<string, QuestWindow> windows = new(StringComparer.Ordinal);
+        private readonly List<QuestWindow> windowOrder = new();
         private bool trackingPlaced;
 
         private void Awake()
@@ -46,6 +53,9 @@ namespace HBP.Quest
             }
 
             windows.Add(window.Key, window);
+            windowOrder.Add(window);
+            UpdateSortingOrder(windowOrder.Count - 1);
+            window.OnSelected.AddListener(BringToFront);
             window.OnDestroyed.AddListener(Unregister);
             var canvas = window.GetComponent<Canvas>();
             if (canvas != null && uiCamera != null) canvas.worldCamera = uiCamera;
@@ -57,8 +67,27 @@ namespace HBP.Quest
         public void Unregister(QuestWindow window)
         {
             if (window == null || !windows.TryGetValue(window.Key, out var registered) || registered != window) return;
+            window.OnSelected.RemoveListener(BringToFront);
             window.OnDestroyed.RemoveListener(Unregister);
             windows.Remove(window.Key);
+            int index = windowOrder.IndexOf(window);
+            windowOrder.RemoveAt(index);
+            UpdateSortingOrder(index);
+        }
+
+        private void BringToFront(QuestWindow window)
+        {
+            int index = windowOrder.IndexOf(window);
+            if (index < 0 || index == windowOrder.Count - 1) return;
+            windowOrder.RemoveAt(index);
+            windowOrder.Add(window);
+            UpdateSortingOrder(index);
+        }
+
+        private void UpdateSortingOrder(int start)
+        {
+            for (int i = start; i < windowOrder.Count; i++)
+                windowOrder[i].SetSortingOrder(Mathf.Min(FirstWindowSortingOrder + i * WindowSortingOrderStep, LastWindowSortingOrder));
         }
 
         public QuestWindow Find(string key) => windows.TryGetValue(key, out var window) ? window : null;
@@ -105,10 +134,12 @@ namespace HBP.Quest
             foreach (var window in windows.Values)
                 if (window != null)
                 {
+                    window.OnSelected.RemoveListener(BringToFront);
                     window.OnDestroyed.RemoveListener(Unregister);
                 }
 
             windows.Clear();
+            windowOrder.Clear();
         }
     }
 }

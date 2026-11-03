@@ -7,6 +7,21 @@ namespace HBP.Quest
     /// <summary>uGUI dropdown popups must carry the tracked camera and raycaster too.</summary>
     public sealed class QuestDropdown : Dropdown
     {
+        private Canvas popupCanvas;
+        private Canvas blockerCanvas;
+
+        internal void SetWindowSortingOrder(int order)
+        {
+            if (popupCanvas != null) popupCanvas.sortingOrder = order + 2;
+            if (blockerCanvas != null) blockerCanvas.sortingOrder = order + 1;
+        }
+
+        private void ApplyWindowSortingOrder()
+        {
+            var window = GetComponentInParent<QuestWindow>();
+            if (window != null) SetWindowSortingOrder(window.SortingOrder);
+        }
+
         private void Configure(GameObject popup)
         {
             var source = GetComponentInParent<Canvas>();
@@ -23,6 +38,8 @@ namespace HBP.Quest
         {
             var popup = base.CreateDropdownList(template);
             Configure(popup);
+            popupCanvas = popup.GetComponent<Canvas>();
+            ApplyWindowSortingOrder();
             return popup;
         }
 
@@ -30,6 +47,8 @@ namespace HBP.Quest
         {
             var blocker = base.CreateBlocker(rootCanvas);
             Configure(blocker);
+            blockerCanvas = blocker.GetComponent<Canvas>();
+            ApplyWindowSortingOrder();
             return blocker;
         }
     }
