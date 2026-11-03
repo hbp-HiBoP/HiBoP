@@ -164,7 +164,7 @@ namespace HBP.Quest
                     data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
             }
 
-            if (cuts != null) cuts.SetHand(index, valid, tracker != null ? tracker.transform.position : Vector3.zero, data.Ray.origin);
+            if (cuts != null) cuts.SetHand(index, valid, valid ? tracker.transform.position : Vector3.zero, data.Ray.origin, valid ? tracker.transform.rotation : default);
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {

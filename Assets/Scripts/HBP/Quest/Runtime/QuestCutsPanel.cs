@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using UnityEngine;
@@ -18,6 +19,8 @@ namespace HBP.Quest
         [SerializeField] private Button add, suspend;
         [SerializeField] private Text suspendLabel;
         private readonly Dictionary<Cut, QuestCutRow> controls = new();
+        private readonly ConditionalWeakTable<Cut, object> wristRotation = new();
+        private static readonly object WristRotationEnabled = new();
         private Base3DScene scene;
         private bool suspended;
         public bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
@@ -25,6 +28,14 @@ namespace HBP.Quest
         public bool Suspended => suspended;
         public bool GuidesEnabled => window != null && window.IsOpen && !suspended;
         public IReadOnlyCollection<QuestCutRow> Rows => controls.Values;
+
+        internal bool IsWristRotationEnabled(Cut cut) => wristRotation.TryGetValue(cut, out _);
+
+        internal void SetWristRotation(Cut cut, bool enabled)
+        {
+            if (enabled) wristRotation.GetValue(cut, _ => WristRotationEnabled);
+            else wristRotation.Remove(cut);
+        }
 
         private void Awake()
         {
@@ -72,7 +83,7 @@ namespace HBP.Quest
                     if (!controls.TryGetValue(cut, out var row))
                     {
                         row = Instantiate(rowPrefab, rows, false);
-                        row.Bind(scene, cut, keypad);
+                        row.Bind(scene, cut, keypad, this);
                         controls.Add(cut, row);
                     }
 

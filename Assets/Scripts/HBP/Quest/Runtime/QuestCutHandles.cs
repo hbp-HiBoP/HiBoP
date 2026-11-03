@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using UnityEngine;
 
@@ -16,10 +17,12 @@ namespace HBP.Quest
         private readonly List<QuestCutGizmo> gizmos = new();
         private readonly Drag[] drags = new Drag[2];
         private readonly Vector3[] grip = new Vector3[2], aim = new Vector3[2];
+        private readonly Quaternion[] gripRotation = new Quaternion[2];
         private readonly bool[] tracked = new bool[2];
         private readonly QuestColumnPresentation[] nearbyColumns = new QuestColumnPresentation[2];
         public IReadOnlyList<QuestCutGizmo> Gizmos => gizmos;
         public bool Active => panel != null && panel.GuidesEnabled && view != null && view.Scenes.Count > 0;
+        private const float WristDeadZoneDegrees = 3f;
 
         private sealed class Drag
         {
@@ -27,7 +30,11 @@ namespace HBP.Quest
             public Vector3 LastPoint, Normal;
             public float Span;
             public bool Flip;
-            public HBP.Core.Enums.CutOrientation Orientation;
+            public CutOrientation Orientation;
+            public bool RotateWithWrist;
+            public Quaternion StartRotation;
+            public Vector3 StartNormal, Pivot;
+            public float Position;
         }
 
         public bool IsColumnLocked(QuestAnatomyManipulator column) => drags.Any(drag => drag != null && drag.Gizmo != null && drag.Gizmo.Column.Manipulator == column);
@@ -68,11 +75,12 @@ namespace HBP.Quest
             foreach (var gizmo in gizmos) gizmo.UpdateGeometry();
         }
 
-        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition)
+        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition, Quaternion rotation = default)
         {
             tracked[hand] = valid;
             grip[hand] = gripPosition;
             aim[hand] = aimPosition;
+            gripRotation[hand] = rotation;
             if (!valid) End(hand);
             UpdateNearbyColumn(hand);
         }
@@ -120,11 +128,15 @@ namespace HBP.Quest
             if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column) || Distance(gizmo, hand) > policy.CutContactDistance || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
             float span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             if (!float.IsFinite(span) || span <= 0) return false;
-            Vector3 point = gizmo.ContactDistance(grip[hand]) <= gizmo.ContactDistance(aim[hand]) ? grip[hand] : aim[hand];
+            bool rotate = gizmo.Cut.Orientation == CutOrientation.Custom && panel.IsWristRotationEnabled(gizmo.Cut) && HasValidRotation(gripRotation[hand]);
+            bool useAimPoint = !rotate && gizmo.ContactDistance(aim[hand]) < gizmo.ContactDistance(grip[hand]);
+            Vector3 point = useAimPoint ? aim[hand] : grip[hand];
             view.SelectContext(gizmo.Scene, gizmo.Column.Column);
-            drags[hand] = new Drag { Gizmo = gizmo, LastPoint = gizmo.Frame.InverseTransformPoint(point), Normal = gizmo.Cut.Normal.normalized, Span = span, Flip = gizmo.Cut.Flip, Orientation = gizmo.Cut.Orientation };
+            var drag = new Drag { Gizmo = gizmo, LastPoint = gizmo.Frame.InverseTransformPoint(point), Normal = gizmo.Cut.Normal.normalized, Span = span, Flip = gizmo.Cut.Flip, Orientation = gizmo.Cut.Orientation, RotateWithWrist = rotate };
+            if (rotate) AnchorWrist(drag, LocalGripRotation(hand, gizmo.Frame));
+            drags[hand] = drag;
             // Continue with the same controller reference (grip or aim) for the whole capture.
-            useAim[hand] = point == aim[hand];
+            useAim[hand] = useAimPoint;
             return true;
         }
 
@@ -143,10 +155,20 @@ namespace HBP.Quest
 
             var cut = gizmo.Cut;
             Vector3 point = gizmo.Frame.InverseTransformPoint(useAim[hand] ? aim[hand] : grip[hand]);
-            float span = gizmo.Scene.GetCutPositionGeometry(cut).Span;
+            var geometry = gizmo.Scene.GetCutPositionGeometry(cut);
+            float span = geometry.Span;
             Vector3 normal = cut.Normal.normalized;
             // A remote orientation/flip change reanchors instead of turning a held gesture into a jump.
             bool sameAxis = normal == drag.Normal && span == drag.Span && cut.Orientation == drag.Orientation && cut.Flip == drag.Flip;
+            if (drag.RotateWithWrist && cut.Orientation == CutOrientation.Custom)
+            {
+                if (HasValidRotation(gripRotation[hand]) && float.IsFinite(span) && span > 0f)
+                    MoveWithWrist(drag, LocalGripRotation(hand, gizmo.Frame), point, geometry, sameAxis);
+                else
+                    drag.Span = 0f; // Reanchor on the next valid sample.
+                return true;
+            }
+
             float delta = sameAxis ? Vector3.Dot(point - drag.LastPoint, normal) / span : 0;
             drag.LastPoint = point;
             drag.Normal = normal;
@@ -155,6 +177,54 @@ namespace HBP.Quest
             drag.Flip = cut.Flip;
             if (float.IsFinite(delta) && Mathf.Abs(delta) > 1e-7f) QuestCutCommands.Position(gizmo.Scene, cut, cut.Position + delta);
             return true;
+        }
+
+        private static bool HasValidRotation(Quaternion rotation)
+        {
+            float squaredLength = Quaternion.Dot(rotation, rotation);
+            return float.IsFinite(squaredLength) && squaredLength > 0.5f;
+        }
+
+        private Quaternion LocalGripRotation(int hand, Transform frame) => Quaternion.Inverse(frame.rotation) * gripRotation[hand].normalized;
+
+        private static void AnchorWrist(Drag drag, Quaternion rotation)
+        {
+            var cut = drag.Gizmo.Cut;
+            drag.StartRotation = rotation;
+            drag.StartNormal = cut.Normal.normalized;
+            drag.Pivot = cut.Point;
+            drag.Position = cut.Position;
+        }
+
+        private static void MoveWithWrist(Drag drag, Quaternion rotation, Vector3 point, (Vector3 Center, float Span) geometry, bool sameAxis)
+        {
+            var cut = drag.Gizmo.Cut;
+            if (!sameAxis || drag.Position != cut.Position)
+            {
+                AnchorWrist(drag, rotation);
+                drag.LastPoint = point;
+            }
+
+            Quaternion relative = rotation * Quaternion.Inverse(drag.StartRotation);
+            float angle = Quaternion.Angle(Quaternion.identity, relative);
+            Quaternion filtered = Quaternion.Slerp(Quaternion.identity, relative, angle > WristDeadZoneDegrees ? 1f - WristDeadZoneDegrees / angle : 0f);
+            Vector3 normal = (filtered * drag.StartNormal).normalized;
+            float travel = Vector3.Dot(point - drag.LastPoint, normal);
+            Vector3 pivot = drag.Pivot + normal * travel;
+            float position = 0.5f + Vector3.Dot(pivot - geometry.Center, normal) / geometry.Span;
+            if (!float.IsFinite(position)) return;
+
+            float clamped = Mathf.Clamp01(position);
+            if ((normal != cut.Normal || Mathf.Abs(clamped - cut.Position) > 1e-7f) && !QuestCutCommands.Pose(drag.Gizmo.Scene, cut, clamped, normal)) return;
+
+            // Drop excess travel at the limits so reversing the gesture moves immediately.
+            drag.Pivot = pivot + normal * ((clamped - position) * geometry.Span);
+            drag.LastPoint = point;
+            drag.Position = cut.Position;
+            drag.Normal = cut.Normal.normalized;
+            drag.Span = geometry.Span;
+            drag.Orientation = cut.Orientation;
+            drag.Flip = cut.Flip;
         }
 
         public void End(int hand)

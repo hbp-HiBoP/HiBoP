@@ -15,13 +15,21 @@ namespace HBP.Quest
         [SerializeField] private Toggle flip;
         [SerializeField] private Button minus, plus, remove;
         [SerializeField] private GameObject custom;
+        [SerializeField] private Toggle rotateWithWrist;
         [SerializeField] private Button[] normalFields;
         private Base3DScene scene;
         private QuestNumericKeypad keypad;
+        private QuestCutsPanel panel;
         public Cut Cut { get; private set; }
 
         private void Awake()
         {
+            if (rotateWithWrist != null)
+                rotateWithWrist.onValueChanged.AddListener(enabled =>
+                {
+                    if (Cut != null && Cut.Orientation == CutOrientation.Custom && QuestCutCommands.CanEdit(scene, Cut))
+                        panel?.SetWristRotation(Cut, enabled);
+                });
             orientation.onValueChanged.AddListener(value =>
             {
                 if (Cut != null) QuestCutCommands.Orientation(scene, Cut, (CutOrientation)value);
@@ -47,11 +55,12 @@ namespace HBP.Quest
             }
         }
 
-        public void Bind(Base3DScene source, Cut cut, QuestNumericKeypad pad)
+        public void Bind(Base3DScene source, Cut cut, QuestNumericKeypad pad, QuestCutsPanel owner = null)
         {
             scene = source;
             Cut = cut;
             keypad = pad;
+            panel = owner;
             Refresh();
         }
 
@@ -88,8 +97,15 @@ namespace HBP.Quest
             orientation.SetValueWithoutNotify((int)Cut.Orientation);
             position.SetValueWithoutNotify(Cut.Position);
             flip.SetIsOnWithoutNotify(Cut.Flip);
-            flip.gameObject.SetActive(Cut.Orientation != CutOrientation.Custom);
-            custom.SetActive(Cut.Orientation == CutOrientation.Custom);
+            bool isCustom = Cut.Orientation == CutOrientation.Custom;
+            flip.gameObject.SetActive(!isCustom);
+            custom.SetActive(isCustom);
+            if (rotateWithWrist != null)
+            {
+                rotateWithWrist.gameObject.SetActive(isCustom);
+                rotateWithWrist.SetIsOnWithoutNotify(panel?.IsWristRotationEnabled(Cut) == true);
+            }
+
             for (int i = 0; i < normalFields.Length; i++) normalFields[i].GetComponentInChildren<Text>().text = "XYZ"[i] + "  " + Cut.Normal[i].ToString("G7", CultureInfo.InvariantCulture);
             if ((!ready || Cut.Orientation != CutOrientation.Custom) && keypad != null) keypad.CancelFor(this);
         }

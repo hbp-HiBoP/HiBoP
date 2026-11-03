@@ -18,6 +18,13 @@ namespace HBP.Quest
             return true;
         }
 
+        public static bool Pose(Base3DScene scene, Cut cut, float position, Vector3 normal)
+        {
+            if (!CanEdit(scene, cut) || cut.Orientation != CutOrientation.Custom || !float.IsFinite(position) || !float.IsFinite(normal.sqrMagnitude) || normal.sqrMagnitude < 0.5f) return false;
+            scene.SetCutDefinition(cut, cut.Orientation, cut.Flip, Mathf.Clamp01(position), normal.normalized);
+            return true;
+        }
+
         public static bool Orientation(Base3DScene scene, Cut cut, CutOrientation value)
         {
             if (!CanEdit(scene, cut)) return false;
