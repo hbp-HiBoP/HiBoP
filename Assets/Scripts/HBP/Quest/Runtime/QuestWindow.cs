@@ -18,6 +18,8 @@ namespace HBP.Quest
         [SerializeField] private bool initiallyOpen = true;
         [SerializeField] private bool initiallyPinned = true;
         [SerializeField] private Vector3 placement = new Vector3(0, 0, 1.15f);
+        private Transform header;
+        private QuestWindowDragger dragger;
         private int hovered;
         public string Key => key;
         public bool IsOpen { get; private set; }
@@ -32,6 +34,9 @@ namespace HBP.Quest
 
         private void Awake()
         {
+            // The base prefab already provides raycast surfaces and a shared drag handler.
+            header = content != null ? content.transform.Find("Header") : null;
+            dragger = GetComponentInChildren<QuestWindowDragger>(true);
             if (close != null) close.onClick.AddListener(Close);
             if (pin != null) pin.onClick.AddListener(TogglePin);
             IsPinned = initiallyPinned;
@@ -49,6 +54,13 @@ namespace HBP.Quest
         public void Select()
         {
             if (IsOpen) OnSelected.Invoke(this);
+        }
+
+        internal GameObject GetBackgroundDragTarget(GameObject hit)
+        {
+            if (hit == null || dragger == null || !dragger.isActiveAndEnabled) return null;
+            bool isDragSurface = hit == content || (header != null && hit.transform.IsChildOf(header));
+            return isDragSurface && hit.GetComponentInParent<Selectable>() == null ? dragger.gameObject : null;
         }
 
         internal void SetSortingOrder(int order)

@@ -251,6 +251,8 @@ namespace HBP.Quest
                 // Sliders and explicit drag surfaces retain their own drag handler.
                 if (data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
                     data.pointerDrag = null;
+                if (!loadingOverlay && data.pointerPress == null && data.pointerDrag == null && window != null)
+                    data.pointerDrag = window.GetBackgroundDragTarget(target);
                 if (data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.initializePotentialDrag);
             }
 
