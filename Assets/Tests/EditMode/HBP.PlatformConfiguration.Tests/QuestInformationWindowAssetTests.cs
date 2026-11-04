@@ -12,6 +12,52 @@ namespace HBP.Tests.PlatformConfiguration
 {
     public sealed class QuestInformationWindowAssetTests
     {
+        [Test]
+        public void SitePresetIsOneRowWithSerializedControlsAndAnAdjacentNestedColorPicker()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Site Window.prefab");
+            var preset = root.GetComponent<QuestSitePresetPanel>();
+            Assert.That(preset, Is.Not.Null);
+            foreach (var component in new MonoBehaviour[] { preset, root.GetComponentInChildren<QuestSitePresetLabelList>(true), root.GetComponentInChildren<QuestSitePresetLabelRow>(true) })
+            {
+                var iterator = new SerializedObject(component).GetIterator();
+                while (iterator.NextVisible(true))
+                    if (iterator.propertyType == SerializedPropertyType.ObjectReference && iterator.name != "m_Script")
+                        Assert.That(iterator.objectReferenceValue, Is.Not.Null, component.GetType().Name + "." + iterator.propertyPath);
+            }
+
+            var fields = new SerializedObject(preset);
+            foreach (var pair in new[] { new[] { "highlightOn", "highlightOff" }, new[] { "blacklistOn", "blacklistOff" } })
+            {
+                var on = (Toggle)fields.FindProperty(pair[0]).objectReferenceValue;
+                var off = (Toggle)fields.FindProperty(pair[1]).objectReferenceValue;
+                Assert.That(on.group, Is.Not.Null);
+                Assert.That(off.group, Is.SameAs(on.group));
+                Assert.That(on.group.allowSwitchOff, Is.True);
+                Assert.That(on.isOn || off.isOn, Is.False);
+            }
+
+            Assert.That(root.transform.Find("SitePresetPanel/LabelHeader/LabelPickerTitle/Label").GetComponent<Text>().fontStyle, Is.EqualTo(FontStyle.Bold));
+            Assert.That(root.transform.Find("SitePresetPanel/PresetHint/Label").GetComponent<Text>().text, Is.EqualTo("Press B to apply or revert on the selected site."));
+            var configure = (Button)fields.FindProperty("configure").objectReferenceValue;
+            Assert.That(configure.GetComponentInChildren<Text>().text, Is.EqualTo("Configure preset"));
+            var content = root.transform.Find("Background/Content Viewport/Content");
+            Assert.That(configure.transform.parent, Is.EqualTo(content));
+            Assert.That(configure.transform.GetSiblingIndex(), Is.EqualTo(content.Find("LabelsRow").GetSiblingIndex() + 1));
+            Assert.That(configure.GetComponent<LayoutElement>().preferredHeight, Is.EqualTo(52));
+            var panel = (GameObject)fields.FindProperty("panel").objectReferenceValue;
+            var picker = (QuestColorPicker)fields.FindProperty("colorPicker").objectReferenceValue;
+            Assert.That(panel.activeSelf, Is.False);
+            Assert.That(picker.gameObject.activeSelf, Is.False);
+            var rect = (RectTransform)picker.transform;
+            Assert.That(rect.parent, Is.EqualTo(panel.transform));
+            Assert.That(rect.anchorMin.x, Is.EqualTo(1));
+            Assert.That(rect.pivot.x, Is.Zero);
+            Assert.That(rect.anchoredPosition.x, Is.EqualTo(12));
+            Assert.That(rect.localScale, Is.EqualTo(Vector3.one));
+            Assert.That(rect.GetComponent<LayoutElement>().ignoreLayout, Is.True);
+        }
+
         [TestCase("Site", 640, 700)]
         [TestCase("Signals", 1000, 800)]
         public void WindowsAreAuthoredClosedAndRegisteredInTheBootstrap(string key, int width, int height)

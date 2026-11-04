@@ -63,6 +63,20 @@ secondary uses the side grip. Cut manipulation uses secondary so it can coexist
 with primary brain manipulation. For changes to business state, consult
 [Runtime and state](runtime-and-state.md).
 
+Quest site selection uses right A; right B applies/reverts the local site preset.
+`QuestSitePresetPanel` samples B in LateUpdate after pointer selection, allowing
+A+B together without mutual exclusion. `Configure preset` is the sole added row
+below the site's labels. Its lateral editor keeps its own color picker open to
+its right; other site editors close the preset panel. Preset instructions persist
+locally in `QuestSitePreset.json`; tests override its lazily resolved DefaultPath.
+Labels support Keep/Add/Remove individually, including labels absent from the
+scene. Highlight/blacklist use On/Off toggles in an optional-selection group;
+labels use Add/Remove columns with one such group per row. Neither selected means
+Keep. Color uses an On toggle and a square swatch button. Only one undo is
+retained for the current scene/column/site. Selection or
+preset changes discard it; overlapping external edits invalidate it, while revert
+preserves unrelated edits. Apply/revert use the shared site configuration batch.
+
 Quest Single/Split is local presentation. Hidden columns retain their scientific
 state and updates; central presentation predicates control both rendering and
 interaction. Shared scene visibility is different: hiding a scene also disables

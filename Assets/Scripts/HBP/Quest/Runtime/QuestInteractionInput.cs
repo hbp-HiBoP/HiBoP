@@ -12,6 +12,8 @@ namespace HBP.Quest
     /// <summary>Shared controller bindings for primary (index trigger) and secondary (side grip) interactions.</summary>
     public static class QuestInteractionInput
     {
+        public static InputAction CreateSitePresetAction() => new("Quest site preset (B)", InputActionType.Button, "<XRController>{RightHand}/secondaryButton");
+
         public static InputAction CreateAction(string name, bool leftHand, QuestInteraction interaction)
         {
             string device = leftHand ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";

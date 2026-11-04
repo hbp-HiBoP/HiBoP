@@ -25,6 +25,7 @@ namespace HBP.Quest
         [SerializeField] private QuestLabelList labelList;
         [SerializeField] private QuestLabelSummary labelSummary;
         [SerializeField] private InputField labelName;
+        [SerializeField] private QuestSitePresetPanel preset;
         private Base3DScene scene;
         private Column3D column;
         private Site site;
@@ -49,11 +50,22 @@ namespace HBP.Quest
             window.OnChanged.AddListener(OnWindowChanged);
             patientTags.SettingsOpening += OnTagSettingsOpening;
             siteTags.SettingsOpening += OnTagSettingsOpening;
+            Module3DMain.OnSelectColumn.AddListener(OnSelectedColumn);
+            if (view != null)
+            {
+                view.OnContextSelected.AddListener(OnContextSelected);
+            }
+
             CancelDrafts();
             dirty = true;
         }
 
-        private bool Ready => site != null && view != null && view.Scene == scene && scene.SelectedColumn == column && column.SelectedSite == site && QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible;
+        internal bool Ready => site != null && view != null && view.Scene == scene && scene.SelectedColumn == column && column.SelectedSite == site && QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible;
+        internal Base3DScene CurrentScene => scene;
+        internal Column3D CurrentColumn => column;
+        internal Site CurrentSite => site;
+        internal int LabelCatalogueRevision => index?.Revision ?? -1;
+        internal string[] SceneLabels => index?.Snapshot() ?? Array.Empty<string>();
         private bool CanOpenPatient => Ready && view.Find(scene) is { IsPlaced: true, IsTransitioning: false } && session != null && session.CanOpenPatient;
 
         private bool Change(Action action)
@@ -113,6 +125,7 @@ namespace HBP.Quest
         private void OpenColor()
         {
             if (!Ready) return;
+            preset.Close();
             CloseTagSettings();
             CloseLabels();
             var target = site;
@@ -126,6 +139,7 @@ namespace HBP.Quest
         private void OpenLabels()
         {
             if (!Ready) return;
+            preset.Close();
             if (labelPicker.activeSelf)
             {
                 CloseLabels();
@@ -158,8 +172,9 @@ namespace HBP.Quest
             if (!value.IsOpen) CancelDrafts();
         }
 
-        private void CancelDrafts()
+        private void CancelDrafts(bool closePreset = true)
         {
+            if (closePreset && preset != null) preset.Close();
             if (colorPicker != null) colorPicker.Cancel();
             CloseTagSettings();
             CloseLabels();
@@ -173,6 +188,7 @@ namespace HBP.Quest
 
         private void OnTagSettingsOpening(QuestTagTable owner)
         {
+            preset.Close();
             if (owner != patientTags) patientTags.CloseSettings();
             if (owner != siteTags) siteTags.CloseSettings();
             CloseLabels();
@@ -185,27 +201,7 @@ namespace HBP.Quest
 
         private void Update()
         {
-            var nextScene = view != null ? view.Scene : null;
-            var nextColumn = nextScene != null ? nextScene.SelectedColumn : null;
-            var nextSite = nextColumn != null ? nextColumn.SelectedSite : null;
-            if (nextScene != scene || nextColumn != column || nextSite != site)
-            {
-                CancelDrafts();
-                if (site != null) site.State.OnChangeState.RemoveListener(OnStateChanged);
-                if (nextScene != scene)
-                {
-                    index?.Dispose();
-                    index = nextScene != null ? new QuestSceneLabelIndex(nextScene) : null;
-                }
-
-                scene = nextScene;
-                column = nextColumn;
-                site = nextSite;
-                if (site != null) site.State.OnChangeState.AddListener(OnStateChanged);
-                SetError("");
-                dirty = true;
-            }
-
+            RefreshSelection();
             if (!window.IsOpen) return;
             openPatient.interactable = CanOpenPatient;
             if (lastReady != Ready)
@@ -219,6 +215,49 @@ namespace HBP.Quest
             {
                 catalogRevision = index.Revision;
                 labelList.Include(index.Snapshot());
+            }
+        }
+
+        internal void PreparePresetPanel() => CancelDrafts(false);
+
+        private void OnSelectedSite(Site value) => RefreshSelection();
+
+        private void OnSelectedColumn(Column3D value)
+        {
+            if (value != column) preset.SelectionChanged();
+            RefreshSelection();
+        }
+
+        private void OnContextSelected(Base3DScene selectedScene, Column3D selectedColumn)
+        {
+            if (selectedScene != scene || selectedColumn != column) preset.SelectionChanged(selectedScene != scene);
+            RefreshSelection();
+        }
+
+        internal void RefreshSelection()
+        {
+            var nextScene = view != null ? view.Scene : null;
+            var nextColumn = nextScene != null ? nextScene.SelectedColumn : null;
+            var nextSite = nextColumn != null ? nextColumn.SelectedSite : null;
+            if (nextScene != scene || nextColumn != column || nextSite != site)
+            {
+                CancelDrafts(false);
+                preset.SelectionChanged(nextScene != scene);
+                if (column != null) column.OnSelectSite.RemoveListener(OnSelectedSite);
+                if (site != null) site.State.OnChangeState.RemoveListener(OnStateChanged);
+                if (nextScene != scene)
+                {
+                    index?.Dispose();
+                    index = nextScene != null ? new QuestSceneLabelIndex(nextScene) : null;
+                }
+
+                scene = nextScene;
+                column = nextColumn;
+                site = nextSite;
+                if (column != null) column.OnSelectSite.AddListener(OnSelectedSite);
+                if (site != null) site.State.OnChangeState.AddListener(OnStateChanged);
+                SetError("");
+                dirty = true;
             }
         }
 
@@ -249,6 +288,13 @@ namespace HBP.Quest
 
         private void OnDestroy()
         {
+            Module3DMain.OnSelectColumn.RemoveListener(OnSelectedColumn);
+            if (view != null)
+            {
+                view.OnContextSelected.RemoveListener(OnContextSelected);
+            }
+
+            if (column != null) column.OnSelectSite.RemoveListener(OnSelectedSite);
             if (site != null) site.State.OnChangeState.RemoveListener(OnStateChanged);
             index?.Dispose();
             CancelDrafts();
