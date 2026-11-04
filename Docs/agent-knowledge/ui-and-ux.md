@@ -23,6 +23,35 @@ prefab is independent of `Quest Window`, while using the common dialog service.
 Ordinary Quest windows start pinned; the Pin toggle uses its active theme color
 (blue), rather than switching to a different icon.
 
+Quest window placement is headset-local, keyed by the stable `QuestWindow.Key` in
+`QuestWindowLayout.json` under `Application.persistentDataPath`; keep that key when
+renaming a title. All ordinary windows use the common window/manager registration
+and drag lifecycle, including future variants. Do not add per-panel persistence
+or bypass the manager with head-relative placement when opening a window.
+`QuestWindowsManager` restores positions and orientations relative to one fixed,
+horizontal workspace frame. Initial placement waits for user presence, full head
+tracking and settling; holding X establishes a new frame while retaining the
+layout, including closed windows when they reopen. `QuestWindowLayoutStore` also
+persists completed user resize dimensions, content zoom, pin state, open/closed
+state and stacking order through the common window lifecycle, without saving
+panel-specific content/layout. The version 2 format reads version 1 placements
+with prefab defaults for the added properties. Restoring a closed window defers
+zoom application until its layout can measure the unzoomed constraints. Settings
+changes save independently of headset tracking and retain the last validated
+workspace pose and resize dimensions; cancelled gestures and automatic following
+never overwrite them.
+Removing/resuming the headset does not automatically establish a new frame.
+Transient dialogs keep their separate following behavior. Tests that instantiate
+a manager must isolate `QuestWindowLayoutStore.DefaultPath` and explicitly
+initialize the workspace when no real worn headset is present.
+
+Quest signal graphs reuse the shared scientific graph widgets inside
+`QuestSignalGraphView`; the color picker also reuses `DefaultColor` swatches.
+These are intentional shared UI components, not Desktop window implementations.
+Their Quest prefabs still use Quest theme elements/states, retaining shared color
+and image settings where appropriate. Toolbar tooltip canvases follow their
+window's sorting order and clear the full upper edge of the curved bar.
+
 ## Input and shared behavior
 
 Use [DesktopInput](../../Assets/Scripts/HBP/Input/DesktopInput.cs) for Desktop

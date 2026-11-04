@@ -27,6 +27,7 @@ namespace HBP.Quest
         private Matrix4x4 localToWorld, worldToLocal;
         private Plane plane;
         private int owner = int.MinValue;
+        private bool resized;
         public WindowEdge Edge => edge;
 
         private void OnEnable()
@@ -42,6 +43,18 @@ namespace HBP.Quest
 
         public void OnInitializePotentialDrag(PointerEventData data) => data.useDragThreshold = false;
 
+        internal Vector2 ClampSize(Vector2 size)
+        {
+            var rect = window.transform as RectTransform;
+            for (int axis = 0; axis < 2; axis++)
+            {
+                float minimum = Mathf.Max(Mathf.Max(1, minimumSize[axis]), rect != null ? UnityEngine.UI.LayoutUtility.GetMinSize(rect, axis) : 0);
+                size[axis] = Mathf.Clamp(size[axis], minimum, Mathf.Max(minimum, maximumSize[axis]));
+            }
+
+            return size;
+        }
+
         public void OnBeginDrag(PointerEventData data)
         {
             if (!isActiveAndEnabled || window == null || !window.IsOpen || window.IsManipulated || !(data is QuestPointerEventData pointer)) return;
@@ -54,6 +67,7 @@ namespace HBP.Quest
             initialPoint = worldToLocal.MultiplyPoint3x4(pointer.Ray.GetPoint(distance));
             initialSize = target.rect.size;
             owner = data.pointerId;
+            resized = false;
             data.eligibleForClick = false;
             window.SetManipulated(true);
         }
@@ -80,11 +94,15 @@ namespace HBP.Quest
             }
 
             target.position = localToWorld.MultiplyPoint3x4(pivotOffset);
+            resized |= target.rect.size != initialSize;
         }
 
         public void OnEndDrag(PointerEventData data)
         {
-            if (data.pointerId == owner) End();
+            if (data.pointerId != owner) return;
+            bool completed = resized && window != null && window.IsOpen && !(data is QuestPointerEventData { Cancelled: true });
+            End();
+            if (completed) window.CompleteResize();
         }
 
         private void End()

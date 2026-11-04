@@ -19,6 +19,8 @@ namespace HBP.Quest
         private bool returning;
         private bool railInitialized, movingCenter;
         private Vector3 railCenter;
+        private Vector3? followPlacement;
+        private Vector3 FollowingPlacement => followPlacement ?? window.Placement;
         private Quaternion railRotation = Quaternion.identity, headYaw = Quaternion.identity;
 
         public void Configure(Transform target, QuestWindow owner)
@@ -26,6 +28,7 @@ namespace HBP.Quest
             head = target;
             window = owner;
             railInitialized = false;
+            followPlacement = null;
         }
 
         public static Quaternion HorizontalRotation(Vector3 forward)
@@ -36,7 +39,14 @@ namespace HBP.Quest
 
         public void Recall()
         {
+            if (window != null && window.Manager != null)
+            {
+                window.Manager.Recall(window);
+                return;
+            }
+
             if (head == null || window == null || window.IsManipulated) return;
+            followPlacement = window.Placement;
             Quaternion yaw = DesiredRotation();
             Vector3 position = head.position + yaw * window.Placement;
             transform.SetPositionAndRotation(position, Facing(position));
@@ -48,6 +58,18 @@ namespace HBP.Quest
             returning = false;
         }
 
+        internal void Place(Pose workspace, Pose placement)
+        {
+            transform.SetPositionAndRotation(workspace.position + workspace.rotation * placement.position, workspace.rotation * placement.rotation);
+            // Persistence uses the fixed workspace, but following starts at the current viewer.
+            railCenter = head != null ? head.position : workspace.position;
+            railRotation = head != null ? DesiredRotation() : workspace.rotation;
+            followPlacement = Quaternion.Inverse(railRotation) * (transform.position - railCenter);
+            railInitialized = true;
+            movingCenter = returning = false;
+            outsideTime = 0;
+        }
+
         private void LateUpdate()
         {
             if (head == null || window == null) return;
@@ -57,7 +79,7 @@ namespace HBP.Quest
 
         public void Step(float dt, bool tracked)
         {
-            if (!tracked || head == null || window == null || !window.IsOpen || window.IsPinned || window.IsBusy)
+            if (!tracked || head == null || window == null || !window.WorkspaceReady || !window.IsOpen || window.IsPinned || window.IsBusy)
             {
                 outsideTime = 0;
                 returning = false;
@@ -72,7 +94,7 @@ namespace HBP.Quest
             }
 
             Quaternion yaw = DesiredRotation();
-            Vector3 target = head.position + yaw * window.Placement;
+            Vector3 target = head.position + yaw * FollowingPlacement;
             Vector3 currentDirection = transform.position - head.position;
             Vector3 targetDirection = target - head.position;
             float angle = Vector3.Angle(currentDirection, targetDirection);
@@ -134,7 +156,7 @@ namespace HBP.Quest
                 }
             }
 
-            Vector3 placement = railRotation * window.Placement;
+            Vector3 placement = railRotation * FollowingPlacement;
             transform.SetPositionAndRotation(railCenter + placement, RailFacing(placement));
         }
 

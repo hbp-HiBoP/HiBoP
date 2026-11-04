@@ -14,10 +14,11 @@ namespace HBP.Quest
         [SerializeField] private Button decrease, increase;
         [SerializeField] private Text percentage;
         private int zoomPercent = 100;
+        private int? pendingZoom;
         private Vector2 baselineMinimum, baselinePreferred, baselineFlexible;
         private bool hasBaseline;
         private int settlingFrames;
-        public int ZoomPercent => zoomPercent;
+        public int ZoomPercent => pendingZoom ?? zoomPercent;
         public float Factor => zoomPercent / 100f;
 
         protected override void OnEnable()
@@ -25,6 +26,13 @@ namespace HBP.Quest
             base.OnEnable();
             if (decrease != null) decrease.onClick.AddListener(ZoomOut);
             if (increase != null) increase.onClick.AddListener(ZoomIn);
+            if (pendingZoom.HasValue)
+            {
+                int next = pendingZoom.Value;
+                pendingZoom = null;
+                SetZoomPercent(next, false);
+            }
+
             RefreshControls();
         }
 
@@ -35,13 +43,24 @@ namespace HBP.Quest
             base.OnDisable();
         }
 
-        public void ZoomOut() => SetZoomPercent(zoomPercent - StepPercent);
-        public void ZoomIn() => SetZoomPercent(zoomPercent + StepPercent);
+        public void ZoomOut() => SetZoomPercent(ZoomPercent - StepPercent);
+        public void ZoomIn() => SetZoomPercent(ZoomPercent + StepPercent);
 
-        public void SetZoomPercent(int value)
+        public void SetZoomPercent(int value) => SetZoomPercent(value, true);
+        internal void RestoreZoomPercent(int value) => SetZoomPercent(value, false);
+
+        private void SetZoomPercent(int value, bool notify)
         {
             int next = Mathf.Clamp(Mathf.RoundToInt(value / (float)StepPercent) * StepPercent, MinimumPercent, MaximumPercent);
-            if (next == zoomPercent) return;
+            if (next == ZoomPercent) return;
+            if (!isActiveAndEnabled)
+            {
+                pendingZoom = next;
+                RefreshControls();
+                if (notify && window != null) window.NotifySettingsChanged();
+                return;
+            }
+
             var root = window != null ? (RectTransform)window.transform : rectTransform;
             if (!hasBaseline) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
             zoomPercent = next;
@@ -51,6 +70,7 @@ namespace HBP.Quest
             SetLayoutVertical();
             RefreshControls();
             LayoutRebuilder.MarkLayoutForRebuild(rectTransform);
+            if (notify && window != null) window.NotifySettingsChanged();
         }
 
         private void LateUpdate()
@@ -60,9 +80,9 @@ namespace HBP.Quest
 
         private void RefreshControls()
         {
-            if (decrease != null) decrease.interactable = zoomPercent > MinimumPercent;
-            if (increase != null) increase.interactable = zoomPercent < MaximumPercent;
-            if (percentage != null) percentage.text = $"{zoomPercent} %";
+            if (decrease != null) decrease.interactable = ZoomPercent > MinimumPercent;
+            if (increase != null) increase.interactable = ZoomPercent < MaximumPercent;
+            if (percentage != null) percentage.text = $"{ZoomPercent} %";
         }
 
         public override void CalculateLayoutInputHorizontal()

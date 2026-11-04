@@ -10,6 +10,7 @@ namespace HBP.Quest
     public sealed class QuestPointerEventData : ExtendedPointerEventData
     {
         public Ray Ray;
+        public bool Cancelled;
 
         public QuestPointerEventData(EventSystem system) : base(system)
         {
@@ -488,12 +489,14 @@ namespace HBP.Quest
         private void Release(Hand hand, GameObject target, bool click)
         {
             var data = hand.Data;
+            data.Cancelled = !click;
             if (data.pointerPress != null) ExecuteEvents.Execute(data.pointerPress, data, ExecuteEvents.pointerUpHandler);
             if (click && data.eligibleForClick && data.pointerPress == ExecuteEvents.GetEventHandler<IPointerClickHandler>(target))
                 ExecuteEvents.Execute(data.pointerPress, data, ExecuteEvents.pointerClickHandler);
             if (data.dragging && data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.endDragHandler);
             data.eligibleForClick = data.dragging = false;
             data.pointerPress = data.rawPointerPress = data.pointerDrag = null;
+            data.Cancelled = false;
         }
 
         private void Cancel(Hand hand)

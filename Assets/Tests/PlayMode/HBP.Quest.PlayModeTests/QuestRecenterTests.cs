@@ -18,10 +18,19 @@ namespace HBP.Tests.Quest
 {
     public class QuestRecenterTests
     {
+        private QuestWindowLayoutTestScope layoutScope;
+
+        [SetUp]
+        public void SetUp() => layoutScope = new();
+
+        [TearDown]
+        public void TearDown() => layoutScope.Dispose();
+
         [Test]
         public async Task HoldX_FillsForTwoUnscaledSecondsThenRecentersAllScenesAndOpenWindowsOnce()
         {
             using var f = new Fixture();
+            await UniTask.NextFrame(); // Start the timed hold after the first frame following a domain reload.
             float timeScale = Time.timeScale;
             try
             {

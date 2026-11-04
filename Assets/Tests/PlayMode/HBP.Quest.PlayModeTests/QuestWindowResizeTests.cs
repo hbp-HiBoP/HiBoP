@@ -17,6 +17,14 @@ namespace HBP.Tests.Quest
 {
     public class QuestWindowResizeTests
     {
+        private QuestWindowLayoutTestScope layoutScope;
+
+        [SetUp]
+        public void SetUp() => layoutScope = new();
+
+        [TearDown]
+        public void TearDown() => layoutScope.Dispose();
+
         private const string Demo = "Assets/Prefabs/Quest/UI/Quest Resizable Window Demo.prefab";
 
         [TestCase(false)]
@@ -31,6 +39,7 @@ namespace HBP.Tests.Quest
                 await UniTask.NextFrame();
                 var components = scene.GetRootGameObjects().SelectMany(r => r.GetComponentsInChildren<MonoBehaviour>(true)).ToArray();
                 var manager = components.OfType<QuestWindowsManager>().Single();
+                manager.RecenterOpen();
                 var standard = manager.Find("Connection");
                 var resizable = manager.Find("Display");
                 Assert.That(standard, Is.Not.Null);

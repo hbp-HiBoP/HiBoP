@@ -74,7 +74,6 @@ namespace HBP.Quest
         public void ShowRequestedCode()
         {
             GetComponent<QuestWindow>()?.Open();
-            GetComponent<QuestWindowFollower>()?.Recall();
         }
 
         private void SetDetails(string pairingCode, string ip)

@@ -10,6 +10,7 @@ namespace HBP.Quest
         private float distance;
         private Vector3 offset;
         private Transform head;
+        private bool moved;
 
         public void Configure(QuestWindow ownerWindow, Transform viewer)
         {
@@ -39,6 +40,7 @@ namespace HBP.Quest
         {
             if (!isActiveAndEnabled || window == null || !window.IsOpen || window.IsManipulated || !(data is QuestPointerEventData pointer)) return;
             owner = data.pointerId;
+            moved = false;
             distance = Vector3.Distance(pointer.Ray.origin, data.pointerPressRaycast.worldPosition);
             offset = window.transform.position - pointer.Ray.GetPoint(distance);
             window.SetManipulated(true);
@@ -49,13 +51,17 @@ namespace HBP.Quest
             if (data.pointerId == owner && window != null && window.IsOpen && data is QuestPointerEventData pointer)
             {
                 window.transform.position = pointer.Ray.GetPoint(distance) + offset;
+                moved = true;
                 if (head != null) window.transform.rotation = QuestWindowFollower.HorizontalRotation(window.transform.position - head.position);
             }
         }
 
         public void OnEndDrag(PointerEventData data)
         {
-            if (data.pointerId == owner) End();
+            if (data.pointerId != owner) return;
+            bool completed = moved && window != null && window.IsOpen && !(data is QuestPointerEventData { Cancelled: true });
+            End();
+            if (completed) window.CompleteMove();
         }
 
         private void End()

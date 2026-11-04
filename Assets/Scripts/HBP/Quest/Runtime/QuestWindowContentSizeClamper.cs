@@ -38,7 +38,7 @@ namespace HBP.Quest
             if (window == null) window = GetComponent<QuestWindow>();
             if (window != null && window.IsManipulated) return;
             float height = preferredHeight;
-            if (fitHeightWhenContentChanges && !Mathf.Approximately(previousPreferredHeight, height))
+            if (fitHeightWhenContentChanges && !Mathf.Approximately(previousPreferredHeight, height) && (window == null || !window.UserSize.HasValue))
                 RectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, height);
             previousPreferredHeight = height;
             SetLayoutHorizontal();

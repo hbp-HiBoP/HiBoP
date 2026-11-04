@@ -67,7 +67,7 @@ namespace HBP.Tests.PlatformConfiguration
                 var fields = new SerializedObject(resizer);
                 Assert.That(fields.FindProperty("window").objectReferenceValue, Is.EqualTo(demo.GetComponent<QuestWindow>()));
                 Assert.That(fields.FindProperty("minimumSize").vector2Value, Is.EqualTo(new Vector2(500, 350)));
-                Assert.That(fields.FindProperty("maximumSize").vector2Value, Is.EqualTo(new Vector2(1200, 1000)));
+                Assert.That(fields.FindProperty("maximumSize").vector2Value, Is.EqualTo(new Vector2(6000, 5000)));
                 Assert.That(resizer.GetComponent<UnityEngine.UI.Image>().raycastTarget, Is.True);
                 Assert.That(AssetDatabase.GetAssetPath(resizer.GetComponent<ThemeElement>().Element), Is.EqualTo("Assets/Resources/Themes/Quest/Elements/QuestWindowResizeSurface.asset"));
             }
@@ -203,8 +203,7 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(window.GetComponent<QuestWindowFollower>(), Is.Not.Null);
                 foreach (var theme in window.GetComponentsInChildren<ThemeElement>(true))
                     Assert.That(AssetDatabase.GetAssetPath(theme.Element), Does.StartWith("Assets/Resources/Themes/Quest/Elements/"));
-                foreach (var component in window.GetComponentsInChildren<MonoBehaviour>(true))
-                    Assert.That(component.GetType().Namespace, Does.Not.StartWith("HBP.UI"), component.GetType().Name);
+                Assert.That(window.GetComponentsInChildren<HBP.UI.Tools.Window>(true), Is.Empty, "Quest windows may reuse shared controls and scientific graphs, but must not embed Desktop windows.");
             }
 
             var toolbar = root.GetComponentInChildren<QuestToolbar>(true);
@@ -252,6 +251,18 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(dropdown.captionText, Is.Not.Null);
             Assert.That(dropdown.itemText, Is.Not.Null);
             Assert.That(dropdown.options.Count, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void Bootstrap_AllWindowsParticipateInPersistenceWithUniqueStableKeys()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var initial = new SerializedObject(root.GetComponent<QuestWindowsManager>()).FindProperty("initialWindows");
+            var managed = Enumerable.Range(0, initial.arraySize).Select(i => initial.GetArrayElementAtIndex(i).objectReferenceValue).Cast<QuestWindow>().ToArray();
+            Assert.That(managed, Is.Not.Empty);
+            Assert.That(managed.All(window => window != null && !string.IsNullOrWhiteSpace(window.Key)), Is.True, "Every window needs a stable persistence key.");
+            Assert.That(managed.Select(window => window.Key).Distinct().Count(), Is.EqualTo(managed.Length), "Window placement keys must be unique.");
+            Assert.That(root.GetComponentsInChildren<QuestWindow>(true).All(window => managed.Contains(window)), Is.True, "Every authored window participates in common placement and persistence.");
         }
     }
 }

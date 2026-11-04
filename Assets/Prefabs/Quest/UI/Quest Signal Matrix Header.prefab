@@ -75,7 +75,7 @@ MonoBehaviour:
     m_MaxSize: 300
     m_Alignment: 4
     m_AlignByGeometry: 0
-    m_RichText: 1
+    m_RichText: 0
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
@@ -92,7 +92,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActualState: {fileID: 11400000, guid: 3694d00dee18e00488db9a1b0b1394fe, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
   Element: {fileID: 11400000, guid: d424a2dd1b982414e888550816ae294a, type: 2}
 --- !u!1 &1604212487778938
 GameObject:
@@ -204,5 +204,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ActualState: {fileID: 11400000, guid: 3694d00dee18e00488db9a1b0b1394fe, type: 2}
-  Element: {fileID: 11400000, guid: 9f81fe0ed54792949ba8dda2490afb69, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 457a06bdfcbe4fe409053b62faa9560e, type: 2}

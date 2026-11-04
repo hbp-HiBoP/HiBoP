@@ -17,6 +17,14 @@ namespace HBP.Tests.Quest
 {
     public class QuestToolbarArcTests
     {
+        private QuestWindowLayoutTestScope layoutScope;
+
+        [SetUp]
+        public void SetUp() => layoutScope = new();
+
+        [TearDown]
+        public void TearDown() => layoutScope.Dispose();
+
         [Test]
         public async Task ProductionToolbar_UsesEqualMarginsDespiteALegacyHeightOverride()
         {
@@ -54,14 +62,14 @@ namespace HBP.Tests.Quest
             float initialWidth = scope.Toolbar.GetComponent<RectTransform>().rect.width;
             var first = scope.Buttons[0];
             Vector2 size = ((RectTransform)first.transform).rect.size;
-            Assert.That(initialWidth, Is.EqualTo(244).Within(.01));
+            Assert.That(initialWidth, Is.EqualTo(404).Within(.01));
             Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.height, Is.EqualTo(size.y + 8).Within(.01), "Only a thin margin should surround the button row.");
             Assert.That(size, Is.EqualTo(new Vector2(76, 72)));
             Assert.That(scope.Toolbar.GetComponent<QuestWindow>().Placement, Is.EqualTo(new Vector3(0, -.8f, .65f)));
             Assert.That(scope.Buttons[0].transform.position.y, Is.EqualTo(scope.Buttons.Last().transform.position.y).Within(.0001), "The curvature follows the horizontal rail, even on the inclined panel.");
             var surface = scope.Content.GetComponent<QuestToolbarBackground>();
             Assert.That(scope.Buttons[0].transform.position.z, Is.LessThan(surface.transform.TransformPoint(surface.SurfacePoint(0, 0)).z));
-            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 3.png");
+            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 5.png");
             for (int i = 0; i < 8; i++)
             {
                 var extra = Object.Instantiate(first.gameObject, scope.Content, false);
@@ -80,7 +88,7 @@ namespace HBP.Tests.Quest
 
             Assert.That(Vector3.Angle(scope.Buttons[0].transform.right, scope.Buttons.Last().transform.right), Is.LessThanOrEqualTo(60), "Adding controls must not create an excessively wrapped panel.");
             Assert.That(scope.Toolbar.transform.position, Is.EqualTo(initialPosition));
-            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 11.png");
+            QuestWindowInteractionTests.Capture(scope.LookAtToolbar(), "Quest Toolbar Curved 13.png");
             first.gameObject.SetActive(false);
             scope.Layout.RebuildLayout();
             Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.width, Is.EqualTo(expanded - 80).Within(.01));
@@ -140,7 +148,7 @@ namespace HBP.Tests.Quest
                 }
             }
 
-            Assert.That(clicks, Is.EqualTo(3));
+            Assert.That(clicks, Is.EqualTo(5));
             var background = scope.Content.GetComponent<QuestToolbarBackground>();
             float gap = (.5f - (scope.Buttons.Length - 1) * .5f) * 80;
             foreach (float x in new[] { gap, scope.Toolbar.GetComponent<RectTransform>().rect.width * .5f - 2 })
@@ -367,6 +375,7 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(manager, "uiCamera", Camera);
                 QuestWindowInteractionTests.Set(manager, "initialWindows", new[] { Toolbar.GetComponent<QuestWindow>() });
                 Root.SetActive(true);
+                manager.RecenterOpen();
                 Toolbar.GetComponent<QuestWindowFollower>().enabled = false;
             }
 

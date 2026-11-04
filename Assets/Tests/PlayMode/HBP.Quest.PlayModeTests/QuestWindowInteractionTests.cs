@@ -19,6 +19,14 @@ namespace HBP.Tests.Quest
 {
     public class QuestWindowInteractionTests
     {
+        private QuestWindowLayoutTestScope layoutScope;
+
+        [SetUp]
+        public void SetUp() => layoutScope = new();
+
+        [TearDown]
+        public void TearDown() => layoutScope.Dispose();
+
         private const string Folder = "Assets/Prefabs/Quest/UI/";
         internal static void Set(object target, string name, object value) => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
 
@@ -91,6 +99,7 @@ namespace HBP.Tests.Quest
             try
             {
                 root.SetActive(true);
+                manager.RecenterOpen();
                 manager.Open("Example");
                 manager.Open("Second");
                 first.Close();
@@ -440,6 +449,7 @@ namespace HBP.Tests.Quest
                 Set(manager, "initialWindows", new[] { connection, display, toolbar.GetComponent<QuestWindow>() });
                 Set(toolbar, "windows", manager);
                 root.SetActive(true);
+                manager.RecenterOpen();
                 await UniTask.NextFrame();
                 var card = connection.GetComponent<QuestStatusPanel>();
                 card.ShowPairing(new PairingStatus("123456", TimeSpan.FromSeconds(90), 4, PairingPhase.Available), "192.168.1.18");

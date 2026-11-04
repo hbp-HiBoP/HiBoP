@@ -23,11 +23,23 @@ namespace HBP.Quest
 
         public void Configure(QuestWindowsManager manager) => windows = manager;
 
+        internal void SetWindowSortingOrder(int order)
+        {
+            var canvas = tooltip.GetComponent<Canvas>();
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = order + 1;
+        }
+
         public void PlaceTooltip(QuestToolbarBackground surface, float x, float gap)
         {
             Quaternion rotation = surface.SurfaceRotation(x);
             float y = surface.rectTransform.rect.yMax + gap + tooltip.rect.height * .5f;
             Vector3 position = surface.SurfacePoint(x, y) + rotation * Vector3.back * 6;
+            tooltip.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, Mathf.Clamp(title.preferredWidth + 24, 80, 240));
+            // Tangent tooltips on the inclined arc can dip below the middle of the bar.
+            // Keep the entire rectangle above its top edge, including both lower corners.
+            float bottom = position.y - Mathf.Abs((rotation * Vector3.right).y) * tooltip.rect.width * .5f - Mathf.Abs((rotation * Vector3.up).y) * tooltip.rect.height * .5f;
+            position.y += Mathf.Max(0, surface.rectTransform.rect.yMax + gap - bottom);
             tooltip.SetPositionAndRotation(surface.transform.TransformPoint(position), surface.transform.rotation * rotation);
         }
 

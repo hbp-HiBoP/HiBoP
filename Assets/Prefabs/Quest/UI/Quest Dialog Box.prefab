@@ -109,7 +109,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
-  ActualState: {fileID: 11400000, guid: 3694d00dee18e00488db9a1b0b1394fe, type: 2}
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
   Element: {fileID: 11400000, guid: f8150596547518c4ca8b737d4d79ecc5, type: 2}
 --- !u!1 &1591170529302549668
 GameObject:
@@ -577,8 +577,8 @@ MonoBehaviour:
   message: {fileID: 2260548033721898291}
   messageViewport: {fileID: 3954060037179258288}
   icon: {fileID: 8033161815392447518}
-  warningState: {fileID: 11400000, guid: 9a9a9f6137cc5734b8acb598e48cedf6, type: 2}
-  errorState: {fileID: 11400000, guid: 485e5599c0f5086479b3d380b4e6b3f3, type: 2}
+  warningState: {fileID: 11400000, guid: 423bb0d99a19dfb4bb0e68823f1065d7, type: 2}
+  errorState: {fileID: 11400000, guid: 8da85c82d9432844f8beb79991d7156c, type: 2}
 --- !u!114 &9067076113624639367
 MonoBehaviour:
   m_ObjectHideFlags: 0
