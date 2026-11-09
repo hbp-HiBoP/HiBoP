@@ -26,6 +26,7 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomyView anatomy;
         [SerializeField] private QuestSiteProbe siteProbe;
         [SerializeField] private QuestCutHandles cuts;
+        [SerializeField] private QuestROIHandles rois;
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
@@ -63,13 +64,15 @@ namespace HBP.Quest
 
         public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
         public bool IsAnatomyCaptured(QuestAnatomyManipulator target) => System.Array.Exists(hands, hand => hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.AnatomyTarget == target);
+        public bool IsROIColumnCaptured(QuestAnatomyManipulator target) => rois != null && rois.IsColumnLocked(target);
 
         public void CancelCutGrabs()
         {
             foreach (var hand in hands)
-                if (hand.Capture.Owner == QuestInteractionOwner.Cut)
+                if (hand.Capture.Owner is QuestInteractionOwner.Cut or QuestInteractionOwner.ROI)
                     Cancel(hand);
             if (cuts != null) cuts.CancelAll();
+            if (rois != null) rois.CancelAll();
         }
 
         private void OnPresentationChanging(HBP.Data.Module3D.Base3DScene scene)
@@ -77,10 +80,11 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
-                if (hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
+                if (hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
             }
 
             if (cuts != null) cuts.CancelScene(scene);
+            if (rois != null) rois.CancelScene(scene);
         }
 
         public bool TryGetAnatomyPose(bool leftHand, QuestAnatomyManipulator target, out Pose pose, out bool distant)
@@ -128,6 +132,10 @@ namespace HBP.Quest
             ProcessHand(0, left, leftRay, leftReticle);
             RefreshModal(); // The first hand's click may open or close a dialog in this same frame.
             ProcessHand(1, right, rightRay, rightReticle);
+            if (rois != null)
+                for (int i = 0; i < hands.Length; i++)
+                    if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
+                        Cancel(hands[i]);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -166,6 +174,7 @@ namespace HBP.Quest
             }
 
             if (cuts != null) cuts.SetHand(index, valid, valid ? tracker.transform.position : Vector3.zero, data.Ray.origin, valid ? tracker.transform.rotation : default);
+            if (rois != null) rois.SetHand(index, valid, valid ? tracker.transform.position : Vector3.zero, data.Ray.origin, valid ? tracker.transform.rotation : Quaternion.identity);
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
@@ -185,6 +194,7 @@ namespace HBP.Quest
             if (hand.Capture.Owner == QuestInteractionOwner.UI && capturedWindow != null && !capturedWindow.IsOpen) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && !HasAnatomyTarget(hand.AnatomyTarget)) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && (cuts == null || !cuts.IsCaptured(index))) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.ROI && (rois == null || !rois.IsCaptured(index))) Cancel(hand);
             data.trackedDevicePosition = data.Ray.origin;
             data.trackedDeviceOrientation = Quaternion.LookRotation(data.Ray.direction, tracker.transform.up);
             hits.Clear();
@@ -216,11 +226,22 @@ namespace HBP.Quest
             var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
             var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
+            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, target == null) : null;
+            if (roiCandidate != null && cutCandidate != null)
+            {
+                float cutDistance = Mathf.Min(cutCandidate.ContactDistance(tracker.transform.position), cutCandidate.ContactDistance(data.Ray.origin));
+                if (rois.Distance(roiCandidate, index) <= cutDistance) cutCandidate = null;
+                else roiCandidate = null;
+            }
+
             var oldOwner = hand.Capture.Owner;
-            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null);
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.ROI && !secondaryPressed) rois.End(index);
+
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
             {
                 hand.AnatomyTarget = near ? candidate : distantCandidate;
@@ -279,7 +300,7 @@ namespace HBP.Quest
             bool actionable = target != null && (window != null || modalDialog != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
             bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner != QuestInteractionOwner.Cut && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
             Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback, IsLoadingOverlay(data.pointerCurrentRaycast));
@@ -395,7 +416,7 @@ namespace HBP.Quest
                 }
 
             foreach (var column in anatomy.AllColumns)
-                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
                 {
                     nearest = column.Manipulator;
                     distance = hitDistance;
@@ -408,7 +429,7 @@ namespace HBP.Quest
         {
             if (anatomy == null) return null;
             foreach (var column in anatomy.AllColumns)
-                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && column.Manipulator.IsGrabbed)
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && column.Manipulator.IsGrabbed)
                 {
                     if (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))) return column.Manipulator;
                     // Preserve joining a direct gesture, but don't mix physical and remote poses accidentally.
@@ -422,7 +443,7 @@ namespace HBP.Quest
             QuestAnatomyManipulator nearest = null;
             float nearestCenter = float.PositiveInfinity;
             foreach (var column in anatomy.AllColumns)
-                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
                 {
                     float distance = (position - column.Manipulator.GrabCenter).sqrMagnitude;
                     if (distance < nearestCenter)
@@ -502,6 +523,7 @@ namespace HBP.Quest
         private void Cancel(Hand hand)
         {
             if (cuts != null) cuts.End(hand == hands[0] ? 0 : 1);
+            if (rois != null) rois.End(hand == hands[0] ? 0 : 1);
             if (hand.Data != null)
             {
                 Release(hand, null, false);

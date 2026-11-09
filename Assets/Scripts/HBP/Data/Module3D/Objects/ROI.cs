@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using System;
 using HBP.Core.Interfaces;
+using HBP.Core.Tools;
 
 namespace HBP.Data.Module3D
 {
@@ -46,14 +47,14 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Index of the selected sphere of this ROI
         /// </summary>
-        public int SelectedSphereID { get; set; }
+        public int SelectedSphereID { get; set; } = -1;
 
         /// <summary>
         /// Currently selected sphere of this ROI
         /// </summary>
         public Sphere SelectedSphere
         {
-            get { return SelectedSphereID == -1 ? null : Spheres[SelectedSphereID]; }
+            get { return SelectedSphereID < 0 || SelectedSphereID >= Spheres.Count ? null : Spheres[SelectedSphereID]; }
         }
 
         /// <summary>
@@ -85,6 +86,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public UnityEvent OnChangeSphereParameters = new();
 
+        public GenericEvent<Sphere> OnSphereDefinitionChanged { get; } = new();
+        private bool applyingDefinition;
+
         /// <summary>
         /// Event called when selecting or deselecting a sphere
         /// </summary>
@@ -97,21 +101,6 @@ namespace HBP.Data.Module3D
         void Awake()
         {
             SelectedSphereID = -1;
-        }
-
-        /// <summary>
-        /// Unselect the currently selected sphere of this ROI
-        /// </summary>
-        private void UnselectSphere()
-        {
-            if (SelectedSphereID != -1 && SelectedSphereID < Spheres.Count)
-            {
-                Spheres[SelectedSphereID].Selected = false;
-            }
-
-            SelectedSphereID = -1;
-
-            OnChangeSphereSelectionState.Invoke();
         }
 
         #endregion
@@ -213,17 +202,10 @@ namespace HBP.Data.Module3D
         /// <param name="sphereID">Index of the sphere to be selected</param>
         public void SelectSphere(int sphereID)
         {
-            if (sphereID >= Spheres.Count)
-                return;
-
-            UnselectSphere();
-
-            if (sphereID >= 0)
-            {
-                Spheres[sphereID].Selected = true;
-                SelectedSphereID = sphereID;
-            }
-
+            if (sphereID < -1 || sphereID >= Spheres.Count || SelectedSphereID == sphereID) return;
+            if (SelectedSphere != null) SelectedSphere.Selected = false;
+            SelectedSphereID = sphereID;
+            if (SelectedSphere != null) SelectedSphere.Selected = true;
             OnChangeSphereSelectionState.Invoke();
         }
 
@@ -239,7 +221,10 @@ namespace HBP.Data.Module3D
             m_Layer = LayerMask.NameToLayer(layer);
             Sphere sphere = Instantiate(m_SpherePrefab, transform).GetComponent<Sphere>();
             sphere.Initialize(m_Layer, name, radius, position);
-            sphere.OnChangeInfluenceRadius.AddListener(() => { OnChangeSphereParameters.Invoke(); });
+            sphere.OnDefinitionChanged.AddListener(() =>
+            {
+                if (!applyingDefinition) NotifySphereDefinition(sphere);
+            });
             Spheres.Add(sphere);
 
             OnChangeNumberOfSpheres.Invoke();
@@ -254,9 +239,7 @@ namespace HBP.Data.Module3D
         {
             if (SelectedSphereID != -1)
             {
-                SelectedSphere.Position += translation;
-
-                OnChangeSphereParameters.Invoke();
+                SetSphereDefinition(SelectedSphere, SelectedSphere.Position + translation, SelectedSphere.InfluenceRadius);
             }
         }
 
@@ -266,23 +249,19 @@ namespace HBP.Data.Module3D
         /// <param name="sphereID">Index of the sphere to be removed</param>
         public void RemoveSphere(int sphereID)
         {
-            if (sphereID == -1) return;
+            if (sphereID < 0 || sphereID >= Spheres.Count) return;
+
+            Sphere selected = SelectedSphere;
 
             // remove the sphere
             if (Application.isPlaying) Destroy(Spheres[sphereID].gameObject);
             else DestroyImmediate(Spheres[sphereID].gameObject);
             Spheres.RemoveAt(sphereID);
 
+            // Repair selection before observers inspect the new roster.
+            SelectedSphereID = -1;
+            SelectSphere(selected != null && Spheres.Contains(selected) ? Spheres.IndexOf(selected) : Mathf.Min(sphereID, Spheres.Count - 1));
             OnChangeNumberOfSpheres.Invoke();
-
-            if (SelectedSphereID - 1 == -1 && Spheres.Count > 0)
-            {
-                SelectSphere(SelectedSphereID);
-            }
-            else
-            {
-                SelectSphere(SelectedSphereID - 1);
-            }
         }
 
         /// <summary>
@@ -303,10 +282,32 @@ namespace HBP.Data.Module3D
 
             if (Mathf.Abs(direction) > 0.2f)
             {
-                SelectedSphere.SetInfluenceRadius(SelectedSphere.InfluenceRadius * (direction < 0 ? 0.9f : 1.1f));
-
-                OnChangeSphereParameters.Invoke();
+                SetSphereDefinition(SelectedSphere, SelectedSphere.Position, SelectedSphere.InfluenceRadius * (direction < 0 ? 0.9f : 1.1f));
             }
+        }
+
+        public bool SetSphereDefinition(Sphere sphere, Vector3 position, float radius)
+        {
+            if (sphere == null || !Spheres.Contains(sphere)) throw new ArgumentException("The sphere is not part of this ROI.", nameof(sphere));
+            bool changed;
+            applyingDefinition = true;
+            try
+            {
+                changed = sphere.SetDefinition(position, radius);
+            }
+            finally
+            {
+                applyingDefinition = false;
+            }
+
+            if (changed) NotifySphereDefinition(sphere);
+            return changed;
+        }
+
+        private void NotifySphereDefinition(Sphere sphere)
+        {
+            OnSphereDefinitionChanged.Invoke(sphere);
+            OnChangeSphereParameters.Invoke();
         }
 
         #endregion

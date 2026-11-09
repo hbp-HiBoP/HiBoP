@@ -15,6 +15,7 @@ namespace HBP.Quest
         private UnityEngine.Object owner;
         private string draft;
         private bool replace;
+        private string invalidMessage;
         public bool IsOpen => completed != null;
 
         private void Awake()
@@ -39,10 +40,11 @@ namespace HBP.Quest
             });
         }
 
-        public void OpenValidated(UnityEngine.Object requester, string label, string value, Func<string, bool> callback)
+        public void OpenValidated(UnityEngine.Object requester, string label, string value, Func<string, bool> callback, string errorMessage = "Invalid normal")
         {
             owner = requester;
             completed = callback;
+            invalidMessage = errorMessage;
             draft = value;
             replace = true;
             title.text = label;
@@ -72,7 +74,7 @@ namespace HBP.Quest
             if (!IsOpen) return;
             if (owner != null && !completed(draft))
             {
-                display.text = draft + "\nInvalid normal";
+                display.text = draft + "\n" + invalidMessage;
                 return;
             }
 

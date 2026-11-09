@@ -10,6 +10,7 @@ namespace HBP.Data.Module3D
         public GenericEvent<ROI> OnRoiAdded { get; } = new();
         public GenericEvent<ROI> OnRoiRemoved { get; } = new();
         public GenericEvent<ROI> OnActiveRoiChanged { get; } = new();
+        public bool IsUpdatingSphereDefinition { get; private set; }
 
         #region Properties
 
@@ -103,7 +104,18 @@ namespace HBP.Data.Module3D
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             roi.OnChangeNumberOfSpheres.AddListener(() => { UpdateROIMasks(); });
-            roi.OnChangeSphereParameters.AddListener(() => { UpdateROIMasks(); });
+            roi.OnChangeSphereParameters.AddListener(() =>
+            {
+                IsUpdatingSphereDefinition = true;
+                try
+                {
+                    UpdateROIMasks();
+                }
+                finally
+                {
+                    IsUpdatingSphereDefinition = false;
+                }
+            });
             roi.OnChangeSphereSelectionState.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
             ROIs.Add(roi);
             UpdateROIMasks();

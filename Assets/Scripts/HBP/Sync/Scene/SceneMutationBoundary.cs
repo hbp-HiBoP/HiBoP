@@ -221,6 +221,7 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<SiteState, UnityAction> m_SiteStateListeners = new();
         private readonly Dictionary<ROI, UnityAction> m_RoiSelectionListeners = new();
         private readonly Dictionary<ROI, UnityAction> m_RoiStructureListeners = new();
+        private readonly Dictionary<ROI, UnityAction<RoiSphere>> m_RoiDefinitionListeners = new();
         private readonly Dictionary<ROI, RoiStateSnapshot> m_RoiStateSnapshots = new();
         private readonly Dictionary<Guid, Mutation> m_OptimisticRollbacks = new();
         private readonly Dictionary<Guid, Mutation> m_OptimisticForwardMutations = new();
@@ -2550,6 +2551,7 @@ namespace HBP.Sync.Scene
         private void RefreshRoiTargets()
         {
             if (m_Scene == null || m_Scene.ROIManager == null || m_Disposed) return;
+            if (m_Scene.ROIManager.IsUpdatingSphereDefinition) return;
             ROI[] current = m_Scene.ROIManager.ROIs.ToArray();
             var currentSet = new HashSet<ROI>(current);
             if (!m_RoiObserverInitialized)
@@ -2635,6 +2637,15 @@ namespace HBP.Sync.Scene
         }
 
         private static bool SphereDefinitionEquals(RoiSphereDefinition left, RoiSphereDefinition right) => left.SphereId.Equals(right.SphereId) && left.X == right.X && left.Y == right.Y && left.Z == right.Z && left.InfluenceRadius == right.InfluenceRadius;
+
+        private void OnRoiSphereDefinitionChanged(ROI roi, RoiSphere sphere)
+        {
+            if (m_Disposed || !m_RoiStateSnapshots.TryGetValue(roi, out var snapshot) || !snapshot.Spheres.TryGetValue(sphere.ID, out var previous)) return;
+            var definition = CreateSphereDefinition(sphere);
+            if (SphereDefinitionEquals(previous, definition)) return;
+            snapshot.UpdateSphere(definition);
+            if (!ShouldSuppressPublication()) Publish(new SetRoiSphereDefinition(new RoiId(roi.ID), definition), new SetRoiSphereDefinition(new RoiId(roi.ID), previous));
+        }
 
         private void OnCutAdded(SceneCut cut)
         {
@@ -3241,9 +3252,7 @@ namespace HBP.Sync.Scene
                         (ROI roi, RoiSphere sphere) = ResolveSphere(value.RoiId, value.Definition.SphereId);
                         Vector3 position = new Vector3(value.Definition.X, value.Definition.Y, value.Definition.Z);
                         if (sphere.Position == position && sphere.InfluenceRadius == value.Definition.InfluenceRadius) return false;
-                        sphere.Position = position;
-                        sphere.SetInfluenceRadius(value.Definition.InfluenceRadius);
-                        roi.OnChangeSphereParameters.Invoke();
+                        roi.SetSphereDefinition(sphere, position, value.Definition.InfluenceRadius);
                         return true;
                     }
                 case MoveSites value:
@@ -3351,8 +3360,14 @@ namespace HBP.Sync.Scene
                 UnityAction structureListener = () => RefreshRoiTargets();
                 roi.OnUpdateROIName.AddListener(structureListener);
                 roi.OnChangeNumberOfSpheres.AddListener(structureListener);
-                roi.OnChangeSphereParameters.AddListener(structureListener);
                 m_RoiStructureListeners.Add(roi, structureListener);
+            }
+
+            if (!m_RoiDefinitionListeners.ContainsKey(roi))
+            {
+                UnityAction<RoiSphere> listener = sphere => OnRoiSphereDefinitionChanged(roi, sphere);
+                roi.OnSphereDefinitionChanged.AddListener(listener);
+                m_RoiDefinitionListeners.Add(roi, listener);
             }
         }
 
@@ -3363,11 +3378,11 @@ namespace HBP.Sync.Scene
             {
                 roi.OnUpdateROIName.RemoveListener(structureListener);
                 roi.OnChangeNumberOfSpheres.RemoveListener(structureListener);
-                roi.OnChangeSphereParameters.RemoveListener(structureListener);
             }
 
             m_RoiSelectionListeners.Remove(roi);
             m_RoiStructureListeners.Remove(roi);
+            if (m_RoiDefinitionListeners.Remove(roi, out var definitionListener)) roi.OnSphereDefinitionChanged.RemoveListener(definitionListener);
             m_LastRoiSpheres.Remove(roi);
             m_RoiStateSnapshots.Remove(roi);
             foreach (string id in m_RoisById.Where(entry => ReferenceEquals(entry.Value, roi)).Select(entry => entry.Key).ToArray())
@@ -4273,8 +4288,9 @@ namespace HBP.Sync.Scene
             {
                 entry.Key.OnUpdateROIName.RemoveListener(entry.Value);
                 entry.Key.OnChangeNumberOfSpheres.RemoveListener(entry.Value);
-                entry.Key.OnChangeSphereParameters.RemoveListener(entry.Value);
             }
+
+            foreach (var entry in m_RoiDefinitionListeners) entry.Key.OnSphereDefinitionChanged.RemoveListener(entry.Value);
 
             foreach (KeyValuePair<Column3D, UnityAction<Core.Object3D.Site>> entry in m_ColumnSelectionListeners)
                 entry.Key.OnSelectSite.RemoveListener(entry.Value);
@@ -4287,6 +4303,7 @@ namespace HBP.Sync.Scene
             m_SiteStateListeners.Clear();
             m_RoiSelectionListeners.Clear();
             m_RoiStructureListeners.Clear();
+            m_RoiDefinitionListeners.Clear();
             m_RoiStateSnapshots.Clear();
             m_ColumnSelectionListeners.Clear();
             m_ColumnListeners.Clear();
@@ -4362,16 +4379,24 @@ namespace HBP.Sync.Scene
             public string RoiId { get; }
             public string Name { get; }
             public int Order { get; }
-            public IReadOnlyDictionary<string, RoiSphereDefinition> Spheres { get; }
-            public IReadOnlyList<RoiSphereDefinition> SphereOrder { get; }
+            public Dictionary<string, RoiSphereDefinition> Spheres { get; }
+            public List<RoiSphereDefinition> SphereOrder { get; }
+            private readonly Dictionary<string, int> sphereSlots = new(StringComparer.Ordinal);
 
-            private RoiStateSnapshot(string roiId, string name, int order, IReadOnlyDictionary<string, RoiSphereDefinition> spheres, IReadOnlyList<RoiSphereDefinition> sphereOrder)
+            private RoiStateSnapshot(string roiId, string name, int order, Dictionary<string, RoiSphereDefinition> spheres, List<RoiSphereDefinition> sphereOrder)
             {
                 RoiId = roiId;
                 Name = name;
                 Order = order;
                 Spheres = spheres;
                 SphereOrder = sphereOrder;
+                for (int i = 0; i < sphereOrder.Count; i++) sphereSlots.Add(sphereOrder[i].SphereId.Value, i);
+            }
+
+            public void UpdateSphere(RoiSphereDefinition definition)
+            {
+                Spheres[definition.SphereId.Value] = definition;
+                SphereOrder[sphereSlots[definition.SphereId.Value]] = definition;
             }
 
             public static RoiStateSnapshot Capture(ROI roi, int order)
@@ -4386,7 +4411,7 @@ namespace HBP.Sync.Scene
                     sphereOrder.Add(definition);
                 }
 
-                return new RoiStateSnapshot(roi.ID, roi.Name, order, spheres, sphereOrder.AsReadOnly());
+                return new RoiStateSnapshot(roi.ID, roi.Name, order, spheres, sphereOrder);
             }
         }
 

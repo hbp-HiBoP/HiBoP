@@ -259,7 +259,7 @@ namespace HBP.Tests.Quest
             Assert.That(input.AnatomyCaptured, Is.False);
         }
 
-        private sealed class PointerFixture : IDisposable
+        internal sealed class PointerFixture : IDisposable
         {
             private readonly GameObject root = new("Production cut pointer fixture");
             private readonly XRController controller;
@@ -281,7 +281,7 @@ namespace HBP.Tests.Quest
                 }
             }
 
-            public PointerFixture(Fixture f)
+            public PointerFixture(Fixture f, QuestROIHandles rois = null)
             {
                 background = InputSystem.settings.backgroundBehavior;
                 editor = InputSystem.settings.editorInputBehaviorInPlayMode;
@@ -309,6 +309,8 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(pointer, "left", left);
                 QuestWindowInteractionTests.Set(pointer, "anatomy", f.View);
                 QuestWindowInteractionTests.Set(pointer, "cuts", f.Handles);
+                QuestWindowInteractionTests.Set(pointer, "rois", rois);
+                if (rois != null) QuestWindowInteractionTests.Set(rois, "pointer", pointer);
                 QuestWindowInteractionTests.Set(pointer, "trackingOrigin", root.transform);
                 QuestWindowInteractionTests.Set(f.Handles, "pointer", pointer);
                 ui.SetActive(true);
@@ -327,12 +329,14 @@ namespace HBP.Tests.Quest
 
             public void AimAt(RectTransform target) => Track(target.TransformPoint(target.rect.center) - Vector3.forward * .6f);
 
-            public void Track(Vector3 point)
+            public void Track(Vector3 point) => Track(new Pose(point, Quaternion.identity));
+
+            public void Track(Pose pose)
             {
-                InputSystem.QueueDeltaStateEvent(controller.devicePosition, point);
-                InputSystem.QueueDeltaStateEvent(controller.deviceRotation, Quaternion.identity);
-                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<Vector3Control>("pointerPosition"), point);
-                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<QuaternionControl>("pointerRotation"), Quaternion.Euler(0, 0, 1));
+                InputSystem.QueueDeltaStateEvent(controller.devicePosition, pose.position);
+                InputSystem.QueueDeltaStateEvent(controller.deviceRotation, pose.rotation);
+                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<Vector3Control>("pointerPosition"), pose.position);
+                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<QuaternionControl>("pointerRotation"), pose.rotation * Quaternion.Euler(0, 0, 1));
                 InputSystem.QueueDeltaStateEvent(controller.isTracked, 1f);
                 InputSystem.QueueDeltaStateEvent(controller.trackingState, 3);
                 Tick();
@@ -723,7 +727,7 @@ namespace HBP.Tests.Quest
             throw new MissingFieldException(property);
         }
 
-        private sealed class Fixture : IDisposable
+        internal sealed class Fixture : IDisposable
         {
             private readonly GameObject data = new("Inactive cut scientific fixture");
             private readonly GameObject root = new("Cut presentation fixture");

@@ -188,7 +188,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
             var initial = fields.FindProperty("initialWindows");
-            Assert.That(initial.arraySize, Is.EqualTo(6));
+            Assert.That(initial.arraySize, Is.EqualTo(7));
             for (int i = 0; i < initial.arraySize; i++) Assert.That(initial.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
             var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(pointer, Is.Not.Null);
@@ -223,6 +223,54 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(new SerializedObject(handles).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("horizontalOnly").boolValue, Is.True);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("tiltTowardHead").boolValue, Is.True);
+        }
+
+        [Test]
+        public void RoiWindow_UsesManagedWindowControlsAndSharedScientificProxies()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var panel = root.GetComponentInChildren<QuestROIPanel>(true);
+            Assert.That(panel, Is.Not.Null);
+            Assert.That(panel.GetComponent<QuestWindow>().Key, Is.EqualTo("ROI"));
+            Assert.That(new SerializedObject(panel.GetComponent<QuestWindow>()).FindProperty("initiallyOpen").boolValue, Is.False);
+            var fields = new SerializedObject(panel);
+            foreach (string name in new[] { "view", "window", "selector", "roiName", "addROI", "removeROI", "addSphere", "suspend", "suspendLabel", "rowPrefab", "rows", "status" })
+                Assert.That(fields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
+            var add = (UnityEngine.UI.Button)fields.FindProperty("addROI").objectReferenceValue;
+            var suspend = (UnityEngine.UI.Button)fields.FindProperty("suspend").objectReferenceValue;
+            var nameField = (QuestTextInputField)fields.FindProperty("roiName").objectReferenceValue;
+            var remove = (UnityEngine.UI.Button)fields.FindProperty("removeROI").objectReferenceValue;
+            Assert.That(suspend.transform.parent, Is.SameAs(add.transform.parent));
+            Assert.That(remove.transform.parent, Is.SameAs(nameField.transform.parent));
+            Assert.That(remove.transform.GetSiblingIndex(), Is.EqualTo(nameField.transform.GetSiblingIndex() + 1));
+            Assert.That(((UnityEngine.UI.Button)fields.FindProperty("addSphere").objectReferenceValue).transform.parent, Is.SameAs(fields.FindProperty("rows").objectReferenceValue));
+            var row = (QuestROISphereRow)fields.FindProperty("rowPrefab").objectReferenceValue;
+            Assert.That(row.GetComponentsInChildren<UnityEngine.UI.Toggle>(true), Is.Empty);
+            Assert.That(row.GetComponentsInChildren<UnityEngine.UI.Button>(true), Has.Length.EqualTo(1));
+            Assert.That(new SerializedObject(row).FindProperty("definition").objectReferenceValue, Is.InstanceOf<UnityEngine.UI.Text>());
+            var handles = root.GetComponent<QuestROIHandles>();
+            var hs = new SerializedObject(handles);
+            foreach (string name in new[] { "view", "panel", "pointer", "cuts", "policy", "feedback" })
+                Assert.That(hs.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
+            Assert.That(new SerializedObject(root.GetComponentInChildren<QuestPointerInput>(true)).FindProperty("rois").objectReferenceValue, Is.SameAs(handles));
+            var toolbar = new SerializedObject(root.GetComponentInChildren<QuestToolbar>(true));
+            Assert.That(toolbar.FindProperty("rois").objectReferenceValue, Is.SameAs(panel));
+            Assert.That(toolbar.FindProperty("roiButton").objectReferenceValue, Is.Not.Null);
+            Assert.That(UnityEditor.PrefabUtility.GetCorrespondingObjectFromSource(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest ROI Window.prefab")).name, Is.EqualTo("Quest Window"));
+            Assert.That(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestROIProxy.prefab").GetComponent<QuestROISphere>(), Is.Not.Null);
+            var icon = AssetDatabase.LoadAssetAtPath<Element>("Assets/Resources/Themes/Quest/Elements/QuestToolbarROIIcon.asset");
+            Assert.That(icon.SettingsByState.SelectMany(state => state.Settings).OfType<HBP.Theme.Image>().Distinct().Single().SourceImage, Is.Not.Null);
+        }
+
+        [Test]
+        public void QuestInputFields_CenterTheirTextVertically()
+        {
+            foreach (string path in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Quest/UI" }).Select(AssetDatabase.GUIDToAssetPath))
+            foreach (var input in AssetDatabase.LoadAssetAtPath<GameObject>(path).GetComponentsInChildren<UnityEngine.UI.InputField>(true))
+            {
+                Assert.That((int)input.textComponent.alignment / 3, Is.EqualTo(1), path + "/" + input.name);
+                if (input.placeholder is UnityEngine.UI.Text text) Assert.That((int)text.alignment / 3, Is.EqualTo(1), path + " placeholder");
+            }
         }
 
         [Test]

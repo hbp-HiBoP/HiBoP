@@ -63,6 +63,36 @@ secondary uses the side grip. Cut manipulation uses secondary so it can coexist
 with primary brain manipulation. For changes to business state, consult
 [Runtime and state](runtime-and-state.md).
 
+Quest ROI editing follows the Cuts window lifecycle. Its managed `ROI` window
+shows the active ROI's spheres in each presented column; closing hides these
+local aids while retaining the scientific ROI selection and masks. Its
+Hide/Show guides button follows Cuts and hides the local spheres while suspended.
+One grip follows the controller pose, rotating the center about the contact point
+like a grabbed brain. A second fresh grip joins the same capture and scales the
+sphere by the ratio of controller separation, around their midpoint like brain
+manipulation. Prefer grip over aim whenever grip is already within contact and
+freeze that choice per hand. Cage rotation stays local to the proxy; the shared
+sphere still has only position and radius. Joining/releasing reanchors without
+snapping; there is no resize mode. New Quest spheres have a 20 mm radius and start
+at the first hit from the headset toward the selected displayed brain's center,
+using that column's ray target and converting back through its scientific frame.
+If no surface hit is available, use the brain center. Cage renderers draw above
+ordinary windows, below loading/dialog overlays, retaining scientific depth
+occlusion. The universal pointer arbitrates
+cuts/ROI by contact distance, preferring ROI on equal contact, and freezes the
+scene/column/ROI/sphere throughout capture. Copies in other columns share one
+sphere lock. Scientific-input gestures reserve the existing sensitive-operation
+scope until release/cancellation. Import/export remains Desktop-only; imported
+ROI/sphere creation propagates through the ordinary shared mutations.
+Cut and ROI edits share the reliable scene-object edit lane: one proposal in
+flight, latest unsent sphere position/radius intent retained and rebased on the
+confirmed fields/watermark. Preserve structural barriers and scientific sphere
+identity. Sphere selection changes atomically without an intermediate None;
+selected Quest spheres retain the common ROI material instead of a cut hover tint.
+ROI sphere rows show their index, plain position/radius text and remove action;
+Add sphere is the final list item. Quest input and placeholder text is vertically
+centered while preserving its horizontal alignment.
+
 Quest site selection uses right A; right B applies/reverts the local site preset.
 `QuestSitePresetPanel` samples B in LateUpdate after pointer selection, allowing
 A+B together without mutual exclusion. `Configure preset` is the sole added row

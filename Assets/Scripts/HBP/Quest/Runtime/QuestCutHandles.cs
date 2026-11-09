@@ -91,7 +91,7 @@ namespace HBP.Quest
         public QuestCutGizmo Candidate(int hand)
         {
             if (!Active || !tracked[hand]) return null;
-            return gizmos.Where(g => g.IsValid && g.Column == nearbyColumns[hand] && Distance(g, hand) <= policy.CutContactDistance).OrderBy(g => Distance(g, hand)).ThenBy(g => PlaneCenterDistance(g, hand)).ThenBy(g => g.Cut.ID, System.StringComparer.Ordinal).FirstOrDefault();
+            return gizmos.Where(g => g.IsValid && (pointer == null || !pointer.IsROIColumnCaptured(g.Column.Manipulator)) && g.Column == nearbyColumns[hand] && Distance(g, hand) <= policy.CutContactDistance).OrderBy(g => Distance(g, hand)).ThenBy(g => PlaneCenterDistance(g, hand)).ThenBy(g => g.Cut.ID, System.StringComparer.Ordinal).FirstOrDefault();
         }
 
         private void UpdateNearbyColumn(int hand)
@@ -125,7 +125,7 @@ namespace HBP.Quest
 
         public bool Begin(int hand, QuestCutGizmo gizmo)
         {
-            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column) || Distance(gizmo, hand) > policy.CutContactDistance || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
+            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column) || Distance(gizmo, hand) > policy.CutContactDistance || (pointer != null && pointer.IsROIColumnCaptured(gizmo.Column.Manipulator)) || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
             float span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             if (!float.IsFinite(span) || span <= 0) return false;
             bool rotate = gizmo.Cut.Orientation == CutOrientation.Custom && panel.IsWristRotationEnabled(gizmo.Cut) && HasValidRotation(gripRotation[hand]);

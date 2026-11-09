@@ -19,6 +19,7 @@ namespace HBP.Quest
         [Min(.005f)] public float CutContactDistance = .035f;
         [Min(.01f)] public float CutShowDistance = .18f;
         [Min(.01f)] public float CutHideDistance = .24f;
+        [Min(.005f)] public float ROIContactDistance = .035f;
     }
 
     public enum QuestInteractionOwner
@@ -27,17 +28,18 @@ namespace HBP.Quest
         UI,
         Anatomy,
         Cut,
-        Empty
+        Empty,
+        ROI
     }
 
     /// <summary>One operation per hand; each interaction must release before it can capture again.</summary>
     public sealed class QuestInteractionCapture
     {
         public QuestInteractionOwner Owner { get; private set; }
-        public QuestInteraction Interaction => Owner == QuestInteractionOwner.Cut ? QuestInteraction.Secondary : QuestInteraction.Primary;
+        public QuestInteraction Interaction => Owner is QuestInteractionOwner.Cut or QuestInteractionOwner.ROI ? QuestInteraction.Secondary : QuestInteraction.Primary;
         private bool primaryArmed, secondaryArmed;
 
-        public bool Sample(bool valid, bool primaryPressed, bool secondaryPressed, bool ui, bool anatomy, bool preferAnatomy, bool cut)
+        public bool Sample(bool valid, bool primaryPressed, bool secondaryPressed, bool ui, bool anatomy, bool preferAnatomy, bool cut, bool roi = false)
         {
             if (!valid)
             {
@@ -58,7 +60,8 @@ namespace HBP.Quest
                 return false;
             }
 
-            if (secondaryBegan && cut) Owner = QuestInteractionOwner.Cut;
+            if (secondaryBegan && roi) Owner = QuestInteractionOwner.ROI;
+            else if (secondaryBegan && cut) Owner = QuestInteractionOwner.Cut;
             else if (primaryBegan) Owner = anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
             else return false;
             return true;

@@ -28,6 +28,212 @@ namespace HBP.Tests.Transfer.Scene
     public class SceneMutationBoundaryTests
     {
         [Test]
+        public void RoiDrag_DelayedAcknowledgementsKeepLatestGeometryAndSelectionWithoutStaleCorrections()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest);
+            using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            quest.Roi.SelectSphere(0);
+            Assert.That(proposals.Count, Is.EqualTo(1));
+            var selection = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(selection.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            driver.ReceiveCanonical(selection.CanonicalMutation);
+            proposals.Clear();
+            int selectionEvents = 0;
+            quest.Roi.OnChangeSphereSelectionState.AddListener(() => selectionEvents++);
+            quest.Roi.SelectSphere(0);
+            Assert.That(selectionEvents, Is.Zero);
+            for (int i = 1; i <= 100; i++)
+                quest.Roi.SetSphereDefinition(quest.Sphere, new Vector3(i, -2, 3), 5);
+            Assert.That(proposals.Count, Is.EqualTo(1));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
+            for (int i = 0; i < proposals.Count; i++)
+            {
+                var accepted = authority.AcceptQuestProposal(proposals[i]);
+                Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted), accepted.RejectionCode);
+                driver.ReceiveCanonical(accepted.CanonicalMutation);
+                Assert.That(quest.Sphere.Position, Is.EqualTo(new Vector3(100, -2, 3)), "Acknowledging an older sample must not rewind the visible sphere.");
+                Assert.That(quest.Roi.SelectedSphere, Is.SameAs(quest.Sphere));
+                Assert.That(quest.Sphere.Selected, Is.True);
+            }
+
+            Assert.That(proposals.Count, Is.EqualTo(2));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(desktop.Sphere.Position, Is.EqualTo(quest.Sphere.Position));
+            Assert.That(desktop.Roi.SelectedSphere, Is.SameAs(desktop.Sphere));
+        }
+
+        [Test]
+        public void RoiDrag_CorrectionPreservesDesktopRadiusAndReplaysOnlyPendingTranslation()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest);
+            using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            quest.Roi.SetSphereDefinition(quest.Sphere, Vector3.right, 1);
+            quest.Roi.SetSphereDefinition(quest.Sphere, Vector3.right * 2, 1);
+            desktop.Boundary.Apply(new SetRoiSphereDefinition(new RoiId(desktop.Roi.ID), new RoiSphereDefinition(new SphereId(desktop.Sphere.ID), 0, 0, 0, 9)), MutationApplicationOrigin.LocalDesktop, T09Operation(400191));
+            var rejected = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(rejected.Outcome, Is.EqualTo(ProposalOutcome.Rejected));
+            driver.ReceiveCorrection(rejected.Correction);
+            Assert.That(quest.Sphere.Position, Is.EqualTo(Vector3.right * 2));
+            Assert.That(quest.Sphere.InfluenceRadius, Is.EqualTo(9));
+            var accepted = authority.AcceptQuestProposal(proposals[1]);
+            Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            driver.ReceiveCanonical(accepted.CanonicalMutation);
+            Assert.That(desktop.Sphere.Position, Is.EqualTo(Vector3.right * 2));
+            Assert.That(desktop.Sphere.InfluenceRadius, Is.EqualTo(9));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void RoiDrag_CheckpointFencesOldEchoAndRebasesPendingPositionOnCurrentRadius()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            quest.Roi.SetSphereDefinition(quest.Sphere, Vector3.right, 1);
+            quest.Roi.SetSphereDefinition(quest.Sphere, Vector3.right * 2, 1);
+            desktop.Roi.SetSphereDefinition(desktop.Sphere, Vector3.right * 10, 9);
+            quest.Boundary.ApplyCheckpoint(desktop.Boundary.CaptureCheckpoint(), T09Operation(400192));
+            driver.AdvanceCanonicalWatermark(50, includesSelection: true);
+            driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[0].OperationId, 1, proposals[0].Mutation));
+            Assert.That(quest.Sphere.Position, Is.EqualTo(Vector3.right * 2));
+            Assert.That(quest.Sphere.InfluenceRadius, Is.EqualTo(9));
+            Assert.That(proposals[1].ObservedCanonicalSequence, Is.EqualTo(50));
+            driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[1].OperationId, 51, proposals[1].Mutation));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
+        public void RoiSelection_DeletedWhileWaitingForGeometryAckIsDroppedWithoutDisconnecting()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest);
+            var second = new CreateRoiSphere(new RoiId(quest.Roi.ID), new RoiSphereDefinition(new SphereId("second-sphere"), 1, 1, 1, 5), 1);
+            desktop.Boundary.Apply(second, MutationApplicationOrigin.Remote, T09Operation(400195));
+            quest.Boundary.Apply(second, MutationApplicationOrigin.Remote, T09Operation(400195));
+            desktop.Roi.SelectSphere(0);
+            quest.Roi.SelectSphere(0);
+            using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            quest.Roi.SetSphereDefinition(quest.Sphere, Vector3.right, 1);
+            var first = authority.AcceptQuestProposal(proposals[0]);
+            Assert.That(first.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            quest.Roi.SelectSphere(1);
+            CanonicalMutation deleted = null;
+            authority.OnCanonicalReady.AddListener(value => deleted = value);
+            desktop.Boundary.Apply(new DeleteRoiSphere(new RoiId(desktop.Roi.ID), new SphereId("second-sphere")), MutationApplicationOrigin.LocalDesktop, T09Operation(400196));
+            driver.ReceiveCanonical(deleted);
+            driver.ReceiveCanonical(first.CanonicalMutation);
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(driver.ConnectionState, Is.EqualTo(QuestMutationConnectionState.Connected));
+            Assert.That(quest.Roi.SelectedSphere, Is.SameAs(quest.Sphere));
+            Assert.That(proposals.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void ObjectEditLane_CoalescesCutsInTheSegmentAfterARoiBarrier()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop, seedCuts: true);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest, seedCuts: true);
+            using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            var cut = quest.Scene.Cuts[0];
+            QuestCutCommands.Position(quest.Scene, cut, .6f);
+            quest.Scene.ROIManager.SelectedROI = quest.Roi;
+            for (int i = 1; i <= 100; i++) QuestCutCommands.Position(quest.Scene, cut, .6f + i * .002f);
+            Assert.That(proposals.Count, Is.EqualTo(1));
+            Assert.That(driver.PendingProposalCount, Is.EqualTo(3), "The ROI barrier remains between the first and last cut intents.");
+            DrainCutProposals(authority, driver, proposals);
+            Assert.That(proposals.Count, Is.EqualTo(3));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(cut.Position, Is.EqualTo(.8f).Within(.00001));
+            Assert.That(desktop.Scene.Cuts[0].Position, Is.EqualTo(cut.Position));
+        }
+
+        [Test]
+        public void RoiEdits_CreateMoveAndDeleteBeforeAckRespectStructuralBarriers()
+        {
+            using var desktop = new BoundSceneFixture(OriginDevice.Desktop);
+            using var quest = new BoundSceneFixture(OriginDevice.Quest);
+            using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktop.Boundary);
+            using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, quest.Boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
+            var proposals = new List<QuestMutationProposal>();
+            driver.OnProposalQueued.AddListener(proposals.Add);
+            var roi = quest.Scene.ROIManager.AddROI("Created during flight");
+            roi.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", Vector3.zero, 5);
+            roi.SetSphereDefinition(roi.Spheres[0], Vector3.one, 6);
+            quest.Scene.ROIManager.RemoveROI(roi);
+            for (int i = 0; i < proposals.Count; i++)
+            {
+                var result = authority.AcceptQuestProposal(proposals[i]);
+                Assert.That(result.Outcome, Is.EqualTo(ProposalOutcome.Accepted), result.RejectionCode);
+                driver.ReceiveCanonical(result.CanonicalMutation);
+            }
+
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+            Assert.That(quest.Scene.ROIManager.ROIs.Any(value => value.ID == roi.ID), Is.False);
+            Assert.That(desktop.Scene.ROIManager.ROIs.Any(value => value.ID == roi.ID), Is.False);
+        }
+
+        [TestCase(OriginDevice.Desktop)]
+        [TestCase(OriginDevice.Quest)]
+        public void RoiCreationAndContinuousDefinitions_ConvergeWithoutEchoAndNotifyOnce(OriginDevice origin)
+        {
+            using var source = new BoundSceneFixture(origin);
+            using var peer = new BoundSceneFixture(origin == OriginDevice.Desktop ? OriginDevice.Quest : OriginDevice.Desktop);
+            var offered = new List<Mutation>();
+            int echoes = 0;
+            peer.Boundary.OnMutationProposed.AddListener((_, _, _) => echoes++);
+            source.Boundary.OnMutationProposed.AddListener((id, mutation, _) =>
+            {
+                offered.Add(mutation);
+                peer.Boundary.Apply(mutation, MutationApplicationOrigin.Remote, id);
+            });
+            // These are the same creation calls used by the Desktop .roi importer.
+            var imported = source.Scene.ROIManager.AddROI("Imported ROI");
+            imported.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", new Vector3(1, 2, 3), 5);
+            imported.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", new Vector3(-4, 5, -6), 7);
+            var replica = peer.Scene.ROIManager.ROIs.Single(value => value.ID == imported.ID);
+            Assert.That(replica.Name, Is.EqualTo("Imported ROI"));
+            Assert.That(replica.Spheres.Select(value => value.ID), Is.EqualTo(imported.Spheres.Select(value => value.ID)));
+            Assert.That(peer.Scene.ROIManager.SelectedROI.ID, Is.EqualTo(imported.ID));
+            Assert.That(replica.SelectedSphere.ID, Is.EqualTo(imported.SelectedSphere.ID));
+            Assert.That(source.Site.State.IsOutOfROI, Is.False);
+            Assert.That(peer.Site.State.IsOutOfROI, Is.False);
+            var sphere = imported.Spheres[0];
+            int notifications = 0;
+            imported.OnChangeSphereParameters.AddListener(() => notifications++);
+            offered.Clear();
+            for (int i = 0; i < 4; i++) imported.SetSphereDefinition(sphere, new Vector3(i + 10, -3, 2), i + 8);
+            Assert.That(offered.Count, Is.EqualTo(4));
+            Assert.That(offered.All(value => value is SetRoiSphereDefinition), Is.True);
+            Assert.That(notifications, Is.EqualTo(4));
+            Assert.That(replica.Spheres[0].Position, Is.EqualTo(sphere.Position));
+            Assert.That(replica.Spheres[0].InfluenceRadius, Is.EqualTo(sphere.InfluenceRadius));
+            Assert.That(source.Site.State.IsOutOfROI, Is.True);
+            Assert.That(peer.Site.State.IsOutOfROI, Is.True);
+            Assert.That(imported.SetSphereDefinition(sphere, sphere.Position, sphere.InfluenceRadius), Is.False);
+            Assert.That(notifications, Is.EqualTo(4));
+            imported.RemoveSphere(0);
+            Assert.That(replica.Spheres.Single().ID, Is.EqualTo(imported.Spheres.Single().ID));
+            Assert.That(replica.SelectedSphere.ID, Is.EqualTo(imported.SelectedSphere.ID));
+            Assert.That(echoes, Is.Zero);
+        }
+
+        [Test]
         public void AnatomyThresholdRatiosAreObservedAndRestoredByCheckpointBeforeReferenceExists()
         {
             using var source = new BoundSceneFixture();
@@ -3714,6 +3920,7 @@ namespace HBP.Tests.Transfer.Scene
                 Root = new GameObject("T09 typed scene fixture");
                 Root.SetActive(false);
                 Scene = Root.AddComponent<Base3DScene>();
+                SetAutoProperty(Scene, "Visualization", new Visualization());
                 Materials = InitializeTestBrainMaterials(Scene);
                 SetPrivateField(Scene, "m_MeshManager", Root.AddComponent<MeshManager>());
                 MRIManager mriManager = Root.AddComponent<MRIManager>();

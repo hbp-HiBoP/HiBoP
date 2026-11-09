@@ -62,7 +62,7 @@ namespace HBP.Tests.Quest
             float initialWidth = scope.Toolbar.GetComponent<RectTransform>().rect.width;
             var first = scope.Buttons[0];
             Vector2 size = ((RectTransform)first.transform).rect.size;
-            Assert.That(initialWidth, Is.EqualTo(404).Within(.01));
+            Assert.That(initialWidth, Is.EqualTo(scope.Buttons.Length * 80 + 4).Within(.01));
             Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.height, Is.EqualTo(size.y + 8).Within(.01), "Only a thin margin should surround the button row.");
             Assert.That(size, Is.EqualTo(new Vector2(76, 72)));
             Assert.That(scope.Toolbar.GetComponent<QuestWindow>().Placement, Is.EqualTo(new Vector3(0, -.8f, .65f)));
@@ -148,7 +148,7 @@ namespace HBP.Tests.Quest
                 }
             }
 
-            Assert.That(clicks, Is.EqualTo(5));
+            Assert.That(clicks, Is.EqualTo(scope.Buttons.Length));
             var background = scope.Content.GetComponent<QuestToolbarBackground>();
             float gap = (.5f - (scope.Buttons.Length - 1) * .5f) * 80;
             foreach (float x in new[] { gap, scope.Toolbar.GetComponent<RectTransform>().rect.width * .5f - 2 })

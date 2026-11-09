@@ -43,11 +43,7 @@ namespace HBP.Data.Module3D
         public Vector3 Position
         {
             get { return m_Position; }
-            set
-            {
-                m_Position = value;
-                transform.localPosition = value;
-            }
+            set { SetDefinition(value, m_InfluenceRadius); }
         }
 
         /// <summary>
@@ -130,6 +126,8 @@ namespace HBP.Data.Module3D
 
         public UnityEvent OnChangeInfluenceRadius = new();
 
+        public UnityEvent OnDefinitionChanged = new();
+
         #endregion
 
         #region Private Methods
@@ -192,10 +190,24 @@ namespace HBP.Data.Module3D
         /// <param name="radius">New radius</param>
         public void SetInfluenceRadius(float radius)
         {
-            m_InfluenceRadius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
-            m_TargetRadius = m_InfluenceRadius;
-            Radius = m_InfluenceRadius;
-            OnChangeInfluenceRadius.Invoke();
+            SetDefinition(Position, radius);
+        }
+
+        /// <summary>Apply one complete scientific definition before notifying observers.</summary>
+        public bool SetDefinition(Vector3 position, float radius)
+        {
+            if (!float.IsFinite(position.x) || !float.IsFinite(position.y) || !float.IsFinite(position.z) || !float.IsFinite(radius))
+                throw new ArgumentException("ROI sphere coordinates and radius must be finite.");
+            radius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
+            if (m_Position == position && m_InfluenceRadius == radius) return false;
+            bool radiusChanged = m_InfluenceRadius != radius;
+            m_Position = position;
+            transform.localPosition = position;
+            m_InfluenceRadius = m_TargetRadius = radius;
+            Radius = radius;
+            if (radiusChanged) OnChangeInfluenceRadius.Invoke();
+            OnDefinitionChanged.Invoke();
+            return true;
         }
 
         /// <summary>

@@ -13,7 +13,9 @@ namespace HBP.Quest
         [SerializeField] private QuestSiteSelectionRing selectionRing;
         private Base3DScene scene;
         public Base3DScene Scene => scene;
-        private readonly List<MeshRenderer> spheres = new();
+        private readonly List<QuestROISphere> spheres = new();
+        public IReadOnlyList<QuestROISphere> ROISpheres => spheres;
+        public Transform ScientificFrame => scientificFrame;
         public Column3D Column { get; private set; }
         public QuestAnatomyManipulator Manipulator => manipulator;
 
@@ -107,10 +109,11 @@ namespace HBP.Quest
             if (scene == null || scene.IsClosing) return;
             var selected = scene.ROIManager.SelectedROI;
             int count = selected == null ? 0 : selected.Spheres.Count;
-            while (spheres.Count < count) spheres.Add(Instantiate(roiPrefab, scientificFrame, false));
+            while (spheres.Count < count) spheres.Add(Instantiate(roiPrefab, scientificFrame, false).GetComponent<QuestROISphere>());
             for (int i = 0; i < spheres.Count; i++)
             {
-                var renderer = spheres[i];
+                var proxy = spheres[i];
+                var renderer = proxy.GetComponent<MeshRenderer>();
                 if (i >= count)
                 {
                     renderer.gameObject.SetActive(false);
@@ -118,6 +121,7 @@ namespace HBP.Quest
                 }
 
                 var source = selected.Spheres[i];
+                proxy.Bind(this, selected, source);
                 renderer.gameObject.SetActive(source.gameObject.activeInHierarchy && scene.ROIManager.ROICreationMode);
                 renderer.transform.localPosition = source.transform.localPosition;
                 renderer.transform.localScale = source.transform.localScale;
