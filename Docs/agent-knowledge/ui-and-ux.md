@@ -72,10 +72,17 @@ locally in `QuestSitePreset.json`; tests override its lazily resolved DefaultPat
 Labels support Keep/Add/Remove individually, including labels absent from the
 scene. Highlight/blacklist use On/Off toggles in an optional-selection group;
 labels use Add/Remove columns with one such group per row. Neither selected means
-Keep. Color uses an On toggle and a square swatch button. Only one undo is
-retained for the current scene/column/site. Selection or
-preset changes discard it; overlapping external edits invalidate it, while revert
-preserves unrelated edits. Apply/revert use the shared site configuration batch.
+Keep. Color uses an On toggle and a square swatch button. Undo differences are
+retained per scene opening/column/site across deselection, with at most one
+record per target and no disk persistence. A shared preset definition supplies
+the applied values and label names; records retain changed-field flags, previous
+color and label-instruction indices/removal positions, not full before/after
+configurations. Preset edits clear all records, including edits changed back to
+their former values. Overlapping external edits invalidate only that target,
+including while deselected; revert preserves unrelated edits. Scene closing,
+resource/reload and local or received configuration replacement clear that
+scene's records through its lifecycle notifications. Apply/revert use the shared
+site configuration batch.
 
 Quest Single/Split is local presentation. Hidden columns retain their scientific
 state and updates; central presentation predicates control both rendering and

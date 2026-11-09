@@ -83,18 +83,248 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void LeavingTargetLosesUndoAndNoOpDoesNotCreateOne()
+        public void LeavingTargetPreservesIndependentUndoAndRevertStartsANewCycle()
         {
             using var f = new Fixture();
             using var action = new QuestSitePresetApplication();
             var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
             action.Bind(f.Scene, f.Column, f.A);
             action.ApplyOrRevert(preset);
+            f.Select(f.B);
             action.Bind(f.Scene, f.Column, f.B);
+            action.ApplyOrRevert(preset);
+            f.Select(f.A);
             action.Bind(f.Scene, f.Column, f.A);
+            Assert.That(action.CanRevert, Is.True);
+            Assert.That(action.ApplyOrRevert(preset), Is.True);
             Assert.That(action.CanRevert, Is.False);
+            Assert.That(f.A.State.IsHighlighted, Is.False);
+            Assert.That(f.B.State.IsHighlighted, Is.True);
+            action.ApplyOrRevert(preset);
+            Assert.That(action.CanRevert, Is.True);
+            action.ApplyOrRevert(preset);
+            Assert.That(f.A.State.IsHighlighted, Is.False);
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            action.ApplyOrRevert(preset);
+            Assert.That(f.B.State.IsHighlighted, Is.False);
+        }
+
+        [Test]
+        public void NoOpAndPresetInvalidationRetainNoSiteHistory()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
+            f.A.State.IsHighlighted = true;
+            action.Bind(f.Scene, f.Column, f.A);
             Assert.That(action.ApplyOrRevert(preset), Is.False);
             Assert.That(action.CanRevert, Is.False);
+            Assert.That(HistoryCount(action), Is.Zero);
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            action.ApplyOrRevert(preset);
+            Assert.That(HistoryCount(action), Is.EqualTo(1));
+            action.Invalidate();
+            Assert.That(action.CanRevert, Is.False);
+            Assert.That(HistoryCount(action), Is.Zero);
+            f.Select(f.A);
+            action.Bind(f.Scene, f.Column, f.A);
+            Assert.That(action.ApplyOrRevert(preset), Is.False);
+            Assert.That(HistoryCount(action), Is.Zero);
+        }
+
+        [TestCase("Highlight")]
+        [TestCase("Blacklist")]
+        [TestCase("Color")]
+        [TestCase("Added label")]
+        [TestCase("Removed label")]
+        public void DeselectedOverlappingEditsInvalidateOnlyThatSiteEvenIfValuesReturn(string edit)
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On, Blacklist = QuestPresetBoolean.On, SetColor = true, Color = Color.red };
+            preset.SetLabelAction("Applied", QuestPresetLabelAction.Add);
+            preset.SetLabelAction("Old", QuestPresetLabelAction.Remove);
+            f.A.State.AddLabel("Old");
+            f.B.State.AddLabel("Old");
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            action.ApplyOrRevert(preset);
+            switch (edit)
+            {
+                case "Highlight":
+                    f.A.State.IsHighlighted = false;
+                    f.A.State.IsHighlighted = true;
+                    break;
+                case "Blacklist":
+                    f.A.State.IsBlackListed = false;
+                    f.A.State.IsBlackListed = true;
+                    break;
+                case "Color":
+                    f.A.State.Color = Color.blue;
+                    f.A.State.Color = Color.red;
+                    break;
+                case "Added label":
+                    f.A.State.RemoveLabel("Applied");
+                    f.A.State.AddLabel("Applied");
+                    break;
+                case "Removed label":
+                    f.A.State.AddLabel("Old");
+                    f.A.State.RemoveLabel("Old");
+                    break;
+            }
+
+            Assert.That(action.CanRevert, Is.True, "The selected site's undo is independent.");
+            f.Select(f.A);
+            action.Bind(f.Scene, f.Column, f.A);
+            Assert.That(action.CanRevert, Is.False);
+            Assert.That(action.ApplyOrRevert(preset), Is.False, "Restoring values externally cannot restore preset ownership.");
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            Assert.That(action.ApplyOrRevert(preset), Is.True);
+            CollectionAssert.AreEqual(new[] { "Old" }, f.B.State.Labels);
+            Assert.That(f.B.State.IsHighlighted || f.B.State.IsBlackListed, Is.False);
+        }
+
+        [Test]
+        public void DeselectedUnrelatedEditsSurviveAndRemovedLabelsRestoreInOriginalOrder()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            f.A.State.ApplyState(false, false, Color.blue, new[] { "First", "Middle", "Last" });
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
+            preset.SetLabelAction("Last", QuestPresetLabelAction.Remove);
+            preset.SetLabelAction("First", QuestPresetLabelAction.Remove);
+            preset.SetLabelAction("Applied", QuestPresetLabelAction.Add);
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            f.A.State.Color = Color.green;
+            f.A.State.AddLabel("Manual");
+            f.Select(f.A);
+            action.Bind(f.Scene, f.Column, f.A);
+            Assert.That(action.CanRevert, Is.True);
+            action.ApplyOrRevert(preset);
+            Assert.That(f.A.State.Color, Is.EqualTo(Color.green));
+            CollectionAssert.AreEqual(new[] { "First", "Middle", "Last", "Manual" }, f.A.State.Labels);
+        }
+
+        [Test]
+        public void HistoriesAreIndependentAcrossColumnsAndSeparateOpeningsWithIdenticalIds()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { SetColor = true, Color = Color.red };
+            var secondColumn = f.AddColumn(f.Scene, "second-column");
+            var second = f.AddSite("A", secondColumn);
+            second.State.Color = Color.blue;
+            var otherScene = f.AddScene();
+            var otherColumn = f.AddColumn(otherScene, f.Column.ColumnData.ID);
+            var other = f.AddSite("A", otherColumn);
+            other.State.Color = Color.green;
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            f.Select(second, secondColumn);
+            action.Bind(f.Scene, secondColumn, second);
+            action.ApplyOrRevert(preset);
+            f.Select(other, otherColumn);
+            action.Bind(otherScene, otherColumn, other);
+            action.ApplyOrRevert(preset);
+            f.Select(f.A);
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            Assert.That(f.A.State.Color, Is.EqualTo(SiteState.DefaultColor));
+            Assert.That(second.State.Color, Is.EqualTo(Color.red));
+            Assert.That(other.State.Color, Is.EqualTo(Color.red));
+            f.Select(second, secondColumn);
+            action.Bind(f.Scene, secondColumn, second);
+            action.ApplyOrRevert(preset);
+            Assert.That(second.State.Color, Is.EqualTo(Color.blue));
+            f.Select(other, otherColumn);
+            action.Bind(otherScene, otherColumn, other);
+            action.ApplyOrRevert(preset);
+            Assert.That(other.State.Color, Is.EqualTo(Color.green));
+            Assert.That(HistoryCount(action), Is.Zero);
+        }
+
+        [Test]
+        public void ConfigurationReloadRemovalAndClosingReleaseOnlyAffectedSceneHistory()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
+            var otherScene = f.AddScene();
+            var otherColumn = f.AddColumn(otherScene, f.Column.ColumnData.ID);
+            var other = f.AddSite("A", otherColumn);
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            f.Select(other, otherColumn);
+            action.Bind(otherScene, otherColumn, other);
+            action.ApplyOrRevert(preset);
+            Assert.That(HistoryCount(action), Is.EqualTo(2));
+            f.Scene.RunConfigurationMutation(() => { });
+            Assert.That(HistoryCount(action), Is.EqualTo(1));
+            Assert.That(action.CanRevert, Is.True);
+            otherScene.OnSceneCompletelyLoaded.Invoke();
+            Assert.That(HistoryCount(action), Is.Zero);
+            other.State.IsHighlighted = false;
+            action.ApplyOrRevert(preset);
+            Module3DMain.OnRemoveScene.Invoke(otherScene);
+            Assert.That(HistoryCount(action), Is.Zero);
+            other.State.IsHighlighted = false;
+            action.ApplyOrRevert(preset);
+            otherScene.OnClosing.Invoke();
+            Assert.That(HistoryCount(action), Is.Zero);
+        }
+
+        [Test]
+        public void FailedAndRejectedApplicationsDoNotCreateUndoAndFailedRevertCanRetry()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
+            action.Bind(f.Scene, f.Column, f.A);
+            f.Scene.SiteConfigurationBatchRouter = (_, __) => false;
+            Assert.That(action.ApplyOrRevert(preset), Is.False);
+            Assert.That(action.CanRevert, Is.False);
+            Assert.That(HistoryCount(action), Is.Zero);
+            f.Scene.SiteConfigurationBatchRouter = (_, __) => throw new InvalidOperationException("Rejected");
+            Assert.Throws<InvalidOperationException>(() => action.ApplyOrRevert(preset));
+            Assert.That(HistoryCount(action), Is.Zero);
+            f.Scene.SiteConfigurationBatchRouter = null;
+            action.ApplyOrRevert(preset);
+            f.Scene.SiteConfigurationBatchRouter = (_, __) => false;
+            Assert.That(action.ApplyOrRevert(preset), Is.False);
+            Assert.That(action.CanRevert, Is.True, "A rejected revert must remain retryable.");
+            f.Scene.SiteConfigurationBatchRouter = (_, __) => throw new InvalidOperationException("Revert failed");
+            Assert.Throws<InvalidOperationException>(() => action.ApplyOrRevert(preset));
+            Assert.That(action.CanRevert, Is.True);
+            f.Scene.SiteConfigurationBatchRouter = null;
+            action.ApplyOrRevert(preset);
+            Assert.That(f.A.State.IsHighlighted, Is.False);
+        }
+
+        [Test]
+        public void InvalidatingLastDeselectedSiteReleasesItsSceneHistory()
+        {
+            using var f = new Fixture();
+            using var action = new QuestSitePresetApplication();
+            var preset = new QuestSitePreset { Highlight = QuestPresetBoolean.On };
+            action.Bind(f.Scene, f.Column, f.A);
+            action.ApplyOrRevert(preset);
+            f.Select(f.B);
+            action.Bind(f.Scene, f.Column, f.B);
+            f.A.State.IsHighlighted = false;
+            Assert.That(HistoryCount(action), Is.Zero);
+            f.A.State.IsHighlighted = true;
+            f.Select(f.A);
+            action.Bind(f.Scene, f.Column, f.A);
+            Assert.That(action.ApplyOrRevert(preset), Is.False);
+            Assert.That(HistoryCount(action), Is.Zero);
         }
 
         [Test]
@@ -112,12 +342,19 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void EditingPresetOrTransientSelectionChangeInvalidatesUndoAndPersistsInstructions()
+        public void EditingPresetInvalidatesAllSitesWhileSelectionAndPresentationPreserveUndo()
         {
             using var f = new Fixture();
             f.Editor.Open();
             f.Toggle("highlightOn").isOn = true;
             f.Editor.ApplyOrRevert();
+            Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"));
+            f.Select(f.B);
+            f.Tick();
+            f.Editor.ApplyOrRevert();
+            Assert.That(f.B.State.IsHighlighted, Is.True);
+            f.Select(f.A);
+            f.Tick();
             Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"));
             var name = f.Field<InputField>("labelName");
             name.text = "Future";
@@ -126,6 +363,10 @@ namespace HBP.Tests.Quest
             Assert.That(f.A.State.Labels, Does.Not.Contain("Future"));
             var saved = JsonUtility.FromJson<QuestSitePreset>(File.ReadAllText(QuestSitePresetPanel.DefaultPath));
             Assert.That(saved.GetLabelAction("Future"), Is.EqualTo(QuestPresetLabelAction.Add));
+            f.Select(f.B);
+            f.Tick();
+            Assert.That(f.Text("applyText").text, Is.EqualTo("Apply"), "Editing the preset clears other sites too.");
+            f.Select(f.A);
             f.Editor.ApplyOrRevert();
             Assert.That(f.A.State.Labels, Does.Contain("Future"));
             Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"));
@@ -135,15 +376,18 @@ namespace HBP.Tests.Quest
             f.View.OnContextSelected.Invoke(f.Scene, null);
             f.View.OnContextSelected.Invoke(f.Scene, f.Column);
             f.Tick();
-            Assert.That(f.Text("applyText").text, Is.EqualTo("Apply"), "Even an immediate context round trip loses undo.");
+            Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"), "Context changes preserve the per-site undo.");
             f.Toggle("blacklistOn").isOn = true;
             f.Editor.ApplyOrRevert();
             Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"));
             f.Select(f.B);
             f.Select(f.A);
             f.Tick();
-            Assert.That(f.Text("applyText").text, Is.EqualTo("Apply"));
+            Assert.That(f.Text("applyText").text, Is.EqualTo("Revert"));
             Assert.That(f.A.State.IsHighlighted, Is.True);
+            f.Toggle("colorEnabled").isOn = true;
+            f.Toggle("colorEnabled").isOn = false;
+            Assert.That(f.Text("applyText").text, Is.EqualTo("Apply"), "Returning to the old preset values does not restore old undo records.");
         }
 
         [Test]
@@ -406,21 +650,47 @@ namespace HBP.Tests.Quest
                 Root.GetComponent<QuestWindowFollower>().enabled = false;
             }
 
-            private Site AddSite(string name)
+            public Site AddSite(string name, Column3D owner = null)
             {
+                owner ??= Column;
                 var go = new GameObject(name);
                 go.transform.SetParent(data.transform, false);
                 var site = go.AddComponent<Site>();
                 site.State = new SiteState();
                 site.Information = new SiteInformation { Name = name, Patient = new Patient { ID = "preset-patient", Name = "Synthetic" }, SiteData = new HBP.Core.Data.Site { Name = name } };
-                Column.Sites.Add(site);
+                owner.Sites.Add(site);
+                site.State.OnChangeState.AddListener(() => owner.OnChangeSiteState.Invoke(site));
                 return site;
             }
 
-            public void Select(Site site)
+            public Base3DScene AddScene()
             {
-                typeof(Column3D).GetProperty("SelectedSite").SetValue(Column, site);
-                Column.OnSelectSite.Invoke(site);
+                var scene = QuestSceneTestBinding.VisibleScene(data);
+                Set(scene, "m_ImplantationManager", scene.gameObject.AddComponent<ImplantationManager>());
+                return scene;
+            }
+
+            public Column3D AddColumn(Base3DScene scene, string id)
+            {
+                var go = new GameObject("Preset column");
+                go.SetActive(false);
+                go.transform.SetParent(data.transform, false);
+                var result = go.AddComponent<Column3DAnatomy>();
+                typeof(Column3D).GetProperty("ColumnData").SetValue(result, new AnatomicColumn { ID = id });
+                typeof(Column3D).GetProperty("Sites").SetValue(result, new List<Site>());
+                scene.Columns.Add(result);
+                return result;
+            }
+
+            public void Select(Site site, Column3D owner = null)
+            {
+                owner ??= Column;
+                if (Scene.Columns.Contains(owner))
+                    foreach (var other in Scene.Columns.Where(value => value != owner))
+                        other.IsSelected = false;
+                owner.IsSelected = true;
+                typeof(Column3D).GetProperty("SelectedSite").SetValue(owner, site);
+                owner.OnSelectSite.Invoke(site);
             }
 
             public T Field<T>(string name) => (T)typeof(QuestSitePresetPanel).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(Editor);
@@ -440,6 +710,7 @@ namespace HBP.Tests.Quest
         }
 
         private static void Set(object target, string name, object value) => target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(target, value);
+        private static int HistoryCount(QuestSitePresetApplication application) => ((System.Collections.IDictionary)typeof(QuestSitePresetApplication).GetField("histories", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(application)).Count;
     }
 }
 #endif

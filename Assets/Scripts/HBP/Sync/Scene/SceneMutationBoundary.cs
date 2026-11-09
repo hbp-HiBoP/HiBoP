@@ -3053,6 +3053,8 @@ namespace HBP.Sync.Scene
                         bool changed = false;
                         try
                         {
+                            // Receiving/replaying a configuration also retires local derived state, even for an identical assignment.
+                            m_Scene?.OnConfigurationReplacing.Invoke();
                             foreach (Mutation child in value.Mutations) changed |= ApplyCore(child);
                         }
                         catch (Exception failure)

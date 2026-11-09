@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace HBP.Data.Module3D
 {
@@ -23,6 +24,10 @@ namespace HBP.Data.Module3D
         private UserPreferences m_ObservedPreferences;
 
         public bool IsClosing => m_DestroyRequested;
+
+        /// <summary>Raised before releasing an opening, so scene-local derived state can be retired immediately.</summary>
+        public UnityEvent OnClosing { get; } = new();
+
         public UniTask AnatomyCompletion => m_AnatomyWork;
 
         #endregion
@@ -87,6 +92,7 @@ namespace HBP.Data.Module3D
         {
             if (m_CloseWork != null) return m_CloseWork.Task;
             m_DestroyRequested = true;
+            OnClosing.Invoke();
             foreach (var column in Columns)
                 if (column.NavigationTimeline != null)
                     column.NavigationTimeline.IsPlaying = false;

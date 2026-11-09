@@ -2140,6 +2140,29 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void T11ConfigurationTransaction_IdenticalRemoteReplacementClearsPresetUndoWithoutEcho()
+        {
+            using var fixture = new BoundSceneFixture(OriginDevice.Quest);
+            using var presetApplication = new QuestSitePresetApplication();
+            fixture.Column.IsSelected = true;
+            SetAutoProperty(fixture.Column, "SelectedSite", fixture.Site);
+            presetApplication.Bind(fixture.Scene, fixture.Column, fixture.Site);
+            Assert.That(presetApplication.ApplyOrRevert(new QuestSitePreset { Highlight = QuestPresetBoolean.On }), Is.True);
+            Assert.That(presetApplication.CanRevert, Is.True);
+            var state = fixture.Site.State;
+            var assignment = new SiteConfigurationAssignment(new ColumnId(fixture.Column.ColumnData.ID), new SiteId(fixture.Site.Information.FullID), state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels);
+            var transaction = new SetConfigurationTransaction(new Mutation[] { new SetSiteConfigurationBatch(new[] { assignment }) });
+            int replacements = 0, echoes = 0;
+            fixture.Scene.OnConfigurationReplacing.AddListener(() => replacements++);
+            fixture.Boundary.OnMutationProposed.AddListener((_, __, ___) => echoes++);
+            fixture.Boundary.Apply(transaction, MutationApplicationOrigin.Remote, T09Operation(364));
+            Assert.That(presetApplication.CanRevert, Is.False);
+            Assert.That(state.IsHighlighted, Is.True);
+            Assert.That(replacements, Is.EqualTo(1));
+            Assert.That(echoes, Is.Zero);
+        }
+
+        [Test]
         public void T11ConfigurationTransaction_RestoresCapturedStateAfterChildFailureAndSurfacesRollbackFailure()
         {
             using var fixture = new BoundSceneFixture(OriginDevice.Quest);

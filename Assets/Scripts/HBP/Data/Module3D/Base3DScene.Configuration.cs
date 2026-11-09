@@ -40,6 +40,9 @@ namespace HBP.Data.Module3D
         /// <summary>Raised once before the outermost synchronous configuration load or reset.</summary>
         public UnityEvent OnConfigurationMutationStarted { get; } = new();
 
+        /// <summary>Invalidates state derived from the previous configuration, including received replacements.</summary>
+        public UnityEvent OnConfigurationReplacing { get; } = new();
+
         /// <summary>Raised once when the outermost configuration load or reset finishes.</summary>
         public GenericEvent<Exception> OnConfigurationMutationCompleted { get; } = new();
 
@@ -56,7 +59,12 @@ namespace HBP.Data.Module3D
             Exception actionError = null;
             try
             {
-                if (isOutermost) OnConfigurationMutationStarted.Invoke();
+                if (isOutermost)
+                {
+                    OnConfigurationReplacing.Invoke();
+                    OnConfigurationMutationStarted.Invoke();
+                }
+
                 mutation();
             }
             catch (Exception exception)

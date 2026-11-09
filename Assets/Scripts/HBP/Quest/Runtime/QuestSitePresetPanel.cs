@@ -91,7 +91,7 @@ namespace HBP.Quest
         {
             owner.RefreshSelection();
             application.Bind(owner.CurrentScene, owner.CurrentColumn, owner.CurrentSite);
-            if (owner.CurrentScene == null || owner.CurrentScene.IsClosing) application.Invalidate();
+            if (owner.CurrentScene != null && owner.CurrentScene.IsClosing) application.ForgetScene(owner.CurrentScene);
             if (shortcut.WasPressedThisFrame() && focused && !paused && QuestDialogBox.Current == null && !TouchScreenKeyboard.visible && !(EventSystem.current?.currentSelectedGameObject?.GetComponent<InputField>() is { isFocused: true })) ApplyOrRevert();
             if (panel.activeSelf)
             {
@@ -153,7 +153,6 @@ namespace HBP.Quest
 
         internal void SelectionChanged(bool sceneChanged = false)
         {
-            application.Invalidate();
             if (sceneChanged)
             {
                 resetCatalogue = true;

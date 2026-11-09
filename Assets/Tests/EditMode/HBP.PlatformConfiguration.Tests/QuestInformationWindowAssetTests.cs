@@ -58,7 +58,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(rect.GetComponent<LayoutElement>().ignoreLayout, Is.True);
         }
 
-        [TestCase("Site", 640, 700)]
+        [TestCase("Site", 640, 1400)]
         [TestCase("Signals", 1000, 800)]
         public void WindowsAreAuthoredClosedAndRegisteredInTheBootstrap(string key, int width, int height)
         {
@@ -73,6 +73,8 @@ namespace HBP.Tests.PlatformConfiguration
             var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
             var manager = new SerializedObject(bootstrap.GetComponent<QuestWindowsManager>()).FindProperty("initialWindows");
             Assert.That(Enumerable.Range(0, manager.arraySize).Select(i => manager.GetArrayElementAtIndex(i).objectReferenceValue).OfType<QuestWindow>().Count(w => w.Key == key), Is.EqualTo(1));
+            var registeredWindow = bootstrap.GetComponentsInChildren<QuestWindow>(true).Single(w => w.Key == key);
+            Assert.That(((RectTransform)registeredWindow.transform).sizeDelta, Is.EqualTo(new Vector2(width, height)));
             var toolbar = bootstrap.GetComponentInChildren<QuestToolbar>(true);
             Assert.That(new SerializedObject(toolbar).FindProperty(key == "Site" ? "siteButton" : "signalsButton").objectReferenceValue, Is.Not.Null);
         }
