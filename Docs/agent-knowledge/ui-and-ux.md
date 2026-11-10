@@ -51,6 +51,29 @@ These are intentional shared UI components, not Desktop window implementations.
 Their Quest prefabs still use Quest theme elements/states, retaining shared color
 and image settings where appropriate. Toolbar tooltip canvases follow their
 window's sorting order and clear the full upper edge of the curved bar.
+`QuestToolbarArcLayout` sizes and places active direct button children on the
+curved toolbar in the editor and at runtime, including unit local scales. Add
+buttons under its Background; a flat layout group would conflict with the arc.
+
+Quest `Display Settings` controls the selected visualization through the shared
+scene APIs. Its stacked sections are Scene (including colormap), Activity, Site
+and Atlas. Atlas parameters are limited to IBC contrast and DiFuMo version/contrast;
+Localizer is read-only on Quest. `Visualizations` retains the stable `Display`
+window key and owns visualization management and Single/Split presentation;
+projection and its removal belong to `DisplaySettings`. Its three color dropdowns
+use authored Desktop palette sprites and fixed black titles; do not replace their
+image options with text-only options at runtime. Their equal-width captions are
+`Functional`, `Brain` and `MRI`, bold and without arrows. Compact toggle/slider
+rows use 48-unit heights with centered content and 40-unit icons; keep the
+64-unit rows and spacing for ordinary dropdowns and buttons.
+Palette option toggles have no selection checkmark, so their textures remain
+visible. Unavailable Atlas choices and the opacity slider use
+`SelectableStateSetter` with the Quest NotInteractable state. The full-window
+settings viewport is a transparent hit surface over the ordinary window body.
+Quest dropdowns share the Desktop scrollbar image/color settings through Quest
+theme roles, with a 12-unit track. Popup options delegate a primary-trigger drag
+to their own ScrollRect after the pointer threshold; releasing a drag must not
+select an option or close the list. A stationary click still selects normally.
 
 ## Input and shared behavior
 

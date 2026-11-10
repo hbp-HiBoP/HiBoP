@@ -16,5 +16,6 @@ MonoBehaviour:
   SettingsByState:
   - State: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
     Settings:
-    - {fileID: 11400000, guid: 1eb13787d25dff1429a3a584c86cb5ce, type: 2}
-    - {fileID: 11400000, guid: 5832a0b78b0e0c44cae9e06f32efc1b6, type: 2}
+    - {fileID: 11400000, guid: 9117ea98ac65a6145931236b6c5fa9a1, type: 2}
+    - {fileID: 11400000, guid: c432b0329b0ae6e42b7c212b65e2fa59, type: 2}
+    - {fileID: 11400000, guid: c66a294eb2549ba42993c07936aa8bc1, type: 2}

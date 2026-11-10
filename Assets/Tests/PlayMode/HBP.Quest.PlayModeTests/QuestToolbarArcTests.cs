@@ -101,9 +101,32 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task Arc_TrackedRaysSelectEveryButtonAndTheCurvedGapsAndRespectCanvasGroups()
+        public async Task Arc_AutomaticallyRepairsInheritedScaleAndPlacesAddedButtons()
         {
-            using var scope = new ToolbarScope();
+            using var scope = new ToolbarScope(true);
+            await UniTask.NextFrame();
+            var first = scope.Buttons[0];
+            first.transform.localScale = Vector3.one * 666.67f;
+            await UniTask.NextFrame(PlayerLoopTiming.LastPostLateUpdate);
+            Assert.That(first.transform.localScale, Is.EqualTo(Vector3.one), "An existing button with a changed scale must invalidate the layout cache.");
+            float width = scope.Toolbar.GetComponent<RectTransform>().rect.width;
+            var added = Object.Instantiate(first.gameObject, scope.Content, false);
+            added.transform.localScale = Vector3.one * 666.67f;
+            await UniTask.NextFrame(PlayerLoopTiming.LastPostLateUpdate);
+            Assert.That(added.transform.localScale, Is.EqualTo(Vector3.one));
+            Assert.That(scope.Toolbar.GetComponent<RectTransform>().rect.width, Is.EqualTo(width + 80).Within(.01));
+            var background = scope.Content.GetComponent<QuestToolbarBackground>();
+            float x = (scope.Buttons.Length - 1) * .5f * 80;
+            Assert.That(Vector3.Distance(added.transform.localPosition, background.SurfacePoint(x, 0)), Is.LessThan(.001));
+            Assert.That(Quaternion.Angle(added.transform.localRotation, background.SurfaceRotation(x)), Is.LessThan(.01));
+            Assert.That(Vector3.Angle(first.transform.right, added.transform.right), Is.LessThanOrEqualTo(60));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Arc_TrackedRaysSelectEveryButtonAndTheCurvedGapsAndRespectCanvasGroups(bool useProductionInstance)
+        {
+            using var scope = new ToolbarScope(useProductionInstance);
             await UniTask.NextFrame();
             scope.Layout.RebuildLayout();
             Canvas.ForceUpdateCanvases();

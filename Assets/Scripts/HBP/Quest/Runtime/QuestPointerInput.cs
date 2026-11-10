@@ -268,12 +268,13 @@ namespace HBP.Quest
                 if (data.pointerPress == null) data.pointerPress = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target);
                 data.rawPointerPress = target;
                 data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
-                // Tag checkboxes share their list's drag gesture after the scroll threshold.
+                // Tag checkboxes and dropdown options share their list's drag gesture after the scroll threshold.
                 // Other click controls retain their gesture against an ancestor ScrollRect.
                 bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll);
-                if (!tagChoiceScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
+                bool dropdownScroll = data.pointerPress != null && data.pointerPress.TryGetComponent<Toggle>(out _) && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out _) && data.pointerDrag.GetComponentInParent<QuestDropdown>() is { } dropdown && data.pointerDrag.transform != dropdown.template;
+                if (!tagChoiceScroll && !dropdownScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
                     data.pointerDrag = null;
-                if (tagChoiceScroll) data.useDragThreshold = true;
+                if (tagChoiceScroll || dropdownScroll) data.useDragThreshold = true;
                 if (!loadingOverlay && data.pointerPress == null && data.pointerDrag == null && window != null)
                     data.pointerDrag = window.GetBackgroundDragTarget(target);
                 if (data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.initializePotentialDrag);

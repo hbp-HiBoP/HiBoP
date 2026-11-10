@@ -87,7 +87,7 @@ MonoBehaviour:
     - line: '|   mipStripping: 0'
     - line: '|   numberOfMipsStripped: 0'
     - line: '|   numberOfMipsStrippedPerMipmapLimitGroup: {}'
-    - line: '|   m_StackTraceTypes: 010000000100000001000000010000000100000001000000'
+    - line: '|   m_StackTraceTypes: 010000000100000000000000000000000100000001000000'
     - line: '|   iosShowActivityIndicatorOnLoading: -1'
     - line: '|   androidShowActivityIndicatorOnLoading: -1'
     - line: '|   iosUseCustomAppBackgroundBehavior: 0'
@@ -185,6 +185,10 @@ MonoBehaviour:
     - line: '|   preloadedAssets:'
     - line: '|   - {fileID: 11400000, guid: 73b4142ec66a1864eb6d688b32b08a16, type:
         2}'
+    - line: '|   - {fileID: 4133646991119941245, guid: abe02993ebbb32e4081ee5adc5989c4f,
+        type: 2}'
+    - line: '|   - {fileID: -6765299625650220663, guid: 17e7af9a70ccb9542bb1ec98f7d96610,
+        type: 2}'
     - line: '|   metroInputSource: 0'
     - line: '|   wsaTransparentSwapchain: 0'
     - line: '|   xboxOneDisableKinectGpuReservation: 0'
@@ -867,7 +871,7 @@ MonoBehaviour:
     - line: '|     Standalone: 0'
     - line: '|   il2cppLTOMode: {}'
     - line: '|   il2cppStacktraceInformation:'
-    - line: '|     Android: 0'
+    - line: '|     Android: 1'
     - line: '|     Standalone: 1'
     - line: '|   managedStrippingLevel:'
     - line: '|     Android: 1'

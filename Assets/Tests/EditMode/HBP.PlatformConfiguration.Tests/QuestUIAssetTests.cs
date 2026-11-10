@@ -12,6 +12,36 @@ namespace HBP.Tests.PlatformConfiguration
     public class QuestUIAssetTests
     {
         [Test]
+        public void DropdownsAcrossQuestPrefabsUseTheSharedSlimDesktopScrollbarStyle()
+        {
+            int dropdowns = 0;
+            var track = AssetDatabase.LoadAssetAtPath<Element>("Assets/Resources/Themes/Quest/Elements/QuestDropdownScrollbar.asset");
+            var handle = AssetDatabase.LoadAssetAtPath<Element>("Assets/Resources/Themes/Quest/Elements/QuestDropdownScrollbarHandle.asset");
+            foreach (var pair in new[] { (track, "Toolbar Dropdown Scrollbar"), (handle, "Toolbar Dropdown Scrollbar Handle") })
+            {
+                var desktop = AssetDatabase.LoadAssetAtPath<Element>("Assets/Resources/Themes/Main/Elements/Visualization/Toolbar/" + pair.Item2 + ".asset");
+                Assert.That(pair.Item1.SettingsByState[0].Settings, Is.EqualTo(desktop.SettingsByState[0].Settings));
+            }
+
+            foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets/Prefabs/Quest" }))
+            {
+                string path = AssetDatabase.GUIDToAssetPath(guid);
+                var root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                foreach (var dropdown in root.GetComponentsInChildren<QuestDropdown>(true))
+                {
+                    dropdowns++;
+                    var bar = dropdown.template.GetComponent<UnityEngine.UI.ScrollRect>().verticalScrollbar;
+                    Assert.That(bar, Is.Not.Null, path + " / " + dropdown.name);
+                    Assert.That(((RectTransform)bar.transform).sizeDelta.x, Is.EqualTo(12), path + " / " + dropdown.name);
+                    Assert.That(bar.GetComponent<ThemeElement>().Element, Is.SameAs(track), path);
+                    Assert.That(bar.handleRect.GetComponent<ThemeElement>().Element, Is.SameAs(handle), path);
+                }
+            }
+
+            Assert.That(dropdowns, Is.GreaterThan(10), "Check instantiated window controls as well as the common prefab.");
+        }
+
+        [Test]
         public void SiteProbe_IsAuthoredAndWiredToUniversalPointerWithSharedThemeColor()
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
@@ -188,7 +218,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
             var initial = fields.FindProperty("initialWindows");
-            Assert.That(initial.arraySize, Is.EqualTo(7));
+            Assert.That(initial.arraySize, Is.EqualTo(8));
             for (int i = 0; i < initial.arraySize; i++) Assert.That(initial.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
             var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(pointer, Is.Not.Null);

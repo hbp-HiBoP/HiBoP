@@ -116,9 +116,9 @@ namespace HBP.Tests.Serialization
 
         private static bool RequiresLoadingManager(Base3DScene scene, SurfaceRepresentation representation)
         {
-            Type toggleType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.UI.Toolbar.SurfaceRepresentationToggle")).FirstOrDefault(type => type != null);
+            Type toggleType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.UI.Tools.SurfaceInflationLoading")).FirstOrDefault(type => type != null);
             Assert.That(toggleType, Is.Not.Null);
-            MethodInfo method = toggleType.GetMethod("RequiresLoadingManager", BindingFlags.NonPublic | BindingFlags.Static);
+            MethodInfo method = toggleType.GetMethod("RequiresLoadingManager", BindingFlags.Public | BindingFlags.Static);
             Assert.That(method, Is.Not.Null);
             return (bool)method.Invoke(null, new object[] { scene, representation });
         }

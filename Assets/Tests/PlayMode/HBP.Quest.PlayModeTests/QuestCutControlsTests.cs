@@ -123,6 +123,56 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public async Task ProductionPointer_DragsDropdownOptionsWithoutSelectingAndStillSupportsClicksAndScrollbar()
+        {
+            using var f = new Fixture();
+            f.Window.Open();
+            f.Panel.Refresh();
+            using var input = new PointerFixture(f);
+            await UniTask.NextFrame();
+            var row = f.Panel.Rows.Single(r => r.Cut == f.Scene.Cuts[0]);
+            var dropdown = row.transform.Find("Controls/Header/Orientation").GetComponent<QuestDropdown>();
+            dropdown.AddOptions(Enumerable.Range(0, 30).Select(i => "Additional option " + i).ToList());
+            dropdown.SetValueWithoutNotify(0);
+            int changes = 0;
+            dropdown.onValueChanged.AddListener(_ => changes++);
+            input.Click((RectTransform)dropdown.transform);
+            await UniTask.NextFrame();
+            Canvas.ForceUpdateCanvases();
+            var popup = dropdown.transform.Find("Dropdown List");
+            var scroll = popup.GetComponent<ScrollRect>();
+            var options = popup.GetComponentsInChildren<Toggle>().Where(t => t.gameObject.activeInHierarchy).ToArray();
+            input.AimAt((RectTransform)options[1].transform);
+            Vector3 start = options[1].transform.TransformPoint(((RectTransform)options[1].transform).rect.center) - Vector3.forward * .6f;
+            input.Press(true);
+            input.Track(start + Vector3.up * .04f);
+            input.Track(start + Vector3.up * .08f);
+            input.Press(false);
+            Assert.That(scroll.verticalNormalizedPosition, Is.LessThan(.99f));
+            Assert.That(changes, Is.Zero, "Dragging options must not choose one or close the popup.");
+            Assert.That(dropdown.transform.Find("Dropdown List"), Is.Not.Null);
+            scroll.StopMovement();
+            scroll.verticalNormalizedPosition = 1;
+            Canvas.ForceUpdateCanvases();
+            var handle = scroll.verticalScrollbar.handleRect;
+            input.AimAt(handle);
+            start = handle.TransformPoint(handle.rect.center) - Vector3.forward * .6f;
+            input.Press(true);
+            input.Track(start - Vector3.up * .04f);
+            input.Track(start - Vector3.up * .08f);
+            input.Press(false);
+            Assert.That(scroll.verticalNormalizedPosition, Is.LessThan(.99f), "The scrollbar remains draggable.");
+            scroll.StopMovement();
+            scroll.verticalNormalizedPosition = 1;
+            Canvas.ForceUpdateCanvases();
+            input.Click((RectTransform)options[1].transform);
+            Assert.That(dropdown.value, Is.EqualTo(1));
+            Assert.That(changes, Is.EqualTo(1));
+            await UniTask.Delay(250, ignoreTimeScale: true);
+            Assert.That(dropdown.transform.Find("Dropdown List"), Is.Null);
+        }
+
+        [Test]
         public async Task ProductionPointer_ScrollsRowBackgroundAndClosesDropdownFromBlocker()
         {
             using var f = new Fixture();

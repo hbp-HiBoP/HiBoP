@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace HBP.Quest
 {
     /// <summary>Sizes the toolbar from its active buttons and places them on a gentle horizontal arc.</summary>
-    [DefaultExecutionOrder(200)]
+    [ExecuteAlways, DefaultExecutionOrder(200)]
     public sealed class QuestToolbarArcLayout : MonoBehaviour
     {
         [SerializeField] private RectTransform content;
@@ -37,6 +37,7 @@ namespace HBP.Quest
                 {
                     hash = unchecked(hash * 31 + child.GetEntityId().GetHashCode());
                     count++;
+                    if (child.localScale != Vector3.one) dirty = true;
                 }
 
             float width = Mathf.Max(buttonWidth + 2 * padding, count * buttonWidth + Mathf.Max(0, count - 1) * spacing + 2 * padding);
@@ -61,6 +62,7 @@ namespace HBP.Quest
                 var rect = buttons[i];
                 rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.one * .5f;
                 rect.sizeDelta = new Vector2(buttonWidth, buttonHeight);
+                rect.localScale = Vector3.one;
                 float x = (i - (buttons.Count - 1) * .5f) * (buttonWidth + spacing);
                 rect.localPosition = background.SurfacePoint(x, rowHeight);
                 rect.localRotation = background.SurfaceRotation(x);

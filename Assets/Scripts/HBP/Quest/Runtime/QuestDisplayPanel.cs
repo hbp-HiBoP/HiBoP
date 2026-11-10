@@ -1,15 +1,13 @@
 using UnityEngine;
-using UnityEngine.UI;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HBP.Quest
 {
-    /// <summary>Routes scene controls and the existing scientific projection entry point.</summary>
+    /// <summary>Manages the available visualizations and their local presentation.</summary>
     public sealed class QuestDisplayPanel : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
-        [SerializeField] private Button projection;
         [SerializeField] private QuestAnatomySession session;
         [SerializeField] private Transform rows;
         [SerializeField] private QuestSceneRow rowPrefab;
@@ -17,21 +15,15 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            projection.onClick.AddListener(() =>
-            {
-                if (Ready) view.RecalculateProjection();
-            });
             Refresh();
         }
 
-        private bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible && view.Find(view.Scene) is { IsPlaced: true, IsTransitioning: false };
         private void Update() => Refresh();
 
         private void Refresh()
         {
             if (view == null)
             {
-                projection.interactable = false;
                 return;
             }
 
@@ -49,8 +41,6 @@ namespace HBP.Quest
                     row.Bind(value, session, view);
                     controls.Add(value, row);
                 }
-
-            projection.interactable = Ready;
         }
     }
 }
