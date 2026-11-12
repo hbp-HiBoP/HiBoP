@@ -75,6 +75,9 @@ namespace HBP.Quest
 
         private void Awake()
         {
+            foreach (var panelCanvas in GetComponentsInChildren<Canvas>(true))
+                QuestCanvasRenderQueue.Set(panelCanvas, QuestCanvasRenderQueue.Window);
+
             // The base prefab already provides raycast surfaces and a shared drag handler.
             header = content != null ? content.transform.Find("Header") : null;
             dragger = GetComponentInChildren<QuestWindowDragger>(true);

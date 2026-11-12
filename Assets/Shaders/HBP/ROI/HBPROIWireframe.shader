@@ -14,8 +14,108 @@ Shader "HBP/ROI/AnalyticCage"
         {
             "RenderPipeline" = "UniversalPipeline"
             "RenderType" = "Transparent"
+            "HBPQuestComposition" = "Peel"
             "Queue" = "Transparent+1"
         }
+
+        HLSLINCLUDE
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+        struct Attributes
+        {
+            float4 positionOS : POSITION;
+            float3 normalOS : NORMAL;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+        };
+
+        struct Varyings
+        {
+            float4 positionCS : SV_POSITION;
+            float3 positionOS : TEXCOORD0;
+            float3 normalWS : TEXCOORD1;
+            float3 viewDirectionWS : TEXCOORD2;
+            UNITY_VERTEX_OUTPUT_STEREO
+        };
+
+        CBUFFER_START(UnityPerMaterial)
+            float4 _WireColor;
+            float4 _ContrastColor;
+            float _WireThickness;
+            float _WireSmoothness;
+        CBUFFER_END
+
+        Varyings Vert(Attributes input)
+        {
+            Varyings output = (Varyings)0;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+            VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
+            output.positionCS = positionInputs.positionCS;
+            output.positionOS = input.positionOS.xyz;
+            output.normalWS = TransformObjectToWorldNormal(input.normalOS);
+            output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionInputs.positionWS);
+            return output;
+        }
+
+        half4 Frag(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            float3 sphereDirection = normalize(input.positionOS);
+            const float inverseSquareRootTwo = 0.70710678;
+            float primaryCircleDistance = min(
+                abs(sphereDirection.y),
+                min(abs(sphereDirection.x), abs(sphereDirection.z)));
+            float diagonalMeridianDistance = min(
+                abs(sphereDirection.x + sphereDirection.z),
+                abs(sphereDirection.x - sphereDirection.z)) * inverseSquareRootTwo;
+            float latitudeDistance = abs(abs(sphereDirection.y) - inverseSquareRootTwo);
+            float intermediateCircleDistance = min(diagonalMeridianDistance, latitudeDistance);
+            float silhouetteDistance = abs(dot(normalize(input.normalWS), normalize(input.viewDirectionWS)));
+
+            float coreWidth = max(_WireThickness / 50.0, 0.1);
+            float contrastWidth = coreWidth * 2.25;
+            float intermediateCoreWidth = coreWidth * 0.72;
+            float intermediateContrastWidth = intermediateCoreWidth * 2.25;
+            float smoothing = max(_WireSmoothness / 3.0, 0.5);
+            float primaryCircleDerivative = max(fwidth(primaryCircleDistance), 0.00001);
+            float intermediateCircleDerivative = max(fwidth(intermediateCircleDistance), 0.00001);
+            float silhouetteDerivative = max(fwidth(silhouetteDistance), 0.00001);
+
+            float corePrimaryCircles = 1.0 - smoothstep(
+                primaryCircleDerivative * coreWidth,
+                primaryCircleDerivative * (coreWidth + smoothing),
+                primaryCircleDistance);
+            float contrastPrimaryCircles = 1.0 - smoothstep(
+                primaryCircleDerivative * contrastWidth,
+                primaryCircleDerivative * (contrastWidth + smoothing),
+                primaryCircleDistance);
+            float coreIntermediateCircles = 1.0 - smoothstep(
+                intermediateCircleDerivative * intermediateCoreWidth,
+                intermediateCircleDerivative * (intermediateCoreWidth + smoothing),
+                intermediateCircleDistance);
+            float contrastIntermediateCircles = 1.0 - smoothstep(
+                intermediateCircleDerivative * intermediateContrastWidth,
+                intermediateCircleDerivative * (intermediateContrastWidth + smoothing),
+                intermediateCircleDistance);
+            float coreSilhouette = 1.0 - smoothstep(
+                silhouetteDerivative * coreWidth,
+                silhouetteDerivative * (coreWidth + smoothing),
+                silhouetteDistance);
+            float contrastSilhouette = 1.0 - smoothstep(
+                silhouetteDerivative * contrastWidth,
+                silhouetteDerivative * (contrastWidth + smoothing),
+                silhouetteDistance);
+
+            float coreCircles = max(corePrimaryCircles, coreIntermediateCircles);
+            float contrastCircles = max(contrastPrimaryCircles, contrastIntermediateCircles);
+            float core = max(coreCircles, coreSilhouette);
+            float contrast = max(contrastCircles, contrastSilhouette);
+            float wireColorWeight = saturate(core * 2.0);
+            float3 color = lerp(_ContrastColor.rgb, _WireColor.rgb, wireColorWeight);
+            float alpha = max(_ContrastColor.a * contrast, _WireColor.a * core);
+            return half4(color, alpha);
+        }
+        ENDHLSL
 
         Pass
         {
@@ -30,97 +130,29 @@ Shader "HBP/ROI/AnalyticCage"
             #pragma target 3.5
             #pragma vertex Vert
             #pragma fragment Frag
+            #pragma multi_compile_instancing
+            ENDHLSL
+        }
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        Pass
+        {
+            Name "HBPQuestTransparent"
+            Tags { "LightMode" = "HBPQuestTransparent" }
+            Cull Back
+            ZWrite On
 
-            struct Attributes
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment QuestFrag
+            #pragma multi_compile_instancing
+
+            #include "../Includes/HBPQuestPeel.hlsl"
+
+            half4 QuestFrag(Varyings input) : SV_Target
             {
-                float4 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-            };
-
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                float3 positionOS : TEXCOORD0;
-                float3 normalWS : TEXCOORD1;
-                float3 viewDirectionWS : TEXCOORD2;
-            };
-
-            CBUFFER_START(UnityPerMaterial)
-                float4 _WireColor;
-                float4 _ContrastColor;
-                float _WireThickness;
-                float _WireSmoothness;
-            CBUFFER_END
-
-            Varyings Vert(Attributes input)
-            {
-                Varyings output;
-                VertexPositionInputs positionInputs = GetVertexPositionInputs(input.positionOS.xyz);
-                output.positionCS = positionInputs.positionCS;
-                output.positionOS = input.positionOS.xyz;
-                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-                output.viewDirectionWS = GetWorldSpaceNormalizeViewDir(positionInputs.positionWS);
-                return output;
-            }
-
-            half4 Frag(Varyings input) : SV_Target
-            {
-                float3 sphereDirection = normalize(input.positionOS);
-                const float inverseSquareRootTwo = 0.70710678;
-                float primaryCircleDistance = min(
-                    abs(sphereDirection.y),
-                    min(abs(sphereDirection.x), abs(sphereDirection.z)));
-                float diagonalMeridianDistance = min(
-                    abs(sphereDirection.x + sphereDirection.z),
-                    abs(sphereDirection.x - sphereDirection.z)) * inverseSquareRootTwo;
-                float latitudeDistance = abs(abs(sphereDirection.y) - inverseSquareRootTwo);
-                float intermediateCircleDistance = min(diagonalMeridianDistance, latitudeDistance);
-                float silhouetteDistance = abs(dot(normalize(input.normalWS), normalize(input.viewDirectionWS)));
-
-                float coreWidth = max(_WireThickness / 50.0, 0.1);
-                float contrastWidth = coreWidth * 2.25;
-                float intermediateCoreWidth = coreWidth * 0.72;
-                float intermediateContrastWidth = intermediateCoreWidth * 2.25;
-                float smoothing = max(_WireSmoothness / 3.0, 0.5);
-                float primaryCircleDerivative = max(fwidth(primaryCircleDistance), 0.00001);
-                float intermediateCircleDerivative = max(fwidth(intermediateCircleDistance), 0.00001);
-                float silhouetteDerivative = max(fwidth(silhouetteDistance), 0.00001);
-
-                float corePrimaryCircles = 1.0 - smoothstep(
-                    primaryCircleDerivative * coreWidth,
-                    primaryCircleDerivative * (coreWidth + smoothing),
-                    primaryCircleDistance);
-                float contrastPrimaryCircles = 1.0 - smoothstep(
-                    primaryCircleDerivative * contrastWidth,
-                    primaryCircleDerivative * (contrastWidth + smoothing),
-                    primaryCircleDistance);
-                float coreIntermediateCircles = 1.0 - smoothstep(
-                    intermediateCircleDerivative * intermediateCoreWidth,
-                    intermediateCircleDerivative * (intermediateCoreWidth + smoothing),
-                    intermediateCircleDistance);
-                float contrastIntermediateCircles = 1.0 - smoothstep(
-                    intermediateCircleDerivative * intermediateContrastWidth,
-                    intermediateCircleDerivative * (intermediateContrastWidth + smoothing),
-                    intermediateCircleDistance);
-                float coreSilhouette = 1.0 - smoothstep(
-                    silhouetteDerivative * coreWidth,
-                    silhouetteDerivative * (coreWidth + smoothing),
-                    silhouetteDistance);
-                float contrastSilhouette = 1.0 - smoothstep(
-                    silhouetteDerivative * contrastWidth,
-                    silhouetteDerivative * (contrastWidth + smoothing),
-                    silhouetteDistance);
-
-                float coreCircles = max(corePrimaryCircles, coreIntermediateCircles);
-                float contrastCircles = max(contrastPrimaryCircles, contrastIntermediateCircles);
-                float core = max(coreCircles, coreSilhouette);
-                float contrast = max(contrastCircles, contrastSilhouette);
-                float wireColorWeight = saturate(core * 2.0);
-                float3 color = lerp(_ContrastColor.rgb, _WireColor.rgb, wireColorWeight);
-                float alpha = max(_ContrastColor.a * contrast, _WireColor.a * core);
-                return half4(color, alpha);
+                half4 color = Frag(input);
+                return HBP_QuestPeel(color, input.positionCS);
             }
             ENDHLSL
         }

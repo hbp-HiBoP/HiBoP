@@ -102,6 +102,9 @@ namespace HBP.Tests.Quest
                 manager.RecenterOpen();
                 manager.Open("Example");
                 manager.Open("Second");
+                Assert.That(second.SortingOrder, Is.GreaterThan(first.SortingOrder));
+                first.Select();
+                Assert.That(first.SortingOrder, Is.GreaterThan(second.SortingOrder));
                 first.Close();
                 Assert.That(manager.Open("Example"), Is.SameAs(first));
                 Assert.That(manager.Open("Example"), Is.SameAs(first));

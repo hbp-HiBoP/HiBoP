@@ -8,6 +8,7 @@ using HBP.Quest;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -351,19 +352,22 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task Cage_RendersAboveOrdinaryWindowsBelowModalOverlaysAndStillRespectsScientificDepth()
+        public async Task Cage_SharesWorldDepthAndRendersBelowModalOverlays()
         {
             using var f = new Fixture();
             var root = new GameObject("ROI window compositing fixture");
             var material = new Material(f.Sphere.GetComponent<Renderer>().sharedMaterial);
             var opaque = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
-            var uiMaterial = new Material(Shader.Find("HBP/UI/Mask"));
+            var windowMaterial = new Material(Graphic.defaultGraphicMaterial) { renderQueue = QuestCanvasRenderQueue.Window };
+            var overlay = AssetDatabase.LoadAssetAtPath<Material>("Assets/Prefabs/Quest/UI/Materials/Quest Loading Overlay.mat");
             var target = RenderTexture.GetTemporary(256, 256, 24, RenderTextureFormat.ARGB32);
             var pixels = new Texture2D(256, 256, TextureFormat.RGBA32, false);
             var previous = RenderTexture.active;
+            var previousPipeline = QualitySettings.renderPipeline;
             var camera = f.Cuts.Camera;
             try
             {
+                QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset");
                 camera.cullingMask = 1 << 31;
                 camera.orthographic = true;
                 camera.orthographicSize = .7f;
@@ -379,23 +383,26 @@ namespace HBP.Tests.Quest
                 cage.GetComponent<Renderer>().sharedMaterial = material;
                 var panel = new GameObject("World window", typeof(RectTransform), typeof(Canvas), typeof(Image));
                 panel.transform.SetParent(root.transform, false);
+                panel.transform.position = Vector3.back * .5f;
                 panel.layer = 31;
-                ((RectTransform)panel.transform).sizeDelta = Vector2.one;
+                ((RectTransform)panel.transform).sizeDelta = Vector2.one * 2;
                 var canvas = panel.GetComponent<Canvas>();
                 canvas.renderMode = RenderMode.WorldSpace;
                 canvas.worldCamera = camera;
                 canvas.sortingOrder = 10;
-                panel.GetComponent<Image>().material = uiMaterial;
                 panel.GetComponent<Image>().color = Color.green;
+                panel.GetComponent<Image>().material = windowMaterial;
                 await UniTask.NextFrame();
                 Canvas.ForceUpdateCanvases();
-                Assert.That(ReadRedPixels(), Is.GreaterThan(100), "Ordinary windows must not cover the locally manipulated cage.");
-                System.IO.Directory.CreateDirectory("Logs/QuestUI");
-                System.IO.File.WriteAllBytes("Logs/QuestUI/ROI window layering.png", pixels.EncodeToPNG());
+                Assert.That(ReadRedPixels(), Is.Zero, "A nearer window must cover the cage.");
+                panel.transform.position = Vector3.forward;
+                Assert.That(ReadRedPixels(), Is.GreaterThan(100), "A farther window must be behind the cage.");
+                panel.GetComponent<Image>().material = overlay;
                 canvas.sortingOrder = 30000;
                 Assert.That(ReadRedPixels(), Is.Zero, "The loading overlay keeps priority over ROI guides.");
                 canvas.sortingOrder = 31000;
                 Assert.That(ReadRedPixels(), Is.Zero, "Modal dialogs keep priority over ROI guides.");
+                panel.GetComponent<Image>().material = windowMaterial;
                 canvas.sortingOrder = 10;
                 var blocker = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 blocker.transform.SetParent(root.transform, false);
@@ -419,12 +426,13 @@ namespace HBP.Tests.Quest
             finally
             {
                 camera.targetTexture = null;
+                QualitySettings.renderPipeline = previousPipeline;
                 RenderTexture.active = previous;
                 RenderTexture.ReleaseTemporary(target);
                 Object.DestroyImmediate(root);
                 Object.DestroyImmediate(material);
                 Object.DestroyImmediate(opaque);
-                Object.DestroyImmediate(uiMaterial);
+                Object.DestroyImmediate(windowMaterial);
                 Object.DestroyImmediate(pixels);
             }
         }

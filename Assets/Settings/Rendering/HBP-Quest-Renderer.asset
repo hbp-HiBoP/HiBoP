@@ -40,7 +40,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   m_TransparentLayerMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 0
   m_DefaultStencilState:
     overrideStencilState: 0
     stencilReference: 0
@@ -71,6 +71,8 @@ MonoBehaviour:
   m_EditorClassIdentifier:
   m_Active: 1
   m_Shader: {fileID: 4800000, guid: 1a4f3ff00b164e9baa2fc55208ed52f1, type: 3}
+  m_QuestCompositionShader: {fileID: 4800000, guid: 6b38dfcd5458493ca209b18ada365449, type: 3}
+  m_QuestPanelShader: {fileID: 4800000, guid: 7f14ec5830da4447a541a36a0e79f62f, type: 3}
   m_Settings:
     Color: {r: 0.03, g: 0.03, b: 0.03, a: 1}
     Thickness: 1

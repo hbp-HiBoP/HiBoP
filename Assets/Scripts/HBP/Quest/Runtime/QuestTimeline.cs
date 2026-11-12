@@ -48,6 +48,7 @@ namespace HBP.Quest
 
         private void Awake()
         {
+            QuestCanvasRenderQueue.Set(canvas, QuestCanvasRenderQueue.Timeline);
             track.Bind(this);
             play.onValueChanged.AddListener(value =>
             {

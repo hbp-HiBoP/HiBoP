@@ -1545,6 +1545,8 @@ MonoBehaviour:
   m_CaretWidth: 1
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
+  unsupportedKeyboardMessage: The system keyboard is unavailable. Create new labels
+    on Desktop.
 --- !u!114 &7359278243845355844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9029,6 +9031,8 @@ MonoBehaviour:
   m_CaretWidth: 1
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
+  unsupportedKeyboardMessage: The system keyboard is unavailable. Create new labels
+    on Desktop.
 --- !u!114 &5093595943250687272
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -10251,6 +10255,8 @@ MonoBehaviour:
   m_CaretWidth: 1
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
+  unsupportedKeyboardMessage: The system keyboard is unavailable. Create new labels
+    on Desktop.
 --- !u!114 &382817343332716023
 MonoBehaviour:
   m_ObjectHideFlags: 0

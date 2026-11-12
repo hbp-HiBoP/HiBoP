@@ -8,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace HBP.Tests.Quest
@@ -15,7 +16,7 @@ namespace HBP.Tests.Quest
     public sealed class QuestPointerOverlayTests
     {
         [TestCase(false), TestCase(true)]
-        public async Task Reticle_RendersAboveDialogAndRestoresNormalRendering(bool nearerGeometry)
+        public async Task Reticle_RendersAboveDialogAndRestoresItsMaterialWhenHidden(bool nearerGeometry)
         {
             var host = new GameObject("Dialog host", typeof(RectTransform), typeof(Canvas));
             var head = new GameObject("Head", typeof(Camera));
@@ -26,10 +27,12 @@ namespace HBP.Tests.Quest
             var texture = new RenderTexture(128, 128, 24);
             var pixels = new Texture2D(128, 128, TextureFormat.RGB24, false);
             var previous = RenderTexture.active;
+            var previousPipeline = QualitySettings.renderPipeline;
             QuestDialogBox dialog = null;
             Task<int> pending = null;
             try
             {
+                QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset");
                 var camera = head.GetComponent<Camera>();
                 camera.nearClipPlane = .01f;
                 camera.orthographic = true;
@@ -55,21 +58,21 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(pointer, "overlayFeedbackMaterial", AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/Themes/Quest/Quest Pointer Overlay.mat"));
                 QuestWindowInteractionTests.Set(pointer, "feedbackProperties", new MaterialPropertyBlock());
                 var feedback = typeof(QuestPointerInput).GetMethod("Feedback", BindingFlags.Instance | BindingFlags.NonPublic);
-                feedback.Invoke(pointer, new object[] { null, marker.transform, true, Vector3.zero, dialog.transform.position, true, true });
+                feedback.Invoke(pointer, new object[] { null, marker.transform, true, Vector3.zero, dialog.transform.position, true });
                 await UniTask.NextFrame();
                 Canvas.ForceUpdateCanvases();
                 Color foreground = ReadCenter(camera, texture, pixels);
                 Assert.That(foreground.b, Is.GreaterThan(foreground.r + .15f), "The blue impact point must be drawn above the dialog and any nearer geometry.");
-                feedback.Invoke(pointer, new object[] { null, marker.transform, true, Vector3.zero, dialog.transform.position, true, false });
+                feedback.Invoke(pointer, new object[] { null, marker.transform, false, Vector3.zero, dialog.transform.position, true });
                 Assert.That(renderer.sharedMaterial, Is.SameAs(original));
                 Assert.That(renderer.sortingOrder, Is.EqualTo(17));
-                Color normal = ReadCenter(camera, texture, pixels);
-                Assert.That(normal.b - normal.r, Is.LessThan(.1f), "The test dialog must cover the ordinary cursor, reproducing the original render-order problem.");
+                Assert.That(marker.activeSelf, Is.False);
             }
             finally
             {
                 if (dialog != null) dialog.Close();
                 if (pending != null) await pending;
+                QualitySettings.renderPipeline = previousPipeline;
                 RenderTexture.active = previous;
                 head.GetComponent<Camera>().targetTexture = null;
                 Object.DestroyImmediate(host);

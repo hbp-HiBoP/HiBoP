@@ -50,6 +50,30 @@ Shader "HBP/Brain/Transparent"
 
         Pass
         {
+            Name "HBPQuestTransparent"
+            Tags { "LightMode" = "HBPQuestTransparent" }
+            Cull Back
+            ZWrite On
+
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex HBP_BrainVertex
+            #pragma fragment QuestFrag
+            #pragma multi_compile_instancing
+
+            #include "Includes/HBPBrainCommon.hlsl"
+            #include "../Includes/HBPQuestPeel.hlsl"
+
+            half4 QuestFrag(HBPBrainVaryings input) : SV_Target
+            {
+                half4 color = HBP_BrainFragment(input);
+                return HBP_QuestPeel(color, input.positionCS);
+            }
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "HBPEdgeMask"
             Tags { "LightMode" = "HBPEdgeMask" }
 

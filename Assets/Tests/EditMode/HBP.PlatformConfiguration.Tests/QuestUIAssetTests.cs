@@ -5,12 +5,210 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
+using UnityEngine.Rendering;
+using Color = UnityEngine.Color;
+using Image = UnityEngine.UI.Image;
 using Object = UnityEngine.Object;
+using RectMask2D = UnityEngine.UI.RectMask2D;
 
 namespace HBP.Tests.PlatformConfiguration
 {
     public class QuestUIAssetTests
     {
+        [TestCase(1)]
+        [TestCase(4)]
+        public void QuestScene_ComposesAtPixelDepthAndKeepsSelectedWindowPriority(int samples)
+        {
+            var previousPipeline = QualitySettings.renderPipeline;
+            var previousTarget = RenderTexture.active;
+            var target = new RenderTexture(128, 128, 24) { antiAliasing = samples };
+            var readback = new Texture2D(1, 1);
+            var cameraObject = new GameObject("Quest render order camera", typeof(Camera));
+            var brain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var site = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var redCut = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            var blueCut = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            var brainMaterial = new Material(Shader.Find("HBP/Brain/Transparent"));
+            var siteMaterial = new Material(Shader.Find("HBP/Site"));
+            var redCutMaterial = new Material(Shader.Find("HBP/Cut/Transparent"));
+            var blueCutMaterial = new Material(redCutMaterial);
+            var windowMaterial = new Material(UnityEngine.UI.Graphic.defaultGraphicMaterial) { renderQueue = QuestCanvasRenderQueue.Window };
+            var timelineMaterial = new Material(UnityEngine.UI.Graphic.defaultGraphicMaterial) { renderQueue = QuestCanvasRenderQueue.Timeline };
+            var camera = cameraObject.GetComponent<Camera>();
+            var panel = CreatePanel("Quest panel", Color.green, 10, windowMaterial);
+            var selected = CreatePanel("Selected panel", Color.yellow, 13, windowMaterial);
+            var timeline = CreatePanel("Timeline", Color.cyan, -1, timelineMaterial);
+            timeline.SetActive(false);
+            var overlayMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Prefabs/Quest/UI/Materials/Quest Loading Overlay.mat");
+            var overlay = CreatePanel("Foreground overlay", Color.white, 31000, overlayMaterial);
+
+            try
+            {
+                QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset");
+                Assert.That(QualitySettings.renderPipeline, Is.Not.Null);
+                camera.targetTexture = target;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.black;
+                camera.orthographic = true;
+                camera.orthographicSize = 1f;
+                camera.transform.position = Vector3.back * 3;
+                brainMaterial.SetColor("_Color", new Color(0, 0, 1, .5f));
+                brain.GetComponent<Renderer>().sharedMaterial = brainMaterial;
+                siteMaterial.SetColor("_Color", Color.red);
+                site.GetComponent<Renderer>().sharedMaterial = siteMaterial;
+                site.transform.localScale = Vector3.one * .25f;
+                redCut.SetActive(false);
+                blueCut.SetActive(false);
+
+                brain.SetActive(false);
+                site.SetActive(false);
+                overlay.SetActive(false);
+                selected.SetActive(false);
+                Color panelOnly = RenderCenterPixel();
+                Assert.That(panelOnly.g, Is.GreaterThan(.9f));
+
+                brain.SetActive(true);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly), "the nearer panel masks the farther brain");
+                panel.transform.position = Vector3.forward;
+                Color brainOverPanel = RenderCenterPixel();
+                Assert.That(brainOverPanel.b, Is.GreaterThan(panelOnly.b + .1f));
+                Assert.That(brainOverPanel.g, Is.InRange(.1f, panelOnly.g - .05f));
+
+                selected.transform.position = Vector3.forward;
+                selected.SetActive(true);
+                panel.SetActive(false);
+                Color selectedAndBrain = RenderCenterPixel();
+                Assert.That(selectedAndBrain.r, Is.GreaterThan(.25f));
+                Assert.That(selectedAndBrain.b, Is.GreaterThan(.1f));
+                panel.transform.position = Vector3.back;
+                panel.SetActive(true);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(selectedAndBrain), "the selected panel covers the nearer panel and the brain stays in front of it");
+                var selectedImage = selected.GetComponentInChildren<Image>();
+                selectedImage.color = new Color(1, 1, 0, .5f);
+                var translucentStack = RenderCenterPixel();
+                Assert.That(translucentStack.r, Is.InRange(.1f, selectedAndBrain.r - .05f));
+                Assert.That(translucentStack.b, Is.InRange(.1f, selectedAndBrain.b - .05f));
+                selectedImage.color = Color.yellow;
+                selected.GetComponent<Canvas>().sortingOrder = 9;
+                Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly), "raising the nearer panel restores its visible priority");
+                selected.SetActive(false);
+
+                panel.transform.SetPositionAndRotation(new Vector3(0, 0, -.45f), Quaternion.Euler(0, 55, 0));
+                Assert.That(RenderPixel(78).b, Is.LessThan(.02f), "right side of the tilted panel is in front of the brain");
+                Assert.That(RenderPixel(50).b, Is.GreaterThan(.1f), "left side of the same panel is behind the brain");
+                panel.transform.SetPositionAndRotation(Vector3.forward, Quaternion.identity);
+
+                site.SetActive(true);
+                Color siteOverBrain = RenderCenterPixel();
+                brain.SetActive(false);
+                Color siteWithoutBrain = RenderCenterPixel();
+                Assert.That(siteWithoutBrain.r, Is.GreaterThan(.9f));
+                Assert.That(siteOverBrain.r, Is.InRange(.25f, siteWithoutBrain.r - .05f), "the 3D site remains visible through the nearer brain");
+
+                brain.SetActive(true);
+                overlay.SetActive(true);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(Color.white));
+
+                overlay.SetActive(false);
+                panel.transform.position = Vector3.forward;
+                brain.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/Materials/Brain/Brain.mat");
+                site.SetActive(false);
+                Color opaqueBrain = RenderCenterPixel();
+                Assert.That(opaqueBrain, Is.Not.EqualTo(panelOnly));
+                site.SetActive(true);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(opaqueBrain));
+
+                site.SetActive(false);
+                brain.transform.localScale = Vector3.one * 8;
+                panel.transform.position = Vector3.back;
+                Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly), "the panel is visible with the camera inside the brain");
+
+                brain.SetActive(false);
+                timeline.SetActive(true);
+                timeline.transform.position = Vector3.back * 1.5f;
+                Assert.That(RenderCenterPixel(), Is.EqualTo(Color.cyan), "the nearer timeline covers the window regardless of canvas order");
+                timeline.transform.position = Vector3.zero;
+                Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly), "the window masks the farther timeline");
+                timeline.SetActive(false);
+
+                var image = panel.GetComponentInChildren<Image>();
+                var mask = new GameObject("Masked viewport", typeof(RectTransform), typeof(RectMask2D));
+                mask.transform.SetParent(panel.transform, false);
+                ((RectTransform)mask.transform).sizeDelta = new Vector2(.4f, .8f);
+                image.transform.SetParent(mask.transform, false);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly));
+                Assert.That(RenderPixel(85).g, Is.LessThan(.05f), "the viewport clips the panel graphics before composition");
+
+                panel.SetActive(false);
+                redCutMaterial.SetColor("_Color", new Color(1, 0, 0, .5f));
+                blueCutMaterial.SetColor("_Color", new Color(0, 0, 1, .5f));
+                redCut.GetComponent<Renderer>().sharedMaterial = redCutMaterial;
+                blueCut.GetComponent<Renderer>().sharedMaterial = blueCutMaterial;
+                redCut.transform.rotation = Quaternion.Euler(0, 45, 0);
+                blueCut.transform.rotation = Quaternion.Euler(0, -45, 0);
+                redCut.SetActive(true);
+                blueCut.SetActive(true);
+                var left = RenderPixel(50);
+                var right = RenderPixel(78);
+                Assert.That(left.b, Is.GreaterThan(left.r + .1f), "the blue translucent cut is closer on the left");
+                Assert.That(right.r, Is.GreaterThan(right.b + .1f), "the red translucent cut is closer on the right");
+
+                camera.backgroundColor = Color.clear;
+                blueCut.SetActive(false);
+                Assert.That(RenderPixel(78).a, Is.EqualTo(.5f).Within(.02f), "a single cut blends once over passthrough");
+            }
+            finally
+            {
+                camera.targetTexture = null;
+                QualitySettings.renderPipeline = previousPipeline;
+                RenderTexture.active = previousTarget;
+                Object.DestroyImmediate(overlay);
+                Object.DestroyImmediate(timeline);
+                Object.DestroyImmediate(selected);
+                Object.DestroyImmediate(panel);
+                Object.DestroyImmediate(site);
+                Object.DestroyImmediate(brain);
+                Object.DestroyImmediate(redCut);
+                Object.DestroyImmediate(blueCut);
+                Object.DestroyImmediate(siteMaterial);
+                Object.DestroyImmediate(brainMaterial);
+                Object.DestroyImmediate(redCutMaterial);
+                Object.DestroyImmediate(blueCutMaterial);
+                Object.DestroyImmediate(windowMaterial);
+                Object.DestroyImmediate(timelineMaterial);
+                Object.DestroyImmediate(cameraObject);
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+            }
+
+            GameObject CreatePanel(string name, Color color, int order, Material material)
+            {
+                var root = new GameObject(name, typeof(RectTransform), typeof(Canvas));
+                root.transform.position = Vector3.back;
+                var canvas = root.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.WorldSpace;
+                canvas.worldCamera = camera;
+                canvas.sortingOrder = order;
+                var image = new GameObject("Image", typeof(Image)).GetComponent<Image>();
+                image.transform.SetParent(root.transform, false);
+                image.rectTransform.sizeDelta = Vector2.one;
+                image.color = color;
+                image.material = material;
+                return root;
+            }
+
+            Color RenderCenterPixel() => RenderPixel(64);
+
+            Color RenderPixel(int x)
+            {
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = target;
+                readback.ReadPixels(new Rect(x, 64, 1, 1), 0, 0);
+                return readback.GetPixel(0, 0);
+            }
+        }
+
         [Test]
         public void DropdownsAcrossQuestPrefabsUseTheSharedSlimDesktopScrollbarStyle()
         {

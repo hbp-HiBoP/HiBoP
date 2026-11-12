@@ -319,7 +319,7 @@ namespace HBP.Quest
             bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
-            Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback, IsLoadingOverlay(data.pointerCurrentRaycast));
+            Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -472,9 +472,9 @@ namespace HBP.Quest
             return nearest;
         }
 
-        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool showReticle = true, bool foreground = false)
+        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool showReticle = true)
         {
-            bool overlay = foreground && overlayFeedbackMaterial != null;
+            bool overlay = visible && overlayFeedbackMaterial != null;
             if (line != null)
             {
                 SetFeedbackOverlay(line, overlay);

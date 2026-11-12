@@ -25,8 +25,10 @@ namespace HBP.Quest
         private void Configure(GameObject popup)
         {
             var source = GetComponentInParent<Canvas>();
+            var routing = source != null ? source.GetComponent<QuestCanvasRenderQueue>() : null;
             foreach (var canvas in popup.GetComponentsInChildren<Canvas>(true))
             {
+                if (routing != null) routing.CopyTo(canvas);
                 canvas.worldCamera = source != null ? source.worldCamera : null;
                 if (canvas.GetComponent<TrackedDeviceRaycaster>() == null) canvas.gameObject.AddComponent<TrackedDeviceRaycaster>();
                 var mouseRaycaster = canvas.GetComponent<GraphicRaycaster>();

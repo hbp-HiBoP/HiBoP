@@ -45,6 +45,12 @@ Transient dialogs keep their separate following behavior. Tests that instantiate
 a manager must isolate `QuestWindowLayoutStore.DefaultPath` and explicitly
 initialize the workspace when no real worn headset is present.
 
+Interaction brings the managed window and its popup/tooltip canvases to the top
+of the window stack. Windows compare their actual depth with the 3D scene and
+the timeline under each column.
+The selected-site ring, loading, dialogs and the visible pointer are drawn over
+the scene in that order.
+
 Quest signal graphs reuse the shared scientific graph widgets inside
 `QuestSignalGraphView`; the color picker also reuses `DefaultColor` swatches.
 These are intentional shared UI components, not Desktop window implementations.
@@ -99,9 +105,8 @@ sphere still has only position and radius. Joining/releasing reanchors without
 snapping; there is no resize mode. New Quest spheres have a 20 mm radius and start
 at the first hit from the headset toward the selected displayed brain's center,
 using that column's ray target and converting back through its scientific frame.
-If no surface hit is available, use the brain center. Cage renderers draw above
-ordinary windows, below loading/dialog overlays, retaining scientific depth
-occlusion. The universal pointer arbitrates
+If no surface hit is available, use the brain center. Cage renderers share scene
+depth with the scientific surfaces and ordinary windows. The universal pointer arbitrates
 cuts/ROI by contact distance, preferring ROI on equal contact, and freezes the
 scene/column/ROI/sphere throughout capture. Copies in other columns share one
 sphere lock. Scientific-input gestures reserve the existing sensitive-operation

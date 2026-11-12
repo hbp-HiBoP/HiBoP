@@ -110,7 +110,8 @@ namespace HBP.Tests.Rendering
             Assert.That(ShaderUtil.GetShaderMessages(shader, ShaderCompilerPlatform.Metal), Is.Empty);
             StringAssert.Contains("_HBPEdgeOpaqueData", source);
             StringAssert.Contains("_HBPEdgeTransparentMask", source);
-            StringAssert.Contains("DepthCurvature", source);
+            StringAssert.Contains("HBP_OpaqueEdge", source);
+            StringAssert.Contains("DepthCurvature", File.ReadAllText("Assets/Shaders/HBP/Includes/HBPDepthNormalEdges.hlsl"));
             StringAssert.DoesNotContain("RelativeDepthDifference", source);
             StringAssert.DoesNotContain("SampleSceneDepth", source);
             StringAssert.DoesNotContain("SampleSceneNormals", source);
@@ -375,6 +376,80 @@ namespace HBP.Tests.Rendering
                 Object.DestroyImmediate(brain);
                 Object.DestroyImmediate(opaqueObject);
                 Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestEdges_AppearAtTheirSurfaceDepthAndBelowOverlays(bool transparent)
+        {
+            var previousPipeline = QualitySettings.renderPipeline;
+            var previousActive = RenderTexture.active;
+            GameObject cameraObject = new("Quest contours camera", typeof(Camera), typeof(HBPEdgeCameraSettings));
+            GameObject brain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            GameObject panel = new("Quest contours panel", typeof(RectTransform), typeof(Canvas), typeof(UnityEngine.UI.Image));
+            Material brainMaterial = new(AssetDatabase.LoadAssetAtPath<Shader>(transparent ? BrainTransparentShaderPath : BrainShaderPath));
+            Material windowMaterial = new(UnityEngine.UI.Graphic.defaultGraphicMaterial) { renderQueue = HBPEdgeRendererFeature.QuestWindowRenderQueue };
+            RenderTexture target = new(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(128, 128));
+            Texture2D readback = new(128, 128, TextureFormat.RGBA32, false, false);
+            Camera camera = cameraObject.GetComponent<Camera>();
+            var edges = cameraObject.GetComponent<HBPEdgeCameraSettings>();
+            try
+            {
+                QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset");
+                camera.targetTexture = target;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.gray;
+                camera.orthographic = true;
+                camera.orthographicSize = 1;
+                camera.transform.position = Vector3.back * 3;
+                brainMaterial.SetColor("_Color", new Color(1, .7f, .3f, transparent ? .5f : 1));
+                brain.GetComponent<Renderer>().sharedMaterial = brainMaterial;
+
+                panel.transform.position = Vector3.back;
+                ((RectTransform)panel.transform).sizeDelta = new Vector2(1.5f, 1.5f);
+                var canvas = panel.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.WorldSpace;
+                canvas.worldCamera = camera;
+                canvas.sortingOrder = 10;
+                panel.GetComponent<UnityEngine.UI.Image>().color = Color.green;
+                panel.GetComponent<UnityEngine.UI.Image>().material = windowMaterial;
+
+                panel.SetActive(false);
+                edges.EdgesEnabled = false;
+                var plain = RenderPixels(camera, target, readback);
+                edges.EdgesEnabled = true;
+                var outlined = RenderPixels(camera, target, readback);
+                Assert.That(CountChangedPixels(plain, outlined, 4), Is.GreaterThan(30));
+
+                panel.SetActive(true);
+                Canvas.ForceUpdateCanvases();
+                outlined = RenderPixels(camera, target, readback);
+                edges.EdgesEnabled = false;
+                plain = RenderPixels(camera, target, readback);
+                Assert.That(CountChangedPixels(plain, outlined, 4), Is.Zero, "a closer panel masks the contours");
+
+                panel.transform.position = Vector3.forward;
+                canvas.sortingOrder = 31000;
+                panel.GetComponent<UnityEngine.UI.Image>().material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Prefabs/Quest/UI/Materials/Quest Loading Overlay.mat");
+                Canvas.ForceUpdateCanvases();
+                plain = RenderPixels(camera, target, readback);
+                edges.EdgesEnabled = true;
+                outlined = RenderPixels(camera, target, readback);
+                Assert.That(CountChangedPixels(plain, outlined, 4), Is.Zero, "the overlay covers contours even at a greater depth");
+            }
+            finally
+            {
+                camera.targetTexture = null;
+                QualitySettings.renderPipeline = previousPipeline;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(panel);
+                Object.DestroyImmediate(brain);
+                Object.DestroyImmediate(brainMaterial);
+                Object.DestroyImmediate(windowMaterial);
+                Object.DestroyImmediate(cameraObject);
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
             }
         }
 

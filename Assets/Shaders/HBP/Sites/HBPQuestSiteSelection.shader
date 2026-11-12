@@ -11,7 +11,7 @@ Shader "HBP/Quest/Site Selection"
         Pass
         {
             Tags { "LightMode" = "UniversalForward" }
-            Blend SrcAlpha OneMinusSrcAlpha
+            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
             Cull Off
             ZWrite Off
             ZTest Always

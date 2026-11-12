@@ -90,7 +90,7 @@ The default-on preferences are independent:
 
 ## Transparency, contours, sites and ROI
 
-Transparent brain surfaces use a dedicated `HBPTransparentBrainSurface` pass
+On Desktop, transparent brain surfaces use a dedicated `HBPTransparentBrainSurface` pass
 with `Cull Back` and `ZWrite On` into isolated color/depth targets. The
 `HBPEdgeRendererFeature` composites that surface against scene depth before
 ordinary transparents, even when Edges is disabled. Keep this composition when
@@ -101,6 +101,17 @@ opaque geometry, outer silhouette for transparent geometry. They do not alter
 scientific interiors and remain optional with stable apparent thickness.
 Exclude sites, ROI and interactive camera/cut markers from edge buffers while
 preserving the markers' normal depth occlusion.
+
+Quest composes brains, cuts, sites, cages and world-space scientific text against
+the resolved opaque scene depth for each eye. It peels the four nearest
+translucent fragment depths and blends the remaining fragments in draw order
+behind them. Edges follow their source depth before the final XR overlays.
+The timeline contributes its nearest visible canvas surface to scene depth
+composition. Managed windows retain their canvas stack and compare each
+fragment with the scene and timeline. Recompose the foreground scene over each
+window fragment so a selected window can cover a nearer window while geometry
+between them remains visible. Material render queues route both kinds of canvas
+to their respective passes.
 
 `HBPEdgeRendererFeature` owns Render Graph edges before post-processing. Keep
 settings/pass data isolated per camera; no last-camera global state. Preserve
