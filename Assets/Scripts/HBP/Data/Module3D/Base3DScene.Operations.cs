@@ -126,6 +126,14 @@ namespace HBP.Data.Module3D
             OnSharedStateChanged.Invoke();
         }
 
+        public void AlignTimelineGroup(Column3D target)
+        {
+            RequireColumn(target);
+            if (target.NavigationTimeline is not { Length: > 1 } source) return;
+            foreach (var timeline in GetTimelines(target, true))
+                timeline.AlignNavigation(source);
+        }
+
         private IEnumerable<BasicTimeline> GetTimelines(Column3D target, bool allOfSameType)
         {
             // Snapshot the group before callbacks can change the selected column or scene.

@@ -21,14 +21,13 @@ namespace HBP.UI.Toolbar
         public bool IsGlobal
         {
             get { return m_IsGlobal; }
-            set
-            {
-                m_IsGlobal = value;
-                if (m_IsGlobal)
-                {
-                    m_Toggle.onValueChanged.Invoke(m_Toggle.isOn);
-                }
-            }
+            set => SetGlobal(value, true);
+        }
+
+        internal void SetGlobal(bool value, bool applyImmediately)
+        {
+            m_IsGlobal = value;
+            if (value && applyImmediately) m_Toggle.onValueChanged.Invoke(m_Toggle.isOn);
         }
 
         #endregion
@@ -43,7 +42,7 @@ namespace HBP.UI.Toolbar
             m_Toggle.onValueChanged.AddListener(value =>
             {
                 if (ListenerLock) return;
-                SelectedScene.SetTimelinePlaying(SelectedColumn, value, IsGlobal);
+                SelectedScene.SetTimelinePlaying(SelectedColumn, value, TimelineToolbar.ResolveGlobal(SelectedScene, IsGlobal));
             });
         }
 

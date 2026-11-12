@@ -80,11 +80,24 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
-                if (hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
+                if (CapturedTimeline(hand.Data)?.Column?.Scene == scene || hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
             }
 
             if (cuts != null) cuts.CancelScene(scene);
             if (rois != null) rois.CancelScene(scene);
+        }
+
+        private static QuestTimeline CapturedTimeline(QuestPointerEventData data)
+        {
+            var target = data?.pointerDrag != null ? data.pointerDrag : data?.pointerPress;
+            return target != null ? target.GetComponentInParent<QuestTimeline>(true) : null;
+        }
+
+        private void OnTimelineScopeChanged(HBP.Data.Module3D.Base3DScene scene)
+        {
+            foreach (var hand in hands)
+                if (CapturedTimeline(hand.Data)?.Column?.Scene == scene)
+                    Cancel(hand);
         }
 
         public bool TryGetAnatomyPose(bool leftHand, QuestAnatomyManipulator target, out Pose pose, out bool distant)
@@ -99,6 +112,7 @@ namespace HBP.Quest
         {
             base.OnEnable();
             if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
+            if (anatomy != null) anatomy.OnTimelineScopeChanged.AddListener(OnTimelineScopeChanged);
             feedbackProperties = new MaterialPropertyBlock();
             feedbackDefaults.Clear();
             for (int i = 0; i < hands.Length; i++)
@@ -192,6 +206,7 @@ namespace HBP.Quest
 
             var capturedWindow = data.pointerDrag != null ? data.pointerDrag.GetComponentInParent<QuestWindow>() : data.pointerPress != null ? data.pointerPress.GetComponentInParent<QuestWindow>() : null;
             if (hand.Capture.Owner == QuestInteractionOwner.UI && capturedWindow != null && !capturedWindow.IsOpen) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.UI && CapturedTimeline(data) is { CanInteract: false }) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && !HasAnatomyTarget(hand.AnatomyTarget)) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && (cuts == null || !cuts.IsCaptured(index))) Cancel(hand);
             if (hand.Capture.Owner == QuestInteractionOwner.ROI && (rois == null || !rois.IsCaptured(index))) Cancel(hand);
@@ -564,6 +579,7 @@ namespace HBP.Quest
         protected override void OnDisable()
         {
             if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
+            if (anatomy != null) anatomy.OnTimelineScopeChanged.RemoveListener(OnTimelineScopeChanged);
             if (siteProbe != null) siteProbe.Cancel();
             foreach (var hand in hands)
             {

@@ -251,6 +251,7 @@ namespace HBP.Quest
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
             if (view != null) view.OnContextSelected.AddListener(OnContextSelected);
+            if (view != null) view.OnTimelineScopeChanged.AddListener(OnTimelineScopeChanged);
         }
 
         private void Start()
@@ -748,6 +749,7 @@ namespace HBP.Quest
                 if (entry.Replica == null)
                 {
                     entry.Replica = new QuestReplicaSession(presentation.Scene, entry.Binding);
+                    entry.Replica.SetTimelineScope(presentation.GlobalTimeline);
                     entry.Replica.OnActionReceived.AddListener(action => OnSceneAction(entry, action));
                 }
 
@@ -833,6 +835,12 @@ namespace HBP.Quest
             {
                 ActionStatus = error.Message;
             }
+        }
+
+        private void OnTimelineScopeChanged(HBP.Data.Module3D.Base3DScene scene)
+        {
+            if (view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared)
+                entry.Replica?.SetTimelineScope(presentation.GlobalTimeline);
         }
 
         private void OnSceneAction(Entry entry, SceneAction action)
@@ -1036,6 +1044,7 @@ namespace HBP.Quest
         {
             destroyed = true;
             if (view != null) view.OnContextSelected.RemoveListener(OnContextSelected);
+            if (view != null) view.OnTimelineScopeChanged.RemoveListener(OnTimelineScopeChanged);
             CloseSession();
             StopDisplayBatch();
             deliveries.Clear();

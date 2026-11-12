@@ -159,6 +159,23 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// </summary>
         public abstract SubTimeline CurrentSubtimeline { get; }
 
+        /// <summary>Align navigation in one explicit change, using the source playback phase.</summary>
+        public void AlignNavigation(BasicTimeline source)
+        {
+            if (Length < 2 || ReferenceEquals(this, source)) return;
+            int index = Mathf.Clamp(source.CurrentIndex, 0, Length - 1);
+            bool indexChanged = index != m_CurrentIndex;
+            bool changed = indexChanged || m_IsPlaying != source.IsPlaying || m_IsLooping != source.IsLooping || m_Step != source.Step;
+            m_CurrentIndex = index;
+            m_IsPlaying = source.IsPlaying;
+            m_IsLooping = source.IsLooping;
+            m_Step = source.Step;
+            m_CurrentIndexAnchorTime = source.m_CurrentIndexAnchorTime;
+            m_TimeSinceLastUpdate = source.m_TimeSinceLastUpdate;
+            if (changed) m_OnAnchorChanged?.Invoke(this, false);
+            if (indexChanged) OnUpdateCurrentIndex.Invoke();
+        }
+
         #endregion
 
         #region Events

@@ -31,14 +31,13 @@ namespace HBP.UI.Toolbar
         public bool IsGlobal
         {
             get { return m_IsGlobal; }
-            set
-            {
-                m_IsGlobal = value;
-                if (m_IsGlobal)
-                {
-                    m_InputField.onEndEdit.Invoke(m_InputField.text);
-                }
-            }
+            set => SetGlobal(value, true);
+        }
+
+        internal void SetGlobal(bool value, bool applyImmediately)
+        {
+            m_IsGlobal = value;
+            if (value && applyImmediately) m_InputField.onEndEdit.Invoke(m_InputField.text);
         }
 
         #endregion
@@ -53,18 +52,18 @@ namespace HBP.UI.Toolbar
             m_Minus.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-                SelectedScene.AdvanceTimeline(SelectedColumn, -1, IsGlobal);
+                SelectedScene.AdvanceTimeline(SelectedColumn, -1, TimelineToolbar.ResolveGlobal(SelectedScene, IsGlobal));
             });
             m_Plus.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
-                SelectedScene.AdvanceTimeline(SelectedColumn, 1, IsGlobal);
+                SelectedScene.AdvanceTimeline(SelectedColumn, 1, TimelineToolbar.ResolveGlobal(SelectedScene, IsGlobal));
             });
             m_InputField.onEndEdit.AddListener(value =>
             {
                 if (ListenerLock) return;
                 int step = int.TryParse(value, out int parsed) ? parsed : 1;
-                SelectedScene.SetTimelineStep(SelectedColumn, step, IsGlobal);
+                SelectedScene.SetTimelineStep(SelectedColumn, step, TimelineToolbar.ResolveGlobal(SelectedScene, IsGlobal));
                 m_InputField.text = (SelectedColumn.NavigationTimeline?.Step ?? 1).ToString();
             });
         }

@@ -12,6 +12,8 @@ namespace HBP.Quest
     public sealed class QuestTextInputField : InputField
     {
         private string originalText;
+        [SerializeField] private string unsupportedKeyboardMessage = "The system keyboard is unavailable. Create new labels on Desktop.";
+        public bool IsEditing => isFocused || m_Keyboard != null;
         public event Action<string> KeyboardError;
         private static bool UsesSystemKeyboard => Application.platform == RuntimePlatform.Android;
 
@@ -76,7 +78,7 @@ namespace HBP.Quest
             if (!TouchScreenKeyboard.isSupported)
             {
                 Debug.LogWarning("[QuestTextInputField] System keyboard is unsupported on " + SystemInfo.deviceModel, this);
-                KeyboardError?.Invoke("The system keyboard is unavailable. Create new labels on Desktop.");
+                KeyboardError?.Invoke(unsupportedKeyboardMessage);
                 return;
             }
 

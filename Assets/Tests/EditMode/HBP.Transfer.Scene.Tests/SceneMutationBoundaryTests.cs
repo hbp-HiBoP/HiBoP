@@ -332,6 +332,27 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void TimelineAlignmentPublishesOneCompleteAnchorAndClampsShorterTimelines()
+        {
+            var reference = new TestTimeline(100) { CurrentIndex = 51, IsPlaying = true, IsLooping = true, Step = 8 };
+            var target = new TestTimeline(20);
+            var column = new ColumnId("alignment-column");
+            using var boundary = new SceneMutationBoundary(Array.Empty<(SiteState, ColumnId, SiteId)>(), Array.Empty<(SceneCut, CutId)>(), new[] { ((BasicTimeline)target, column) }, OriginDevice.Quest);
+            var proposals = new List<SetTimelineAnchor>();
+            boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add((SetTimelineAnchor)mutation));
+
+            target.AlignNavigation(reference);
+            target.AlignNavigation(reference);
+
+            var anchor = proposals.Single();
+            Assert.That(anchor.ColumnId, Is.EqualTo(column));
+            Assert.That(anchor.Index, Is.EqualTo(19));
+            Assert.That(anchor.Playing && anchor.Looping, Is.True);
+            Assert.That(anchor.Step, Is.EqualTo(8));
+            Assert.That(target.CurrentIndexAnchorTime, Is.EqualTo(reference.CurrentIndexAnchorTime));
+        }
+
+        [Test]
         public void AtlasValidator_DisposingOneBoundaryPreservesTheOtherOwner()
         {
             using var fixture = new BoundSceneFixture();

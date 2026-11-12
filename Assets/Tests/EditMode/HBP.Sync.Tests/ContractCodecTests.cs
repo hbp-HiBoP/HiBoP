@@ -11,6 +11,23 @@ namespace HBP.Sync.Tests
     [Category(SyncTestCategories.Fast)]
     public class ContractCodecTests
     {
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TimelineScopeControl_RoundTripsAndFencesSceneIncarnations(bool global)
+        {
+            var scene = new SceneId(GuidFor(1));
+            var incarnation = new IncarnationId(GuidFor(2));
+            byte[] payload = new TimelineScopeControl(scene, incarnation, global).Encode();
+            Assert.That(TimelineScopeControl.TryDecode(payload, out var decoded), Is.True);
+            Assert.That(decoded.Global, Is.EqualTo(global));
+            Assert.That(decoded.Matches(scene, incarnation), Is.True);
+            Assert.That(decoded.Matches(scene, new IncarnationId(GuidFor(3))), Is.False);
+            Assert.That(decoded.Matches(new SceneId(GuidFor(4)), incarnation), Is.False);
+            payload[payload.Length - 1] = 2;
+            Assert.Throws<InvalidDataException>(() => TimelineScopeControl.TryDecode(payload, out _));
+            Assert.That(TimelineScopeControl.TryDecode(Array.Empty<byte>(), out _), Is.False);
+        }
+
         [Test]
         public void Identities_RejectEmptyOversizeAndMalformedValues()
         {

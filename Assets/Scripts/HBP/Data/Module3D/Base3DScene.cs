@@ -638,6 +638,8 @@ namespace HBP.Data.Module3D
         public bool AutomaticRecomputeEnabled => m_CoordinatedAutomaticRecomputePolicy ?? Core.Preferences.PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate;
 
         public ActivityProjectionState ProjectionState => m_ProjectionState;
+
+        public bool HasSurfaceActivityProjection => IsGeneratorUpToDate && ProjectionState == ActivityProjectionState.Ready && CanProjectActivityOnCurrentSurface();
         public ulong ProjectionGeneration => m_ProjectionGeneration;
         public ulong ActivityInputGeneration => m_ActivityInputGeneration;
         public bool ExplicitProjectionRequestPending => m_ExplicitProjectionRequestPending;

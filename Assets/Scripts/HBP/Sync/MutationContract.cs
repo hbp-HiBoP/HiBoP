@@ -319,6 +319,7 @@ namespace HBP.Sync
 
     public sealed class SetTimelineAnchor : Mutation
     {
+        public const int MaximumStep = 1000000;
         public ColumnId ColumnId { get; }
         public int Index { get; }
         public bool Playing { get; }
@@ -338,7 +339,7 @@ namespace HBP.Sync
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             if (index < 0)
                 throw new ArgumentOutOfRangeException(nameof(index));
-            if (step < 1 || step > 1000000)
+            if (step < 1 || step > MaximumStep)
                 throw new ArgumentOutOfRangeException(nameof(step));
             if (monotonicAnchorTicks < 0)
                 throw new ArgumentOutOfRangeException(nameof(monotonicAnchorTicks));

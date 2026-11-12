@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HBP.Data.Module3D;
+using HBP.Core.Tools;
+using HBP.Sync.Scene;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -44,10 +46,41 @@ namespace HBP.Quest
         public sealed partial class Presentation
         {
             public QuestColumnDisplayMode DisplayMode { get; internal set; }
+            public bool ShowTimeline { get; internal set; } = true;
+            public bool LinkTimelines { get; internal set; }
+            public bool GlobalTimeline => DisplayMode == QuestColumnDisplayMode.Single || LinkTimelines;
             public bool IsTransitioning => transition != null;
             internal ColumnTransition transition;
             internal ColumnPose commonPose;
             internal QuestColumnPresentation displayed;
+        }
+
+        public GenericEvent<Base3DScene> OnTimelineScopeChanged { get; } = new();
+
+        public void SetTimelineVisibility(Base3DScene scene, bool visible)
+        {
+            if (Find(scene) is not { } owner || owner.ShowTimeline == visible) return;
+            owner.ShowTimeline = visible;
+            foreach (var column in owner.columns) column.RefreshTimeline(Camera.main);
+        }
+
+        internal bool CanUseTimeline(QuestColumnPresentation column) => CanInteractWithColumn(column) && column.HasTimeline && !column.Scene.IsActivityProjectionBusy && SceneReconciliationRecord.Get(column.Scene)?.Status is not (ReconciliationStatus.Reconciling or ReconciliationStatus.OutOfSync);
+
+        internal void SetTimelineLink(QuestColumnPresentation source, bool linked)
+        {
+            if (!CanUseTimeline(source) || Find(source.Scene) is not { DisplayMode: QuestColumnDisplayMode.Split } owner || owner.LinkTimelines == linked) return;
+            owner.LinkTimelines = linked;
+            if (linked)
+            {
+                var eligible = owner.Scene.Columns.Where(column => column.NavigationTimeline is { Length: > 1 });
+                foreach (var group in eligible.GroupBy(column => column.GetType()))
+                {
+                    var reference = group.Contains(source.Column) ? source.Column : group.Contains(owner.Scene.SelectedColumn) ? owner.Scene.SelectedColumn : group.First();
+                    owner.Scene.AlignTimelineGroup(reference);
+                }
+            }
+
+            OnTimelineScopeChanged.Invoke(owner.Scene);
         }
 
         private static QuestColumnPresentation SelectedPresentation(Presentation value) => value.columns.FirstOrDefault(column => column.Column == value.Scene.SelectedColumn) ?? value.columns.FirstOrDefault();
@@ -116,6 +149,10 @@ namespace HBP.Quest
                 for (int i = 0; i < from.Length; i++)
                     from[i] = owner.commonPose;
             owner.DisplayMode = mode;
+            owner.LinkTimelines = false;
+            if (mode == QuestColumnDisplayMode.Single && owner.displayed.HasProjectedTimeline)
+                scene.AlignTimelineGroup(owner.displayed.Column);
+            OnTimelineScopeChanged.Invoke(scene);
             var to = mode == QuestColumnDisplayMode.Split ? SplitPoses(owner, owner.commonPose, camera != null ? camera.transform.position : owner.commonPose.Position - Vector3.forward) : Enumerable.Repeat(owner.commonPose, from.Length).ToArray();
             owner.transition = new ColumnTransition { From = from, To = to };
             AdvanceTransition(owner, 0);
@@ -165,6 +202,8 @@ namespace HBP.Quest
             value.displayed = SelectedPresentation(value);
             if (previous == null) return;
             value.DisplayMode = previous.DisplayMode;
+            value.ShowTimeline = previous.ShowTimeline;
+            value.LinkTimelines = previous.LinkTimelines;
             value.commonPose = previous.DisplayMode == QuestColumnDisplayMode.Single && previous.displayed != null ? ColumnPose.Read(previous.displayed.transform) : previous.commonPose;
             if (!value.IsPlaced) return;
             if (value.DisplayMode == QuestColumnDisplayMode.Single)

@@ -185,6 +185,134 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public void TimelineVisibilityIsPerVisualizationAndRequiresProjectedNavigableActivity()
+        {
+            using var first = new Fixture(dynamicFirst: true);
+            using var second = new Fixture(dynamicFirst: true);
+            var headset = new GameObject("Timeline headset", typeof(Camera));
+            headset.tag = "MainCamera";
+            try
+            {
+                first.View.CompletePlacement(first.Presentation);
+                second.View.CompletePlacement(second.Presentation);
+                var firstTimeline = first.TimelineView(0);
+                var secondTimeline = second.TimelineView(0);
+                first.SetProjection(ActivityProjectionState.Computing);
+                first.RefreshTimeline(0, headset.GetComponent<Camera>());
+                Assert.That(firstTimeline.gameObject.activeSelf, Is.False);
+
+                first.SetProjection(ActivityProjectionState.Ready);
+                second.SetProjection(ActivityProjectionState.Ready);
+                first.RefreshTimeline(0, headset.GetComponent<Camera>());
+                second.RefreshTimeline(0, headset.GetComponent<Camera>());
+                Assert.That(firstTimeline.gameObject.activeSelf && secondTimeline.gameObject.activeSelf, Is.True);
+                Assert.That(firstTimeline.transform.position.y, Is.LessThan(first.Columns[0].Manipulator.GrabCenter.y));
+                first.View.SetTimelineVisibility(first.Scene, false);
+                Assert.That(firstTimeline.gameObject.activeSelf, Is.False);
+                Assert.That(secondTimeline.gameObject.activeSelf, Is.True);
+                second.Restore(first.Presentation);
+                Assert.That(second.Presentation.ShowTimeline, Is.False);
+                second.View.SetTimelineVisibility(second.Scene, true);
+                second.SetProjection(ActivityProjectionState.Absent);
+                second.RefreshTimeline(0, headset.GetComponent<Camera>());
+                Assert.That(secondTimeline.gameObject.activeSelf, Is.False);
+                second.SetProjection(ActivityProjectionState.Ready);
+                typeof(BasicTimeline).GetProperty("Length").SetValue(second.Columns[0].Column.NavigationTimeline, 1);
+                second.RefreshTimeline(0, headset.GetComponent<Camera>());
+                Assert.That(secondTimeline.gameObject.activeSelf, Is.False, "A series with one sample has no navigation.");
+
+                first.View.SetTimelineVisibility(first.Scene, true);
+                first.View.SetColumnDisplayMode(first.Scene, QuestColumnDisplayMode.Split);
+                first.Advance(1);
+                first.RefreshTimeline(1, headset.GetComponent<Camera>());
+                Assert.That(first.TimelineView(1).gameObject.activeSelf, Is.False, "An anatomical column has no navigation timeline.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(headset);
+            }
+        }
+
+        [Test]
+        public void TimelineControlsSeekLinkAndAlignWhenReturningToSingle()
+        {
+            using var f = new Fixture(dynamicFirst: true, dynamicSecond: true);
+            var headset = new GameObject("Timeline headset", typeof(Camera));
+            try
+            {
+                var camera = headset.GetComponent<Camera>();
+                f.View.CompletePlacement(f.Presentation);
+                f.SetProjection(ActivityProjectionState.Ready);
+                f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split);
+                f.Advance(1);
+                f.RefreshTimeline(0, camera);
+                f.RefreshTimeline(1, camera);
+                var timeline = f.TimelineView(0);
+                var fields = new SerializedObject(timeline);
+                var play = (Toggle)fields.FindProperty("play").objectReferenceValue;
+                var loop = (Toggle)fields.FindProperty("loop").objectReferenceValue;
+                var link = (Toggle)fields.FindProperty("link").objectReferenceValue;
+                var step = (QuestTextInputField)fields.FindProperty("step").objectReferenceValue;
+                var plus = (Button)fields.FindProperty("plus").objectReferenceValue;
+                var track = (QuestTimelineTrack)fields.FindProperty("track").objectReferenceValue;
+                var segment = ((RectTransform)fields.FindProperty("segments").objectReferenceValue).GetChild(0);
+                var markers = segment.GetComponentsInChildren<QuestTimelineMarker>();
+                Assert.That(markers.Select(marker => marker.name), Is.EquivalentTo(new[] { "Main Event(Clone)", "Secondary Event(Clone)" }));
+                var main = markers.Single(marker => marker.name.StartsWith("Main", StringComparison.Ordinal));
+                var secondary = markers.Single(marker => marker.name.StartsWith("Secondary", StringComparison.Ordinal));
+                Assert.That(((RectTransform)secondary.transform).anchorMin.x, Is.EqualTo(.5f).Within(.01f));
+                var tooltip = (Text)fields.FindProperty("eventTooltip").objectReferenceValue;
+                var hover = new QuestPointerEventData(null) { pointerId = -10 };
+                main.OnPointerEnter(hover);
+                Assert.That(tooltip.text, Is.EqualTo("event | 0 ms"));
+                secondary.OnPointerEnter(hover);
+                Assert.That(tooltip.text, Is.EqualTo("response | 1500 ms | 75%"));
+                secondary.OnPointerExit(hover);
+                var source = f.Columns[0].Column.NavigationTimeline;
+                var other = f.Columns[1].Column.NavigationTimeline;
+                step.onEndEdit.Invoke("3");
+                plus.onClick.Invoke();
+                loop.isOn = true;
+                play.isOn = true;
+                Assert.That(source.CurrentIndex, Is.EqualTo(3));
+                Assert.That(other.CurrentIndex, Is.Zero);
+
+                link.isOn = true;
+                Assert.That(f.Presentation.GlobalTimeline, Is.True);
+                Assert.That(other.CurrentIndex, Is.EqualTo(3));
+                Assert.That(other.IsPlaying && other.IsLooping, Is.True);
+                Assert.That(other.Step, Is.EqualTo(3));
+                f.RefreshTimeline(0, camera);
+                var activated = AssetDatabase.LoadAssetAtPath<HBP.Theme.ColorBlock>("Assets/Resources/Themes/Quest/Settings/Toolbar Activated Colors.asset");
+                Assert.That(link.colors.normalColor, Is.EqualTo(activated.NormalColor));
+                Assert.That(play.colors.normalColor, Is.EqualTo(activated.NormalColor));
+                Assert.That(loop.colors.normalColor, Is.EqualTo(activated.NormalColor));
+                Canvas.ForceUpdateCanvases();
+                var rail = (RectTransform)track.handleRect.parent;
+                var pointer = new QuestPointerEventData(null) { pointerId = -10 };
+                pointer.Ray = new Ray(rail.TransformPoint(new Vector3(rail.rect.center.x, 0, 0)) - rail.forward, rail.forward);
+                track.OnPointerDown(pointer);
+                Assert.That(source.CurrentIndex, Is.EqualTo(Mathf.RoundToInt((source.Length - 1) * .5f)));
+                Assert.That(other.CurrentIndex, Is.EqualTo(source.CurrentIndex));
+
+                f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Single);
+                pointer.Ray = new Ray(rail.TransformPoint(new Vector3(rail.rect.xMax + 20, 0, 0)) - rail.forward, rail.forward);
+                track.OnDrag(pointer);
+                Assert.That(source.CurrentIndex, Is.LessThan(source.Length - 1));
+                f.Advance(1);
+                f.RefreshTimeline(0, camera);
+                f.RefreshTimeline(1, camera);
+                Assert.That(link.gameObject.activeSelf || f.TimelineView(1).gameObject.activeSelf, Is.False);
+                f.View.SetColumnDisplayMode(f.Scene, QuestColumnDisplayMode.Split);
+                Assert.That(f.Presentation.GlobalTimeline, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(headset);
+            }
+        }
+
+        [Test]
         public async Task SplitFinishesWithTimeScaleZero()
         {
             using var f = new Fixture();
@@ -327,7 +455,7 @@ namespace HBP.Tests.Quest
             public readonly QuestAnatomyView.Presentation Presentation;
             public readonly QuestColumnPresentation[] Columns = new QuestColumnPresentation[2];
 
-            public Fixture(bool dynamicFirst = false)
+            public Fixture(bool dynamicFirst = false, bool dynamicSecond = false)
             {
                 data.SetActive(false);
                 View = data.AddComponent<QuestAnatomyView>();
@@ -345,13 +473,27 @@ namespace HBP.Tests.Quest
                     source.transform.SetParent(data.transform, false);
                     Column3D column;
                     Column model;
-                    if (i == 0 && dynamicFirst)
+                    if (i == 0 ? dynamicFirst : dynamicSecond)
                     {
                         column = source.AddComponent<Column3DIEEG>();
                         var ev = new HBP.Core.Data.Event("event", new[] { 1 }, MainSecondaryEnum.Main);
-                        var sub = new SubBloc("sub", 0, MainSecondaryEnum.Main, new TimeWindow(0, 3000), new TimeWindow(0, 0), new[] { ev }, Array.Empty<Icon>(), Array.Empty<Treatment>());
+                        var secondary = new HBP.Core.Data.Event("response", new[] { 2 }, MainSecondaryEnum.Secondary);
+                        var sub = new SubBloc("sub", 0, MainSecondaryEnum.Main, new TimeWindow(0, 3000), new TimeWindow(0, 0), new[] { ev, secondary }, Array.Empty<Icon>(), Array.Empty<Treatment>());
                         var bloc = new Bloc("bloc", 0, "", "sub_event_CODE", new[] { sub });
-                        var stats = new Dictionary<SubBloc, List<SubBlocEventsStatistics>> { [sub] = new() { new SubBlocEventsStatistics { StatisticsByEvent = new() { [ev] = new EventStatistics() } } } };
+                        var stats = new Dictionary<SubBloc, List<SubBlocEventsStatistics>>
+                        {
+                            [sub] = new()
+                            {
+                                new SubBlocEventsStatistics
+                                {
+                                    StatisticsByEvent = new()
+                                    {
+                                        [ev] = new EventStatistics { NumberOfOccurences = 1, NumberOfOccurenceBySubTrial = 1 },
+                                        [secondary] = new EventStatistics { NumberOfOccurences = 1, NumberOfOccurenceBySubTrial = .75f, RoundedTimeFromStart = 1500, TimeFromStart = 1500 }
+                                    }
+                                }
+                            }
+                        };
                         var ieeg = new IEEGColumn { Name = "Dynamic", Bloc = bloc };
                         ieeg.Data.Timeline = ieeg.Data.ProjectionTimeline = new Timeline(bloc, stats, new Dictionary<SubBloc, int> { [sub] = 0 }, new Frequency(100));
                         model = ieeg;
@@ -367,6 +509,7 @@ namespace HBP.Tests.Quest
                     brain.transform.SetParent(source.transform, false);
                     brain.GetComponent<MeshFilter>().sharedMesh = Mesh;
                     typeof(Column3D).GetProperty("BrainMesh").SetValue(column, brain);
+                    typeof(QuestColumnPresentation).GetMethod("BindTimeline", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(presentation, new object[] { View, Presentation });
                     presentation.Bind(Scene, column);
                     Scene.Columns.Add(column);
                     column.OnSelect.AddListener(() =>
@@ -391,6 +534,15 @@ namespace HBP.Tests.Quest
             public void Tick() => typeof(QuestAnatomyView).GetMethod("LateUpdate", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(View, null);
             public void Advance(float delta) => typeof(QuestAnatomyView).GetMethod("AdvanceTransition", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { Presentation, delta });
             public void Restore(QuestAnatomyView.Presentation previous) => typeof(QuestAnatomyView).GetMethod("RestorePresentation", BindingFlags.NonPublic | BindingFlags.Static).Invoke(null, new object[] { Presentation, previous });
+            public QuestTimeline TimelineView(int index) => Columns[index].GetComponentInChildren<QuestTimeline>(true);
+            public void RefreshTimeline(int index, Camera camera) => typeof(QuestColumnPresentation).GetMethod("RefreshTimeline", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(Columns[index], new object[] { camera });
+
+            public void SetProjection(ActivityProjectionState state)
+            {
+                Scene.AllowCurrentSurfaceProjection();
+                typeof(Base3DScene).GetField("m_ProjectionState", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(Scene, state);
+                typeof(Base3DScene).GetField("m_IsGeneratorUpToDate", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(Scene, state == ActivityProjectionState.Ready);
+            }
 
             public void Dispose()
             {

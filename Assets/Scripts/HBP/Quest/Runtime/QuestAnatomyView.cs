@@ -126,6 +126,7 @@ namespace HBP.Quest
                 {
                     var item = Instantiate(columnPrefab, transform, false);
                     value.columns.Add(item);
+                    item.BindTimeline(this, value);
                     item.Bind(value.Scene, column);
                 }
 
@@ -176,6 +177,7 @@ namespace HBP.Quest
                     var item = Instantiate(columnPrefab, transform, false);
                     item.gameObject.SetActive(false);
                     presentation.columns.Add(item);
+                    item.BindTimeline(this, presentation);
                     item.Bind(candidate.Scene, column);
                 }
 

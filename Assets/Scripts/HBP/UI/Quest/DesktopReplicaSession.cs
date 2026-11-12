@@ -68,6 +68,8 @@ namespace HBP.Quest.Desktop
         private OperationId m_InitialDisplayPolicy;
         private bool m_InitialProjectionFailed;
         public bool IsInitialRenderingReady { get; private set; }
+        public bool? QuestTimelineGlobal { get; private set; }
+        private volatile bool m_TimelineScopeAdvertised;
         private readonly JobGenerationRegistry m_SiteFilterGenerations = new JobGenerationRegistry();
         private readonly JobGenerationRegistry m_CorrelationGenerations = new JobGenerationRegistry();
         private readonly JobGenerationRegistry m_ActivityProjectionGenerations = new JobGenerationRegistry();
@@ -304,6 +306,14 @@ namespace HBP.Quest.Desktop
 
             await UniTask.SwitchToMainThread(stop);
             m_InitialDisplayPolicy = PublishActivityProjectionPolicy();
+            AdvertiseTimelineScope();
+        }
+
+        private void AdvertiseTimelineScope()
+        {
+            m_TimelineScopeAdvertised = true;
+            var capability = new SceneAction(m_Identity.SceneId, m_Identity.IncarnationId, SceneActionKind.Result, column: TimelineScopeControl.Capability);
+            m_Transport.EnqueueSessionControl(capability.Encode(), DeliveryReliability.Reliable);
         }
 
         public async Task WaitInitialRenderingAsync(CancellationToken stop)
@@ -482,6 +492,15 @@ namespace HBP.Quest.Desktop
             byte[] payload = record.GetPayloadCopy();
             if (record.Lane == ScheduleLane.SessionControl)
             {
+                if (TimelineScopeControl.TryDecode(payload, out var scope))
+                {
+                    if (!record.SessionId.Equals(m_Identity.SessionId) || record.OriginDevice != OriginDevice.Quest || !scope.Matches(m_Identity.SceneId, m_Identity.IncarnationId))
+                        throw new InvalidDataException("Wrong timeline scope incarnation.");
+                    await UniTask.SwitchToMainThread(stop);
+                    if (m_TimelineScopeAdvertised && IsLive) QuestTimelineGlobal = scope.Global;
+                    return;
+                }
+
                 if (SignalWire.IsControl(payload))
                 {
                     await UniTask.SwitchToMainThread(stop);
@@ -1450,6 +1469,7 @@ namespace HBP.Quest.Desktop
                 if (m_Transport.IsConnectionReady && !connection.IsCompleted)
                 {
                     m_ConnectionLifetime.CancelAfter(Timeout.InfiniteTimeSpan);
+                    if (IsLive) AdvertiseTimelineScope();
                     return connection;
                 }
 

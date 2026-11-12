@@ -15,6 +15,8 @@ namespace HBP.UI.Toolbar
         /// </summary>
         [SerializeField] private Toggle m_Toggle;
 
+        private bool? m_LastQuestGlobal;
+
         #endregion
 
         #region Events
@@ -35,7 +37,7 @@ namespace HBP.UI.Toolbar
         {
             m_Toggle.onValueChanged.AddListener((isOn) =>
             {
-                if (ListenerLock) return;
+                if (ListenerLock || TimelineToolbar.QuestGlobal(SelectedScene).HasValue) return;
 
                 OnChangeValue.Invoke(isOn);
             });
@@ -46,6 +48,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void DefaultState()
         {
+            m_LastQuestGlobal = TimelineToolbar.QuestGlobal(SelectedScene);
             m_Toggle.interactable = false;
         }
 
@@ -57,7 +60,8 @@ namespace HBP.UI.Toolbar
             bool isColumnDynamicOrFMRI = SelectedColumn?.NavigationTimeline != null;
             bool areAmplitudesComputed = SelectedScene.IsGeneratorUpToDate;
 
-            m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed;
+            m_LastQuestGlobal = TimelineToolbar.QuestGlobal(SelectedScene);
+            m_Toggle.interactable = isColumnDynamicOrFMRI && areAmplitudesComputed && !m_LastQuestGlobal.HasValue;
         }
 
         /// <summary>
@@ -65,7 +69,12 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateStatus()
         {
-            m_Toggle.isOn = GetComponentInParent<TimelineToolbar>(true).IsGlobal;
+            m_Toggle.SetIsOnWithoutNotify(m_LastQuestGlobal ?? GetComponentInParent<TimelineToolbar>(true).IsGlobal);
+        }
+
+        private void Update()
+        {
+            if (m_LastQuestGlobal != TimelineToolbar.QuestGlobal(SelectedScene)) UpdateTool();
         }
 
         #endregion

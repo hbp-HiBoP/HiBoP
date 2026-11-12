@@ -11,6 +11,9 @@ namespace HBP.Quest
         [SerializeField] private QuestAnatomyManipulator manipulator;
         [SerializeField] private MeshRenderer roiPrefab;
         [SerializeField] private QuestSiteSelectionRing selectionRing;
+        [SerializeField] private QuestTimeline timeline;
+        private QuestAnatomyView view;
+        private QuestAnatomyView.Presentation presentation;
         private Base3DScene scene;
         public Base3DScene Scene => scene;
         private readonly List<QuestROISphere> spheres = new();
@@ -18,6 +21,39 @@ namespace HBP.Quest
         public Transform ScientificFrame => scientificFrame;
         public Column3D Column { get; private set; }
         public QuestAnatomyManipulator Manipulator => manipulator;
+        internal bool HasProjectedTimeline => scene != null && !scene.IsClosing && Column?.NavigationTimeline is { Length: > 1 } && scene.HasSurfaceActivityProjection;
+        internal bool HasTimeline => presentation is { ShowTimeline: true, SurfaceHidden: false } && HasProjectedTimeline;
+
+        internal void BindTimeline(QuestAnatomyView owner, QuestAnatomyView.Presentation state)
+        {
+            view = owner;
+            presentation = state;
+            if (timeline != null) timeline.Bind(owner, state, this);
+        }
+
+        internal void RefreshTimeline(Camera camera)
+        {
+            if (timeline == null || view == null) return;
+            bool visible = camera != null && view.IsColumnPresented(this) && !presentation.IsTransitioning && HasTimeline && manipulator.SharedMesh != null;
+            if (visible) PlaceTimeline(camera.transform.position);
+            if (timeline.gameObject.activeSelf != visible) timeline.gameObject.SetActive(visible);
+            if (visible) timeline.Refresh(camera);
+        }
+
+        private void PlaceTimeline(Vector3 headPosition)
+        {
+            var mesh = manipulator.SharedMesh;
+            var frame = Column.BrainMesh.transform;
+            var rect = timeline.Rect;
+            var extents = mesh.bounds.extents;
+            float scale = Mathf.Abs(frame.lossyScale.x);
+            float height = Mathf.Abs(frame.TransformVector(Vector3.right * extents.x).y) + Mathf.Abs(frame.TransformVector(Vector3.up * extents.y).y) + Mathf.Abs(frame.TransformVector(Vector3.forward * extents.z).y);
+            float clearance = Mathf.Max(height, Mathf.Max(extents.x, extents.y, extents.z) * scale) + 10 * scale;
+            Vector3 position = frame.TransformPoint(mesh.bounds.center) - Vector3.up * (clearance + rect.rect.height * .5f * Mathf.Abs(rect.lossyScale.y));
+            Vector3 direction = position - headPosition;
+            rect.position = position;
+            if (direction.sqrMagnitude > .000001f) rect.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        }
 
         public void Bind(Base3DScene source, Column3D column)
         {
@@ -64,7 +100,14 @@ namespace HBP.Quest
             float diameter = mesh != null ? mesh.bounds.size.magnitude * .001f : .2f;
             if (label != null && label.havePropertiesChanged) label.ForceMeshUpdate(true);
             // Include the HoloLens title area above the anatomy in radial spacing.
-            return Mathf.Max(diameter + .11f, label != null ? label.textBounds.size.magnitude * .001f : .4f) * Mathf.Abs(scale);
+            float size = Mathf.Max(diameter + .11f, label != null ? label.textBounds.size.magnitude * .001f : .4f);
+            if (timeline != null && HasTimeline)
+            {
+                var rect = timeline.Rect;
+                size = Mathf.Max(size + rect.rect.height * Mathf.Abs(rect.localScale.y), rect.rect.width * Mathf.Abs(rect.localScale.x));
+            }
+
+            return size * Mathf.Abs(scale);
         }
 
         public void RefreshTitle(Vector3 headPosition)
@@ -100,12 +143,29 @@ namespace HBP.Quest
                     bounds.Encapsulate(matrix.MultiplyPoint3x4(textBounds.center + Vector3.Scale(textBounds.extents, new Vector3((i & 1) == 0 ? -1 : 1, (i & 2) == 0 ? -1 : 1, (i & 4) == 0 ? -1 : 1))));
             }
 
+            if (timeline != null && mesh != null && HasTimeline)
+            {
+                var rect = timeline.Rect;
+                PlaceTimeline(headPosition ?? rect.position - rect.forward);
+                Vector3 position = rect.position + translation;
+                Vector3 direction = position - (headPosition ?? position - rect.forward);
+                var rotation = direction.sqrMagnitude > .000001f ? Quaternion.LookRotation(direction, Vector3.up) : rect.rotation;
+                var matrix = Matrix4x4.TRS(position, rotation, rect.lossyScale);
+                var area = rect.rect;
+                bounds.Encapsulate(matrix.MultiplyPoint3x4(new Vector3(area.xMin, area.yMin)));
+                bounds.Encapsulate(matrix.MultiplyPoint3x4(new Vector3(area.xMin, area.yMax)));
+                bounds.Encapsulate(matrix.MultiplyPoint3x4(new Vector3(area.xMax, area.yMin)));
+                bounds.Encapsulate(matrix.MultiplyPoint3x4(new Vector3(area.xMax, area.yMax)));
+            }
+
             return bounds;
         }
 
         private void LateUpdate()
         {
-            if (Camera.main != null) RefreshTitle(Camera.main.transform.position);
+            var camera = Camera.main;
+            if (camera != null) RefreshTitle(camera.transform.position);
+            RefreshTimeline(camera);
             if (scene == null || scene.IsClosing) return;
             var selected = scene.ROIManager.SelectedROI;
             int count = selected == null ? 0 : selected.Spheres.Count;

@@ -54,6 +54,8 @@ namespace HBP.Quest.Desktop
         private float nextSceneAttempt;
         public bool AutomaticallySynchronizeScenes => autoSync;
         public bool IsSceneSynchronized(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && !entry.Removed && !entry.UserRetryRequired && !entry.HasPendingWork && entry.Binding != null && entry.Owner?.IsLive == true && entry.Owner.IsInitialRenderingReady && entry.Error == null;
+
+        internal bool? QuestTimelineGlobal(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && !entry.Removed && entry.Owner is { IsLive: true } owner ? owner.QuestTimelineGlobal : null;
         public string GetSceneSynchronizationError(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) ? entry.Error : null;
         public bool IsSceneRecoveryPending(Base3DScene scene) => scene != null && publications.TryGetValue(scene, out var entry) && entry.TransportRecoveryPending && !entry.Removed;
 

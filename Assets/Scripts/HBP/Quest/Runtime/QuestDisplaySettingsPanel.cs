@@ -22,6 +22,7 @@ namespace HBP.Quest
         [SerializeField] private Slider opacity, siteSize;
         [SerializeField] private Text siteSizeValue, status;
         [SerializeField] private Button projection, removeProjection;
+        [SerializeField] private Toggle showTimeline;
         [SerializeField] private Toggle marsAtlas, juBrain, ibc, difumo;
         [SerializeField] private Dropdown ibcContrast, difumoVersion, difumoContrast;
         [SerializeField] private GameObject ibcParameters, difumoParameters, localizerNotice, statusMessage;
@@ -61,6 +62,12 @@ namespace HBP.Quest
                 if (Ready) view.RecalculateProjection();
             });
             removeProjection.onClick.AddListener(() => Change(target => target.SetProjectionEnabled(false)));
+            if (showTimeline != null)
+                showTimeline.onValueChanged.AddListener(value =>
+                {
+                    if (scene != null && scene == view.Scene) view.SetTimelineVisibility(scene, value);
+                    Refresh();
+                });
             inflated.onValueChanged.AddListener(value => ChangeRepresentationAsync(value).Forget());
             marsAtlas.onValueChanged.AddListener(value => SelectAtlas(0, value));
             juBrain.onValueChanged.AddListener(value => SelectAtlas(1, value));
@@ -180,6 +187,13 @@ namespace HBP.Quest
 
             bool ready = Ready;
             foreach (var control in controls) control.interactable = ready;
+            if (showTimeline != null)
+            {
+                var presentation = view != null && scene != null ? view.Find(scene) : null;
+                showTimeline.interactable = presentation is { IsPlaced: true };
+                showTimeline.SetIsOnWithoutNotify(presentation?.ShowTimeline ?? true);
+            }
+
             statusMessage.SetActive(!string.IsNullOrEmpty(status.text));
             if (scene == null || scene.IsClosing || scene.MeshManager.Meshes.Count == 0)
             {

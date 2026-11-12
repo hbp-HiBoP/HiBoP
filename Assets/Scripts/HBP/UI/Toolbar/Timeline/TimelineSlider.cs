@@ -31,14 +31,13 @@ namespace HBP.UI.Toolbar
         public bool IsGlobal
         {
             get { return m_IsGlobal; }
-            set
-            {
-                m_IsGlobal = value;
-                if (m_IsGlobal)
-                {
-                    m_Slider.onValueChanged.Invoke(m_Slider.value);
-                }
-            }
+            set => SetGlobal(value, true);
+        }
+
+        internal void SetGlobal(bool value, bool applyImmediately)
+        {
+            m_IsGlobal = value;
+            if (value && applyImmediately) m_Slider.onValueChanged.Invoke(m_Slider.value);
         }
 
         #endregion
@@ -52,28 +51,17 @@ namespace HBP.UI.Toolbar
         {
             DeleteSubTimelines();
 
-            if (SelectedColumn is Column3DDynamic columnDynamic)
+            var timeline = SelectedColumn?.NavigationTimeline;
+            if (timeline == null) return;
+            m_Slider.maxValue = timeline.Length - 1;
+            m_Slider.value = timeline.CurrentIndex;
+            foreach (var (segment, start, end) in SubTimeline.GetSegments(timeline))
             {
-                Core.Data.Timeline timeline = columnDynamic.Timeline;
-                m_Slider.maxValue = timeline.Length - 1;
-                m_Slider.value = timeline.CurrentIndex;
-                foreach (var subTimeline in timeline.SubTimelinesBySubBloc.Values)
-                {
-                    SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
-                    subTl.Initialize(timeline, subTimeline);
-                    subTl.GetComponent<RectTransform>().anchorMin = new Vector2(Mathf.InverseLerp(0, timeline.Length - 1, subTimeline.GlobalMinIndex - subTimeline.Before), 0);
-                    subTl.GetComponent<RectTransform>().anchorMax = new Vector2(Mathf.InverseLerp(0, timeline.Length - 1, subTimeline.GlobalMaxIndex + subTimeline.After), 1);
-                }
-            }
-            else if (SelectedColumn?.NavigationTimeline != null)
-            {
-                Core.Data.BasicTimeline timeline = SelectedColumn.NavigationTimeline;
-                m_Slider.maxValue = timeline.Length - 1;
-                m_Slider.value = timeline.CurrentIndex;
-                SubTimeline subTl = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
-                subTl.Initialize(timeline, timeline.CurrentSubtimeline);
-                subTl.GetComponent<RectTransform>().anchorMin = new Vector2(0, 0);
-                subTl.GetComponent<RectTransform>().anchorMax = new Vector2(1, 1);
+                SubTimeline subTimeline = Instantiate(m_TimelinePrefab, m_SubTimelines).GetComponent<SubTimeline>();
+                subTimeline.Initialize(timeline, segment);
+                var rect = subTimeline.GetComponent<RectTransform>();
+                rect.anchorMin = new Vector2(start, 0);
+                rect.anchorMax = new Vector2(end, 1);
             }
         }
 
@@ -101,7 +89,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.SetTimelineIndex(SelectedColumn, (int)value, IsGlobal);
+                SelectedScene.SetTimelineIndex(SelectedColumn, (int)value, TimelineToolbar.ResolveGlobal(SelectedScene, IsGlobal));
             });
             Module3DMain.OnUpdateSelectedColumnTimeLineIndex.AddListener(() =>
             {

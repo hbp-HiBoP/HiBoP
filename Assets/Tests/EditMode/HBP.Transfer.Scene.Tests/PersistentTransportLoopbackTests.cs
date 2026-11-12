@@ -104,6 +104,78 @@ namespace HBP.Sync.Tests
 
         [Test]
         [Category("Sync.SceneFocused")]
+        public async Task QuestTimelineScopePublishesItsCurrentValueAndSubsequentChanges()
+        {
+            using var desktop = new SessionSceneFixture(0);
+            using var quest = new SessionSceneFixture(0);
+            var sessions = await LiveActivityProjectionSessionPair.ConnectAsync(desktop.Scene, quest.Scene, CreatePreparedBinding());
+            try
+            {
+                var scope = sessions.DesktopOwner.GetType().GetProperty("QuestTimelineGlobal");
+                await WaitUntilAsync(() => (bool?)scope.GetValue(sessions.DesktopOwner) == true, "Desktop did not receive Quest's initial Single scope.");
+                InvokePrivateMethod(sessions.QuestOwner, "SetTimelineScope", false);
+                await WaitUntilAsync(() => (bool?)scope.GetValue(sessions.DesktopOwner) == false, "Desktop did not receive Quest's unlinked Split scope.");
+                InvokePrivateMethod(sessions.QuestOwner, "SetTimelineScope", true);
+                await WaitUntilAsync(() => (bool?)scope.GetValue(sessions.DesktopOwner) == true, "Desktop did not receive Quest's linked scope.");
+            }
+            finally
+            {
+                await sessions.CloseAsync();
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
+        public async Task QuestTimelineScopeWaitsForCapabilityAndResendsAfterTransportResume()
+        {
+            using var fixture = new SessionSceneFixture(0);
+            var quest = CreateQuestSession(fixture.Scene, CreatePreparedBinding());
+            using var desktop = CreateTransport(OriginDevice.Desktop, 5076);
+            using var initial = await LoopbackPeerPair.ConnectAsync();
+            using var resumed = await LoopbackPeerPair.ConnectAsync();
+            Task<Exception> desktopRun = CaptureRunAsync(desktop, initial.Client.GetStream(), CancellationToken.None);
+            Task<Exception> questRun = CaptureTaskExceptionAsync(RunQuestSession(quest, initial.Server.GetStream(), CancellationToken.None));
+            try
+            {
+                InvokePrivateMethod(quest, "SetTimelineScope", false);
+                var signals = new SceneAction(Scene, Incarnation, SceneActionKind.Result, column: SignalWire.Capability);
+                Assert.That(desktop.EnqueueSessionControl(signals.Encode(), DeliveryReliability.Reliable).Accepted, Is.True);
+                await WaitUntilAsync(() => (bool)quest.GetType().GetProperty("SupportsSignals", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(quest), "Quest did not handle the legacy capability.");
+                Assert.That(GetPrivateField<bool>(quest, "m_SupportsTimelineScope"), Is.False);
+                Assert.That(GetPrivateField<bool>(quest, "m_TimelineScopePending"), Is.True);
+
+                await AdvertiseAndCheckAsync();
+                initial.Close();
+                await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+                Assert.That(desktop.State, Is.EqualTo(PersistentTransportState.DisconnectedGrace));
+                Assert.That((bool)quest.GetType().GetProperty("CanResumeConnection").GetValue(quest), Is.True);
+
+                desktopRun = CaptureRunAsync(desktop, resumed.Client.GetStream(), CancellationToken.None);
+                questRun = CaptureTaskExceptionAsync(RunQuestSession(quest, resumed.Server.GetStream(), CancellationToken.None));
+                await AdvertiseAndCheckAsync();
+            }
+            finally
+            {
+                ((IDisposable)quest).Dispose();
+                desktop.Dispose();
+                initial.Close();
+                resumed.Close();
+                await AwaitGuardAsync(Task.WhenAll(desktopRun, questRun));
+            }
+
+            async Task AdvertiseAndCheckAsync()
+            {
+                var capability = new SceneAction(Scene, Incarnation, SceneActionKind.Result, column: TimelineScopeControl.Capability);
+                Assert.That(desktop.EnqueueSessionControl(capability.Encode(), DeliveryReliability.Reliable).Accepted, Is.True);
+                var record = await ReadIncomingAsync(desktop);
+                Assert.That(TimelineScopeControl.TryDecode(record.GetPayloadCopy(), out var scope), Is.True);
+                Assert.That(scope.Matches(Scene, Incarnation), Is.True);
+                Assert.That(scope.Global, Is.False);
+            }
+        }
+
+        [Test]
+        [Category("Sync.SceneFocused")]
         public async Task SignalsWindow_ReceivesBulkAndSettingsWithoutBlockingMutationsAndContainsProtocolErrors()
         {
             using var desktop = new SessionSceneFixture(1);

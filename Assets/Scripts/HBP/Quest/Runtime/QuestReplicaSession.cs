@@ -131,6 +131,41 @@ namespace HBP.Quest
         public PersistentTransportState TransportState => m_Transport.State;
         public QuestMutationConnectionState ConnectionState => m_Driver.ConnectionState;
         public bool CanResumeConnection => !m_Disposed && m_Transport.State == PersistentTransportState.DisconnectedGrace && m_Driver.ConnectionState != QuestMutationConnectionState.OfflineLocal;
+        private bool m_SupportsTimelineScope, m_TimelineGlobal = true, m_TimelineScopePending, m_TimelineScopeRetrying;
+
+        internal void SetTimelineScope(bool global)
+        {
+            if (m_TimelineGlobal == global) return;
+            m_TimelineGlobal = global;
+            m_TimelineScopePending = true;
+            PublishTimelineScope();
+        }
+
+        private void PublishTimelineScope()
+        {
+            if (!m_TimelineScopePending || !m_SupportsTimelineScope || m_Disposed || m_Driver.ConnectionState == QuestMutationConnectionState.OfflineLocal) return;
+            var scope = new TimelineScopeControl(m_Identity.SceneId, m_Identity.IncarnationId, m_TimelineGlobal);
+            m_TimelineScopePending = !m_Transport.EnqueueSessionControl(scope.Encode(), DeliveryReliability.Reliable).Accepted;
+            if (m_TimelineScopePending && !m_TimelineScopeRetrying && m_Transport.State == PersistentTransportState.Connected)
+                RetryTimelineScopeAsync().Forget();
+        }
+
+        private async UniTaskVoid RetryTimelineScopeAsync()
+        {
+            m_TimelineScopeRetrying = true;
+            try
+            {
+                while (m_TimelineScopePending && !m_Disposed && m_Transport.State == PersistentTransportState.Connected && m_Driver.ConnectionState != QuestMutationConnectionState.OfflineLocal)
+                {
+                    await UniTask.Delay(100, ignoreTimeScale: true);
+                    PublishTimelineScope();
+                }
+            }
+            finally
+            {
+                m_TimelineScopeRetrying = false;
+            }
+        }
 
         public QuestReplicaSession(Base3DScene scene, PreparedSceneDeliveryBinding binding) : this(scene, binding, null, null)
         {
@@ -466,6 +501,16 @@ namespace HBP.Quest
 
                 if (SceneAction.TryDecode(controlPayload, out var action))
                 {
+                    if (action.Kind == SceneActionKind.Result && action.Column == TimelineScopeControl.Capability)
+                    {
+                        if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId))
+                            throw new InvalidDataException("Wrong timeline scope capability incarnation.");
+                        await UniTask.SwitchToMainThread(stop);
+                        m_SupportsTimelineScope = m_TimelineScopePending = true;
+                        PublishTimelineScope();
+                        return;
+                    }
+
                     if (action.Kind == SceneActionKind.Result && action.Column == SignalWire.Capability)
                     {
                         if (!action.Scene.Equals(m_Identity.SceneId) || !action.Incarnation.Equals(m_Identity.IncarnationId)) throw new InvalidDataException("Wrong Signals capability scope.");

@@ -113,7 +113,7 @@ namespace HBP.UI.Toolbar
             m_ActivityGlobal.OnChangeValue.AddListener((global) =>
             {
                 IsGlobal = global;
-                m_ToolbarMenu.TimelineToolbar.IsGlobal = global;
+                m_ToolbarMenu.TimelineToolbar.SetDesktopGlobal(global, !TimelineToolbar.QuestGlobal(Module3DMain.SelectedScene).HasValue);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }
