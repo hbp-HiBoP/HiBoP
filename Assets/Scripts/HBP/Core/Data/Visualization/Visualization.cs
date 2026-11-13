@@ -189,7 +189,8 @@ namespace HBP.Core.Data
                 if (project != null)
                 {
                     LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, project.Patients, project.Datasets);
-                    context.ResolveProject(project.Patients, Array.Empty<Group>(), project.Datasets, new[] { result });
+                    result.ResolveReferences(context);
+                    context.ThrowIfInvalid();
                 }
 
                 return true;

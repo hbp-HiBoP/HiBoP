@@ -135,7 +135,8 @@ namespace HBP.Core.Data
                 Project project = ApplicationState.LoadedProject;
                 IEnumerable<Patient> patients = project != null ? project.Patients : Array.Empty<Patient>();
                 LoadingContext context = new(Array.Empty<BaseTag>(), Array.Empty<Protocol>(), patients);
-                context.ResolveProject(patients, new[] { result }, Array.Empty<Dataset>(), Array.Empty<Visualization>());
+                result.ResolveReferences(context);
+                context.ThrowIfInvalid();
                 return true;
             }
             catch (Exception e)

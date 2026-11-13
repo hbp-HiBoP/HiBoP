@@ -318,7 +318,7 @@ namespace HBP.Core.Data
             }
         }
 
-        private void ThrowIfInvalid()
+        internal void ThrowIfInvalid()
         {
             if (m_Issues.Count > 0)
             {

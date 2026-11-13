@@ -81,6 +81,48 @@ namespace HBP.Tests.Serialization
             Assert.That(loaded.Patients[0], Is.SameAs(firstPatient));
         }
 
+        [TestCase(Group.EXTENSION)]
+        [TestCase(Dataset.EXTENSION)]
+        [TestCase(Visualization.EXTENSION)]
+        public void StandaloneFileLoading_PreservesLivePatientAndSiteTags(string extension)
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+            using PersistentDataTestScope persistentData = new(temp.Path);
+
+            Project project = SyntheticProjectFactory.CreateCompleteProject();
+            Patient patient = project.Patients.Single();
+            BaseTagValue patientValue = patient.Tags.Single();
+            BaseTagValue siteValue = patient.Sites.Single().Tags.Single();
+            BaseTag patientTag = patientValue.Tag;
+            BaseTag siteTag = siteValue.Tag;
+            string path = temp.GetPath("standalone" + extension);
+
+            switch (extension)
+            {
+                case Group.EXTENSION:
+                    Assert.That(ClassLoaderSaver.SaveToJSon(project.Groups.Single(), path, true), Is.True);
+                    GroupFilterCondition filter = new(path, false);
+                    Assert.That(filter.Check(patient), Is.True);
+                    Assert.That(filter.LoadedGroup.Patients.Single(), Is.SameAs(patient));
+                    break;
+                case Dataset.EXTENSION:
+                    Assert.That(ClassLoaderSaver.SaveToJSon(project.Datasets.Single(), path, true), Is.True);
+                    Assert.That(Dataset.LoadFromFile(path, out Dataset dataset), Is.True);
+                    Assert.That(dataset.GetPatientDataInfos().First().Patient, Is.SameAs(patient));
+                    break;
+                case Visualization.EXTENSION:
+                    Assert.That(ClassLoaderSaver.SaveToJSon(project.Visualizations.Single(), path, true), Is.True);
+                    Assert.That(Visualization.LoadFromFile(path, out Visualization visualization), Is.True);
+                    Assert.That(visualization.Patients.Single(), Is.SameAs(patient));
+                    Assert.That(visualization.IEEGColumns.Single().Dataset, Is.SameAs(project.Datasets.Single()));
+                    break;
+            }
+
+            Assert.That(patientValue.Tag, Is.SameAs(patientTag));
+            Assert.That(siteValue.Tag, Is.SameAs(siteTag));
+        }
+
         [Test]
         public void SiteConfigurationAndSelectionState_PreserveLabelsFlagsAndGain()
         {
