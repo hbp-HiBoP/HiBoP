@@ -88,6 +88,15 @@ Shader "Hidden/HBP/Quest Panel"
         #endif
             return color;
         }
+
+        half4 VisibleTimelineColor(Varyings input)
+        {
+            half4 color = PanelColor(input);
+            clip(color.a - 0.0001);
+            float sceneDepth = HBP_QuestDepthOrder(HBP_QUEST_LOAD(_HBPQuestOpaqueDepth, int2(input.positionCS.xy)));
+            clip(sceneDepth - HBP_QuestDepthOrder(input.positionCS.z) + 0.0000001);
+            return color;
+        }
         ENDHLSL
 
         Pass
@@ -124,7 +133,7 @@ Shader "Hidden/HBP/Quest Panel"
             Name "TimelineDepth"
             ZTest LEqual
             ZWrite On
-            ColorMask 0
+            ColorMask R
 
             HLSLPROGRAM
             #pragma target 3.5
@@ -134,13 +143,11 @@ Shader "Hidden/HBP/Quest Panel"
             #pragma multi_compile_local _ UNITY_UI_CLIP_RECT
             #pragma multi_compile_local _ UNITY_UI_ALPHACLIP
 
-            half4 TimelineDepthFrag(Varyings input) : SV_Target
+            float TimelineDepthFrag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                clip(PanelColor(input).a - 0.0001);
-                float sceneDepth = HBP_QuestDepthOrder(HBP_QUEST_LOAD(_HBPQuestOpaqueDepth, int2(input.positionCS.xy)));
-                clip(sceneDepth - HBP_QuestDepthOrder(input.positionCS.z) + 0.0000001);
-                return 0;
+                VisibleTimelineColor(input);
+                return input.positionCS.z;
             }
             ENDHLSL
         }
@@ -148,7 +155,7 @@ Shader "Hidden/HBP/Quest Panel"
         Pass
         {
             Name "TimelineColor"
-            ZTest Equal
+            ZTest Always
             ZWrite Off
             Blend One OneMinusSrcAlpha
             ColorMask [_ColorMask]
@@ -163,7 +170,11 @@ Shader "Hidden/HBP/Quest Panel"
 
             half4 TimelineColorFrag(Varyings input) : SV_Target
             {
-                half4 color = PanelColor(input);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+                half4 color = VisibleTimelineColor(input);
+                float nearestDepth = HBP_QUEST_LOAD(_HBPQuestTimelineDepth, int2(input.positionCS.xy));
+                // Coplanar canvas triangles can round to slightly different raster depths.
+                clip(0.000001 - abs(input.positionCS.z - nearestDepth));
                 return half4(color.rgb * color.a, color.a);
             }
             ENDHLSL

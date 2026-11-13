@@ -126,14 +126,18 @@ namespace HBP.Rendering
 
             colorDesc.name = "HBP Quest Timeline Color";
             inputs.TimelineColor = renderGraph.CreateTexture(colorDesc);
-            var timelineDepth = depthDesc;
+            var timelineDepth = colorDesc;
             timelineDepth.name = "HBP Quest Timeline Depth";
-            timelineDepth.format = GraphicsFormatUtility.GetDepthStencilFormat(24, 8);
+            timelineDepth.format = GraphicsFormat.R32_SFloat;
+            timelineDepth.clearColor = SystemInfo.usesReversedZBuffer ? Color.clear : Color.white;
             inputs.TimelineDepth = renderGraph.CreateTexture(timelineDepth);
+            var timelineDepthStencil = depthDesc;
+            timelineDepthStencil.name = "HBP Quest Timeline Depth Stencil";
+            timelineDepthStencil.format = GraphicsFormatUtility.GetDepthStencilFormat(24, 8);
             var timelineQueue = new RenderQueueRange(HBPEdgeRendererFeature.QuestTimelineRenderQueue, HBPEdgeRendererFeature.QuestTimelineRenderQueue);
             var timelineDepthList = CreateList(renderGraph, frameData, ForwardPasses, timelineQueue, cameraMask, SortingCriteria.CommonTransparent, shader: panelShader, shaderPass: TimelineDepthPass);
             var timelineColorList = CreateList(renderGraph, frameData, ForwardPasses, timelineQueue, cameraMask, SortingCriteria.CommonTransparent, shader: panelShader, shaderPass: TimelineColorPass);
-            RecordTimeline(renderGraph, camera, inputs, timelineDepthList, timelineColorList);
+            RecordTimeline(renderGraph, camera, inputs, renderGraph.CreateTexture(timelineDepthStencil), timelineDepthList, timelineColorList);
 
             if (inputs.EdgesEnabled)
             {
@@ -191,26 +195,44 @@ namespace HBP.Rendering
             return graph.CreateRendererList(parameters);
         }
 
-        private static void RecordTimeline(RenderGraph graph, UniversalCameraData camera, CompositionInputs inputs, RendererListHandle depthList, RendererListHandle colorList)
+        private static void RecordTimeline(RenderGraph graph, UniversalCameraData camera, CompositionInputs inputs, TextureHandle depthStencil, RendererListHandle depthList, RendererListHandle colorList)
         {
-            using var builder = graph.AddRasterRenderPass<TimelineData>("HBP Quest Timeline Surface", out var data);
-            data.DepthList = depthList;
-            data.ColorList = colorList;
-            data.OpaqueDepth = inputs.OpaqueDepth;
-            builder.UseRendererList(depthList);
-            builder.UseRendererList(colorList);
-            builder.UseTexture(inputs.OpaqueDepth, AccessFlags.Read);
-            builder.SetRenderAttachment(inputs.TimelineColor, 0, AccessFlags.Write);
-            builder.SetRenderAttachmentDepth(inputs.TimelineDepth, AccessFlags.Write);
-            builder.AllowGlobalStateModification(true);
-            SetStereoFlags(builder, camera);
-            builder.SetRenderFunc(static (TimelineData timeline, RasterGraphContext context) =>
+            using (var builder = graph.AddRasterRenderPass<TimelineData>("HBP Quest Timeline Depth", out var data))
             {
-                context.cmd.SetGlobalTexture(OpaqueDepthId, timeline.OpaqueDepth);
-                // Resolve the visible plane before blending the canvas graphics in their own order.
-                context.cmd.DrawRendererList(timeline.DepthList);
-                context.cmd.DrawRendererList(timeline.ColorList);
-            });
+                data.Renderers = depthList;
+                data.OpaqueDepth = inputs.OpaqueDepth;
+                builder.UseRendererList(depthList);
+                builder.UseTexture(inputs.OpaqueDepth, AccessFlags.Read);
+                builder.SetRenderAttachment(inputs.TimelineDepth, 0, AccessFlags.Write);
+                builder.SetRenderAttachmentDepth(depthStencil, AccessFlags.ReadWrite);
+                builder.AllowGlobalStateModification(true);
+                SetStereoFlags(builder, camera);
+                builder.SetRenderFunc(static (TimelineData timeline, RasterGraphContext context) =>
+                {
+                    context.cmd.SetGlobalTexture(OpaqueDepthId, timeline.OpaqueDepth);
+                    context.cmd.DrawRendererList(timeline.Renderers);
+                });
+            }
+
+            using (var builder = graph.AddRasterRenderPass<TimelineData>("HBP Quest Timeline Color", out var data))
+            {
+                data.Renderers = colorList;
+                data.OpaqueDepth = inputs.OpaqueDepth;
+                data.TimelineDepth = inputs.TimelineDepth;
+                builder.UseRendererList(colorList);
+                builder.UseTexture(inputs.OpaqueDepth, AccessFlags.Read);
+                builder.UseTexture(inputs.TimelineDepth, AccessFlags.Read);
+                builder.SetRenderAttachment(inputs.TimelineColor, 0, AccessFlags.ReadWrite);
+                builder.SetRenderAttachmentDepth(depthStencil, AccessFlags.ReadWrite);
+                builder.AllowGlobalStateModification(true);
+                SetStereoFlags(builder, camera);
+                builder.SetRenderFunc(static (TimelineData timeline, RasterGraphContext context) =>
+                {
+                    context.cmd.SetGlobalTexture(OpaqueDepthId, timeline.OpaqueDepth);
+                    context.cmd.SetGlobalTexture(TimelineDepthId, timeline.TimelineDepth);
+                    context.cmd.DrawRendererList(timeline.Renderers);
+                });
+            }
         }
 
         private static void RecordLayer(RenderGraph graph, UniversalCameraData camera, string name, RendererListHandle renderers, TextureHandle opaque, TextureHandle previousColor, TextureHandle previousDepth, TextureHandle color, TextureHandle depth)
@@ -299,7 +321,7 @@ namespace HBP.Rendering
             command.SetGlobalTexture(OpaqueDepthId, inputs.OpaqueDepth);
             command.SetGlobalTexture(TailId, inputs.Tail);
             command.SetGlobalTexture(TimelineColorId, inputs.TimelineColor);
-            command.SetGlobalTexture(TimelineDepthId, inputs.TimelineDepth, RenderTextureSubElement.Depth);
+            command.SetGlobalTexture(TimelineDepthId, inputs.TimelineDepth);
             command.SetGlobalInt(EdgesEnabledId, inputs.EdgesEnabled ? 1 : 0);
             if (!inputs.EdgesEnabled) return;
             command.SetGlobalVector(TargetSizeId, inputs.Size);
@@ -320,9 +342,9 @@ namespace HBP.Rendering
 
         private sealed class TimelineData
         {
-            public RendererListHandle DepthList;
-            public RendererListHandle ColorList;
+            public RendererListHandle Renderers;
             public TextureHandle OpaqueDepth;
+            public TextureHandle TimelineDepth;
         }
 
         private sealed class DrawData

@@ -22,7 +22,7 @@ namespace HBP.Tests.PlatformConfiguration
             var previousPipeline = QualitySettings.renderPipeline;
             var previousTarget = RenderTexture.active;
             var target = new RenderTexture(128, 128, 24) { antiAliasing = samples };
-            var readback = new Texture2D(1, 1);
+            var readback = new Texture2D(target.width, target.height);
             var cameraObject = new GameObject("Quest render order camera", typeof(Camera));
             var brain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             var site = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -129,7 +129,39 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(RenderCenterPixel(), Is.EqualTo(Color.cyan), "the nearer timeline covers the window regardless of canvas order");
                 timeline.transform.position = Vector3.zero;
                 Assert.That(RenderCenterPixel(), Is.EqualTo(panelOnly), "the window masks the farther timeline");
+
+                panel.SetActive(false);
+                camera.orthographic = false;
+                var timelineForeground = new GameObject("Timeline controls", typeof(Image)).GetComponent<Image>();
+                timelineForeground.transform.SetParent(timeline.transform, false);
+                timelineForeground.rectTransform.sizeDelta = new Vector2(.4f, .7f);
+                timelineForeground.material = timelineMaterial;
+                timelineForeground.color = Color.magenta;
+                foreach (float angle in new[] { -29f, 11f, 34f })
+                {
+                    timeline.transform.rotation = Quaternion.Euler(12f, angle, 0f);
+                    RenderFrame();
+                    AssertTimelineRegion(new Vector2(0, 0), Color.magenta, angle);
+                    AssertTimelineRegion(new Vector2(.33f, 0), Color.cyan, angle);
+                }
+
+                timelineForeground.transform.localPosition = Vector3.forward * .05f;
+                Assert.That(RenderCenterPixel(), Is.EqualTo(Color.cyan), "the farther graphic stays behind the timeline surface");
+                timelineForeground.transform.localPosition = Vector3.zero;
+
+                brain.transform.position = Vector3.back;
+                brain.transform.localScale = Vector3.one * .5f;
+                brain.SetActive(true);
                 timeline.SetActive(false);
+                Color opaqueForeground = RenderCenterPixel();
+                Assert.That(opaqueForeground, Is.Not.EqualTo(Color.black));
+                timeline.SetActive(true);
+                Assert.That(RenderCenterPixel(), Is.EqualTo(opaqueForeground), "opaque geometry masks the tilted timeline");
+                brain.SetActive(false);
+
+                timeline.SetActive(false);
+                camera.orthographic = true;
+                panel.SetActive(true);
 
                 var image = panel.GetComponentInChildren<Image>();
                 var mask = new GameObject("Masked viewport", typeof(RectTransform), typeof(RectMask2D));
@@ -201,11 +233,26 @@ namespace HBP.Tests.PlatformConfiguration
 
             Color RenderPixel(int x)
             {
+                RenderFrame();
+                return readback.GetPixel(x, 64);
+            }
+
+            void RenderFrame()
+            {
                 Canvas.ForceUpdateCanvases();
                 camera.Render();
                 RenderTexture.active = target;
-                readback.ReadPixels(new Rect(x, 64, 1, 1), 0, 0);
-                return readback.GetPixel(0, 0);
+                readback.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
+            }
+
+            void AssertTimelineRegion(Vector2 center, Color expected, float angle)
+            {
+                var pixel = camera.WorldToScreenPoint(timeline.transform.TransformPoint(center));
+                for (int y = (int)pixel.y - 3; y <= (int)pixel.y + 3; y++)
+                {
+                    for (int x = (int)pixel.x - 2; x <= (int)pixel.x + 2; x++)
+                        Assert.That(readback.GetPixel(x, y), Is.EqualTo(expected), $"timeline pixel ({x}, {y}) at {angle} degrees");
+                }
             }
         }
 
