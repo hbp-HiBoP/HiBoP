@@ -83,17 +83,36 @@ namespace HBP.Data.Module3D
         private void DeselectOtherColumns(Column3D column)
         {
             foreach (var other in Columns)
-                if (other != column && other.IsSelected) other.IsSelected = false;
+                if (other != column && other.IsSelected)
+                    other.IsSelected = false;
         }
 
         private void SelectInitialSite(Column3D column, string siteName = null)
         {
-            var site = string.IsNullOrEmpty(siteName)
-                ? column.Sites.Find(candidate => !candidate.State.IsMasked)
-                : column.Sites.Find(candidate => candidate.Information.Name == siteName);
+            var site = string.IsNullOrEmpty(siteName) ? column.Sites.Find(candidate => !candidate.State.IsMasked) : column.Sites.Find(candidate => candidate.Information.Name == siteName);
             if (!site) return;
             if (!column.IsSelected) SelectColumn(column);
             if (SelectedSite?.Information.FullID != site.Information.FullID) ApplySiteSelection(column, site);
+        }
+
+        public void NavigateSelectedSite(SiteNavigationDirection direction)
+        {
+            var column = SelectedColumn;
+            if (column == null || column.Sites == null) return;
+            int index = column.SelectedSiteID;
+            int count = column.Sites.Count;
+            if (index < 0 || index >= count) return;
+
+            int step = direction == SiteNavigationDirection.Left ? -1 : 1;
+            bool restrictToROI = !ShowAllSites && ROIManager?.SelectedROI != null;
+            for (int visited = 0; visited < count; visited++)
+            {
+                index = (index + step + count) % count;
+                var site = column.Sites[index];
+                if (site == null || !site.State.IsFiltered || site.State.IsMasked || restrictToROI && site.State.IsOutOfROI) continue;
+                SelectSite(column, site);
+                return;
+            }
         }
 
         public void SelectSite(Column3D column, Core.Object3D.Site site)
@@ -108,6 +127,7 @@ namespace HBP.Data.Module3D
                 if (site) RequestSelectedSiteInformation();
                 return;
             }
+
             if (SiteSelectionRouter?.Invoke(column, site) == true) return;
             ApplySiteSelection(column, site);
         }

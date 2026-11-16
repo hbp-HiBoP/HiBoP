@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
 using HBP.Quest;
@@ -127,6 +128,30 @@ namespace HBP.Tests.Quest
             fixture.Column.Sites.Remove(b.Site);
             Assert.That(QuestSiteSelection.TrySelect(fixture.Scene, b), Is.False);
             Assert.That(fixture.Column.SelectedSite, Is.SameAs(b.Site));
+        }
+
+        [Test]
+        public void SiteNavigation_WrapsAndSkipsFilteredAndMaskedSites()
+        {
+            using var fixture = new Fixture();
+            var first = fixture.AddSite("A", Vector3.zero).Site;
+            var filtered = fixture.AddSite("B", Vector3.right).Site;
+            var masked = fixture.AddSite("C", Vector3.right * 2).Site;
+            var last = fixture.AddSite("D", Vector3.right * 3).Site;
+            for (int i = 0; i < fixture.Column.Sites.Count; i++)
+                fixture.Column.Sites[i].Information.Index = i;
+            filtered.State.IsFiltered = false;
+            masked.State.IsMasked = true;
+
+            fixture.Scene.NavigateSelectedSite(SiteNavigationDirection.Right);
+            Assert.That(fixture.Column.SelectedSite, Is.Null);
+            fixture.Scene.SelectSite(fixture.Column, first);
+            fixture.Scene.NavigateSelectedSite(SiteNavigationDirection.Right);
+            Assert.That(fixture.Column.SelectedSite, Is.SameAs(last));
+            fixture.Scene.NavigateSelectedSite(SiteNavigationDirection.Right);
+            Assert.That(fixture.Column.SelectedSite, Is.SameAs(first));
+            fixture.Scene.NavigateSelectedSite(SiteNavigationDirection.Left);
+            Assert.That(fixture.Column.SelectedSite, Is.SameAs(last));
         }
 
         [Test]

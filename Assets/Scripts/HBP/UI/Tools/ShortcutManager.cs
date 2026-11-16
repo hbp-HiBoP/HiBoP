@@ -245,7 +245,7 @@ namespace HBP.UI.Tools
             {
                 m_Timer = 0;
                 SiteNavigationDirection direction = DesktopInput.IsPressed(Key.LeftArrow) || DesktopInput.IsPressed(Key.UpArrow) ? SiteNavigationDirection.Left : SiteNavigationDirection.Right;
-                ChangeSiteSelection(direction);
+                Module3DMain.SelectedScene?.NavigateSelectedSite(direction);
             }
             else if (ChangeSiteStateActionPerformed)
             {
@@ -321,40 +321,6 @@ namespace HBP.UI.Tools
         private void Protocols()
         {
             MainMenu.DatabaseMenu.OpenProtocolGestionButton.Action();
-        }
-
-        private void ChangeSiteSelection(SiteNavigationDirection direction)
-        {
-            Base3DScene scene = Module3DMain.SelectedScene;
-            if (scene != null)
-            {
-                Column3D selectedColumn = scene.SelectedColumn;
-                int selectedId = selectedColumn.SelectedSiteID;
-                if (selectedId != -1)
-                {
-                    Core.Object3D.Site site;
-                    int id = selectedId;
-                    int count = 0;
-                    do
-                    {
-                        switch (direction)
-                        {
-                            case SiteNavigationDirection.Left:
-                                id--;
-                                if (id < 0) id = selectedColumn.Sites.Count - 1;
-                                break;
-                            case SiteNavigationDirection.Right:
-                                id++;
-                                if (id > selectedColumn.Sites.Count - 1) id = 0;
-                                break;
-                        }
-
-                        site = selectedColumn.Sites[id];
-                    } while ((!site.State.IsFiltered || site.State.IsMasked || (!scene.ShowAllSites && scene.ROIManager.SelectedROI != null && site.State.IsOutOfROI)) && ++count < selectedColumn.Sites.Count);
-
-                    if (count < selectedColumn.Sites.Count) scene.SelectSite(selectedColumn, site);
-                }
-            }
         }
 
         private void ChangeSelectedSiteState()

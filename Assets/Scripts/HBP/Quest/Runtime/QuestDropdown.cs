@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
@@ -7,6 +8,8 @@ namespace HBP.Quest
     /// <summary>uGUI dropdown popups must carry the tracked camera and raycaster too.</summary>
     public sealed class QuestDropdown : Dropdown
     {
+        private static readonly HashSet<QuestDropdown> OpenPopups = new();
+        internal static bool IsAnyPopupOpen => OpenPopups.Count > 0;
         private Canvas popupCanvas;
         private Canvas blockerCanvas;
 
@@ -51,7 +54,21 @@ namespace HBP.Quest
             Configure(blocker);
             blockerCanvas = blocker.GetComponent<Canvas>();
             ApplyWindowSortingOrder();
+            OpenPopups.Add(this);
             return blocker;
+        }
+
+        protected override void DestroyBlocker(GameObject blocker)
+        {
+            OpenPopups.Remove(this);
+            blockerCanvas = null;
+            base.DestroyBlocker(blocker);
+        }
+
+        protected override void OnDisable()
+        {
+            OpenPopups.Remove(this);
+            base.OnDisable();
         }
     }
 }

@@ -5,7 +5,6 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
 using HBP.Data.Module3D;
-using HBP.Sync.Scene;
 using HBP.UI.Tools;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,7 +37,7 @@ namespace HBP.Quest
         private int meshCount = -1, mriCount = -1, implantationCount = -1;
         private int difumoCount = -1;
 
-        public bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible && view.Scene.MeshManager.Meshes.Count > 0 && view.Find(view.Scene) is { IsPlaced: true, IsTransitioning: false } && !view.Scene.IsActivityProjectionBusy && !view.Scene.IsSurfaceRepresentationPreparing && !view.Scene.IsSurfaceRepresentationTransitioning && !changingRepresentation && SceneReconciliationRecord.Get(view.Scene)?.Status is not (ReconciliationStatus.Reconciling or ReconciliationStatus.OutOfSync);
+        public bool Ready => view != null && !changingRepresentation && view.CanChangeDisplaySettings(view.Scene);
 
         private void Awake()
         {

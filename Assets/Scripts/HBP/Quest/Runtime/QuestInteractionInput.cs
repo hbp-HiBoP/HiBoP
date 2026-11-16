@@ -14,16 +14,19 @@ namespace HBP.Quest
     {
         public static InputAction CreateSitePresetAction() => new("Quest site preset (B)", InputActionType.Button, "<XRController>{RightHand}/secondaryButton");
 
+        internal static InputAction CreateThumbstickAction(bool leftHand) => new("Quest thumbstick", InputActionType.Value, Controller(leftHand) + "/thumbstick", expectedControlType: "Vector2");
+
         public static InputAction CreateAction(string name, bool leftHand, QuestInteraction interaction)
         {
-            string device = leftHand ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";
             string control = interaction switch
             {
                 QuestInteraction.Primary => "triggerPressed",
                 QuestInteraction.Secondary => "gripPressed",
                 _ => throw new ArgumentOutOfRangeException(nameof(interaction))
             };
-            return new InputAction(name, InputActionType.Button, device + "/" + control);
+            return new InputAction(name, InputActionType.Button, Controller(leftHand) + "/" + control);
         }
+
+        private static string Controller(bool leftHand) => leftHand ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";
     }
 }

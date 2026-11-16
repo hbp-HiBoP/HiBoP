@@ -852,7 +852,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 2100000, guid: d9390b7b04469d24e8ef8cda471c801d, type: 2}
   m_Color: {r: 0.22, g: 0.22, b: 0.22, a: 1}
@@ -882,7 +882,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d07f844f0247a8244a88f4ee53d65e76, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestAtlasHoverTooltip
   panel: {fileID: 9181558550509558344}
   background: {fileID: 22309632005164921}
@@ -898,7 +898,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
   ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
   Element: {fileID: 11400000, guid: f901c6fc7d1f1bf47bd261980176603f, type: 2}
@@ -1048,7 +1048,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Text
   m_Material: {fileID: 2100000, guid: d9390b7b04469d24e8ef8cda471c801d, type: 2}
   m_Color: {r: 0.96, g: 0.96, b: 0.96, a: 1}
@@ -1071,7 +1071,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 1
     m_LineSpacing: 1
-  m_Text:
+  m_Text: 
 --- !u!114 &4629205383235007840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1082,7 +1082,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
   ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
   Element: {fileID: 11400000, guid: 3b577771d85b906408609e72c23d5eda, type: 2}

@@ -136,6 +136,17 @@ Keep the presentation and trial selection when only column focus changes.
 Missing trials produce empty cells, including for anatomically selectable contacts.
 
 Quest site selection uses right A; right B applies/reverts the local site preset.
+`QuestPointerInput` routes right thumbstick left/right through the shared Desktop
+site traversal, repeating every 200 ms while held. The active visualization
+and its presented selected column own the shortcut. The left thumbstick steps
+the displayed IBC contrast or DiFuMo component horizontally and the usable
+DiFuMo dimensions vertically. Atlas gestures step once per deflection, stop at
+the bounds and report the choice through the atlas tooltip. A DiFuMo dimension
+change selects its first component, as in Display Settings. Pointer captures,
+the site probe, dropdowns, text entry, loading and dialogs take precedence.
+Gestures use the dominant axis and rearm at neutral after a context change or
+interruption. Passive pointer hover leaves the selected visualization as target.
+
 `QuestSitePresetPanel` samples B in LateUpdate after pointer selection, allowing
 A+B together without mutual exclusion. `Configure preset` is the sole added row
 below the site's labels. Its lateral editor keeps its own color picker open to

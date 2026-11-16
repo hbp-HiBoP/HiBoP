@@ -20,7 +20,7 @@ namespace HBP.Quest
     }
 
     /// <summary>Universal two-hand UI pointer and primary/secondary interaction arbiter. No pairing dependency.</summary>
-    public sealed class QuestPointerInput : BaseInputModule
+    public sealed partial class QuestPointerInput : BaseInputModule
     {
         private const float AnatomyReticleWidthMultiplier = 1.25f;
 
@@ -60,6 +60,8 @@ namespace HBP.Quest
             public QuestPointerEventData Data;
             public InputAction Primary, Secondary;
             public InputAction Position, Rotation;
+            public InputAction Thumbstick;
+            public QuestThumbstickGesture ThumbstickGesture;
             public QuestWindow Hovered;
             public Vector2 LastPosition;
             public QuestAnatomyManipulator AnatomyTarget;
@@ -85,6 +87,7 @@ namespace HBP.Quest
         private void OnPresentationChanging(HBP.Data.Module3D.Base3DScene scene)
         {
             if (hoveredAtlasScene == scene) ClearAtlasHover();
+            if (thumbstickScene == scene) CancelThumbsticks();
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
@@ -132,6 +135,8 @@ namespace HBP.Quest
                 hands[i].Secondary = QuestInteractionInput.CreateAction("Quest secondary", i == 0, QuestInteraction.Secondary);
                 hands[i].Primary.Enable();
                 hands[i].Secondary.Enable();
+                hands[i].Thumbstick = QuestInteractionInput.CreateThumbstickAction(i == 0);
+                hands[i].Thumbstick.Enable();
                 string device = i == 0 ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";
                 hands[i].Position = new InputAction("Quest aim position", binding: device + "/pointerPosition", expectedControlType: "Vector3");
                 hands[i].Rotation = new InputAction("Quest aim rotation", binding: device + "/pointerRotation", expectedControlType: "Quaternion");
@@ -164,7 +169,10 @@ namespace HBP.Quest
                 for (int i = 0; i < hands.Length; i++)
                     if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
                         Cancel(hands[i]);
-            if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
+            UpdateThumbsticks();
+            if (atlasFeedback != null && atlasTooltip != null)
+                atlasTooltip.ShowSelection(atlasFeedback, left.transform, head.transform);
+            else if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
                 UpdateAtlasHover();
             else
                 ClearAtlasHover();
@@ -489,8 +497,7 @@ namespace HBP.Quest
                 if (column == null) continue;
                 var scene = column.Scene;
                 var atlas = scene.AtlasManager;
-                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) ||
-                    !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
+                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
 
                 if (hoveredAtlasScene != scene)
                 {
@@ -498,6 +505,7 @@ namespace HBP.Quest
                     hoveredAtlasScene = scene;
                     scene.OnClosing.AddListener(ClearAtlasHover);
                 }
+
                 atlas.HoveredArea = label;
                 Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, hit.point, true);
                 atlasTooltip.Show(region, hit.point, head.transform);
@@ -512,16 +520,14 @@ namespace HBP.Quest
             nearest = default;
             QuestColumnPresentation target = null;
             foreach (var presentation in anatomy.Scenes)
-                foreach (var column in presentation.Columns)
-                {
-                    if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) ||
-                        IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) ||
-                        !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) ||
-                        hit.distance >= limit) continue;
-                    limit = hit.distance;
-                    nearest = hit;
-                    target = column;
-                }
+            foreach (var column in presentation.Columns)
+            {
+                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) || !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) || hit.distance >= limit) continue;
+                limit = hit.distance;
+                nearest = hit;
+                target = column;
+            }
+
             return target;
         }
 
@@ -532,6 +538,7 @@ namespace HBP.Quest
                 hoveredAtlasScene.OnClosing.RemoveListener(ClearAtlasHover);
                 hoveredAtlasScene.AtlasManager.HoveredArea = -1;
             }
+
             hoveredAtlasScene = null;
             if (atlasTooltip != null) atlasTooltip.Hide();
         }
@@ -705,6 +712,7 @@ namespace HBP.Quest
             focused = value;
             if (!value)
             {
+                CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
@@ -717,6 +725,7 @@ namespace HBP.Quest
             paused = value;
             if (value)
             {
+                CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
@@ -726,6 +735,7 @@ namespace HBP.Quest
 
         protected override void OnDisable()
         {
+            CancelThumbsticks();
             ClearAtlasHover();
             if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
             if (anatomy != null) anatomy.OnTimelineScopeChanged.RemoveListener(OnTimelineScopeChanged);
@@ -737,6 +747,7 @@ namespace HBP.Quest
                 hand.Secondary?.Dispose();
                 hand.Position?.Dispose();
                 hand.Rotation?.Dispose();
+                hand.Thumbstick?.Dispose();
             }
 
             Feedback(leftRay, leftReticle, false, default, default);

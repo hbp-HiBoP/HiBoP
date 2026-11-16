@@ -32,6 +32,51 @@ namespace HBP.Quest
         ROI
     }
 
+    /// <summary>A deflection chooses one axis and must return to neutral before choosing again.</summary>
+    public struct QuestThumbstickGesture
+    {
+        private const float PressThreshold = .65f;
+        private const float NeutralThreshold = .35f;
+        private bool armed;
+        private Vector2Int repeating;
+        private float repeatAt;
+
+        public Vector2Int Sample(Vector2 value, bool available, float now, float horizontalRepeatInterval = 0)
+        {
+            if (!available)
+            {
+                this = default;
+                return Vector2Int.zero;
+            }
+
+            float x = Mathf.Abs(value.x);
+            float y = Mathf.Abs(value.y);
+            float magnitude = Mathf.Max(x, y);
+            if (magnitude <= NeutralThreshold)
+            {
+                armed = true;
+                repeating = Vector2Int.zero;
+            }
+
+            if (magnitude < PressThreshold || x == y) return Vector2Int.zero;
+            var direction = x > y ? new Vector2Int(value.x > 0 ? 1 : -1, 0) : new Vector2Int(0, value.y > 0 ? 1 : -1);
+            if (armed)
+            {
+                armed = false;
+                repeating = horizontalRepeatInterval > 0 && direction.x != 0 ? direction : Vector2Int.zero;
+            }
+            else if (repeating != direction)
+            {
+                repeating = Vector2Int.zero;
+                return Vector2Int.zero;
+            }
+            else if (now < repeatAt) return Vector2Int.zero;
+
+            repeatAt = now + horizontalRepeatInterval;
+            return direction;
+        }
+    }
+
     /// <summary>One operation per hand; each interaction must release before it can capture again.</summary>
     public sealed class QuestInteractionCapture
     {

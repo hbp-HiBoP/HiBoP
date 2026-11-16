@@ -66,6 +66,8 @@ namespace HBP.Quest
 
         internal bool CanUseTimeline(QuestColumnPresentation column) => CanInteractWithColumn(column) && column.HasTimeline && !column.Scene.IsActivityProjectionBusy && SceneReconciliationRecord.Get(column.Scene)?.Status is not (ReconciliationStatus.Reconciling or ReconciliationStatus.OutOfSync);
 
+        internal bool CanChangeDisplaySettings(Base3DScene scene) => QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible && scene.MeshManager?.Meshes.Count > 0 && Find(scene) is { IsPlaced: true, IsTransitioning: false } && !scene.IsActivityProjectionBusy && !scene.IsSurfaceRepresentationPreparing && !scene.IsSurfaceRepresentationTransitioning && SceneReconciliationRecord.Get(scene)?.Status is not (ReconciliationStatus.Reconciling or ReconciliationStatus.OutOfSync);
+
         internal void SetTimelineLink(QuestColumnPresentation source, bool linked)
         {
             if (!CanUseTimeline(source) || Find(source.Scene) is not { DisplayMode: QuestColumnDisplayMode.Split } owner || owner.LinkTimelines == linked) return;
