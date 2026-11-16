@@ -196,22 +196,42 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
-        public void IndependentColumnSelections_AreOneChoice()
+        public void ColumnFocusAndSceneContactMergeIndependently()
         {
             var baseline = Empty();
             baseline.ApplyCanonical(new SetSelectedColumn(null));
             baseline.ApplyCanonical(new SetSelectedSite(Column, null));
             var other = new ColumnId("other");
-            baseline.ApplyCanonical(new SetSelectedSite(other, null));
             var desktop = baseline.Clone();
             var quest = baseline.Clone();
             desktop.ApplyCanonical(new SetSelectedSite(Column, Site));
+            quest.ApplyCanonical(new SetSelectedColumn(other));
+            var merge = new SceneCheckpointMerge(baseline, desktop, quest);
+            Assert.That(merge.Conflicts, Is.Empty);
+            var checkpoint = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint();
+            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
+            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedColumn>().Single().ColumnId, Is.EqualTo(other));
+        }
+
+        [Test]
+        public void SameSceneContactFromDifferentColumnsHasOneCheckpointIdentity()
+        {
+            var baseline = Empty();
+            baseline.ApplyCanonical(new SetSelectedSite(Column, null));
+            var desktop = baseline.Clone();
+            var quest = baseline.Clone();
+            desktop.ApplyCanonical(new SetSelectedSite(Column, Site));
+            var other = new ColumnId("other");
             quest.ApplyCanonical(new SetSelectedSite(other, Site));
+            Assert.That(desktop.Hash(), Is.EqualTo(quest.Hash()));
+            Assert.That(new SceneCheckpointMerge(baseline, desktop, quest).Conflicts, Is.Empty);
+
+            var otherSite = new SiteId("other-site");
+            quest.ApplyCanonical(new SetSelectedSite(other, otherSite));
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var checkpoint = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint();
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Count(value => value.SiteId != null), Is.EqualTo(1));
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedColumn>().Single().ColumnId, Is.EqualTo(other));
+            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(otherSite));
         }
     }
 }

@@ -24,6 +24,9 @@ namespace HBP.Data.Module3D
 
         public SitePlacementMode SitePlacement { get; private set; }
 
+        public Core.Object3D.Site SelectedSite { get; private set; }
+        public Column3D SelectedSiteColumn { get; private set; }
+
         /// <summary>Optional prepared-scene route for one complete site-selection intent.</summary>
         public Func<Column3D, Core.Object3D.Site, bool> SiteSelectionRouter { get; set; }
 
@@ -73,29 +76,90 @@ namespace HBP.Data.Module3D
         public void SelectColumn(Column3D column)
         {
             RequireColumn(column);
+            DeselectOtherColumns(column);
             column.IsSelected = true;
+        }
+
+        private void DeselectOtherColumns(Column3D column)
+        {
+            foreach (var other in Columns)
+                if (other != column && other.IsSelected) other.IsSelected = false;
+        }
+
+        private void SelectInitialSite(Column3D column, string siteName = null)
+        {
+            var site = string.IsNullOrEmpty(siteName)
+                ? column.Sites.Find(candidate => !candidate.State.IsMasked)
+                : column.Sites.Find(candidate => candidate.Information.Name == siteName);
+            if (!site) return;
+            if (!column.IsSelected) SelectColumn(column);
+            if (SelectedSite?.Information.FullID != site.Information.FullID) ApplySiteSelection(column, site);
         }
 
         public void SelectSite(Column3D column, Core.Object3D.Site site)
         {
             RequireColumn(column);
-            if (site && (!column.Sites.Contains(site) || site.State.IsMasked))
+            if (site && (column.FindSite(site.Information.FullID, site.Information.Index) != site || site.State.IsMasked))
                 throw new ArgumentException("Select an unmasked site belonging to the target column.", nameof(site));
-            if (site && SiteSelectionRouter?.Invoke(column, site) == true) return;
-            column.IsSelected = true;
-            column.UnselectSite();
-            if (site) site.IsSelected = true;
+
+            if (site && !column.IsSelected) SelectColumn(column);
+            if (SelectedSite?.Information.FullID == site?.Information.FullID)
+            {
+                if (site) RequestSelectedSiteInformation();
+                return;
+            }
+            if (SiteSelectionRouter?.Invoke(column, site) == true) return;
+            ApplySiteSelection(column, site);
         }
 
-        /// <summary>Apply a prepared scientific selection while derived site masks may still reflect the previous state.</summary>
-        public void SelectSiteForSynchronization(Column3D column, Core.Object3D.Site site)
+        /// <summary>Apply a validated scene contact independently of column focus and derived masks.</summary>
+        public void SelectSiteForSynchronization(Column3D column, string siteId)
         {
             RequireColumn(column);
-            if (site && !column.Sites.Contains(site))
-                throw new ArgumentException("Select a site belonging to the target column.", nameof(site));
-            column.IsSelected = true;
-            column.UnselectSite();
-            if (site) site.IsSelected = true;
+            if (SelectedSite?.Information.FullID == siteId) return;
+            var site = siteId == null ? null : column.FindSite(siteId) ?? throw new ArgumentException("The site must belong to the target column.", nameof(siteId));
+            ApplySiteSelection(column, site);
+        }
+
+        internal void RestoreSiteSelection(string siteId, bool refreshInformation)
+        {
+            if (siteId == null) return;
+            Column3D column = SelectedSiteColumn;
+            int index = SelectedSite.Information.Index;
+            var site = column.FindSite(siteId, index);
+            if (!site)
+            {
+                foreach (var candidate in Columns)
+                {
+                    site = candidate.FindSite(siteId, index);
+                    if (!site) continue;
+                    column = candidate;
+                    break;
+                }
+            }
+
+            ApplySiteSelection(column, site, refreshInformation || !site);
+        }
+
+        private void ApplySiteSelection(Column3D source, Core.Object3D.Site site, bool refreshInformation = true)
+        {
+            SelectedSite = site;
+            SelectedSiteColumn = site ? source : null;
+            string id = site?.Information.FullID;
+            var changed = new List<Column3D>(Columns.Count);
+            foreach (var column in Columns)
+            {
+                var representation = site == null ? null : column == source ? site : column.FindSite(id, site.Information.Index);
+                if (column.SetSelectedSiteRepresentation(representation)) changed.Add(column);
+            }
+
+            foreach (var column in changed) column.OnSelectSite.Invoke(column.SelectedSite);
+            if (AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
+            SceneInformation.GUICutTexturesNeedUpdate = true;
+            SceneInformation.SitesNeedUpdate = true;
+            if (refreshInformation) RequestSelectedSiteInformation();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            OnSelectSite.Invoke(site);
         }
 
         public void SetTimelineIndex(Column3D target, int index, bool allOfSameType = false)
@@ -146,6 +210,7 @@ namespace HBP.Data.Module3D
             Vector3 center = MeshManager.MeshCenter;
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
             SitePlacement = right ? SitePlacementMode.Right : SitePlacementMode.Left;
+            if (AutomaticCutAroundSelectedSite && SelectedSite) SceneInformation.CutsNeedUpdate = true;
             OnSharedStateChanged.Invoke();
             OnSitePositionCommandExecuted.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
         }
@@ -154,6 +219,7 @@ namespace HBP.Data.Module3D
         {
             foreach (var column in Columns) column.ResetSitesPositions();
             SitePlacement = SitePlacementMode.Original;
+            if (AutomaticCutAroundSelectedSite && SelectedSite) SceneInformation.CutsNeedUpdate = true;
             OnSharedStateChanged.Invoke();
             OnSitePositionCommandExecuted.Invoke(SitePositionCommand.Reset);
         }

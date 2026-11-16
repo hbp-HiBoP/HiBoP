@@ -352,7 +352,7 @@ namespace HBP.UI.Tools
                         site = selectedColumn.Sites[id];
                     } while ((!site.State.IsFiltered || site.State.IsMasked || (!scene.ShowAllSites && scene.ROIManager.SelectedROI != null && site.State.IsOutOfROI)) && ++count < selectedColumn.Sites.Count);
 
-                    site.IsSelected = true;
+                    if (count < selectedColumn.Sites.Count) scene.SelectSite(selectedColumn, site);
                 }
             }
         }

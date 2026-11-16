@@ -459,6 +459,123 @@ namespace HBP.Tests.PlayMode.UI
 
         [Test]
         [Category("PlayMode.InformationGraph")]
+        public void SceneSelection_PreservesTrialsAcrossFocusAndReplacesMissingChannelRows()
+        {
+            using PlayModeSceneScope scope = new("SceneSelectionTrialMatrix");
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeModule3DTestHarness harness = new(scope.Scene);
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            InformationsWrapper wrapper = null;
+            try
+            {
+                Base3DScene scene = harness.Scene;
+                SetPrivateField(scene, "m_ROIManager", scene.gameObject.AddComponent<ROIManager>());
+                scene.SceneInformation.CompletelyLoaded = true;
+                Column3D anatomy = harness.SourceColumn;
+                SetAutoProperty(anatomy, "Layer", "Default");
+                ObjectSite recorded = harness.SourceSiteA;
+                ObjectSite missing = harness.SourceSiteB;
+                recorded.Information.Patient = missing.Information.Patient = fixture.Patient;
+                recorded.transform.position = new Vector3(1000, 1000, 1000);
+                missing.transform.position = new Vector3(1010, 1000, 1000);
+                recorded.gameObject.AddComponent<SphereCollider>();
+                missing.gameObject.AddComponent<SphereCollider>();
+                Physics.SyncTransforms();
+
+                GameObject owner = new("Inactive signals fixture");
+                owner.SetActive(false);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(owner, scope.Scene);
+                Column3DIEEG ieeg = owner.AddComponent<Column3DIEEG>();
+                SetAutoProperty(ieeg, "ColumnData", new IEEGColumn("SEEG", new BaseConfiguration(), fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc, new DynamicConfiguration()));
+                CoreSubBloc subBloc = fixture.Bloc.MainSubBloc;
+                SetPrivateField(ieeg, "m_NavigationTimeline", new Timeline(fixture.Bloc,
+                    new Dictionary<CoreSubBloc, List<SubBlocEventsStatistics>> { { subBloc, new() } },
+                    new Dictionary<CoreSubBloc, int> { { subBloc, 0 } }, new Frequency(1000)));
+                ObjectSite recordedReplica = CreateRuntimeSite(scope, fixture.Channel, fixture.Patient, Vector3.zero);
+                recordedReplica.State.IsMasked = true;
+                SetAutoProperty(ieeg, "Sites", new List<ObjectSite> { recordedReplica });
+                scene.Columns.Add(ieeg);
+
+                UITrialMatrixGrid grid = CreateTrialMatrixGridHarness(scope);
+                ChannelInformations channels = owner.AddComponent<ChannelInformations>();
+                SetPrivateField(channels, "m_GraphZone", CreateGraphZoneHarness(scope, grid));
+                SetPrivateField(channels, "m_TrialMatrixZone", CreateTrialMatrixZoneHarness(scope, grid));
+                GridInformations gridInformations = owner.AddComponent<GridInformations>();
+                SetPrivateField(gridInformations, "m_Grid", CreateGraphsGridHarness(scope));
+                wrapper = owner.AddComponent<InformationsWrapper>();
+                InitializeSerializedEvents(wrapper);
+                wrapper.ChannelInformations = channels;
+                wrapper.GridInformations = gridInformations;
+                wrapper.Scene = scene;
+
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                var flush = typeof(InformationsWrapper).GetMethod("FlushPresentation", flags);
+                object presentation = typeof(InformationsWrapper).GetProperty("Presentation", flags).GetValue(wrapper);
+                var matrices = presentation.GetType().GetProperty("Matrices", flags);
+                HBP.Data.Informations.TrialMatrix.ChannelBloc CurrentRow()
+                {
+                    flush.Invoke(wrapper, null);
+                    return ((HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)matrices.GetValue(presentation)).Data.Single().Blocs.Single().ChannelBlocs.Single();
+                }
+
+                scene.ClickOnScene(new Ray(recorded.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                var recordedRow = CurrentRow();
+                Assert.That(recordedRow.IsFound, Is.True);
+                Assert.That(recordedRow.SubBlocs.Single().SubTrials.Select(trial => trial.Data.Values[0]), Is.EqualTo(new[] { 10f, 20f }));
+                recordedRow.TrialIsSelected = new[] { true, false };
+
+                scene.SelectColumn(ieeg);
+                Assert.That(scene.SelectedSite, Is.SameAs(recorded));
+                Assert.That(ieeg.SelectedSite, Is.SameAs(recordedReplica));
+                Assert.That(CurrentRow(), Is.SameAs(recordedRow));
+                Assert.That(recordedRow.TrialIsSelected, Is.EqualTo(new[] { true, false }));
+
+                scene.ClickOnScene(new Ray(missing.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                Assert.That(scene.SelectedSite, Is.SameAs(missing));
+                var missingRow = CurrentRow();
+                Assert.That(missingRow.Channel.Channel, Is.EqualTo(missing.Information.Name));
+                Assert.That(missingRow.IsFound, Is.False);
+                Assert.That(missingRow.SubBlocs.Single().SubTrials, Is.Empty);
+
+                var emptyRow = CreateChannelBlocPrefab().GetComponent<UITrialMatrixChannelBloc>();
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(emptyRow.gameObject, scope.Scene);
+                emptyRow.Set(missingRow, new[] { Color.black, Color.white }, Vector2.zero);
+                var previousKeyboard = UnityEngine.InputSystem.Keyboard.current;
+                var keyboard = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Keyboard>();
+                try
+                {
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(keyboard, new UnityEngine.InputSystem.LowLevel.KeyboardState(UnityEngine.InputSystem.Key.LeftCtrl));
+                    UnityEngine.InputSystem.InputSystem.Update();
+                    PointerEventData pointer = new(null) { button = PointerEventData.InputButton.Left };
+                    emptyRow.OnPointerDown(pointer);
+                    emptyRow.OnBeginDrag(pointer);
+                    emptyRow.OnDrag(pointer);
+                    Assert.That(emptyRow.TrialIsSelected, Is.Empty);
+                }
+                finally
+                {
+                    UnityEngine.InputSystem.InputSystem.RemoveDevice(keyboard);
+                    previousKeyboard?.MakeCurrent();
+                }
+
+                scene.ClickOnScene(new Ray(recorded.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                Assert.That(CurrentRow().SubBlocs.Single().SubTrials.Select(trial => trial.Data.Values[0]), Is.EqualTo(new[] { 10f, 20f }));
+            }
+            finally
+            {
+                if (wrapper != null)
+                {
+                    var presentation = typeof(InformationsWrapper).GetProperty("Presentation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(wrapper);
+                    (presentation as IDisposable)?.Dispose();
+                }
+
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
         public async Task SharedPresentation_BindingAfterStandaloneDisplayStaysStableAndPreservesItsOwner()
         {
             using PlayModeTempDirectoryScope temp = new();

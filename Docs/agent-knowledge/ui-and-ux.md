@@ -128,6 +128,13 @@ ROI sphere rows show their index, plain position/radius text and remove action;
 Add sphere is the final list item. Quest input and placeholder text is vertically
 centered while preserving its horizontal alignment.
 
+Each visualization has one selected recording contact, independent of column
+focus. Per-column site objects mirror the selection and obey their own visibility
+and scientific masks. Automatic cuts follow the contact's scientific position.
+Trial matrices resolve recorded trials by patient, channel, dataset and bloc.
+Keep the presentation and trial selection when only column focus changes.
+Missing trials produce empty cells, including for anatomically selectable contacts.
+
 Quest site selection uses right A; right B applies/reverts the local site preset.
 `QuestSitePresetPanel` samples B in LateUpdate after pointer selection, allowing
 A+B together without mutual exclusion. `Configure preset` is the sole added row

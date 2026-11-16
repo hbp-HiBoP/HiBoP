@@ -77,7 +77,7 @@ namespace HBP.UI.Informations
             get { return m_OnMinimize; }
         }
 
-        [SerializeField] BoolEvent m_OnChangeMinimized;
+        [SerializeField] BoolEvent m_OnChangeMinimized = new();
 
         public BoolEvent OnChangeMinimized
         {
@@ -285,11 +285,6 @@ namespace HBP.UI.Informations
             GridInformations.SetColumns(m_SceneData.Columns.ToArray());
         }
 
-        void GenerateChannelStructs(IEnumerable<Core.Object3D.Site> sites)
-        {
-            m_ChannelStructs = sites.Where(s => !s.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray(); // FIXME: it is better to show a "No data for site X" message instead of filtering by IsMasked
-        }
-
         void GenerateFilteredChannelStructs(string name, IEnumerable<Core.Object3D.Site> sites)
         {
             ChannelStructsGroup group = new(name, sites.Where(site => !site.State.IsMasked).Select(site => new ChannelStruct(site)), ChannelStructsGroup.GroupType.Custom);
@@ -317,7 +312,9 @@ namespace HBP.UI.Informations
 
         void OnSiteInformationRequestHandler(IEnumerable<Core.Object3D.Site> sites)
         {
-            GenerateChannelStructs(sites);
+            var channels = sites.Where(site => site == m_Scene.SelectedSite || !site.State.IsMasked).Select(site => new ChannelStruct(site)).ToArray();
+            if (m_ChannelStructs.SequenceEqual(channels) && (m_RequestDisplayUpdate || Presentation.Channels.SequenceEqual(channels))) return;
+            m_ChannelStructs = channels;
             m_RequestSceneDataUpdate = true;
             m_RequestDisplayUpdate = true;
         }
@@ -364,6 +361,7 @@ namespace HBP.UI.Informations
 
         void OnSceneCompletelyLoaded()
         {
+            if (m_Scene.SelectedSite) OnSiteInformationRequestHandler(m_Scene.GetSelectedSitesForInformation());
             m_RequestSceneDataUpdate = true;
         }
 
@@ -443,6 +441,7 @@ namespace HBP.UI.Informations
 
                 SetColorMap();
                 GenerateSceneData();
+                if (m_Scene.SelectedSite) OnSiteInformationRequestHandler(m_Scene.GetSelectedSitesForInformation());
             }
         }
 

@@ -150,7 +150,7 @@ terminate an otherwise healthy socket merely for a domain rejection.
 
 | Operation family | Required behavior |
 | --- | --- |
-| Selections | Share scene/column/site/ROI/sphere identity; automatic cuts and ROI masks derive locally from accepted causes. Hover never selects a new context. |
+| Selections | Share scene/column/site/ROI/sphere identity. Column focus and the visualization's selected contact have independent keys and one retained unsent intent each. The site offer's column supplies visibility context; the checkpoint records one contact per visualization. Derive automatic cuts from the accepted contact and policy, and ROI masks from their accepted causes. Hover never selects a new context. |
 | Cuts and ROI spheres | Send complete small definitions atomically. Create/delete are reliable structural operations; definitions coalesce by object. Never renumber identities after deletion. |
 | Site state | A multi-site gesture/import is one final-value batch, preserving targeting/masking rules and skipping unchanged assignments. Blacklist affects scientific masks; highlight/color/ordered labels do not invalidate activity. |
 | ROI/filtering | Share ROI definitions and derive its mask locally. Filtering uses command plus canonical result as described under jobs. |

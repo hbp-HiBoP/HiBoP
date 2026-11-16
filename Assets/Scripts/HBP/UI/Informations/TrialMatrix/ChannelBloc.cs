@@ -153,6 +153,7 @@ namespace HBP.UI.Informations.TrialMatrix
 
         public void OnPointerDown(BaseEventData baseEventData)
         {
+            if (m_TrialIsSelected is not { Length: > 0 }) return;
             PointerEventData pointerEventData = (PointerEventData)baseEventData;
             m_OnPointerDownTrial = GetTrialAtPosition(pointerEventData.pressPosition);
             m_LastDragTrial = m_OnPointerDownTrial;
@@ -217,6 +218,7 @@ namespace HBP.UI.Informations.TrialMatrix
 
         public void OnDrag(BaseEventData baseEventData)
         {
+            if (m_TrialIsSelected is not { Length: > 0 }) return;
             PointerEventData pointerEventData = (PointerEventData)baseEventData;
             int dragTrial = GetTrialAtPosition(pointerEventData.position);
 

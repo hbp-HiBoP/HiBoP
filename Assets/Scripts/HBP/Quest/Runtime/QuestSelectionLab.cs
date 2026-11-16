@@ -177,7 +177,7 @@ namespace HBP.Quest
             wrapper.SetPositionAndRotation(initialPosition, initialRotation);
             wrapper.localScale = initialScale;
             wrapper.GetComponent<QuestAnatomyManipulator>().CancelGrab();
-            presentation.Scene.Columns[0].UnselectSite();
+            presentation.Scene.SelectSite(presentation.Scene.Columns[0], null);
         }
 
         private void ApplyLayout()
@@ -188,7 +188,7 @@ namespace HBP.Quest
             // IsMasked is a prepared-data flag, without a presentation-change event.
             // Request the common rendering update so visibility and selectable contacts agree.
             presentation.Scene.SceneInformation.SitesNeedUpdate = true;
-            presentation.Scene.Columns[0].UnselectSite();
+            presentation.Scene.SelectSite(presentation.Scene.Columns[0], null);
             var candidates = Sites.Where(s => !s.State.IsMasked);
             if (layout == QuestSelectionLayout.RandomBox)
             {
@@ -252,7 +252,7 @@ namespace HBP.Quest
             Finish("restarted");
             if (layout == QuestSelectionLayout.Row) trialIndex = 0;
             probe.Cancel();
-            presentation.Scene.Columns[0].UnselectSite();
+            presentation.Scene.SelectSite(presentation.Scene.Columns[0], null);
             target = Sites.Single(s => s.Information.Name == sequence[trialIndex % sequence.Length]);
             testing = true;
             transitions = 0;

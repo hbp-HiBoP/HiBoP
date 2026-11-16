@@ -60,7 +60,7 @@ namespace HBP.Quest
             dirty = true;
         }
 
-        internal bool Ready => site != null && view != null && view.Scene == scene && scene.SelectedColumn == column && column.SelectedSite == site && QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible;
+        internal bool Ready => site != null && !site.State.IsMasked && view != null && view.Scene == scene && scene.SelectedColumn == column && column.SelectedSite == site && QuestAnatomySession.CanInteractWith(scene) && scene.IsVisible;
         internal Base3DScene CurrentScene => scene;
         internal Column3D CurrentColumn => column;
         internal Site CurrentSite => site;

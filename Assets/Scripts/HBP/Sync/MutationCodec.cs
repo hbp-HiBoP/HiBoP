@@ -260,7 +260,7 @@ namespace HBP.Sync
         public const int HeaderLength = 136;
         public const int MaximumPayloadBytes = MutationPayloadCodec.MaximumPayloadBytes;
         public const int MaximumFrameBytes = HeaderLength + MaximumPayloadBytes;
-        public const ushort ProtocolVersion = 2;
+        public const ushort ProtocolVersion = 3;
         public const ushort MutationMessageKind = 1;
         private const ushort CanonicalSequenceFlag = 1;
         private const ushort ObservedCanonicalSequenceFlag = 2;

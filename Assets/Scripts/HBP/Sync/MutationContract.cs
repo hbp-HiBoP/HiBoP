@@ -484,8 +484,8 @@ namespace HBP.Sync
                 key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TimelineAnchor, timelineAnchor.ColumnId, null, null);
             else if (mutation is SetSelectedColumn)
                 key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedColumn, null, null, null);
-            else if (mutation is SetSelectedSite selectedSite)
-                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedSite, selectedSite.ColumnId, null, null);
+            else if (mutation is SetSelectedSite)
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedSite, null, null, null);
             else if (mutation is SetSceneBoolean sceneBoolean)
                 key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SceneBoolean, null, null, null, propertyId: (int)sceneBoolean.Property);
             else if (mutation is SetSceneFloat sceneFloat)

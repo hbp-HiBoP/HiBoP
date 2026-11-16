@@ -612,8 +612,8 @@ namespace HBP.Sync.Scene
         private bool m_Disposed;
         private bool m_OfflineLocal;
         private QuestMutationProposal m_LastCreatedProposal;
-        private OperationId m_SiteSelectionInFlight;
-        private QuestMutationProposal m_WaitingSiteSelection;
+        private readonly SelectionLane m_ColumnSelection = new();
+        private readonly SelectionLane m_SiteSelection = new();
         private OperationId m_ObjectEditInFlight;
         private readonly LinkedList<QuestMutationProposal> m_WaitingObjectEdits = new();
         private readonly Dictionary<Guid, byte> m_ObjectEditFields = new();
@@ -621,7 +621,6 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<(string Roi, string Sphere), SetRoiSphereDefinition> m_ConfirmedRoiSpheres = new();
         private ulong m_RoiCheckpointSequence;
         private ulong m_CutCheckpointSequence;
-        private ulong m_LastAppliedSelectionSequence;
         private ulong m_SelectionCheckpointSequence;
 
         public ulong LastObservedCanonicalSequence => m_LastObservedCanonicalSequence;
@@ -710,7 +709,6 @@ namespace HBP.Sync.Scene
             if (scheduler.OriginDevice != OriginDevice.Quest || !scheduler.SceneId.Equals(sceneId) || !scheduler.IncarnationId.Equals(incarnationId))
                 throw new ArgumentException("The Quest mutation scheduler must belong to this scene incarnation.", nameof(scheduler));
             m_LastObservedCanonicalSequence = lastObservedCanonicalSequence;
-            m_LastAppliedSelectionSequence = lastObservedCanonicalSequence;
             m_SelectionCheckpointSequence = lastObservedCanonicalSequence;
             m_CutCheckpointSequence = lastObservedCanonicalSequence;
             if (boundary.TryReadPreparedGeometry(out SetMeshDisplay initialDisplay, out ApplyTriangleMask initialMask))
@@ -816,7 +814,7 @@ namespace HBP.Sync.Scene
                 if (!keySuperseded)
                 {
                     if (IsPreparedGeometryMutation(canonical.Mutation)) ApplyCanonicalGeometry(canonical.Mutation, canonical.OperationId, canonical.CanonicalSequence);
-                    else if ((!matchesOptimistic || canonical.Mutation is SetSelectedSite || canonical.Mutation is SetCutDefinition or SetRoiSphereDefinition || ObjectStructureNeedsReplay(canonical.Mutation)) && !HasPendingObjectDeletion(canonical.Mutation, canonical.OperationId))
+                    else if ((!matchesOptimistic || canonical.Mutation is SetSelectedColumn or SetSelectedSite or SetCutDefinition or SetRoiSphereDefinition || ObjectStructureNeedsReplay(canonical.Mutation)) && !HasPendingObjectDeletion(canonical.Mutation, canonical.OperationId))
                         m_Boundary.Apply(canonical.Mutation, MutationApplicationOrigin.Remote, canonical.OperationId);
                 }
 
@@ -825,14 +823,13 @@ namespace HBP.Sync.Scene
                 RememberReceived(canonical.OperationId, payload, canonical.CanonicalSequence);
                 m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, canonical.CanonicalSequence);
                 MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
-                MarkSelectionApplied(canonical.Mutation, canonical.CanonicalSequence);
                 if (!keySuperseded)
                 {
                     RememberConfirmedCut(canonical.Mutation);
                     RememberConfirmedRoi(canonical.Mutation);
                 }
 
-                CompleteSiteSelection(canonical.OperationId);
+                CompleteSelection(canonical.OperationId);
                 CompleteObjectEdit(canonical.OperationId);
                 if (matchesOptimistic)
                 {
@@ -862,7 +859,6 @@ namespace HBP.Sync.Scene
             if (superseded) return false;
 
             MarkKeyApplied(ApplicationKey(descriptor), canonical.CanonicalSequence);
-            MarkSelectionApplied(canonical.Mutation, canonical.CanonicalSequence);
             RememberConfirmedCut(canonical.Mutation);
             RememberConfirmedRoi(canonical.Mutation);
             return true;
@@ -997,7 +993,6 @@ namespace HBP.Sync.Scene
             m_LastObservedCanonicalSequence = canonicalSequence;
             if (includesSelection)
             {
-                m_LastAppliedSelectionSequence = Math.Max(m_LastAppliedSelectionSequence, canonicalSequence);
                 m_SelectionCheckpointSequence = Math.Max(m_SelectionCheckpointSequence, canonicalSequence);
                 // The complete scene checkpoint also replaces every cut's confirmed base.
                 m_CutCheckpointSequence = Math.Max(m_CutCheckpointSequence, canonicalSequence);
@@ -1029,7 +1024,7 @@ namespace HBP.Sync.Scene
             if (!keySuperseded)
             {
                 if (IsPreparedGeometryMutation(correction.AuthoritativeMutation)) ApplyCanonicalGeometry(correction.AuthoritativeMutation, correction.OperationId, correction.CanonicalSequence);
-                else if ((!matchesOptimistic || correction.AuthoritativeMutation is SetSelectedSite || correction.AuthoritativeMutation is SetCutDefinition or SetRoiSphereDefinition) && !HasPendingObjectDeletion(correction.AuthoritativeMutation, correction.OperationId))
+                else if ((!matchesOptimistic || correction.AuthoritativeMutation is SetSelectedColumn or SetSelectedSite or SetCutDefinition or SetRoiSphereDefinition) && !HasPendingObjectDeletion(correction.AuthoritativeMutation, correction.OperationId))
                     m_Boundary.ApplyCorrection(correction.AuthoritativeMutation, correction.OperationId);
             }
 
@@ -1038,14 +1033,13 @@ namespace HBP.Sync.Scene
             RememberReceived(correction.OperationId, payload);
             m_LastObservedCanonicalSequence = Math.Max(m_LastObservedCanonicalSequence, correction.CanonicalSequence);
             MarkKeyApplied(ApplicationKey(descriptor), correction.CanonicalSequence);
-            MarkSelectionApplied(correction.AuthoritativeMutation, correction.CanonicalSequence);
             if (!keySuperseded)
             {
                 RememberConfirmedCut(correction.AuthoritativeMutation);
                 RememberConfirmedRoi(correction.AuthoritativeMutation);
             }
 
-            CompleteSiteSelection(correction.OperationId);
+            CompleteSelection(correction.OperationId);
             CompleteObjectEdit(correction.OperationId);
             if (!matchesOptimistic && !keySuperseded)
             {
@@ -1081,7 +1075,7 @@ namespace HBP.Sync.Scene
             RemoveReplayEntriesForOperation(operationId.Value);
             if (restored)
             {
-                CompleteSiteSelection(operationId);
+                CompleteSelection(operationId);
                 CompleteObjectEdit(operationId);
             }
 
@@ -1116,10 +1110,16 @@ namespace HBP.Sync.Scene
 
             var proposal = new QuestMutationProposal(m_SceneId, m_IncarnationId, operationId, m_LastObservedCanonicalSequence, mutation);
             if (IsObjectEdit(mutation)) PrepareObjectEdit(ref proposal);
-            if (mutation is SetSelectedSite && m_WaitingSiteSelection != null)
+            SelectionLane selection = mutation switch
             {
-                RemovePendingProposal(m_WaitingSiteSelection.OperationId);
-                m_WaitingSiteSelection = null;
+                SetSelectedColumn => m_ColumnSelection,
+                SetSelectedSite => m_SiteSelection,
+                _ => null
+            };
+            if (selection?.Waiting != null)
+            {
+                RemovePendingProposal(selection.Waiting.OperationId);
+                selection.Waiting = null;
             }
 
             TouchedKey key = ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, mutation).CoalescingKey;
@@ -1148,17 +1148,15 @@ namespace HBP.Sync.Scene
                 m_ObjectEditInFlight = operationId;
             }
 
-            if (mutation is SetSelectedSite)
+            if (selection != null)
             {
-                if (m_SiteSelectionInFlight != null)
+                if (selection.InFlight != null)
                 {
-                    // Selection changes the active column too: serialize across the whole scene.
-                    // Local feedback is already applied; retain only the latest unsent intent.
-                    m_WaitingSiteSelection = proposal;
+                    selection.Waiting = proposal;
                     return;
                 }
 
-                m_SiteSelectionInFlight = operationId;
+                selection.InFlight = operationId;
             }
 
             ScheduleProposal(proposal);
@@ -1416,12 +1414,15 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private void CompleteSiteSelection(OperationId operationId)
+        private void CompleteSelection(OperationId operationId)
         {
-            if (m_SiteSelectionInFlight == null || !m_SiteSelectionInFlight.Equals(operationId)) return;
-            m_SiteSelectionInFlight = null;
-            var waiting = m_WaitingSiteSelection;
-            m_WaitingSiteSelection = null;
+            SelectionLane selection;
+            if (operationId.Equals(m_ColumnSelection.InFlight)) selection = m_ColumnSelection;
+            else if (operationId.Equals(m_SiteSelection.InFlight)) selection = m_SiteSelection;
+            else return;
+
+            var waiting = selection.Waiting;
+            selection.Clear();
             if (waiting == null || m_OfflineLocal) return;
             try
             {
@@ -1437,7 +1438,7 @@ namespace HBP.Sync.Scene
 
             var next = new QuestMutationProposal(m_SceneId, m_IncarnationId, waiting.OperationId, m_LastObservedCanonicalSequence, waiting.Mutation);
             m_PendingObservations[next.OperationId.Value] = next.ObservedCanonicalSequence;
-            m_SiteSelectionInFlight = next.OperationId;
+            selection.InFlight = next.OperationId;
             ScheduleProposal(next);
         }
 
@@ -1665,9 +1666,8 @@ namespace HBP.Sync.Scene
                 m_Boundary.ForgetOptimisticOperation(new OperationId(operationId));
             m_Pending.Clear();
             m_PendingObservations.Clear();
-            m_SiteSelectionInFlight = null;
-            m_WaitingSiteSelection = null;
-            m_LastAppliedSelectionSequence = 0;
+            m_ColumnSelection.Clear();
+            m_SiteSelection.Clear();
             m_ObjectEditInFlight = null;
             m_WaitingObjectEdits.Clear();
             m_ObjectEditFields.Clear();
@@ -1708,27 +1708,10 @@ namespace HBP.Sync.Scene
 
         private bool WasKeySuperseded(TouchedKey key, ulong sequence) => key != null && m_LastAppliedByKey.TryGetValue(key, out ulong lastApplied) && lastApplied >= sequence;
 
-        private static bool ChangesActiveSelection(Mutation mutation) => mutation is SetSelectedColumn || mutation is SetSelectedSite site && site.SiteId != null;
-
         private bool WasSelectionSuperseded(Mutation mutation, ulong sequence, bool includeEqual = true)
         {
-            if (!ChangesActiveSelection(mutation)) return false;
-            if (includeEqual ? m_SelectionCheckpointSequence >= sequence : m_SelectionCheckpointSequence > sequence) return true;
-            if (!(includeEqual ? m_LastAppliedSelectionSequence >= sequence : m_LastAppliedSelectionSequence > sequence)) return false;
-            // Selecting a column preserves its own site. A delayed site value for that same
-            // active column can still fill independent state; its per-site watermark applies.
-            if (mutation is SetSelectedSite site)
-            {
-                var current = (SetSelectedColumn)m_Boundary.ReadCurrentMutation(new SetSelectedColumn(null));
-                if (site.ColumnId.Equals(current.ColumnId)) return false;
-            }
-
-            return true;
-        }
-
-        private void MarkSelectionApplied(Mutation mutation, ulong sequence)
-        {
-            if (ChangesActiveSelection(mutation)) m_LastAppliedSelectionSequence = Math.Max(m_LastAppliedSelectionSequence, sequence);
+            return mutation is SetSelectedColumn or SetSelectedSite &&
+                (includeEqual ? m_SelectionCheckpointSequence >= sequence : m_SelectionCheckpointSequence > sequence);
         }
 
         private void MarkKeyApplied(TouchedKey key, ulong sequence)
@@ -1756,14 +1739,13 @@ namespace HBP.Sync.Scene
             m_Boundary.OnMutationProposed.RemoveListener(OnLocalMutationProposed);
             m_Pending.Clear();
             m_PendingObservations.Clear();
-            m_SiteSelectionInFlight = null;
-            m_WaitingSiteSelection = null;
+            m_ColumnSelection.Clear();
+            m_SiteSelection.Clear();
             m_ObjectEditInFlight = null;
             m_WaitingObjectEdits.Clear();
             m_ObjectEditFields.Clear();
             m_ConfirmedCuts.Clear();
             m_ConfirmedRoiSpheres.Clear();
-            m_LastAppliedSelectionSequence = 0;
             m_SelectionCheckpointSequence = 0;
             m_CutCheckpointSequence = 0;
             m_RoiCheckpointSequence = 0;
@@ -1785,6 +1767,18 @@ namespace HBP.Sync.Scene
                 if (left[i] != right[i])
                     return false;
             return true;
+        }
+
+        private sealed class SelectionLane
+        {
+            internal OperationId InFlight;
+            internal QuestMutationProposal Waiting;
+
+            internal void Clear()
+            {
+                InFlight = null;
+                Waiting = null;
+            }
         }
 
         private sealed class ReplayMutation

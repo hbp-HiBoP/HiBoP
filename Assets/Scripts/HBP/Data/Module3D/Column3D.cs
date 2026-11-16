@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -119,6 +120,8 @@ namespace HBP.Data.Module3D
         /// Currently selected site
         /// </summary>
         public Core.Object3D.Site SelectedSite { get; private set; }
+
+        internal Action<Core.Object3D.Site> RequestSiteSelection { get; set; }
 
         /// <summary>
         /// Currently selected site ID
@@ -338,7 +341,6 @@ namespace HBP.Data.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            UnselectSite();
             UnobserveSites();
             var previousSites = RawElectrodes;
             RawElectrodes = implantation != null ? new Core.DLL.RawSiteList(implantation.RawSiteList) : new Core.DLL.RawSiteList();
@@ -394,20 +396,7 @@ namespace HBP.Data.Module3D
                         }
 
                         site.IsActive = true;
-                        site.OnSelectSite.AddListener((selected) =>
-                        {
-                            if (selected)
-                            {
-                                UnselectSite();
-                                SelectedSite = site;
-                            }
-                            else
-                            {
-                                SelectedSite = null;
-                            }
-
-                            OnSelectSite.Invoke(SelectedSite);
-                        });
+                        site.OnSelectionRequested.AddListener(() => RequestSiteSelection?.Invoke(site));
                         site.OnChangeConfiguration.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
                         Sites.Add(site);
                     }
@@ -527,37 +516,21 @@ namespace HBP.Data.Module3D
             Views.RemoveAt(lineID);
         }
 
-        /// <summary>
-        /// Unselect the selected site
-        /// </summary>
-        public void UnselectSite()
+        public Core.Object3D.Site FindSite(string id, int index = -1)
         {
-            if (SelectedSite)
-            {
-                SelectedSite.IsSelected = false;
-            }
+            if (Sites == null) return null;
+            if (index >= 0 && index < Sites.Count && Sites[index].Information.FullID == id) return Sites[index];
+            return Sites.Find(candidate => candidate.Information.FullID == id);
         }
 
-        /// <summary>
-        /// Select the first unmasked site by name
-        /// </summary>
-        /// <param name="siteName">Name of the site to select</param>
-        public void SelectFirstOrDefaultSiteByName(string siteName = "")
+        internal bool SetSelectedSiteRepresentation(Core.Object3D.Site site)
         {
-            Core.Object3D.Site site;
-            if (!string.IsNullOrEmpty(siteName))
-            {
-                site = Sites.FirstOrDefault(s => s.Information.Name == siteName);
-            }
-            else
-            {
-                site = Sites.FirstOrDefault(s => !s.State.IsMasked);
-            }
-
-            if (site != null)
-            {
-                site.IsSelected = true;
-            }
+            if (ReferenceEquals(SelectedSite, site)) return false;
+            var previous = SelectedSite;
+            SelectedSite = site;
+            if (previous) previous.IsSelected = false;
+            if (site) site.IsSelected = true;
+            return true;
         }
 
         /// <summary>

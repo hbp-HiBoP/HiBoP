@@ -233,7 +233,6 @@ namespace HBP.Sync.Scene
         private readonly Dictionary<Guid, LinkedListNode<Guid>> m_OptimisticRollbackNodes = new();
         public int OptimisticRollbackOrderCount => m_OptimisticRollbackOrder.Count;
         private readonly Dictionary<Column3D, List<(UnityEvent Event, UnityAction Listener)>> m_ColumnListeners = new();
-        private readonly Dictionary<Column3D, UnityAction<Core.Object3D.Site>> m_ColumnSelectionListeners = new();
         private Mutation m_LastSceneStrongCuts;
         private Mutation m_LastSceneAutomaticCuts;
         private Mutation m_LastSceneHideBlacklisted;
@@ -259,7 +258,7 @@ namespace HBP.Sync.Scene
         private Mutation m_LastImplantation;
         private Mutation m_LastTriangleMask;
         private Mutation m_LastSelectedColumn;
-        private readonly Dictionary<Column3D, Mutation> m_LastSelectedSites = new();
+        private Mutation m_LastSelectedSite;
         private readonly Dictionary<Column3D, Mutation> m_LastActivityAlphas = new();
         private readonly Dictionary<Column3D, Mutation> m_LastColumnSpans = new();
         private readonly Dictionary<Column3D, Mutation> m_LastFunctionalDisplays = new();
@@ -417,8 +416,9 @@ namespace HBP.Sync.Scene
         {
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             if (origin != MutationApplicationOrigin.Remote && m_ReconciliationLock != null) return;
-            // Canonicals and corrections can restore a retained selection whose site is now hidden.
-            bool allowRetainedSiteSelection = origin == MutationApplicationOrigin.Remote;
+            // Desktop lists can deliberately pick an unmasked contact hidden in the 3D view.
+            bool allowRetainedSiteSelection = origin == MutationApplicationOrigin.Remote ||
+                origin == MutationApplicationOrigin.LocalDesktop && mutation is SetSelectedSite { SiteId: not null } selection && !ResolveSite(selection.ColumnId, selection.SiteId).IsMasked;
             ValidateMutation(mutation, allowRetainedSiteSelection);
             SceneMutationCheckpoint checkpointRollback = origin == MutationApplicationOrigin.LocalQuest && mutation is SetConfigurationTransaction ? CaptureCheckpoint() : null;
             SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
@@ -1065,8 +1065,9 @@ namespace HBP.Sync.Scene
             var siteRecords = new List<SiteColorCheckpointRecord>();
 
             var cutRecords = new List<CutDefinitionCheckpointRecord>();
-            foreach (KeyValuePair<SceneCut, CutId> entry in m_CutIds)
-                cutRecords.Add(new CutDefinitionCheckpointRecord(CreateCutDefinition(entry.Key, entry.Value)));
+            if (m_Scene?.AutomaticCutAroundSelectedSite != true)
+                foreach (KeyValuePair<SceneCut, CutId> entry in m_CutIds)
+                    cutRecords.Add(new CutDefinitionCheckpointRecord(CreateCutDefinition(entry.Key, entry.Value)));
 
             var timelineRecords = new List<TimelineAnchorCheckpointRecord>();
             foreach (KeyValuePair<BasicTimeline, List<TimelineTarget>> entry in m_Timelines)
@@ -1271,13 +1272,20 @@ namespace HBP.Sync.Scene
 
             Add(new MoveSites(m_Scene.SitePlacement switch { SitePlacementMode.Left => SiteMoveCommand.Left, SitePlacementMode.Right => SiteMoveCommand.Right, _ => SiteMoveCommand.Reset }));
 
-            foreach (SceneCut cut in m_Scene.Cuts)
+            if (m_Scene.AutomaticCutAroundSelectedSite)
             {
-                CutId id = m_CutIds[cut];
-                Add(new CreateCut(id, CreateCutDefinition(cut, id), cut.Index));
+                Add(new SetCutOrder(Array.Empty<CutId>()));
             }
+            else
+            {
+                foreach (SceneCut cut in m_Scene.Cuts)
+                {
+                    CutId id = m_CutIds[cut];
+                    Add(new CreateCut(id, CreateCutDefinition(cut, id), cut.Index));
+                }
 
-            Add(new SetCutOrder(m_Scene.Cuts.Select(cut => m_CutIds[cut])));
+                Add(new SetCutOrder(m_Scene.Cuts.Select(cut => m_CutIds[cut])));
+            }
 
             if (m_Scene.ROIManager != null)
             {
@@ -1567,6 +1575,8 @@ namespace HBP.Sync.Scene
 
         private static void ValidateCheckpointT09Records(IReadOnlyList<T09CheckpointRecord> records, IReadOnlyList<T10CheckpointRecord> t10Records)
         {
+            if (records.Count(record => record?.Value is SetSelectedSite) > 1)
+                throw new ArgumentException("A checkpoint can contain only one selected site for the scene.", nameof(records));
             var stagedRois = t10Records.Select(record => record.Value).OfType<CreateRoi>().ToDictionary(roi => roi.RoiId.Value, StringComparer.Ordinal);
             bool hasRoiRoster = t10Records.Any(record => record.Value is SetActiveRoi);
             foreach (T09CheckpointRecord record in records)
@@ -1771,6 +1781,7 @@ namespace HBP.Sync.Scene
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
                 ApplyCheckpointT11Records(checkpoint.T11Records);
                 foreach (T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value, allowRetainedSiteSelection: true);
+                if (m_Scene?.AutomaticCutAroundSelectedSite == true) m_Scene.SceneInformation.CutsNeedUpdate = true;
                 if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
                 if (checkpoint.T13Records.Count == 1)
                 {
@@ -1857,18 +1868,14 @@ namespace HBP.Sync.Scene
             scene.OnConfigurationMutationCompleted.AddListener(CompleteConfigurationMutation);
             scene.SiteConfigurationBatchRouter = ApplySiteConfigurationBatch;
             scene.SiteSelectionRouter = ApplySiteSelection;
+            scene.OnSelectSite.AddListener(OnSceneSiteSelectionChanged);
             scene.CutDefinitionRouter = ApplyCutDefinition;
             foreach (Column3D column in scene.Columns)
             {
                 string id = column.ColumnData.ID;
                 if (!m_ColumnsById.TryAdd(id, column)) throw new ArgumentException("Prepared columns must have unique stable identities.", nameof(scene));
                 var columnId = new ColumnId(id);
-                m_LastSelectedSites.Add(column, ReadCurrentT09Mutation(new SetSelectedSite(columnId, null)));
                 m_LastActivityAlphas.Add(column, new SetActivityAlpha(columnId, column.ActivityAlpha));
-
-                UnityAction<Core.Object3D.Site> selectionListener = site => OnColumnSiteSelectionChanged(column, site);
-                column.OnSelectSite.AddListener(selectionListener);
-                m_ColumnSelectionListeners.Add(column, selectionListener);
                 var listeners = new List<(UnityEvent, UnityAction)>();
                 AddColumnListener(column.OnUpdateActivityAlpha, () => ObserveColumnActivityAlpha(column), listeners);
                 if (column is Column3DStatic staticColumn)
@@ -1930,6 +1937,7 @@ namespace HBP.Sync.Scene
             }
 
             m_LastSelectedColumn = new SetSelectedColumn(scene.SelectedColumn ? new ColumnId(scene.SelectedColumn.ColumnData.ID) : null);
+            m_LastSelectedSite = CurrentSelectedSite();
             m_LastSceneAutomaticCuts = new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, scene.AutomaticCutAroundSelectedSite);
             m_LastActiveRoiId = scene.ROIManager?.SelectedROI?.ID;
             m_LastCutOrder = scene.Cuts.Select(cut => new CutId(cut.ID)).ToArray();
@@ -2014,8 +2022,8 @@ namespace HBP.Sync.Scene
         private bool ApplySiteSelection(Column3D column, Core.Object3D.Site site)
         {
             if (ShouldSuppressPublication() || m_ConfigurationMutationCapture != null) return false;
-            // The common setter still fires every UI callback, but only its final intent is published.
-            Apply(new SetSelectedSite(new ColumnId(column.ColumnData.ID), new SiteId(site.Information.FullID)), m_LocalOrigin == OriginDevice.Quest ? MutationApplicationOrigin.LocalQuest : MutationApplicationOrigin.LocalDesktop, new OperationId(Guid.NewGuid()));
+            var value = site ? new SetSelectedSite(new ColumnId(column.ColumnData.ID), new SiteId(site.Information.FullID)) : CurrentEmptySiteSelection();
+            Apply(value, m_LocalOrigin == OriginDevice.Quest ? MutationApplicationOrigin.LocalQuest : MutationApplicationOrigin.LocalDesktop, new OperationId(Guid.NewGuid()));
             return true;
         }
 
@@ -2255,6 +2263,7 @@ namespace HBP.Sync.Scene
             var records = new List<T09CheckpointRecord>();
             void Add(Mutation mutation) => records.Add(T09CheckpointRecord.FromMutation(mutation));
             Add(new SetSelectedColumn(m_Scene.SelectedColumn ? new ColumnId(m_Scene.SelectedColumn.ColumnData.ID) : null));
+            if (CurrentSelectedSite() is SetSelectedSite selectedSite) Add(selectedSite);
             Add(new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
             Add(new SetSceneBoolean(SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
             Add(new SetSceneBoolean(SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
@@ -2281,7 +2290,6 @@ namespace HBP.Sync.Scene
             foreach (Column3D column in m_Scene.Columns)
             {
                 var columnId = new ColumnId(column.ColumnData.ID);
-                Add(new SetSelectedSite(columnId, column.SelectedSite ? new SiteId(column.SelectedSite.Information.FullID) : null));
                 Add(new SetActivityAlpha(columnId, column.ActivityAlpha));
                 if (column is Column3DStatic staticColumn) Add(CreateStaticSpan(staticColumn));
                 if (column is Column3DDynamic dynamicColumn) Add(CreateDynamicSpan(dynamicColumn));
@@ -2325,14 +2333,13 @@ namespace HBP.Sync.Scene
 
         private void OnModuleColumnSelected(Column3D column)
         {
-            if (!m_ColumnsById.TryGetValue(column?.ColumnData?.ID, out Column3D ownedColumn) || !ReferenceEquals(column, ownedColumn)) return;
+            if (column?.ColumnData?.ID is not string id || !m_ColumnsById.TryGetValue(id, out Column3D ownedColumn) || !ReferenceEquals(column, ownedColumn)) return;
             ObserveT09(ref m_LastSelectedColumn, new SetSelectedColumn(new ColumnId(column.ColumnData.ID)));
         }
 
-        private void OnColumnSiteSelectionChanged(Column3D column, Core.Object3D.Site site)
+        private void OnSceneSiteSelectionChanged(Core.Object3D.Site site)
         {
-            if (m_Disposed || !m_ColumnsById.TryGetValue(column.ColumnData.ID, out Column3D ownedColumn) || !ReferenceEquals(column, ownedColumn)) return;
-            ObserveT09(m_LastSelectedSites, column, new SetSelectedSite(new ColumnId(column.ColumnData.ID), site ? new SiteId(site.Information.FullID) : null));
+            if (!m_Disposed && CurrentSelectedSite() is SetSelectedSite selected) ObserveT09(ref m_LastSelectedSite, selected);
         }
 
         private void OnBoundSiteStateChanged(SiteState state)
@@ -2743,7 +2750,7 @@ namespace HBP.Sync.Scene
             return key switch
             {
                 SetSelectedColumn => new SetSelectedColumn(m_Scene.SelectedColumn ? new ColumnId(m_Scene.SelectedColumn.ColumnData.ID) : null),
-                SetSelectedSite selected => CurrentSelectedSite(selected.ColumnId),
+                SetSelectedSite => CurrentSelectedSite(),
                 SetSceneBoolean value => new SetSceneBoolean(value.Property, ReadSceneBoolean(value.Property)),
                 SetSceneFloat value => new SetSceneFloat(value.Property, ReadSceneFloat(value.Property)),
                 SetSceneColor value => new SetSceneColor(value.Property, ReadSceneColor(value.Property)),
@@ -3635,29 +3642,27 @@ namespace HBP.Sync.Scene
         private bool ApplyT09Mutation(Mutation mutation, bool allowRetainedSiteSelection = false)
         {
             ValidateT09Mutation(mutation, allowRetainedSiteSelection);
-            bool selectsDifferentColumn = mutation is SetSelectedSite selectedSite && selectedSite.SiteId != null && m_Scene.SelectedColumn != ResolveColumn(selectedSite.ColumnId);
-            if (mutation is not SetSelectedColumn && !selectsDifferentColumn && MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(MutationPayloadCodec.Encode(mutation))) return false;
+            if (mutation is SetSelectedSite selection)
+            {
+                if (StringComparer.Ordinal.Equals(m_Scene.SelectedSite?.Information.FullID, selection.SiteId?.Value)) return false;
+                m_Scene.SelectSiteForSynchronization(ResolveColumn(selection.ColumnId), selection.SiteId?.Value);
+                return true;
+            }
+
+            if (mutation is not SetSelectedColumn && MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(MutationPayloadCodec.Encode(mutation))) return false;
             switch (mutation)
             {
                 case SetSelectedColumn selected:
                     Column3D selectedColumn = selected.ColumnId == null ? null : ResolveColumn(selected.ColumnId);
                     bool changed = m_Scene.Columns.Any(column => column.IsSelected != ReferenceEquals(column, selectedColumn));
                     if (!changed) return false;
-                    foreach (Column3D column in m_Scene.Columns) column.IsSelected = ReferenceEquals(column, selectedColumn);
-                    return true;
-                case SetSelectedSite selected:
+                    if (selectedColumn) m_Scene.SelectColumn(selectedColumn);
+                    else
                     {
-                        Column3D column = ResolveColumn(selected.ColumnId);
-                        if (selected.SiteId == null)
-                        {
-                            column.UnselectSite();
-                            return true;
-                        }
-
-                        Core.Object3D.Site site = column.Sites.Single(candidate => candidate.Information.FullID == selected.SiteId.Value);
-                        m_Scene.SelectSiteForSynchronization(column, site);
-                        return true;
+                        foreach (Column3D column in m_Scene.Columns) column.IsSelected = false;
+                        m_LastSelectedColumn = selected;
                     }
+                    return true;
                 case SetSceneBoolean value:
                     WriteSceneBoolean(value);
                     return true;
@@ -3878,11 +3883,14 @@ namespace HBP.Sync.Scene
                 _ => throw new ArgumentOutOfRangeException(nameof(property))
             };
 
-        private SetSelectedSite CurrentSelectedSite(ColumnId columnId)
+        private SetSelectedSite CurrentSelectedSite()
         {
-            Column3D column = ResolveColumn(columnId);
-            return new SetSelectedSite(columnId, column.SelectedSite ? new SiteId(column.SelectedSite.Information.FullID) : null);
+            return m_Scene.SelectedSite
+                ? new SetSelectedSite(new ColumnId(m_Scene.SelectedSiteColumn.ColumnData.ID), new SiteId(m_Scene.SelectedSite.Information.FullID))
+                : CurrentEmptySiteSelection();
         }
+
+        private SetSelectedSite CurrentEmptySiteSelection() => m_Scene.Columns.Count == 0 ? null : new SetSelectedSite(new ColumnId(m_Scene.Columns[0].ColumnData.ID), null);
 
         private SetIbcDifumoDisplay CreateIbcDifumoDisplay()
         {
@@ -4249,6 +4257,7 @@ namespace HBP.Sync.Scene
                     m_Scene.SiteConfigurationBatchRouter = null;
                 if (m_Scene.SiteSelectionRouter?.Target == this)
                     m_Scene.SiteSelectionRouter = null;
+                m_Scene.OnSelectSite.RemoveListener(OnSceneSiteSelectionChanged);
                 if (m_Scene.CutDefinitionRouter?.Target == this)
                     m_Scene.CutDefinitionRouter = null;
                 m_Scene.OnAddCut.RemoveListener(OnCutAdded);
@@ -4292,8 +4301,6 @@ namespace HBP.Sync.Scene
 
             foreach (var entry in m_RoiDefinitionListeners) entry.Key.OnSphereDefinitionChanged.RemoveListener(entry.Value);
 
-            foreach (KeyValuePair<Column3D, UnityAction<Core.Object3D.Site>> entry in m_ColumnSelectionListeners)
-                entry.Key.OnSelectSite.RemoveListener(entry.Value);
             foreach (KeyValuePair<Column3D, List<(UnityEvent Event, UnityAction Listener)>> entry in m_ColumnListeners)
             foreach ((UnityEvent unityEvent, UnityAction listener) in entry.Value)
                 unityEvent.RemoveListener(listener);
@@ -4305,10 +4312,8 @@ namespace HBP.Sync.Scene
             m_RoiStructureListeners.Clear();
             m_RoiDefinitionListeners.Clear();
             m_RoiStateSnapshots.Clear();
-            m_ColumnSelectionListeners.Clear();
             m_ColumnListeners.Clear();
             m_SitePresentationStates.Clear();
-            m_LastSelectedSites.Clear();
             m_LastActivityAlphas.Clear();
             m_LastColumnSpans.Clear();
             m_LastFunctionalDisplays.Clear();

@@ -87,7 +87,7 @@ namespace HBP.Quest
                 if (other != target && other.Scene.IsSelected)
                     other.Scene.IsSelected = false;
             if (!scene.IsSelected) scene.IsSelected = true;
-            if (column != null && !column.IsSelected) column.IsSelected = true;
+            if (column != null && !column.IsSelected) scene.SelectColumn(column);
             SynchronizeSelection(target);
             if (intentional) OnContextSelected.Invoke(scene, column ?? scene.SelectedColumn);
         }

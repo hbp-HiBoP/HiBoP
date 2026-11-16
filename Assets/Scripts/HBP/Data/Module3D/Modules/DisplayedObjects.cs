@@ -162,7 +162,11 @@ namespace HBP.Data.Module3D
 
             SitesPatientParent = new List<GameObject>();
 
-            if (implantation == null) return;
+            if (implantation == null)
+            {
+                foreach (Column3D column in m_Scene.Columns) column.UpdateSites(null, SitesPatientParent);
+                return;
+            }
 
             int siteIndex = 0;
             foreach (var patient in m_Scene.Visualization.Patients)

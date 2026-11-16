@@ -465,8 +465,8 @@ namespace HBP.Tests.Transfer.Scene
             quest.Boundary.Dispose();
             var desktopB = AddSelectionFixtureSite(desktop, acrossColumns ? desktop.StaticColumn : desktop.Column, "site-b");
             var questB = AddSelectionFixtureSite(quest, acrossColumns ? quest.StaticColumn : quest.Column, "site-b");
-            WireExclusiveSelectionCallbacks(desktop.Scene);
-            WireExclusiveSelectionCallbacks(quest.Scene);
+            desktop.Scene.SelectColumn(desktop.Column);
+            quest.Scene.SelectColumn(quest.Column);
             using var desktopBoundary = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
             using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
@@ -495,22 +495,32 @@ namespace HBP.Tests.Transfer.Scene
             if (acrossColumns) Assert.That(bColumn.SelectedSite, Is.Null, "Desktop clears the previous column's site.");
             if (fromQuest)
             {
-                Assert.That(proposals, Has.Count.EqualTo(1), "One in flight; intermediate nulls and column callbacks must not be separate proposals.");
-                Assert.That(driver.PendingProposalCount, Is.EqualTo(2), "Only the in-flight and latest unsent intent are retained.");
-                var first = authority.AcceptQuestProposal(proposals[0]);
+                Assert.That(proposals.Count(proposal => proposal.Mutation is SetSelectedSite), Is.EqualTo(1), "Only one contact offer is in flight.");
+                var first = authority.AcceptQuestProposal(proposals.Single(proposal => proposal.Mutation is SetSelectedSite));
                 Assert.That(first.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+                for (int index = 0; index < proposals.Count; index++)
+                {
+                    var focus = proposals[index];
+                    if (focus.Mutation is not SetSelectedColumn) continue;
+                    var accepted = authority.AcceptQuestProposal(focus);
+                    Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted), accepted.RejectionCode);
+                    driver.ReceiveCanonical(accepted.CanonicalMutation);
+                }
+
+                ulong observed = driver.LastObservedCanonicalSequence;
                 driver.ReceiveCanonical(first.CanonicalMutation);
                 Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site), "An older echo cannot roll back the latest local contact.");
-                Assert.That(proposals, Has.Count.EqualTo(2));
-                Assert.That(proposals[1].ObservedCanonicalSequence, Is.EqualTo(first.CanonicalMutation.CanonicalSequence));
-                var latest = authority.AcceptQuestProposal(proposals[1]);
+                var selectionProposals = proposals.Where(proposal => proposal.Mutation is SetSelectedSite).ToArray();
+                Assert.That(selectionProposals, Has.Length.EqualTo(2));
+                Assert.That(selectionProposals[1].ObservedCanonicalSequence, Is.EqualTo(Math.Max(observed, first.CanonicalMutation.CanonicalSequence)));
+                var latest = authority.AcceptQuestProposal(selectionProposals[1]);
                 Assert.That(latest.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 driver.ReceiveCanonical(latest.CanonicalMutation);
                 Assert.That(driver.ReceiveCanonical(first.CanonicalMutation), Is.False);
             }
             else
             {
-                Assert.That(canonicals, Has.Count.EqualTo(3), "Exactly one final site intent per Desktop action.");
+                Assert.That(canonicals.Count(canonical => canonical.Mutation is SetSelectedSite), Is.EqualTo(3), "Exactly one final site intent per Desktop action.");
                 foreach (var canonical in canonicals) driver.ReceiveCanonical(canonical);
                 Assert.That(proposals, Is.Empty, "Remote UI callbacks must not echo.");
             }
@@ -521,9 +531,10 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
             Assert.That(driver.PendingProposalCount, Is.Zero);
             Assert.That(driver.ConnectionState, Is.EqualTo(QuestMutationConnectionState.Connected));
-            // A null for an old column never reactivates that column.
+            // A scene-wide clear is independent of focus.
             questBoundary.Apply(new SetSelectedSite(new ColumnId(quest.StaticColumn.ColumnData.ID), null), MutationApplicationOrigin.Remote, T09Operation(400100));
             Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(quest.Scene.SelectedSite, Is.Null);
         }
 
         [TestCase(false)]
@@ -536,10 +547,10 @@ namespace HBP.Tests.Transfer.Scene
             quest.Boundary.Dispose();
             var desktopB = AddSelectionFixtureSite(desktop, desktop.Column, "site-b");
             var questB = AddSelectionFixtureSite(quest, quest.Column, "site-b");
-            var desktopC = AddSelectionFixtureSite(desktop, desktop.Column, "site-c");
-            AddSelectionFixtureSite(quest, quest.Column, "site-c");
-            WireExclusiveSelectionCallbacks(desktop.Scene);
-            WireExclusiveSelectionCallbacks(quest.Scene);
+            var desktopC = AddSelectionFixtureSite(desktop, desktop.StaticColumn, "site-c");
+            var questC = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-c");
+            desktop.Scene.SelectColumn(desktop.Column);
+            quest.Scene.SelectColumn(quest.Column);
             using var desktopBoundary = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
             using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
@@ -548,7 +559,7 @@ namespace HBP.Tests.Transfer.Scene
             driver.OnProposalQueued.AddListener(proposals.Add);
             quest.Scene.SelectSite(quest.Column, quest.Site);
             quest.Scene.SelectSite(quest.Column, questB);
-            desktop.Scene.SelectSite(desktop.Column, desktopC);
+            desktop.Scene.SelectSite(desktop.StaticColumn, desktopC);
             questB.State.IsMasked = hideWaiting;
             var rejected = authority.AcceptQuestProposal(proposals[0]);
             Assert.That(rejected.Outcome, Is.EqualTo(ProposalOutcome.Rejected));
@@ -561,7 +572,12 @@ namespace HBP.Tests.Transfer.Scene
                 Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
                 driver.ReceiveCanonical(accepted.CanonicalMutation);
             }
+            else
+            {
+                Assert.That(quest.Scene.SelectedSite, Is.SameAs(questC));
+            }
 
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
             Assert.That(driver.PendingProposalCount, Is.Zero);
             Assert.That(driver.ConnectionState, Is.EqualTo(QuestMutationConnectionState.Connected));
         }
@@ -575,8 +591,8 @@ namespace HBP.Tests.Transfer.Scene
             quest.Boundary.Dispose();
             AddSelectionFixtureSite(desktop, desktop.StaticColumn, "site-b");
             var questB = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
-            WireExclusiveSelectionCallbacks(desktop.Scene);
-            WireExclusiveSelectionCallbacks(quest.Scene);
+            desktop.Scene.SelectColumn(desktop.Column);
+            quest.Scene.SelectColumn(quest.Column);
             using var desktopBoundary = new SceneMutationBoundary(desktop.Scene, OriginDevice.Desktop);
             using var questBoundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var authority = new DesktopMutationAuthority(SceneIdForT09, IncarnationIdForT09, desktopBoundary);
@@ -588,20 +604,21 @@ namespace HBP.Tests.Transfer.Scene
             questB.State.IsMasked = true;
             var accepted = authority.AcceptQuestProposal(proposals[0]);
             driver.ReceiveCanonical(accepted.CanonicalMutation);
-            Assert.That(proposals, Has.Count.EqualTo(1));
+            Assert.That(proposals.Count(proposal => proposal.Mutation is SetSelectedSite), Is.EqualTo(1));
+            var focus = authority.AcceptQuestProposal(proposals.Single(proposal => proposal.Mutation is SetSelectedColumn));
+            driver.ReceiveCanonical(focus.CanonicalMutation);
             Assert.That(driver.PendingProposalCount, Is.Zero);
-            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
             Assert.That(quest.Column.SelectedSite, Is.SameAs(quest.Site));
             Assert.That(quest.StaticColumn.SelectedSite, Is.Null);
         }
 
         [Test]
-        public void QuestControls_OlderOtherColumnCanonicalCannotUndoNewerSelection()
+        public void QuestControls_NewerSiteSupersedesOlderSitesAndKeepsIndependentFocus()
         {
             using var quest = new BoundSceneFixture(OriginDevice.Quest);
             quest.Boundary.Dispose();
             var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
-            WireExclusiveSelectionCallbacks(quest.Scene);
             using var boundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             var columnA = new ColumnId(quest.Column.ColumnData.ID);
@@ -611,10 +628,12 @@ namespace HBP.Tests.Transfer.Scene
             var older = new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400111), 1, new SetSelectedSite(columnA, new SiteId(quest.Site.Information.FullID)), OriginDevice.Desktop);
             Assert.That(driver.ReceiveCanonical(older), Is.False);
             var olderColumn = new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400112), 1, new SetSelectedColumn(columnA), OriginDevice.Desktop);
-            Assert.That(driver.ReceiveCanonical(olderColumn), Is.False);
+            Assert.That(driver.ReceiveCanonical(olderColumn), Is.True);
             driver.AdvanceCanonicalWatermark(5, includesSelection: true);
             Assert.That(driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400113), 4, new SetSelectedSite(columnA, new SiteId(quest.Site.Information.FullID)), OriginDevice.Desktop)), Is.False, "A checkpoint also supersedes old selections.");
-            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
+            Assert.That(driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400116), 3, new SetSelectedSite(columnB, null), OriginDevice.Desktop)), Is.False);
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(quest.Scene.SelectedSite, Is.SameAs(b));
             Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
             Assert.That(quest.Column.SelectedSite, Is.Null);
         }
@@ -631,19 +650,20 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
-        public void QuestControls_MatchingEchoRestoresItsColumnAfterAnInterveningCanonical()
+        public void QuestControls_MatchingSiteEchoRestoresContactWithoutChangingFocus()
         {
             using var quest = new BoundSceneFixture(OriginDevice.Quest);
             quest.Boundary.Dispose();
             var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
-            WireExclusiveSelectionCallbacks(quest.Scene);
+            quest.Scene.SelectColumn(quest.StaticColumn);
             using var boundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest));
             QuestMutationProposal proposal = null;
             driver.OnProposalQueued.AddListener(value => proposal = value);
             quest.Scene.SelectSite(quest.StaticColumn, b);
             driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, T09Operation(400120), 1, new SetSelectedSite(new ColumnId(quest.Column.ColumnData.ID), new SiteId(quest.Site.Information.FullID)), OriginDevice.Desktop));
-            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+            Assert.That(quest.Scene.SelectedSite, Is.SameAs(quest.Site));
+            Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
             driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposal.OperationId, 2, proposal.Mutation, OriginDevice.Quest));
             Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
             Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
@@ -657,15 +677,15 @@ namespace HBP.Tests.Transfer.Scene
         {
             using var quest = new BoundSceneFixture(OriginDevice.Quest);
             quest.Boundary.Dispose();
-            var b = AddSelectionFixtureSite(quest, quest.StaticColumn, "site-b");
-            WireExclusiveSelectionCallbacks(quest.Scene);
+            var b = AddSelectionFixtureSite(quest, quest.Column, "site-b");
+            quest.Scene.SelectColumn(quest.Column);
             using var boundary = new SceneMutationBoundary(quest.Scene, OriginDevice.Quest);
             var clock = new TestClock(0);
             using var driver = new QuestMutationDriver(SceneIdForT09, IncarnationIdForT09, boundary, new OutgoingScheduler(SessionIdForT09, SceneIdForT09, IncarnationIdForT09, OriginDevice.Quest, clock));
             var proposals = new List<QuestMutationProposal>();
             driver.OnProposalQueued.AddListener(proposals.Add);
             quest.Scene.SelectSite(quest.Column, quest.Site);
-            quest.Scene.SelectSite(quest.StaticColumn, b);
+            quest.Scene.SelectSite(quest.Column, b);
             Assert.That(driver.PendingProposalCount, Is.EqualTo(2));
             driver.BeginDisconnectGrace();
             if (shortReconnect)
@@ -673,8 +693,8 @@ namespace HBP.Tests.Transfer.Scene
                 Assert.That(driver.TryReconnect(), Is.True);
                 driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[0].OperationId, 1, proposals[0].Mutation, OriginDevice.Quest));
                 Assert.That(proposals, Has.Count.EqualTo(2));
-                Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.StaticColumn));
-                Assert.That(quest.StaticColumn.SelectedSite, Is.SameAs(b));
+                Assert.That(quest.Scene.SelectedColumn, Is.SameAs(quest.Column));
+                Assert.That(quest.Column.SelectedSite, Is.SameAs(b));
                 driver.ReceiveCanonical(new CanonicalMutation(SceneIdForT09, IncarnationIdForT09, proposals[1].OperationId, 2, proposals[1].Mutation, OriginDevice.Quest));
             }
             else
@@ -698,34 +718,26 @@ namespace HBP.Tests.Transfer.Scene
             site.Information = new SiteInformation { Patient = fixture.Site.Information.Patient, Name = name };
             site.State = new SiteState();
             column.Sites.Add(site);
-            // Same selection callback as Column3D.InitSites, including the intermediate deselection.
-            site.OnSelectSite.AddListener(selected =>
-            {
-                if (selected) column.UnselectSite();
-                SetAutoProperty(column, "SelectedSite", selected ? site : null);
-                column.OnSelectSite.Invoke(column.SelectedSite);
-            });
             return site;
         }
 
-        private static void WireExclusiveSelectionCallbacks(Base3DScene scene)
+        [Test]
+        public void DesktopControls_CanSelectAnUnmaskedContactHiddenInTheBrainView()
         {
-            // The lightweight prepared-scene fixture omits Base3DScene's authored-column callbacks.
-            foreach (var column in scene.Columns)
+            using var fixture = new BoundSceneFixture(OriginDevice.Desktop);
+            fixture.Scene.SelectColumn(fixture.Column);
+            SetPrivateField(fixture.Scene, "m_HideBlacklistedSites", true);
+            fixture.Site.State.IsBlackListed = true;
+            var proposals = new List<SetSelectedSite>();
+            fixture.Boundary.OnMutationProposed.AddListener((_, mutation, _) =>
             {
-                column.OnSelect.AddListener(() =>
-                {
-                    foreach (var other in scene.Columns.Where(other => other != column))
-                    {
-                        other.IsSelected = false;
-                        other.UnselectSite();
-                    }
-                });
-                column.OnSelectSite.AddListener(_ =>
-                {
-                    foreach (var other in scene.Columns.Where(other => !other.IsSelected)) other.UnselectSite();
-                });
-            }
+                if (mutation is SetSelectedSite selection) proposals.Add(selection);
+            });
+
+            fixture.Scene.SelectSite(fixture.Column, fixture.Site);
+
+            Assert.That(fixture.Scene.SelectedSite, Is.SameAs(fixture.Site));
+            Assert.That(proposals.Single().SiteId.Value, Is.EqualTo(fixture.Site.Information.FullID));
         }
 
         [TestCase("unknown")]
@@ -878,7 +890,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(target.Scene.HideBlacklistedSites, Is.EqualTo(source.Scene.HideBlacklistedSites));
             Assert.That(proposals, Is.Zero);
             // Canonical corrections also restore retained identity after a local visibility change.
-            target.Column.UnselectSite();
+            target.Boundary.Apply(new SetSelectedSite(new ColumnId(target.Column.ColumnData.ID), null), MutationApplicationOrigin.Remote, T09Operation(400039));
             target.Site.State.IsMasked = true;
             target.Boundary.Apply(new SetSelectedSite(new ColumnId(target.Column.ColumnData.ID), new SiteId(target.Site.Information.FullID)), MutationApplicationOrigin.Remote, T09Operation(400041));
             Assert.That(target.Column.SelectedSite, Is.SameAs(target.Site));
@@ -2149,7 +2161,8 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(35));
+            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(31));
+            Assert.That(checkpoint.T09Records.Count(record => record.Value is SetSelectedSite), Is.EqualTo(1));
             Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(OperationType.SetSceneBoolean));
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
             Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.ShowAllSites), Is.True);
@@ -3154,7 +3167,7 @@ namespace HBP.Tests.Transfer.Scene
             source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposals.Add(mutation));
 
             source.Column.IsSelected = true;
-            source.Scene.SelectSiteForSynchronization(source.Column, source.Site);
+            source.Scene.SelectSiteForSynchronization(source.Column, source.Site.Information.FullID);
             source.Site.State.IsHighlighted = true;
             source.Site.State.AddLabel("reviewed");
             source.Scene.ShowAllSites = true;
@@ -3976,20 +3989,6 @@ namespace HBP.Tests.Transfer.Scene
                 Site.Information = new SiteInformation { Patient = patient, Name = "t09-site" };
                 Site.State = new SiteState();
                 SetAutoProperty(Column, "Sites", new List<HBP.Core.Object3D.Site> { Site });
-                Site.OnSelectSite.AddListener(selected =>
-                {
-                    if (selected)
-                    {
-                        Column.UnselectSite();
-                        SetAutoProperty(Column, "SelectedSite", Site);
-                    }
-                    else if (ReferenceEquals(Column.SelectedSite, Site))
-                    {
-                        SetAutoProperty(Column, "SelectedSite", null);
-                    }
-
-                    Column.OnSelectSite.Invoke(Column.SelectedSite);
-                });
                 Scene.Columns.Add(Column);
                 StaticColumn = Root.AddComponent<Column3DStatic>();
                 SetAutoProperty(StaticColumn, "ColumnData", NewColumnData("t09-static-column-id"));

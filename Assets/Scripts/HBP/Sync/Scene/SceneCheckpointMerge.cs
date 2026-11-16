@@ -187,13 +187,11 @@ namespace HBP.Sync.Scene
                     Store("timeline/" + Id(value.ColumnId.Value), new SetTimelineAnchor(value.ColumnId, value.Index, value.Playing, value.Looping, value.Step, 0, 1, value.Playing ? TimelineAnchorIntent.Play : TimelineAnchorIntent.Pause), 2);
                     return;
                 case SetSelectedSite value:
-                    if (value.SiteId != null)
-                    {
-                        foreach (var selected in Cells.Values.Select(cell => cell.Mutation).OfType<SetSelectedSite>().Where(selected => !selected.ColumnId.Equals(value.ColumnId)).ToArray())
-                            Store(MutationKey(selected), new SetSelectedSite(selected.ColumnId, null), 3);
-                        Put(new SetSelectedColumn(value.ColumnId), 3);
-                    }
-
+                    SetCell(MutationKey(value), new Cell(3, Encoding.UTF8.GetBytes(value.SiteId?.Value ?? string.Empty), value));
+                    return;
+                case SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true } value:
+                    RemovePrefix("cut/");
+                    Put(new SetCutOrder(Array.Empty<CutId>()), 4);
                     Store(MutationKey(value), value, 3);
                     return;
                 case SetSiteFilterResult value:
@@ -282,7 +280,8 @@ namespace HBP.Sync.Scene
 
             if (assignments.Count > 0) t11.Add(new T11CheckpointRecord(new SetSiteConfigurationBatch(assignments)));
             var orderedCuts = Cells.Values.Select(cell => cell.Mutation).OfType<SetCutOrder>().SingleOrDefault()?.CutIds.Select(id => id.Value).ToList() ?? new List<string>();
-            string[] cutIds = Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();
+            bool automaticCuts = Cells.Values.Any(cell => cell.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
+            string[] cutIds = automaticCuts ? Array.Empty<string>() : Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();
             for (int i = 0; i < cutIds.Length; i++)
             {
                 string prefix = Cut(cutIds[i]);
@@ -403,10 +402,6 @@ namespace HBP.Sync.Scene
                 }
             }
 
-            var selectionKeys = keys.Where(key => Cell(desktop, key)?.Mutation is SetSelectedColumn or SetSelectedSite || Cell(quest, key)?.Mutation is SetSelectedColumn or SetSelectedSite).ToArray();
-            Join(selectionKeys);
-            if (selectionKeys.Any(key => Changed(desktop, key)) && selectionKeys.Any(key => Changed(quest, key)) && selectionKeys.Any(key => !Equal(desktop, quest, key))) conflicts.UnionWith(selectionKeys);
-
             // Resource selection and its dependent geometry/scientific values are one choice.
             foreach (var resource in keys.Where(key => IsResource(Cell(desktop, key)?.Mutation) || IsResource(Cell(quest, key)?.Mutation)))
             {
@@ -482,7 +477,7 @@ namespace HBP.Sync.Scene
                     SetRoiSphereDefinition sphere => $"Sphere: center ({sphere.Definition.X:0.##}, {sphere.Definition.Y:0.##}, {sphere.Definition.Z:0.##}), radius {sphere.Definition.InfluenceRadius:0.##}",
                     SetActiveRoi roi => roi.RoiId == null ? "No active region of interest" : "Active region of interest changed",
                     SetSelectedRoiSphere sphere => string.IsNullOrEmpty(sphere.SphereId) ? "No sphere selected" : "Selected sphere changed",
-                    SetSelectedSite site => site.SiteId == null ? "No site selected in this column" : $"Selected site: {site.SiteId.Value}",
+                    SetSelectedSite site => site.SiteId == null ? "No site selected" : $"Selected site: {site.SiteId.Value}",
                     SetSelectedColumn column => column.ColumnId == null ? "No column selected" : "Selected column changed",
                     SetSceneBoolean property => $"{property.Property}: {(property.Value ? "enabled" : "disabled")}",
                     SetSceneFloat property => $"{property.Property} : {property.Value:0.###}",

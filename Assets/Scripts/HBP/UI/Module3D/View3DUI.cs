@@ -296,8 +296,8 @@ namespace HBP.UI.Module3D
 
                 if (m_Scene.DisplayCorrelations)
                 {
-                    // If using the CompareSite feature, keep the site to compare focused
-                    Core.Object3D.Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
+                    var comparison = m_Scene.ImplantationManager.SiteToCompare;
+                    Core.Object3D.Site baseSite = comparison ? column.FindSite(comparison.Information.FullID, comparison.Information.Index) : column.SelectedSite;
                     if (baseSite != null)
                     {
                         foreach (var correlatedSite in column.CorrelatedSites(baseSite))

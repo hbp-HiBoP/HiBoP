@@ -402,6 +402,8 @@ namespace HBP.Core.Object3D
             }
         }
 
+        public void RequestSelection() => OnSelectionRequested.Invoke();
+
         /// <summary>
         /// Information about this site (common to all sites with the same ID in the scene)
         /// </summary>
@@ -435,6 +437,8 @@ namespace HBP.Core.Object3D
         /// Event called when selecting or unselecting this site
         /// </summary>
         public GenericEvent<bool> OnSelectSite = new();
+
+        [HideInInspector] public UnityEvent OnSelectionRequested = new();
 
         /// <summary>
         /// Event called when loading or reseting the configuration of this site

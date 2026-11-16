@@ -682,6 +682,17 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(lastSites.Length, Is.GreaterThanOrEqualTo(2));
                 desktopScene.SelectSite(desktopScene.Columns[0], firstSites[0]);
                 await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.ColumnData.ID == desktopScene.Columns[0].ColumnData.ID && view.Scene.SelectedColumn.SelectedSite?.Information.FullID == firstSites[0].Information.FullID, cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                Vector3[] beforeFocus = view.Scene.Cuts.Select(cut => cut.Point).ToArray();
+                view.Scene.SelectColumn(view.Scene.Columns.Single(column => column.ColumnData.ID == last.ColumnData.ID));
+                await UniTask.WaitUntil(() => desktopScene.SelectedColumn == last, cancellationToken: token);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(view.Scene.SelectedSite.Information.FullID, Is.EqualTo(firstSites[0].Information.FullID));
+                Assert.That(view.Scene.Cuts.Select(cut => cut.Point), Is.EqualTo(beforeFocus));
+                AssertM2AutomaticCuts(desktopScene, view.Scene, firstSites[0].transform.localPosition);
+
                 desktopScene.SelectSite(last, lastSites[0]);
                 desktopScene.SelectSite(last, lastSites[1]);
                 await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[1].Information.FullID && view.Scene.SelectedColumn.ColumnData.ID == last.ColumnData.ID, cancellationToken: token);
@@ -997,6 +1008,15 @@ namespace HBP.Tests.SceneTransfer
             questRecord.ApplyCanonical(1, new SetSceneBoolean(SceneBooleanProperty.StrongCuts, true));
             Assert.That(questRecord.CommonHash, Is.Not.EqualTo(desktopRecord.CommonHash));
             desktop.ResetSitesPositions();
+            var anchorColumn = desktop.SelectedColumn;
+            var selectedContact = anchorColumn.Sites.Single(site => site.Information.Name == "A2");
+            Assert.That(desktop.SelectedSite, Is.Not.SameAs(selectedContact));
+            desktop.SelectSite(anchorColumn, selectedContact);
+            var questFocus = quest.Columns.First(column => column.ColumnData.ID != anchorColumn.ColumnData.ID);
+            quest.SelectColumn(questFocus);
+            desktop.AutomaticCutAroundSelectedSite = quest.AutomaticCutAroundSelectedSite = true;
+            await desktop.PrepareRenderingAsync(stop);
+            await quest.PrepareRenderingAsync(stop);
             dSite.State.Color = Color.red;
             qSite.State.Color = Color.blue;
             qSite.State.AddLabel("offline-quest");
@@ -1039,6 +1059,13 @@ namespace HBP.Tests.SceneTransfer
             Assert.That(dSite.State.Labels, Does.Contain("offline-quest"));
             Assert.That(desktop.SitePlacement, Is.EqualTo(SitePlacementMode.Original));
             Assert.That(quest.SitePlacement, Is.EqualTo(SitePlacementMode.Original));
+            Assert.That(desktop.SelectedColumn.ColumnData.ID, Is.EqualTo(questFocus.ColumnData.ID));
+            Assert.That(quest.SelectedColumn, Is.SameAs(questFocus));
+            Assert.That(desktop.SelectedSite, Is.SameAs(selectedContact));
+            Assert.That(quest.SelectedSite.Information.FullID, Is.EqualTo(selectedContact.Information.FullID));
+            await desktop.PrepareRenderingAsync(stop);
+            await quest.PrepareRenderingAsync(stop);
+            AssertM2AutomaticCuts(desktop, quest, selectedContact.transform.localPosition);
             Assert.That(desktopColumn.transform.localPosition, Is.EqualTo(new Vector3(1, 2, 3)));
             Assert.That(questColumn.transform.localPosition, Is.EqualTo(new Vector3(4, 5, 6)));
             Assert.That(desktopRecord.CommonHash, Is.EqualTo(questRecord.CommonHash));

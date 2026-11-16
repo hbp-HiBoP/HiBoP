@@ -1182,7 +1182,7 @@ namespace HBP.Data.Module3D
                 m_ObservedPreferences.OnSavePreferences.AddListener(PreferencesChanged);
                 if (Visualization.Configuration.FirstColumnToSelect >= 0 && Visualization.Configuration.FirstColumnToSelect < Columns.Count)
                 {
-                    Columns[Visualization.Configuration.FirstColumnToSelect].SelectFirstOrDefaultSiteByName(Visualization.Configuration.FirstSiteToSelect);
+                    SelectInitialSite(Columns[Visualization.Configuration.FirstColumnToSelect], Visualization.Configuration.FirstSiteToSelect);
                 }
             }
 
@@ -1392,22 +1392,18 @@ namespace HBP.Data.Module3D
             OnIEEGOutdated.Invoke(false);
         }
 
-        /// <summary>
-        /// Actions to perform after clicking on a site
-        /// </summary>
-        /// <param name="site">Site that has been clicked</param>
-        private void ClickOnSiteCallback(Core.Object3D.Site site)
+        public IReadOnlyList<Core.Object3D.Site> GetSelectedSitesForInformation()
         {
-            if (site)
-            {
-                List<Core.Object3D.Site> sites = new();
-                if (ImplantationManager.SiteToCompare) sites.Add(ImplantationManager.SiteToCompare);
-                sites.Add(site);
-                OnRequestSiteInformation.Invoke(sites);
-            }
+            if (!SelectedSite) return Array.Empty<Core.Object3D.Site>();
+            var comparison = ImplantationManager?.SiteToCompare;
+            if (comparison && comparison.Information.FullID != SelectedSite.Information.FullID)
+                return new[] { comparison, SelectedSite };
+            return new[] { SelectedSite };
+        }
 
-            SceneInformation.SitesNeedUpdate = true;
-            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        private void RequestSelectedSiteInformation()
+        {
+            OnRequestSiteInformation.Invoke(GetSelectedSitesForInformation());
         }
 
         /// <summary>
@@ -1669,34 +1665,18 @@ namespace HBP.Data.Module3D
             column.gameObject.name = "Column " + Columns.Count;
             column.OnSelect.AddListener(() =>
             {
-                foreach (Column3D c in Columns)
-                {
-                    if (c != column)
-                    {
-                        c.IsSelected = false;
-                        c.UnselectSite();
-                    }
-                }
+                DeselectOtherColumns(column);
 
                 IsSelected = true;
                 SceneInformation.GUICutTexturesNeedUpdate = true;
                 OnUpdateCuts.Invoke();
             });
             column.OnChangeMinimizedState.AddListener(() => { OnChangeColumnMinimizedState.Invoke(); });
-            column.OnSelectSite.AddListener((site) =>
+            column.RequestSiteSelection = site =>
             {
-                ClickOnSiteCallback(site);
-                foreach (Column3D c in Columns)
-                {
-                    if (!c.IsSelected)
-                    {
-                        c.UnselectSite();
-                    }
-                }
-
-                if (m_AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
-                OnSelectSite.Invoke(site);
-            });
+                if (!IsClosing && site && !site.State.IsMasked && column.FindSite(site.Information.FullID, site.Information.Index) == site)
+                    SelectSite(column, site);
+            };
             column.OnChangeSiteState.AddListener(OnSiteStateChanged);
             column.OnUpdateActivityAlpha.AddListener(() =>
             {
@@ -2100,7 +2080,7 @@ namespace HBP.Data.Module3D
         public void CutAroundSelectedSite()
         {
             if (!m_AutomaticCutAroundSelectedSite) return;
-            Core.Object3D.Site site = SelectedColumn?.SelectedSite;
+            Core.Object3D.Site site = SelectedSite;
             if (!site)
             {
                 foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
@@ -2211,7 +2191,7 @@ namespace HBP.Data.Module3D
             {
                 Columns[0].IsSelected = true;
                 if (m_DesktopPresentation) m_DesktopPresentation.SelectDefaultView();
-                Columns[0].SelectFirstOrDefaultSiteByName();
+                SelectInitialSite(Columns[0]);
             }
 
             SceneInformation.Initialized = true;
@@ -2550,10 +2530,6 @@ namespace HBP.Data.Module3D
             if (raycastResult == RaycastHitResult.Site)
             {
                 SelectSite(column, hit.collider.GetComponent<Core.Object3D.Site>());
-            }
-            else
-            {
-                column.UnselectSite();
             }
 
             if (raycastResult == RaycastHitResult.Mesh)

@@ -88,7 +88,7 @@ namespace HBP.Quest
 
         public bool ApplyOrRevert(QuestSitePreset preset)
         {
-            if (scene == null || scene.IsClosing || scene.IsConfigurationMutationActive || column == null || site == null || scene.SelectedColumn != column || column.SelectedSite != site) return false;
+            if (scene == null || scene.IsClosing || scene.IsConfigurationMutationActive || column == null || site == null || site.State.IsMasked || scene.SelectedColumn != column || column.SelectedSite != site) return false;
             EnsureDefinition(preset);
             bool reverting = TryGetUndo(out var history, out var difference);
             var targetScene = scene;

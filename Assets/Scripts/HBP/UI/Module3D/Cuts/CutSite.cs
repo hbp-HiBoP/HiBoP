@@ -98,7 +98,7 @@ namespace HBP.UI.Module3D
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            m_Site.IsSelected = true;
+            m_Site.RequestSelection();
         }
 
         #endregion

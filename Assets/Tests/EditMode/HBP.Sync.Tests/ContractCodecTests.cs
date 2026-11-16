@@ -63,7 +63,7 @@ namespace HBP.Sync.Tests
             byte[] desktopFrame = MutationEnvelopeCodec.Encode(desktop);
 
             Assert.That(Encoding.ASCII.GetString(desktopFrame, 0, 4), Is.EqualTo("HBS2"));
-            Assert.That(ReadUInt16(desktopFrame, 4), Is.EqualTo(2));
+            Assert.That(ReadUInt16(desktopFrame, 4), Is.EqualTo(3));
             Assert.That(ReadUInt16(desktopFrame, 6), Is.EqualTo(1));
             Assert.That(ReadUInt16(desktopFrame, 8), Is.EqualTo(1));
             Assert.That(ReadUInt16(desktopFrame, 10), Is.EqualTo(MutationEnvelopeCodec.HeaderLength));
@@ -135,7 +135,7 @@ namespace HBP.Sync.Tests
         {
             byte[] valid = MutationEnvelopeCodec.Encode(CreateDesktopEnvelope(new SetTimelineAnchor(new ColumnId("column"), 0, false, false, 1, 0, 1), 5));
 
-            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 4, 3));
+            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 4, 2));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 6, 2));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 8, 4));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 10, 135));

@@ -59,24 +59,17 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void OverlappingColumns_CurrentContactSelectsItsColumnAndClearsThePreviousSite()
+        public void OverlappingColumns_CurrentContactSelectsItsColumnAndMirrorsTheSite()
         {
             using var fixture = new Fixture();
             var second = fixture.Column.gameObject.AddComponent<Column3DAnatomy>();
             SetAuto(second, "ColumnData", new AnatomicColumn("Second", new BaseConfiguration(), new AnatomicConfiguration(), "second-column"));
             SetAuto(second, "Sites", new List<Site>());
             fixture.Scene.Columns.Add(second);
-            foreach (var column in fixture.Scene.Columns)
-                column.OnSelect.AddListener(() =>
-                {
-                    foreach (var other in fixture.Scene.Columns.Where(other => other != column))
-                    {
-                        other.IsSelected = false;
-                        other.UnselectSite();
-                    }
-                });
             var a = fixture.AddSite("A", Vector3.zero);
             var b = fixture.AddSite("B", Vector3.right, second);
+            var bInFirst = fixture.AddSite("B", Vector3.right * 5);
+            var aInSecond = fixture.AddSite("A", Vector3.right * 6, second);
             var targets = new List<QuestSiteTarget> { a, b };
             var policy = new QuestSiteContactPolicy();
             Assert.That(QuestSiteSelection.TrySelect(fixture.Scene, a), Is.True);
@@ -84,7 +77,7 @@ namespace HBP.Tests.Quest
             Assert.That(contact, Is.SameAs(b), "The previously selected column has no priority.");
             Assert.That(QuestSiteSelection.TrySelect(fixture.Scene, contact), Is.True);
             Assert.That(fixture.Scene.SelectedColumn, Is.SameAs(second));
-            Assert.That(fixture.Column.SelectedSite, Is.Null);
+            Assert.That(fixture.Column.SelectedSite, Is.SameAs(bInFirst.Site));
             targets.Reverse();
             for (int frame = 0; frame < 20; frame++)
             {
@@ -94,7 +87,7 @@ namespace HBP.Tests.Quest
             }
 
             Assert.That(QuestSiteSelection.TrySelect(fixture.Scene, a), Is.True);
-            Assert.That(second.SelectedSite, Is.Null);
+            Assert.That(second.SelectedSite, Is.SameAs(aInSecond.Site));
             Assert.That(fixture.Scene.SelectedColumn, Is.SameAs(fixture.Column));
         }
 
@@ -219,7 +212,7 @@ namespace HBP.Tests.Quest
                 root.GetComponent<QuestColumnPresentation>().Show();
                 ring.Refresh(camera);
                 Assert.That(board.gameObject.activeSelf, Is.True);
-                fixture.Column.UnselectSite();
+                fixture.Scene.SelectSite(fixture.Column, null);
                 ring.Refresh(camera);
                 Assert.That(board.gameObject.activeSelf, Is.False);
                 ring.Bind(null, fixture.Column);
@@ -472,12 +465,6 @@ namespace HBP.Tests.Quest
                 site.Information = new SiteInformation { Name = name, Patient = new Patient { ID = "probe-patient" } };
                 site.State = new SiteState();
                 owner.Sites.Add(site);
-                site.OnSelectSite.AddListener(selected =>
-                {
-                    if (selected) owner.UnselectSite();
-                    SetAuto(owner, "SelectedSite", selected ? site : null);
-                    owner.OnSelectSite.Invoke(owner.SelectedSite);
-                });
                 return new QuestSiteTarget(owner, site);
             }
 

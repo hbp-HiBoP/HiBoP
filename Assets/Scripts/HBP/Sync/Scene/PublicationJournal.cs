@@ -141,7 +141,7 @@ namespace HBP.Sync.Scene
     /// <summary>Versioned bounded composition of typed scene-mutation checkpoint records.</summary>
     public static class SceneMutationCheckpointCodec
     {
-        private const ushort SchemaVersion = 7;
+        private const ushort SchemaVersion = 8;
         private const int HeaderLength = 46;
         private const int MaximumRecordLength = MutationPayloadCodec.MaximumPayloadBytes + 8;
         private static readonly byte[] Magic = Encoding.ASCII.GetBytes("HBCP");

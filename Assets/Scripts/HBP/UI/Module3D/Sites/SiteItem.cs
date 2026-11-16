@@ -52,7 +52,7 @@ namespace HBP.UI.Module3D
 
         private void Awake()
         {
-            m_Site.onClick.AddListener(() => Object.IsSelected = true);
+            m_Site.onClick.AddListener(() => Object.RequestSelection());
             m_Blacklisted.onValueChanged.AddListener((isOn) => Object.State.IsBlackListed = isOn);
             m_Highlighted.onValueChanged.AddListener((isOn) => Object.State.IsHighlighted = isOn);
             m_Color.onClick.AddListener(async () => Object.State.Color = await ColorPickerManager.OpenColorPickerAsync(Object.State.Color));

@@ -1734,7 +1734,7 @@ namespace HBP.Tests.PlayMode.Module3D
         [Test]
         [Category("PlayMode.Module3DScene")]
         [Category("NativeDll")]
-        public async Task Base3DScene_AutomaticCutsRetainIdsAcrossRecalculation()
+        public async Task Base3DScene_AutomaticCutsSurviveAClickThatMissesTheSite()
         {
             RequireHbpCore();
             using PlayModeTempDirectoryScope temp = new();
@@ -1744,18 +1744,41 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModeSceneScope scene = new("Module3DSceneAutomaticCutIdentity");
             MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-automatic-cut-mri");
             SingleMesh patientMesh = new("Grey matter", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "runtime-automatic-cut-mesh");
-            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, anatomyColumnCount: 2, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
             Base3DScene baseScene = initialized.BaseScene;
-            await UniTask.NextFrame();
-            Assert.That(baseScene.MRIManager.SelectedMRI?.Volume, Is.Not.Null, "Automatic cuts require a selected MRI volume.");
-            Assert.That(baseScene.MeshManager.ReferenceSurface, Is.Not.Null, "Automatic cuts require a reference surface.");
-            baseScene.SelectSite(baseScene.Columns[0], baseScene.Columns[0].Sites[0]);
-            baseScene.AutomaticCutAroundSelectedSite = true;
-            baseScene.CutAroundSelectedSite();
-            string[] automaticIds = baseScene.Cuts.Select(cut => cut.ID).ToArray();
-            baseScene.CutAroundSelectedSite();
-            Assert.That(baseScene.Cuts.Select(cut => cut.ID), Is.EqualTo(automaticIds));
-            await CleanSceneOwnedAnatomy(baseScene);
+            try
+            {
+                await UniTask.NextFrame();
+                Assert.That(baseScene.MRIManager.SelectedMRI?.Volume, Is.Not.Null, "Automatic cuts require a selected MRI volume.");
+                Assert.That(baseScene.MeshManager.ReferenceSurface, Is.Not.Null, "Automatic cuts require a reference surface.");
+                Column3D column = baseScene.Columns[0];
+                var site = column.Sites[0];
+                baseScene.SelectSite(column, site);
+                baseScene.AutomaticCutAroundSelectedSite = true;
+                baseScene.CutAroundSelectedSite();
+                string[] automaticIds = baseScene.Cuts.Select(cut => cut.ID).ToArray();
+                Assert.That(automaticIds, Has.Length.EqualTo(3));
+                Vector3[] positions = baseScene.Cuts.Select(cut => cut.Point).ToArray();
+
+                Column3D second = baseScene.Columns[1];
+                var replica = second.Sites.Single(candidate => candidate.Information.FullID == site.Information.FullID);
+                replica.State.IsMasked = true;
+                baseScene.SelectColumn(second);
+                Assert.That(baseScene.SelectedSite, Is.SameAs(site));
+                Assert.That(second.SelectedSite, Is.SameAs(replica));
+                Assert.That(replica.State.IsMasked, Is.True);
+
+                Ray miss = new(column.transform.position + Vector3.right * 10000, Vector3.right);
+                baseScene.ClickOnScene(miss, second);
+                Assert.That(column.SelectedSite, Is.SameAs(site));
+                baseScene.CutAroundSelectedSite();
+                Assert.That(baseScene.Cuts.Select(cut => cut.ID), Is.EqualTo(automaticIds));
+                Assert.That(baseScene.Cuts.Select(cut => cut.Point), Is.EqualTo(positions));
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
         }
 
         [Test]

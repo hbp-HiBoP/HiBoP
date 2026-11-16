@@ -129,15 +129,8 @@ namespace HBP.Data.Module3D
         {
             int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
             SelectedImplantationID = implantationID > 0 ? implantationID : 0;
-            m_DisplayedObjects.InstantiateImplantation(SelectedImplantation);
-            SetComparisonSiteForSynchronization(null);
+            RebuildSites(SelectedImplantation);
             if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
-
-            // reset selected site
-            for (int ii = 0; ii < m_Scene.Columns.Count; ++ii)
-            {
-                m_Scene.Columns[ii].UnselectSite();
-            }
 
             m_Scene.InvalidateActivityField();
         }
@@ -149,11 +142,18 @@ namespace HBP.Data.Module3D
             if (index < 0) throw new System.ArgumentException("Implantation is outside the prepared scene.", nameof(implantation));
             if (SelectedImplantationID == index) return;
             SelectedImplantationID = index;
-            m_DisplayedObjects.InstantiateImplantation(implantation);
-            SetComparisonSiteForSynchronization(null);
+            RebuildSites(implantation);
             if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
-            foreach (Column3D column in m_Scene.Columns) column.UnselectSite();
             m_Scene.InvalidateActivityField();
+        }
+
+        private void RebuildSites(Core.Object3D.Implantation3D implantation)
+        {
+            string selectedId = m_Scene.SelectedSite?.Information.FullID;
+            bool wasComparing = SiteToCompare;
+            SetComparisonSiteForSynchronization(null);
+            m_DisplayedObjects.InstantiateImplantation(implantation);
+            m_Scene.RestoreSiteSelection(selectedId, wasComparing);
         }
 
         /// <summary>
