@@ -30,6 +30,24 @@ namespace HBP.Quest
             return Vector3.Distance(point, Frame.TransformPoint(Sphere.Position + local.normalized * Sphere.InfluenceRadius));
         }
 
+        internal bool Raycast(Ray ray, out float distance)
+        {
+            // Keep the direction's local magnitude so the roots are distances along the world ray.
+            Vector3 origin = Frame.InverseTransformPoint(ray.origin) - Sphere.Position;
+            Vector3 direction = Frame.InverseTransformVector(ray.direction);
+            distance = 0;
+            float directionSquared = direction.sqrMagnitude;
+            if (directionSquared <= 0) return false;
+            float closest = -Vector3.Dot(origin, direction) / directionSquared;
+            float radiusSquared = Sphere.InfluenceRadius * Sphere.InfluenceRadius;
+            float inside = radiusSquared - (origin + direction * closest).sqrMagnitude;
+            if (inside < 0) return false;
+            float offset = Mathf.Sqrt(inside / directionSquared);
+            distance = closest - offset;
+            if (distance < 0) distance = closest + offset;
+            return distance >= 0 && float.IsFinite(distance);
+        }
+
         public void Feedback(QuestCutGizmoSettings style, bool hovered, bool occupied)
         {
             cachedRenderer ??= GetComponent<MeshRenderer>();

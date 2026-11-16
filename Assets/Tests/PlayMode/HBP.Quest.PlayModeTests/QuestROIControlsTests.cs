@@ -246,6 +246,48 @@ namespace HBP.Tests.Quest
             scope.Dispose();
         }
 
+        [TestCase(true, false)]
+        [TestCase(false, true)]
+        [TestCase(true, true)]
+        public void ProductionPointer_RayAndSecondHandScaleTheSameSphereAndReanchorOnRelease(bool firstUsesRay, bool secondUsesRay)
+        {
+            using var f = new Fixture();
+            using var input = new QuestCutControlsTests.PointerFixture(f.Cuts, f.Handles, twoHands: true);
+            f.Window.transform.position = Vector3.up * 3;
+            var proxy = f.Proxies[0];
+            f.ROI.SetSphereDefinition(f.Sphere, f.Sphere.Position, 25);
+            Vector3 center = proxy.Frame.TransformPoint(f.Sphere.Position);
+            float worldRadius = proxy.Frame.TransformVector(Vector3.right * f.Sphere.InfluenceRadius).magnitude;
+            Vector3 front = center - Vector3.forward * worldRadius;
+            Vector3 left = firstUsesRay ? front - Vector3.forward * .4f : front;
+            Vector3 right = secondUsesRay ? front - Vector3.forward * .6f : front;
+            input.TrackPair(left, right);
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+
+            input.PressSecondary(true, leftHand: false);
+            Assert.That(f.Handles.ShareCapture(0, 1), Is.True);
+            Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(25));
+            Assert.That(Vector3.Distance(proxy.Frame.TransformPoint(f.Sphere.Position), center), Is.LessThan(1e-5f));
+            input.TrackPair(left + Vector3.left * .02f, right + Vector3.right * .02f);
+            Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(25), "Nearby anchors must separate before they can resize the sphere.");
+            input.TrackPair(left + Vector3.left * .06f, right + Vector3.right * .06f);
+            Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(25), "The first usable hand span is the baseline.");
+            input.TrackPair(left + Vector3.left * .09f, right + Vector3.right * .09f);
+            Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(37.5f).Within(1e-3f));
+
+            Vector3 beforeRelease = proxy.Frame.TransformPoint(f.Sphere.Position);
+            input.PressSecondary(false, leftHand: false);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+            Assert.That(f.Handles.IsCaptured(1), Is.False);
+            Assert.That(Vector3.Distance(proxy.Frame.TransformPoint(f.Sphere.Position), beforeRelease), Is.LessThan(1e-5f));
+            input.Track(left + Vector3.left * .1f);
+            Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(37.5f).Within(1e-3f));
+            Assert.That(Vector3.Distance(proxy.Frame.TransformPoint(f.Sphere.Position), beforeRelease + Vector3.left * .01f), Is.LessThan(1e-5f));
+            input.PressSecondary(false);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+        }
+
         [TestCase("close")]
         [TestCase("suspend")]
         [TestCase("tracking")]
@@ -313,6 +355,45 @@ namespace HBP.Tests.Quest
             f.Control<Button>("suspend").onClick.Invoke();
             f.Handles.SetHand(1, true, point, point);
             Assert.That(f.Handles.Begin(1, f.Proxies[0]), Is.False, "A captured cut locks that column against ROI manipulation.");
+            input.PressSecondary(false);
+        }
+
+        [Test]
+        public async Task ProductionPointer_SecondaryRayChoosesNearestTargetAndRespectsForegroundWindow()
+        {
+            using var f = new Fixture();
+            using var input = new QuestCutControlsTests.PointerFixture(f.Cuts, f.Handles);
+            f.Window.transform.position = Vector3.up * 3;
+            f.Cuts.Window.Open();
+            f.Cuts.Panel.Refresh();
+            await UniTask.NextFrame();
+            Canvas.ForceUpdateCanvases();
+            f.Cuts.Handles.Refresh();
+            var proxy = f.Proxies[0];
+            var cut = f.Cuts.Handles.Gizmos.First(value => value.Column == proxy.Column);
+            var button = f.Cuts.Panel.Rows.First().GetComponentsInChildren<Button>().First(value => value.isActiveAndEnabled);
+            var rect = button.GetComponent<RectTransform>();
+            Vector3 windowPoint = rect.TransformPoint(rect.rect.center);
+            Vector3 point = windowPoint + Vector3.forward * .2f;
+            cut.Column.Manipulator.transform.position += point - cut.PlaneCenter;
+            f.ROI.SetSphereDefinition(f.Sphere, proxy.Frame.InverseTransformPoint(point + Vector3.forward * .05f), 5);
+            input.Track(windowPoint - Vector3.forward * .4f);
+            Assert.That(input.Target?.GetComponentInParent<QuestWindow>(), Is.SameAs(f.Cuts.Window));
+            input.PressSecondary(true);
+            Assert.That(f.Cuts.Handles.IsCaptured(0), Is.False);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.PressSecondary(false);
+
+            f.Cuts.Window.transform.position += Vector3.up * 3;
+            input.PressSecondary(true);
+            Assert.That(f.Cuts.Handles.IsCaptured(0), Is.True, "The plane is in front of the sphere.");
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+            input.PressSecondary(false);
+
+            f.ROI.SetSphereDefinition(f.Sphere, proxy.Frame.InverseTransformPoint(point - Vector3.forward * .05f), 5);
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True, "The sphere is now in front of the plane.");
+            Assert.That(f.Cuts.Handles.IsCaptured(0), Is.False);
             input.PressSecondary(false);
         }
 

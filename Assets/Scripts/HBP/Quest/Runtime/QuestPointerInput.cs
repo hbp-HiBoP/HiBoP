@@ -58,7 +58,7 @@ namespace HBP.Quest
             public Vector2 LastPosition;
             public QuestAnatomyManipulator AnatomyTarget;
             public Pose AnatomyPose;
-            public bool Distant, AimContact;
+            public bool Valid, Distant, AimContact;
             public float GrabDistance;
         }
 
@@ -143,6 +143,9 @@ namespace HBP.Quest
             // Presentation wrappers can move after the last physics tick.
             if (policy.EnableDistantAnatomy) Physics.SyncTransforms();
             if (cuts != null) cuts.Refresh();
+            // Sample both poses before either hand can join or release a shared capture.
+            SampleHand(0, left);
+            SampleHand(1, right);
             ProcessHand(0, left, leftRay, leftReticle);
             RefreshModal(); // The first hand's click may open or close a dialog in this same frame.
             ProcessHand(1, right, rightRay, rightReticle);
@@ -173,22 +176,31 @@ namespace HBP.Quest
             modalDialog = dialog;
         }
 
-        private void ProcessHand(int index, QuestDevicePoseTracker tracker, LineRenderer line, Transform reticle)
+        private void SampleHand(int index, QuestDevicePoseTracker tracker)
         {
             Hand hand = hands[index];
             var data = hand.Data;
-            bool valid = focused && !paused && head != null && head.IsTracked && tracker != null && tracker.IsTracked;
-            bool pressed = hand.Primary.IsPressed();
-            bool secondaryPressed = hand.Secondary.IsPressed();
+            bool valid = hand.Valid = focused && !paused && head != null && head.IsTracked && tracker != null && tracker.IsTracked;
+            Vector3 grip = valid ? tracker.transform.position : Vector3.zero;
+            Quaternion rotation = valid ? tracker.transform.rotation : Quaternion.identity;
             if (valid)
             {
-                data.Ray = new Ray(tracker.transform.position, tracker.transform.forward);
+                data.Ray = new Ray(grip, tracker.transform.forward);
                 if (trackingOrigin != null && hand.Position.activeControl != null && hand.Rotation.activeControl != null)
                     data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
             }
 
-            if (cuts != null) cuts.SetHand(index, valid, valid ? tracker.transform.position : Vector3.zero, data.Ray.origin, valid ? tracker.transform.rotation : default);
-            if (rois != null) rois.SetHand(index, valid, valid ? tracker.transform.position : Vector3.zero, data.Ray.origin, valid ? tracker.transform.rotation : Quaternion.identity);
+            if (cuts != null) cuts.SetHand(index, valid, grip, data.Ray.origin, rotation, data.Ray);
+            if (rois != null) rois.SetHand(index, valid, grip, data.Ray.origin, rotation, data.Ray);
+        }
+
+        private void ProcessHand(int index, QuestDevicePoseTracker tracker, LineRenderer line, Transform reticle)
+        {
+            Hand hand = hands[index];
+            var data = hand.Data;
+            bool valid = hand.Valid;
+            bool pressed = hand.Primary.IsPressed();
+            bool secondaryPressed = hand.Secondary.IsPressed();
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
@@ -215,10 +227,12 @@ namespace HBP.Quest
             hits.Clear();
             eventSystem.RaycastAll(data, hits);
             data.pointerCurrentRaycast = default;
+            float secondaryRayLimit = policy.RayDistance;
             foreach (var hit in hits)
-                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && (modalDialog == null || hit.gameObject.GetComponentInParent<QuestDialogBox>() == modalDialog) && IsUiHitAbove(hit, data.pointerCurrentRaycast))
+                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && (modalDialog == null || hit.gameObject.GetComponentInParent<QuestDialogBox>() == modalDialog))
                 {
-                    data.pointerCurrentRaycast = hit;
+                    secondaryRayLimit = Mathf.Min(secondaryRayLimit, hit.distance);
+                    if (IsUiHitAbove(hit, data.pointerCurrentRaycast)) data.pointerCurrentRaycast = hit;
                 }
 
             GameObject target = data.pointerCurrentRaycast.gameObject;
@@ -241,7 +255,7 @@ namespace HBP.Quest
             var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
             var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
-            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, target == null) : null;
+            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, false) : null;
             if (roiCandidate != null && cutCandidate != null)
             {
                 float cutDistance = Mathf.Min(cutCandidate.ContactDistance(tracker.transform.position), cutCandidate.ContactDistance(data.Ray.origin));
@@ -250,11 +264,30 @@ namespace HBP.Quest
             }
 
             var oldOwner = hand.Capture.Owner;
+            float? secondaryRayDistance = null;
+            if (!loadingOverlay && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
+            {
+                float limit = secondaryRayLimit;
+                if (rois != null) roiCandidate = rois.RayCandidate(index, ref limit);
+                // A cut must be strictly closer than the ROI or window already found.
+                if (cuts != null) cutCandidate = cuts.RayCandidate(index, ref limit);
+                if (cutCandidate != null)
+                {
+                    roiCandidate = null;
+                    secondaryRayDistance = limit;
+                }
+                else if (roiCandidate != null) secondaryRayDistance = limit;
+                else if (target == null && rois != null)
+                {
+                    roiCandidate = rois.JoiningCandidate(index);
+                }
+            }
+
             bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null);
-            if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate)) hand.Capture.Cancel();
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
-            if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate)) hand.Capture.Cancel();
+            if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.ROI && !secondaryPressed) rois.End(index);
 
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
@@ -315,11 +348,23 @@ namespace HBP.Quest
 
             bool actionable = target != null && (window != null || modalDialog != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
             bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
+            bool rayHover = hand.Capture.Owner == QuestInteractionOwner.None && secondaryRayDistance.HasValue;
+            var aimedColumn = rayHover ? (cutCandidate?.Column ?? roiCandidate?.Column)?.Manipulator : hand.Capture.Owner == QuestInteractionOwner.None && distantDistance < secondaryRayLimit ? distantCandidate : null;
+            if (cuts != null) cuts.SetRayHover(index, rayHover ? cutCandidate : null, aimedColumn);
+            if (rois != null) rois.SetRayHover(index, rayHover ? roiCandidate : null);
+            float? secondaryFeedback = hand.Capture.Owner switch
+            {
+                QuestInteractionOwner.Cut => cuts.CapturedRayDistance(index),
+                QuestInteractionOwner.ROI => rois.CapturedRayDistance(index),
+                QuestInteractionOwner.None => secondaryRayDistance,
+                _ => null
+            };
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
-            if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
-            Feedback(line, reticle, useful, data.Ray.origin, end, !distantFeedback);
+            if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
+            else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
+            Feedback(line, reticle, useful, data.Ray.origin, end, secondaryFeedback.HasValue || !distantFeedback);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -538,15 +583,24 @@ namespace HBP.Quest
 
         private void Cancel(Hand hand)
         {
-            if (cuts != null) cuts.End(hand == hands[0] ? 0 : 1);
-            if (rois != null) rois.End(hand == hands[0] ? 0 : 1);
+            int index = hand == hands[0] ? 0 : 1;
+            if (cuts != null)
+            {
+                cuts.End(index);
+                cuts.SetRayHover(index, null, null);
+            }
+            if (rois != null)
+            {
+                rois.End(index);
+                rois.SetRayHover(index, null);
+            }
             if (hand.Data != null)
             {
                 Release(hand, null, false);
                 HandlePointerExitAndEnter(hand.Data, null);
             }
 
-            if (hand.Hovered != null) hand.Hovered.SetHovered(hand == hands[0] ? 0 : 1, false);
+            if (hand.Hovered != null) hand.Hovered.SetHovered(index, false);
             hand.Hovered = null;
             hand.Capture.Cancel();
             hand.AnatomyTarget = null;

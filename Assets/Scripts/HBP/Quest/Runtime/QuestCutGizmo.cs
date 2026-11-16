@@ -67,13 +67,24 @@ namespace HBP.Quest
 
         public float ContactDistance(Vector3 point) => geometryReady ? Vector3.Distance(point, ClosestPoint(point)) : float.PositiveInfinity;
 
+        internal bool Raycast(Ray ray, out float distance)
+        {
+            distance = 0;
+            return geometryReady && new UnityEngine.Plane(corners[0], corners[1], corners[3]).Raycast(ray, out distance) && ContainsPoint(ray.GetPoint(distance));
+        }
+
+        private bool ContainsPoint(Vector3 point)
+        {
+            Vector3 local = Frame.InverseTransformPoint(point) - center;
+            return Mathf.Abs(Vector3.Dot(local, axisA)) <= radiusA && Mathf.Abs(Vector3.Dot(local, axisB)) <= radiusB;
+        }
+
         private Vector3 ClosestPoint(Vector3 point)
         {
             // Project in world space so the threshold stays in metres, including under scale.
             Vector3 normal = Vector3.Cross(corners[1] - corners[0], corners[3] - corners[0]).normalized;
             Vector3 projected = point - normal * Vector3.Dot(point - corners[0], normal);
-            Vector3 local = Frame.InverseTransformPoint(projected) - center;
-            if (Mathf.Abs(Vector3.Dot(local, axisA)) <= radiusA && Mathf.Abs(Vector3.Dot(local, axisB)) <= radiusB) return projected;
+            if (ContainsPoint(projected)) return projected;
             Vector3 closest = corners[0];
             float distance = float.PositiveInfinity;
             for (int i = 0; i < corners.Length; i++)

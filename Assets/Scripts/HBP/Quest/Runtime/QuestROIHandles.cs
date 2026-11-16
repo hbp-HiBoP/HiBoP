@@ -17,6 +17,8 @@ namespace HBP.Quest
         private readonly Drag[] drags = new Drag[2];
         private readonly Vector3[] grip = new Vector3[2], aim = new Vector3[2];
         private readonly Quaternion[] rotations = new Quaternion[2];
+        private readonly Ray[] rays = new Ray[2];
+        private readonly QuestROISphere[] rayHovered = new QuestROISphere[2];
         private readonly bool[] tracked = new bool[2];
         public bool Active => panel != null && panel.ManipulationEnabled;
 
@@ -27,6 +29,7 @@ namespace HBP.Quest
             public Sphere Sphere;
             public QuestColumnPresentation Column;
             public readonly bool[] Aim = new bool[2];
+            public readonly float?[] RayDistance = new float?[2];
             public int Hands;
             public bool PairReady;
             public Pose AnchorHand, AnchorSphere;
@@ -44,6 +47,16 @@ namespace HBP.Quest
         public float Distance(QuestROISphere target, int hand) => Mathf.Min(target.ContactDistance(grip[hand]), target.ContactDistance(aim[hand]));
 
         public bool ShareCapture(int first, int second) => drags[first] != null && ReferenceEquals(drags[first], drags[second]);
+        internal float? CapturedRayDistance(int hand) => drags[hand]?.RayDistance[hand];
+        internal void SetRayHover(int hand, QuestROISphere target) => rayHovered[hand] = target;
+
+        private bool CanBegin(QuestROISphere target) => CanTarget(target) && !IsSphereLocked(target.Sphere) && !target.Column.Manipulator.IsGrabbed && (pointer == null || !pointer.IsAnatomyCaptured(target.Column.Manipulator)) && (cuts == null || !cuts.IsColumnLocked(target.Column.Manipulator));
+
+        internal QuestROISphere JoiningCandidate(int hand)
+        {
+            var other = drags[1 - hand];
+            return Active && tracked[hand] && drags[hand] == null && other != null && CanContinue(other) && !other.RayDistance[1 - hand].HasValue ? other.Target : null;
+        }
 
         public QuestROISphere Candidate(int hand, bool allowJoining = true)
         {
@@ -51,41 +64,62 @@ namespace HBP.Quest
             var other = drags[1 - hand];
             // As with brain manipulation, a second fresh grip can join a held object
             // without having to squeeze both controllers against a small sphere.
-            if (other != null && CanContinue(other) && (allowJoining || Distance(other.Target, hand) <= policy.ROIContactDistance)) return other.Target;
-            return view.AllColumns.Where(value => view.CanInteractWithColumn(value)).SelectMany(value => value.ROISpheres).Where(value => CanTarget(value) && !IsSphereLocked(value.Sphere) && !value.Column.Manipulator.IsGrabbed && (pointer == null || !pointer.IsAnatomyCaptured(value.Column.Manipulator)) && (cuts == null || !cuts.IsColumnLocked(value.Column.Manipulator)) && Distance(value, hand) <= policy.ROIContactDistance).OrderBy(value => Distance(value, hand)).ThenBy(value => (value.Frame.TransformPoint(value.Sphere.Position) - grip[hand]).sqrMagnitude).ThenBy(value => value.Column.Column.ColumnData.ID, StringComparer.Ordinal).ThenBy(value => value.Sphere.ID, StringComparer.Ordinal).FirstOrDefault();
+            if (other != null && CanContinue(other) && (Distance(other.Target, hand) <= policy.ROIContactDistance || allowJoining && !other.RayDistance[1 - hand].HasValue)) return other.Target;
+            return view.AllColumns.Where(value => view.CanInteractWithColumn(value)).SelectMany(value => value.ROISpheres).Where(value => CanBegin(value) && Distance(value, hand) <= policy.ROIContactDistance).OrderBy(value => Distance(value, hand)).ThenBy(value => (value.Frame.TransformPoint(value.Sphere.Position) - grip[hand]).sqrMagnitude).ThenBy(value => value.Column.Column.ColumnData.ID, StringComparer.Ordinal).ThenBy(value => value.Sphere.ID, StringComparer.Ordinal).FirstOrDefault();
+        }
+
+        internal QuestROISphere RayCandidate(int hand, ref float distance)
+        {
+            if (!Active || !tracked[hand] || drags[hand] != null) return null;
+            var other = drags[1 - hand];
+            var joinTarget = other != null && CanContinue(other) ? other.Target : null;
+            QuestROISphere nearest = null;
+            foreach (var column in view.AllColumns)
+            {
+                if (!view.CanInteractWithColumn(column)) continue;
+                foreach (var sphere in column.ROISpheres)
+                    if (sphere != null && sphere.IsValid && sphere.Raycast(rays[hand], out float hit) && hit < distance && (sphere == joinTarget || CanBegin(sphere)))
+                    {
+                        nearest = sphere;
+                        distance = hit;
+                    }
+            }
+
+            return nearest;
         }
 
         public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition) => SetHand(hand, valid, gripPosition, aimPosition, Quaternion.identity);
 
-        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition, Quaternion rotation)
+        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition, Quaternion rotation, Ray ray = default)
         {
             tracked[hand] = valid;
             grip[hand] = gripPosition;
             aim[hand] = aimPosition;
             rotations[hand] = rotation;
+            rays[hand] = ray;
             if (!valid) End(hand);
         }
 
-        public bool Begin(int hand, QuestROISphere target)
+        public bool Begin(int hand, QuestROISphere target, float? rayDistance = null)
         {
             if (!tracked[hand] || drags[hand] != null || !CanTarget(target)) return false;
             var other = drags[1 - hand];
             if (other != null && CanContinue(other) && other.Target == target)
             {
-                other.Aim[hand] = UseAim(target, hand);
+                SetAnchorSource(other, hand, rayDistance);
                 other.Hands |= 1 << hand;
                 drags[hand] = other;
                 Anchor(other);
                 return true;
             }
 
-            if (IsSphereLocked(target.Sphere) || Distance(target, hand) > policy.ROIContactDistance || target.Column.Manipulator.IsGrabbed || pointer != null && pointer.IsAnatomyCaptured(target.Column.Manipulator) || cuts != null && cuts.IsColumnLocked(target.Column.Manipulator) || !target.Column.Scene.TryBeginSensitiveActivityOperation(out var scope)) return false;
+            if (!CanBegin(target) || !rayDistance.HasValue && Distance(target, hand) > policy.ROIContactDistance || !target.Column.Scene.TryBeginSensitiveActivityOperation(out var scope)) return false;
             try
             {
                 view.SelectContext(target.Column.Scene, target.Column.Column);
                 target.ROI.SelectSphere(target.ROI.Spheres.IndexOf(target.Sphere));
                 var drag = new Drag { Target = target, ROI = target.ROI, Sphere = target.Sphere, Column = target.Column, Hands = 1 << hand, Scope = scope };
-                drag.Aim[hand] = UseAim(target, hand);
+                SetAnchorSource(drag, hand, rayDistance);
                 drags[hand] = drag;
                 Anchor(drag);
                 return true;
@@ -97,10 +131,14 @@ namespace HBP.Quest
             }
         }
 
-        private Vector3 WorldPoint(Drag drag, int hand) => drag.Aim[hand] ? aim[hand] : grip[hand];
+        private Vector3 WorldPoint(Drag drag, int hand) => drag.RayDistance[hand] is float depth ? rays[hand].GetPoint(depth) : drag.Aim[hand] ? aim[hand] : grip[hand];
 
         // Like anatomy, prefer the physical grip whenever it can already reach the object.
-        private bool UseAim(QuestROISphere target, int hand) => target.ContactDistance(grip[hand]) > policy.ROIContactDistance && target.ContactDistance(aim[hand]) <= policy.ROIContactDistance;
+        private void SetAnchorSource(Drag drag, int hand, float? rayDistance)
+        {
+            drag.RayDistance[hand] = rayDistance;
+            drag.Aim[hand] = !rayDistance.HasValue && drag.Target.ContactDistance(grip[hand]) > policy.ROIContactDistance && drag.Target.ContactDistance(aim[hand]) <= policy.ROIContactDistance;
+        }
 
         private void Anchor(Drag drag)
         {
@@ -237,7 +275,7 @@ namespace HBP.Quest
             {
                 if (sphere == null || !sphere.IsValid) continue;
                 bool captured = drags.Any(value => value?.Target == sphere);
-                sphere.Feedback(feedback, captured || sphere == left || sphere == right, IsSphereLocked(sphere.Sphere) && !captured || column.Manipulator.IsGrabbed);
+                sphere.Feedback(feedback, captured || sphere == left || sphere == right || rayHovered.Contains(sphere), IsSphereLocked(sphere.Sphere) && !captured || column.Manipulator.IsGrabbed);
             }
         }
 

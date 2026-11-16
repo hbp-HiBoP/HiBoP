@@ -88,8 +88,11 @@ New Input System access and its neutral behavior when a device is absent.
 Use [QuestInteractionInput](../../Assets/Scripts/HBP/Quest/Runtime/QuestInteractionInput.cs)
 and [QuestInteractionPolicy](../../Assets/Scripts/HBP/Quest/Runtime/QuestInteractionPolicy.cs)
 instead of independent button bindings: primary uses the front/index trigger;
-secondary uses the side grip. Cut manipulation uses secondary so it can coexist
-with primary brain manipulation. For changes to business state, consult
+secondary uses the side grip. Cuts and ROI spheres support both contact and ray
+with secondary, prioritizing contact, then the nearest eligible ray target
+in front of any pointed window. An aimed column shows its cut guides when
+enabled. A ray capture keeps its initial depth and target until release,
+like distant anatomy. For changes to business state, consult
 [Runtime and state](runtime-and-state.md).
 
 Quest ROI editing follows the Cuts window lifecycle. Its managed `ROI` window
@@ -98,16 +101,18 @@ local aids while retaining the scientific ROI selection and masks. Its
 Hide/Show guides button follows Cuts and hides the local spheres while suspended.
 One grip follows the controller pose, rotating the center about the contact point
 like a grabbed brain. A second fresh grip joins the same capture and scales the
-sphere by the ratio of controller separation, around their midpoint like brain
-manipulation. Prefer grip over aim whenever grip is already within contact and
-freeze that choice per hand. Cage rotation stays local to the proxy; the shared
+sphere by the ratio of the separation between the two grab points, around their
+midpoint like brain manipulation. Each hand can use contact or ray independently.
+Prefer grip over aim whenever grip is already within contact and freeze that
+choice per hand. Two close grab points must reach the minimum span before
+scaling starts. Cage rotation stays local to the proxy; the shared
 sphere still has only position and radius. Joining/releasing reanchors without
 snapping; there is no resize mode. New Quest spheres have a 20 mm radius and start
 at the first hit from the headset toward the selected displayed brain's center,
 using that column's ray target and converting back through its scientific frame.
 If no surface hit is available, use the brain center. Cage renderers share scene
-depth with the scientific surfaces and ordinary windows. The universal pointer arbitrates
-cuts/ROI by contact distance, preferring ROI on equal contact, and freezes the
+depth with the scientific surfaces and ordinary windows. The universal pointer
+prefers ROI at equal contact or ray distance and freezes the
 scene/column/ROI/sphere throughout capture. Copies in other columns share one
 sphere lock. Scientific-input gestures reserve the existing sensitive-operation
 scope until release/cancellation. Import/export remains Desktop-only; imported

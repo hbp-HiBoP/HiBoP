@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace HBP.Quest
 {
-    /// <summary>Local proximity and exclusive hand capture for cuts shared by the scene's columns.</summary>
+    /// <summary>Contact and ray targeting with exclusive capture for cuts shared by the scene's columns.</summary>
     public sealed class QuestCutHandles : MonoBehaviour
     {
         [SerializeField] private QuestAnatomyView view;
@@ -18,8 +18,11 @@ namespace HBP.Quest
         private readonly Drag[] drags = new Drag[2];
         private readonly Vector3[] grip = new Vector3[2], aim = new Vector3[2];
         private readonly Quaternion[] gripRotation = new Quaternion[2];
+        private readonly Ray[] rays = new Ray[2];
         private readonly bool[] tracked = new bool[2];
         private readonly QuestColumnPresentation[] nearbyColumns = new QuestColumnPresentation[2];
+        private readonly QuestCutGizmo[] rayHovered = new QuestCutGizmo[2];
+        private readonly QuestAnatomyManipulator[] aimedColumns = new QuestAnatomyManipulator[2];
         public IReadOnlyList<QuestCutGizmo> Gizmos => gizmos;
         public bool Active => panel != null && panel.GuidesEnabled && view != null && view.Scenes.Count > 0;
         private const float WristDeadZoneDegrees = 3f;
@@ -32,6 +35,7 @@ namespace HBP.Quest
             public bool Flip;
             public CutOrientation Orientation;
             public bool RotateWithWrist;
+            public float? RayDistance;
             public Quaternion StartRotation;
             public Vector3 StartNormal, Pivot;
             public float Position;
@@ -40,6 +44,13 @@ namespace HBP.Quest
         public bool IsColumnLocked(QuestAnatomyManipulator column) => drags.Any(drag => drag != null && drag.Gizmo != null && drag.Gizmo.Column.Manipulator == column);
         public bool IsCutLocked(Cut cut) => drags.Any(drag => drag != null && drag.Gizmo != null && drag.Gizmo.Cut == cut);
         public bool IsCaptured(int hand) => drags[hand] != null;
+        internal float? CapturedRayDistance(int hand) => drags[hand]?.RayDistance;
+
+        internal void SetRayHover(int hand, QuestCutGizmo target, QuestAnatomyManipulator aimedColumn)
+        {
+            rayHovered[hand] = target;
+            aimedColumns[hand] = aimedColumn;
+        }
 
         public void Refresh()
         {
@@ -75,12 +86,13 @@ namespace HBP.Quest
             foreach (var gizmo in gizmos) gizmo.UpdateGeometry();
         }
 
-        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition, Quaternion rotation = default)
+        public void SetHand(int hand, bool valid, Vector3 gripPosition, Vector3 aimPosition, Quaternion rotation = default, Ray ray = default)
         {
             tracked[hand] = valid;
             grip[hand] = gripPosition;
             aim[hand] = aimPosition;
             gripRotation[hand] = rotation;
+            rays[hand] = ray;
             if (!valid) End(hand);
             UpdateNearbyColumn(hand);
         }
@@ -91,7 +103,21 @@ namespace HBP.Quest
         public QuestCutGizmo Candidate(int hand)
         {
             if (!Active || !tracked[hand]) return null;
-            return gizmos.Where(g => g.IsValid && (pointer == null || !pointer.IsROIColumnCaptured(g.Column.Manipulator)) && g.Column == nearbyColumns[hand] && Distance(g, hand) <= policy.CutContactDistance).OrderBy(g => Distance(g, hand)).ThenBy(g => PlaneCenterDistance(g, hand)).ThenBy(g => g.Cut.ID, System.StringComparer.Ordinal).FirstOrDefault();
+            return gizmos.Where(g => g != null && g.Column == nearbyColumns[hand] && Distance(g, hand) <= policy.CutContactDistance && CanBegin(g)).OrderBy(g => Distance(g, hand)).ThenBy(g => PlaneCenterDistance(g, hand)).ThenBy(g => g.Cut.ID, System.StringComparer.Ordinal).FirstOrDefault();
+        }
+
+        internal QuestCutGizmo RayCandidate(int hand, ref float distance)
+        {
+            if (!Active || !tracked[hand] || drags[hand] != null) return null;
+            QuestCutGizmo nearest = null;
+            foreach (var gizmo in gizmos)
+                if (gizmo != null && gizmo.Raycast(rays[hand], out float hit) && hit < distance && CanBegin(gizmo))
+                {
+                    nearest = gizmo;
+                    distance = hit;
+                }
+
+            return nearest;
         }
 
         private void UpdateNearbyColumn(int hand)
@@ -123,16 +149,18 @@ namespace HBP.Quest
         private float CenterDistance(QuestColumnPresentation column, int hand) => Mathf.Min((grip[hand] - column.Manipulator.GrabCenter).sqrMagnitude, (aim[hand] - column.Manipulator.GrabCenter).sqrMagnitude);
         private float BrainDistance(QuestColumnPresentation column, int hand) => Mathf.Min(Vector3.Distance(grip[hand], column.Manipulator.ClosestGrabPoint(grip[hand])), Vector3.Distance(aim[hand], column.Manipulator.ClosestGrabPoint(aim[hand])));
 
-        public bool Begin(int hand, QuestCutGizmo gizmo)
+        private bool CanBegin(QuestCutGizmo gizmo) => gizmo != null && gizmo.IsValid && view.CanInteractWithColumn(gizmo.Column) && !IsCutLocked(gizmo.Cut) && !gizmo.Column.Manipulator.IsGrabbed && (pointer == null || !pointer.IsROIColumnCaptured(gizmo.Column.Manipulator) && !pointer.IsAnatomyCaptured(gizmo.Column.Manipulator));
+
+        public bool Begin(int hand, QuestCutGizmo gizmo, float? rayDistance = null)
         {
-            if (!Active || !tracked[hand] || gizmo == null || !gizmo.IsValid || !view.CanInteractWithColumn(gizmo.Column) || Distance(gizmo, hand) > policy.CutContactDistance || (pointer != null && pointer.IsROIColumnCaptured(gizmo.Column.Manipulator)) || IsCutLocked(gizmo.Cut) || gizmo.Column.Manipulator.IsGrabbed || (pointer != null && pointer.IsAnatomyCaptured(gizmo.Column.Manipulator))) return false;
+            if (!Active || !tracked[hand] || !CanBegin(gizmo) || !rayDistance.HasValue && Distance(gizmo, hand) > policy.CutContactDistance) return false;
             float span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
             if (!float.IsFinite(span) || span <= 0) return false;
             bool rotate = gizmo.Cut.Orientation == CutOrientation.Custom && panel.IsWristRotationEnabled(gizmo.Cut) && HasValidRotation(gripRotation[hand]);
             bool useAimPoint = !rotate && gizmo.ContactDistance(aim[hand]) < gizmo.ContactDistance(grip[hand]);
-            Vector3 point = useAimPoint ? aim[hand] : grip[hand];
+            Vector3 point = WorldPoint(hand, rayDistance, useAimPoint);
             view.SelectContext(gizmo.Scene, gizmo.Column.Column);
-            var drag = new Drag { Gizmo = gizmo, LastPoint = gizmo.Frame.InverseTransformPoint(point), Normal = gizmo.Cut.Normal.normalized, Span = span, Flip = gizmo.Cut.Flip, Orientation = gizmo.Cut.Orientation, RotateWithWrist = rotate };
+            var drag = new Drag { Gizmo = gizmo, LastPoint = gizmo.Frame.InverseTransformPoint(point), Normal = gizmo.Cut.Normal.normalized, Span = span, Flip = gizmo.Cut.Flip, Orientation = gizmo.Cut.Orientation, RotateWithWrist = rotate, RayDistance = rayDistance };
             if (rotate) AnchorWrist(drag, LocalGripRotation(hand, gizmo.Frame));
             drags[hand] = drag;
             // Continue with the same controller reference (grip or aim) for the whole capture.
@@ -141,6 +169,8 @@ namespace HBP.Quest
         }
 
         private readonly bool[] useAim = new bool[2];
+
+        private Vector3 WorldPoint(int hand, float? rayDistance, bool aimContact) => rayDistance is float depth ? rays[hand].GetPoint(depth) : aimContact ? aim[hand] : grip[hand];
 
         public bool Move(int hand)
         {
@@ -154,7 +184,7 @@ namespace HBP.Quest
             }
 
             var cut = gizmo.Cut;
-            Vector3 point = gizmo.Frame.InverseTransformPoint(useAim[hand] ? aim[hand] : grip[hand]);
+            Vector3 point = gizmo.Frame.InverseTransformPoint(WorldPoint(hand, drag.RayDistance, useAim[hand]));
             var geometry = gizmo.Scene.GetCutPositionGeometry(cut);
             float span = geometry.Span;
             Vector3 normal = cut.Normal.normalized;
@@ -257,10 +287,9 @@ namespace HBP.Quest
             foreach (var gizmo in gizmos)
             {
                 bool captured = drags.Any(d => d?.Gizmo == gizmo);
-                // Show one coherent set of cuts per nearby hand/column, rather than isolated
-                // handles from several columns according to each plane's attachment point.
-                bool visible = Active && (captured || nearbyColumns.Contains(gizmo.Column));
-                bool hovered = leftCandidate == gizmo || rightCandidate == gizmo;
+                // Show one coherent set of cuts for each nearby or aimed column.
+                bool visible = Active && (captured || nearbyColumns.Contains(gizmo.Column) || aimedColumns.Contains(gizmo.Column.Manipulator));
+                bool hovered = leftCandidate == gizmo || rightCandidate == gizmo || rayHovered.Contains(gizmo);
                 gizmo.Show(visible, captured || hovered, IsCutLocked(gizmo.Cut) && !captured || gizmo.Column.Manipulator.IsGrabbed);
             }
         }

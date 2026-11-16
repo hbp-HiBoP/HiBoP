@@ -230,6 +230,41 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public void ProductionPointer_SecondaryRayCapturesBoundedCutAndKeepsItAfterAimingAway()
+        {
+            using var f = new Fixture();
+            using var input = new PointerFixture(f);
+            f.Window.Open();
+            f.Window.transform.position = Vector3.up * 3;
+            f.Panel.Refresh();
+            f.Handles.Refresh();
+            var gizmo = f.Handles.Gizmos.First(g => g.Cut == f.Scene.Cuts[0]);
+            var frame = gizmo.Frame;
+            var normal = frame.TransformDirection(gizmo.Cut.Normal.normalized);
+            var rotation = Quaternion.LookRotation(normal);
+            var tangent = Vector3.Cross(normal, Vector3.up).normalized;
+            var origin = gizmo.PlaneCenter - normal * .4f;
+
+            input.Track(new Pose(origin + tangent * .8f, rotation));
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.False, "The infinite plane outside the guide is not a target.");
+            input.PressSecondary(false);
+
+            input.Track(new Pose(origin, rotation));
+            f.Handles.SendMessage("LateUpdate");
+            Assert.That(gizmo.IsVisible, Is.True, "Aimed guides should be visible before the grip is pressed.");
+            input.PressSecondary(true);
+            Assert.That(f.Handles.IsCaptured(0), Is.True);
+            float before = gizmo.Cut.Position;
+            float span = f.Scene.GetCutPositionGeometry(gizmo.Cut).Span;
+            var slide = frame.TransformVector(gizmo.Cut.Normal.normalized * span * .1f);
+            input.Track(new Pose(origin + tangent * .8f + slide, rotation));
+            Assert.That(gizmo.Cut.Position, Is.EqualTo(before + .1f).Within(1e-4));
+            input.PressSecondary(false);
+            Assert.That(f.Handles.IsCaptured(0), Is.False);
+        }
+
+        [Test]
         public async Task ProductionPointer_PrimaryTriggerGrabsBrainAtCutContactAndHeldGripCannotTakeOver()
         {
             using var f = new Fixture();
@@ -312,9 +347,9 @@ namespace HBP.Tests.Quest
         internal sealed class PointerFixture : IDisposable
         {
             private readonly GameObject root = new("Production cut pointer fixture");
-            private readonly XRController controller;
+            private readonly XRController controller, rightController;
             private readonly XRHMD hmd;
-            private readonly QuestDevicePoseTracker head, left;
+            private readonly QuestDevicePoseTracker head, left, right;
             private readonly QuestPointerInput pointer;
             private readonly InputSettings.BackgroundBehavior background;
             private readonly InputSettings.EditorInputBehaviorInPlayMode editor;
@@ -331,7 +366,7 @@ namespace HBP.Tests.Quest
                 }
             }
 
-            public PointerFixture(Fixture f, QuestROIHandles rois = null)
+            public PointerFixture(Fixture f, QuestROIHandles rois = null, bool twoHands = false)
             {
                 background = InputSystem.settings.backgroundBehavior;
                 editor = InputSystem.settings.editorInputBehaviorInPlayMode;
@@ -343,6 +378,12 @@ namespace HBP.Tests.Quest
                 InputSystem.SetDeviceUsage(controller, CommonUsages.LeftHand);
                 head = Tracker("Head", QuestDevicePoseTracker.DeviceRole.Head);
                 left = Tracker("Left", QuestDevicePoseTracker.DeviceRole.LeftController);
+                if (twoHands)
+                {
+                    rightController = (XRController)InputSystem.AddDevice("QuestCutTestController");
+                    InputSystem.SetDeviceUsage(rightController, CommonUsages.RightHand);
+                    right = Tracker("Right", QuestDevicePoseTracker.DeviceRole.RightController);
+                }
                 head.transform.position = new Vector3(0, 0, -1.3f); // Head tracking is normally applied by TrackedPoseDriver.
                 f.Camera.transform.SetParent(head.transform, false);
                 f.Window.GetComponent<Canvas>().worldCamera = f.Camera;
@@ -357,6 +398,7 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(pointer, "policy", f.policy);
                 QuestWindowInteractionTests.Set(pointer, "head", head);
                 QuestWindowInteractionTests.Set(pointer, "left", left);
+                QuestWindowInteractionTests.Set(pointer, "right", right);
                 QuestWindowInteractionTests.Set(pointer, "anatomy", f.View);
                 QuestWindowInteractionTests.Set(pointer, "cuts", f.Handles);
                 QuestWindowInteractionTests.Set(pointer, "rois", rois);
@@ -381,15 +423,27 @@ namespace HBP.Tests.Quest
 
             public void Track(Vector3 point) => Track(new Pose(point, Quaternion.identity));
 
-            public void Track(Pose pose)
+            public void Track(Pose pose, bool leftHand = true)
             {
-                InputSystem.QueueDeltaStateEvent(controller.devicePosition, pose.position);
-                InputSystem.QueueDeltaStateEvent(controller.deviceRotation, pose.rotation);
-                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<Vector3Control>("pointerPosition"), pose.position);
-                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<QuaternionControl>("pointerRotation"), pose.rotation * Quaternion.Euler(0, 0, 1));
-                InputSystem.QueueDeltaStateEvent(controller.isTracked, 1f);
-                InputSystem.QueueDeltaStateEvent(controller.trackingState, 3);
+                QueuePose(leftHand ? controller : rightController, pose);
                 Tick();
+            }
+
+            public void TrackPair(Vector3 left, Vector3 right)
+            {
+                QueuePose(controller, new Pose(left, Quaternion.identity));
+                QueuePose(rightController, new Pose(right, Quaternion.identity));
+                Tick();
+            }
+
+            private static void QueuePose(XRController device, Pose pose)
+            {
+                InputSystem.QueueDeltaStateEvent(device.devicePosition, pose.position);
+                InputSystem.QueueDeltaStateEvent(device.deviceRotation, pose.rotation);
+                InputSystem.QueueDeltaStateEvent(device.GetChildControl<Vector3Control>("pointerPosition"), pose.position);
+                InputSystem.QueueDeltaStateEvent(device.GetChildControl<QuaternionControl>("pointerRotation"), pose.rotation * Quaternion.Euler(0, 0, 1));
+                InputSystem.QueueDeltaStateEvent(device.isTracked, 1f);
+                InputSystem.QueueDeltaStateEvent(device.trackingState, 3);
             }
 
             public void Press(bool pressed)
@@ -398,9 +452,10 @@ namespace HBP.Tests.Quest
                 Tick();
             }
 
-            public void PressSecondary(bool pressed)
+            public void PressSecondary(bool pressed, bool leftHand = true)
             {
-                InputSystem.QueueDeltaStateEvent(controller.GetChildControl<ButtonControl>("gripPressed"), pressed ? 1f : 0f);
+                var device = leftHand ? controller : rightController;
+                InputSystem.QueueDeltaStateEvent(device.GetChildControl<ButtonControl>("gripPressed"), pressed ? 1f : 0f);
                 Tick();
             }
 
@@ -423,6 +478,7 @@ namespace HBP.Tests.Quest
                 InputSystem.Update();
                 head.SendMessage("Update");
                 left.SendMessage("Update");
+                if (right != null) right.SendMessage("Update");
                 Canvas.ForceUpdateCanvases();
                 pointer.Process();
             }
@@ -431,6 +487,7 @@ namespace HBP.Tests.Quest
             {
                 Object.DestroyImmediate(root);
                 InputSystem.RemoveDevice(controller);
+                if (rightController != null) InputSystem.RemoveDevice(rightController);
                 InputSystem.RemoveDevice(hmd);
                 InputSystem.RemoveLayout("QuestCutTestController");
                 InputSystem.settings.backgroundBehavior = background;
