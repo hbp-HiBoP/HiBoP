@@ -27,6 +27,7 @@ namespace HBP.Quest
         [SerializeField] private Definition[] catalogue = Array.Empty<Definition>();
         private readonly Dictionary<string, QuestWindow> windows = new(StringComparer.Ordinal);
         private readonly List<QuestWindow> windowOrder = new();
+        private readonly HashSet<QuestWindow> broughtIntoView = new();
         private bool trackingPlaced;
         private readonly QuestWorkspaceInitialization initialization = new();
         private QuestWindowLayoutStore layout;
@@ -94,6 +95,7 @@ namespace HBP.Quest
             window.OnDestroyed.AddListener(Unregister);
             window.OnOpened.AddListener(Recall);
             window.OnMoved.AddListener(SavePlacement);
+            window.OnResized.AddListener(SaveResize);
             window.OnSettingsChanged.AddListener(SaveSettings);
             var canvas = window.GetComponent<Canvas>();
             if (canvas != null && uiCamera != null) canvas.worldCamera = uiCamera;
@@ -110,9 +112,11 @@ namespace HBP.Quest
             window.OnDestroyed.RemoveListener(Unregister);
             window.OnOpened.RemoveListener(Recall);
             window.OnMoved.RemoveListener(SavePlacement);
+            window.OnResized.RemoveListener(SaveResize);
             window.OnSettingsChanged.RemoveListener(SaveSettings);
             window.Manager = null;
             windows.Remove(window.Key);
+            broughtIntoView.Remove(window);
             int index = windowOrder.IndexOf(window);
             windowOrder.RemoveAt(index);
             UpdateSortingOrder(index);
@@ -156,11 +160,26 @@ namespace HBP.Quest
         public void Recall(QuestWindow window)
         {
             if (!trackingPlaced || window == null || !window.IsOpen || window.IsManipulated || head == null) return;
+            broughtIntoView.Remove(window);
             window.RestoreDimensions();
-            var pose = window.LayoutPose;
+            Place(window, workspace, window.LayoutPose);
+        }
+
+        public void BringIntoView(string key)
+        {
+            if (!CanSavePlacement || Find(key) is not { IsOpen: true, IsManipulated: false } window) return;
+            var viewer = new Pose(head.position, QuestWindowFollower.HorizontalRotation(head.forward));
+            // The user is aiming down at the toolbar. Place the window at eye level using only the headset yaw.
+            Place(window, viewer, new Pose(Vector3.forward * window.Placement.z, Quaternion.identity));
+            broughtIntoView.Add(window);
+            window.Select();
+        }
+
+        private static void Place(QuestWindow window, Pose frame, Pose pose)
+        {
             var follow = window.GetComponent<QuestWindowFollower>();
-            if (follow != null) follow.Place(workspace, pose);
-            else window.transform.SetPositionAndRotation(workspace.position + workspace.rotation * pose.position, workspace.rotation * pose.rotation);
+            if (follow != null) follow.Place(frame, pose);
+            else window.transform.SetPositionAndRotation(frame.position + frame.rotation * pose.position, frame.rotation * pose.rotation);
         }
 
         public void RecenterOpen()
@@ -177,18 +196,48 @@ namespace HBP.Quest
                 }
         }
 
+        private bool CanSavePlacement
+        {
+            get
+            {
+                if (!trackingPlaced || !focused || paused || head == null) return false;
+                var tracker = head.GetComponent<QuestDevicePoseTracker>();
+                return tracker == null || tracker.IsTracked;
+            }
+        }
+
+        private Pose ReadWorkspacePose(QuestWindow window)
+        {
+            Quaternion inverse = Quaternion.Inverse(workspace.rotation);
+            return new Pose(inverse * (window.transform.position - workspace.position), inverse * window.transform.rotation);
+        }
+
         private void SavePlacement(QuestWindow window)
         {
-            if (!trackingPlaced || !focused || paused || head == null) return;
-            var tracker = head.GetComponent<QuestDevicePoseTracker>();
-            if (tracker != null && !tracker.IsTracked) return;
-            Quaternion inverse = Quaternion.Inverse(workspace.rotation);
-            var pose = new Pose(inverse * (window.transform.position - workspace.position), inverse * window.transform.rotation);
+            if (!CanSavePlacement) return;
+            var pose = ReadWorkspacePose(window);
+            broughtIntoView.Remove(window);
             window.SetLayoutPose(pose);
             // Reset following to the newly chosen placement without recording subsequent automatic motion.
             var follow = window.GetComponent<QuestWindowFollower>();
             if (follow != null) follow.Place(workspace, pose);
             SaveSettings(window);
+        }
+
+        private void SaveResize(QuestWindow window)
+        {
+            if (!broughtIntoView.Contains(window))
+            {
+                SavePlacement(window);
+                return;
+            }
+
+            if (CanSavePlacement)
+            {
+                // An edge resize also shifts the panel center. Keep that shift in the temporary placement.
+                Place(window, workspace, ReadWorkspacePose(window));
+                SaveSettings(window);
+            }
         }
 
         private void StoreSettings(QuestWindow window)
@@ -225,12 +274,14 @@ namespace HBP.Quest
                     window.OnDestroyed.RemoveListener(Unregister);
                     window.OnOpened.RemoveListener(Recall);
                     window.OnMoved.RemoveListener(SavePlacement);
+                    window.OnResized.RemoveListener(SaveResize);
                     window.OnSettingsChanged.RemoveListener(SaveSettings);
                     window.Manager = null;
                 }
 
             windows.Clear();
             windowOrder.Clear();
+            broughtIntoView.Clear();
         }
     }
 }

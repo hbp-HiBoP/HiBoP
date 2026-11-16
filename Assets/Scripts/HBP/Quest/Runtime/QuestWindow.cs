@@ -38,6 +38,7 @@ namespace HBP.Quest
         public GenericEvent<QuestWindow> OnDestroyed { get; } = new();
         public GenericEvent<QuestWindow> OnOpened { get; } = new();
         public GenericEvent<QuestWindow> OnMoved { get; } = new();
+        internal GenericEvent<QuestWindow> OnResized { get; } = new();
         public GenericEvent<QuestWindow> OnSettingsChanged { get; } = new();
 
         internal void SetLayoutPose(Pose pose) => layoutPose = pose;
@@ -47,7 +48,7 @@ namespace HBP.Quest
         internal void CompleteResize()
         {
             UserSize = ((RectTransform)transform).rect.size;
-            CompleteMove();
+            OnResized.Invoke(this);
         }
 
         internal void NotifySettingsChanged() => OnSettingsChanged.Invoke(this);

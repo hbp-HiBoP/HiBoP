@@ -83,6 +83,48 @@ namespace HBP.Tests.Quest
             Assert.That(Vector3.Distance(stored.position, nextPosition), Is.LessThan(.0001f));
         }
 
+        [Test]
+        public void BringIntoView_OnlyMovesTheTargetAndKeepsItsSavedPoseUntilManuallyMoved()
+        {
+            using var f = new Fixture();
+            var window = f.Window("Target");
+            var other = f.Window("Other");
+            f.Manager.RecenterOpen();
+            f.Move(window, new Vector3(-.6f, .2f, 1));
+            var saved = new Pose(window.transform.position, window.transform.rotation);
+            var otherPosition = other.transform.position;
+            f.Head.SetPositionAndRotation(new Vector3(4, 1.5f, 3), Quaternion.Euler(20, 150, 0));
+            Quaternion yaw = Quaternion.Euler(0, 150, 0);
+
+            f.Manager.BringIntoView(window.Key);
+            AssertPose(window.transform, new Pose(f.Head.position + yaw * (Vector3.forward * window.Placement.z), yaw));
+            Assert.That(other.transform.position, Is.EqualTo(otherPosition));
+            Assert.That(window.IsPinned, Is.True);
+            f.Resize(window, new Vector2(150, 100));
+            var resized = ((RectTransform)window.transform).rect.size;
+            var layout = new QuestWindowLayoutStore(layoutScope.Path);
+            Assert.That(layout.TryGetState(window.Key, out var state), Is.True);
+            Assert.That(Vector3.Distance(state.Pose.position, saved.position), Is.LessThan(.0001f));
+            Assert.That(Quaternion.Angle(state.Pose.rotation, saved.rotation), Is.LessThan(.02f));
+            Assert.That(state.Size, Is.EqualTo(resized));
+
+            window.Close();
+            window.Open();
+            AssertPose(window.transform, saved);
+            Assert.That(((RectTransform)window.transform).rect.size, Is.EqualTo(resized));
+
+            f.Manager.BringIntoView(window.Key);
+            f.Manager.RecenterOpen();
+            AssertPose(window.transform, new Pose(f.Head.position + yaw * saved.position, yaw * saved.rotation));
+
+            f.Manager.BringIntoView(window.Key);
+            f.Move(window, window.transform.position + Vector3.up * .2f);
+            var moved = new Pose(window.transform.position, window.transform.rotation);
+            window.Close();
+            window.Open();
+            AssertPose(window.transform, moved);
+        }
+
         [TestCase("Focus")]
         [TestCase("Close")]
         [TestCase("Disable")]

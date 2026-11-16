@@ -366,6 +366,89 @@ namespace HBP.Tests.Quest
             Assert.That(theme.ActualState, Is.SameAs(theme.Element.DefaultState), "Closing from the window must update the toolbar.");
         }
 
+        [Test]
+        public async Task OpenWindowButton_DelaysFeedbackAndOnlyRecallsAfterTheFullHold()
+        {
+            using var scope = new ToolbarScope(true);
+            var manager = scope.Root.GetComponent<QuestWindowsManager>();
+            var windowObject = new GameObject("Visualizations window", typeof(RectTransform), typeof(Canvas), typeof(QuestWindow));
+            windowObject.transform.SetParent(scope.Root.transform, false);
+            var window = windowObject.GetComponent<QuestWindow>();
+            QuestWindowInteractionTests.Set(window, "key", "Display");
+            manager.Register(window);
+            await UniTask.NextFrame();
+
+            var button = scope.Buttons.First(b => b.name == "Display");
+            var control = button.GetComponent<QuestToolbarButton>();
+            var track = button.transform.Find("Hold Progress").gameObject;
+            var fill = track.transform.Find("Fill").GetComponent<Image>();
+            var pointer = new QuestPointerEventData(scope.Events) { pointerId = 0 };
+            Vector3 savedPosition = window.transform.position;
+
+            void Press()
+            {
+                pointer.eligibleForClick = true;
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerEnterHandler);
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerDownHandler);
+            }
+
+            void AdvanceHold(double elapsed)
+            {
+                QuestWindowInteractionTests.Set(control, "holdStarted", Time.unscaledTimeAsDouble - elapsed);
+                control.SendMessage("LateUpdate");
+            }
+
+            void Release()
+            {
+                ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerUpHandler);
+                if (pointer.eligibleForClick) ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
+            }
+
+            Press();
+            AdvanceHold(.49);
+            Assert.That(track.activeSelf, Is.False);
+            Release();
+            Assert.That(window.IsOpen, Is.False, "A short click still closes the window.");
+            Press();
+            Release();
+            Assert.That(window.IsOpen, Is.True, "A short click still opens a closed window.");
+
+            Press();
+            AdvanceHold(1.25);
+            Assert.That(track.activeSelf, Is.True);
+            Assert.That(fill.fillAmount, Is.EqualTo(.5f).Within(.01f));
+            Assert.That(track.GetComponent<Image>().raycastTarget || fill.raycastTarget, Is.False);
+            var camera = scope.LookAtToolbar();
+            camera.fieldOfView = 35;
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = new Color32(22, 24, 28, 255);
+            QuestWindowInteractionTests.Capture(camera, "Quest Toolbar Bring to View.png");
+            Release();
+            Assert.That(track.activeSelf, Is.False);
+            Assert.That(window.IsOpen, Is.True, "Releasing during progress cancels the recall without closing.");
+            Assert.That(window.transform.position, Is.EqualTo(savedPosition));
+
+            Press();
+            AdvanceHold(.75);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerExitHandler);
+            ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerEnterHandler);
+            AdvanceHold(2.01);
+            Release();
+            Assert.That(track.activeSelf, Is.False);
+            Assert.That(window.transform.position, Is.EqualTo(savedPosition), "Leaving the button cancels this entire press.");
+
+            scope.Camera.transform.SetPositionAndRotation(new Vector3(2, 1.6f, 3), Quaternion.Euler(30, 120, 0));
+            Press();
+            AdvanceHold(1.99);
+            Assert.That(window.transform.position, Is.EqualTo(savedPosition));
+            AdvanceHold(2.01);
+            Vector3 recalled = scope.Camera.transform.position + Quaternion.Euler(0, 120, 0) * (Vector3.forward * window.Placement.z);
+            Assert.That(Vector3.Distance(window.transform.position, recalled), Is.LessThan(.001f));
+            Assert.That(track.activeSelf, Is.False);
+            Release();
+            Assert.That(window.IsOpen, Is.True, "The completed hold consumes the release.");
+        }
+
         private sealed class ToolbarScope : IDisposable
         {
             public GameObject Root { get; }
