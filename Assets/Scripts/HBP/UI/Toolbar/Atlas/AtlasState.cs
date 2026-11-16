@@ -62,6 +62,10 @@ namespace HBP.UI.Toolbar
                 if (scene != null && !scene.IsClosing && SelectedScene == scene)
                 {
                     apply(visible);
+                    // ToggleGroup turns the previous atlas off before notifying the new one.
+                    // Refreshing here on deactivation would clear the new selection mid-click.
+                    if (!visible) return;
+
                     // Read back the accepted domain state (the selected mesh may have changed during recovery).
                     bool wasLocked = ListenerLock;
                     ListenerLock = true;

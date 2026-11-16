@@ -120,13 +120,14 @@ namespace HBP.Tests.PlayMode.Toolbar
             }
         }
 
-        [TestCase("m_IBCToggle", "ibc", false)]
-        [TestCase("m_IBCToggle", "ibc", true)]
-        [TestCase("m_JubrainToggle", "jubrain", false)]
-        [TestCase("m_MarsAtlasToggle", "mars", false)]
-        [TestCase("m_DiFuMoToggle", "difumo:64", false)]
-        [TestCase("m_LocalizersToggle", "localizer:AUDI", false)]
-        public async Task UnconfirmedAtlasOffersQuestRecoveryWithoutThrowingOrEnablingItsDisplay(string field, string id, bool retryDisconnected)
+        [TestCase("m_IBCToggle", "ibc", false, false)]
+        [TestCase("m_IBCToggle", "ibc", true, false)]
+        [TestCase("m_JubrainToggle", "jubrain", false, false)]
+        [TestCase("m_MarsAtlasToggle", "mars", false, false)]
+        [TestCase("m_DiFuMoToggle", "difumo:64", false, false)]
+        [TestCase("m_LocalizersToggle", "localizer:AUDI", false, false)]
+        [TestCase("m_IBCToggle", "ibc", false, true)]
+        public async Task UnconfirmedAtlasOffersQuestRecoveryWithoutThrowingOrEnablingItsDisplay(string field, string id, bool retryDisconnected, bool switchFromMars)
         {
             using var scope = new PlayModeSceneScope("AtlasRecoveryDialog");
             using var harness = new ToolbarSceneHarness(scope.Scene);
@@ -139,11 +140,14 @@ namespace HBP.Tests.PlayMode.Toolbar
             questSingleton.SetValue(null, null);
             var dialogs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab"));
             var tool = new GameObject("Atlas recovery toolbar").AddComponent<AtlasState>();
+            var group = tool.gameObject.AddComponent<ToggleGroup>();
+            group.allowSwitchOff = true;
             var toggles = new Dictionary<string, Toggle>();
             foreach (string name in new[] { "m_IBCToggle", "m_JubrainToggle", "m_MarsAtlasToggle", "m_DiFuMoToggle", "m_LocalizersToggle" })
             {
                 var toggle = CreateToggle(name);
                 toggle.transform.SetParent(tool.transform, false);
+                toggle.group = group;
                 toggles[name] = toggle;
                 SetPrivateField(tool, name, toggle);
             }
@@ -151,7 +155,12 @@ namespace HBP.Tests.PlayMode.Toolbar
             tool.SelectedScene = harness.Scene;
             SetPrivateField(harness.Scene.FMRIManager, "m_SelectedDiFuMoAtlas", "64");
             SetPrivateField(harness.Scene.FMRIManager, "m_SelectedLocalizersProtocol", "AUDI");
-            harness.Scene.AtlasUseValidator = atlas => throw new InvalidOperationException("The atlas is not ready on both devices: " + atlas);
+            string validatedAtlas = null;
+            harness.Scene.AtlasUseValidator = atlas =>
+            {
+                validatedAtlas = atlas;
+                throw new InvalidOperationException("The atlas is not ready on both devices: " + atlas);
+            };
             tool.Initialize();
             using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
 
@@ -163,7 +172,15 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             try
             {
+                if (switchFromMars)
+                {
+                    SetPrivateField(harness.Scene.AtlasManager, "m_DisplayMarsAtlas", true);
+                    toggles["m_MarsAtlasToggle"].SetIsOnWithoutNotify(true);
+                }
+
                 toggles[field].isOn = true;
+                Assert.That(validatedAtlas, Is.EqualTo(id));
+                Assert.That(harness.Scene.AtlasManager.DisplayMarsAtlas, Is.False);
                 await UniTask.WaitUntil(() => dialogs.GetComponentInChildren<DialogBox>() != null, cancellationToken: timeout.Token);
                 var dialog = dialogs.GetComponentInChildren<DialogBox>();
                 Assert.That(Text(dialog, "m_Title"), Is.EqualTo("Atlas not ready on both devices"));
