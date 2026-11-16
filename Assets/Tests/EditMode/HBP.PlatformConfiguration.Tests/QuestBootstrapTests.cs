@@ -24,6 +24,28 @@ namespace HBP.Tests.PlatformConfiguration
         public void QuestConfiguration_PassesGuard() => QuestBuildValidation.Validate();
 
         [Test]
+        public void AtlasHoverTooltip_IsWiredAndDoesNotReceivePointerInput()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BootstrapPath);
+            var pointer = prefab.GetComponentInChildren<QuestPointerInput>(true);
+            var view = prefab.GetComponentInChildren<QuestAtlasHoverTooltip>(true);
+            Assert.That(view, Is.Not.Null);
+            Assert.That(view.gameObject.activeSelf, Is.False);
+            Assert.That(new SerializedObject(pointer).FindProperty("atlasTooltip").objectReferenceValue, Is.SameAs(view));
+            var fields = new SerializedObject(view);
+            foreach (string field in new[] { "panel", "background", "label", "overlayMaterial" })
+                Assert.That(fields.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            Assert.That(view.GetComponent<Canvas>().renderMode, Is.EqualTo(RenderMode.WorldSpace));
+            Assert.That(view.GetComponentsInChildren<UnityEngine.EventSystems.BaseRaycaster>(true), Is.Empty);
+            Assert.That(view.GetComponentsInChildren<UnityEngine.UI.Graphic>(true).All(graphic => !graphic.raycastTarget), Is.True);
+
+            var brain = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Objects/Brain.prefab");
+            var hoverCollider = brain.transform.Find("Atlas Hover Collider").GetComponent<MeshCollider>();
+            Assert.That(hoverCollider.gameObject.layer, Is.EqualTo(LayerMask.NameToLayer("Ignore Raycast")));
+            Assert.That(hoverCollider.sharedMesh, Is.Null);
+        }
+
+        [Test]
         public void BoundaryVisibility_IsContextualAndWiredToPassthrough()
         {
             var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android);

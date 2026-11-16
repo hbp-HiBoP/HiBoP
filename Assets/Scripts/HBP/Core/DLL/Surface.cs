@@ -465,6 +465,12 @@ namespace HBP.Core.DLL
             UpdateMesh(mesh, all, vertices, normals, uv, triangles, colors);
         }
 
+        public Vector3[] CopyVertexPositions()
+        {
+            CopyMeshBuffers();
+            return (Vector3[])m_Vertices.Clone();
+        }
+
         public void DisplaySizes()
         {
             SurfaceSizes sizes = GetSizes();

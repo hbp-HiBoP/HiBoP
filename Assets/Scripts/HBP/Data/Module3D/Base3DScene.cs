@@ -608,6 +608,9 @@ namespace HBP.Data.Module3D
         private Func<UniTask> m_BeforeColliderPublish;
 
         public Mesh BrainRaycastMesh { get; private set; }
+        public bool IsBrainRaycastGeometryCurrent => !IsClosing && !IsSurfaceRepresentationTransitioning &&
+            !SceneInformation.GeometryNeedsUpdate && !SceneInformation.CutsNeedUpdate &&
+            !SceneInformation.CollidersNeedUpdate && !m_UpdatingColliders;
         public GenericEvent<Mesh> OnBrainRaycastMeshUpdated { get; } = new();
 
         /// <summary>
@@ -1490,6 +1493,7 @@ namespace HBP.Data.Module3D
             else if (preserveScientificData)
             {
                 m_MeshManager.UpdateMeshesFromDLL(preserveScientificData: true);
+                m_AtlasManager.UpdateAtlasColors();
             }
             else
             {
@@ -3343,6 +3347,12 @@ namespace HBP.Data.Module3D
         }
 
         private bool m_FunctionalCutTexturesNeedUpdate;
+
+        internal void InvalidateAtlasHoverCutTextures(bool updateGUI)
+        {
+            m_FunctionalCutTexturesNeedUpdate = true;
+            if (updateGUI) GUICutTexturesNeedUpdate = true;
+        }
 
         public bool FunctionalCutTexturesNeedUpdate
         {

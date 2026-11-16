@@ -412,6 +412,8 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
+            if (m_Scene && m_Scene.AtlasManager)
+                Module3DMain.OnDisplayAtlasInformation.Invoke(m_Scene.AtlasManager.GetAtlasInformation(false, default, eventData.position));
             Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, eventData.position));
         }
 

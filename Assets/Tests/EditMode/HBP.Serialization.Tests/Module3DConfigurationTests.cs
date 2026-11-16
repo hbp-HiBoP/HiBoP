@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HBP.Core.Database;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -18,6 +19,56 @@ namespace HBP.Tests.Serialization
 {
     public class Module3DConfigurationTests
     {
+        [Test]
+        public void AnatomicalAtlasHover_ValidatesLabelsAndExposesDesktopFields()
+        {
+            var describe = typeof(AtlasManager).GetMethod("DescribeRegion", BindingFlags.NonPublic | BindingFlags.Static);
+            AtlasInfo Describe(bool mars, int label, params string[] information) =>
+                (AtlasInfo)describe.Invoke(null, new object[] { mars, label, information });
+
+            var mars = Describe(true, 12, "L_Test", "L", "Frontal", "Test", "Left test area");
+            Assert.That(mars.Type, Is.EqualTo(AtlasInfo.AtlasType.MarsAtlas));
+            Assert.That(new[] { mars.Information1, mars.Information2, mars.Information3, mars.Information4, mars.Information5 },
+                Is.EqualTo(new[] { "L_Test - ID:12", "L", "Frontal", "Test", "Left test area" }));
+            var juBrain = Describe(false, 12, "Area 12");
+            Assert.That(juBrain.Type, Is.EqualTo(AtlasInfo.AtlasType.JuBrainAtlas));
+            Assert.That(juBrain.Information1, Is.EqualTo("Area 12 - ID:12"));
+            Assert.That(Describe(false, 0, "Background"), Is.Null);
+            Assert.That(Describe(true, -1, "Unknown", "", "", "", ""), Is.Null);
+            Assert.That(Describe(false, 999, ""), Is.Null);
+        }
+
+        [Test]
+        public void InflatedAtlasImpact_UsesVisibleTriangleIndicesToRecoverAnatomicalPosition()
+        {
+            var mesh = new Mesh
+            {
+                vertices = new[] { new Vector3(7, 5, 0), Vector3.zero, Vector3.right * 4, Vector3.up * 2 },
+                triangles = new[] { 1, 3, 2 }
+            };
+            var target = new GameObject("Inflated atlas geometry");
+            try
+            {
+                var collider = target.AddComponent<MeshCollider>();
+                collider.sharedMesh = mesh;
+                target.transform.SetPositionAndRotation(new Vector3(1, 2, 3), Quaternion.Euler(12, 40, 18));
+                target.transform.localScale = Vector3.one * 2;
+                Physics.SyncTransforms();
+                Vector3 displayedPoint = target.transform.TransformPoint(new Vector3(1.2f, .4f, 0));
+                var direction = target.transform.forward;
+                Assert.That(collider.Raycast(new Ray(displayedPoint - direction, direction), out var hit, 2), Is.True);
+                var anatomy = new[] { Vector3.one * 900, new Vector3(30, 0, 10), new Vector3(42, 0, 20), new Vector3(30, 20, 10) };
+                var interpolate = typeof(AtlasManager).GetMethod("TryInterpolateAnatomicalPoint", BindingFlags.NonPublic | BindingFlags.Static);
+                object[] args = { anatomy, mesh.triangles, hit.triangleIndex, hit.barycentricCoordinate, Vector3.zero };
+                Assert.That(interpolate.Invoke(null, args), Is.True);
+                Assert.That(Vector3.Distance((Vector3)args[4], new Vector3(33.6f, 4, 13)), Is.LessThan(.001f));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+        }
         [TestCase(false)]
         [TestCase(true)]
         public void LegacyCCEPConfiguration_LoadsWithOriginalIdentityAndCalibration(bool explicitType)

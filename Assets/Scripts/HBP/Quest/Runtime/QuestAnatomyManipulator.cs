@@ -156,6 +156,35 @@ namespace HBP.Quest
             return true;
         }
 
+        internal bool TryRaycastAtlasTarget(HBP.Data.Module3D.Base3DScene scene, Ray ray, float distance, bool surfaceHidden, out RaycastHit hit)
+        {
+            hit = default;
+            if (column == null || !scene.IsBrainRaycastGeometryCurrent) return false;
+            bool found = false;
+            if (!surfaceHidden && IsVisible(column.BrainMesh))
+            {
+                var atlas = scene.AtlasManager;
+                found = atlas != null && atlas.UsesInflatedHoverGeometry
+                    ? atlas.TryRaycastInflatedSurface(column, ray, distance, out hit)
+                    : rayTarget != null && rayTarget.enabled && rayTarget.Raycast(ray, out hit, distance);
+                if (found) distance = hit.distance;
+            }
+
+            foreach (var cut in column.BrainCutMeshes)
+            {
+                if (!IsVisible(cut) || !cut.TryGetComponent<MeshCollider>(out var collider) || !collider.enabled ||
+                    !collider.Raycast(ray, out var impact, distance)) continue;
+                hit = impact;
+                distance = hit.distance;
+                found = true;
+            }
+
+            return found;
+        }
+
+        private static bool IsVisible(GameObject target) => target != null && target.activeInHierarchy &&
+            target.TryGetComponent<Renderer>(out var renderer) && renderer.enabled && !renderer.forceRenderingOff;
+
         private bool IsNear(Vector3 position)
         {
             return SharedMesh.bounds.Contains(column.BrainMesh.transform.InverseTransformPoint(position));

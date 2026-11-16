@@ -400,6 +400,7 @@ namespace HBP.Data.Module3D
             }
 
             m_Scene.BrainMaterials.SetInflationBlend(0.0f);
+            m_Scene.AtlasManager.InvalidateHoverGeometry();
         }
 
         /// <summary>

@@ -18,6 +18,8 @@ namespace HBP.UI.Tools
         private int m_InformationUsers, m_CancelableUsers;
         private readonly object m_PresentationLock = new();
 
+        public static bool IsPresenting => m_Instance != null && m_Instance.m_LoadingCircle is { isActiveAndEnabled: true };
+
         private void OpenPresentation(bool showInformations, bool cancelable = false)
         {
             lock (m_PresentationLock)

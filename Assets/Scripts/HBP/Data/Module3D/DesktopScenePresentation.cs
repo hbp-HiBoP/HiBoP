@@ -124,7 +124,13 @@ namespace HBP.Data.Module3D
 
         public void PassiveRaycastOnScene(Ray ray, Column3D column)
         {
-            if (m_Scene.IsSurfaceRepresentationTransitioning) return;
+            var atlas = m_Scene.AtlasManager;
+            var screenPosition = HBP.Input.DesktopInput.MousePosition;
+            if (m_Scene.IsSurfaceRepresentationTransitioning)
+            {
+                Module3DMain.OnDisplayAtlasInformation.Invoke(atlas.GetAtlasInformation(false, default, screenPosition));
+                return;
+            }
             m_Scene.RefreshColliders();
 
             int layerMask = 0;
@@ -132,10 +138,18 @@ namespace HBP.Data.Module3D
             layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
 
             RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? column.transform.InverseTransformPoint(hit.point) : Vector3.zero;
+            bool atlasHit = m_Scene.IsBrainRaycastGeometryCurrent && raycastResult is RaycastHitResult.Cut or RaycastHitResult.Mesh;
+            RaycastHit atlasImpact = hit;
+            if (atlas.UsesInflatedHoverGeometry)
+            {
+                float depth = hit.collider && raycastResult != RaycastHitResult.Mesh ? hit.distance : Mathf.Infinity;
+                atlasHit = atlas.TryRaycastInflatedSurface(column, ray, depth, out atlasImpact);
+            }
 
-            Module3DMain.OnDisplayAtlasInformation.Invoke(m_Scene.AtlasManager.GetAtlasInformation((raycastResult == RaycastHitResult.Cut || raycastResult == RaycastHitResult.Mesh) && m_Scene.MeshManager.SelectedMesh.Type == HBP.Core.Enums.MeshType.MNI, hitPoint, HBP.Input.DesktopInput.MousePosition)); // FIXME when we have hoverable atlases in single patient scenes
-            Module3DMain.OnDisplaySiteInformation.Invoke(m_Scene.ImplantationManager.GetSiteInformation(raycastResult == RaycastHitResult.Site ? hit.collider.GetComponent<HBP.Core.Object3D.Site>() : null, column, HBP.Input.DesktopInput.MousePosition));
+            Vector3 point = default;
+            atlasHit = atlasHit && atlas.TryGetAnatomicalHoverPoint(column, atlasImpact, out point);
+            Module3DMain.OnDisplayAtlasInformation.Invoke(atlas.GetAtlasInformation(atlasHit, point, screenPosition));
+            Module3DMain.OnDisplaySiteInformation.Invoke(m_Scene.ImplantationManager.GetSiteInformation(raycastResult == RaycastHitResult.Site ? hit.collider.GetComponent<HBP.Core.Object3D.Site>() : null, column, screenPosition));
         }
 
         #endregion

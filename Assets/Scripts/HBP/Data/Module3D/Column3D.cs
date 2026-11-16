@@ -411,11 +411,14 @@ namespace HBP.Data.Module3D
         public void InitializeColumnMeshes(GameObject brainMesh)
         {
             BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
+            AtlasHoverCollider = BrainMesh.GetComponentInChildren<MeshCollider>(true);
             BrainMesh.layer = LayerMask.NameToLayer(Layer);
             m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
             BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
             BrainMesh.SetActive(true);
         }
+
+        internal MeshCollider AtlasHoverCollider { get; private set; }
 
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HBP.Data.Module3D;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
@@ -33,11 +34,13 @@ namespace HBP.Quest
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
         [SerializeField] private Material overlayFeedbackMaterial;
+        [SerializeField] private QuestAtlasHoverTooltip atlasTooltip;
         private Vector3 leftReticleScale, rightReticleScale;
         private readonly Hand[] hands = { new Hand(), new Hand() };
         private readonly List<RaycastResult> hits = new();
         private bool focused = true, paused;
         private QuestDialogBox modalDialog;
+        private Base3DScene hoveredAtlasScene;
         private MaterialPropertyBlock feedbackProperties;
         private readonly Dictionary<Renderer, (Material Material, int SortingOrder)> feedbackDefaults = new();
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
@@ -63,6 +66,7 @@ namespace HBP.Quest
             public Pose AnatomyPose;
             public bool Valid, Distant, AimContact;
             public float GrabDistance;
+            public float AtlasRayLimit;
         }
 
         public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
@@ -80,6 +84,7 @@ namespace HBP.Quest
 
         private void OnPresentationChanging(HBP.Data.Module3D.Base3DScene scene)
         {
+            if (hoveredAtlasScene == scene) ClearAtlasHover();
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
@@ -146,7 +151,8 @@ namespace HBP.Quest
             diagnosticProcessCount++;
 #endif
             // Presentation wrappers can move after the last physics tick.
-            if (policy.EnableDistantAnatomy) Physics.SyncTransforms();
+            bool canHoverAtlas = HasAtlasHoverScene();
+            if (policy.EnableDistantAnatomy || canHoverAtlas) Physics.SyncTransforms();
             if (cuts != null) cuts.Refresh();
             // Sample both poses before either hand can join or release a shared capture.
             SampleHand(0, left);
@@ -158,6 +164,10 @@ namespace HBP.Quest
                 for (int i = 0; i < hands.Length; i++)
                     if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
                         Cancel(hands[i]);
+            if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
+                UpdateAtlasHover();
+            else
+                ClearAtlasHover();
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -202,6 +212,7 @@ namespace HBP.Quest
         private void ProcessHand(int index, QuestDevicePoseTracker tracker, LineRenderer line, Transform reticle)
         {
             Hand hand = hands[index];
+            hand.AtlasRayLimit = 0;
             var data = hand.Data;
             bool valid = hand.Valid;
             bool pressed = hand.Primary.IsPressed();
@@ -370,6 +381,8 @@ namespace HBP.Quest
             if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
             else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
             Feedback(line, reticle, useful, data.Ray.origin, end, distantFeedback && !secondaryFeedback.HasValue);
+            if (!loadingOverlay && hand.Capture.Owner == QuestInteractionOwner.None && oldOwner == QuestInteractionOwner.None)
+                hand.AtlasRayLimit = roiCandidate != null && secondaryRayDistance.HasValue ? secondaryRayDistance.Value : secondaryRayLimit;
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -454,6 +467,74 @@ namespace HBP.Quest
         }
 
         private static bool IsLoadingOverlay(RaycastResult hit) => hit.module != null && hit.module.GetComponentInParent<QuestLoadingOverlay>() is { isActiveAndEnabled: true };
+
+        private bool HasAtlasHoverScene()
+        {
+            if (atlasTooltip == null || anatomy == null) return false;
+            foreach (var presentation in anatomy.Scenes)
+                if (presentation.IsPlaced && presentation.Scene.IsVisible && presentation.Scene.AtlasManager is { CanHover: true })
+                    return true;
+            return false;
+        }
+
+        private void UpdateAtlasHover()
+        {
+            // Resolve both hands before changing the scene-wide highlight.
+            for (int index = hands.Length - 1; index >= 0; index--)
+            {
+                var hand = hands[index];
+                if (hand.AtlasRayLimit <= 0 || hand.Capture.Owner != QuestInteractionOwner.None) continue;
+                var ray = hand.Data.Ray;
+                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var hit);
+                if (column == null) continue;
+                var scene = column.Scene;
+                var atlas = scene.AtlasManager;
+                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) ||
+                    !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
+
+                if (hoveredAtlasScene != scene)
+                {
+                    ClearAtlasHover();
+                    hoveredAtlasScene = scene;
+                    scene.OnClosing.AddListener(ClearAtlasHover);
+                }
+                atlas.HoveredArea = label;
+                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, hit.point, true);
+                atlasTooltip.Show(region, hit.point, head.transform);
+                return;
+            }
+
+            ClearAtlasHover();
+        }
+
+        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out RaycastHit nearest)
+        {
+            nearest = default;
+            QuestColumnPresentation target = null;
+            foreach (var presentation in anatomy.Scenes)
+                foreach (var column in presentation.Columns)
+                {
+                    if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) ||
+                        IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) ||
+                        !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) ||
+                        hit.distance >= limit) continue;
+                    limit = hit.distance;
+                    nearest = hit;
+                    target = column;
+                }
+            return target;
+        }
+
+        private void ClearAtlasHover()
+        {
+            if (hoveredAtlasScene != null)
+            {
+                hoveredAtlasScene.OnClosing.RemoveListener(ClearAtlasHover);
+                hoveredAtlasScene.AtlasManager.HoveredArea = -1;
+            }
+            hoveredAtlasScene = null;
+            if (atlasTooltip != null) atlasTooltip.Hide();
+        }
 
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
         private static object DiagnosticVector(Vector3 value) => new { value.x, value.y, value.z };
@@ -613,6 +694,7 @@ namespace HBP.Quest
             if (hand.Hovered != null) hand.Hovered.SetHovered(index, false);
             hand.Hovered = null;
             hand.Capture.Cancel();
+            hand.AtlasRayLimit = 0;
             hand.AnatomyTarget = null;
             hand.Distant = false;
             hand.AimContact = false;
@@ -623,6 +705,7 @@ namespace HBP.Quest
             focused = value;
             if (!value)
             {
+                ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
                     Cancel(hand);
@@ -634,6 +717,7 @@ namespace HBP.Quest
             paused = value;
             if (value)
             {
+                ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
                 foreach (var hand in hands)
                     Cancel(hand);
@@ -642,6 +726,7 @@ namespace HBP.Quest
 
         protected override void OnDisable()
         {
+            ClearAtlasHover();
             if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
             if (anatomy != null) anatomy.OnTimelineScopeChanged.RemoveListener(OnTimelineScopeChanged);
             if (siteProbe != null) siteProbe.Cancel();

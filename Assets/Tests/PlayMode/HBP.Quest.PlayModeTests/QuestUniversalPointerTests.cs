@@ -1,9 +1,12 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Data.Module3D;
+using HBP.Core.Object3D;
 using HBP.Quest;
 using NUnit.Framework;
 using UnityEditor;
@@ -444,6 +447,140 @@ namespace HBP.Tests.Quest
                 Tick();
                 Assert.That(cancellations, Is.EqualTo(1), "Visual loading priority must also determine the actual trigger target.");
                 Assert.That(clicks, Is.EqualTo(1), "The window underneath must not receive the cancel click.");
+
+                presenter.Close();
+                await UniTask.NextFrame(); // Remove the closed loading canvas before sampling passive input.
+                var bootstrap = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+                var tooltip = Object.Instantiate(bootstrap.GetComponentInChildren<QuestAtlasHoverTooltip>(true).gameObject, root.transform);
+                var tooltipText = tooltip.GetComponentInChildren<Text>(true);
+                QuestWindowInteractionTests.Set(pointer, "atlasTooltip", tooltip.GetComponent<QuestAtlasHoverTooltip>());
+                var rightMarker = new GameObject("Right atlas reticle");
+                rightMarker.transform.SetParent(ui.transform, false);
+                QuestWindowInteractionTests.Set(pointer, "rightReticle", rightMarker.transform);
+                policy.EnableDistantAnatomy = false;
+                string marsFolder = Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas");
+                using var testAtlas = new HBP.Core.DLL.MarsAtlas();
+                Assert.That(testAtlas.Load(Path.Combine(marsFolder, "mars_atlas_index.csv"),
+                    Path.Combine(marsFolder, "brodmann_areas.txt"), Path.Combine(marsFolder, "colin27_MNI_MarsAtlas.nii")), Is.True);
+                var previousAtlas = Object3DManager.MarsAtlas;
+                Mesh otherMesh = null;
+                try
+                {
+                    Object3DManager.MarsAtlas = testAtlas;
+                    const int testLabel = 1;
+                    var atlasPoint = testAtlas.GetAreaCoordinates(testLabel).First(point => testAtlas.GetClosestAreaIndex(point, 1) == testLabel);
+                    var atlasIndices = new[] { testLabel, testLabel, testLabel };
+                    var atlas = BindAtlasFixture(scene, brain, atlasIndices);
+
+                    var brainRenderer = brain.AddComponent<MeshRenderer>();
+                    var vertices = new[] { atlasPoint + new Vector3(-20, -20, 0), atlasPoint + new Vector3(0, 20, 0), atlasPoint + new Vector3(20, -20, 0) };
+                    rayMesh.Clear();
+                    rayMesh.vertices = vertices;
+                    rayMesh.triangles = new[] { 0, 1, 2 };
+                    mesh.Clear();
+                    mesh.vertices = vertices;
+                    mesh.triangles = rayMesh.triangles;
+                    scene.OnBrainRaycastMeshUpdated.Invoke(rayMesh);
+                    wrapper.transform.SetPositionAndRotation(Vector3.forward, Quaternion.Euler(6, 24, 10));
+                    wrapper.transform.localScale = Vector3.one * 1.75f;
+                    var impact = brain.transform.TransformPoint(atlasPoint);
+                    var aim = new Vector3(impact.x, impact.y, 0);
+                    Vector3 away = Vector3.up * 3;
+                    window.transform.position = away;
+                    Track(leftDevice, aim);
+                    Track(rightDevice, aim);
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.True,
+                        $"Atlas eligible={atlas.CanHover}, geometry current={scene.IsBrainRaycastGeometryCurrent}, loading visible={HBP.UI.Tools.LoadingManager.IsPresenting}, modal={QuestDialogBox.Current != null}, left tracked={left.IsTracked}, right tracked={right.IsTracked}.");
+                    Assert.That(tooltipText.supportRichText, Is.True);
+                    Assert.That(tooltipText.fontStyle, Is.EqualTo(FontStyle.Normal));
+                    Assert.That(tooltipText.text.Split('\n'), Is.EqualTo(new[]
+                    {
+                        "<b>Name:</b> L_VCcm - ID:1",
+                        "<b>Hemisphere:</b> L",
+                        "<b>Lobe:</b> Occipital",
+                        "<b>Name FS:</b> Medial Occipital",
+                        "<b>Full Name:</b> L Caudal Medial Visual Cortex"
+                    }));
+                    Assert.That(atlas.HoveredArea, Is.EqualTo(testLabel));
+                    Assert.That((rightMarker.transform.position - impact).magnitude, Is.LessThan(.001f));
+                    Assert.That(marker.activeSelf, Is.False, "Only the winning atlas ray receives atlas feedback.");
+                    Assert.That(mesh.colors, Is.EqualTo(testAtlas.ConvertIndicesToColors(atlasIndices, testLabel)));
+                    Assert.That(scene.SceneInformation.BaseCutTexturesNeedUpdate, Is.False);
+
+                    scene.SceneInformation.FunctionalCutTexturesNeedUpdate = false;
+                    InputSystem.QueueDeltaStateEvent(rightDevice.isTracked, 0f);
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.True, "The left hand takes over after tracking loss.");
+                    Assert.That(marker.activeSelf, Is.True);
+                    Assert.That(rightMarker.activeSelf, Is.False);
+                    Assert.That(scene.SceneInformation.FunctionalCutTexturesNeedUpdate, Is.False, "The same label must not recolor cuts.");
+
+                    cut.transform.localPosition = Vector3.zero;
+                    cut.GetComponent<MeshCollider>().sharedMesh = null;
+                    cut.GetComponent<MeshCollider>().sharedMesh = rayMesh;
+                    cut.GetComponent<Renderer>().forceRenderingOff = false;
+                    brainRenderer.forceRenderingOff = true;
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.True, "The visible cut supplies the atlas point when the surface is hidden.");
+
+                    window.transform.position = new Vector3(impact.x, impact.y, .5f);
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.False, "A foreground window takes priority over the cut.");
+                    Assert.That(atlas.HoveredArea, Is.EqualTo(-1));
+                    Assert.That(mesh.colors, Is.EqualTo(testAtlas.ConvertIndicesToColors(atlasIndices, -1)));
+
+                    window.transform.position = away;
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.True);
+
+                    var otherScene = QuestSceneTestBinding.VisibleScene(content);
+                    var otherColumns = QuestSceneTestBinding.Attach(view, otherScene);
+                    var otherWrapper = new GameObject("Second atlas column");
+                    otherWrapper.transform.SetParent(root.transform, false);
+                    otherWrapper.transform.position = Vector3.right * .5f + Vector3.forward;
+                    var otherBrain = new GameObject("Second atlas brain", typeof(MeshFilter), typeof(MeshRenderer));
+                    otherBrain.transform.SetParent(otherWrapper.transform, false);
+                    otherBrain.transform.localScale = Vector3.one * .001f;
+                    otherMesh = Object.Instantiate(mesh);
+                    otherBrain.GetComponent<MeshFilter>().sharedMesh = otherMesh;
+                    var otherColumn = otherWrapper.AddComponent<Column3DAnatomy>();
+                    typeof(Column3D).GetProperty("BrainMesh").SetValue(otherColumn, otherBrain);
+                    var otherManipulator = otherWrapper.AddComponent<QuestAnatomyManipulator>();
+                    var otherCollider = new GameObject("Second atlas ray target", typeof(MeshCollider)).GetComponent<MeshCollider>();
+                    otherCollider.transform.SetParent(otherWrapper.transform, false);
+                    QuestWindowInteractionTests.Set(otherManipulator, "rayTarget", otherCollider);
+                    otherManipulator.Bind(otherColumn);
+                    otherCollider.sharedMesh = rayMesh;
+                    var otherPresentation = otherWrapper.AddComponent<QuestColumnPresentation>();
+                    QuestWindowInteractionTests.Set(otherPresentation, "manipulator", otherManipulator);
+                    QuestSceneTestBinding.Column(otherPresentation, otherScene, otherColumn);
+                    otherColumns.Add(otherPresentation);
+                    var otherAtlas = BindAtlasFixture(otherScene, otherBrain, atlasIndices);
+                    var otherImpact = otherBrain.transform.TransformPoint(atlasPoint);
+                    Track(leftDevice, new Vector3(otherImpact.x, otherImpact.y, 0));
+                    Tick();
+                    Assert.That(tooltip.activeSelf, Is.True);
+                    Assert.That(atlas.HoveredArea, Is.EqualTo(-1), "Changing visualizations clears the old scene even when the label is identical.");
+                    Assert.That(otherAtlas.HoveredArea, Is.EqualTo(testLabel));
+                    Track(leftDevice, aim);
+                    Tick();
+                    view.OnPresentationChanging.Invoke(scene);
+                    Assert.That(tooltip.activeSelf, Is.False);
+                    Assert.That(atlas.HoveredArea, Is.EqualTo(-1));
+
+                    var juBrain = new AtlasInfo(true, default, AtlasInfo.AtlasType.JuBrainAtlas, "Area 7M (SPL) - ID:7");
+                    var tooltipView = tooltip.GetComponent<QuestAtlasHoverTooltip>();
+                    var show = typeof(QuestAtlasHoverTooltip).GetMethod("Show", BindingFlags.Instance | BindingFlags.NonPublic);
+                    show.Invoke(tooltipView, new object[] { juBrain, impact, head.transform });
+                    Assert.That(tooltipText.text, Is.EqualTo("<b>Region:</b> Area 7M (SPL) - ID:7"));
+                }
+                finally
+                {
+                    pointer.enabled = false;
+                    Object3DManager.MarsAtlas = previousAtlas;
+                    if (otherMesh != null) Object.DestroyImmediate(otherMesh);
+                }
             }
             catch (System.Exception exception)
             {
@@ -464,6 +601,24 @@ namespace HBP.Tests.Quest
                 InputSystem.settings.backgroundBehavior = background;
                 InputSystem.settings.editorInputBehaviorInPlayMode = editor;
             }
+        }
+
+        private static AtlasManager BindAtlasFixture(Base3DScene scene, GameObject brain, int[] atlasIndices)
+        {
+            var atlas = scene.gameObject.AddComponent<AtlasManager>();
+            var meshes = scene.gameObject.AddComponent<MeshManager>();
+            var fmri = scene.gameObject.AddComponent<FMRIManager>();
+            var displayed = scene.gameObject.AddComponent<DisplayedObjects>();
+            meshes.Meshes.Add(new SingleMesh3D(new HBP.Core.Data.SingleMesh(), HBP.Core.Enums.MeshType.MNI, false));
+            typeof(DisplayedObjects).GetProperty("Brain").SetValue(displayed, brain);
+            QuestWindowInteractionTests.Set(scene, "m_MeshManager", meshes);
+            QuestWindowInteractionTests.Set(scene, "m_AtlasManager", atlas);
+            QuestWindowInteractionTests.Set(scene, "m_FMRIManager", fmri);
+            QuestWindowInteractionTests.Set(atlas, "m_Scene", scene);
+            QuestWindowInteractionTests.Set(atlas, "m_DisplayedObjects", displayed);
+            QuestWindowInteractionTests.Set(atlas, "m_DisplayMarsAtlas", true);
+            QuestWindowInteractionTests.Set(atlas, "m_MarsAtlasIndices", atlasIndices);
+            return atlas;
         }
 
         private static QuestDevicePoseTracker Tracker(GameObject parent, string name, QuestDevicePoseTracker.DeviceRole role)
