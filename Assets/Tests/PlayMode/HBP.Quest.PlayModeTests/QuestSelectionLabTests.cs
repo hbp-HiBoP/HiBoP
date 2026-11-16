@@ -236,6 +236,11 @@ namespace HBP.Tests.Quest
                 Assert.That(view.Scene.Cuts.Single().Position, Is.EqualTo(.5f));
                 Assert.That(view.Scene.Cuts.Single().Orientation, Is.EqualTo(HBP.Core.Enums.CutOrientation.Axial));
                 var column = view.Scene.Columns.Single();
+                await UniTask.WaitUntil(() => view.Scene.BrainRaycastMesh != null, cancellationToken: timeout.Token);
+                var brainCollider = column.BrainMesh.GetComponentInChildren<MeshCollider>();
+                Assert.That(brainCollider.sharedMesh, Is.SameAs(view.Scene.BrainRaycastMesh));
+                Assert.That(brainCollider.sharedMesh, Is.Not.SameAs(column.BrainMesh.GetComponent<MeshFilter>().sharedMesh));
+                Assert.That(column.BrainCutMeshes.Single().GetComponent<MeshCollider>().sharedMesh, Is.Not.Null);
                 Assert.That(view.Scene.ProjectionRequested || view.Scene.AutomaticRecomputeEnabled || view.Scene.IsActivityProjectionComputing, Is.False, "The lab must never request or automatically compute activity/density projection.");
                 Assert.That(view.Scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Absent));
                 Assert.That(column.ActivityAlpha, Is.Zero);

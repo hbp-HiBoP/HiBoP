@@ -7,8 +7,6 @@ namespace HBP.Quest
     {
         private HBP.Data.Module3D.Column3D column;
         [SerializeField] private MeshCollider rayTarget;
-        private bool rayTargetDirty;
-        public void InvalidateRayTarget() => rayTargetDirty = true;
         public Mesh SharedMesh => column != null && column.BrainMesh != null ? column.BrainMesh.GetComponent<MeshFilter>().sharedMesh : null;
 
         public void Bind(HBP.Data.Module3D.Column3D value)
@@ -19,10 +17,17 @@ namespace HBP.Quest
                 rayTarget.transform.SetParent(column.BrainMesh.transform, false);
                 rayTarget.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                 rayTarget.transform.localScale = Vector3.one;
-                rayTarget.sharedMesh = SharedMesh;
             }
 
             CancelGrab();
+        }
+
+        internal void SetRaycastMesh(Mesh mesh)
+        {
+            if (rayTarget == null) return;
+            // The shared simplified mesh is updated in place when cuts move.
+            rayTarget.sharedMesh = null;
+            rayTarget.sharedMesh = mesh;
         }
 
         [SerializeField, Min(0.01f)] private float minimumScale = 0.25f;
@@ -133,15 +138,20 @@ namespace HBP.Quest
             if (column == null || column.BrainMesh == null || !column.BrainMesh.activeInHierarchy) return false;
             var renderer = column.BrainMesh.GetComponent<Renderer>();
             if (renderer != null && (!renderer.enabled || renderer.forceRenderingOff)) return false;
-            var collider = rayTarget;
-            if (collider != null && (rayTargetDirty || collider.sharedMesh != SharedMesh))
+
+            bool found = TryRaycast(rayTarget, ray, ref distance);
+            foreach (var cut in column.BrainCutMeshes)
             {
-                collider.sharedMesh = null;
-                collider.sharedMesh = SharedMesh;
-                rayTargetDirty = false;
+                if (!cut.activeInHierarchy || !cut.TryGetComponent<Renderer>(out var cutRenderer) || !cutRenderer.enabled || cutRenderer.forceRenderingOff) continue;
+                if (TryRaycast(cut.GetComponent<MeshCollider>(), ray, ref distance)) found = true;
             }
 
-            if (collider == null || !collider.enabled || !collider.Raycast(ray, out var hit, maximumDistance)) return false;
+            return found;
+        }
+
+        private static bool TryRaycast(MeshCollider collider, Ray ray, ref float distance)
+        {
+            if (collider == null || !collider.enabled || !collider.Raycast(ray, out var hit, distance)) return false;
             distance = hit.distance;
             return true;
         }

@@ -152,6 +152,7 @@ namespace HBP.Tests.Quest
             content.SetActive(false);
             var mesh = new Mesh();
             mesh.bounds = new Bounds(Vector3.zero, Vector3.one * 100);
+            var rayMesh = new Mesh();
             var policy = Object.Instantiate(AssetDatabase.LoadAssetAtPath<QuestInteractionPolicy>("Assets/Resources/Themes/Quest/Quest Interaction Policy.asset"));
             try
             {
@@ -161,7 +162,9 @@ namespace HBP.Tests.Quest
                 var camera = head.gameObject.AddComponent<Camera>();
                 camera.nearClipPlane = .01f;
                 var view = content.AddComponent<QuestAnatomyView>();
-                var column = content.AddComponent<Column3DAnatomy>();
+                var columnObject = new GameObject("Scientific column");
+                columnObject.transform.SetParent(content.transform, false);
+                var column = columnObject.AddComponent<Column3DAnatomy>();
                 var brain = new GameObject("Scientific mesh", typeof(MeshFilter));
                 brain.transform.SetParent(content.transform);
                 brain.GetComponent<MeshFilter>().sharedMesh = mesh;
@@ -200,6 +203,8 @@ namespace HBP.Tests.Quest
                 QuestWindowInteractionTests.Set(pointer, "leftRay", line);
                 var marker = new GameObject("Reticle");
                 marker.transform.SetParent(ui.transform);
+                var menuMarkerScale = Vector3.one * .007f;
+                marker.transform.localScale = menuMarkerScale;
                 QuestWindowInteractionTests.Set(pointer, "leftReticle", marker.transform);
                 var input = ui.AddComponent<QuestAnatomyInput>();
                 QuestWindowInteractionTests.Set(input, "view", view);
@@ -293,9 +298,13 @@ namespace HBP.Tests.Quest
 
                 // Real mesh-collider picking at a distance, through the production input adapter.
                 var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                mesh.vertices = System.Array.ConvertAll(cube.GetComponent<MeshFilter>().sharedMesh.vertices, vertex => vertex * 100);
-                mesh.triangles = cube.GetComponent<MeshFilter>().sharedMesh.triangles;
+                var cubeMesh = cube.GetComponent<MeshFilter>().sharedMesh;
+                mesh.vertices = System.Array.ConvertAll(cubeMesh.vertices, vertex => vertex * 100);
+                mesh.triangles = cubeMesh.triangles;
                 mesh.RecalculateBounds();
+                rayMesh.vertices = System.Array.ConvertAll(cubeMesh.vertices, vertex => Vector3.Scale(vertex, new Vector3(50, 100, 100)));
+                rayMesh.triangles = cubeMesh.triangles;
+                rayMesh.RecalculateBounds();
                 Object.DestroyImmediate(cube);
                 presentation.enabled = false;
                 wrapper.transform.SetParent(root.transform);
@@ -303,14 +312,31 @@ namespace HBP.Tests.Quest
                 wrapper.transform.localScale = Vector3.one;
                 brain.transform.SetParent(wrapper.transform, false);
                 brain.transform.localScale = Vector3.one * .001f;
-                var collider = brain.AddComponent<MeshCollider>();
-                collider.sharedMesh = mesh;
+                var collider = new GameObject("Anatomy Ray Target", typeof(MeshCollider)).GetComponent<MeshCollider>();
+                collider.transform.SetParent(wrapper.transform, false);
                 QuestWindowInteractionTests.Set(manipulator, "rayTarget", collider);
+                QuestWindowInteractionTests.Set(presentation, "scientificFrame", wrapper.transform);
+                presentation.Bind(scene, column);
+                scene.OnBrainRaycastMeshUpdated.Invoke(rayMesh);
                 Track(leftDevice, Vector3.zero);
                 Track(rightDevice, Vector3.right * .02f);
                 Tick();
                 Assert.That(line.enabled, Is.True);
-                Assert.That(marker.activeSelf, Is.False, "Distant brain targeting uses only the line.");
+                Assert.That(marker.activeSelf, Is.True, "A distant brain hit shows its impact marker.");
+                Assert.That(marker.transform.position, Is.EqualTo(line.GetPosition(1)));
+                Assert.That(marker.transform.localScale, Is.EqualTo(Vector3.one * (line.endWidth * 1.25f)));
+                Assert.That(marker.transform.position.z, Is.EqualTo(.95f).Within(.001));
+                Assert.That(manipulator.Raycast(new Ray(new Vector3(.04f, 0, 0), Vector3.forward), 3, out _), Is.False, "A ray through the display mesh alone must miss the anatomy target.");
+                var cut = new GameObject("Cut face", typeof(MeshRenderer), typeof(MeshCollider));
+                cut.transform.SetParent(brain.transform, false);
+                cut.transform.localPosition = new Vector3(20, 0, -30);
+                cut.GetComponent<MeshCollider>().sharedMesh = rayMesh;
+                column.BrainCutMeshes.Add(cut);
+                Tick();
+                Assert.That(marker.transform.position.z, Is.EqualTo(.92f).Within(.001), "The nearer visible cut face supplies the impact.");
+                cut.GetComponent<Renderer>().forceRenderingOff = true;
+                Tick();
+                Assert.That(marker.transform.position.z, Is.EqualTo(.95f).Within(.001), "Hidden cut faces cannot intercept the ray.");
                 Press(leftDevice, true);
                 Tick();
                 Assert.That(manipulator.IsGrabbed, Is.True);
@@ -347,7 +373,8 @@ namespace HBP.Tests.Quest
                 Tick();
                 Assert.That(wrapper.transform.position.x, Is.EqualTo(.2f).Within(.001), "The captured ray moves its brain even after leaving the original hit.");
                 Assert.That(brain.transform.localPosition, Is.EqualTo(Vector3.zero));
-                Assert.That(marker.activeSelf, Is.False);
+                Assert.That(marker.activeSelf, Is.True, "During distant grabbing, the marker follows the captured ray endpoint.");
+                Assert.That(marker.transform.position, Is.EqualTo(line.GetPosition(1)));
                 Assert.That(clicks, Is.EqualTo(1));
                 InputSystem.QueueDeltaStateEvent(leftDevice.isTracked, 0f);
                 Tick();
@@ -362,6 +389,8 @@ namespace HBP.Tests.Quest
                 wrapper.transform.position = new Vector3(.25f, .15f, 2);
                 Track(leftDevice, new Vector3(.25f, .15f, 0));
                 Tick();
+                Assert.That(marker.activeSelf, Is.True);
+                Assert.That(marker.transform.localScale, Is.EqualTo(menuMarkerScale), "Returning to a window restores the menu marker size.");
                 var uiHits = new List<RaycastResult>();
                 ui.GetComponent<EventSystem>().RaycastAll(new QuestPointerEventData(ui.GetComponent<EventSystem>()) { trackedDevicePosition = left.transform.position, trackedDeviceOrientation = left.transform.rotation }, uiHits);
                 Assert.That(uiHits.Exists(hit => hit.gameObject != null && hit.gameObject.GetComponentInParent<QuestWindow>() != null), Is.True, $"The test ray must hit the intervening window: {window.transform.position}, hits={string.Join(",", uiHits.ConvertAll(hit => hit.gameObject.name + ":" + hit.distance))}");
@@ -376,14 +405,16 @@ namespace HBP.Tests.Quest
                 Tick();
                 Assert.That(line.enabled, Is.False);
                 Assert.That(marker.activeSelf, Is.False);
-                // A representation update can mutate the same mesh instance in place.
+                // Moving a cut updates the shared raycast mesh in place.
                 var oldRay = new Ray(new Vector3(.25f, .15f, 0), Vector3.forward);
                 Assert.That(manipulator.Raycast(oldRay, 3, out _), Is.True);
-                mesh.vertices = System.Array.ConvertAll(mesh.vertices, vertex => vertex + Vector3.right * 100);
-                mesh.RecalculateBounds();
-                manipulator.InvalidateRayTarget();
+                rayMesh.vertices = System.Array.ConvertAll(rayMesh.vertices, vertex => vertex + Vector3.right * 100);
+                rayMesh.RecalculateBounds();
+                scene.OnBrainRaycastMeshUpdated.Invoke(rayMesh);
                 Assert.That(manipulator.Raycast(oldRay, 3, out _), Is.False);
                 Assert.That(manipulator.Raycast(new Ray(new Vector3(.35f, .15f, 0), Vector3.forward), 3, out _), Is.True);
+                scene.OnBrainRaycastMeshUpdated.Invoke(null);
+                Assert.That(manipulator.Raycast(new Ray(new Vector3(.35f, .15f, 0), Vector3.forward), 3, out _), Is.False);
 
                 // The loading cancel button stays targetable behind a closer independent window.
                 var loading = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Loading Manager.prefab"), root.transform);
@@ -423,6 +454,7 @@ namespace HBP.Tests.Quest
                 Object.DestroyImmediate(root);
                 QuestSceneTestBinding.Clear(content.GetComponent<QuestAnatomyView>());
                 Object.DestroyImmediate(content);
+                Object.DestroyImmediate(rayMesh);
                 Object.DestroyImmediate(mesh);
                 Object.DestroyImmediate(policy);
                 InputSystem.RemoveDevice(leftDevice);

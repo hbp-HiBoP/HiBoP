@@ -21,6 +21,8 @@ namespace HBP.Quest
     /// <summary>Universal two-hand UI pointer and primary/secondary interaction arbiter. No pairing dependency.</summary>
     public sealed class QuestPointerInput : BaseInputModule
     {
+        private const float AnatomyReticleWidthMultiplier = 1.25f;
+
         [SerializeField] private QuestInteractionPolicy policy;
         [SerializeField] private QuestDevicePoseTracker head, left, right;
         [SerializeField] private QuestAnatomyView anatomy;
@@ -31,6 +33,7 @@ namespace HBP.Quest
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
         [SerializeField] private Material overlayFeedbackMaterial;
+        private Vector3 leftReticleScale, rightReticleScale;
         private readonly Hand[] hands = { new Hand(), new Hand() };
         private readonly List<RaycastResult> hits = new();
         private bool focused = true, paused;
@@ -111,6 +114,8 @@ namespace HBP.Quest
         protected override void OnEnable()
         {
             base.OnEnable();
+            if (leftReticle != null) leftReticleScale = leftReticle.localScale;
+            if (rightReticle != null) rightReticleScale = rightReticle.localScale;
             if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
             if (anatomy != null) anatomy.OnTimelineScopeChanged.AddListener(OnTimelineScopeChanged);
             feedbackProperties = new MaterialPropertyBlock();
@@ -364,7 +369,7 @@ namespace HBP.Quest
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
             else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
-            Feedback(line, reticle, useful, data.Ray.origin, end, secondaryFeedback.HasValue || !distantFeedback);
+            Feedback(line, reticle, useful, data.Ray.origin, end, distantFeedback && !secondaryFeedback.HasValue);
 #if DEVELOPMENT_BUILD && UNITY_ANDROID
             if (diagnosticOutput != null)
             {
@@ -477,7 +482,7 @@ namespace HBP.Quest
                 }
 
             foreach (var column in anatomy.AllColumns)
-                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                if (anatomy.CanInteractWithColumn(column) && !column.Scene.IsSurfaceRepresentationTransitioning && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
                 {
                     nearest = column.Manipulator;
                     distance = hitDistance;
@@ -517,16 +522,17 @@ namespace HBP.Quest
             return nearest;
         }
 
-        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool showReticle = true)
+        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool anatomyImpact = false)
         {
             bool overlay = visible && overlayFeedbackMaterial != null;
+            float rayWidth = policy != null ? policy.RayWidth : 0.002f;
             if (line != null)
             {
                 SetFeedbackOverlay(line, overlay);
                 line.enabled = visible;
                 line.positionCount = 2;
                 line.useWorldSpace = true;
-                line.startWidth = line.endWidth = policy != null ? policy.RayWidth : 0.002f;
+                line.startWidth = line.endWidth = rayWidth;
                 // The overlay shader multiplies vertex color by the shared feedback tint.
                 if (policy != null && policy.FeedbackColor != null) line.startColor = line.endColor = overlay ? Color.white : policy.FeedbackColor.Value;
                 ApplyFeedbackColor(line);
@@ -539,7 +545,9 @@ namespace HBP.Quest
 
             if (reticle != null)
             {
-                reticle.gameObject.SetActive(visible && showReticle);
+                Vector3 defaultScale = reticle == leftReticle ? leftReticleScale : rightReticleScale;
+                reticle.localScale = anatomyImpact ? Vector3.one * (rayWidth * AnatomyReticleWidthMultiplier) : defaultScale;
+                reticle.gameObject.SetActive(visible);
                 var renderer = reticle.GetComponent<Renderer>();
                 SetFeedbackOverlay(renderer, overlay);
                 ApplyFeedbackColor(renderer);
@@ -589,11 +597,13 @@ namespace HBP.Quest
                 cuts.End(index);
                 cuts.SetRayHover(index, null, null);
             }
+
             if (rois != null)
             {
                 rois.End(index);
                 rois.SetRayHover(index, null);
             }
+
             if (hand.Data != null)
             {
                 Release(hand, null, false);

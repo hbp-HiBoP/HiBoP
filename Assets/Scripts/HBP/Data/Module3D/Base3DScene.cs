@@ -607,6 +607,9 @@ namespace HBP.Data.Module3D
 
         private Func<UniTask> m_BeforeColliderPublish;
 
+        public Mesh BrainRaycastMesh { get; private set; }
+        public GenericEvent<Mesh> OnBrainRaycastMeshUpdated { get; } = new();
+
         /// <summary>
         /// Lock when updating generator
         /// </summary>
@@ -1194,6 +1197,8 @@ namespace HBP.Data.Module3D
             }
 
             if (SceneInformation.CutsNeedUpdate) UpdateCuts();
+            // Desktop refreshes on mouse hover. Scenes without a Desktop view publish after cut updates.
+            if (!m_DesktopPresentation) RefreshColliders();
             if (SceneInformation.BaseCutTexturesNeedUpdate) ComputeBaseCutTextures();
             if (SceneInformation.FunctionalCutTexturesNeedUpdate) ComputeFunctionalCutTextures();
             if (SceneInformation.GUICutTexturesNeedUpdate) ComputeGUICutTextures();
@@ -3236,13 +3241,26 @@ namespace HBP.Data.Module3D
                 var collider = m_DisplayedObjects.SimplifiedBrain.GetComponent<MeshCollider>();
                 collider.sharedMesh = null;
                 if (filter.sharedMesh.triangles.Length > 0) collider.sharedMesh = filter.sharedMesh;
-                foreach (var cut in m_DisplayedObjects.BrainCutMeshes)
+                for (int i = 0; i < m_DisplayedObjects.BrainCutMeshes.Count; i++)
                 {
+                    var cut = m_DisplayedObjects.BrainCutMeshes[i];
                     var cutCollider = cut.GetComponent<MeshCollider>();
                     var mesh = cut.GetComponent<MeshFilter>().sharedMesh;
                     cutCollider.sharedMesh = null;
                     if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
+                    if (!m_DesktopPresentation)
+                    {
+                        foreach (var column in Columns)
+                        {
+                            var columnCutCollider = column.BrainCutMeshes[i].GetComponent<MeshCollider>();
+                            columnCutCollider.sharedMesh = null;
+                            columnCutCollider.sharedMesh = cutCollider.sharedMesh;
+                        }
+                    }
                 }
+
+                BrainRaycastMesh = collider.sharedMesh;
+                OnBrainRaycastMeshUpdated.Invoke(BrainRaycastMesh);
             }
             finally
             {
