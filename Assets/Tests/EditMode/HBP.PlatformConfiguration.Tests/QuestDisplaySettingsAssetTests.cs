@@ -24,7 +24,10 @@ namespace HBP.Tests.PlatformConfiguration
             while (iterator.NextVisible(true))
                 if (iterator.propertyType == SerializedPropertyType.ObjectReference && iterator.name != "view")
                     Assert.That(iterator.objectReferenceValue, Is.Not.Null, iterator.propertyPath);
-            var rows = root.transform.Find("Background/Content Viewport/Content/Visualizations/Viewport/Rows");
+            var content = root.transform.Find("Background/Content Viewport/Content");
+            Assert.That(content.childCount, Is.EqualTo(1));
+            var rows = content.Find("Rows");
+            Assert.That(rows.GetComponentInParent<ScrollRect>(), Is.Null);
             var sections = rows.Cast<Transform>().Where(t => t.GetComponentInChildren<Text>(true)?.GetComponent<HBP.Theme.ThemeElement>()?.Element.name == "QuestWindowSectionTitle").Select(t => t.GetComponentInChildren<Text>(true).text).ToArray();
             Assert.That(sections, Is.EqualTo(new[] { "Scene", "Activity", "Site", "Atlas" }));
             Assert.That(rows.Find("Colors Row/Colormap"), Is.Not.Null);

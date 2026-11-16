@@ -13,6 +13,7 @@ using HBP.UI.Tools;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
@@ -125,6 +126,78 @@ namespace HBP.Tests.Quest
             Assert.That(Field(f.Scene.FMRIManager, "m_FMRIAlpha"), Is.EqualTo(.35f));
         }
 
+        [TestCase(100)]
+        [TestCase(150)]
+        public async Task WindowGrowsForAtlasOptionsAndResizeKeepsThemVisible(int zoomPercent)
+        {
+            using var f = new Fixture();
+            var frame = (RectTransform)f.Window.transform;
+            var zoom = f.Window.GetComponentInChildren<QuestWindowContentZoom>();
+            var body = (RectTransform)zoom.transform.Find("Content");
+            var corner = f.Window.GetComponentsInChildren<QuestWindowResizer>().Single(r => r.Edge == QuestWindowResizer.WindowEdge.BottomRight);
+            var events = new GameObject("Settings resize events", typeof(EventSystem));
+            try
+            {
+                zoom.SetZoomPercent(zoomPercent);
+                await SettleLayout();
+                Resize(new Vector3(-10000, 10000));
+                await SettleLayout();
+                Vector2 minimum = frame.rect.size;
+                AssertBodyFits();
+
+                Resize(new Vector3(120, -100));
+                Assert.That(frame.rect.width, Is.EqualTo(minimum.x + 120).Within(.01f));
+                Assert.That(frame.rect.height, Is.EqualTo(minimum.y + 100).Within(.01f));
+                Resize(new Vector3(-10000, 10000));
+
+                Set(f.Scene.FMRIManager, "m_DisplayDiFuMo", true);
+                f.Panel.Refresh();
+                await SettleLayout();
+                Assert.That(f.Control<GameObject>("difumoParameters").activeInHierarchy, Is.True);
+                Assert.That(frame.rect.height, Is.GreaterThan(minimum.y));
+                AssertBodyFits();
+
+                Resize(new Vector3(-10000, 10000));
+                await SettleLayout();
+                AssertBodyFits();
+
+                float expandedHeight = frame.rect.height;
+                Set(f.Scene.FMRIManager, "m_DisplayDiFuMo", false);
+                f.Panel.Refresh();
+                await SettleLayout();
+                Assert.That(frame.rect.height, Is.EqualTo(expandedHeight).Within(.01f));
+                Resize(new Vector3(-10000, 10000));
+                Assert.That(frame.rect.height, Is.EqualTo(minimum.y).Within(.01f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(events);
+            }
+
+            void Resize(Vector3 delta)
+            {
+                Vector3 start = corner.transform.position;
+                Vector3 normal = frame.forward;
+                var pointer = new QuestPointerEventData(events.GetComponent<EventSystem>()) { pointerId = -10, Ray = new Ray(start - normal, normal) };
+                corner.OnBeginDrag(pointer);
+                pointer.Ray = new Ray(start + frame.TransformVector(delta) - normal, normal);
+                corner.OnDrag(pointer);
+                corner.OnEndDrag(pointer);
+            }
+
+            void AssertBodyFits()
+            {
+                Assert.That(body.rect.width + .01f, Is.GreaterThanOrEqualTo(LayoutUtility.GetMinWidth(body)));
+                Assert.That(body.rect.height + .01f, Is.GreaterThanOrEqualTo(LayoutUtility.GetPreferredHeight(body)));
+            }
+
+            static async Task SettleLayout()
+            {
+                Canvas.ForceUpdateCanvases();
+                await UniTask.NextFrame(PlayerLoopTiming.LastPostLateUpdate);
+            }
+        }
+
         [Test]
         public void ChangingDifumoVersionUsesTheSharedContrastReset()
         {
@@ -188,7 +261,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task ProductionLayoutScrollsAtMinimumHeightAndClosesPopupOnContextLoss()
+        public async Task ProductionLayoutPreservesControlMetricsAndClosesPopupOnContextLoss()
         {
             using var f = new Fixture();
             var cameraRoot = new GameObject("Settings layout camera", typeof(Camera));
@@ -229,26 +302,8 @@ namespace HBP.Tests.Quest
                 }
 
                 Assert.That(((RectTransform)rows.Find("Visibility Row")).rect.height, Is.EqualTo(48).Within(.1f));
-                Assert.That(f.Window.GetComponentInChildren<ScrollRect>().viewport.GetComponent<Image>().color.a, Is.Zero, "The full-window viewport must reveal the ordinary window background.");
                 Directory.CreateDirectory("Logs/QuestUI");
                 Capture("Display Settings.png");
-                ((RectTransform)f.Window.transform).sizeDelta = new Vector2(900, 480);
-                await UniTask.NextFrame();
-                Canvas.ForceUpdateCanvases();
-                var scroll = f.Window.GetComponentInChildren<ScrollRect>();
-                Assert.That(scroll.content.rect.height, Is.GreaterThan(scroll.viewport.rect.height));
-                scroll.verticalNormalizedPosition = 0;
-                await UniTask.NextFrame();
-                Capture("Display Settings minimum.png");
-                scroll.verticalNormalizedPosition = 1;
-                f.Window.GetComponentInChildren<QuestWindowContentZoom>(true).SetZoomPercent(150);
-                await UniTask.NextFrame();
-                Canvas.ForceUpdateCanvases();
-                Assert.That(scroll.content.rect.height, Is.GreaterThan(scroll.viewport.rect.height));
-                Capture("Display Settings zoom.png");
-                f.Window.GetComponentInChildren<QuestWindowContentZoom>(true).SetZoomPercent(100);
-                ((RectTransform)f.Window.transform).sizeDelta = new Vector2(960, 900);
-                await UniTask.NextFrame();
                 f.Control<Dropdown>("colormap").Show();
                 await UniTask.Delay(200, ignoreTimeScale: true);
                 Assert.That(f.Control<Dropdown>("colormap").transform.Find("Dropdown List"), Is.Not.Null);
@@ -262,7 +317,6 @@ namespace HBP.Tests.Quest
                 Assert.That(f.Control<Dropdown>("colormap").transform.Find("Dropdown List"), Is.Null);
                 QuestSceneTestBinding.Attach(f.View, f.Scene);
                 f.Panel.Refresh();
-                ((RectTransform)f.Window.transform).sizeDelta = new Vector2(960, 900);
                 await UniTask.NextFrame();
                 f.Control<Dropdown>("mesh").AddOptions(Enumerable.Range(1, 30).Select(i => "Anatomical mesh " + i + " - long resource name").ToList());
                 f.Control<Dropdown>("mesh").Show();

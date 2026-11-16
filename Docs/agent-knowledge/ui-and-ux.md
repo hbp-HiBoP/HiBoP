@@ -74,8 +74,10 @@ rows use 48-unit heights with centered content and 40-unit icons; keep the
 64-unit rows and spacing for ordinary dropdowns and buttons.
 Palette option toggles have no selection checkmark, so their textures remain
 visible. Unavailable Atlas choices and the opacity slider use
-`SelectableStateSetter` with the Quest NotInteractable state. The full-window
-settings viewport is a transparent hit surface over the ordinary window body.
+`SelectableStateSetter` with the Quest NotInteractable state. Settings rows are
+laid out in the ordinary window body. Their active contents and zoom determine
+the minimum resize dimensions. The window grows as needed and keeps its current
+size when rows disappear.
 Quest dropdowns share the Desktop scrollbar image/color settings through Quest
 theme roles, with a 12-unit track. Popup options delegate a primary-trigger drag
 to their own ScrollRect after the pointer threshold; releasing a drag must not

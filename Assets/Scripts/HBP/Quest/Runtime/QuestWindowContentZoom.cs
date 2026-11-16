@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 namespace HBP.Quest
 {
-    /// <summary>Zooms the body inside a fixed viewport, preserving the window's unzoomed layout constraints.</summary>
+    /// <summary>Zooms the window body and can include the zoomed content in the window's sizing constraints.</summary>
     [ExecuteAlways]
     [DefaultExecutionOrder(300)]
     public sealed class QuestWindowContentZoom : LayoutGroup
@@ -13,6 +13,7 @@ namespace HBP.Quest
         [SerializeField] private RectTransform content;
         [SerializeField] private Button decrease, increase;
         [SerializeField] private Text percentage;
+        [SerializeField] private bool fitZoomedContent;
         private int zoomPercent = 100;
         private int? pendingZoom;
         private Vector2 baselineMinimum, baselinePreferred, baselineFlexible;
@@ -62,10 +63,10 @@ namespace HBP.Quest
             }
 
             var root = window != null ? (RectTransform)window.transform : rectTransform;
-            if (!hasBaseline) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
+            if (!fitZoomedContent && !hasBaseline) LayoutRebuilder.ForceRebuildLayoutImmediate(root);
             zoomPercent = next;
             // Width-dependent children, including the Signals splitter, need to settle before measuring at 100% again.
-            settlingFrames = next == 100 ? 2 : 0;
+            settlingFrames = !fitZoomedContent && next == 100 ? 2 : 0;
             SetLayoutHorizontal();
             SetLayoutVertical();
             RefreshControls();
@@ -88,23 +89,31 @@ namespace HBP.Quest
         public override void CalculateLayoutInputHorizontal()
         {
             base.CalculateLayoutInputHorizontal();
-            MeasureBaseline(0);
-            SetLayoutInputForAxis(baselineMinimum.x, baselinePreferred.x, baselineFlexible.x, 0);
+            MeasureContent(0);
         }
 
         public override void CalculateLayoutInputVertical()
         {
-            MeasureBaseline(1);
+            MeasureContent(1);
             hasBaseline = content != null;
-            SetLayoutInputForAxis(baselineMinimum.y, baselinePreferred.y, baselineFlexible.y, 1);
         }
 
-        private void MeasureBaseline(int axis)
+        private void MeasureContent(int axis)
         {
-            if (content == null || zoomPercent != 100 || settlingFrames != 0) return;
-            baselineMinimum[axis] = LayoutUtility.GetMinSize(content, axis);
-            baselinePreferred[axis] = LayoutUtility.GetPreferredSize(content, axis);
-            baselineFlexible[axis] = LayoutUtility.GetFlexibleSize(content, axis);
+            if (fitZoomedContent && content != null)
+            {
+                SetLayoutInputForAxis(LayoutUtility.GetMinSize(content, axis) * Factor, LayoutUtility.GetPreferredSize(content, axis) * Factor, LayoutUtility.GetFlexibleSize(content, axis), axis);
+                return;
+            }
+
+            if (content != null && zoomPercent == 100 && settlingFrames == 0)
+            {
+                baselineMinimum[axis] = LayoutUtility.GetMinSize(content, axis);
+                baselinePreferred[axis] = LayoutUtility.GetPreferredSize(content, axis);
+                baselineFlexible[axis] = LayoutUtility.GetFlexibleSize(content, axis);
+            }
+
+            SetLayoutInputForAxis(baselineMinimum[axis], baselinePreferred[axis], baselineFlexible[axis], axis);
         }
 
         public override void SetLayoutHorizontal()
