@@ -101,6 +101,33 @@ namespace HBP.Tests.PlatformConfiguration
         }
 
         [Test]
+        public void DesktopDiscoveryAndManualUsbControlsAreAuthoredAndWired()
+        {
+            var window = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab").GetComponent<DesktopQuestWindow>();
+            var data = new SerializedObject(window);
+            var devices = (Dropdown)data.FindProperty("devices").objectReferenceValue;
+            var refresh = (Button)data.FindProperty("refreshDevices").objectReferenceValue;
+            Assert.That(refresh.transform.parent, Is.EqualTo(devices.transform.parent));
+            Assert.That(refresh.transform.GetSiblingIndex(), Is.EqualTo(devices.transform.GetSiblingIndex() + 1));
+            Assert.That(refresh.GetComponent<Tooltip>().Text, Is.EqualTo("Refresh Quest discovery"));
+            Assert.That(refresh.GetComponentsInChildren<Image>().Any(image => AssetDatabase.GetAssetPath(image.sprite).EndsWith("Refresh.png")), Is.True);
+
+            var localNetwork = (Toggle)data.FindProperty("localNetwork").objectReferenceValue;
+            var usb = (Toggle)data.FindProperty("usb").objectReferenceValue;
+            var transport = (GameObject)data.FindProperty("manualTransport").objectReferenceValue;
+            var interfaceRow = (GameObject)data.FindProperty("usbInterfaceRow").objectReferenceValue;
+            var interfaces = (Dropdown)data.FindProperty("usbInterfaces").objectReferenceValue;
+            Assert.That(localNetwork.transform.parent, Is.EqualTo(transport.transform));
+            Assert.That(usb.transform.parent, Is.EqualTo(transport.transform));
+            Assert.That(localNetwork.group, Is.SameAs(usb.group));
+            Assert.That(localNetwork.isOn, Is.True);
+            Assert.That(usb.isOn, Is.False);
+            Assert.That(transport.activeSelf, Is.False);
+            Assert.That(interfaceRow.activeSelf, Is.False);
+            Assert.That(interfaces.transform.parent, Is.EqualTo(interfaceRow.transform));
+        }
+
+        [Test]
         public void QuestWindow_ResizeBordersAndCompactPairingFieldsAreWired()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/Quest window.prefab");

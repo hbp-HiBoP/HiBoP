@@ -731,6 +731,8 @@ namespace HBP.Transfer.Transport
             using var cancellation = deadline.Token.Register(socket.Close);
             try
             {
+                var source = route.GetLocalAddress();
+                if (source != null) socket.Bind(new IPEndPoint(source, 0));
                 await peer.ConnectAsync(address, port).ConfigureAwait(false);
                 bool identityMismatch = false;
                 using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) =>

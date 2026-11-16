@@ -31,10 +31,13 @@ namespace HBP.Quest.Desktop
         public UnityEvent OnChanged { get; } = new();
 
         public IReadOnlyList<QuestDevice> Devices => devices;
-        public IReadOnlyList<string> DiscoveryMessages { get; private set; } = new[] { "Searching for Quests on USB and Wi-Fi..." };
         public string Status { get; private set; } = "Select a Quest to pair.";
         public string SelectedId { get; private set; }
+        public string SelectedRouteKey { get; private set; }
         public bool IsManualSelection => manualSelected;
+        public bool ManualUsesUsb { get; private set; }
+        public string ManualInterfaceId => selectedManualRoute?.InterfaceId;
+        internal bool ManualInterfaceWasExplicit { get; private set; }
         public string SelectedAddress => manualSelected ? selectedEndpoint : string.Empty;
         public bool IsBusy => busy;
         public bool LastOperationCancelled { get; private set; }
@@ -44,10 +47,12 @@ namespace HBP.Quest.Desktop
         public bool IsPaired => connected && credential != null;
         public string ConnectedId => pin == null ? null : Convert.ToBase64String(pin);
         public string ConnectedLabel => pin == null ? "Quest" : (devices.FirstOrDefault(device => device.Id == ConnectedId)?.Name ?? "Quest") + " · " + (activeEndpoint?.Path == QuestNetworkPath.Usb ? "USB" : "Network") + " · " + BitConverter.ToString(pin, 0, 3).Replace("-", "");
-        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId;
+        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId &&
+            (manualSelected || SelectedRouteKey == activeEndpoint?.RouteKey(ConnectedId));
         public bool LastOperationSucceeded { get; private set; }
         public Exception BlockingError { get; private set; }
         private string selectedEndpoint;
+        private QuestEndpoint selectedManualRoute;
         private byte[] selectedPin;
         private string activeRequest;
         private bool automaticOperation;
@@ -241,6 +246,7 @@ namespace HBP.Quest.Desktop
         {
             discoveryActive = active;
             if (active) RequestDiscovery();
+            else routeChoicePending = false;
             UpdateDiscoveryWatch();
         }
 
@@ -270,20 +276,39 @@ namespace HBP.Quest.Desktop
         public void Select(QuestDevice device)
         {
             if (busy || device?.Pin == null) return;
+            routeChoicePending = true;
+            Select(device, true);
+        }
+
+        private void Select(QuestDevice device, bool explicitChoice)
+        {
+            if (busy || device?.Pin == null) return;
             manualSelected = false;
+            explicitlySelectedRoute = explicitChoice;
             SelectedId = device.Id;
+            SelectedRouteKey = device.RouteKey;
             selectedEndpoint = device.Endpoint.AddressText;
             selectedPin = (byte[])device.Pin.Clone();
             OnChanged.Invoke();
         }
 
-        public void SelectManual(string address)
+        public void SelectManual(string address) => SelectManual(address, false);
+
+        internal void SelectManual(string address, bool usb, QuestEndpoint route = null, bool explicitInterface = false)
         {
             if (busy) return;
+            ManualInterfaceWasExplicit = explicitInterface;
+            string text = address?.Trim();
+            if (manualSelected && ManualUsesUsb == usb && selectedEndpoint == text && selectedManualRoute?.ConnectionAddress == route?.ConnectionAddress) return;
             manualSelected = true;
-            selectedEndpoint = address?.Trim();
+            ManualUsesUsb = usb;
+            selectedEndpoint = text;
+            selectedManualRoute = route;
             selectedPin = null;
             SelectedId = null;
+            SelectedRouteKey = null;
+            explicitlySelectedRoute = false;
+            routeChoicePending = false;
             OnChanged.Invoke();
         }
 
@@ -291,14 +316,17 @@ namespace HBP.Quest.Desktop
         {
             if (busy) return;
             manualSelected = false;
+            routeChoicePending = false;
             var device = devices.FirstOrDefault(candidate => candidate.Id == SelectedId) ?? devices.FirstOrDefault();
             if (device != null)
             {
-                Select(device);
+                Select(device, false);
                 return;
             }
 
             SelectedId = null;
+            SelectedRouteKey = null;
+            explicitlySelectedRoute = false;
             selectedEndpoint = null;
             selectedPin = null;
             OnChanged.Invoke();
@@ -306,8 +334,9 @@ namespace HBP.Quest.Desktop
 
         public Task PairAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode)
         {
-            string target = SelectedId ?? selectedEndpoint;
+            string target = SelectedRouteKey ?? selectedEndpoint;
             if (busy) return activeRequest == target ? running : Task.FromException(new InvalidOperationException("Another Quest operation is in progress."));
+            routeChoicePending = false;
             autoConnectSuspended = false;
             if (SelectedId != null) automaticExcluded.Remove(SelectedId);
             if (SelectedId != null) automaticRetryAfter.Remove(SelectedId);
@@ -315,9 +344,9 @@ namespace HBP.Quest.Desktop
             return RunAsync(token => ConnectCandidatesAsync(requestCode, false, token));
         }
 
-        private async Task ConnectSelectedAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, bool automatic, CancellationToken token)
+        private async Task ConnectSelectedAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, bool automatic, CancellationToken token, QuestEndpoint candidate = null)
         {
-            if (IsSelectedConnected)
+            if (candidate == null && IsSelectedConnected)
             {
                 await PrepareDatabaseAsync(token);
                 {
@@ -343,12 +372,12 @@ namespace HBP.Quest.Desktop
             }
 
             if (string.IsNullOrWhiteSpace(selectedEndpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
-            Debug.Log("Quest connection candidate: " + selectedEndpoint + (manualSelected ? " (Manual IP)" : " (discovery)"));
+            var route = candidate ?? selectedManualRoute ?? QuestEndpoint.Parse(selectedEndpoint, manual: true);
+            Debug.Log("Quest connection candidate: " + route.AddressText + (manualSelected ? " (Manual IP)" : " (discovery)"));
             byte[] nextPin = selectedPin;
             if (nextPin == null)
             {
-                QuestEndpoint.Parse(selectedEndpoint, manual: true);
-                nextPin = await QuestPairing.InspectAsync(selectedEndpoint, token);
+                nextPin = await QuestPairing.InspectAsync(route.ConnectionAddress, token);
                 SelectedId = Convert.ToBase64String(nextPin);
                 selectedPin = nextPin;
             }
@@ -362,8 +391,8 @@ namespace HBP.Quest.Desktop
 
             DisconnectTransport();
             pin = (byte[])nextPin.Clone();
-            endpoint = selectedEndpoint;
-            activeEndpoint = presence.Values.Select(p => p.Device.Endpoint).FirstOrDefault(p => p.AddressText == endpoint) ?? QuestEndpoint.Parse(endpoint);
+            endpoint = route.ConnectionAddress;
+            activeEndpoint = route;
             if (credential == null) credential = await Task.Run(() => ReadCredential(pin), token);
             await UniTask.SwitchToMainThread(token);
             if (automatic && credential == null) throw new AuthenticationException("Pair this Quest manually before connecting automatically.");
@@ -691,7 +720,7 @@ namespace HBP.Quest.Desktop
                 if (!preserved) DisconnectTransport();
                 if (exception is QuestRouteUnavailableException or QuestIdentityMismatchException)
                 {
-                    foreach (var key in presence.Where(item => item.Value.Device.Endpoint.AddressText == endpoint).Select(item => item.Key).ToArray()) presence.Remove(key);
+                    foreach (var key in presence.Where(item => item.Value.Device.Endpoint.Key == activeEndpoint?.Key).Select(item => item.Key).ToArray()) presence.Remove(key);
                     PublishPresence();
                 }
 

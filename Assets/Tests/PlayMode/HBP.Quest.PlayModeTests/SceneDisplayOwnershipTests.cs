@@ -227,6 +227,46 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public void DiscoveryGroupsAddressesByInterfaceAndKeepsTheUserSelectedPath()
+        {
+            var root = new GameObject("Quest route selection fixture");
+            root.SetActive(false);
+            var manager = root.AddComponent<QuestManager>();
+            var observe = typeof(QuestManager).GetMethod("Observe", Private);
+            var publish = typeof(QuestManager).GetMethod("PublishPresence", Private);
+            QuestDevice Device(string address, QuestNetworkPath path, int index, string interfaceId) => new()
+            {
+                Pin = new byte[32],
+                Name = "Discovered Quest",
+                Endpoint = new QuestEndpoint(System.Net.IPAddress.Parse(address), path: path, interfaceIndex: index, interfaceId: interfaceId)
+            };
+
+            try
+            {
+                var lan = Device("192.0.2.2", QuestNetworkPath.LocalNetwork, 3, "lan");
+                observe.Invoke(manager, new object[] { lan });
+                publish.Invoke(manager, null);
+                Assert.That(manager.SelectedRouteKey, Is.EqualTo(lan.RouteKey));
+
+                var usb = Device("fe80::1234", QuestNetworkPath.Usb, 7, "usb");
+                var usbV4 = Device("169.254.0.2", QuestNetworkPath.Usb, 11, "usb");
+                observe.Invoke(manager, new object[] { usb });
+                observe.Invoke(manager, new object[] { usbV4 });
+                publish.Invoke(manager, null);
+                Assert.That(manager.Devices.Select(device => device.RouteKey), Is.EqualTo(new[] { usb.RouteKey, lan.RouteKey }));
+                Assert.That(manager.SelectedRouteKey, Is.EqualTo(usb.RouteKey));
+
+                manager.Select(lan);
+                publish.Invoke(manager, null);
+                Assert.That(manager.SelectedRouteKey, Is.EqualTo(lan.RouteKey));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
         public void QuestWindowSelectionTargetsListedScenesAndRemovesClosingScenes()
         {
             var root = new GameObject("Quest window selection fixture");

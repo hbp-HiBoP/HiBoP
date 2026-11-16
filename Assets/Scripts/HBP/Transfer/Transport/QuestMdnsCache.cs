@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.NetworkInformation;
 using Makaretu.Dns;
 
 namespace HBP.Transfer.Transport
@@ -9,33 +10,35 @@ namespace HBP.Transfer.Transport
     public sealed class QuestMdnsCache
     {
         public const string ServiceType = "_hibop-quest._tcp.local";
-        private readonly Dictionary<string, (ResourceRecord Record, int Interface, double Expires)> records = new();
+        private readonly Dictionary<string, (ResourceRecord Record, string Interface, int Index, NetworkInterface Network, double Expires)> records = new();
         private static string Name(DomainName name) => name.ToString().TrimEnd('.').ToLowerInvariant();
 
-        public void Add(Message message, int localInterface, double now)
+        public bool Add(Message message, int localInterface, double now, NetworkInterface network = null)
         {
-            if (localInterface <= 0) return;
+            if (localInterface <= 0) return false;
+            string interfaceKey = network?.Id ?? localInterface.ToString();
             foreach (var expired in records.Where(p => p.Value.Expires <= now).Select(p => p.Key).ToArray()) records.Remove(expired);
             var packetRecords = message.Answers.Concat(message.AdditionalRecords).Take(128).ToArray();
-            var targets = records.Values.Where(r => r.Interface == localInterface).Select(r => r.Record).OfType<SRVRecord>().Select(r => r.Target).Concat(packetRecords.OfType<SRVRecord>().Where(r => Name(r.Name).EndsWith("." + ServiceType, StringComparison.Ordinal)).Select(r => r.Target)).ToArray();
+            var targets = records.Values.Where(r => r.Interface == interfaceKey).Select(r => r.Record).OfType<SRVRecord>().Select(r => r.Target).Concat(packetRecords.OfType<SRVRecord>().Where(r => Name(r.Name).EndsWith("." + ServiceType, StringComparison.Ordinal)).Select(r => r.Target)).ToArray();
             // Other Bonjour devices must not fill HiBoP's bounded cache on a busy LAN.
             var incoming = packetRecords.Where(r => r is PTRRecord && Name(r.Name) == ServiceType || r.Type is DnsType.SRV or DnsType.TXT && Name(r.Name).EndsWith("." + ServiceType, StringComparison.Ordinal) || r is AddressRecord && targets.Contains(r.Name)).ToArray();
             foreach (var record in incoming)
             {
-                string key = localInterface + "|" + Name(record.Name) + "|" + record.Type + "|" + Convert.ToBase64String(record.GetData());
+                string key = interfaceKey + "|" + Name(record.Name) + "|" + record.Type + "|" + Convert.ToBase64String(record.GetData());
                 if (((ushort)record.Class & 0x8000) != 0)
-                    foreach (var old in records.Where(p => p.Value.Interface == localInterface && p.Value.Record.Name == record.Name && p.Value.Record.Type == record.Type && !incoming.Contains(p.Value.Record)).Select(p => p.Key).ToArray())
+                    foreach (var old in records.Where(p => p.Value.Interface == interfaceKey && p.Value.Record.Name == record.Name && p.Value.Record.Type == record.Type && !incoming.Contains(p.Value.Record)).Select(p => p.Key).ToArray())
                     {
                         var value = records[old];
-                        records[old] = (value.Record, value.Interface, Math.Min(value.Expires, now + 1));
+                        records[old] = (value.Record, value.Interface, value.Index, value.Network, Math.Min(value.Expires, now + 1));
                     }
 
                 if (record.TTL == TimeSpan.Zero)
                 {
-                    if (records.TryGetValue(key, out var old)) records[key] = (old.Record, localInterface, Math.Min(old.Expires, now + 1));
+                    if (records.TryGetValue(key, out var old)) records[key] = (old.Record, old.Interface, old.Index, old.Network, Math.Min(old.Expires, now + 1));
                 }
-                else if (records.Count < 2048 || records.ContainsKey(key)) records[key] = (record, localInterface, now + Math.Min(4500, record.TTL.TotalSeconds));
+                else if (records.Count < 2048 || records.ContainsKey(key)) records[key] = (record, interfaceKey, localInterface, network, now + Math.Min(4500, record.TTL.TotalSeconds));
             }
+            return incoming.Length != 0;
         }
 
         public IReadOnlyList<QuestDevice> Devices(double now, long generation)
@@ -43,6 +46,7 @@ namespace HBP.Transfer.Transport
             var devices = new Dictionary<string, QuestDevice>();
             foreach (var group in records.Values.Where(r => r.Expires > now).GroupBy(r => r.Interface))
             {
+                var receiver = group.First();
                 var available = group.Select(r => r.Record).ToArray();
                 foreach (var pointer in available.OfType<PTRRecord>().Where(r => Name(r.Name) == ServiceType))
                 {
@@ -74,7 +78,9 @@ namespace HBP.Transfer.Transport
                     {
                         try
                         {
-                            var endpoint = new QuestEndpoint(address.Address, srv.Port, path == "usb" ? QuestNetworkPath.Usb : QuestNetworkPath.LocalNetwork, group.Key, generation);
+                            int index = receiver.Network == null ? receiver.Index : QuestEndpoint.GetInterfaceIndex(receiver.Network, address.Address.AddressFamily);
+                            if (index == 0) continue;
+                            var endpoint = new QuestEndpoint(address.Address, srv.Port, path == "usb" ? QuestNetworkPath.Usb : QuestNetworkPath.LocalNetwork, index, generation, receiver.Network?.Id, receiver.Network?.Name);
                             var device = new QuestDevice { Pin = pin, Name = name, Endpoint = endpoint };
                             devices[device.Id + "|" + endpoint.Key] = device;
                         }

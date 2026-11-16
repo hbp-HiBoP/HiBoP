@@ -20,6 +20,9 @@ namespace HBP.Quest.Desktop
         private CancellationTokenSource discoveryWatch;
         private Task listening = Task.CompletedTask;
         private bool automaticallyConnect, autoConnectSuspended, historyReady;
+        private bool explicitlySelectedRoute, routeChoicePending;
+        private int discoveryRefreshRequested;
+        private string discoveryDiagnostic;
         private float consolidateUntil, nextAutomaticAttempt;
 
         private void InitializeDiscovery()
@@ -101,12 +104,9 @@ namespace HBP.Quest.Desktop
                         }
 
                         PublishPresence();
-                    }, null), message => context.Post(_ =>
-                    {
-                        if (!this || token.IsCancellationRequested) return;
-                        DiscoveryMessages = new[] { message };
-                        OnChanged.Invoke();
-                    }, null), token), token);
+                    }, null), message => Volatile.Write(ref discoveryDiagnostic, message), token,
+                        () => Interlocked.Exchange(ref discoveryRefreshRequested, 0) != 0,
+                        message => Volatile.Write(ref discoveryDiagnostic, message)), token);
                     if (!token.IsCancellationRequested) await Task.Delay(2000, token);
                 }
             }
@@ -121,15 +121,34 @@ namespace HBP.Quest.Desktop
 
         private void RequestDiscovery() => consolidateUntil = Time.unscaledTime + 0.25f;
 
+        public async UniTask<string> RefreshDiscoveryAsync(CancellationToken stop)
+        {
+            scanning = true;
+            try
+            {
+                Volatile.Write(ref discoveryDiagnostic, null);
+                Interlocked.Exchange(ref discoveryRefreshRequested, 1);
+                await UniTask.Delay(TimeSpan.FromSeconds(4), ignoreTimeScale: true, cancellationToken: stop);
+                return devices.Count == 0 ? Volatile.Read(ref discoveryDiagnostic) ?? "The search did not produce a Quest announcement." : null;
+            }
+            finally
+            {
+                scanning = false;
+            }
+        }
+
         private void TickDiscovery()
         {
             UpdateDiscoveryWatch();
             if (!historyReady) return;
             if (busy || scanning || IsPaired || !(automaticallyConnect || reconnect) || autoConnectSuspended || Time.unscaledTime < consolidateUntil || Time.unscaledTime < nextAutomaticAttempt) return;
+            if (manualSelected && (!reconnect || selectedPin == null)) return;
+            if (routeChoicePending) return;
             nextAutomaticAttempt = Time.unscaledTime + 1;
             if (history.Count == 0) return;
             var available = devices.Where(item => !automaticRetryAfter.TryGetValue(item.Id, out float retry) || Time.unscaledTime >= retry);
-            var device = reconnect ? available.FirstOrDefault(item => item.Id == ConnectedId && !automaticExcluded.Contains(item.Id)) : PairingAssociations.Choose(available, history, automaticExcluded);
+            var device = reconnect ? available.Where(item => item.Id == ConnectedId && !automaticExcluded.Contains(item.Id))
+                .OrderBy(item => explicitlySelectedRoute && item.RouteKey != SelectedRouteKey).FirstOrDefault() : PairingAssociations.Choose(available, history, automaticExcluded);
             if (device == null)
             {
                 // A remembered Manual IP also remains usable on networks that suppress mDNS.
@@ -143,7 +162,7 @@ namespace HBP.Quest.Desktop
                 return;
             }
 
-            Select(device);
+            Select(device, explicitlySelectedRoute);
             activeRequest = device.Id;
             _ = RunAsync(token => ConnectCandidatesAsync(null, true, token), true);
         }
@@ -156,15 +175,18 @@ namespace HBP.Quest.Desktop
                 return;
             }
 
-            var endpoints = presence.Values.Where(item => item.Device.Id == SelectedId && item.Expires > Time.unscaledTime).OrderBy(item => item.Device.Endpoint.Path != QuestNetworkPath.Usb).Select(item => item.Device).ToArray();
+            var endpoints = presence.Values.Where(item => item.Device.Id == SelectedId && item.Expires > Time.unscaledTime && (automatic || item.Device.RouteKey == SelectedRouteKey))
+                .Select(item => item.Device).OrderBy(item => explicitlySelectedRoute && item.RouteKey != SelectedRouteKey)
+                .ThenBy(item => item.Endpoint.Path != QuestNetworkPath.Usb).ToArray();
             Exception failure = null;
             foreach (var candidate in endpoints)
             {
                 if (!presence.ContainsKey(candidate.Id + "|" + candidate.Endpoint.Key)) continue;
-                selectedEndpoint = candidate.Endpoint.AddressText;
                 try
                 {
-                    await ConnectSelectedAsync(requestCode, automatic, token);
+                    await ConnectSelectedAsync(requestCode, automatic, token, candidate.Endpoint);
+                    SelectedRouteKey = candidate.RouteKey;
+                    selectedEndpoint = candidate.Endpoint.AddressText;
                     return;
                 }
                 catch (Exception error) when (error is not System.Security.Authentication.AuthenticationException && error is not QuestContextException && !token.IsCancellationRequested)
@@ -187,9 +209,13 @@ namespace HBP.Quest.Desktop
         private void PublishPresence()
         {
             foreach (string key in presence.Where(item => item.Value.Expires <= Time.unscaledTime && item.Value.Device.Id != (IsPaired ? ConnectedId : null)).Select(item => item.Key).ToArray()) presence.Remove(key);
-            devices = presence.Values.Select(item => item.Device).GroupBy(device => device.Id).Select(group => group.OrderBy(device => device.Endpoint.Path != QuestNetworkPath.Usb).First()).OrderBy(device => device.Label).ToList();
-            DiscoveryMessages = new[] { devices.Count == 0 ? "No Quest found. Check USB or Wi-Fi, or use Manual IP." : $"{devices.Count} Quest headset(s) found" };
-            if (!manualSelected && SelectedId == null && devices.Count != 0 && !busy) Select(devices[0]);
+            devices = presence.Values.Select(item => item.Device).GroupBy(device => device.RouteKey).Select(group => group.First())
+                .OrderBy(device => device.Endpoint.Path != QuestNetworkPath.Usb).ThenBy(device => device.Label).ToList();
+            if (!manualSelected && !explicitlySelectedRoute && !busy && !IsPaired && devices.Count != 0)
+            {
+                var preferred = devices.FirstOrDefault(device => device.Id == SelectedId) ?? devices[0];
+                if (preferred.RouteKey != SelectedRouteKey) Select(preferred, false);
+            }
             OnChanged.Invoke();
         }
 
