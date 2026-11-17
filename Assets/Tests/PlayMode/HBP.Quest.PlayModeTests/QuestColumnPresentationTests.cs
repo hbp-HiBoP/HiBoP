@@ -21,6 +21,50 @@ namespace HBP.Tests.Quest
     public sealed class QuestColumnPresentationTests
     {
         [Test]
+        public void EdgesFollowPresentedVisualizationsAcrossSelectionChanges()
+        {
+            using var first = new Fixture();
+            using var second = new Fixture();
+            var headset = new GameObject("Contours headset", typeof(Camera)) { tag = "MainCamera" };
+            try
+            {
+                var camera = headset.GetComponent<Camera>();
+                var settingsType = AssetDatabase.LoadAssetAtPath<MonoScript>("Assets/Scripts/HBP/Rendering/HBPEdgeCameraSettings.cs").GetClass();
+                var settings = headset.AddComponent(settingsType);
+                var edgesEnabled = settingsType.GetProperty("EdgesEnabled");
+                var beforeCamera = typeof(QuestAnatomyView).GetMethod("BeforeCamera", BindingFlags.NonPublic | BindingFlags.Instance);
+                first.View.CompletePlacement(first.Presentation);
+                QuestSceneTestBinding.Attach(first.View, second.Scene, QuestColumnDisplayMode.Split).AddRange(second.Columns);
+                first.View.CompletePlacement(first.View.Find(second.Scene));
+                second.Scene.EdgeMode = true;
+                first.View.SelectContext(second.Scene, second.Columns[0].Column);
+                beforeCamera.Invoke(first.View, new object[] { camera });
+
+                var cut = new GameObject("New cut", typeof(MeshRenderer));
+                cut.transform.SetParent(second.Columns[1].ScientificFrame, false);
+                second.Columns[1].Column.BrainCutMeshes.Add(cut);
+                first.View.SelectContext(first.Scene, first.Columns[0].Column);
+                beforeCamera.Invoke(first.View, new object[] { camera });
+
+                uint edgeLayer = RenderingLayerMask.GetMask("Quest Edges");
+                Assert.That(edgesEnabled.GetValue(settings), Is.True, "an unselected visualization still needs the contour passes");
+                Assert.That(first.Columns[0].Column.BrainMesh.GetComponent<Renderer>().renderingLayerMask & edgeLayer, Is.Zero);
+                foreach (var column in second.Columns)
+                    Assert.That(column.Column.BrainMesh.GetComponent<Renderer>().renderingLayerMask & edgeLayer, Is.EqualTo(edgeLayer));
+                Assert.That(cut.GetComponent<Renderer>().renderingLayerMask & edgeLayer, Is.EqualTo(edgeLayer));
+
+                second.Scene.EdgeMode = false;
+                beforeCamera.Invoke(first.View, new object[] { camera });
+                Assert.That(edgesEnabled.GetValue(settings), Is.False);
+                Assert.That(cut.GetComponent<Renderer>().renderingLayerMask & edgeLayer, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(headset);
+            }
+        }
+
+        [Test]
         public void SingleFollowsSelectedColumnAndKeepsPoseWithoutRepeatingSelection()
         {
             using var f = new Fixture();

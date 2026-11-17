@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Runtime.ExceptionServices;
 using Cysharp.Threading.Tasks;
 using HBP.Data.Module3D;
+using HBP.Rendering;
 using HBP.Transfer.Scene;
 using UnityEngine;
 
@@ -63,8 +64,8 @@ namespace HBP.Quest
             Module3DMain.OnSelectColumn.RemoveListener(OnColumnSelected);
         }
 
-        private void BeforeCamera(Camera camera) => UpdateRenderingVisibility();
-        private void BeforePipelineCamera(UnityEngine.Rendering.ScriptableRenderContext context, Camera camera) => UpdateRenderingVisibility();
+        private void BeforeCamera(Camera camera) => UpdateRenderingVisibility(camera);
+        private void BeforePipelineCamera(UnityEngine.Rendering.ScriptableRenderContext context, Camera camera) => UpdateRenderingVisibility(camera);
 
         private void Awake()
         {
@@ -328,13 +329,14 @@ namespace HBP.Quest
                 AdvanceTransition(presentation, Time.unscaledDeltaTime);
             }
 
-            var camera = Camera.main;
-            if (camera != null && camera.TryGetComponent<HBP.Rendering.HBPEdgeCameraSettings>(out var edges)) edges.EdgesEnabled = Scene != null && Scene.EdgeMode;
             UpdateRenderingVisibility();
         }
 
-        private void UpdateRenderingVisibility()
+        private void UpdateRenderingVisibility(Camera camera = null)
         {
+            HBPEdgeCameraSettings edges = null;
+            if (camera != null && camera == Camera.main) camera.TryGetComponent(out edges);
+            bool hasVisibleEdges = false;
             // Preparation advances on the PlayerLoop. Keep its scientific renderers
             // hidden even if it completes after LateUpdate, before either render pipeline draws.
             if (preparingScene != null)
@@ -352,8 +354,27 @@ namespace HBP.Quest
                         foreach (var renderer in column.GetComponentsInChildren<Renderer>(true))
                             renderer.forceRenderingOff = !visible || presentation.SurfaceHidden && column.Column != null && renderer.gameObject == column.Column.BrainMesh;
                         column.SetSelectionFeedbackVisible(visible);
+                        if (edges != null && visible && column.Column is { } data)
+                        {
+                            bool enabled = presentation.Scene.EdgeMode;
+                            hasVisibleEdges |= UpdateEdgeRenderer(data.BrainMesh, enabled);
+                            foreach (var cut in data.BrainCutMeshes)
+                                hasVisibleEdges |= UpdateEdgeRenderer(cut, enabled);
+                        }
                     }
             }
+
+            if (edges != null) edges.EdgesEnabled = hasVisibleEdges;
+        }
+
+        private static bool UpdateEdgeRenderer(GameObject surface, bool enabled)
+        {
+            if (surface == null || !surface.TryGetComponent<Renderer>(out var renderer)) return false;
+            uint mask = renderer.renderingLayerMask;
+            uint edgeLayer = HBPEdgeRendererFeature.QuestEdgeRenderingLayerMask;
+            uint updated = enabled ? mask | edgeLayer : mask & ~edgeLayer;
+            if (updated != mask) renderer.renderingLayerMask = updated;
+            return enabled && renderer.enabled && !renderer.forceRenderingOff && surface.activeInHierarchy;
         }
 
         public void ToggleSurface()

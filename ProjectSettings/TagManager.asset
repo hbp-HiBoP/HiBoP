@@ -50,4 +50,5 @@ TagManager:
     locked: 0
   m_RenderingLayers:
   - Default
+  - Quest Edges
   m_MigratedRenderPipelines: []

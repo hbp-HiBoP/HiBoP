@@ -141,10 +141,11 @@ namespace HBP.Rendering
 
             if (inputs.EdgesEnabled)
             {
-                inputs.OpaqueEdgeData = HBPEdgeRendererFeature.CreateOpaqueEdgeData(renderGraph, frameData, resources, out inputs.OpaqueEdgeDepth);
+                const uint edgeLayer = HBPEdgeRendererFeature.QuestEdgeRenderingLayerMask;
+                inputs.OpaqueEdgeData = HBPEdgeRendererFeature.CreateOpaqueEdgeData(renderGraph, frameData, resources, out inputs.OpaqueEdgeDepth, edgeLayer);
                 depthDesc.name = "HBP Quest Transparent Silhouette Depth";
                 inputs.TransparentEdgeDepth = renderGraph.CreateTexture(depthDesc);
-                var silhouette = CreateList(renderGraph, frameData, SilhouettePasses, RenderQueueRange.transparent, cameraMask, SortingCriteria.CommonOpaque, state: nearestState);
+                var silhouette = CreateList(renderGraph, frameData, SilhouettePasses, RenderQueueRange.transparent, cameraMask, SortingCriteria.CommonOpaque, state: nearestState, renderingLayerMask: edgeLayer);
                 RecordDraw(renderGraph, camera, depthDesc.name, silhouette, TextureHandle.nullHandle, inputs.TransparentEdgeDepth);
             }
 
@@ -176,7 +177,7 @@ namespace HBP.Rendering
             RecordDraw(renderGraph, camera, "HBP Quest Overlays", overlays, resources.activeColorTexture, resources.activeDepthTexture);
         }
 
-        private static RendererListHandle CreateList(RenderGraph graph, ContextContainer frameData, List<ShaderTagId> passes, RenderQueueRange queue, int layerMask, SortingCriteria sorting, Shader shader = null, int shaderPass = 0, RenderStateBlock? state = null, ShaderTagId stateTag = default)
+        private static RendererListHandle CreateList(RenderGraph graph, ContextContainer frameData, List<ShaderTagId> passes, RenderQueueRange queue, int layerMask, SortingCriteria sorting, Shader shader = null, int shaderPass = 0, RenderStateBlock? state = null, ShaderTagId stateTag = default, uint renderingLayerMask = uint.MaxValue)
         {
             var rendering = frameData.Get<UniversalRenderingData>();
             var camera = frameData.Get<UniversalCameraData>();
@@ -184,7 +185,7 @@ namespace HBP.Rendering
             var drawing = RenderingUtils.CreateDrawingSettings(passes, rendering, camera, light, sorting);
             drawing.overrideShader = shader;
             drawing.overrideShaderPassIndex = shaderPass;
-            var parameters = new RendererListParams(rendering.cullResults, drawing, new FilteringSettings(queue, layerMask));
+            var parameters = new RendererListParams(rendering.cullResults, drawing, new FilteringSettings(queue, layerMask, renderingLayerMask));
             if (!state.HasValue) return graph.CreateRendererList(parameters);
 
             using var tags = new NativeArray<ShaderTagId>(new[] { stateTag }, Allocator.Temp);

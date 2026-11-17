@@ -106,6 +106,9 @@ Quest composes brains, cuts, sites, cages and world-space scientific text agains
 the resolved opaque scene depth for each eye. It peels the four nearest
 translucent fragment depths and blends the remaining fragments in draw order
 behind them. Edges follow their source depth before the final XR overlays.
+Each visualization's Edges setting applies to its presented brain and cut
+renderers. The Quest Edges rendering layer filters the two contour passes;
+the XR camera skips those passes when no presented surface needs them.
 The timeline contributes its nearest visible canvas surface to scene depth
 composition. Managed windows retain their canvas stack and compare each
 fragment with the scene and timeline. Recompose the foreground scene over each

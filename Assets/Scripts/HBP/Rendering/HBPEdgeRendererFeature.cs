@@ -10,6 +10,7 @@ namespace HBP.Rendering
     {
         public const int QuestTimelineRenderQueue = 3998;
         public const int QuestWindowRenderQueue = 3999;
+        public const uint QuestEdgeRenderingLayerMask = 1u << 1; // Quest Edges in TagManager.asset.
 
         [System.Serializable]
         public sealed class Settings
@@ -77,7 +78,7 @@ namespace HBP.Rendering
             m_QuestCompositionMaterial = null;
         }
 
-        internal static TextureHandle CreateOpaqueEdgeData(RenderGraph graph, ContextContainer frameData, UniversalResourceData resources, out TextureHandle depth) => HBPEdgeRenderPass.CreateOpaqueData(graph, frameData, resources, out depth);
+        internal static TextureHandle CreateOpaqueEdgeData(RenderGraph graph, ContextContainer frameData, UniversalResourceData resources, out TextureHandle depth, uint renderingLayerMask) => HBPEdgeRenderPass.CreateOpaqueData(graph, frameData, resources, out depth, renderingLayerMask);
 
         private sealed class HBPTransparentBrainRenderPass : ScriptableRenderPass
         {
@@ -275,7 +276,7 @@ namespace HBP.Rendering
                 resourceData.cameraColor = destination;
             }
 
-            internal static TextureHandle CreateOpaqueData(RenderGraph renderGraph, ContextContainer frameData, UniversalResourceData resourceData, out TextureHandle depth)
+            internal static TextureHandle CreateOpaqueData(RenderGraph renderGraph, ContextContainer frameData, UniversalResourceData resourceData, out TextureHandle depth, uint renderingLayerMask = uint.MaxValue)
             {
                 depth = TextureHandle.nullHandle;
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
@@ -283,7 +284,7 @@ namespace HBP.Rendering
                 UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
                 DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(OpaqueDataTag, renderingData, cameraData, lightData, SortingCriteria.CommonOpaque);
-                FilteringSettings filteringSettings = new(RenderQueueRange.opaque, cameraData.camera.cullingMask);
+                FilteringSettings filteringSettings = new(RenderQueueRange.opaque, cameraData.camera.cullingMask, renderingLayerMask);
                 RendererListParams rendererListParams = new(renderingData.cullResults, drawingSettings, filteringSettings);
                 RendererListHandle rendererList = renderGraph.CreateRendererList(rendererListParams);
                 if (!rendererList.IsValid())

@@ -381,6 +381,69 @@ namespace HBP.Tests.Rendering
 
         [TestCase(false)]
         [TestCase(true)]
+        public void QuestEdges_OnlyOutlineMarkedSurfaces(bool transparent)
+        {
+            const int size = 128;
+            var previousPipeline = QualitySettings.renderPipeline;
+            var previousActive = RenderTexture.active;
+            var cameraObject = new GameObject("Quest mixed contours camera", typeof(Camera), typeof(HBPEdgeCameraSettings));
+            var left = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var right = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            var material = new Material(AssetDatabase.LoadAssetAtPath<Shader>(transparent ? BrainTransparentShaderPath : BrainShaderPath));
+            var target = new RenderTexture(HBPRenderTextureDescriptorFactory.CreateViewDescriptor(size, size));
+            var readback = new Texture2D(size, size, TextureFormat.RGBA32, false, false);
+            var camera = cameraObject.GetComponent<Camera>();
+            var edges = cameraObject.GetComponent<HBPEdgeCameraSettings>();
+            try
+            {
+                QualitySettings.renderPipeline = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset");
+                camera.targetTexture = target;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = Color.gray;
+                camera.orthographic = true;
+                camera.orthographicSize = 1;
+                camera.transform.position = Vector3.back * 3;
+                material.SetColor("_Color", new Color(1, .7f, .3f, transparent ? .5f : 1));
+                left.transform.position = Vector3.left * .5f;
+                right.transform.position = Vector3.right * .5f;
+                left.transform.localScale = right.transform.localScale = Vector3.one * .7f;
+                var leftRenderer = left.GetComponent<Renderer>();
+                var rightRenderer = right.GetComponent<Renderer>();
+                leftRenderer.sharedMaterial = rightRenderer.sharedMaterial = material;
+
+                edges.EdgesEnabled = false;
+                var plain = RenderPixels(camera, target, readback);
+                Assert.That(plain[(size / 2) * size + 3 * size / 4], Is.Not.EqualTo(plain[0]), "the unmarked surface is visible");
+
+                edges.EdgesEnabled = true;
+                const uint edgeLayer = HBPEdgeRendererFeature.QuestEdgeRenderingLayerMask;
+                leftRenderer.renderingLayerMask |= edgeLayer;
+                var leftOutlined = RenderPixels(camera, target, readback);
+                Assert.That(CountChangedPixels(plain, leftOutlined, 4, 0, 0, size / 2, size, size), Is.GreaterThan(30));
+                Assert.That(CountChangedPixels(plain, leftOutlined, 4, size / 2, 0, size, size, size), Is.Zero);
+
+                leftRenderer.renderingLayerMask &= ~edgeLayer;
+                rightRenderer.renderingLayerMask |= edgeLayer;
+                var rightOutlined = RenderPixels(camera, target, readback);
+                Assert.That(CountChangedPixels(plain, rightOutlined, 4, 0, 0, size / 2, size, size), Is.Zero);
+                Assert.That(CountChangedPixels(plain, rightOutlined, 4, size / 2, 0, size, size, size), Is.GreaterThan(30));
+            }
+            finally
+            {
+                camera.targetTexture = null;
+                QualitySettings.renderPipeline = previousPipeline;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(left);
+                Object.DestroyImmediate(right);
+                Object.DestroyImmediate(material);
+                Object.DestroyImmediate(cameraObject);
+                Object.DestroyImmediate(readback);
+                Object.DestroyImmediate(target);
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
         public void QuestEdges_AppearAtTheirSurfaceDepthAndBelowOverlays(bool transparent)
         {
             var previousPipeline = QualitySettings.renderPipeline;
@@ -404,7 +467,9 @@ namespace HBP.Tests.Rendering
                 camera.orthographicSize = 1;
                 camera.transform.position = Vector3.back * 3;
                 brainMaterial.SetColor("_Color", new Color(1, .7f, .3f, transparent ? .5f : 1));
-                brain.GetComponent<Renderer>().sharedMaterial = brainMaterial;
+                var brainRenderer = brain.GetComponent<Renderer>();
+                brainRenderer.sharedMaterial = brainMaterial;
+                brainRenderer.renderingLayerMask |= HBPEdgeRendererFeature.QuestEdgeRenderingLayerMask;
 
                 panel.transform.position = Vector3.back;
                 ((RectTransform)panel.transform).sizeDelta = new Vector2(1.5f, 1.5f);
