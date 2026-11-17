@@ -104,6 +104,12 @@ layout or pinning a workstation-specific path in instructions.
 
 ## Quest signing and archive validation
 
+The Quest Build Profile explicitly targets Android API 34 for Meta Horizon
+distribution. Keep the target explicit: automatic selection can pick a higher
+installed SDK than Meta accepts for immersive apps. Install Android SDK Platform
+34 on build machines. Keep the install location on Auto and verify
+`targetSdkVersion` and `installLocation` in the finished APK.
+
 Use the existing private key configured in Unity's Quest Build Profile / Android
 Publishing Settings. Preserve the APK signature Unity produces; do not re-sign,
 generate a replacement key or use a historical initializer for normal builds.
