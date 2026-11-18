@@ -99,6 +99,34 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public void QuestEnvironmentPersistsAndAppliesInSession()
+        {
+            var defaultPreferences = PreferencesSnapshot.Capture(m_Preferences);
+            Assert.That((int)JObject.Parse(Encoding.UTF8.GetString(defaultPreferences))["General"]["Quest"][nameof(QuestPreferences.Environment)], Is.EqualTo((int)QuestEnvironment.Passthrough));
+            Assert.That(m_Preferences.General.Quest.Environment, Is.EqualTo(QuestEnvironment.Passthrough));
+
+            var edited = (UserPreferences)m_Preferences.Clone();
+            edited.General.Quest = new QuestPreferences(true, true, QuestEnvironment.SolidBackground);
+            Assert.That(m_Preferences.General.Quest.Environment, Is.EqualTo(QuestEnvironment.Passthrough));
+            Assert.That(((UserPreferences)edited.Clone()).General.Quest.Environment, Is.EqualTo(QuestEnvironment.SolidBackground));
+            edited.Save();
+            var saved = UserPreferences.Initialize();
+            Assert.That(saved.General.Quest.Environment, Is.EqualTo(QuestEnvironment.SolidBackground));
+
+            var serialized = PreferencesSnapshot.Capture(saved);
+            Assert.That((int)JObject.Parse(Encoding.UTF8.GetString(serialized))["General"]["Quest"][nameof(QuestPreferences.Environment)], Is.EqualTo((int)QuestEnvironment.SolidBackground));
+            var solidBackground = PreferencesSnapshot.Read(serialized);
+            Assert.That(solidBackground.Effect(m_Preferences), Is.EqualTo(PreferencesChangeEffect.HotApply));
+            solidBackground.Apply(m_Preferences, true);
+            Assert.That(m_Preferences.General.Quest.Environment, Is.EqualTo(QuestEnvironment.SolidBackground));
+
+            var passthrough = PreferencesSnapshot.Read(defaultPreferences);
+            Assert.That(passthrough.Effect(m_Preferences), Is.EqualTo(PreferencesChangeEffect.HotApply));
+            passthrough.Apply(m_Preferences, true);
+            Assert.That(m_Preferences.General.Quest.Environment, Is.EqualTo(QuestEnvironment.Passthrough));
+        }
+
+        [Test]
         public void ApplyKeepsIdentityListenersAndQuestFileAndDoesNotPreload()
         {
             File.WriteAllText(UserPreferences.PATH, "quest-local-preferences");

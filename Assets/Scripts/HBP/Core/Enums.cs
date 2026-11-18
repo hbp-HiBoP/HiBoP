@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 
 namespace HBP.Core.Enums
 {
@@ -37,6 +37,12 @@ namespace HBP.Core.Enums
         Floor = 0,
         Round = 1,
         Interpolate = 2
+    }
+
+    public enum QuestEnvironment
+    {
+        Passthrough = 0,
+        SolidBackground = 1
     }
 
     public enum BlocFormatType

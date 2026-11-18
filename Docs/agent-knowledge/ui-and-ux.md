@@ -85,6 +85,13 @@ select an option or close the list. A stationary click still selects normally.
 
 ## Input and shared behavior
 
+Desktop `User Preferences > Quest > Environment` is a live session preference
+with `Passthrough` (default) and `Solid Background`. Present the opaque background only
+after the Quest runtime confirms the boundary is unsuppressed. Restore passthrough
+before allowing another suppression request. Each controller mesh follows the
+existing OpenXR grip pose and is visible only with full position and rotation
+tracking while the solid background is active.
+
 Use [DesktopInput](../../Assets/Scripts/HBP/Input/DesktopInput.cs) for Desktop
 New Input System access and its neutral behavior when a device is absent.
 Use [QuestInteractionInput](../../Assets/Scripts/HBP/Quest/Runtime/QuestInteractionInput.cs)

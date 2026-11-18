@@ -41,14 +41,18 @@ namespace HBP.Quest
             nextStatusUpdate = Time.unscaledTime + 0.25f;
             string problem = passthrough == null ? "Missing passthrough reference" : passthrough.GetProblem();
             bool failed = problem != null && Time.unscaledTime - startedAt >= 10f;
-            string state = problem == null ? "COMPOSITION READY" : failed ? "PASSTHROUGH FAULT" : "STARTING";
+            bool solidBackground = passthrough != null && passthrough.IsSolidBackgroundActive;
+            string ready = solidBackground ? "SOLID BACKGROUND" : "COMPOSITION READY";
+            string fault = solidBackground ? "SOLID BACKGROUND FAULT" : "PASSTHROUGH FAULT";
+            string state = problem == null ? ready : failed ? fault : "STARTING";
             if (statusText != null)
             {
                 statusText.color = failed ? new Color(1f, 0.35f, 0.25f) : Color.white;
-                statusText.text = $"HiBoP Quest | {state}\n" + (problem == null ? "Room visibility: confirm in headset\n" : problem + "\n") + $"Head: {State(head)}\nLeft: {State(leftController)}\nRight: {State(rightController)}";
+                string composition = problem ?? (solidBackground ? "Solid background active" : "Room visibility: confirm in headset");
+                statusText.text = $"HiBoP Quest | {state}\n{composition}\nHead: {State(head)}\nLeft: {State(leftController)}\nRight: {State(rightController)}";
             }
 
-            if (failed && problem != previousProblem) Debug.LogError("QUEST-004 passthrough fault: " + problem, this);
+            if (failed && problem != previousProblem) Debug.LogError($"QUEST-004 {state}: {problem}", this);
             previousProblem = failed ? problem : null;
             if (Time.unscaledTime < nextLog) return;
             nextLog = Time.unscaledTime + 5f;

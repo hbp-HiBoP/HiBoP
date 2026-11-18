@@ -1340,7 +1340,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_Text: Enable simplified mesh during cuts to optimize cuting procress
   m_Image: {fileID: 0}
@@ -1931,8 +1931,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 233, y: 0}
-  m_SizeDelta: {x: 466, y: 24}
+  m_AnchoredPosition: {x: 116, y: 0}
+  m_SizeDelta: {x: 232, y: 24}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &379348044221877318
 CanvasRenderer:
@@ -2133,8 +2133,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 234, y: -279}
-  m_SizeDelta: {x: 468, y: 558}
+  m_AnchoredPosition: {x: 351, y: -279}
+  m_SizeDelta: {x: 234, y: 558}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &991725853565338619
 MonoBehaviour:
@@ -2176,6 +2176,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Main.QuestPreferencesSubModifier
   m_AutomaticallySynchronizeScenesToggle: {fileID: 3717100943479137904}
   m_AutomaticallyConnectToggle: {fileID: 3706646609010743324}
+  m_EnvironmentDropdown: {fileID: 6883076585554789077}
 --- !u!1 &1198292720105964072
 GameObject:
   m_ObjectHideFlags: 0
@@ -2630,12 +2631,13 @@ RectTransform:
   - {fileID: 1763520344856279242}
   - {fileID: 1160901351438455769}
   - {fileID: 3777039847059072915}
+  - {fileID: 5012929799683734341}
   m_Father: {fileID: 7287358420853834909}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 233, y: 0}
-  m_SizeDelta: {x: 466, y: 76}
+  m_AnchoredPosition: {x: 116, y: 0}
+  m_SizeDelta: {x: 232, y: 102}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &8069531994131333655
 MonoBehaviour:
@@ -10252,8 +10254,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 233, y: -26}
-  m_SizeDelta: {x: 466, y: 24}
+  m_AnchoredPosition: {x: 116, y: -26}
+  m_SizeDelta: {x: 232, y: 24}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &5754854675653302310
 MonoBehaviour:
@@ -11465,7 +11467,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: -482}
+  m_SizeDelta: {x: 0, y: -456}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &221508066863321625
 MonoBehaviour:
@@ -12668,8 +12670,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 234, y: -279}
-  m_SizeDelta: {x: 468, y: 558}
+  m_AnchoredPosition: {x: 117, y: -279}
+  m_SizeDelta: {x: 234, y: 558}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &3704389159635692244
 MonoBehaviour:
@@ -14964,7 +14966,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_Text: Displays raw MRI cuts (improves precision but decreases rendering)
   m_Image: {fileID: 0}
@@ -17499,7 +17501,7 @@ MonoBehaviour:
   m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_Text: 
   m_Image: {fileID: 0}
@@ -19021,6 +19023,70 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!1 &8094103880692868449
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5012929799683734341}
+  - component: {fileID: 747237270457966673}
+  m_Layer: 5
+  m_Name: Environment
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &5012929799683734341
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8094103880692868449}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2538324153887296235}
+  - {fileID: 945394888156406993}
+  m_Father: {fileID: 6020773246485080141}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -1, y: -65}
+  m_SizeDelta: {x: 466, y: 24}
+  m_Pivot: {x: 0.5, y: 1}
+--- !u!114 &747237270457966673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8094103880692868449}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 7
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 1
+  m_ChildControlHeight: 1
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &8114700584753728825
 GameObject:
   m_ObjectHideFlags: 0
@@ -20272,8 +20338,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 233, y: -52}
-  m_SizeDelta: {x: 466, y: 24}
+  m_AnchoredPosition: {x: 116, y: -52}
+  m_SizeDelta: {x: 232, y: 24}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &6054308689440302865
 MonoBehaviour:
@@ -20658,7 +20724,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: 
   m_Text: Displays raw MRI cuts (improves precision but decreases rendering)
   m_Image: {fileID: 0}
@@ -22531,7 +22597,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -26325,7 +26391,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -29502,7 +29568,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -31976,7 +32042,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -32670,7 +32736,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -32881,17 +32947,17 @@ PrefabInstance:
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 268
+      value: 204
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 15
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 155
+      value: 123
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -32961,7 +33027,7 @@ PrefabInstance:
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 459
+      value: 225
       objectReference: {fileID: 0}
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -33006,7 +33072,7 @@ PrefabInstance:
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 236.5
+      value: 119.5
       objectReference: {fileID: 0}
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -33248,17 +33314,17 @@ PrefabInstance:
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 259
+      value: 204
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.y
-      value: 15
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 150.5
+      value: 123
       objectReference: {fileID: 0}
     - target: {fileID: 224096473817050274, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -33328,7 +33394,7 @@ PrefabInstance:
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_SizeDelta.x
-      value: 459
+      value: 225
       objectReference: {fileID: 0}
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -33373,7 +33439,7 @@ PrefabInstance:
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 236.5
+      value: 119.5
       objectReference: {fileID: 0}
     - target: {fileID: 224933428198174682, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -35486,7 +35552,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -38236,7 +38302,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -38421,6 +38487,155 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 6144549542640287835, guid: a1fb35db3a5ef6345966139c4da80df4,
     type: 3}
   m_PrefabInstance: {fileID: 4817631931889959616}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &4827890565758560368
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5012929799683734341}
+    m_Modifications:
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 107
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -12
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7111193343085128105, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_MinWidth
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7111193343085128105, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_PreferredWidth
+      value: 200
+      objectReference: {fileID: 0}
+    - target: {fileID: 7115644861783451543, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_Text
+      value: Environment
+      objectReference: {fileID: 0}
+    - target: {fileID: 7115644861783451543, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_FontData.m_RichText
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7143101617660626827, guid: 163d1702966a08e4d889eacfee19179a,
+        type: 3}
+      propertyPath: m_Name
+      value: Prefix
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 163d1702966a08e4d889eacfee19179a, type: 3}
+--- !u!224 &2538324153887296235 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 6933833399538852507, guid: 163d1702966a08e4d889eacfee19179a,
+    type: 3}
+  m_PrefabInstance: {fileID: 4827890565758560368}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4841147708868614843
 PrefabInstance:
@@ -39693,7 +39908,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -40852,7 +41067,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -43497,7 +43712,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -43689,7 +43904,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -45466,7 +45681,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -49476,7 +49691,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -50824,7 +51039,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -51149,7 +51364,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.
@@ -53660,6 +53875,183 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d0b652f32a2cc243917e4028fa0f046, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1001 &9021907454733221347
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5012929799683734341}
+    m_Modifications:
+    - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Value
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.data[0].m_Text
+      value: Passthrough
+      objectReference: {fileID: 0}
+    - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Options.m_Options.Array.data[1].m_Text
+      value: Solid Background
+      objectReference: {fileID: 0}
+    - target: {fileID: 4479101511522785326, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Text
+      value: Choose the background on the paired Quest. Passthrough shows your room.
+        Solid Background shows your controllers against a plain backdrop.
+      objectReference: {fileID: 0}
+    - target: {fileID: 8011634985036483947, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Name
+      value: Environment Dropdown
+      objectReference: {fileID: 0}
+    - target: {fileID: 8050844318522082743, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Text
+      value: Passthrough
+      objectReference: {fileID: 0}
+    - target: {fileID: 8050844318522082743, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_FontData.m_RichText
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 259
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 336.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: -12
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e71eedee5e5cef24fa4cc7845d2d514b, type: 3}
+--- !u!224 &945394888156406993 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8082543665418475826, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+    type: 3}
+  m_PrefabInstance: {fileID: 9021907454733221347}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6883076585554789077 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
+    type: 3}
+  m_PrefabInstance: {fileID: 9021907454733221347}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d0b652f32a2cc243917e4028fa0f046, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &9026743397849685886
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -53964,7 +54356,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 690d7830c1d913145b8430fd2b9b39f5, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.UI.Runtime::HBP.UI.Tools.Tooltip
   m_Text: Load or unload this atlas on Desktop. Quest synchronizes automatically
     when awake.

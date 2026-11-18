@@ -1,4 +1,5 @@
 using HBP.UI.Main;
+using HBP.Core.Enums;
 using HBP.UI.Quest;
 using HBP.UI.Tools;
 using HBP.Quest;
@@ -64,6 +65,26 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(((QuestDisplayPanel)display.targetObject).transform.Find("Background/Content Viewport/Content/Patient Actions"), Is.Null);
             var row = (QuestSceneRow)display.FindProperty("rowPrefab").objectReferenceValue;
             foreach (string field in new[] { "title", "details", "visibility", "close", "selectedState" }) Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+        }
+
+        [Test]
+        public void EnvironmentDropdownOffersPassthroughByDefaultAndSolidBackground()
+        {
+            var preferences = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/Prefabs/UI/Windows/User preferences window.prefab").GetComponent<UserPreferencesModifier>();
+            var quest = (QuestPreferencesSubModifier)new SerializedObject(preferences).FindProperty("m_QuestPreferencesSubModifier").objectReferenceValue;
+            var data = new SerializedObject(quest);
+            var connect = (Toggle)data.FindProperty("m_AutomaticallyConnectToggle").objectReferenceValue;
+            var environment = (Dropdown)data.FindProperty("m_EnvironmentDropdown").objectReferenceValue;
+            Assert.That(environment, Is.Not.Null);
+            Assert.That(environment.options.Select(option => option.text), Is.EqualTo(new[] { "Passthrough", "Solid Background" }));
+            Assert.That(environment.value, Is.EqualTo((int)QuestEnvironment.Passthrough));
+            Assert.That(environment.options[(int)QuestEnvironment.SolidBackground].text, Is.EqualTo("Solid Background"));
+            Assert.That(environment.captionText.text, Is.EqualTo("Passthrough"));
+            Assert.That(environment.transform.parent.parent, Is.SameAs(connect.transform.parent.parent));
+            Assert.That(environment.transform.parent.GetSiblingIndex(), Is.EqualTo(connect.transform.parent.GetSiblingIndex() + 1));
+            Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(environment), Does.EndWith("Dropdown.prefab"));
+            Assert.That(environment.transform.parent.Find("Prefix").GetComponentInChildren<Text>(true).text, Is.EqualTo("Environment"));
+            Assert.That(environment.GetComponent<Tooltip>().Text, Does.Contain("Passthrough"));
         }
 
         [Test]

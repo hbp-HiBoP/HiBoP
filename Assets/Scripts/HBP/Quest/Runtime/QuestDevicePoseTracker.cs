@@ -16,6 +16,8 @@ namespace HBP.Quest
         [SerializeField] private DeviceRole role;
         [SerializeField] private Transform poseTarget;
         [SerializeField] private Renderer diagnosticRenderer;
+        [SerializeField] private MeshRenderer solidBackgroundController;
+        private QuestPassthroughStatus passthrough;
         private InputAction positionAction;
         private InputAction rotationAction;
         private InputAction trackedAction;
@@ -53,6 +55,8 @@ namespace HBP.Quest
             trackedAction.Enable();
             trackingStateAction.Enable();
             if (diagnosticRenderer != null) diagnosticRenderer.enabled = false;
+            if (solidBackgroundController != null)
+                passthrough = GetComponentInParent<QuestPassthroughStatus>();
             Application.onBeforeRender += UpdatePose;
         }
 
@@ -66,6 +70,7 @@ namespace HBP.Quest
             positionAction = rotationAction = trackedAction = trackingStateAction = null;
             IsTracked = false;
             if (diagnosticRenderer != null) diagnosticRenderer.enabled = false;
+            if (solidBackgroundController != null) solidBackgroundController.enabled = false;
         }
 
         private void Update() => UpdatePose();
@@ -80,6 +85,8 @@ namespace HBP.Quest
             if (diagnosticRenderer != null) diagnosticRenderer.enabled = IsTracked;
             if (IsTracked && poseTarget != null && role != DeviceRole.Head)
                 poseTarget.SetLocalPositionAndRotation(positionAction.ReadValue<Vector3>(), rotationAction.ReadValue<Quaternion>());
+            if (solidBackgroundController != null)
+                solidBackgroundController.enabled = IsTracked && passthrough != null && passthrough.IsSolidBackgroundActive;
         }
     }
 }

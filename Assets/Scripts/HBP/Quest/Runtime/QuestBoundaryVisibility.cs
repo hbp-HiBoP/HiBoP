@@ -1,3 +1,5 @@
+using HBP.Core.Enums;
+using HBP.Core.Preferences;
 using UnityEngine;
 using UnityEngine.XR.OpenXR;
 using UnityEngine.XR.OpenXR.Features.Meta;
@@ -24,8 +26,11 @@ namespace HBP.Quest
 
         private void Update()
         {
+            bool solidBackgroundRequested = PersistentDataManager.IsInitialized && PersistentDataManager.UserPreferences.General?.Quest?.Environment == QuestEnvironment.SolidBackground;
+            if (!solidBackgroundRequested) passthrough?.SetSolidBackground(false);
             if (!OpenXRRuntime.IsExtensionEnabled("XR_META_boundary_visibility"))
             {
+                passthrough?.SetSolidBackground(false);
                 feature = null;
                 acceptedRequest = lastRequested = lastReported = null;
                 recenteringConfigured = false;
@@ -33,7 +38,12 @@ namespace HBP.Quest
             }
 
             var available = OpenXRSettings.Instance?.GetFeature<BoundaryVisibilityFeature>();
-            if (available == null || !available.enabled) return;
+            if (available == null || !available.enabled)
+            {
+                passthrough?.SetSolidBackground(false);
+                return;
+            }
+
             if (feature != available)
             {
                 feature = available;
@@ -54,22 +64,33 @@ namespace HBP.Quest
                 Debug.Log($"QUEST-008 boundary actual={feature.currentVisibility}", this);
             }
 
-            bool suppress = freeMovementInPassthrough && focused && !paused && passthrough != null && passthrough.GetProblem() == null;
+            bool suppress = !solidBackgroundRequested && freeMovementInPassthrough && focused && !paused && passthrough != null && passthrough.GetProblem() == null;
             Request(suppress, false);
+            if (!solidBackgroundRequested || passthrough == null) return;
+
+            // An accepted request is asynchronous. Keep the room visible until the runtime reports restoration.
+            bool boundaryVisible = feature.currentVisibility == XrBoundaryVisibility.VisibilityNotSuppressed;
+            bool boundaryRestored = acceptedRequest == XrBoundaryVisibility.VisibilityNotSuppressed && boundaryVisible;
+            if (passthrough.IsSolidBackgroundActive)
+            {
+                if (!boundaryVisible) passthrough.SetSolidBackground(false);
+            }
+            else if (boundaryRestored && focused && !paused && passthrough.GetProblem() == null)
+                passthrough.SetSolidBackground(true);
         }
 
         private void Request(bool suppress, bool immediate)
         {
             if (feature == null || !feature.enabled || !OpenXRRuntime.IsExtensionEnabled("XR_META_boundary_visibility")) return;
             var desired = suppress ? XrBoundaryVisibility.VisibilitySuppressed : XrBoundaryVisibility.VisibilityNotSuppressed;
-            if (!immediate && acceptedRequest == desired && feature.currentVisibility == desired) return;
+            if (!immediate && lastRequested == desired && acceptedRequest == desired && feature.currentVisibility == desired) return;
             if (!immediate && lastRequested == desired && Time.unscaledTime < retryAt) return;
             bool changed = lastRequested != desired;
             lastRequested = desired;
             retryAt = Time.unscaledTime + 1f;
             XrResult result = feature.TryRequestBoundaryVisibility(desired);
             // A positive SUPPRESSION_NOT_ALLOWED result is a refusal, not XR_SUCCESS.
-            if (result == XrResult.Success) acceptedRequest = desired;
+            acceptedRequest = result == XrResult.Success ? desired : null;
             if (changed || lastResult != result)
                 Debug.Log($"QUEST-008 boundary request={desired}; result={result}; actual={feature.currentVisibility}", this);
             lastResult = result;
@@ -94,6 +115,7 @@ namespace HBP.Quest
         private void OnDisable()
         {
             // Restoration must also work before the asynchronous suppression event arrives.
+            passthrough?.SetSolidBackground(false);
             Request(false, true);
             feature = null;
             acceptedRequest = lastRequested = lastReported = null;

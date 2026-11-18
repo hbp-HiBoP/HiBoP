@@ -157,7 +157,29 @@ namespace HBP.Tests.PlatformConfiguration
             foreach (var tracker in trackers.Where(t => t.Role != QuestDevicePoseTracker.DeviceRole.Head))
             {
                 Assert.That(tracker.transform.parent, Is.EqualTo(origin.CameraFloorOffsetObject.transform));
-                Assert.That(tracker.GetComponent<Renderer>(), Is.Null, "Controller diagnostics are removed; pose tracking remains.");
+                var fields = new SerializedObject(tracker);
+                Assert.That(fields.FindProperty("diagnosticRenderer").objectReferenceValue, Is.Null);
+                var controller = (MeshRenderer)fields.FindProperty("solidBackgroundController").objectReferenceValue;
+                Assert.That(controller, Is.Not.Null, tracker.Role.ToString());
+                Assert.That(controller.transform.parent, Is.EqualTo(tracker.transform));
+                Assert.That(controller.transform.localPosition, Is.EqualTo(Vector3.zero));
+                Assert.That(controller.transform.localRotation, Is.EqualTo(Quaternion.identity));
+                Assert.That(tracker.transform.localScale, Is.EqualTo(Vector3.one));
+                Assert.That(controller.transform.localScale, Is.EqualTo(Vector3.one));
+                Assert.That(controller.enabled, Is.False, "Only the effective Solid Background mode enables the mesh.");
+                Assert.That(controller.GetComponentInChildren<Collider>(true), Is.Null);
+                var mesh = controller.GetComponent<MeshFilter>().sharedMesh;
+                string side = tracker.Role == QuestDevicePoseTracker.DeviceRole.LeftController ? "Left" : "Right";
+                Assert.That(AssetDatabase.GetAssetPath(mesh), Does.EndWith($"/Touch Plus {side}.obj"));
+                var material = controller.sharedMaterial;
+                Assert.That(material.shader.name, Is.EqualTo("HBP/Quest/Controller"));
+                Assert.That(ShaderUtil.ShaderHasError(material.shader), Is.False);
+                Assert.That(AssetDatabase.GetAssetPath(material.GetTexture("_BaseMap")), Does.EndWith($"/Touch Plus {side} Base Color.png"));
+                Assert.That(mesh.bounds.size.z, Is.InRange(.10f, .14f), "Controller dimensions are in metres.");
+                Assert.That(mesh.bounds.min.z, Is.LessThan(-.06f), "The handle extends behind the grip origin.");
+                Assert.That(mesh.bounds.max.z, Is.GreaterThan(.04f), "The buttons extend ahead of the grip origin.");
+                float inward = tracker.Role == QuestDevicePoseTracker.DeviceRole.LeftController ? 1 : -1;
+                Assert.That(mesh.bounds.center.x * inward, Is.GreaterThan(0), "The wider side of the controller is inward.");
             }
         }
     }
