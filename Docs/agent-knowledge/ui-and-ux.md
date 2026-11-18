@@ -114,12 +114,12 @@ sphere by the ratio of the separation between the two grab points, around their
 midpoint like brain manipulation. Each hand can use contact or ray independently.
 Prefer grip over aim whenever grip is already within contact and freeze that
 choice per hand. Two close grab points must reach the minimum span before
-scaling starts. Cage rotation stays local to the proxy; the shared
+scaling starts. Guide rotation stays local to the proxy; the shared
 sphere still has only position and radius. Joining/releasing reanchors without
 snapping; there is no resize mode. New Quest spheres have a 20 mm radius and start
 at the first hit from the headset toward the selected displayed brain's center,
 using that column's ray target and converting back through its scientific frame.
-If no surface hit is available, use the brain center. Cage renderers share scene
+If no surface hit is available, use the brain center. ROI guides share scene
 depth with the scientific surfaces and ordinary windows. The universal pointer
 prefers ROI at equal contact or ray distance and freezes the
 scene/column/ROI/sphere throughout capture. Copies in other columns share one
@@ -129,8 +129,10 @@ ROI/sphere creation propagates through the ordinary shared mutations.
 Cut and ROI edits share the reliable scene-object edit lane: one proposal in
 flight, latest unsent sphere position/radius intent retained and rebased on the
 confirmed fields/watermark. Preserve structural barriers and scientific sphere
-identity. Sphere selection changes atomically without an intermediate None;
-selected Quest spheres retain the common ROI material instead of a cut hover tint.
+identity. Shared sphere selection changes atomically. Quest applies the selected
+ROI material to every proxy of a sphere for the duration of its local grip
+capture, through the last hand release or cancellation. A grip still selects the
+sphere in the shared model for Desktop editing.
 ROI sphere rows show their index, plain position/radius text and remove action;
 Add sphere is the final list item. Quest input and placeholder text is vertically
 centered while preserving its horizontal alignment.

@@ -186,7 +186,6 @@ namespace HBP.Quest
                 renderer.gameObject.SetActive(source.gameObject.activeInHierarchy && scene.ROIManager.ROICreationMode);
                 renderer.transform.localPosition = source.transform.localPosition;
                 renderer.transform.localScale = source.transform.localScale;
-                renderer.sharedMaterial = source.GetComponent<Renderer>().sharedMaterial;
                 renderer.GetComponent<MeshFilter>().sharedMesh = source.GetComponent<MeshFilter>().sharedMesh;
             }
         }

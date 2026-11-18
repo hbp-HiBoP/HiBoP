@@ -61,10 +61,15 @@ namespace HBP.Tests.Quest
             await UniTask.NextFrame();
             var proxy = f.Proxies[0];
             Vector3 start = proxy.Frame.TransformPoint(f.Sphere.Position);
+            Assert.That(f.ROI.SelectedSphere, Is.SameAs(f.Sphere));
+            f.AssertSphereMaterials(manipulated: false);
+            f.ROI.SelectSphere(-1);
             input.Track(start);
             input.PressSecondary(true);
             Assert.That(f.Handles.IsCaptured(0), Is.True);
             Assert.That(f.Handles.IsColumnLocked(proxy.Column.Manipulator), Is.True);
+            Assert.That(f.ROI.SelectedSphere, Is.SameAs(f.Sphere));
+            f.AssertSphereMaterials(manipulated: true);
             f.Handles.SetHand(1, true, f.Proxies[1].Frame.TransformPoint(f.Sphere.Position), f.Proxies[1].Frame.TransformPoint(f.Sphere.Position));
             Assert.That(f.Handles.Begin(1, f.Proxies[1]), Is.False, "The other column represents the same sphere.");
             input.Track(start + proxy.Frame.TransformVector(new Vector3(4, -3, 2)));
@@ -73,6 +78,8 @@ namespace HBP.Tests.Quest
             Assert.That(f.Scene.TryBeginCoordinatedActivityProjection(out _), Is.False, "A held scientific-input gesture reserves its computation inputs.");
             input.PressSecondary(false);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
+            f.AssertSphereMaterials(manipulated: false);
+            Assert.That(f.ROI.SelectedSphere, Is.SameAs(f.Sphere), "Release keeps the shared Desktop edit target.");
             input.Track(proxy.Column.Manipulator.GrabCenter);
             input.Press(true);
             input.PressSecondary(true);
@@ -222,6 +229,7 @@ namespace HBP.Tests.Quest
             Assert.That(f.Handles.Candidate(1), Is.SameAs(proxy), "The second grip can join from a distance, as it does for the brain.");
             Assert.That(f.Handles.Begin(1, proxy), Is.True);
             Assert.That(f.Handles.ShareCapture(0, 1), Is.True);
+            f.AssertSphereMaterials(manipulated: true);
             var left = proxy.Frame.TransformPoint(Vector3.left * 30);
             var right = proxy.Frame.TransformPoint(Vector3.right * 90);
             f.Handles.SetHand(0, true, left, left);
@@ -234,6 +242,7 @@ namespace HBP.Tests.Quest
             Assert.That(f.Sphere.Position, Is.EqualTo(Vector3.one));
             Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(12));
             f.Handles.End(1);
+            f.AssertSphereMaterials(manipulated: true);
             f.Handles.Move(0);
             Assert.That(f.Sphere.Position, Is.EqualTo(Vector3.one), "Changing the number of hands must not snap the sphere.");
             var moved = left + proxy.Frame.TransformVector(Vector3.up * 4);
@@ -242,6 +251,7 @@ namespace HBP.Tests.Quest
             Assert.That(Vector3.Distance(f.Sphere.Position, Vector3.one + Vector3.up * 4), Is.LessThan(.0001));
             Assert.That(f.Sphere.InfluenceRadius, Is.EqualTo(12));
             f.Handles.End(0);
+            f.AssertSphereMaterials(manipulated: false);
             Assert.That(f.Scene.TryBeginCoordinatedActivityProjection(out var scope), Is.True);
             scope.Dispose();
         }
@@ -321,6 +331,7 @@ namespace HBP.Tests.Quest
 
             Assert.That(f.Handles.Move(0), Is.False);
             Assert.That(f.Handles.IsCaptured(0), Is.False);
+            f.AssertSphereMaterials(manipulated: false);
             if (interruption is "close" or "suspend" or "tracking") Assert.That(f.Scene.ROIManager.SelectedROI, Is.SameAs(f.ROI));
             if (interruption == "delete") Assert.That(f.ROI.Spheres.Single().Position, Is.EqualTo(Vector3.one * 40));
             if (interruption == "selection") Assert.That(f.Scene.ROIManager.SelectedROI.Spheres.Single().Position, Is.EqualTo(Vector3.one * 50));
@@ -433,7 +444,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public async Task Cage_SharesWorldDepthAndRendersBelowModalOverlays()
+        public async Task ROISphere_SharesWorldDepthAndRendersBelowModalOverlays()
         {
             using var f = new Fixture();
             var root = new GameObject("ROI window compositing fixture");
@@ -459,8 +470,8 @@ namespace HBP.Tests.Quest
                 cage.transform.position = Vector3.forward * .3f;
                 cage.transform.localScale = Vector3.one * .25f;
                 cage.GetComponent<MeshFilter>().sharedMesh = f.Sphere.GetComponent<MeshFilter>().sharedMesh;
-                material.SetColor("_WireColor", Color.red);
-                material.SetColor("_ContrastColor", Color.red);
+                material.SetColor("_FillColor", Color.red);
+                material.SetColor("_RimColor", Color.red);
                 cage.GetComponent<Renderer>().sharedMaterial = material;
                 var panel = new GameObject("World window", typeof(RectTransform), typeof(Canvas), typeof(Image));
                 panel.transform.SetParent(root.transform, false);
@@ -530,11 +541,16 @@ namespace HBP.Tests.Quest
             Canvas.ForceUpdateCanvases();
             QuestWindowInteractionTests.Capture(f.Cuts.Camera, "Quest ROI Window.png");
             var proxy = f.Proxies[0];
-            proxy.Feedback(AssetDatabase.LoadAssetAtPath<QuestCutGizmoSettings>("Assets/Resources/Themes/Quest/Settings/Quest Cut Gizmo.asset"), true, false);
+            var feedback = AssetDatabase.LoadAssetAtPath<QuestCutGizmoSettings>("Assets/Resources/Themes/Quest/Settings/Quest Cut Gizmo.asset");
+            proxy.Feedback(feedback, manipulated: false, hovered: true, occupied: false);
             var properties = new MaterialPropertyBlock();
             proxy.GetComponent<Renderer>().GetPropertyBlock(properties);
-            Assert.That(properties.isEmpty, Is.True, "Selected ROI color belongs to its shared scientific material, including during hover/capture.");
-            Assert.That(proxy.GetComponent<Renderer>().sharedMaterial, Is.SameAs(f.Sphere.GetComponent<Renderer>().sharedMaterial));
+            Assert.That(properties.isEmpty, Is.False, "Hover can tint an idle guide even when it is selected in the shared model.");
+            Assert.That(proxy.GetComponent<Renderer>().sharedMaterial, Is.SameAs(f.Sphere.GetMaterial(false)));
+            proxy.Feedback(feedback, manipulated: true, hovered: true, occupied: false);
+            proxy.GetComponent<Renderer>().GetPropertyBlock(properties);
+            Assert.That(properties.isEmpty, Is.True, "The grip selection material takes precedence over hover.");
+            Assert.That(proxy.GetComponent<Renderer>().sharedMaterial, Is.SameAs(f.Sphere.GetMaterial(true)));
             f.Handles.SendMessage("LateUpdate");
             f.ColumnRefresh();
             Assert.That(f.Proxies[0].gameObject.activeSelf, Is.True);
@@ -604,6 +620,14 @@ namespace HBP.Tests.Quest
             public void ColumnRefresh()
             {
                 foreach (var column in Cuts.View.AllColumns) column.SendMessage("LateUpdate");
+            }
+
+            public void AssertSphereMaterials(bool manipulated)
+            {
+                Handles.SendMessage("LateUpdate");
+                ColumnRefresh();
+                foreach (var proxy in Proxies)
+                    Assert.That(proxy.GetComponent<Renderer>().sharedMaterial, Is.SameAs(proxy.Sphere.GetMaterial(manipulated)));
             }
 
             public void Dispose()

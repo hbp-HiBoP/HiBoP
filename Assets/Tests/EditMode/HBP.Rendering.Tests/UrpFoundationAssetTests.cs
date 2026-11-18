@@ -86,7 +86,7 @@ namespace HBP.Tests.Rendering
         [TestCase("HBP/Utility/UnlitColor")]
         [TestCase("HBP/Site")]
         [TestCase("HBP/Site/Selection")]
-        [TestCase("HBP/ROI/AnalyticCage")]
+        [TestCase("HBP/ROI/Sphere")]
         [TestCase("HBP/UI/Texture")]
         [TestCase("HBP/UI/Mask")]
         public void FoundationShader_ImportsWithoutCompilerErrors(string shaderName)

@@ -102,7 +102,7 @@ scientific interiors and remain optional with stable apparent thickness.
 Exclude sites, ROI and interactive camera/cut markers from edge buffers while
 preserving the markers' normal depth occlusion.
 
-Quest composes brains, cuts, sites, cages and world-space scientific text against
+Quest composes brains, cuts, sites, ROI spheres and world-space scientific text against
 the resolved opaque scene depth for each eye. It peels the four nearest
 translucent fragment depths and blends the remaining fragments in draw order
 behind them. Edges follow their source depth before the final XR overlays.
@@ -124,8 +124,10 @@ such as a nearly edge-on plane must not become repeated false edges.
 Sites use their measured specialized rendering path. Do not substitute a generic
 URP shader without comparative profiling, including 30,000 sites per column.
 Any instancing redesign preserves selection, hover, picking, filters, size,
-color and per-column visibility. ROI wireframes work without a geometry shader
-on Metal. Multi-view stress includes 8–9 columns × 3 views; the combined extreme
+color and per-column visibility. ROI spheres blend a shaded fill and a single
+analytic rim, with independent material controls. Preserve the shared Desktop
+and Quest depth paths and Metal support without a geometry shader. Multi-view
+stress includes 8–9 columns × 3 views; the combined extreme
 must remain stable, not necessarily fluid. These are validation workloads, not
 arbitrary product limits.
 

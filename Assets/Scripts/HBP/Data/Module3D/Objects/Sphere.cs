@@ -104,16 +104,11 @@ namespace HBP.Data.Module3D
             set
             {
                 m_Selected = value;
-                if (m_Selected)
-                {
-                    GetComponent<Renderer>().sharedMaterial = m_SharedMaterials.ROI.Selected;
-                }
-                else
-                {
-                    GetComponent<Renderer>().sharedMaterial = m_SharedMaterials.ROI.Normal;
-                }
+                GetComponent<Renderer>().sharedMaterial = GetMaterial(value);
             }
         }
+
+        public Material GetMaterial(bool selected) => selected ? m_SharedMaterials.ROI.Selected : m_SharedMaterials.ROI.Normal;
 
         #endregion
 

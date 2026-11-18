@@ -274,8 +274,7 @@ namespace HBP.Quest
             foreach (var sphere in column.ROISpheres)
             {
                 if (sphere == null || !sphere.IsValid) continue;
-                bool captured = drags.Any(value => value?.Target == sphere);
-                sphere.Feedback(feedback, captured || sphere == left || sphere == right || rayHovered.Contains(sphere), IsSphereLocked(sphere.Sphere) && !captured || column.Manipulator.IsGrabbed);
+                sphere.Feedback(feedback, IsSphereLocked(sphere.Sphere), sphere == left || sphere == right || rayHovered.Contains(sphere), column.Manipulator.IsGrabbed);
             }
         }
 

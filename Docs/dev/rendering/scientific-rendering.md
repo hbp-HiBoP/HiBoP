@@ -93,10 +93,13 @@ Markers retain normal occlusion. A change in slope, rather than a uniform
 slope, triggers depth outlines. Pass data is isolated per camera;
 the composite preserves alpha.
 
-The actual ROI is an **analytical cage**, despite the filename
-`ROI/HBPROIWireframe.shader`: seven circles, silhouette, contrasting understroke
-and thickness stabilized by `fwidth`, without a geometry shader or need for
-barycentric coordinates. It uses a compact indexed mesh.
+The ROI sphere uses `ROI/HBPROISphere.shader` with a translucent,
+camera-relative shaded fill and an analytic silhouette stabilized by `fwidth`.
+It uses a compact indexed mesh without a geometry shader or barycentric
+coordinates. In the material inspector, the Fill and Rim groups control color
+and opacity separately. The Rim group also controls thickness and softness in
+pixels. Both materials default to 30% maximum fill opacity, with white for the
+normal material and the application's selection blue for the selected material.
 
 Sites retain a small shared mesh, specialized RGBA shader, per-state materials
 and individual objects/colliders for picking. The shader supports an instancing

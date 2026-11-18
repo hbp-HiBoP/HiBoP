@@ -8,6 +8,7 @@ namespace HBP.Quest
     {
         private MeshRenderer cachedRenderer;
         private MaterialPropertyBlock properties;
+        private static readonly int RimColor = Shader.PropertyToID("_RimColor");
         public QuestColumnPresentation Column { get; private set; }
         public ROI ROI { get; private set; }
         public Sphere Sphere { get; private set; }
@@ -16,7 +17,14 @@ namespace HBP.Quest
 
         public void Bind(QuestColumnPresentation column, ROI roi, Sphere sphere)
         {
-            if (Sphere != sphere) transform.localRotation = Quaternion.identity;
+            if (Sphere != sphere)
+            {
+                transform.localRotation = Quaternion.identity;
+                cachedRenderer ??= GetComponent<MeshRenderer>();
+                cachedRenderer.sharedMaterial = sphere.GetMaterial(false);
+                cachedRenderer.SetPropertyBlock(null);
+            }
+
             Column = column;
             ROI = roi;
             Sphere = sphere;
@@ -48,12 +56,11 @@ namespace HBP.Quest
             return distance >= 0 && float.IsFinite(distance);
         }
 
-        public void Feedback(QuestCutGizmoSettings style, bool hovered, bool occupied)
+        public void Feedback(QuestCutGizmoSettings style, bool manipulated, bool hovered, bool occupied)
         {
-            cachedRenderer ??= GetComponent<MeshRenderer>();
-            if (style == null) return;
-            // Scientific selection owns its material color on both platforms.
-            var color = Sphere != null && Sphere.Selected ? null : occupied ? style.Occupied : hovered ? style.Hovered : null;
+            var material = Sphere.GetMaterial(manipulated);
+            if (cachedRenderer.sharedMaterial != material) cachedRenderer.sharedMaterial = material;
+            var color = manipulated || style == null ? null : occupied ? style.Occupied : hovered ? style.Hovered : null;
             if (color == null)
             {
                 cachedRenderer.SetPropertyBlock(null);
@@ -61,7 +68,7 @@ namespace HBP.Quest
             }
 
             properties ??= new MaterialPropertyBlock();
-            properties.SetColor("_WireColor", color.Value);
+            properties.SetColor(RimColor, color.Value);
             cachedRenderer.SetPropertyBlock(properties);
         }
     }

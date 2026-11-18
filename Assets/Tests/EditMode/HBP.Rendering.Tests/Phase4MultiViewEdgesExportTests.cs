@@ -582,7 +582,7 @@ namespace HBP.Tests.Rendering
             string opaqueBrain = File.ReadAllText(BrainShaderPath);
             string opaqueCut = File.ReadAllText(CutShaderPath);
             string site = File.ReadAllText("Assets/Shaders/HBP/Sites/HBPSite.shader");
-            string roi = File.ReadAllText("Assets/Shaders/HBP/ROI/HBPROIWireframe.shader");
+            string roi = File.ReadAllText("Assets/Shaders/HBP/ROI/HBPROISphere.shader");
             string gizmo = File.ReadAllText("Assets/Shaders/HBP/Utility/HBPUnlitColor.shader");
 
             StringAssert.Contains("LightMode\" = \"HBPEdgeMask", brain);
