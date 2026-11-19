@@ -44,7 +44,7 @@ jobs:
           matrix='{"include":[
             {"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},
             {"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},
-            {"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
+            {"name":"macOS (ARM64)","platform":"macos","os":"macos-15","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
             {"name":"Quest","platform":"quest","os":"windows-latest","module":"Android","modules":"","artifact":"HiBoP-Quest"}
           ]}'
           case "$SELECTED_PLATFORM" in
@@ -248,6 +248,7 @@ jobs:
 
       - name: Validate and sign macOS application
         if: matrix.platform == 'macos'
+        id: macos_signing
         run: |
           set -euo pipefail
           folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
@@ -281,12 +282,34 @@ jobs:
             exit 1
           fi
 
-          # HBPBuilder moves ARM64 plugins after BuildPipeline.BuildPlayer. Sign
-          # the completed bundle so those post-build changes and resources are
-          # sealed too.
-          codesign --force --deep --sign - "$app"
-          codesign --verify --deep --strict --verbose=2 "$app"
-          echo "Validated and signed application: $app"
+          # HBPBuilder updates Info.plist and moves plugins after Unity signs
+          # the player. Recreate the outer signature after all nested code is signed.
+          plutil -lint "$app/Contents/Info.plist"
+          codesign --remove-signature "$app"
+          if ! codesign --sign - "$app"; then
+            # Unity may leave unsigned nested code in a clean build.
+            codesign --sign - --deep "$app"
+          fi
+          if codesign --verify --deep --strict --verbose=2 "$app"; then
+            echo "Validated and signed application: $app"
+          else
+            status=$?
+            codesign --display --verbose=4 --requirements - "$app" || true
+            if ditto -c -k --sequesterRsrc --keepParent "$folder" "$RUNNER_TEMP/macos-signing-recovery.zip"; then
+              echo "recovery_archive=true" >> "$GITHUB_OUTPUT"
+            fi
+            exit "$status"
+          fi
+
+      - name: Preserve macOS build for signature diagnosis
+        if: failure() && steps.macos_signing.outputs.recovery_archive == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-signing-recovery
+          path: ${{ runner.temp }}/macos-signing-recovery.zip
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
 
       - name: Validate absence of bundled ADB
         if: matrix.platform != 'quest'

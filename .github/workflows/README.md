@@ -74,8 +74,8 @@ validation fails. Before replacing files it saves all current payloads under
 `.native-plugin-update/<request-id>`, and restores them if installation fails.
 On success it writes `Tools/NativePlugins.lock.json` with the source commits,
 GitHub run URLs and installed hashes. Commit that lock file together with the
-declared native payloads, then run **Build HiBoP** with `platform: all` for Desktop
-and `platform: quest` for Android.
+declared native payloads, then run **Build HiBoP** with `platform: all` to check
+the four platforms together.
 
 The local validation suite does not use GitHub or modify the real plugins:
 
