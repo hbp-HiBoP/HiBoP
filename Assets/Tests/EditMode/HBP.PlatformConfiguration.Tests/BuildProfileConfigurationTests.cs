@@ -13,6 +13,26 @@ namespace HBP.Tests.PlatformConfiguration
 {
     public class BuildProfileConfigurationTests
     {
+        [TestCase("6.2.0", 60200)]
+        [TestCase("6.2.1", 60201)]
+        [TestCase("6.2.99", 60299)]
+        [TestCase("6.3.0", 60300)]
+        public void QuestVersionCodeUsesProductVersion(string version, int expectedCode)
+        {
+            Assert.That(HBPBuildProfiles.GetQuestVersionCode(version), Is.EqualTo(expectedCode));
+        }
+
+        [TestCase("6.2")]
+        [TestCase("6.2.0-beta")]
+        [TestCase("6.100.0")]
+        [TestCase("6.2.100")]
+        [TestCase("0.0.0")]
+        [TestCase("214749.0.0")]
+        public void QuestVersionCodeRejectsUnrepresentableVersions(string version)
+        {
+            Assert.Throws<BuildFailedException>(() => HBPBuildProfiles.GetQuestVersionCode(version));
+        }
+
         [Test]
         public void MacNetworkPrivacyPlistRemainsReadable()
         {

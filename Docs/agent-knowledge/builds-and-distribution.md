@@ -10,6 +10,10 @@ or native plugin updates. Use the validation skill when executing Unity/builds.
 and build profiles; `HBPBuilder` reapplies it before building and producing build
 metadata. Do not patch a profile or `BuildInfo` independently to fix a mismatch.
 See [HBPBuildProfiles](../../Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs).
+Quest derives its Android version code from the product version using
+`major * 10000 + minor * 100 + patch`. The minor and patch are limited to 0–99.
+The version editor synchronizes the Quest profile and the builder reapplies the
+code. CI compares the APK manifest with the build report before uploading it.
 
 Keep `HBPBuilder` usable locally and in CI. Release builds retain Player logs and
 managed stack traces for errors/exceptions, omit routine log stacks and record

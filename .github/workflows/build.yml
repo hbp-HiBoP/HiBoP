@@ -392,6 +392,25 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($version)) { throw 'Missing version in codemeta.json.' }
           $apk = "build/HiBoP.$version.quest.apk"
           Move-Item -LiteralPath build/HiBoP.Quest.apk -Destination $apk
+          $build = Get-Content -Raw -LiteralPath build/Quest.build-report.json | ConvertFrom-Json
+          $expectedCode = [int]$build.androidVersionCode
+          if ($build.result -ne 'Succeeded' -or $build.target -ne 'Android' -or $expectedCode -le 0) {
+            throw 'Missing Android version code in the successful Quest build report.'
+          }
+          $editor = Split-Path -Parent $env:UNITY_EDITOR_PATH
+          $aapt = Get-ChildItem -Path (Join-Path $editor 'Data/PlaybackEngines/AndroidPlayer/SDK/build-tools/*/aapt.exe') -File |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (!$aapt) { throw 'Unity Android SDK aapt.exe was not found.' }
+          $manifest = & $aapt.FullName dump badging $apk
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the packaged Android manifest.' }
+          $package = ($manifest | Select-String '^package:' | Select-Object -First 1).Line
+          if ($package -notmatch "versionCode='(?<code>[0-9]+)'\s+versionName='(?<version>[^']+)'") {
+            throw 'Missing version fields in the packaged Android manifest.'
+          }
+          if ([int]$Matches.code -ne $expectedCode -or $Matches.version -cne $version) {
+            throw "Quest APK contains version $($Matches.version) and versionCode $($Matches.code); expected $version and $expectedCode."
+          }
+          Write-Host "Verified Quest APK version $version and versionCode $expectedCode."
           ./Tools/Test-QuestApk.ps1 -Apk $apk -ReportPath build/quest-apk-content.json
           "apk=$apk" >> $env:GITHUB_OUTPUT
 

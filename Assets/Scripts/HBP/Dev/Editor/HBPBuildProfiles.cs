@@ -53,16 +53,32 @@ namespace HBP.Dev
         {
             if (string.IsNullOrWhiteSpace(version)) throw new System.ArgumentException("The product version cannot be empty.", nameof(version));
             version = version.Trim();
+            int questVersionCode = GetQuestVersionCode(version);
             JObject metadata = ReadCodeMeta();
             metadata["version"] = version;
             File.WriteAllText(GetCodeMetaPath(), metadata.ToString(Formatting.Indented) + System.Environment.NewLine);
 
-            SynchronizeStoredProductVersion(version);
+            SynchronizeStoredProductVersion(version, questVersionCode);
+        }
+
+        public static int GetQuestVersionCode(string version)
+        {
+            if (!System.Version.TryParse(version, out var parsed) || parsed.Build < 0 || parsed.Revision >= 0 || parsed.Minor > 99 || parsed.Build > 99 || parsed.ToString(3) != version)
+            {
+                throw new BuildFailedException($"Quest requires a version in major.minor.patch format with minor and patch between 0 and 99. Received '{version}'.");
+            }
+
+            long code = parsed.Major * 10000L + parsed.Minor * 100 + parsed.Build;
+            if (code <= 0 || code > int.MaxValue)
+                throw new BuildFailedException($"Product version '{version}' is outside the supported Quest versionCode range.");
+            return (int)code;
         }
 
         public static string ApplyProductVersion()
         {
             string version = ReadProductVersion();
+            if (EditorUserBuildSettings.activeBuildTarget == BuildTarget.Android)
+                PlayerSettings.Android.bundleVersionCode = GetQuestVersionCode(version);
             PlayerSettings.bundleVersion = version;
             if (PlayerSettings.bundleVersion != version)
             {
@@ -98,11 +114,12 @@ namespace HBP.Dev
             return Directory.GetParent(Application.dataPath).FullName;
         }
 
-        private static void SynchronizeStoredProductVersion(string version)
+        private static void SynchronizeStoredProductVersion(string version, int questVersionCode)
         {
             UpdatePlayerSettingsVersion(GetGlobalPlayerSettings(), version);
             UpdateProfilePlayerSettings(Load(false), version);
-            UpdateProfilePlayerSettings(Load(true), version);
+            var questProfile = Load(true);
+            UpdateProfilePlayerSettings(questProfile, version, questVersionCode);
 
             PlayerSettings.bundleVersion = version;
             if (PlayerSettings.bundleVersion != version)
@@ -124,6 +141,7 @@ namespace HBP.Dev
             }
 
             BuildProfile activeProfile = BuildProfile.GetActiveBuildProfile();
+            if (activeProfile == questProfile) PlayerSettings.Android.bundleVersionCode = questVersionCode;
             if (activeProfile != null) EditorUtility.SetDirty(activeProfile);
             AssetDatabase.SaveAssets();
             AssetDatabase.ImportAsset(buildInfoAssetPath, ImportAssetOptions.ForceUpdate);
@@ -137,16 +155,16 @@ namespace HBP.Dev
             return settings;
         }
 
-        private static void UpdateProfilePlayerSettings(BuildProfile profile, string version)
+        private static void UpdateProfilePlayerSettings(BuildProfile profile, string version, int? androidVersionCode = null)
         {
             PropertyInfo property = typeof(BuildProfile).GetProperty("playerSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             PlayerSettings settings = property?.GetValue(profile) as PlayerSettings;
             if (settings == null) throw new System.InvalidOperationException($"Could not access Player Settings for build profile '{profile.name}'.");
-            UpdatePlayerSettingsVersion(settings, version);
+            UpdatePlayerSettingsVersion(settings, version, androidVersionCode);
             EditorUtility.SetDirty(profile);
         }
 
-        private static void UpdatePlayerSettingsVersion(PlayerSettings settings, string version)
+        private static void UpdatePlayerSettingsVersion(PlayerSettings settings, string version, int? androidVersionCode = null)
         {
             SerializedObject serializedSettings = new(settings);
             SerializedProperty bundleVersion = serializedSettings.FindProperty("bundleVersion");
@@ -156,6 +174,14 @@ namespace HBP.Dev
             }
 
             bundleVersion.stringValue = version;
+            if (androidVersionCode.HasValue)
+            {
+                SerializedProperty versionCode = serializedSettings.FindProperty("AndroidBundleVersionCode");
+                if (versionCode == null || versionCode.propertyType != SerializedPropertyType.Integer)
+                    throw new System.InvalidOperationException("Could not find the AndroidBundleVersionCode field in the Quest Player Settings.");
+                versionCode.intValue = androidVersionCode.Value;
+            }
+
             serializedSettings.ApplyModifiedProperties();
             EditorUtility.SetDirty(settings);
         }
@@ -187,6 +213,8 @@ namespace HBP.Dev
             string expectedVersion = ReadProductVersion();
             if (PlayerSettings.bundleVersion != expectedVersion)
                 throw new BuildFailedException($"{profile.name} uses bundle version '{PlayerSettings.bundleVersion}', but codemeta.json declares '{expectedVersion}'. Build through HBPBuilder to synchronize it.");
+            if (quest && PlayerSettings.Android.bundleVersionCode != GetQuestVersionCode(expectedVersion))
+                throw new BuildFailedException($"{profile.name} has an out-of-date Android Bundle Version Code. Build through HBPBuilder to synchronize it.");
             bool demo = quest && HBPBuilder.IsQuestUIDemoBuild;
             bool lab = quest && HBPBuilder.IsQuestSelectionLabBuild;
             if (demo && PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android) != QuestUIDemoIdentifier)
@@ -241,6 +269,7 @@ namespace HBP.Dev
                 profile = AssetDatabase.GetAssetPath(profile),
                 unity = Application.unityVersion,
                 target = report.summary.platform.ToString(),
+                androidVersionCode = report.summary.platform == BuildTarget.Android ? (int?)PlayerSettings.Android.bundleVersionCode : null,
                 result = report.summary.result.ToString(),
                 bytes = report.summary.totalSize,
                 seconds = report.summary.totalTime.TotalSeconds,
@@ -283,7 +312,7 @@ namespace HBP.Dev
         {
             EditorGUILayout.LabelField("Version in codemeta.json");
             m_Version = EditorGUILayout.TextField("Version", m_Version);
-            EditorGUILayout.HelpBox("Saving updates global Player Settings, both build profiles, and BuildInfo. HBPBuilder also reapplies this version before each build.", MessageType.Info);
+            EditorGUILayout.HelpBox("Saving updates Player Settings, both build profiles, and the Quest Bundle Version Code. HBPBuilder reapplies the version before each build.", MessageType.Info);
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
