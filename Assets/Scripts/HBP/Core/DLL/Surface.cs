@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -37,9 +36,11 @@ namespace HBP.Core.DLL
 
     public enum SurfaceInflationCoordinateSpace
     {
-        CurrentSurfaceCoordinates,
-        NativeGifti,
-        NativeGiftiThenTransformed
+        CurrentSurfaceCoordinates = 0,
+
+        // Historical wire values retained so prepared results can be rejected explicitly.
+        NativeGifti = 1,
+        NativeGiftiThenTransformed = 2
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -165,7 +166,7 @@ namespace HBP.Core.DLL
         public SurfaceInflationReport Report { get; }
 
         /// <summary>
-        /// Identifies whether inflation used the surface's current coordinates or native GIFTI coordinates.
+        /// New results always use the anatomical surface's current coordinates.
         /// The caller owns <see cref="Surface"/> and must dispose it.
         /// </summary>
         public SurfaceInflationCoordinateSpace CoordinateSpace { get; }
@@ -200,6 +201,8 @@ namespace HBP.Core.DLL
 
     public class Surface : CppDLLImportBase, ICloneable
     {
+        // Geometry and atlas labels share giftilib's process-global parser state.
+        private static readonly object GiftiReadGate = new();
         private int[] m_TriangleIndices = Array.Empty<int>();
         private Vector3[] m_Vertices = Array.Empty<Vector3>();
         private Vector3[] m_Normals = Array.Empty<Vector3>();
@@ -213,7 +216,12 @@ namespace HBP.Core.DLL
 
         public bool IsLoaded { get; private set; }
         public bool IsMarsAtlasLoaded { get; private set; }
+
+        /// <summary>Restore the atlas flag together with validated prepared surface colors.</summary>
+        public void SetPreparedAtlasAvailability(bool available) => IsMarsAtlasLoaded = available;
+
         public long GeometryVersion { get; private set; }
+        internal long TransferRevision { get; private set; }
 
         public Vector3 Center
         {
@@ -304,7 +312,8 @@ namespace HBP.Core.DLL
 
         public bool LoadGIIFile(string gii, string transformation = "")
         {
-            IsLoaded = hbp_surface_load_gifti(_handle.Handle, gii) == HbpCoreStatus.Ok;
+            lock (GiftiReadGate)
+                IsLoaded = hbp_surface_load_gifti(_handle.Handle, gii) == HbpCoreStatus.Ok;
             if (IsLoaded && !string.IsNullOrEmpty(transformation))
             {
                 using Transformation3 transform = Transformation3.FromFile(transformation);
@@ -318,45 +327,12 @@ namespace HBP.Core.DLL
         }
 
         /// <summary>
-        /// Inflates this surface in its current coordinate system. This is the appropriate path for
-        /// surfaces that have no persistent GIFTI source.
+        /// Inflates the complete anatomical surface in its current coordinate system without changing it.
+        /// File transformations must already have been applied during initial loading.
         /// </summary>
         public UniTask<SurfaceInflationResult> InflateAsync(SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
         {
             return InflateCoreAsync(this, options, progress, cancellationToken, SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates);
-        }
-
-        /// <summary>
-        /// Loads and inflates a GIFTI surface in native coordinates, then applies the requested
-        /// transformation to the completed inflated surface.
-        /// </summary>
-        public static async UniTask<SurfaceInflationResult> InflateGIIFileAsync(string gii, string transformation = "", SurfaceInflationOptions? options = null, IProgress<float> progress = null, CancellationToken cancellationToken = default)
-        {
-            if (string.IsNullOrWhiteSpace(gii)) throw new ArgumentException("Expected a GIFTI file path.", nameof(gii));
-
-            using Surface nativeSurface = new();
-            if (!nativeSurface.LoadGIIFile(gii))
-            {
-                throw new InvalidOperationException($"Could not load GIFTI surface '{gii}': {HbpCoreRuntime.LastError}");
-            }
-
-            SurfaceInflationCoordinateSpace coordinateSpace = string.IsNullOrWhiteSpace(transformation) ? SurfaceInflationCoordinateSpace.NativeGifti : SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed;
-            SurfaceInflationResult result = await InflateCoreAsync(nativeSurface, options, progress, cancellationToken, coordinateSpace);
-            try
-            {
-                if (!string.IsNullOrWhiteSpace(transformation))
-                {
-                    using Transformation3 transform = Transformation3.FromFile(transformation);
-                    result.Surface.ApplyTransformation(transform);
-                }
-
-                return result;
-            }
-            catch
-            {
-                result.Surface.Dispose();
-                throw;
-            }
         }
 
         public bool LoadTRIFile(string tri, string transformation = "")
@@ -376,8 +352,10 @@ namespace HBP.Core.DLL
 
         public bool SearchMarsParcelFileAndUpdateColors(MarsAtlas index, string pathMarsParcel)
         {
+            ++TransferRevision;
             if (index == null) throw new ArgumentNullException(nameof(index));
-            IsMarsAtlasLoaded = hbp_surface_apply_mars_atlas_parcels(_handle.Handle, index.getHandle().Handle, pathMarsParcel) == HbpCoreStatus.Ok;
+            lock (GiftiReadGate)
+                IsMarsAtlasLoaded = hbp_surface_apply_mars_atlas_parcels(_handle.Handle, index.getHandle().Handle, pathMarsParcel) == HbpCoreStatus.Ok;
             return IsMarsAtlasLoaded;
         }
 
@@ -390,6 +368,7 @@ namespace HBP.Core.DLL
 
         public void ComputeNormals()
         {
+            ++TransferRevision;
             ThrowIfFailed(hbp_surface_compute_normals(_handle.Handle));
         }
 
@@ -486,6 +465,12 @@ namespace HBP.Core.DLL
             UpdateMesh(mesh, all, vertices, normals, uv, triangles, colors);
         }
 
+        public Vector3[] CopyVertexPositions()
+        {
+            CopyMeshBuffers();
+            return (Vector3[])m_Vertices.Clone();
+        }
+
         public void DisplaySizes()
         {
             SurfaceSizes sizes = GetSizes();
@@ -495,6 +480,8 @@ namespace HBP.Core.DLL
         public void SwapDLLHandle(Surface surface)
         {
             if (surface == null) throw new ArgumentNullException(nameof(surface));
+            ++TransferRevision;
+            ++surface.TransferRevision;
             HandleRef buffer = surface.getHandle();
             surface._handle = _handle;
             _handle = buffer;
@@ -512,6 +499,22 @@ namespace HBP.Core.DLL
             Vec3 nativePoint = Vec3.FromVector3(point);
             ThrowIfFailed(hbp_surface_is_point_inside(_handle.Handle, ref nativePoint, out int inside));
             return inside != 0;
+        }
+
+        /// <summary>Inflation changes vertex positions only; retain the original scientific attributes.</summary>
+        public void CopyAnatomicalAttributesFrom(Surface source)
+        {
+            ++TransferRevision;
+            if (NumberOfVertices != source.NumberOfVertices || NumberOfTriangles != source.NumberOfTriangles)
+                throw new InvalidOperationException("Inflation changed anatomical topology.");
+            using Surface snapshot = source.CloneForTransfer();
+            var buffers = snapshot.CopyTransferBuffers();
+            if (buffers.uv.Length > 0)
+                ThrowIfFailed(hbp_surface_set_uvs(_handle.Handle, buffers.uv.Select(Vec2.FromVector2).ToArray(), buffers.uv.Length));
+            if (buffers.colors.Length > 0)
+                ThrowIfFailed(hbp_surface_set_colors(_handle.Handle, buffers.colors.Select(Color4.FromColor).ToArray(), buffers.colors.Length));
+            SetPreparedAtlasAvailability(source.IsMarsAtlasLoaded);
+            UpdateVisibilityMask(source.VisibilityMask).Dispose();
         }
 
         public void SetBuffers(Vector3[] vertices, int[] triangles, Vector3[] normals = null, Vector2[] uv = null, Color[] colors = null)
@@ -550,6 +553,16 @@ namespace HBP.Core.DLL
             return new Surface(this) { IsLoaded = IsLoaded, IsMarsAtlasLoaded = IsMarsAtlasLoaded };
         }
 
+        internal Surface CloneForTransfer() => new(CloneNativeSurface(this)) { IsLoaded = IsLoaded, IsMarsAtlasLoaded = IsMarsAtlasLoaded };
+
+        // Called on a private clone. Returned arrays belong to that clone and remain
+        // valid after Dispose releases its pins; no Unity Mesh or coordinate rewrite.
+        internal (Vector3[] vertices, int[] triangles, Vector3[] normals, Vector2[] uv, Color[] colors) CopyTransferBuffers()
+        {
+            CopyMeshBuffers();
+            return (m_Vertices, m_TriangleIndices, m_Normals, m_UV, m_Colors);
+        }
+
         public override void Dispose()
         {
             FreePinnedMeshBuffers();
@@ -583,13 +596,14 @@ namespace HBP.Core.DLL
         {
             using SurfaceInflationOperation operation = new(source, options);
             using CancellationTokenRegistration cancellationRegistration = cancellationToken.Register(operation.RequestCancellation);
-            Task<SurfaceInflationExecution> executionTask = Task.Run(operation.Execute);
+            // The worker owns the native operation until completion, even after cancellation.
+            UniTask<SurfaceInflationExecution> executionTask = UniTask.RunOnThreadPool(operation.Execute, configureAwait: false).ToAsyncLazy().Task;
             Exception progressException = null;
 
-            while (!executionTask.IsCompleted)
+            while (!executionTask.Status.IsCompleted())
             {
                 TryReportProgress(progress, operation.Progress, ref progressException);
-                await Task.Delay(15);
+                await UniTask.Delay(TimeSpan.FromMilliseconds(15), DelayType.Realtime);
             }
 
             SurfaceInflationExecution execution = await executionTask;
@@ -631,7 +645,7 @@ namespace HBP.Core.DLL
             return sizes;
         }
 
-        private void UpdateMesh(Mesh mesh, bool all, bool vertices, bool normals, bool uv, bool triangles, bool colors)
+        private void CopyMeshBuffers()
         {
             SurfaceSizes sizes = GetSizes();
             EnsurePinnedArray(ref m_Vertices, ref m_VerticesHandle, sizes.vertexCount);
@@ -641,7 +655,11 @@ namespace HBP.Core.DLL
             EnsurePinnedArray(ref m_TriangleIndices, ref m_TriangleIndicesHandle, NumberOfVisibleTriangles * 3);
 
             ThrowIfFailed(hbp_surface_copy_unity_mesh(_handle.Handle, Pointer(m_VerticesHandle), m_Vertices.Length, Pointer(m_NormalsHandle), m_Normals.Length, Pointer(m_UvHandle), m_UV.Length, Pointer(m_ColorsHandle), m_Colors.Length, Pointer(m_TriangleIndicesHandle), m_TriangleIndices.Length));
+        }
 
+        private void UpdateMesh(Mesh mesh, bool all, bool vertices, bool normals, bool uv, bool triangles, bool colors)
+        {
+            CopyMeshBuffers();
             if (mesh.vertexCount != m_Vertices.Length) mesh.Clear();
             if (all || vertices) mesh.vertices = m_Vertices;
             if (all || normals) mesh.normals = m_Normals;

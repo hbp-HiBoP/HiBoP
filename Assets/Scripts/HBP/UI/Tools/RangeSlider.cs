@@ -1,4 +1,5 @@
-﻿using System;
+using HBP.Input;
+using System;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI.Extensions;
@@ -1019,7 +1020,7 @@ namespace HBP.UI.Tools
             }
             else if (m_IsHovered)
             {
-                Vector2 mousePosition = Input.mousePosition;
+                Vector2 mousePosition = DesktopInput.MousePosition;
                 if (RectTransformUtility.RectangleContainsScreenPoint(m_MinHandleRect, mousePosition))
                 {
                     minHandleSelectionSate = SelectionState.Highlighted;

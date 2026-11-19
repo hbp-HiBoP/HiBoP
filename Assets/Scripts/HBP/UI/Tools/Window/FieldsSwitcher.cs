@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine.InputSystem;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Tools
@@ -15,7 +17,7 @@ namespace HBP.UI.Tools
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (DesktopInput.WasPressedThisFrame(Key.Tab))
             {
                 SelectNext();
             }

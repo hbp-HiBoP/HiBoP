@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using HBP.Core.Database;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -18,6 +19,179 @@ namespace HBP.Tests.Serialization
 {
     public class Module3DConfigurationTests
     {
+        [Test]
+        public void AnatomicalAtlasHover_ValidatesLabelsAndExposesDesktopFields()
+        {
+            var describe = typeof(AtlasManager).GetMethod("DescribeRegion", BindingFlags.NonPublic | BindingFlags.Static);
+            AtlasInfo Describe(bool mars, int label, params string[] information) =>
+                (AtlasInfo)describe.Invoke(null, new object[] { mars, label, information });
+
+            var mars = Describe(true, 12, "L_Test", "L", "Frontal", "Test", "Left test area");
+            Assert.That(mars.Type, Is.EqualTo(AtlasInfo.AtlasType.MarsAtlas));
+            Assert.That(new[] { mars.Information1, mars.Information2, mars.Information3, mars.Information4, mars.Information5 },
+                Is.EqualTo(new[] { "L_Test - ID:12", "L", "Frontal", "Test", "Left test area" }));
+            var juBrain = Describe(false, 12, "Area 12");
+            Assert.That(juBrain.Type, Is.EqualTo(AtlasInfo.AtlasType.JuBrainAtlas));
+            Assert.That(juBrain.Information1, Is.EqualTo("Area 12 - ID:12"));
+            Assert.That(Describe(false, 0, "Background"), Is.Null);
+            Assert.That(Describe(true, -1, "Unknown", "", "", "", ""), Is.Null);
+            Assert.That(Describe(false, 999, ""), Is.Null);
+        }
+
+        [Test]
+        public void InflatedAtlasImpact_UsesVisibleTriangleIndicesToRecoverAnatomicalPosition()
+        {
+            var mesh = new Mesh
+            {
+                vertices = new[] { new Vector3(7, 5, 0), Vector3.zero, Vector3.right * 4, Vector3.up * 2 },
+                triangles = new[] { 1, 3, 2 }
+            };
+            var target = new GameObject("Inflated atlas geometry");
+            try
+            {
+                var collider = target.AddComponent<MeshCollider>();
+                collider.sharedMesh = mesh;
+                target.transform.SetPositionAndRotation(new Vector3(1, 2, 3), Quaternion.Euler(12, 40, 18));
+                target.transform.localScale = Vector3.one * 2;
+                Physics.SyncTransforms();
+                Vector3 displayedPoint = target.transform.TransformPoint(new Vector3(1.2f, .4f, 0));
+                var direction = target.transform.forward;
+                Assert.That(collider.Raycast(new Ray(displayedPoint - direction, direction), out var hit, 2), Is.True);
+                var anatomy = new[] { Vector3.one * 900, new Vector3(30, 0, 10), new Vector3(42, 0, 20), new Vector3(30, 20, 10) };
+                var interpolate = typeof(AtlasManager).GetMethod("TryInterpolateAnatomicalPoint", BindingFlags.NonPublic | BindingFlags.Static);
+                object[] args = { anatomy, mesh.triangles, hit.triangleIndex, hit.barycentricCoordinate, Vector3.zero };
+                Assert.That(interpolate.Invoke(null, args), Is.True);
+                Assert.That(Vector3.Distance((Vector3)args[4], new Vector3(33.6f, 4, 13)), Is.LessThan(.001f));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(target);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+        }
+        [TestCase(false)]
+        [TestCase(true)]
+        public void LegacyCCEPConfiguration_LoadsWithOriginalIdentityAndCalibration(bool explicitType)
+        {
+            string type = explicitType ? "\"$type\":\"HBP.Core.Data.DynamicConfiguration\"," : string.Empty;
+            string json = "{\"ID\":\"column\",\"DynamicConfiguration\":{" + type + "\"ID\":\"legacy-config\",\"Site Maximum Influence\":23,\"Span Min\":-7,\"Middle\":2,\"Span Max\":19}}";
+            CCEPColumn column = ClassLoaderSaver.LoadFromJsonString<CCEPColumn>(json);
+            Assert.That(column.CCEPConfiguration, Is.TypeOf<CCEPConfiguration>());
+            Assert.That(column.CCEPConfiguration.ID, Is.EqualTo("legacy-config"));
+            Assert.That(column.CCEPConfiguration.MaximumInfluence, Is.EqualTo(23));
+            Assert.That(column.CCEPConfiguration.SpanMin, Is.EqualTo(-7));
+            Assert.That(column.CCEPConfiguration.Middle, Is.EqualTo(2));
+            Assert.That(column.CCEPConfiguration.SpanMax, Is.EqualTo(19));
+            Assert.That(column.CCEPConfiguration.SiteID, Is.Null);
+            Assert.That(column.CCEPConfiguration.MarsAtlasLabel, Is.EqualTo(-1));
+            Assert.That(column.GetAllIdentifiable(), Does.Contain(column.CCEPConfiguration));
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("migrated-ccep.json");
+            Assert.That(ClassLoaderSaver.SaveToJSon(column, path, true), Is.True);
+            string saved = System.IO.File.ReadAllText(path);
+            Assert.That(saved, Does.Contain("\"CCEPConfiguration\""));
+            Assert.That(saved, Does.Not.Contain("\"DynamicConfiguration\""));
+            Assert.That(ClassLoaderSaver.LoadFromJson<CCEPColumn>(path).CCEPConfiguration.ID, Is.EqualTo("legacy-config"));
+        }
+
+        [Test]
+        public void CCEPConfiguration_ConstructCloneCopyAndSerializationPreserveInheritedAndSourceState()
+        {
+            using TempDirectoryScope temp = new();
+            var source = new CCEPConfiguration(23, -7, 2, 19, null, null, null, true, "patient_A1", 12, "ccep-configuration");
+            var copied = new CCEPConfiguration();
+            copied.Copy(source);
+            DynamicConfiguration polymorphic = source;
+            foreach (var configuration in new[] { (CCEPConfiguration)polymorphic.Clone(), copied, RoundTrip(temp, source, "ccep-config.json") })
+            {
+                Assert.That(configuration, Is.Not.SameAs(source));
+                Assert.That(configuration.ID, Is.EqualTo(source.ID));
+                Assert.That(configuration.MaximumInfluence, Is.EqualTo(23));
+                Assert.That(configuration.SpanMin, Is.EqualTo(-7));
+                Assert.That(configuration.Middle, Is.EqualTo(2));
+                Assert.That(configuration.SpanMax, Is.EqualTo(19));
+                Assert.That(configuration.UseMarsAtlas, Is.True);
+                Assert.That(configuration.SiteID, Is.EqualTo("patient_A1"));
+                Assert.That(configuration.MarsAtlasLabel, Is.EqualTo(12));
+            }
+
+            copied.GenerateID();
+            Assert.That(copied.ID, Is.Not.EqualTo(source.ID));
+        }
+
+        [Test]
+        public void AtlasAndVisualizationConstructors_PreserveAllPersistentParameters()
+        {
+            using TempDirectoryScope temp = new();
+            var atlas = new AtlasConfiguration(true, false, .4f, false, 7, true, "128", 11, false, "AUDI", "subject", "bloc", 3, .6f, .1f, .8f, .2f, .9f, 70, 90, 130, "atlas-config");
+            var copied = new AtlasConfiguration();
+            copied.Copy(atlas);
+            foreach (var candidate in new[] { (AtlasConfiguration)atlas.Clone(), copied, RoundTrip(temp, atlas, "atlas-config.json") })
+            {
+                Assert.That(candidate, Is.Not.SameAs(atlas));
+                Assert.That(candidate.ID, Is.EqualTo("atlas-config"));
+                Assert.That(Newtonsoft.Json.Linq.JToken.DeepEquals(Newtonsoft.Json.Linq.JToken.FromObject(candidate), Newtonsoft.Json.Linq.JToken.FromObject(atlas)), Is.True);
+            }
+
+            var masks = new[] { 1, 0, 1 };
+            var source = new VisualizationConfiguration(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh", "mri", "implantation", false, false, .2f, false, false, false, false, 1, 0, 1, CameraControl.Trackball, Array.Empty<Cut>(), Array.Empty<View>(), Array.Empty<RegionOfInterest>(), "visualization-config", SurfaceRepresentation.Inflated, atlas, "preview-mri", masks, new[] { 0, 1 });
+            masks[1] = 1;
+            Assert.That(source.ErasedTriangles[1], Is.Zero, "Constructor snapshots its mask input.");
+            var clone = (VisualizationConfiguration)source.Clone();
+            Assert.That(clone.AtlasConfiguration, Is.Not.SameAs(atlas));
+            Assert.That(clone.AtlasConfiguration.ID, Is.EqualTo(atlas.ID));
+            Assert.That(clone.PreviewMRIName, Is.EqualTo("preview-mri"));
+            Assert.That(clone.ErasedTriangles, Is.EqualTo(new[] { 1, 0, 1 }));
+            Assert.That(clone.ErasedSimplifiedTriangles, Is.EqualTo(new[] { 0, 1 }));
+            Assert.That(clone.SurfaceRepresentation, Is.EqualTo(SurfaceRepresentation.Inflated));
+            Assert.That(new FMRIConfiguration(.1f, .2f, .3f, .4f, true, false, true, "fmri-config", 2).SelectedResourceIndex, Is.EqualTo(2));
+            Assert.That(new MEGConfiguration(.1f, .2f, .3f, .4f, true, false, true, "meg-config", 3).SelectedResourceIndex, Is.EqualTo(3));
+            Assert.That(new StaticConfiguration(23, -7, 2, 19, null, null, null, 4, "static-config").SelectedResourceIndex, Is.EqualTo(4));
+            Assert.That(new AnatomicConfiguration(27, 0.05f, 0.35f, 0.65f, "anatomy-config").MaximumInfluence, Is.EqualTo(27));
+        }
+
+        [Test]
+        public void PersistentSnapshotChoices_RoundTripCloneAndCopyThroughExistingConfigurations()
+        {
+            using TempDirectoryScope temp = new();
+            var source = new VisualizationConfiguration
+            {
+                PreviewMRIName = "MRI preview source",
+                ErasedTriangles = new[] { 1, 0, 1 }, ErasedSimplifiedTriangles = new[] { 0, 1 },
+                AtlasConfiguration = new AtlasConfiguration { IBC = false, IBCIndex = 7, DiFuMoAtlas = "128", DiFuMoArea = 11, AtlasAlpha = .4f, LocalizerProtocol = "AUDI", LocalizerData = "subject", LocalizerBloc = "bloc", LocalizerTime = 3 }
+            };
+            var copy = new VisualizationConfiguration();
+            copy.Copy(source);
+            foreach (var configuration in new[] { (VisualizationConfiguration)source.Clone(), copy, RoundTrip(temp, source, "snapshot-configuration.json") })
+            {
+                Assert.That(configuration.PreviewMRIName, Is.EqualTo(source.PreviewMRIName));
+                Assert.That(configuration.ErasedTriangles, Is.EqualTo(source.ErasedTriangles));
+                Assert.That(configuration.ErasedTriangles, Is.Not.SameAs(source.ErasedTriangles));
+                Assert.That(configuration.AtlasConfiguration, Is.Not.SameAs(source.AtlasConfiguration));
+                Assert.That(configuration.AtlasConfiguration.IBC, Is.False);
+                Assert.That(configuration.AtlasConfiguration.IBCIndex, Is.EqualTo(7));
+                Assert.That(configuration.AtlasConfiguration.DiFuMoAtlas, Is.EqualTo("128"));
+                Assert.That(configuration.AtlasConfiguration.LocalizerTime, Is.EqualTo(3));
+            }
+
+            var fmri = new FMRIConfiguration { SelectedResourceIndex = 2 };
+            var meg = new MEGConfiguration { SelectedResourceIndex = 3 };
+            var stat = new StaticConfiguration { SelectedResourceIndex = 4 };
+            var anatomy = new AnatomicConfiguration { MaximumInfluence = 27 };
+            Assert.That(((FMRIConfiguration)fmri.Clone()).SelectedResourceIndex, Is.EqualTo(2));
+            Assert.That(RoundTrip(temp, meg, "meg.json").SelectedResourceIndex, Is.EqualTo(3));
+            Assert.That(RoundTrip(temp, stat, "static.json").SelectedResourceIndex, Is.EqualTo(4));
+            Assert.That(RoundTrip(temp, anatomy, "anatomy.json").MaximumInfluence, Is.EqualTo(27));
+            var ccep = new CCEPColumn { CCEPConfiguration = new CCEPConfiguration { SiteID = "patient_A1", UseMarsAtlas = true, MarsAtlasLabel = 5 } };
+            var ccepClone = (CCEPColumn)ccep.Clone();
+            Assert.That(ccepClone.CCEPConfiguration, Is.Not.SameAs(ccep.CCEPConfiguration));
+            Assert.That(ccepClone.CCEPConfiguration.SiteID, Is.EqualTo("patient_A1"));
+            Assert.That(ccepClone.CCEPConfiguration.MarsAtlasLabel, Is.EqualTo(5));
+            Assert.That(new VisualizationConfiguration().AtlasConfiguration, Is.Null);
+            Assert.That(new FMRIConfiguration().SelectedResourceIndex, Is.Zero);
+            Assert.That(new CCEPColumn().CCEPConfiguration.SiteID, Is.Null);
+        }
+
         [Test]
         public void VisualizationConfiguration_CloneAndCopy_PreserveSceneViewCameraAndColumnState()
         {
@@ -369,8 +543,10 @@ namespace HBP.Tests.Serialization
             AssertReference<Transform>(serializedColumn, "m_BrainSurfaceMeshesParent");
             AssertReference<Transform>(serializedColumn, "m_CutMeshesParent");
             AssertReference<Transform>(serializedColumn, "m_SitesMeshesParent");
-            GameObject viewPrefab = AssertReference<GameObject>(serializedColumn, "m_ViewPrefab");
-            Assert.That(viewPrefab.GetComponent<View3D>(), Is.Not.Null, $"{path} must reference a View3D prefab");
+            var desktop = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab").GetComponent<DesktopScenePresentation>();
+            GameObject viewPrefab = AssertReference<GameObject>(new SerializedObject(desktop), "m_ViewPrefab");
+            Assert.That(viewPrefab.GetComponent<View3D>(), Is.Not.Null, "The Desktop presentation must reference a View3D prefab");
+            Assert.That(serializedColumn.FindProperty("m_ViewPrefab"), Is.Null, "Common content must not depend on Desktop camera prefabs.");
             Assert.That(prefab.transform.Find("Views"), Is.Not.Null, $"{path} must contain a Views child for Column3D.AddView");
         }
 

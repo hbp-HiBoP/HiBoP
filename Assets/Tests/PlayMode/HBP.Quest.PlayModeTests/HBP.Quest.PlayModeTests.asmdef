@@ -1,0 +1,26 @@
+{
+    "name": "HBP.Quest.PlayModeTests",
+    "references": [
+        "HBP.UI.Runtime",
+        "UniTask",
+        "HBP.Transfer.Anatomy.Contracts",
+        "HBP.Transfer.Transport",
+        "HBP.Transfer.Anatomy.Delivery",
+        "HBP.Quest.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Theme.Runtime",
+        "HBP.Transfer.Projection",
+        "HBP.Core.Runtime",
+        "HBP.Sync.Scene",
+        "HBP.Sync.Runtime",
+        "Unity.InputSystem",
+        "HBP.Quest.Prototype.Tests"
+    ],
+    "includePlatforms": [],
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

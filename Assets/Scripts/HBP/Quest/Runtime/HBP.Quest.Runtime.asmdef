@@ -1,0 +1,29 @@
+{
+    "name": "HBP.Quest.Runtime",
+    "references": [
+        "UniTask",
+        "Unity.TextMeshPro",
+        "HBP.Core.Runtime",
+        "HBP.Transfer.Transport",
+        "Unity.InputSystem",
+        "Unity.XR.Management",
+        "Unity.XR.OpenXR",
+        "Unity.XR.MetaOpenXR",
+        "Unity.XR.ARFoundation",
+        "Unity.XR.ARSubsystems",
+        "Unity.XR.CompositionLayers",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "HBP.Data.Runtime",
+        "HBP.Transfer.Scene",
+        "HBP.Sync.Scene",
+        "HBP.Sync.Runtime",
+        "HBP.Rendering.Runtime",
+        "HBP.UI.Runtime",
+        "HBP.Theme.Runtime",
+        "ThirdParty.UIExtensions.Runtime"
+    ],
+    "includePlatforms": [
+        "Android",
+        "Editor"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+  "checks": {
+    "left_signal_equals_deterministic_synthetic_formula": true,
+    "right_signal_equals_deterministic_synthetic_formula": true,
+    "synthetic_dataset": true,
+    "synthetic_patients": true
+  },
+  "fixture": ".artifacts\\quest-020\\fixture\\quest-mni-ieeg.hibop",
+  "sha256": "64a4d40ebd170ce68c70f26a15b2881a4ddb8131041a1b446ea1d2978a9859ad",
+  "device": "Quest 3 USB 2G0YC5ZHB20370, Wi-Fi 192.168.1.18",
+  "networkTest": "Receive this synthetic MNI instant over pinned TLS from 192.168.1.14; disable Quest Wi-Fi 60 seconds and restore automatically, keeping ADB USB."
+}

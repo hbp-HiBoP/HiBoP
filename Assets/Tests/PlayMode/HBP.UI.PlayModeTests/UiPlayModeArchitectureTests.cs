@@ -1,3 +1,4 @@
+using UnityEngine.InputSystem.UI;
 using System.Collections;
 using HBP.Tests.PlayMode.Utilities;
 using NUnit.Framework;
@@ -22,7 +23,7 @@ namespace HBP.Tests.PlayMode.UI
             Assert.That(window.Canvas, Is.Not.Null);
             Assert.That(window.Canvas.renderMode, Is.EqualTo(RenderMode.ScreenSpaceOverlay));
             Assert.That(window.Root.GetComponent<GraphicRaycaster>(), Is.Not.Null);
-            Assert.That(window.EventSystem.GetComponent<StandaloneInputModule>(), Is.Not.Null);
+            Assert.That(window.EventSystem.GetComponent<InputSystemUIInputModule>(), Is.Not.Null);
         }
     }
 }

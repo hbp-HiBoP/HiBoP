@@ -9,6 +9,7 @@ namespace HBP.Core.Data
     {
         #region Properties
 
+        [JsonProperty] public string ID { get; set; }
         [JsonProperty] public SerializableVector3 Normal { get; set; }
         [JsonProperty] public Enums.CutOrientation Orientation { get; set; }
         [JsonProperty] public bool Flip { get; set; }
@@ -18,8 +19,13 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public Cut(Vector3 normal, Enums.CutOrientation orientation, bool flip, float position)
+        public Cut(Vector3 normal, Enums.CutOrientation orientation, bool flip, float position) : this(null, normal, orientation, flip, position)
         {
+        }
+
+        public Cut(string id, Vector3 normal, Enums.CutOrientation orientation, bool flip, float position)
+        {
+            ID = id;
             Normal = new SerializableVector3(normal);
             Orientation = orientation;
             Flip = flip;

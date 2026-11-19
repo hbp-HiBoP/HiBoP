@@ -13,23 +13,49 @@ namespace HBP.UI.Tools
         #region Properties
 
         private bool m_IsQuitting = false;
+        private readonly UniTaskCompletionSource m_DatabaseInitialization = new();
+        public UniTask DatabaseInitialization => m_DatabaseInitialization.Task;
+        public static System.Exception DatabaseInitializationPresentedError { get; private set; }
+
+        public static async UniTask WaitForDatabaseInitializationAsync(System.Threading.CancellationToken token)
+        {
+            await UniTask.WaitUntil(() => IsInitialized, cancellationToken: token);
+            await m_Instance.DatabaseInitialization.AttachExternalCancellation(token);
+        }
 
         #endregion
 
         #region Private Methods
 
-        private void Awake()
+        protected override void Initialization()
         {
+            base.Initialization();
+            DatabaseInitializationPresentedError = null;
             Application.wantsToQuit += OnQuit;
         }
 
         private void Start()
         {
-            DatabaseWorkflow.InitializeAsync().Forget();
+            InitializeDatabaseAsync().Forget();
+        }
+
+        private async UniTask InitializeDatabaseAsync()
+        {
+            try
+            {
+                await DatabaseWorkflow.InitializeAsync(error => DatabaseInitializationPresentedError = error);
+                m_DatabaseInitialization.TrySetResult();
+            }
+            catch (System.Exception exception)
+            {
+                m_DatabaseInitialization.TrySetException(exception);
+                throw;
+            }
         }
 
         private void OnDestroy()
         {
+            Application.wantsToQuit -= OnQuit;
             DataManager.Clear();
             string tmpDir = ApplicationState.ExtractProjectFolder;
             if (Directory.Exists(tmpDir))
@@ -40,6 +66,15 @@ namespace HBP.UI.Tools
 
         private bool OnQuit()
         {
+            if (System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-displaySyncEvidenceOnce") >= 0 && System.Array.IndexOf(System.Environment.GetCommandLineArgs(), "-displaySyncEvidence") >= 0) return true;
+#if DEVELOPMENT_BUILD || UNITY_EDITOR
+            string[] arguments = System.Environment.GetCommandLineArgs();
+            if (System.Array.IndexOf(arguments, "-questPairingSmoke") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-questUsbSmoke") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-captureOnce") >= 0 && System.Array.IndexOf(arguments, "-captureAnatomy") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-ieegEvidenceOnce") >= 0 && System.Array.IndexOf(arguments, "-ieegEvidence") >= 0) return true;
+            if (System.Array.IndexOf(arguments, "-sceneEvidenceOnce") >= 0 && System.Array.IndexOf(arguments, "-sceneEvidence") >= 0) return true;
+#endif
             if (m_IsQuitting) return true;
 
             ShowQuitDialog().Forget();

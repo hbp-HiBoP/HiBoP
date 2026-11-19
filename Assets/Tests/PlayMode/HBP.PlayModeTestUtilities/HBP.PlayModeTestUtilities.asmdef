@@ -2,6 +2,8 @@
     "name": "HBP.PlayModeTestUtilities",
     "rootNamespace": "HBP.Tests.PlayMode.Utilities",
     "references": [
+        "Unity.InputSystem",
+        "HBP.UI.Runtime",
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
         "Unity.ugui"

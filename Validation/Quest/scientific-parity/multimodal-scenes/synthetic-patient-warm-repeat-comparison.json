@@ -1,0 +1,4488 @@
+{
+  "desktop": ".test-results\\quest-024\\quest-patient-final-warm\\pass-1",
+  "quest": ".test-results\\quest-024\\quest-patient-final-warm\\pass-2",
+  "checks": [
+    {
+      "state": "initial",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "initial",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "initial",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "initial",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "initial",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "initial",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time0",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time1",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "time2",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "recomputed",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "cut",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [
+        {
+          "cutIndex": 0,
+          "kind": "base",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        },
+        {
+          "cutIndex": 0,
+          "kind": "functional",
+          "sameDimensions": true,
+          "bytesExact": true,
+          "rgba8": {
+            "sameLength": true,
+            "finiteCount": 160000,
+            "differentFiniteValues": 0,
+            "nonfiniteMismatches": 0,
+            "maximumAbsoluteDelta": 0.0,
+            "rmsDelta": 0.0,
+            "maximumAt": null
+          }
+        }
+      ],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-2",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-3",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-4",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "resource-5",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mesh-alternative",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1812416,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "mri-alternative",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 1337216,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1060800,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 0,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-Anatomic",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-IEEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-CCEP",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-FMRI",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-MEG",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    },
+    {
+      "state": "geometry-restored",
+      "column": "scene-008-Static",
+      "categoricalMismatches": [],
+      "buffer": {
+        "sameLength": true,
+        "finiteCount": 2088832,
+        "differentFiniteValues": 0,
+        "nonfiniteMismatches": 0,
+        "maximumAbsoluteDelta": 0.0,
+        "rmsDelta": 0.0,
+        "maximumAt": null,
+        "bytesExact": true
+      },
+      "quantities": {
+        "activity": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "alpha": {
+          "sameLength": true,
+          "finiteCount": 138208,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "grid": {
+          "sameLength": true,
+          "finiteCount": 1536000,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        },
+        "colors": {
+          "sameLength": true,
+          "finiteCount": 276416,
+          "differentFiniteValues": 0,
+          "nonfiniteMismatches": 0,
+          "maximumAbsoluteDelta": 0.0,
+          "rmsDelta": 0.0,
+          "maximumAt": null
+        }
+      },
+      "cutTextures": [],
+      "inactiveMaterialHistoryDifferences": []
+    }
+  ],
+  "categoricalEquivalent": true,
+  "buffersExact": true,
+  "tolerance": null,
+  "qualification": "Exact comparison; any floating difference requires scientific review.",
+  "cutTexturesCompared": true,
+  "surfaceOnlyRequested": false
+}

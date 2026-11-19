@@ -1,0 +1,26 @@
+<linker>
+  <assembly fullname="HBP.Core.Runtime">
+    <type fullname="HBP.Core.Data.Processed.IEEGData" preserve="all" />
+    <type fullname="HBP.Core.Data.Processed.CCEPData" preserve="all" />
+    <type fullname="HBP.Core.Data.Processed.StaticData" preserve="all" />
+    <type fullname="HBP.Core.Data.Processed.DynamicData" preserve="all" />
+    <type fullname="HBP.Core.Data.BasicTimeline" preserve="all" />
+    <type fullname="HBP.Core.Data.Timeline" preserve="all" />
+    <type fullname="HBP.Core.Data.SubTimeline" preserve="all" />
+    <type fullname="HBP.Core.Data.BlocChannelData" preserve="all" />
+    <type fullname="HBP.Core.Data.ChannelTrial" preserve="all" />
+    <type fullname="HBP.Core.Data.ChannelSubTrial" preserve="all" />
+    <type fullname="HBP.Core.Data.BlocChannelStatistics" preserve="all" />
+    <type fullname="HBP.Core.Data.ChannelTrialStat" preserve="all" />
+    <type fullname="HBP.Core.Data.ChannelSubTrialStat" preserve="all" />
+    <type fullname="HBP.Core.Data.BlocEventsStatistics" preserve="all" />
+    <type fullname="HBP.Core.Data.SubBlocEventsStatistics" preserve="all" />
+    <type fullname="HBP.Core.Data.EventInformation" preserve="all" />
+    <type fullname="HBP.Core.Data.EventInformation/EventOccurence" preserve="all" />
+    <type fullname="HBP.Core.Data.EventStatistics" preserve="all" />
+    <type fullname="HBP.Core.DLL.SurfaceInflationOptions" preserve="all" />
+    <type fullname="HBP.Core.DLL.PreviewSurfaceReport" preserve="all" />
+    <type fullname="HBP.Core.Tools.Frequency" preserve="all" />
+  </assembly>
+  <assembly fullname="HBP.Transfer.Scene" preserve="all" />
+</linker>

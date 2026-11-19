@@ -72,5 +72,6 @@
     "dotnet.codeLens.enableReferencesCodeLens": false,
     "gitlens.codeLens.enabled": false,
     "gitlens.codeLens.authors.enabled": true,
-    "vstuc.enableCodeModel": true
+    "vstuc.enableCodeModel": true,
+    "cmake.sourceDirectory": "C:/HBP/Software/HiBoP/Tools/TransferNative"
 }

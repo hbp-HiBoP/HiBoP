@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
@@ -133,7 +133,7 @@ namespace HBP.Data.Module3D
 
                         if (val > StaticParameters.MaximumAmplitude)
                             StaticParameters.MaximumAmplitude = val;
-                        else if (val < StaticParameters.MinimumAmplitude)
+                        if (val < StaticParameters.MinimumAmplitude)
                             StaticParameters.MinimumAmplitude = val;
                     }
                 }
@@ -142,6 +142,7 @@ namespace HBP.Data.Module3D
             if (StaticParameters.MinimumAmplitude == float.MaxValue) StaticParameters.MinimumAmplitude = -1;
             if (StaticParameters.MaximumAmplitude == float.MinValue) StaticParameters.MaximumAmplitude = 1;
             ActivityValuesOfUnmaskedSites = iEEGNotMasked.ToArray();
+            StaticParameters.RefreshSpanValues(this);
         }
 
         /// <summary>
@@ -194,11 +195,32 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.IEEGGenerator)ActivityGenerator;
+            var sites = RawElectrodes;
+            var values = ActivityValues;
+            int length = Labels.Length;
+            int siteCount = sites.NumberOfSites;
+            float distance = StaticParameters.InfluenceDistance;
+            float middle = StaticParameters.Middle;
+            float minimum = StaticParameters.SpanMin;
+            float maximum = StaticParameters.SpanMax;
+            return (() =>
+            {
+                updateMasks();
+                generator.ComputeActivity(sites, distance, values, length, siteCount, influenceRule);
+                generator.AdjustValues(middle, minimum, maximum);
+            }, null);
+        }
+
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
-
+            // Base initialization updates sites and can publish threshold changes.
             ActivityGenerator = new Core.DLL.IEEGGenerator();
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
         }
 
         /// <summary>
@@ -272,7 +294,7 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
@@ -293,21 +315,23 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedLabelIndex = ColumnStaticData.StaticConfiguration.SelectedResourceIndex;
             StaticParameters.InfluenceDistance = ColumnStaticData.StaticConfiguration.MaximumInfluence;
-            StaticParameters.SetSpanValues(ColumnStaticData.StaticConfiguration.SpanMin, ColumnStaticData.StaticConfiguration.Middle, ColumnStaticData.StaticConfiguration.SpanMax);
+            StaticParameters.LoadConfiguration(ColumnStaticData.StaticConfiguration);
             base.LoadConfiguration(false);
         }
 
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnStaticData.StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
-            ColumnStaticData.StaticConfiguration.SpanMin = StaticParameters.SpanMin;
-            ColumnStaticData.StaticConfiguration.Middle = StaticParameters.Middle;
-            ColumnStaticData.StaticConfiguration.SpanMax = StaticParameters.SpanMax;
-            base.SaveConfiguration();
+            ((StaticColumn)target).StaticConfiguration.SelectedResourceIndex = SelectedLabelIndex;
+            ((StaticColumn)target).StaticConfiguration.MaximumInfluence = StaticParameters.InfluenceDistance;
+            StaticParameters.CaptureConfiguration(((StaticColumn)target).StaticConfiguration);
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

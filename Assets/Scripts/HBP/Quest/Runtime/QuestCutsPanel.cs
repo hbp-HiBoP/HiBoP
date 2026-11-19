@@ -1,0 +1,103 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using HBP.Core.Object3D;
+using HBP.Data.Module3D;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace HBP.Quest
+{
+    /// <summary>All cuts remain editable independently. Window lifecycle only controls local aids.</summary>
+    public sealed class QuestCutsPanel : MonoBehaviour
+    {
+        [SerializeField] private QuestAnatomyView view;
+        [SerializeField] private QuestWindow window;
+        [SerializeField] private QuestCutRow rowPrefab;
+        [SerializeField] private RectTransform rows;
+        [SerializeField] private QuestNumericKeypad keypad;
+        [SerializeField] private Button add, suspend;
+        [SerializeField] private Text suspendLabel;
+        private readonly Dictionary<Cut, QuestCutRow> controls = new();
+        private readonly ConditionalWeakTable<Cut, object> wristRotation = new();
+        private static readonly object WristRotationEnabled = new();
+        private Base3DScene scene;
+        private bool suspended;
+        public bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
+        public bool AidsActive => Ready && window != null && window.IsOpen && !suspended && !view.Scene.AutomaticCutAroundSelectedSite;
+        public bool Suspended => suspended;
+        public bool GuidesEnabled => window != null && window.IsOpen && !suspended;
+        public IReadOnlyCollection<QuestCutRow> Rows => controls.Values;
+
+        internal bool IsWristRotationEnabled(Cut cut) => wristRotation.TryGetValue(cut, out _);
+
+        internal void SetWristRotation(Cut cut, bool enabled)
+        {
+            if (enabled) wristRotation.GetValue(cut, _ => WristRotationEnabled);
+            else wristRotation.Remove(cut);
+        }
+
+        private void Awake()
+        {
+            add.onClick.AddListener(() =>
+            {
+                if (Ready && !view.Scene.AutomaticCutAroundSelectedSite) view.Scene.AddCutPlane();
+            });
+            suspend.onClick.AddListener(() => suspended = !suspended);
+            window.OnChanged.AddListener(OnWindowChanged);
+        }
+
+        private void OnWindowChanged(QuestWindow value)
+        {
+            if (!value.IsOpen) keypad.Cancel();
+        }
+
+        private void Update() => Refresh();
+
+        public void Refresh()
+        {
+            var current = Ready ? view.Scene : null;
+            if (scene != current)
+            {
+                keypad.Cancel();
+                foreach (var row in controls.Values)
+                {
+                    row.gameObject.SetActive(false);
+                    Destroy(row.gameObject);
+                }
+
+                controls.Clear();
+                scene = current;
+            }
+
+            foreach (var old in controls.Keys.Where(cut => scene == null || !scene.Cuts.Contains(cut)).ToArray())
+            {
+                controls[old].gameObject.SetActive(false);
+                Destroy(controls[old].gameObject);
+                controls.Remove(old);
+            }
+
+            if (scene != null)
+                foreach (var cut in scene.Cuts)
+                {
+                    if (!controls.TryGetValue(cut, out var row))
+                    {
+                        row = Instantiate(rowPrefab, rows, false);
+                        row.Bind(scene, cut, keypad, this);
+                        controls.Add(cut, row);
+                    }
+
+                    row.transform.SetSiblingIndex(cut.Index);
+                }
+
+            add.interactable = Ready && !scene.AutomaticCutAroundSelectedSite;
+            suspend.interactable = Ready;
+            suspendLabel.text = suspended ? "Show guides" : "Hide guides";
+        }
+
+        private void OnDestroy()
+        {
+            if (window != null) window.OnChanged.RemoveListener(OnWindowChanged);
+        }
+    }
+}

@@ -1,4 +1,6 @@
-﻿using HBP.Data.Module3D;
+using HBP.Input;
+using UnityEngine.InputSystem;
+using HBP.Data.Module3D;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -55,7 +57,7 @@ namespace HBP.UI.Module3D
             m_AddSiteLabelInputField.onEndEdit.RemoveAllListeners();
             m_AddSiteLabelInputField.onEndEdit.AddListener((text) =>
             {
-                if (Input.GetKey(KeyCode.Return) || Input.GetKey(KeyCode.KeypadEnter))
+                if (DesktopInput.IsPressed(Key.Enter) || DesktopInput.IsPressed(Key.NumpadEnter))
                 {
                     AddLabel(text);
                     EventSystem system = EventSystem.current;
@@ -98,7 +100,7 @@ namespace HBP.UI.Module3D
 
         public void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Tab))
+            if (DesktopInput.WasPressedThisFrame(Key.Tab))
             {
                 EventSystem system = EventSystem.current;
                 if (system)

@@ -1,4 +1,5 @@
-﻿using HBP.Core.Tools;
+using HBP.Input;
+using HBP.Core.Tools;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -67,7 +68,7 @@ namespace HBP.UI.Tools
 
         private void MoveAtMousePosition()
         {
-            m_Tooltip.position = Input.mousePosition + m_Offset;
+            m_Tooltip.position = DesktopInput.MousePosition + m_Offset;
         }
 
         #endregion

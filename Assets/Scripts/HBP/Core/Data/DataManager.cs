@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System;
 using System.Threading;
@@ -160,7 +160,7 @@ namespace HBP.Core.Data
 
         static DataManager()
         {
-            m_MemoryBudget.BudgetExceeded += snapshot => UnityEngine.Debug.LogWarning($"Active time-series data exceed the memory cache budget: {snapshot.UsedBytes / (1024d * 1024d):N1} MiB used, " + $"{snapshot.LimitBytes / (1024d * 1024d):N1} MiB allowed. Active exact data remain pinned; no downsampling was applied.");
+            m_MemoryBudget.OnBudgetExceeded += snapshot => UnityEngine.Debug.LogWarning($"Active time-series data exceed the memory cache budget: {snapshot.UsedBytes / (1024d * 1024d):N1} MiB used, " + $"{snapshot.LimitBytes / (1024d * 1024d):N1} MiB allowed. Active exact data remain pinned; no downsampling was applied.");
         }
 
         #region Public Methods

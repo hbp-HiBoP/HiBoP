@@ -3,10 +3,12 @@ using UnityEngine.UI;
 using System.Linq;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Exceptions;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using HBP.Core.Tools;
 using HBP.Core.Preferences;
+using System.Threading;
 
 namespace HBP.UI.Main
 {
@@ -42,7 +44,10 @@ namespace HBP.UI.Main
             UITools.CheckProjectIDAndAskForRegeneration().Forget();
         }
 
-        public async void Display()
+        public async void Display() => await DisplayAsync();
+
+        /// <summary>The same Display operation can be awaited by diagnostics and UI callers.</summary>
+        public async UniTask DisplayAsync(CancellationToken cancellationToken = default)
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
@@ -53,9 +58,22 @@ namespace HBP.UI.Main
             }
 
             DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
-            UniTask loading = LoadingManager.LoadAsync((update, token) => Module3DMain.LoadAsync(visualizations, update, token));
+            UniTask loading = new SceneDisplayOperation(visualizations).RunAsync(cancellationToken);
             OK();
-            await loading;
+            try
+            {
+                await loading;
+            }
+            catch (System.OperationCanceledException)
+            {
+            }
+            catch (System.Exception error)
+            {
+                Debug.LogException(error);
+                var failure = error as Core.Exceptions.HBPException ?? new VisualizationLoadException(string.Join(", ", visualizations.Select(visualization => visualization.Name)), error);
+                await DialogBoxManager.OpenAsync(Core.Enums.DialogBoxType.Error, failure.Title, failure.Message, "OK");
+            }
+
             await UniTask.SwitchToMainThread();
             UITools.ShowMemoryCacheBudgetWarningIfNeeded();
         }
@@ -105,13 +123,13 @@ namespace HBP.UI.Main
 
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged -= SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.RemoveListener(SetDisplay);
             }
 
             m_ObservedProject = project;
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged += SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.AddListener(SetDisplay);
             }
         }
 
@@ -119,7 +137,7 @@ namespace HBP.UI.Main
         {
             if (m_ObservedProject != null)
             {
-                m_ObservedProject.OnValidationStateChanged -= SetDisplay;
+                m_ObservedProject.OnValidationStateChanged.RemoveListener(SetDisplay);
             }
         }
 

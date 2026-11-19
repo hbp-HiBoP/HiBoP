@@ -1,5 +1,6 @@
-﻿using HBP.Core.Tools;
+using HBP.Core.Tools;
 using System.Collections.Generic;
+using System;
 using HBP.Core.Enums;
 using System.Linq;
 using UnityEngine;
@@ -9,6 +10,14 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
 {
     public abstract class BasicTimeline
     {
+        [ThreadStatic] private static int s_AutomaticPlaybackUpdateDepth;
+
+
+        /// <summary>Raised after a timeline anchor component changes; the bool marks automatic playback advancement.</summary>
+        private GenericEvent<BasicTimeline, bool> m_OnAnchorChanged;
+
+        public GenericEvent<BasicTimeline, bool> OnAnchorChanged => m_OnAnchorChanged ??= new();
+
         #region Properties
 
         /// <summary>
@@ -29,6 +38,14 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         public Tools.Frequency Frequency { get; protected set; }
 
         protected int m_CurrentIndex;
+        private float m_CurrentIndexAnchorTime;
+        private bool m_IsUpdatingAutomatically;
+
+        /// <summary>True while a playback tick synchronously invokes timeline and derived domain callbacks.</summary>
+        public static bool IsAutomaticPlaybackUpdateInProgress => s_AutomaticPlaybackUpdateDepth > 0;
+
+        /// <summary>Local monotonic time when the playing timeline reached its current index.</summary>
+        public float CurrentIndexAnchorTime => IsPlaying ? m_CurrentIndexAnchorTime : 0f;
 
         /// <summary>
         /// Current index of the timeline
@@ -38,15 +55,22 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get { return m_CurrentIndex; }
             set
             {
+                int next;
                 if (IsLooping)
                 {
-                    m_CurrentIndex = (value % Length + Length) % Length;
+                    next = (value % Length + Length) % Length;
                 }
                 else
                 {
-                    m_CurrentIndex = Mathf.Clamp(value, 0, Length - 1);
+                    next = Mathf.Clamp(value, 0, Length - 1);
                 }
 
+                bool changed = m_CurrentIndex != next;
+                m_CurrentIndex = next;
+
+                if (IsPlaying) m_CurrentIndexAnchorTime = Time.realtimeSinceStartup;
+
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
                 OnUpdateCurrentIndex.Invoke();
             }
         }
@@ -54,7 +78,18 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// <summary>
         /// Is the timeline looping ?
         /// </summary>
-        public bool IsLooping { get; set; }
+        private bool m_IsLooping;
+
+        public bool IsLooping
+        {
+            get => m_IsLooping;
+            set
+            {
+                bool changed = m_IsLooping != value;
+                m_IsLooping = value;
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+            }
+        }
 
         protected bool m_IsPlaying;
 
@@ -66,9 +101,28 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
             get { return m_IsPlaying; }
             set
             {
+                bool changed = m_IsPlaying != value;
                 m_IsPlaying = value;
                 m_TimeSinceLastUpdate = 0f;
+                m_CurrentIndexAnchorTime = value ? Time.realtimeSinceStartup : 0f;
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
             }
+        }
+
+        /// <summary>Restore a received clock phase after index and playback flags are set.</summary>
+        public void ApplySynchronizedClockAnchor(float anchorTime)
+        {
+            if (!IsPlaying)
+            {
+                if (anchorTime != 0f) throw new System.ArgumentOutOfRangeException(nameof(anchorTime));
+                m_CurrentIndexAnchorTime = 0f;
+                return;
+            }
+
+            if (float.IsNaN(anchorTime) || float.IsInfinity(anchorTime) || anchorTime < 0f)
+                throw new System.ArgumentOutOfRangeException(nameof(anchorTime));
+            m_CurrentIndexAnchorTime = anchorTime;
+            m_TimeSinceLastUpdate = Mathf.Clamp(Time.realtimeSinceStartup - anchorTime, 0f, UpdateInterval);
         }
 
         /// <summary>
@@ -79,7 +133,18 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// <summary>
         /// Step of the timeline
         /// </summary>
-        public int Step { get; set; } = 1;
+        private int m_Step = 1;
+
+        public int Step
+        {
+            get => m_Step;
+            set
+            {
+                bool changed = m_Step != value;
+                m_Step = value;
+                if (changed) m_OnAnchorChanged?.Invoke(this, m_IsUpdatingAutomatically);
+            }
+        }
 
         /// <summary>
         /// Time between two timeline updates
@@ -93,6 +158,23 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// Current subtimeline compared to the position of the current index
         /// </summary>
         public abstract SubTimeline CurrentSubtimeline { get; }
+
+        /// <summary>Align navigation in one explicit change, using the source playback phase.</summary>
+        public void AlignNavigation(BasicTimeline source)
+        {
+            if (Length < 2 || ReferenceEquals(this, source)) return;
+            int index = Mathf.Clamp(source.CurrentIndex, 0, Length - 1);
+            bool indexChanged = index != m_CurrentIndex;
+            bool changed = indexChanged || m_IsPlaying != source.IsPlaying || m_IsLooping != source.IsLooping || m_Step != source.Step;
+            m_CurrentIndex = index;
+            m_IsPlaying = source.IsPlaying;
+            m_IsLooping = source.IsLooping;
+            m_Step = source.Step;
+            m_CurrentIndexAnchorTime = source.m_CurrentIndexAnchorTime;
+            m_TimeSinceLastUpdate = source.m_TimeSinceLastUpdate;
+            if (changed) m_OnAnchorChanged?.Invoke(this, false);
+            if (indexChanged) OnUpdateCurrentIndex.Invoke();
+        }
 
         #endregion
 
@@ -110,20 +192,32 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         /// </summary>
         public void Play()
         {
-            if (IsPlaying)
+            bool wasUpdatingAutomatically = m_IsUpdatingAutomatically;
+            bool startsAutomaticUpdate = !wasUpdatingAutomatically;
+            m_IsUpdatingAutomatically = true;
+            if (startsAutomaticUpdate) s_AutomaticPlaybackUpdateDepth++;
+            try
             {
-                m_TimeSinceLastUpdate += Time.deltaTime;
-                while (m_TimeSinceLastUpdate > UpdateInterval)
+                if (IsPlaying)
                 {
-                    CurrentIndex++;
-                    m_TimeSinceLastUpdate -= UpdateInterval;
-                    if (CurrentIndex >= Length - 1 && !IsLooping)
+                    m_TimeSinceLastUpdate += Time.deltaTime;
+                    while (m_TimeSinceLastUpdate > UpdateInterval)
                     {
-                        IsPlaying = false;
-                        CurrentIndex = 0;
-                        OnStopTimelinePlay.Invoke();
+                        CurrentIndex++;
+                        m_TimeSinceLastUpdate -= UpdateInterval;
+                        if (CurrentIndex >= Length - 1 && !IsLooping)
+                        {
+                            IsPlaying = false;
+                            CurrentIndex = 0;
+                            OnStopTimelinePlay.Invoke();
+                        }
                     }
                 }
+            }
+            finally
+            {
+                m_IsUpdatingAutomatically = wasUpdatingAutomatically;
+                if (startsAutomaticUpdate) s_AutomaticPlaybackUpdateDepth--;
             }
         }
 
@@ -150,6 +244,22 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Constructors
+
+        private Timeline(Timeline source)
+        {
+            Length = source.Length;
+            Unit = source.Unit;
+            TimeLength = source.TimeLength;
+            Frequency = source.Frequency;
+            m_CurrentIndex = source.CurrentIndex;
+            Step = source.Step;
+            IsLooping = source.IsLooping;
+            IsPlaying = source.IsPlaying;
+            SubTimelinesBySubBloc = source.SubTimelinesBySubBloc.ToDictionary(pair => pair.Key, pair => (SubTimeline)pair.Value.Clone());
+        }
+
+        /// <summary>Share signal metadata while keeping navigation state and event listeners column-local.</summary>
+        public Timeline CopyForNavigation() => new Timeline(this);
 
         public Timeline(Bloc bloc, Dictionary<SubBloc, List<SubBlocEventsStatistics>> eventStatisticsBySubBloc, Dictionary<SubBloc, int> indexBySubBloc, Tools.Frequency frequency)
         {
@@ -257,7 +367,7 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
     }
 
-    public class SubTimeline
+    public class SubTimeline : System.ICloneable
     {
         #region Properties
 
@@ -380,6 +490,16 @@ namespace HBP.Core.Data // FIXME : maybe these classes have nothing to do in thi
         #endregion
 
         #region Public Methods
+
+        /// <summary>
+        /// Clone the timeline metadata and statistics dictionary, preserving the event definitions.
+        /// </summary>
+        public object Clone()
+        {
+            var clone = (SubTimeline)MemberwiseClone();
+            clone.StatisticsByEvent = new Dictionary<Event, EventStatistics>(StatisticsByEvent);
+            return clone;
+        }
 
         public void Move(int distance)
         {

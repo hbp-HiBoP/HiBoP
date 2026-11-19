@@ -10,5 +10,13 @@
       "currentPrefix": "HBP.Core.Preferences."
     }
   ],
-  "typeAliases": []
+  "typeAliases": [],
+  "propertyAliases": [
+    {
+      "ownerType": "HBP.Core.Data.CCEPColumn",
+      "serializedProperty": "DynamicConfiguration",
+      "currentProperty": "CCEPConfiguration",
+      "migration": "CCEPConfiguration"
+    }
+  ]
 }

@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -7,6 +7,8 @@ namespace HBP.Core.Data
     public class FMRIConfiguration : BaseData
     {
         #region Properties
+
+        [JsonProperty] public int SelectedResourceIndex { get; set; }
 
         [JsonProperty("Negative Min")] public float NegativeMin { get; set; }
         [JsonProperty("Negative Max")] public float NegativeMax { get; set; }
@@ -20,8 +22,9 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public FMRIConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher) : base()
+        public FMRIConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, int selectedResourceIndex = 0) : base()
         {
+            SelectedResourceIndex = selectedResourceIndex;
             NegativeMin = negativeMin;
             NegativeMax = negativeMax;
             PositiveMin = positiveMin;
@@ -31,8 +34,9 @@ namespace HBP.Core.Data
             HideHigherValues = higher;
         }
 
-        public FMRIConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, string ID) : base(ID)
+        public FMRIConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, string ID, int selectedResourceIndex = 0) : base(ID)
         {
+            SelectedResourceIndex = selectedResourceIndex;
             NegativeMin = negativeMin;
             NegativeMax = negativeMax;
             PositiveMin = positiveMin;
@@ -52,7 +56,7 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new FMRIConfiguration(NegativeMin, NegativeMax, PositiveMin, PositiveMax, HideLowerValues, HideMiddleValues, HideHigherValues, ID);
+            return new FMRIConfiguration(NegativeMin, NegativeMax, PositiveMin, PositiveMax, HideLowerValues, HideMiddleValues, HideHigherValues, ID, SelectedResourceIndex);
         }
 
         public override void Copy(object copy)
@@ -60,6 +64,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if (copy is FMRIConfiguration fmriConfiguration)
             {
+                SelectedResourceIndex = fmriConfiguration.SelectedResourceIndex;
                 NegativeMin = fmriConfiguration.NegativeMin;
                 NegativeMax = fmriConfiguration.NegativeMax;
                 PositiveMin = fmriConfiguration.PositiveMin;

@@ -7,6 +7,9 @@ namespace HBP.Core.DLL
 {
     public class CutGeometryGenerator : CppDLLImportBase
     {
+        public Vector2 PhysicalSize { get; private set; }
+        private static bool s_DisplaySamplingAvailable = true;
+
         public Vector2Int TextureSize
         {
             get
@@ -30,6 +33,30 @@ namespace HBP.Core.DLL
             if (volume == null) throw new ArgumentNullException(nameof(volume));
             if (cut == null) throw new ArgumentNullException(nameof(cut));
             ThrowIfFailed(hbp_cut_geometry_generator_initialize(_handle.Handle, volume.getHandle().Handle, cut.getHandle().Handle, (int)cut.Orientation, cut.Flip ? 1 : 0, maxTextureSize));
+        }
+
+        /// <summary>Native voxel sampling when raw, otherwise trilinear anatomy at display resolution.</summary>
+        public void InitializeDisplay(Volume volume, Object3D.Cut cut, bool rawCuts, int targetTextureSize = 512)
+        {
+            if (volume == null) throw new ArgumentNullException(nameof(volume));
+            if (cut == null) throw new ArgumentNullException(nameof(cut));
+            if (s_DisplaySamplingAvailable)
+            {
+                try
+                {
+                    ThrowIfFailed(hbp_cut_geometry_generator_initialize_display(_handle.Handle, volume.getHandle().Handle, cut.getHandle().Handle, (int)cut.Orientation, cut.Flip ? 1 : 0, rawCuts ? 1 : 0, targetTextureSize, out Vec2 physicalSize));
+                    PhysicalSize = physicalSize.ToVector2();
+                    return;
+                }
+                catch (EntryPointNotFoundException)
+                {
+                    s_DisplaySamplingAvailable = false;
+                    Debug.LogWarning("This hbp_core plugin predates display sampling. Update the native plugin to enable voxel-accurate raw cuts and trilinear anatomy; retaining the previous cut renderer.");
+                }
+            }
+
+            Initialize(volume, cut, -1);
+            PhysicalSize = TextureSize;
         }
 
         public void UpdateSurfaceUV(Surface cutSurface)
@@ -76,6 +103,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_initialize", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_initialize(IntPtr generator, IntPtr volume, IntPtr plane, int cutOrientation, int flip, int maxTextureSize);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_initialize_display", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_cut_geometry_generator_initialize_display(IntPtr generator, IntPtr volume, IntPtr plane, int cutOrientation, int flip, int rawCuts, int targetTextureSize, out Vec2 physicalSize);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_cut_geometry_generator_get_texture_size", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_cut_geometry_generator_get_texture_size(IntPtr generator, out TextureSize outSize);

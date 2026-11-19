@@ -189,7 +189,8 @@ namespace HBP.Core.Data
                 if (project != null)
                 {
                     LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, project.Patients, project.Datasets);
-                    context.ResolveProject(project.Patients, Array.Empty<Group>(), project.Datasets, new[] { result });
+                    result.ResolveReferences(context);
+                    context.ThrowIfInvalid();
                 }
 
                 return true;
@@ -210,10 +211,26 @@ namespace HBP.Core.Data
 
         #region Public Methods
 
-        /// <summary>
-        /// Load the visualization.
-        /// </summary>
-        /// <returns></returns>
+        /// <summary>Finish data-derived objects for either project-loaded or deserialized data.</summary>
+        public async UniTask CompletePreparedDataAsync(CancellationToken token)
+        {
+            await UniTask.SwitchToMainThread();
+            token.ThrowIfCancellationRequested();
+            DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, UnityEngine.SystemInfo.systemMemorySize);
+            foreach (var column in IEEGColumns)
+            {
+                column.Data.IconicScenario ??= new Processed.IconicScenario(column.Bloc, column.Data.Timeline.Frequency, column.Data.Timeline);
+                column.Data.IconicScenario.LoadIcons();
+            }
+
+            foreach (var column in CCEPColumns)
+            {
+                column.Data.IconicScenario ??= new Processed.IconicScenario(column.Bloc, column.Data.Timeline.Frequency, column.Data.Timeline);
+                column.Data.IconicScenario.LoadIcons();
+            }
+        }
+
+        /// <summary>Load the visualization.</summary>
         public async UniTask LoadAsync(Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToMainThread();
@@ -563,7 +580,7 @@ namespace HBP.Core.Data
                     onChangeProgress(progress, 0, new LoadingText("Loading timeline of iEEG column ", column.Name, " [" + (i + 1) + "/" + nbIEEGColumns + "]"));
                     column.Data.SetTimeline(maxiEEGFrequency, column.Bloc, iEEGColumns.Select(c => c.Bloc).Distinct());
                     await UniTask.SwitchToMainThread();
-                    column.Data.IconicScenario.LoadIcons();
+                    // Icons are initialized with the common prepared scene data.
                     await UniTask.SwitchToThreadPool();
                 }
             }
@@ -589,7 +606,7 @@ namespace HBP.Core.Data
                     onChangeProgress.Invoke(progress, 0, new LoadingText("Loading timeline of CCEP column ", column.Name, " [" + (i + 1) + "/" + nbCCEPColumns + "]"));
                     column.Data.SetTimeline(maxCCEPFrequency, column.Bloc, ccepColumns.Select(c => c.Bloc).Distinct());
                     await UniTask.SwitchToMainThread();
-                    column.Data.IconicScenario.LoadIcons();
+                    // Icons are initialized with the common prepared scene data.
                     await UniTask.SwitchToThreadPool();
                 }
             }

@@ -3,10 +3,13 @@
 Builds the native HiBoP plugins on GitHub and installs the validated artifacts.
 
 .DESCRIPTION
-The script pins the latest commit from the master branch of EEGFormat, hbp_core
-and hbp_math, dispatches their native workflows, waits for all platforms,
+The script pins the latest commit from the selected branch (master by default),
+dispatches the selected native workflows, waits for the requested platforms,
 validates every artifact manifest, and replaces the Unity plugins as one
 rollback-capable transaction.
+After installation, copies the available native license notices from the same
+source revisions into Licenses/native. Notice download failures are reported
+as warnings and do not gate plugin installation.
 
 .EXAMPLE
 .\Tools\Update-NativePlugins.ps1
@@ -16,12 +19,24 @@ rollback-capable transaction.
 
 .EXAMPLE
 .\Tools\Update-NativePlugins.ps1 -ValidateOnly
+
+.EXAMPLE
+.\Tools\Update-NativePlugins.ps1 -Branch develop -Libraries hbp_core -Platform Linux
 #>
 
 [CmdletBinding()]
 param(
+    [ValidateNotNullOrEmpty()]
+    [string]$Branch = 'master',
+    [ValidateSet('EEGFormat', 'hbp_core', 'hbp_math')]
+    [string[]]$Libraries,
+    [ValidateSet('All', 'Windows', 'Linux', 'MacOS', 'Android')]
+    [string]$Platform = 'All',
     [string]$Resume,
-    [switch]$ValidateOnly
+    [switch]$ValidateOnly,
+    [string]$AndroidPackage,
+    # Local, reviewed hbp_core packages from one source snapshot. No GitHub dispatch.
+    [string[]]$LocalCorePackages
 )
 
 Set-StrictMode -Version Latest
@@ -72,7 +87,7 @@ function Remove-WorkingItem
 
 function Get-NativePluginConfiguration
 {
-    param([hashtable]$ConfigurationOverride)
+    param([hashtable]$ConfigurationOverride, [switch]$RecoveringInstall)
 
     if (!$ConfigurationOverride -and !(Test-Path -LiteralPath $configurationPath -PathType Leaf))
     {
@@ -89,25 +104,27 @@ function Get-NativePluginConfiguration
     {
         throw "Unsupported native plugin configuration schema: $($configuration.schemaVersion)"
     }
-    if ($configuration.branch -ne "master")
+    if (!$ConfigurationOverride) { $configuration.branch = $Branch }
+    & git check-ref-format --branch $configuration.branch > $null
+    if ($LASTEXITCODE -ne 0)
     {
-        throw "Native plugins must be built from the GitHub master branch."
+        throw "Invalid Git branch: $($configuration.branch)"
     }
     if (!$configuration.workflow)
     {
         throw "The native workflow name is missing."
     }
 
-    $libraries = @($configuration.libraries)
-    if ($libraries.Count -ne 3)
+    $configuredLibraries = @($configuration.libraries)
+    $partialUpdate = $configuration.Contains('partialUpdate') -and $configuration.partialUpdate
+    if ($configuredLibraries.Count -eq 0 -or (!$partialUpdate -and $configuredLibraries.Count -ne 3))
     {
-        throw "Expected exactly three native libraries, found $($libraries.Count)."
+        throw "Expected exactly three native libraries, found $($configuredLibraries.Count)."
     }
 
-    $expectedPlatforms = @("Windows", "Linux", "MacOS")
     $destinations = [System.Collections.Generic.HashSet[string]]::new(
         [System.StringComparer]::OrdinalIgnoreCase)
-    foreach ($library in $libraries)
+    foreach ($library in $configuredLibraries)
     {
         foreach ($property in @("name", "repository", "manifestRepository"))
         {
@@ -118,15 +135,18 @@ function Get-NativePluginConfiguration
         }
 
         $targets = @($library.targets)
-        if ($targets.Count -ne 3)
+        $expectedPlatforms = @("Windows", "Linux", "MacOS")
+        if ($library.name -in @("hbp_core", "hbp_math") -and (!$ConfigurationOverride -or @($targets | Where-Object platform -eq 'Android').Count)) { $expectedPlatforms += "Android" }
+        if ($partialUpdate -and $configuration.buildPlatform -ne 'all') { $expectedPlatforms = @($configuration.buildPlatform) }
+        if ($targets.Count -ne $expectedPlatforms.Count)
         {
-            throw "Expected three platform targets for $($library.name)."
+            throw "Expected $($expectedPlatforms.Count) platform targets for $($library.name)."
         }
-        foreach ($platform in $expectedPlatforms)
+        foreach ($requiredPlatform in $expectedPlatforms)
         {
-            if (@($targets | Where-Object { $_.platform -eq $platform }).Count -ne 1)
+            if (@($targets | Where-Object { $_.platform -eq $requiredPlatform }).Count -ne 1)
             {
-                throw "Expected exactly one $platform target for $($library.name)."
+                throw "Expected exactly one $requiredPlatform target for $($library.name)."
             }
         }
 
@@ -145,12 +165,27 @@ function Get-NativePluginConfiguration
             {
                 throw "Duplicate native plugin destination: $destination"
             }
-            if (!(Test-Path -LiteralPath $destination))
+            if (!(Test-Path -LiteralPath $destination) -and !$RecoveringInstall -and $target.platform -ne "Android")
             {
                 throw "Expected native plugin destination is missing: $destination"
             }
         }
     }
+    if (!$ConfigurationOverride)
+    {
+        if ($Libraries) { $configuration.libraries = @($configuration.libraries | Where-Object name -in $Libraries) }
+        if ($Platform -ne 'All')
+        {
+            foreach ($library in $configuration.libraries)
+            {
+                $library.targets = @($library.targets | Where-Object platform -eq $Platform)
+                if ($library.targets.Count -ne 1) { throw "$($library.name) does not support $Platform." }
+            }
+        }
+        $configuration.buildPlatform = $Platform.ToLowerInvariant()
+        $configuration.partialUpdate = [bool]$Libraries -or $Platform -ne 'All'
+    }
+    elseif (!$configuration.Contains('buildPlatform')) { $configuration.buildPlatform = 'all' }
     return $configuration
 }
 
@@ -167,6 +202,50 @@ function Invoke-GitHub
         throw "GitHub CLI failed: gh $($Arguments -join ' ')$([Environment]::NewLine)$($output -join [Environment]::NewLine)"
     }
     return $output -join [Environment]::NewLine
+}
+
+function Copy-NativeLicenseNotices
+{
+    param([hashtable]$RepositoryState)
+
+    $apiRoot = "repos/$($RepositoryState.repository)/contents"
+    $ref = $RepositoryState.sourceSha
+    $destination = Join-Path $repositoryRoot "Licenses/native/$($RepositoryState.name)"
+    $notices = @{}
+    # Also picks up an explicit project license if one is introduced later.
+    $entries = Invoke-GitHub -Arguments @('api', "$apiRoot`?ref=$ref") | ConvertFrom-Json
+    foreach ($entry in $entries)
+    {
+        if ($entry.type -eq 'file' -and $entry.name -match '^(LICENSE|LICENCE|COPYING|NOTICE)(\.(txt|md))?$')
+        {
+            $notices[$entry.name] = Invoke-GitHub -Arguments @('api', "$apiRoot/$($entry.path)?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+        }
+    }
+    if ($RepositoryState.name -eq 'hbp_core')
+    {
+        $notices['THIRD_PARTY_NOTICES.md'] = Invoke-GitHub -Arguments @('api', "$apiRoot/docs/third_party/THIRD_PARTY_NOTICES.md?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+    }
+    elseif ($RepositoryState.name -eq 'EEGFormat')
+    {
+        # This older dependency embeds its notices in the source headers.
+        $headers = Invoke-GitHub -Arguments @('api', "$apiRoot/EEGFormat/utf8?ref=$ref") | ConvertFrom-Json
+        $paths = @('EEGFormat/utf8.h') + @($headers | Where-Object { $_.type -eq 'file' -and $_.name -like '*.h' } | ForEach-Object { $_.path })
+        $texts = @($paths | ForEach-Object {
+            $source = Invoke-GitHub -Arguments @('api', "$apiRoot/$_`?ref=$ref", '-H', 'Accept: application/vnd.github.raw+json')
+            [regex]::Match($source, '(?s)\A.*?\*/').Value.Trim()
+        } | Select-Object -Unique)
+        $notices['UTF8-CPP.txt'] = $texts -join "`n`n"
+    }
+    if ($notices.Count)
+    {
+        New-Item -ItemType Directory -Path $destination -Force | Out-Null
+        foreach ($name in $notices.Keys)
+        {
+            Set-Content -LiteralPath (Join-Path $destination $name) -Value $notices[$name] -Encoding utf8
+        }
+        Write-Host "Copied license notices for $($RepositoryState.name)."
+    }
+    else { Write-Host "No standalone license notices in $($RepositoryState.name); see Licenses/INDEX.md for its current status." }
 }
 
 function Invoke-GitHubRawDownload
@@ -235,7 +314,8 @@ function Select-RunArtifacts
     param(
         [string]$LibraryName,
         [long]$RunId,
-        [object[]]$Artifacts
+        [object[]]$Artifacts,
+        [string[]]$Platforms
     )
 
     $specifications = @(
@@ -254,11 +334,15 @@ function Select-RunArtifacts
                 "$LibraryName-macos-arm64-$RunId.tar.gz")
         }
     )
+    if (($Platforms -and "Android" -in $Platforms) -or (!$Platforms -and $LibraryName -in @("hbp_core", "hbp_math"))) {
+        $specifications += [ordered]@{ platform = "Android"; names = @("$LibraryName-android-arm64-$RunId") }
+    }
+    if ($Platforms) { $specifications = @($specifications | Where-Object platform -in $Platforms) }
 
     if ($Artifacts.Count -ne $specifications.Count)
     {
         $names = @($Artifacts | ForEach-Object { $_.name }) -join ", "
-        throw "Expected exactly three artifacts for $LibraryName run $RunId, found $($Artifacts.Count): $names"
+        throw "Expected exactly $($specifications.Count) artifacts for $LibraryName run $RunId, found $($Artifacts.Count): $names"
     }
 
     return @($specifications | ForEach-Object {
@@ -300,6 +384,7 @@ function Save-RunArtifacts
     $selectedArtifacts = @(Select-RunArtifacts `
         -LibraryName $Library.name `
         -RunId $runId `
+        -Platforms @($Library.targets | ForEach-Object platform) `
         -Artifacts @($response.artifacts))
 
     foreach ($selected in $selectedArtifacts)
@@ -370,6 +455,9 @@ function Assert-WorkflowSupportsOrchestration
             throw "$($Library.repository)/$($Configuration.branch) does not yet contain the orchestrated workflow changes ('$requiredText')."
         }
     }
+    if (@($Library.targets | Where-Object platform -eq "Android").Count -and $yaml -notmatch '(?m)^  android:') {
+        throw "$($Library.repository)/$($Configuration.branch) does not yet contain the Android workflow job."
+    }
 }
 
 function Get-TrackedInstallPaths
@@ -391,6 +479,15 @@ function Assert-InstallTargetsClean
         "Assets/Plugins/Native",
         [System.IO.Path]::GetRelativePath($repositoryRoot, $lockFilePath).Replace("\", "/")
     )
+    if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+    {
+        # Merge the lock under the install mutex; preserve reviewed local builds
+        # on other platforms. Only the selected payloads and metadata must be clean.
+        $paths = @($Configuration.libraries | ForEach-Object { $_.targets | ForEach-Object { $_.destination; "$($_.destination).meta" } })
+        if (!(Test-Path -LiteralPath $lockFilePath -PathType Leaf)) { throw 'Partial updates require an existing native plugin lock.' }
+        $existingLock = Get-Content -LiteralPath $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        if ($existingLock.schemaVersion -ne 1 -or !$existingLock.libraries) { throw 'Invalid native plugin lock for partial update.' }
+    }
     Push-Location $repositoryRoot
     try
     {
@@ -668,6 +765,17 @@ function Test-ArtifactManifest
     {
         throw "Unexpected architecture '$($manifest.architecture)' for $($Library.name) $($target.platform)."
     }
+    if ($target.platform -eq "Android") {
+        if ($Library.name -notin @('hbp_core', 'hbp_math') -or $manifest.sourceMode -ne 'git-archive' -or
+            $manifest.sourceTree -notmatch '^[0-9a-f]{40}$' -or
+            $manifest.android.ndkVersion -ne '27.2.12479018' -or
+            $manifest.android.api -ne 32 -or $manifest.android.abi -ne 'arm64-v8a' -or
+            $manifest.android.stl -ne 'c++_static' -or $manifest.android.pageSize -ne 16384 -or
+            $manifest.publicExportCount -le 0 -or $manifest.runtimeDependencies.Count -eq 0 -or
+            @($manifest.runtimeDependencies | Where-Object { $_ -notin @('libc.so', 'libdl.so', 'libm.so', 'liblog.so') }).Count) {
+            throw "Android provenance, toolchain or runtime dependencies do not match the supported $($Library.name) target."
+        }
+    }
 
     $manifestFiles = @($manifest.files)
     if ($manifestFiles.Count -eq 0)
@@ -769,7 +877,7 @@ function Test-ArtifactManifest
         }
     })
 
-    return [ordered]@{
+    $package = [ordered]@{
         library = $Library.name
         repository = $Library.repository
         platform = $target.platform
@@ -778,6 +886,20 @@ function Test-ArtifactManifest
         destination = $target.destination
         files = $installFiles
     }
+    if ($target.platform -eq 'Android') {
+        $header = [IO.File]::ReadAllBytes($payloadPath)
+        if ($header.Length -lt 20 -or $header[0] -ne 127 -or $header[1] -ne 69 -or
+            $header[2] -ne 76 -or $header[3] -ne 70 -or $header[4] -ne 2 -or
+            $header[5] -ne 1 -or $header[16] -ne 3 -or $header[17] -ne 0 -or
+            $header[18] -ne 183 -or $header[19] -ne 0) { throw 'Android payload must be an ELF64 AArch64 shared library.' }
+        $package.provenance = [ordered]@{
+            sourceTree = $manifest.sourceTree; sourceMode = $manifest.sourceMode
+            android = $manifest.android; runtimeDependencies = $manifest.runtimeDependencies
+            publicExportCount = $manifest.publicExportCount; buildTools = $manifest.buildTools
+            artifactManifestSha256 = (Get-FileHash $ManifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+        }
+    }
+    return $package
 }
 
 function Get-ValidatedPackages
@@ -808,19 +930,22 @@ function Get-ValidatedPackages
         }
 
         $macExtractionDirectory = Join-Path $downloadDirectory "_extracted_macos"
-        Expand-MacArtifact -DownloadDirectory $downloadDirectory -ExtractionDirectory $macExtractionDirectory
+        if (@($library.targets | Where-Object platform -eq 'MacOS').Count)
+        {
+            Expand-MacArtifact -DownloadDirectory $downloadDirectory -ExtractionDirectory $macExtractionDirectory
+        }
 
         $manifestPaths = @(Get-ChildItem -LiteralPath $downloadDirectory -Recurse -File -Filter "artifact-manifest.json" |
             Select-Object -ExpandProperty FullName)
-        if ($manifestPaths.Count -ne 3)
+        if ($manifestPaths.Count -ne @($library.targets).Count)
         {
-            throw "Expected three artifact manifests for $($library.name), found $($manifestPaths.Count)."
+            throw "Expected $(@($library.targets).Count) artifact manifests for $($library.name), found $($manifestPaths.Count)."
         }
 
         $libraryPackages = @($manifestPaths | ForEach-Object {
             Test-ArtifactManifest -ManifestPath $_ -Library $library -RepositoryState $repositoryState
         })
-        foreach ($platform in @("Windows", "Linux", "MacOS"))
+        foreach ($platform in @($library.targets | ForEach-Object { $_.platform }))
         {
             if (@($libraryPackages | Where-Object { $_.platform -eq $platform }).Count -ne 1)
             {
@@ -830,9 +955,10 @@ function Get-ValidatedPackages
         $packages += $libraryPackages
     }
 
-    if ($packages.Count -ne 9)
+    $expectedPackageCount = @($Configuration.libraries | ForEach-Object { $_.targets }).Count
+    if ($packages.Count -ne $expectedPackageCount)
     {
-        throw "Expected nine validated native packages, found $($packages.Count)."
+        throw "Expected $expectedPackageCount validated native packages, found $($packages.Count)."
     }
     return $packages
 }
@@ -864,6 +990,8 @@ function Remove-InstallScratch
 
 function Enter-InstallMutex
 {
+    param([string]$RequestId)
+
     if ($script:installMutexHeld)
     {
         throw "Another native plugin installation is already active for this checkout."
@@ -886,6 +1014,27 @@ function Enter-InstallMutex
     {
         # Ownership is granted when the previous process terminated unexpectedly.
         $script:installMutexHeld = $true
+    }
+    try
+    {
+        if (Test-Path -LiteralPath $workingRoot)
+        {
+            foreach ($directory in Get-ChildItem -LiteralPath $workingRoot -Directory)
+            {
+                $journalPath = Join-Path $directory.FullName 'state.json'
+                if (!(Test-Path -LiteralPath $journalPath)) { continue }
+                $journal = Get-Content -LiteralPath $journalPath -Raw | ConvertFrom-Json -AsHashtable
+                if ($journal.phase -eq 'installing' -and $journal.requestId -ne $RequestId)
+                {
+                    throw "Interrupted native plugin installation: resume it first with -Resume $($journal.requestId)."
+                }
+            }
+        }
+    }
+    catch
+    {
+        Exit-InstallMutex -Mutex $mutex
+        throw
     }
     return $mutex
 }
@@ -954,7 +1103,7 @@ function Assert-UnityClosed
     foreach ($relativePath in $windowsDlls)
     {
         $path = Join-Path $repositoryRoot $relativePath
-        if (!(Test-ExclusiveFileAccess -Path $path))
+        if ((Test-Path -LiteralPath $path -PathType Leaf) -and !(Test-ExclusiveFileAccess -Path $path))
         {
             throw "Native plugin is locked. Close Unity and retry with -Resume: $path"
         }
@@ -995,7 +1144,14 @@ function Backup-CurrentInstall
         {
             $source = Join-Path $repositoryRoot $target.destination
             $destination = Join-Path $BackupRoot $target.destination
-            Copy-Payload -Source $source -Destination $destination
+            if (Test-Path -LiteralPath $source) {
+                Copy-Payload -Source $source -Destination $destination
+            }
+            elseif ($target.platform -eq "Android") {
+                New-Item -ItemType Directory -Path (Split-Path -Parent $destination) -Force | Out-Null
+                Set-Content -LiteralPath "$destination.absent" -Value 'absent' -Encoding utf8
+            }
+            else { throw "Native plugin to back up is missing: $source" }
         }
     }
     if (Test-Path -LiteralPath $lockFilePath -PathType Leaf)
@@ -1023,6 +1179,11 @@ function Restore-InstallBackup
         {
             $destination = Join-Path $repositoryRoot $target.destination
             $backup = Join-Path $BackupRoot $target.destination
+            if ($target.platform -eq "Android" -and (Test-Path -LiteralPath "$backup.absent")) {
+                $safeDestination = Assert-PathWithin -Path $destination -Root $repositoryRoot -Description "Restore destination"
+                if (Test-Path -LiteralPath $safeDestination) { Remove-Item -LiteralPath $safeDestination -Force }
+                continue
+            }
             if (!(Test-Path -LiteralPath $backup))
             {
                 throw "Native plugin backup payload is missing: $backup"
@@ -1151,7 +1312,7 @@ function New-NativePluginLock
         [hashtable[]]$Packages
     )
 
-    return [ordered]@{
+    $lock = [ordered]@{
         schemaVersion = 1
         generatedAt = [DateTimeOffset]::UtcNow.ToString("O")
         requestId = $State.requestId
@@ -1166,16 +1327,51 @@ function New-NativePluginLock
                 runId = $repositoryState.runId
                 runUrl = $repositoryState.runUrl
                 artifacts = @($Packages | Where-Object { $_.library -eq $library.name } | ForEach-Object {
-                    [ordered]@{
+                    $artifact = [ordered]@{
                         platform = $_.platform
                         architecture = $_.architecture
                         destination = $_.destination
                         files = $_.files
                     }
+                    if ($_.Contains('provenance')) { $artifact.provenance = $_.provenance }
+                    $artifact
                 })
             }
         })
     }
+    if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+    {
+        $existing = Get-Content -LiteralPath $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        foreach ($updated in $lock.libraries)
+        {
+            $matches = @($existing.libraries | Where-Object name -eq $updated.name)
+            if ($matches.Count -ne 1) { throw "Expected one existing lock entry for $($updated.name)." }
+            $previous = $matches[0]
+            foreach ($artifact in $previous.artifacts)
+            {
+                if (!$artifact.Contains('sourceCommit')) { $artifact.sourceCommit = $previous.commit }
+                if (!$artifact.Contains('runId')) { $artifact.runId = $previous.runId }
+                if (!$artifact.Contains('runUrl')) { $artifact.runUrl = $previous.runUrl }
+            }
+            foreach ($artifact in $updated.artifacts)
+            {
+                $artifact.sourceCommit = $updated.commit
+                $artifact.sourceBranch = $Configuration.branch
+                $artifact.runId = $updated.runId
+                $artifact.runUrl = $updated.runUrl
+            }
+            $previous.artifacts = @($previous.artifacts | Where-Object platform -notin @($updated.artifacts.platform)) + @($updated.artifacts)
+            $commits = @($previous.artifacts | ForEach-Object { $_.sourceCommit } | Select-Object -Unique)
+            $previous.commit = if ($commits.Count -eq 1) { $commits[0] } else { $null }
+            $previous.runId = $null
+            $previous.runUrl = $null
+        }
+        $existing.generatedAt = $lock.generatedAt
+        $existing.requestId = $lock.requestId
+        $existing.branch = $lock.branch
+        return $existing
+    }
+    return $lock
 }
 
 function Assert-ExpectedInstallDiff
@@ -1187,7 +1383,12 @@ function Assert-ExpectedInstallDiff
     Push-Location $repositoryRoot
     try
     {
-        $status = @(& git -c core.quotepath=false status --porcelain=v1 --untracked-files=all -- Assets/Plugins/Native Tools/NativePlugins.lock.json)
+        $statusPaths = @('Assets/Plugins/Native', 'Tools/NativePlugins.lock.json')
+        if ($Configuration.Contains('partialUpdate') -and $Configuration.partialUpdate)
+        {
+            $statusPaths = @($allowedRoots) + @($Configuration.libraries | ForEach-Object { $_.targets | ForEach-Object { "$($_.destination).meta" } })
+        }
+        $status = @(& git -c core.quotepath=false status --porcelain=v1 --untracked-files=all -- @statusPaths)
         if ($LASTEXITCODE -ne 0)
         {
             throw "Git failed while verifying the native plugin diff."
@@ -1286,6 +1487,116 @@ function Get-RequestContext
     }
 }
 
+function Install-LocalAndroidPackage {
+    param([string]$PackageDirectory, [hashtable]$Configuration)
+    $mutex = Enter-InstallMutex
+    try {
+        Assert-UnityClosed
+        $originalLock = [IO.File]::ReadAllBytes($lockFilePath)
+        $lock = Get-Content $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $manifestPath = Join-Path $PackageDirectory 'artifact-manifest.json'
+        $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
+        $libraries = @($Configuration.libraries | Where-Object {
+            $_.manifestRepository -eq $manifest.repository -and $_.name -in @('hbp_core', 'hbp_math')
+        })
+        if ($libraries.Count -ne 1) { throw 'Local Android import supports only hbp_core or hbp_math manifests.' }
+        $library = $libraries[0]
+        $lockedLibraries = @($lock.libraries | Where-Object name -eq $library.name)
+        if ($lockedLibraries.Count -ne 1) { throw "Expected one installed lock entry for $($library.name)." }
+        # The installed Desktop bytes, not just the source checkout, are the reference.
+        $lockedLibrary = $lockedLibraries[0]
+        foreach ($artifact in $lockedLibrary.artifacts) {
+            $binary = $artifact | ConvertTo-Json -Depth 12 | ConvertFrom-Json -AsHashtable
+            # Git may normalize bundle XML line endings on Windows. Scientific
+            # provenance concerns the Mach-O executable, never its plist/signature.
+            if ($binary.platform -eq 'MacOS') { $binary.files = @($binary.files | Where-Object relativePath -eq "Contents/MacOS/lib$($library.name)") }
+            Assert-InstalledPackages -Packages @($binary)
+        }
+        $package = Test-ArtifactManifest -ManifestPath $manifestPath -Library $library -RepositoryState @{ sourceSha = $lockedLibrary.commit }
+        if ($package.platform -ne 'Android') { throw 'Local import accepts only the Android package.' }
+        $requestId = 'android-local-' + [Guid]::NewGuid().ToString('N')
+        $backupRoot = Join-Path $workingRoot "$requestId/backup"
+        $installConfiguration = @{ libraries = @(@{ targets = @($library.targets | Where-Object platform -eq 'Android') }) }
+        Backup-CurrentInstall -Configuration $installConfiguration -BackupRoot $backupRoot
+        try {
+            Install-Payload -Package $package -RequestId $requestId
+            Assert-InstalledPackages -Packages @($package)
+            $lockedLibrary.artifacts = @($lockedLibrary.artifacts | Where-Object platform -ne 'Android') + @([ordered]@{
+                platform = 'Android'; architecture = $package.architecture; destination = $package.destination
+                files = $package.files; origin = 'local'; runId = $null; runUrl = $null; provenance = $package.provenance
+            })
+            $lock | ConvertTo-Json -Depth 12 | Set-Content $lockFilePath -Encoding utf8
+        }
+        catch {
+            Restore-InstallBackup -Configuration $installConfiguration -BackupRoot $backupRoot
+            [IO.File]::WriteAllBytes($lockFilePath, $originalLock)
+            throw
+        }
+        Write-Host "Installed local Android $($library.name) package from Desktop source $($lockedLibrary.commit). Desktop payloads unchanged."
+    }
+    finally { Exit-InstallMutex -Mutex $mutex }
+}
+
+function Install-LocalCorePackages {
+    param([string[]]$Directories, [hashtable]$Configuration)
+    $mutex = Enter-InstallMutex
+    try {
+        Assert-UnityClosed
+        $library = @($Configuration.libraries | Where-Object name -eq 'hbp_core')[0]
+        $originalLock = [IO.File]::ReadAllBytes($lockFilePath)
+        $lock = Get-Content $lockFilePath -Raw | ConvertFrom-Json -AsHashtable
+        $lockedLibrary = @($lock.libraries | Where-Object name -eq 'hbp_core')[0]
+        $packages = @()
+        $sourceCommit = $null
+        foreach ($directory in $Directories) {
+            $manifestPath = Join-Path ([IO.Path]::GetFullPath($directory)) 'artifact-manifest.json'
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json -AsHashtable
+            if ($manifest.commit -notmatch '^[0-9a-f]{40}$') { throw 'A full source snapshot commit is required.' }
+            if ($sourceCommit -and $sourceCommit -ne $manifest.commit) { throw 'Local packages must share one source snapshot.' }
+            $sourceCommit = $manifest.commit
+            $package = Test-ArtifactManifest -ManifestPath $manifestPath -Library $library -RepositoryState @{ sourceSha = $sourceCommit }
+            $package.sourceCommit = $sourceCommit
+            if (!$package.Contains('provenance')) { $package.provenance = @{} }
+            $package.provenance.artifactManifestSha256 = (Get-FileHash $manifestPath -Algorithm SHA256).Hash.ToLowerInvariant()
+            $packages += $package
+        }
+        if ($packages.Count -ne 2 -or @($packages.platform | Sort-Object -Unique).Count -ne 2 -or
+            'Windows' -notin $packages.platform -or 'Android' -notin $packages.platform) {
+            throw 'Local hbp_core installation requires exactly Windows and Android packages.'
+        }
+        $requestId = 'core-local-' + [Guid]::NewGuid().ToString('N')
+        $backupRoot = Join-Path $workingRoot "$requestId/backup"
+        $installConfiguration = @{ libraries = @(@{ targets = @($library.targets | Where-Object { $_.platform -in $packages.platform }) }) }
+        Backup-CurrentInstall -Configuration $installConfiguration -BackupRoot $backupRoot
+        try {
+            foreach ($package in $packages) { Install-Payload -Package $package -RequestId $requestId }
+            Assert-InstalledPackages -Packages $packages
+            # Unchanged platforms retain their own source identity; never attribute old bytes to the new snapshot.
+            foreach ($artifact in $lockedLibrary.artifacts) {
+                if (!$artifact.ContainsKey('sourceCommit')) { $artifact.sourceCommit = $lockedLibrary.commit }
+            }
+            $lockedLibrary.artifacts = @($lockedLibrary.artifacts | Where-Object { $_.platform -notin $packages.platform }) +
+                @($packages | ForEach-Object { $copy = @{}; foreach ($key in $_.Keys) { if ($key -ne 'sourcePath') { $copy[$key] = $_[$key] } }; $copy })
+            $lockedLibrary.commit = $sourceCommit
+            $lockedLibrary.runId = $null
+            $lockedLibrary.runUrl = $null
+            $lockedLibrary.localRequestId = $requestId
+            $lock.generatedAt = [DateTime]::UtcNow.ToString('O')
+            $lock | ConvertTo-Json -Depth 20 | Set-Content $lockFilePath -Encoding utf8
+            Write-Host "Installed local Windows and Android hbp_core packages from $sourceCommit. Other platforms retain their previous pins."
+        }
+        catch {
+            Restore-InstallBackup -Configuration $installConfiguration -BackupRoot $backupRoot
+            [IO.File]::WriteAllBytes($lockFilePath, $originalLock)
+            throw
+        }
+    }
+    finally { Exit-InstallMutex -Mutex $mutex }
+}
+
+if ($LocalCorePackages -and ($AndroidPackage -or $Resume -or $ValidateOnly)) { throw 'LocalCorePackages cannot be combined with another mode.' }
+if ($AndroidPackage -and ($Resume -or $ValidateOnly)) { throw 'AndroidPackage cannot be combined with Resume or ValidateOnly.' }
+if (($Resume -or $AndroidPackage -or $LocalCorePackages) -and ($Branch -ne 'master' -or $Libraries -or $Platform -ne 'All')) { throw 'Selection parameters cannot be combined with Resume or local import modes; Resume keeps its original selection.' }
 $resumeConfiguration = $null
 if ($Resume)
 {
@@ -1301,7 +1612,8 @@ if ($Resume)
         $resumeConfiguration = $resumeStatePreview.configuration
     }
 }
-$configuration = Get-NativePluginConfiguration -ConfigurationOverride $resumeConfiguration
+$recoveringInstall = $Resume -and $resumeConfiguration -and $resumeStatePreview.phase -eq 'installing'
+$configuration = Get-NativePluginConfiguration -ConfigurationOverride $resumeConfiguration -RecoveringInstall:$recoveringInstall
 if ($ValidateOnly)
 {
     Write-Host "Native plugin configuration is valid."
@@ -1309,6 +1621,15 @@ if ($ValidateOnly)
     {
         Write-Host "$($library.repository): $($configuration.branch), $(@($library.targets).Count) targets"
     }
+    return
+}
+
+if ($LocalCorePackages) {
+    Install-LocalCorePackages -Directories $LocalCorePackages -Configuration $configuration
+    return
+}
+if ($AndroidPackage) {
+    Install-LocalAndroidPackage -PackageDirectory ([IO.Path]::GetFullPath($AndroidPackage)) -Configuration $configuration
     return
 }
 
@@ -1331,9 +1652,10 @@ $backupRoot = Join-Path $requestDirectory "backup"
 
 if ($Resume)
 {
-    $recoveryMutex = Enter-InstallMutex
+    $recoveryMutex = Enter-InstallMutex -RequestId $state.requestId
     try
     {
+        Assert-UnityClosed
         if ($state.phase -eq "installing")
         {
             Write-Warning "Restoring the previous native plugins after an interrupted installation."
@@ -1383,12 +1705,12 @@ foreach ($library in $configuration.libraries)
         $run = Get-RunForRequest -Configuration $configuration -RepositoryState $repositoryState -RequestId $state.requestId
         if (!$run)
         {
-            Write-Host "Dispatching $($library.name) from master at $($repositoryState.sourceSha)..."
+            Write-Host "Dispatching $($library.name) $($configuration.buildPlatform) from $($configuration.branch) at $($repositoryState.sourceSha)..."
             Invoke-GitHub -Arguments @(
                 "workflow", "run", $configuration.workflow,
                 "-R", $library.repository,
                 "--ref", $configuration.branch,
-                "-f", "platform=all",
+                "-f", "platform=$($configuration.buildPlatform)",
                 "-f", "request_id=$($state.requestId)",
                 "-f", "source_sha=$($repositoryState.sourceSha)") | Out-Null
             $run = Wait-ForRunDiscovery -Configuration $configuration -RepositoryState $repositoryState -RequestId $state.requestId
@@ -1432,7 +1754,7 @@ catch
 $state.phase = "validated"
 Write-State -State $state -StatePath $statePath
 
-$installMutex = Enter-InstallMutex
+$installMutex = Enter-InstallMutex -RequestId $state.requestId
 $cleanupInstallScratch = $false
 try
 {
@@ -1478,11 +1800,17 @@ try
         throw
     }
 
+    foreach ($repositoryState in $state.repositories)
+    {
+        try { Copy-NativeLicenseNotices -RepositoryState $repositoryState }
+        catch { Write-Warning "Could not copy license notices for $($repositoryState.name): $($_.Exception.Message)" }
+    }
+
     $state.phase = "completed"
     Write-State -State $state -StatePath $statePath
     $cleanupInstallScratch = $true
     Write-Host ""
-    Write-Host "Native plugins installed successfully from GitHub master."
+    Write-Host "Native plugins installed successfully from GitHub $($configuration.branch)."
     Write-Host "Request: $($state.requestId)"
     Write-Host "Lock file: $lockFilePath"
     Write-Host "Backup and downloaded artifacts: $requestDirectory"

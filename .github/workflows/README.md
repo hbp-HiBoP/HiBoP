@@ -1,9 +1,40 @@
 # GitHub Actions builds
 
-`build.yml` builds HiBoP for Linux x64, Windows x64 and macOS ARM64 when a
-GitHub Release is published, and on demand. Each target is built on its native
-runner: this guarantees that the macOS player is ARM64 and avoids a dependency
-on cross-platform IL2CPP toolchains.
+`build.yml` builds HiBoP for Linux x64, Windows x64, macOS ARM64 and Quest
+when a GitHub Release is published and on demand. Each Desktop target builds on
+its native runner. Quest builds on Windows with Unity's Android toolchain.
+
+`platform: all` selects all four targets in one run. `platform: quest` selects
+only the Quest job. It uses the versioned `Quest` Build Profile with IL2CPP/ARM64
+and uploads `HiBoP.<application-version>.quest.apk` with its content and build
+reports under `HiBoP-Quest`. `Tools/Test-QuestApk.ps1` checks the packaged ELF
+headers and rejects Desktop native libraries. Quest Library and Gradle caches have their
+own keys; Desktop restores only the matching platform Library cache.
+Quest restores its caches without saving signed build intermediates.
+
+Set these repository Actions secrets for Quest builds.
+
+- `HIBOP_QUEST_KEYSTORE_BASE64` holds the Base64 contents of the existing Quest keystore.
+- `HIBOP_QUEST_KEYSTORE_PASSWORD` holds the password for that keystore.
+- `HIBOP_QUEST_KEY_ALIAS_PASSWORD` holds the password for the key alias in the Quest Build Profile.
+
+The runner decodes the keystore into a temporary directory for the build.
+Unity uses the alias from the Quest Build Profile and signs the APK during packaging.
+The signed job prints a summary on failure and removes the temporary Unity log.
+
+Local builds from the same checkout (Unity closed) use the existing entry point:
+
+```text
+Unity.exe -batchmode -quit -nographics -projectPath <checkout> -activeBuildProfile Assets/Settings/BuildProfiles/DesktopWindows.asset -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput <output>/desktop -logFile <output>/desktop.log
+Unity.exe -batchmode -quit -nographics -projectPath <checkout> -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine -buildOutput <output>/quest -logFile <output>/quest.log
+```
+
+On Windows, launch Unity outside the Codex sandbox using `Start-Process -Wait
+-PassThru -WindowStyle Hidden` as documented in AGENTS.md. Desktop keeps its
+data/documentation packaging. Quest produces the APK and report; its embedded
+scientific resources follow the Quest standard-data build path rather than a
+Desktop `Assets/Data` copy. Both profiles
+serialize Input System only (`activeInputHandler=1`).
 
 The workflow calls `HBP.Dev.HBPBuilder.BuildFromCommandLine`. That entry point
 reuses `HBPBuilder.BuildProjectAndZipIt`, so CI archives contain the same files
@@ -23,7 +54,9 @@ then run from the HiBoP checkout:
 
 The script resolves and pins the latest commit on GitHub `master` for
 `EEGFormat`, `hbp_core` and `hbp_math`. It dispatches the three native workflows,
-waits for all nine Windows x64, Linux x64 and macOS ARM64 artifacts, validates
+waits for the artifacts declared in `Tools/NativePlugins.json` (Windows x64,
+Linux x64 and macOS ARM64 for each library, plus Android ARM64 for `hbp_core`
+and `hbp_math`), validates
 their manifests and SHA-256 hashes, and only then replaces the Unity payloads.
 The existing Unity `.meta` files are never replaced.
 
@@ -41,13 +74,35 @@ validation fails. Before replacing files it saves all current payloads under
 `.native-plugin-update/<request-id>`, and restores them if installation fails.
 On success it writes `Tools/NativePlugins.lock.json` with the source commits,
 GitHub run URLs and installed hashes. Commit that lock file together with the
-nine native payloads, then run **Build HiBoP** with `platform: all`.
+declared native payloads, then run **Build HiBoP** with `platform: all` to check
+the four platforms together.
 
 The local validation suite does not use GitHub or modify the real plugins:
 
 ```powershell
 pwsh .\Tools\Test-NativePluginUpdater.ps1
+pwsh .\Tools\Test-NativePluginAndroidUpdater.ps1
 ```
+
+The `Test native plugin updater` workflow runs these network-free tests on
+manual dispatch. They simulate GitHub dispatches and declared target downloads,
+including missing/corrupt artifacts,
+installation/lock failures and interrupted recovery. They do not claim a real
+remote compilation. The native `hbp_core` workflow adds an `android` choice;
+`all` includes it. Android builds twice from the same immutable scientific Git
+archive and requires identical `.so` hashes, ABI/ELF inspection and tooling tests
+before uploading `hbp_core-android-arm64-<run-id>`. NDK, CMake and Ninja versions
+are pinned in `hbp_core/tools/AndroidBuild.json`.
+
+For the first local qualification only, an Android package built from the
+already-pinned Desktop commit can be imported with
+`pwsh ./Tools/Update-NativePlugins.ps1 -AndroidPackage <package-directory>`.
+It verifies the installed Desktop `hbp_core` binaries and the package's source,
+hash and Android metadata, preserves Desktop lock entries, and labels the new
+artifact `origin: local` with no GitHub run. The normal update command above
+continues to use GitHub for all declared artifacts. Neither mode modifies Unity
+`.meta` files. Integrate the native workflow changes into `hbp_core/master`
+before using the updated orchestrator; it refuses workflows without Android.
 
 The macOS runner validates the ARM64 binaries and recreates ad-hoc signatures
 before Unity imports the bundles. Consequently, copying the bundle through a
@@ -73,10 +128,10 @@ GitHub commit in `BuildInfo.json`. The macOS job also installs Unity's
 selected platform. Command-line builds are release builds by default; pass
 `-developmentBuild` explicitly when a diagnostic development player is needed.
 
-The Linux runner installs Unity Hub from Unity's Debian repository and creates
-the headless wrapper expected by `unity-setup`. It resolves the actual package
-path dynamically because Unity Hub 3.20+ uses `/usr/lib/unityhub`, while the
-action still defaults to the obsolete `/opt/unityhub` location.
+All runners install the editor through the official Unity CLI via `unity-setup`
+v3. The `activate-unity-license` v3 action uses the existing Unity credentials
+for Personal activation. The Quest Android module installs its required child
+modules, including SDK Platform 34 for Unity 6000.5.2f1.
 
 ## One-time setup
 
@@ -98,15 +153,14 @@ is preferable so that licence activation does not affect a local editor.
 
 - **Manual test:** open **Actions > Build HiBoP > Run workflow**, select the
   `develop` branch and a platform (`all` by default), then run it. The selected
-  archives are available as artifacts on the workflow run; no release is
-  created or modified.
-- **Release:** publish a GitHub Release. The same archives are attached to that
-  release after all three builds finish.
+  packages are available as workflow artifacts.
+- **Release:** publish a GitHub Release from the desired tag. The workflow
+  attaches all four packages after every build passes.
 
-Each archive is named after the generated build directory:
-`HiBoP.<application-version>.<platform>.zip`. With the current application
-version, the expected names are `HiBoP.5.0.9.win64.zip`,
-`HiBoP.5.0.9.linux64.zip` and `HiBoP.5.0.9.macos64.zip`.
+The Desktop ZIPs and signed Quest APK use the version from `codemeta.json`.
+For 6.2.0 the four release files are `HiBoP.6.2.0.win64.zip`,
+`HiBoP.6.2.0.linux64.zip`, `HiBoP.6.2.0.macos64.zip` and
+`HiBoP.6.2.0.quest.apk`.
 
 The first build for each target takes longer because Unity installs the editor
 and imports the project. The `Library` cache is reused afterwards, but is

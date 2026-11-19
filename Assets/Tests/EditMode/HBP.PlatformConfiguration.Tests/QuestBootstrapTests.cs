@@ -1,0 +1,186 @@
+using System.Linq;
+using System.Reflection;
+using HBP.Dev;
+using HBP.Quest;
+using HBP.Quest.Editor;
+using NUnit.Framework;
+using Unity.XR.CoreUtils;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEngine;
+using UnityEngine.InputSystem.XR;
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.OpenXR;
+using UnityEngine.XR.OpenXR.Features.Meta;
+
+namespace HBP.Tests.PlatformConfiguration
+{
+    public class QuestBootstrapTests
+    {
+        private const string RigPath = "Assets/Prefabs/Quest/3D/QuestRig.prefab";
+        private const string BootstrapPath = "Assets/Prefabs/Quest/QuestBootstrap.prefab";
+
+        [Test]
+        public void QuestConfiguration_PassesGuard() => QuestBuildValidation.Validate();
+
+        [Test]
+        public void AtlasHoverTooltip_IsWiredAndDoesNotReceivePointerInput()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BootstrapPath);
+            var pointer = prefab.GetComponentInChildren<QuestPointerInput>(true);
+            var view = prefab.GetComponentInChildren<QuestAtlasHoverTooltip>(true);
+            Assert.That(view, Is.Not.Null);
+            Assert.That(view.gameObject.activeSelf, Is.False);
+            Assert.That(new SerializedObject(pointer).FindProperty("atlasTooltip").objectReferenceValue, Is.SameAs(view));
+            var fields = new SerializedObject(view);
+            foreach (string field in new[] { "panel", "background", "label", "overlayMaterial" })
+                Assert.That(fields.FindProperty(field).objectReferenceValue, Is.Not.Null, field);
+            Assert.That(view.GetComponent<Canvas>().renderMode, Is.EqualTo(RenderMode.WorldSpace));
+            Assert.That(view.GetComponentsInChildren<UnityEngine.EventSystems.BaseRaycaster>(true), Is.Empty);
+            Assert.That(view.GetComponentsInChildren<UnityEngine.UI.Graphic>(true).All(graphic => !graphic.raycastTarget), Is.True);
+
+            var brain = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Objects/Brain.prefab");
+            var hoverCollider = brain.transform.Find("Atlas Hover Collider").GetComponent<MeshCollider>();
+            Assert.That(hoverCollider.gameObject.layer, Is.EqualTo(LayerMask.NameToLayer("Ignore Raycast")));
+            Assert.That(hoverCollider.sharedMesh, Is.Null);
+        }
+
+        [Test]
+        public void BoundaryVisibility_IsContextualAndWiredToPassthrough()
+        {
+            var settings = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android);
+            var feature = settings.GetFeature<BoundaryVisibilityFeature>();
+            Assert.That(feature.enabled, Is.True);
+            Assert.That(new SerializedObject(feature).FindProperty("m_SuppressVisibility").boolValue, Is.False);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
+            var boundary = new SerializedObject(prefab.GetComponent<QuestBoundaryVisibility>());
+            Assert.That(boundary.FindProperty("passthrough").objectReferenceValue, Is.EqualTo(prefab.GetComponent<QuestPassthroughStatus>()));
+            Assert.That(boundary.FindProperty("freeMovementInPassthrough").boolValue, Is.True);
+            var desktop = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Standalone).GetFeature<BoundaryVisibilityFeature>();
+            Assert.That(desktop == null || !desktop.enabled, Is.True, "Desktop does not suppress the system boundary.");
+        }
+
+        [Test]
+        public void AutomaticBoundarySuppression_IsRejectedBeforeBuild()
+        {
+            var feature = OpenXRSettings.GetSettingsForBuildTargetGroup(BuildTargetGroup.Android).GetFeature<BoundaryVisibilityFeature>();
+            var serialized = new SerializedObject(feature);
+            var property = serialized.FindProperty("m_SuppressVisibility");
+            bool original = property.boolValue;
+            try
+            {
+                property.boolValue = true;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                Assert.Throws<BuildFailedException>(() => QuestBuildValidation.Validate());
+            }
+            finally
+            {
+                property.boolValue = original;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+        }
+
+        [TestCase("OnApplicationFocus", true)]
+        [TestCase("OnApplicationPause", false)]
+        public void BoundaryResume_InvalidatesAcceptedRequestFromPreviousSession(string callback, bool value)
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
+            var instance = Object.Instantiate(prefab);
+            try
+            {
+                var boundary = instance.GetComponent<QuestBoundaryVisibility>();
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                var accepted = typeof(QuestBoundaryVisibility).GetField("acceptedRequest", flags);
+                var requested = typeof(QuestBoundaryVisibility).GetField("lastRequested", flags);
+                accepted.SetValue(boundary, XrBoundaryVisibility.VisibilitySuppressed);
+                requested.SetValue(boundary, XrBoundaryVisibility.VisibilitySuppressed);
+                typeof(QuestBoundaryVisibility).GetMethod(callback, flags).Invoke(boundary, new object[] { value });
+                Assert.That(accepted.GetValue(boundary), Is.Null, "A failed restore at session shutdown must not suppress the next session's request.");
+                Assert.That(requested.GetValue(boundary), Is.Null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(instance);
+            }
+        }
+
+        [Test]
+        public void OpaqueCamera_IsRejectedBeforeBuild()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(BootstrapPath);
+            var camera = prefab.GetComponentInChildren<Camera>(true);
+            var color = camera.backgroundColor;
+            try
+            {
+                camera.backgroundColor = Color.black;
+                Assert.Throws<BuildFailedException>(() => QuestBuildValidation.Validate());
+            }
+            finally
+            {
+                camera.backgroundColor = color;
+            }
+        }
+
+        [Test]
+        public void QuestPreload_IsPreservedWhenOpenXRIsActive()
+        {
+            var original = PlayerSettings.GetPreloadedAssets();
+            var xr = ScriptableObject.CreateInstance<OpenXRSettings>();
+            try
+            {
+                PlayerSettings.SetPreloadedAssets(new Object[] { xr });
+                HBPBuildProfiles.RemoveUnusedOpenXRPreload(BuildTarget.Android);
+                Assert.That(PlayerSettings.GetPreloadedAssets(), Does.Contain(xr));
+            }
+            finally
+            {
+                PlayerSettings.SetPreloadedAssets(original);
+                Object.DestroyImmediate(xr);
+            }
+        }
+
+        [Test]
+        public void Rig_SerializesFloorOriginAndIndependentControllerPoses()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RigPath);
+            Assert.That(prefab.GetComponentInChildren<ARSession>(true), Is.Not.Null);
+            var text = prefab.GetComponentInChildren<TextMesh>(true);
+            Assert.That(text.font, Is.Not.Null);
+            Assert.That(text.GetComponent<Renderer>().sharedMaterial, Is.Not.Null);
+            var origin = prefab.GetComponentInChildren<XROrigin>(true);
+            Assert.That(origin.RequestedTrackingOriginMode, Is.EqualTo(XROrigin.TrackingOriginMode.Floor));
+            Assert.That(origin.Camera.transform.parent, Is.EqualTo(origin.CameraFloorOffsetObject.transform));
+            Assert.That(origin.Camera.GetComponent<ARCameraManager>(), Is.Not.Null);
+            Assert.That(origin.Camera.GetComponent<TrackedPoseDriver>().updateType, Is.EqualTo(TrackedPoseDriver.UpdateType.UpdateAndBeforeRender));
+            var trackers = prefab.GetComponentsInChildren<QuestDevicePoseTracker>(true);
+            Assert.That(trackers.Select(t => t.Role), Is.EquivalentTo(System.Enum.GetValues(typeof(QuestDevicePoseTracker.DeviceRole))));
+            foreach (var tracker in trackers.Where(t => t.Role != QuestDevicePoseTracker.DeviceRole.Head))
+            {
+                Assert.That(tracker.transform.parent, Is.EqualTo(origin.CameraFloorOffsetObject.transform));
+                var fields = new SerializedObject(tracker);
+                Assert.That(fields.FindProperty("diagnosticRenderer").objectReferenceValue, Is.Null);
+                var controller = (MeshRenderer)fields.FindProperty("solidBackgroundController").objectReferenceValue;
+                Assert.That(controller, Is.Not.Null, tracker.Role.ToString());
+                Assert.That(controller.transform.parent, Is.EqualTo(tracker.transform));
+                Assert.That(controller.transform.localPosition, Is.EqualTo(Vector3.zero));
+                Assert.That(controller.transform.localRotation, Is.EqualTo(Quaternion.identity));
+                Assert.That(tracker.transform.localScale, Is.EqualTo(Vector3.one));
+                Assert.That(controller.transform.localScale, Is.EqualTo(Vector3.one));
+                Assert.That(controller.enabled, Is.False, "Only the effective Solid Background mode enables the mesh.");
+                Assert.That(controller.GetComponentInChildren<Collider>(true), Is.Null);
+                var mesh = controller.GetComponent<MeshFilter>().sharedMesh;
+                string side = tracker.Role == QuestDevicePoseTracker.DeviceRole.LeftController ? "Left" : "Right";
+                Assert.That(AssetDatabase.GetAssetPath(mesh), Does.EndWith($"/Touch Plus {side}.obj"));
+                var material = controller.sharedMaterial;
+                Assert.That(material.shader.name, Is.EqualTo("HBP/Quest/Controller"));
+                Assert.That(ShaderUtil.ShaderHasError(material.shader), Is.False);
+                Assert.That(AssetDatabase.GetAssetPath(material.GetTexture("_BaseMap")), Does.EndWith($"/Touch Plus {side} Base Color.png"));
+                Assert.That(mesh.bounds.size.z, Is.InRange(.10f, .14f), "Controller dimensions are in metres.");
+                Assert.That(mesh.bounds.min.z, Is.LessThan(-.06f), "The handle extends behind the grip origin.");
+                Assert.That(mesh.bounds.max.z, Is.GreaterThan(.04f), "The buttons extend ahead of the grip origin.");
+                float inward = tracker.Role == QuestDevicePoseTracker.DeviceRole.LeftController ? 1 : -1;
+                Assert.That(mesh.bounds.center.x * inward, Is.GreaterThan(0), "The wider side of the controller is inward.");
+            }
+        }
+    }
+}

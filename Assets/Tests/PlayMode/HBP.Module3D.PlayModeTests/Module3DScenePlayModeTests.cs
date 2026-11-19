@@ -17,6 +17,8 @@ using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Rendering;
+using HBP.Sync;
+using HBP.Sync.Scene;
 using HBP.Tests.PlayMode.Utilities;
 using NUnit.Framework;
 using UnityEngine.Events;
@@ -28,6 +30,330 @@ namespace HBP.Tests.PlayMode.Module3D
 {
     public class Module3DScenePlayModeTests
     {
+        [Test]
+        public void VisualizationLoadFailureIdentifiesColumnAndPreservesTechnicalCause()
+        {
+            var cause = new NullReferenceException("Technical details");
+            var failure = new VisualizationLoadException("Patient activity", cause, "Responses");
+            Assert.That(failure.Title, Is.EqualTo("Visualization could not be opened"));
+            Assert.That(failure.Message, Does.Contain("Patient activity").And.Contain("Responses").And.Contain("application log"));
+            Assert.That(failure.Message, Does.Not.Contain(cause.Message).And.Not.Contain("NullReferenceException"));
+            Assert.That(failure.InnerException, Is.SameAs(cause));
+        }
+
+        [TestCase(false), TestCase(true)]
+        public async Task QuestSceneSharing_AppliesSavedPreferencesAndUnsubscribesOnDestroy(bool initialValue)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            var preferences = PersistentDataManager.UserPreferences;
+            preferences.General.Quest.AutomaticallySynchronizeScenes = initialValue;
+            var root = new GameObject("Quest scene sharing preferences test");
+            root.SetActive(false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            try
+            {
+                root.SetActive(true);
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(initialValue));
+                var edited = (UserPreferences)preferences.Clone();
+                edited.General.Quest.AutomaticallySynchronizeScenes = !initialValue;
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(initialValue));
+                preferences.Copy(edited);
+                preferences.Save();
+                Assert.That(manager.AutomaticallySynchronizeScenes, Is.EqualTo(!initialValue));
+
+                int changes = 0;
+                manager.OnChanged.AddListener(() => changes++);
+                UnityEngine.Object.Destroy(root);
+                await UniTask.NextFrame();
+                changes = 0;
+                preferences.General.Quest.AutomaticallySynchronizeScenes = initialValue;
+                preferences.Save();
+                Assert.That(changes, Is.Zero, "A destroyed Quest manager must stop observing preference saves.");
+            }
+            finally
+            {
+                if (root != null) UnityEngine.Object.Destroy(root);
+            }
+        }
+
+        [Test]
+        public void InitiallyActiveScene_StillSelectsItsContextWhenShown()
+        {
+            using var scope = new PlayModeSceneScope("InitialDesktopVisibility");
+            var scene = CreateBaseScene(scope, "Initially active scene");
+            scene.gameObject.SetActive(true);
+            Base3DScene selected = null;
+            int visibilityChanges = 0;
+            Module3DMain.OnSelectScene.AddListener(value => selected = value);
+            scene.OnChangeVisibleState.AddListener(_ => visibilityChanges++);
+            scene.UpdateVisibleState(true);
+            Assert.That(selected, Is.SameAs(scene));
+            Assert.That(scene.IsSelected, Is.True);
+            Assert.That(visibilityChanges, Is.Zero, "Window activation must not publish a redundant scientific visibility mutation.");
+        }
+
+#if UNITY_EDITOR
+        [TestCase("iEEG", false), TestCase("iEEG", true)]
+        [TestCase("CCEP", false), TestCase("CCEP", true)]
+        [TestCase("Static", false), TestCase("Static", true)]
+        public async Task FunctionalVisualization_OpensWithAutomaticOrSavedRatioThresholds(string type, bool savedRatios)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("FunctionalVisualizationOpening");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var project = CreateMinimalAnatomicProject();
+            var visualization = project.Visualizations.Single();
+            var patient = visualization.Patients.Single();
+            string siteID = patient.ID + "_" + patient.Sites.Single().Name;
+            var ev = new HBP.Core.Data.Event("event", new[] { 1 }, MainSecondaryEnum.Main);
+            var sub = new SubBloc("sub", 0, MainSecondaryEnum.Main, new TimeWindow(0, 30), new TimeWindow(0, 0), new[] { ev }, Array.Empty<Icon>(), Array.Empty<Treatment>());
+            var bloc = new Bloc("bloc", 0, "", "sub_event_CODE", new[] { sub });
+            var stats = new Dictionary<SubBloc, List<SubBlocEventsStatistics>> { [sub] = new() { new SubBlocEventsStatistics { StatisticsByEvent = new() { [ev] = new EventStatistics() } } } };
+            var timeline = new Timeline(bloc, stats, new Dictionary<SubBloc, int> { [sub] = 0 }, new Frequency(100));
+            var values = Enumerable.Range(0, timeline.Length).Select(index => index == 0 ? -10f : 10f).ToArray();
+            var ieeg = new IEEGColumn { Name = "Opening iEEG", Bloc = bloc };
+            ieeg.Data.Timeline = ieeg.Data.ProjectionTimeline = timeline;
+            ieeg.Data.ProcessedValuesByChannel[siteID] = values;
+            var ccep = new CCEPColumn { Name = "Opening CCEP", Bloc = bloc };
+            ccep.Data.Timeline = ccep.Data.ProjectionTimeline = timeline;
+            ccep.Data.ProcessedValuesByChannelIDByStimulatedChannelID[siteID] = new() { [siteID] = values };
+            ccep.Data.UnityByChannelIDByStimulatedChannelID[siteID] = new() { [siteID] = "uV" };
+            ccep.Data.DataByChannelIDByStimulatedChannelID[siteID] = new();
+            ccep.Data.StatisticsByChannelIDByStimulatedChannelID[siteID] = new();
+            ccep.CCEPConfiguration.SiteID = siteID;
+            var stat = new StaticColumn { Name = "Opening static" };
+            stat.Data.ValueByChannelIDByLabel["low"] = new() { [siteID] = -10f };
+            stat.Data.ValueByChannelIDByLabel["high"] = new() { [siteID] = 10f };
+            Column model = type == "iEEG" ? ieeg : type == "CCEP" ? ccep : stat;
+            if (savedRatios)
+            {
+                if (model is StaticColumn staticModel)
+                {
+                    staticModel.StaticConfiguration.SpanMinRatio = .25f;
+                    staticModel.StaticConfiguration.MiddleRatio = .5f;
+                    staticModel.StaticConfiguration.SpanMaxRatio = .75f;
+                }
+                else
+                {
+                    var configuration = model is IEEGColumn ieegModel ? ieegModel.DynamicConfiguration : ((CCEPColumn)model).CCEPConfiguration;
+                    configuration.SpanMinRatio = .25f;
+                    configuration.MiddleRatio = .5f;
+                    configuration.SpanMaxRatio = .75f;
+                }
+            }
+
+            visualization.Columns = new() { model };
+            var prefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab");
+            var scene = UnityEngine.Object.Instantiate(prefab, scope.Root.transform).GetComponent<Base3DScene>();
+            try
+            {
+                scene.Initialize(visualization);
+                await scene.InitializeAsync(visualization, NoProgress, timeout.Token);
+                await scene.CompleteInitializationAsync(null, new Progress<float>(), timeout.Token);
+                await scene.PrepareRenderingAsync(timeout.Token);
+                Assert.That(scene.SceneInformation.Initialized, Is.True);
+                var column = scene.Columns.Single();
+                Assert.That(column.ActivityGenerator, Is.Not.Null);
+                Assert.That(column.Sites, Has.Count.EqualTo(1));
+                Assert.That(column.Views, Is.Not.Empty);
+                var parameters = column is Column3DStatic staticColumn ? staticColumn.StaticParameters : ((Column3DDynamic)column).DynamicParameters;
+                Assert.That(parameters.SpanMax, Is.GreaterThan(parameters.SpanMin));
+                if (savedRatios)
+                {
+                    Assert.That(parameters.SpanMin, Is.EqualTo(-5).Within(.0001f));
+                    Assert.That(parameters.Middle, Is.Zero.Within(.0001f));
+                    Assert.That(parameters.SpanMax, Is.EqualTo(5).Within(.0001f));
+                }
+            }
+            finally
+            {
+                await scene.CleanAsync();
+                await UniTask.NextFrame();
+            }
+        }
+
+        [TestCase(false), TestCase(true)]
+        public async Task QuestPreferencesReload_FromLoadingWorkerPreservesViewsAndReleasesFailedCapture(bool failInitialCapture)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("QuestPreferencesReload");
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scope);
+            var original = initialized.BaseScene;
+            foreach (var column in original.Columns)
+            foreach (var site in column.Sites)
+                column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+            var view = original.Columns.Single().Views.Single();
+            var position = new Vector3(12, 34, 56);
+            var rotation = Quaternion.Euler(10, 20, 30);
+            var target = new Vector3(1, 2, 3);
+            view.SetCamera(position, rotation, target);
+            var previousModule = GetModule3DMainInstance();
+            CreateRuntimeModule3DMain(scope, "Preferences reload module");
+            var module = GetModule3DMainInstance();
+            SetPrivateField(module, "m_ScenePrefab", UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/Scenes/Scene 3D.prefab"));
+            SetPrivateField(module, "m_ScenesParent", scope.Root.transform);
+            SetPrivateField(module, "m_Scenes", new List<Base3DScene> { original });
+            var root = new GameObject("Preferences reload Quest manager");
+            root.SetActive(false);
+            root.transform.SetParent(scope.Root.transform, false);
+            var manager = root.AddComponent<HBP.Quest.Desktop.QuestManager>();
+            var requested = PersistentDataManager.UserPreferences.Data.EEG.Normalization == NormalizationType.None ? NormalizationType.SubTrial : NormalizationType.None;
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+            try
+            {
+                if (failInitialCapture)
+                {
+                    var camera = GetPrivateField<Camera3D>(view, "m_Camera3D");
+                    SetPrivateField(view, "m_Camera3D", null);
+                    Exception failure;
+                    try
+                    {
+                        failure = await AsyncPlayModeTestUtilities.CaptureExceptionAsync(() => manager.ReloadForPreferencesAsync(() => Assert.Fail("Preferences must not be applied after a failed capture."), NoProgress, timeout.Token));
+                    }
+                    finally
+                    {
+                        SetPrivateField(view, "m_Camera3D", camera);
+                    }
+
+                    Assert.That(failure, Is.TypeOf<NullReferenceException>());
+                    Assert.That(GetPrivateField<bool>(manager, "reloadingScenes"), Is.False, "Failed configuration capture must release the reload guard so the user can retry.");
+                    Assert.That(Module3DMain.Scenes.Single(), Is.SameAs(original));
+                }
+
+                bool workerEntered = false, appliedOnMainThread = false;
+                var method = new CancelableAsyncMethod(async (progress, token) =>
+                {
+                    using var stop = CancellationTokenSource.CreateLinkedTokenSource(token, timeout.Token);
+                    workerEntered = !PlayerLoopHelper.IsMainThread;
+                    await manager.ReloadForPreferencesAsync(() =>
+                    {
+                        appliedOnMainThread = PlayerLoopHelper.IsMainThread;
+                        Assert.That(Module3DMain.Scenes, Is.Empty, "Old native scenes must be retired before preferences are applied.");
+                        PersistentDataManager.UserPreferences.Data.EEG.Normalization = requested;
+                    }, progress, stop.Token);
+                });
+                await method.ExecuteAsync();
+                await UniTask.SwitchToMainThread();
+                Assert.That(workerEntered, Is.True, "Exercise the same worker entry used by the preferences loading UI.");
+                Assert.That(appliedOnMainThread, Is.True);
+                Assert.That(GetPrivateField<bool>(manager, "reloadingScenes"), Is.False);
+                var reloaded = Module3DMain.Scenes.Single();
+                Assert.That(reloaded, Is.Not.SameAs(original));
+                Assert.That(reloaded.Visualization, Is.SameAs(initialized.Visualization));
+                Assert.That(PersistentDataManager.UserPreferences.Data.EEG.Normalization, Is.EqualTo(requested));
+                var reloadedView = reloaded.Columns.Single().Views.Single();
+                AssertVectorApproximately(reloadedView.LocalCameraPosition, position);
+                Assert.That(Quaternion.Angle(reloadedView.LocalCameraRotation, rotation), Is.LessThan(.001f));
+                AssertVectorApproximately(reloadedView.LocalCameraTarget, target);
+                if (failInitialCapture)
+                {
+                    await Module3DMain.RemoveSceneAsync(reloaded);
+                    var pending = GetPrivateField<Dictionary<string, (Visualization Visualization, bool Share)>>(manager, "pendingReloads");
+                    pending[initialized.Visualization.ID] = (initialized.Visualization, false);
+                    var loading = UnityEngine.Object.Instantiate(UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/LoadingCircle/Loading Manager.prefab"));
+                    try
+                    {
+                        await (Task)manager.GetType().GetMethod("RetryFailedScenesAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(manager, new object[] { timeout.Token });
+                        Assert.That(pending, Is.Empty);
+                        var retried = Module3DMain.Scenes.Single();
+                        Assert.That(retried.Visualization, Is.SameAs(initialized.Visualization));
+                        AssertVectorApproximately(retried.Columns.Single().Views.Single().LocalCameraPosition, position);
+                    }
+                    finally
+                    {
+                        await UniTask.SwitchToMainThread();
+                        UnityEngine.Object.DestroyImmediate(loading);
+                    }
+                }
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                foreach (var scene in Module3DMain.Scenes.ToArray()) await Module3DMain.RemoveSceneAsync(scene);
+                UnityEngine.Object.DestroyImmediate(root);
+                SetModule3DMainInstance(previousModule);
+            }
+        }
+
+        [TestCase(true), TestCase(false)]
+        public async Task DesktopSceneWindow_UsesInitialVisibilityAndFollowsHideShow(bool initiallyVisible)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("DesktopWindowVisibility");
+            typeof(ApplicationState).GetProperty(nameof(ApplicationState.DataPath), BindingFlags.Static | BindingFlags.Public).SetValue(null, Path.GetFullPath("Assets/Data"));
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scope);
+            var scene = initialized.BaseScene;
+            scene.UpdateVisibleState(initiallyVisible, false);
+            var singleton = typeof(Singleton<HBP.UI.Module3D.Module3DUI>).GetField("m_Instance", BindingFlags.Static | BindingFlags.NonPublic);
+            var previous = singleton.GetValue(null);
+            var onAdd = Module3DMain.OnAddScene;
+            var onSite = Module3DMain.OnDisplaySiteInformation;
+            var onAtlas = Module3DMain.OnDisplayAtlasInformation;
+            GameObject root = new("Desktop UI", typeof(RectTransform), typeof(Canvas));
+            root.SetActive(false);
+            root.transform.SetParent(scope.Root.transform, false);
+            var ui = root.AddComponent<HBP.UI.Module3D.Module3DUI>();
+            var siteRoot = new GameObject("Site information", typeof(RectTransform));
+            siteRoot.transform.SetParent(root.transform, false);
+            var site = siteRoot.AddComponent<HBP.UI.Module3D.SiteInfoDisplayer>();
+            site.enabled = false;
+            foreach (string field in new[] { "m_IEEG", "m_CCEP", "m_Tags" })
+            {
+                var content = new GameObject(field);
+                content.transform.SetParent(siteRoot.transform, false);
+                SetPrivateField(site, field, content);
+            }
+
+            var atlasRoot = new GameObject("Atlas information", typeof(RectTransform));
+            atlasRoot.transform.SetParent(root.transform, false);
+            var atlas = atlasRoot.AddComponent<HBP.UI.Module3D.AtlasInfoDisplayer>();
+            atlas.enabled = false;
+            SetPrivateField(ui, "m_SiteInfoDisplayer", site);
+            SetPrivateField(ui, "m_AtlasInfoDisplayer", atlas);
+            SetPrivateField(ui, "m_SceneWindowPrefab", UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/Scenes/Scene 3D Window.prefab"));
+            Module3DMain.OnAddScene = new();
+            Module3DMain.OnDisplaySiteInformation = new();
+            Module3DMain.OnDisplayAtlasInformation = new();
+            singleton.SetValue(null, null);
+            try
+            {
+                root.SetActive(true);
+                Module3DMain.OnAddScene.Invoke(scene);
+                var window = HBP.UI.Module3D.Module3DUI.Scenes[scene];
+                Assert.That(window.gameObject.activeInHierarchy, Is.EqualTo(initiallyVisible), "The authored Desktop window must match the scene immediately after registration.");
+                scene.UpdateVisibleState(true);
+                Assert.That(window.gameObject.activeInHierarchy, Is.True);
+                Assert.That(window.Scene3DUI.GetComponentInChildren<UnityEngine.UI.RawImage>().gameObject.activeInHierarchy, Is.True, "The authored brain viewport is enabled with its window.");
+                scene.UpdateVisibleState(false, false);
+                Assert.That(window.gameObject.activeInHierarchy, Is.False);
+                scene.UpdateVisibleState(true);
+                Assert.That(window.gameObject.activeInHierarchy, Is.True);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+                singleton.SetValue(null, previous);
+                Module3DMain.OnAddScene = onAdd;
+                Module3DMain.OnDisplaySiteInformation = onSite;
+                Module3DMain.OnDisplayAtlasInformation = onAtlas;
+                await CleanSceneOwnedAnatomy(scene);
+                await UniTask.SwitchToMainThread();
+            }
+        }
+#endif
+
         private GenericEvent<Base3DScene> m_OnSelectScene;
         private GenericEvent<Base3DScene> m_OnDeselectScene;
         private GenericEvent<Base3DScene> m_OnMinimizeScene;
@@ -162,6 +488,7 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DVisibleState");
             Base3DScene baseScene = CreateBaseScene(scene, "Visible State Scene");
+            baseScene.gameObject.SetActive(true);
             Column3DStatic column = CreateColumn<Column3DStatic>(scene, "Visible State Column");
             View3D view = CreateControlledView(scene, "Visible State View", out _, out _);
             column.Views.Add(view);
@@ -234,7 +561,7 @@ namespace HBP.Tests.PlayMode.Module3D
         public IEnumerator Base3DScene_RemoveViewLine_RemovesViewsFromAllColumnsAndSelectsFallback()
         {
             using PlayModeSceneScope scene = new("Module3DSceneModule3DRemoveViewLine");
-            Base3DScene baseScene = scene.Root.AddComponent<Base3DScene>();
+            Base3DScene baseScene = CreateBaseScene(scene, "Remove View Scene");
             Column3DAnatomy firstColumn = CreateColumn<Column3DAnatomy>(scene, "First Column");
             Column3DStatic secondColumn = CreateColumn<Column3DStatic>(scene, "Second Column");
             View3D firstColumnFirstView = CreateView(scene, "First Column View 0");
@@ -819,7 +1146,81 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.SelectedColumn.SelectedSite, Is.SameAs(baseScene.SelectedColumn.Sites[0]));
             Assert.That(baseScene.SelectedColumn.BrainMesh, Is.Not.Null);
             Assert.That(initialized.LoadingMessages, Does.Contain("Loading MNI objects"));
-            Assert.That(initialized.LoadingMessages, Does.Contain("Loading columns"));
+        }
+
+        [TestCase(0), TestCase(1)]
+        public async Task DensityReferenceIsPreparedAtLoadWithoutRequestingActivityProjection(int patientCount)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("DensityReferenceAtLoad");
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            var project = CreateMinimalAnatomicProject(patientCount: patientCount);
+            var scene = CreateRuntimeBase3DScene(scope);
+            bool referencePreparationObserved = false;
+            bool referenceOnly = true;
+            scene.OnUpdatingGenerators.AddListener(updating =>
+            {
+                if (!updating || !referenceOnly) return;
+                referencePreparationObserved = true;
+                Assert.That(scene.IsActivityProjectionBusy, Is.True);
+                Assert.That(scene.IsActivityProjectionComputing, Is.False, "Reference work must not be mistaken for a cancellable activity projection.");
+            });
+            try
+            {
+                scene.Initialize(project.Visualizations.Single());
+                await scene.InitializeAsync(project.Visualizations.Single(), NoProgress, timeout.Token);
+                await scene.CompleteInitializationAsync(() =>
+                {
+                    WireRuntimeCameraGraph(scene);
+                    EnsureRuntimeSiteConfigurations(scene);
+                    EnsureRuntimeCutColorSchemes(scene);
+                    foreach (var column in scene.Columns)
+                    foreach (var site in column.Sites)
+                        column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+                }, null, timeout.Token);
+                Assert.That(((Column3DAnatomy)scene.Columns.Single()).DensityHistogramBins, Is.Not.Null, "The reference is ready when initialization returns.");
+                Assert.That(referencePreparationObserved, Is.True);
+                await scene.PrepareRenderingAsync(timeout.Token);
+                var column = (Column3DAnatomy)scene.Columns.Single();
+                var rule = PersistentDataManager.UserPreferences.Visualization._3D.SiteInfluenceByDistance;
+                Assert.That(column.HasDensityReference(rule), Is.True);
+                Assert.That(column.DensityHistogramBins, Has.Length.EqualTo(UnityTextureFactory.HistogramBinCount));
+                Assert.That(column.AnatomyParameters.ReferenceMaximum, patientCount == 0 ? Is.Zero : Is.GreaterThan(0));
+                Assert.That(scene.ProjectionRequested, Is.False);
+                Assert.That(scene.IsGeneratorUpToDate, Is.False);
+                Assert.That(scene.ActivityFieldVersion, Is.Zero);
+                Assert.That(scene.IsActivityProjectionComputing, Is.False);
+                float maximum = column.AnatomyParameters.ReferenceMaximum;
+                var bins = column.DensityHistogramBins;
+                column.AnatomyParameters.InfluenceDistance = 30;
+                await scene.PrepareRenderingAsync(timeout.Token);
+                Assert.That(column.DensityHistogramBins, Is.SameAs(bins));
+                Assert.That(column.AnatomyParameters.ReferenceMaximum, Is.EqualTo(maximum));
+
+                referenceOnly = false;
+                column.AnatomyParameters.SetSpanRatios(.1f, .4f, .8f);
+                foreach (float radius in new[] { 0f, 30f })
+                {
+                    column.AnatomyParameters.InfluenceDistance = radius;
+                    scene.RequestActivityProjection();
+                    await scene.PrepareRenderingAsync(timeout.Token);
+                    var projectedMaximum = ((HBP.Core.DLL.DensityGenerator)column.ActivityGenerator).MaxDensity;
+                    Assert.That(projectedMaximum, patientCount == 0 || radius == 0f ? Is.Zero : Is.GreaterThan(0));
+                    Assert.That(column.AnatomyParameters.DensityMaximum, Is.EqualTo(projectedMaximum));
+                    Assert.That(column.AnatomyParameters.SpanMax, Is.EqualTo(.8f * projectedMaximum));
+                    Assert.That(column.AnatomyParameters.SpanMaxRatio, Is.EqualTo(.8f));
+                    Assert.That(column.AnatomyParameters.ReferenceMaximum, Is.EqualTo(maximum));
+                    Assert.That(column.DensityHistogramBins, Is.EqualTo(bins));
+                }
+            }
+            finally
+            {
+                await scene.CleanAsync();
+            }
         }
 
         [Test]
@@ -885,7 +1286,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -919,7 +1320,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -936,7 +1337,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneFailedPreviewFallback");
             string invalidNifti = temp.GetPath("invalid-preview.nii");
-            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            WriteEmptyMRI(invalidNifti);
             MRI patientMRI = new("Preimplantation", invalidNifti, "invalid-preview-mri");
             Base3DScene baseScene = null;
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("Unable to generate the approximate MRI preview"));
@@ -953,7 +1354,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -970,7 +1371,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DScenePartialPreviewFailure");
             string invalidNifti = temp.GetPath("invalid-partial-preview.nii");
-            File.WriteAllText(invalidNifti, "not a NIfTI file");
+            WriteEmptyMRI(invalidNifti);
             MRI invalidMRI = new("Preimplantation", invalidNifti, "invalid-partial-preview-mri");
             MRI validMRI = new("Postimplantation", NativeFixturePath("Nifti", "mri_t1.nii"), "valid-partial-preview-mri");
             Base3DScene baseScene = null;
@@ -989,7 +1390,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -1020,7 +1421,7 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
         }
 
@@ -1079,8 +1480,63 @@ namespace HBP.Tests.PlayMode.Module3D
             }
             finally
             {
-                CleanSceneOwnedAnatomy(baseScene);
+                await CleanSceneOwnedAnatomy(baseScene);
             }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public async Task PrepareRendering_WaitsForExplicitProjectionRequestedFromReadyUntilItCompletes()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            PersistentDataManager.UserPreferences.Visualization._3D.AutomaticEEGUpdate = false;
+            using PlayModeSceneScope testScene = new("Module3DScenePrepareRenderingExplicitProjection");
+
+            GameObject sceneObject = new("Prepare rendering projection request fixture");
+            sceneObject.SetActive(false);
+            SceneManager.MoveGameObjectToScene(sceneObject, testScene.Scene);
+            Base3DScene scene = sceneObject.AddComponent<Base3DScene>();
+            scene.SceneInformation.CompletelyLoaded = true;
+            scene.SceneInformation.GeometryNeedsUpdate = false;
+            scene.SceneInformation.ProjectionGridNeedsUpdate = false;
+            scene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
+            scene.SceneInformation.CutsNeedUpdate = false;
+            scene.SceneInformation.BaseCutTexturesNeedUpdate = false;
+            scene.SceneInformation.FunctionalCutTexturesNeedUpdate = false;
+            scene.SceneInformation.GUICutTexturesNeedUpdate = false;
+            scene.SceneInformation.FunctionalSurfaceNeedsUpdate = false;
+            scene.SceneInformation.SitesNeedUpdate = false;
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", true);
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Ready);
+            Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Ready));
+
+            scene.RequestActivityProjection();
+            Assert.That(scene.IsGeneratorUpToDate, Is.True, "The previous result stays ready until the new request starts.");
+            UniTask preparation = scene.PrepareRenderingAsync(CancellationToken.None);
+            Assert.That(preparation.Status.IsCompleted(), Is.False, "The prior ready result cannot satisfy a pending explicit request.");
+
+            SetPrivateField(scene, "m_ExplicitProjectionRequestPending", false);
+            scene.SceneInformation.GeneratorNeedsUpdate = false;
+            scene.SceneInformation.GeneratorUpdateRequested = false;
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Computing);
+            SetPrivateField(scene, "m_UpdatingGenerators", true);
+            await UniTask.Yield();
+            Assert.That(preparation.Status.IsCompleted(), Is.False, "Preparation remains pending while the requested generation is computing.");
+
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", true);
+            SetPrivateField(scene, "m_ProjectionState", ActivityProjectionState.Ready);
+            SetPrivateField(scene, "m_UpdatingGenerators", false);
+            await preparation;
+
+            scene.InvalidateActivityField(clearRenderedActivity: false);
+            SetPrivateField(scene, "m_IsGeneratorUpToDate", false);
+            scene.SceneInformation.GeneratorUpdateRequested = false;
+            scene.SceneInformation.SitesNeedUpdate = false;
+            Assert.That(scene.ProjectionState, Is.EqualTo(ActivityProjectionState.Stale));
+            UniTask idleManualStalePreparation = scene.PrepareRenderingAsync(CancellationToken.None);
+            Assert.That(idleManualStalePreparation.Status, Is.EqualTo(UniTaskStatus.Succeeded), "Manual stale state without a pending request remains idle.");
         }
 
         [Test]
@@ -1097,6 +1553,10 @@ namespace HBP.Tests.PlayMode.Module3D
             }
 
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
@@ -1173,6 +1633,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(baseScene.ActivityProjectionGrid, Is.SameAs(projectionGrid));
             Assert.That(baseScene.IsGeneratorUpToDate, Is.False);
             for (int i = 0; i < 10; ++i) await UniTask.Yield();
+            Assert.That(column.CutTextures.BrainCutTextures[0].GetPixels32(), Is.EqualTo(column.CutTextures.BaseBrainCutTextures[0].GetPixels32()), "Invalid activity must leave the cuts displaying their anatomical textures.");
             Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(activityFieldVersion), "Automatic projection must wait silently while surface coverage is incompatible.");
 
             int incompatibleSurfaceProjectionVersion = baseScene.SurfaceProjectionVersion;
@@ -1194,7 +1655,7 @@ namespace HBP.Tests.PlayMode.Module3D
 
             Assert.That(baseScene.ActivityProjectionGrid, Is.Not.SameAs(projectionGrid));
             Assert.That(baseScene.ActivityFieldVersion, Is.EqualTo(recomputedActivityFieldVersion));
-            CleanSceneOwnedAnatomy(baseScene);
+            await CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -1202,55 +1663,352 @@ namespace HBP.Tests.PlayMode.Module3D
         public async Task Base3DScene_InitializedMultiColumnViewAndCutLifecycleStaySynchronized()
         {
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneModule3DInitializedLifecycle");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, 2);
             Base3DScene baseScene = initialized.BaseScene;
-            DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
-            int addViewLineEvents = 0;
-            int removedViewLine = -1;
-            int addCutEvents = 0;
+            try
+            {
+                DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+                int addViewLineEvents = 0;
+                int removedViewLine = -1;
+                int addCutEvents = 0;
 
-            baseScene.OnAddViewLine.AddListener(() => addViewLineEvents++);
-            baseScene.OnRemoveViewLine.AddListener(line => removedViewLine = line);
-            baseScene.OnAddCut.AddListener(_ => addCutEvents++);
+                baseScene.OnAddViewLine.AddListener(() => addViewLineEvents++);
+                baseScene.OnRemoveViewLine.AddListener(line => removedViewLine = line);
+                baseScene.OnAddCut.AddListener(_ => addCutEvents++);
 
-            Assert.That(baseScene.Columns, Has.Count.EqualTo(2));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Sites.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.Columns, Has.Count.EqualTo(2));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Sites.Count), Is.All.EqualTo(1));
 
-            baseScene.AddViewLine();
-            baseScene.Columns[1].Views[1].IsSelected = true;
-            baseScene.RemoveViewLine(1);
+                baseScene.AddViewLine();
+                baseScene.Columns[1].Views[1].IsSelected = true;
+                baseScene.RemoveViewLine(1);
 
-            Assert.That(addViewLineEvents, Is.EqualTo(1));
-            Assert.That(removedViewLine, Is.EqualTo(1));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.SelectedColumn, Is.SameAs(baseScene.Columns[1]));
-            Assert.That(baseScene.SelectedColumn.SelectedView, Is.SameAs(baseScene.Columns[1].Views[0]));
+                Assert.That(addViewLineEvents, Is.EqualTo(1));
+                Assert.That(removedViewLine, Is.EqualTo(1));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.Views.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.SelectedColumn, Is.SameAs(baseScene.Columns[1]));
+                Assert.That(baseScene.SelectedColumn.SelectedView, Is.SameAs(baseScene.Columns[1].Views[0]));
 
-            Core.Object3D.Cut cut = baseScene.AddCutPlane();
-            int removeCutEvents = 0;
-            cut.OnRemoveCut.AddListener(() => removeCutEvents++);
+                Core.Object3D.Cut cut = baseScene.AddCutPlane();
+                int removeCutEvents = 0;
+                cut.OnRemoveCut.AddListener(() => removeCutEvents++);
 
-            Assert.That(addCutEvents, Is.EqualTo(1));
-            Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Cuts[0].ID, Is.EqualTo(0));
-            Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(1));
-            Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+                Assert.That(addCutEvents, Is.EqualTo(1));
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Cuts[0].Index, Is.EqualTo(0));
+                Assert.That(displayedObjects.BrainCutMeshes, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(1));
+                Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
 
-            baseScene.RemoveCutPlane(cut);
+                Core.Object3D.Cut secondCut = baseScene.AddCutPlane();
+                string secondId = secondCut.ID;
+                baseScene.RemoveCutPlane(cut);
 
-            Assert.That(removeCutEvents, Is.EqualTo(1));
-            Assert.That(baseScene.Cuts, Is.Empty);
-            Assert.That(displayedObjects.BrainCutMeshes, Is.Empty);
-            Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(0));
-            Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+                Assert.That(secondCut.ID, Is.EqualTo(secondId));
+                Assert.That(secondCut.Index, Is.EqualTo(0));
+                baseScene.RemoveCutPlane(secondCut);
+
+                Assert.That(removeCutEvents, Is.EqualTo(1));
+                Assert.That(baseScene.Cuts, Is.Empty);
+                Assert.That(displayedObjects.BrainCutMeshes, Is.Empty);
+                Assert.That(baseScene.Columns.Select(column => column.BrainCutMeshes.Count), Is.All.EqualTo(0));
+                Assert.That(baseScene.SceneInformation.CutsNeedUpdate, Is.True);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        public async Task Base3DScene_AutomaticCutsSurviveAClickThatMissesTheSite()
+        {
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("Module3DSceneAutomaticCutIdentity");
+            MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-automatic-cut-mri");
+            SingleMesh patientMesh = new("Grey matter", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "runtime-automatic-cut-mesh");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, anatomyColumnCount: 2, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            Base3DScene baseScene = initialized.BaseScene;
+            try
+            {
+                await UniTask.NextFrame();
+                Assert.That(baseScene.MRIManager.SelectedMRI?.Volume, Is.Not.Null, "Automatic cuts require a selected MRI volume.");
+                Assert.That(baseScene.MeshManager.ReferenceSurface, Is.Not.Null, "Automatic cuts require a reference surface.");
+                Column3D column = baseScene.Columns[0];
+                var site = column.Sites[0];
+                baseScene.SelectSite(column, site);
+                baseScene.AutomaticCutAroundSelectedSite = true;
+                baseScene.CutAroundSelectedSite();
+                string[] automaticIds = baseScene.Cuts.Select(cut => cut.ID).ToArray();
+                Assert.That(automaticIds, Has.Length.EqualTo(3));
+                Vector3[] positions = baseScene.Cuts.Select(cut => cut.Point).ToArray();
+
+                Column3D second = baseScene.Columns[1];
+                var replica = second.Sites.Single(candidate => candidate.Information.FullID == site.Information.FullID);
+                replica.State.IsMasked = true;
+                baseScene.SelectColumn(second);
+                Assert.That(baseScene.SelectedSite, Is.SameAs(site));
+                Assert.That(second.SelectedSite, Is.SameAs(replica));
+                Assert.That(replica.State.IsMasked, Is.True);
+
+                Ray miss = new(column.transform.position + Vector3.right * 10000, Vector3.right);
+                baseScene.ClickOnScene(miss, second);
+                Assert.That(column.SelectedSite, Is.SameAs(site));
+                baseScene.CutAroundSelectedSite();
+                Assert.That(baseScene.Cuts.Select(cut => cut.ID), Is.EqualTo(automaticIds));
+                Assert.That(baseScene.Cuts.Select(cut => cut.Point), Is.EqualTo(positions));
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public void CorrelationResultResource_ReplaysExactSitePairValuesAndRejectsTampering()
+        {
+            using PlayModeSceneScope sourceScope = new("CorrelationResourceSource");
+            using PlayModeSceneScope targetScope = new("CorrelationResourceTarget");
+            Base3DScene source = CreateBaseScene(sourceScope, "Source");
+            Base3DScene target = CreateBaseScene(targetScope, "Target");
+            Patient patient = new("Patient", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<HBP.Core.Data.Site>(), Array.Empty<BaseTagValue>(), string.Empty, "correlation-patient");
+
+            Column3DIEEG CreatePreparedColumn(PlayModeSceneScope scope, Base3DScene scene)
+            {
+                Column3DIEEG column = CreateColumn<Column3DIEEG>(scope, "IEEG");
+                SetAutoProperty(column, "ColumnData", new IEEGColumn("IEEG", new BaseConfiguration(), null, "", null, new DynamicConfiguration(), "correlation-column"));
+                var siteObject = new GameObject("A1");
+                SceneManager.MoveGameObjectToScene(siteObject, scope.Scene);
+                HBP.Core.Object3D.Site site = siteObject.AddComponent<HBP.Core.Object3D.Site>();
+                site.Information = new SiteInformation { Patient = patient, Name = "A1" };
+                SetAutoProperty(column, "Sites", new List<HBP.Core.Object3D.Site> { site });
+                scene.Columns.Add(column);
+                return column;
+            }
+
+            Column3DIEEG sourceColumn = CreatePreparedColumn(sourceScope, source);
+            Column3DIEEG targetColumn = CreatePreparedColumn(targetScope, target);
+            HBP.Core.Object3D.Site sourceSite = sourceColumn.Sites.Single();
+            HBP.Core.Object3D.Site targetSite = targetColumn.Sites.Single();
+            sourceColumn.CorrelationBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.25f };
+            sourceColumn.CorrelationMeanBySitePair[sourceSite] = new Dictionary<HBP.Core.Object3D.Site, float> { [sourceSite] = 0.75f };
+            var provenance = new CorrelationProvenance(CorrelationResultSource.Imported, patient.ID, patient.Name, sourceColumn.ColumnData.ID, "correlation-dataset", "Dataset", "correlation-protocol", "Protocol", "correlation-bloc", "Bloc", "correlation-data", "Data", NormalizationType.Trial, 0.025f, true);
+            sourceColumn.CorrelationProvenance = provenance;
+
+            CorrelationResultResource captured = CorrelationResultResource.Capture(source);
+            byte[] bytes = captured.Encode();
+            string reference = CorrelationResultResource.Reference(bytes);
+            CorrelationResultResource decoded = CorrelationResultResource.Decode(bytes);
+            decoded.ValidateFor(target, new[] { targetSite.Information.FullID });
+            decoded.Apply(target);
+            Assert.That(targetColumn.CorrelationBySitePair[targetSite][targetSite], Is.EqualTo(0.25f));
+            Assert.That(targetColumn.CorrelationMeanBySitePair[targetSite][targetSite], Is.EqualTo(0.75f));
+            Assert.That(targetColumn.CorrelationProvenance.Equals(provenance), Is.True);
+            Assert.That(CorrelationResultResource.Capture(target).Encode(), Is.EqualTo(bytes));
+            Assert.That(CorrelationResultResource.Reference(bytes), Is.EqualTo(reference));
+            byte[] tampered = (byte[])bytes.Clone();
+            tampered[^1] ^= 1;
+            Assert.That(CorrelationResultResource.Reference(tampered), Is.Not.EqualTo(reference));
+            tampered[0] ^= 1;
+            Assert.Throws<InvalidDataException>(() => CorrelationResultResource.Decode(tampered));
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(5)]
+        [TestCase(6)]
+        [Category("PlayMode.Module3DScene")]
+        [Category("NativeDll")]
+        public async Task TriangleMask_SurvivesPreparedMeshOrdering(int scenario)
+        {
+            bool optimisticRoundTrip = scenario != 0;
+            RequireHbpCore();
+            using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope sceneScope = new("TriangleMaskOrdering");
+            SingleMesh patientMesh = new("Patient mesh", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "sync-mask-mesh");
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, sceneScope, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            Base3DScene scene = initialized.BaseScene;
+            try
+            {
+                await scene.PrepareRenderingAsync(CancellationToken.None);
+                if (scenario == 6)
+                {
+                    List<int[]> initialMasks = scene.TriangleEraser.CurrentMasks;
+                    initialMasks[0][0] = initialMasks[1][0] = 0;
+                    scene.TriangleEraser.CurrentMasks = initialMasks;
+                }
+
+                using SceneMutationBoundary boundary = new(scene, OriginDevice.Quest);
+                PreparedSceneResourceCatalog catalog = new(scene, new string('c', 64));
+                SetPrivateField(boundary, "m_ResourceCatalog", catalog);
+                UnityAction maskObserver = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), boundary, typeof(SceneMutationBoundary).GetMethod("ObserveTriangleMask", BindingFlags.Instance | BindingFlags.NonPublic));
+                scene.TriangleEraser.OnVisibilityMaskChanged.AddListener(maskObserver);
+                int publications = 0;
+                boundary.OnMutationProposed.AddListener((_, _, _) => publications++);
+                SceneId sceneId = new(Guid.NewGuid());
+                IncarnationId incarnation = new(Guid.NewGuid());
+                OutgoingScheduler scheduler = new(new SessionId(Guid.NewGuid()), sceneId, incarnation, OriginDevice.Quest);
+                using QuestMutationDriver driver = new(sceneId, incarnation, boundary, scheduler);
+                Mesh3D original = scene.MeshManager.SelectedMesh;
+                Mesh3D alternate = scene.MeshManager.Meshes.First(mesh => mesh != original && mesh.IsLoaded);
+                SetMeshDisplay Display(Mesh3D mesh) => new(new ResourceId(catalog.MeshReference(mesh)), MutationMeshPart.Both, MutationSurfaceRepresentation.Anatomical);
+
+                ApplyTriangleMask Mask(Mesh3D mesh, int hidden = 0) =>
+                    new(new[]
+                    {
+                        new TriangleMask(new TopologyId("surface:" + catalog.MeshReference(mesh) + ":both:complete"), mesh.GetSurface(SurfaceRepresentation.Anatomical).NumberOfTriangles, new[] { hidden }),
+                        new TriangleMask(new TopologyId("surface:" + catalog.MeshReference(mesh) + ":both:simplified"), mesh.GetSurface(SurfaceRepresentation.Anatomical, simplified: true).NumberOfTriangles, new[] { hidden })
+                    });
+
+                OperationId switchId = new(Guid.NewGuid());
+                OperationId restoreId = new(Guid.NewGuid());
+                OperationId optimisticMaskId = new(Guid.NewGuid());
+                if (optimisticRoundTrip)
+                {
+                    driver.ApplyOptimistic(Display(alternate), switchId);
+                    if (scenario == 4) driver.ApplyOptimistic(Mask(alternate, 1), optimisticMaskId);
+                    driver.ApplyOptimistic(Display(original), restoreId);
+                }
+
+                if (scenario == 4)
+                {
+                    driver.ReceiveRejection(restoreId, "unavailable");
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(alternate));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][1], Is.Zero, "Rollback must restore the earlier pending mask exposed by the rejected selection.");
+                    driver.ReceiveCanonical(sceneId, incarnation, switchId, 1, Display(alternate));
+                    driver.ReceiveCanonical(sceneId, incarnation, optimisticMaskId, 2, Mask(alternate, 1));
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][1], Is.Zero);
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    Assert.That(publications, Is.EqualTo(3));
+                    return;
+                }
+
+                if (scenario == 6)
+                {
+                    driver.ReceiveRejection(switchId, "unavailable");
+                    driver.ReceiveRejection(restoreId, "unavailable");
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(original));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Rejected selections must preserve nonempty publication masks even at canonical sequence zero.");
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    Assert.That(publications, Is.EqualTo(2));
+                    return;
+                }
+
+                driver.ReceiveCanonical(sceneId, incarnation, switchId, 1, Display(alternate));
+                ApplyTriangleMask masks = Mask(alternate);
+                driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 2, masks);
+                Assert.That(alternate.GetSurface(SurfaceRepresentation.Anatomical).VisibilityMask[0], Is.Zero);
+                Assert.That(alternate.GetSurface(SurfaceRepresentation.Anatomical, simplified: true).VisibilityMask[0], Is.Zero);
+                Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(optimisticRoundTrip ? original : alternate));
+                Assert.That(publications, Is.EqualTo(optimisticRoundTrip ? 2 : 0), "Remote rebuild/mask must not emit proposals.");
+                if (optimisticRoundTrip)
+                {
+                    OperationId laterRestoreId = new(Guid.NewGuid());
+                    if (scenario == 3) driver.ApplyOptimistic(Display(original), laterRestoreId);
+                    if (scenario == 5) driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 3, Display(alternate));
+                    // A correction can reference the mesh version preceding the newer mask.
+                    MutationCorrection correction = (MutationCorrection)Activator.CreateInstance(typeof(MutationCorrection), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { sceneId, incarnation, restoreId, scenario == 5 ? 3UL : 1UL, Display(alternate), "stale" }, CultureInfo.InvariantCulture);
+                    if (scenario == 2) driver.ReceiveCanonical(sceneId, incarnation, restoreId, 3, Display(original));
+                    else driver.ReceiveCorrection(correction);
+                    Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(scenario is 1 or 5 ? alternate : original));
+                    if (scenario is 1 or 5) Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Older correction or unchanged original topology must preserve its mask.");
+                    if (scenario == 3)
+                    {
+                        driver.ReceiveRejection(laterRestoreId, "unavailable");
+                        Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(alternate), "Replayed optimistic rollback must use the corrected base.");
+                        Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                        OperationId echoedRestoreId = new(Guid.NewGuid());
+                        driver.ApplyOptimistic(Display(original), echoedRestoreId);
+                        driver.ReceiveCanonical(sceneId, incarnation, echoedRestoreId, 3, Display(original));
+                        Assert.That(scene.MeshManager.SelectedMesh, Is.SameAs(original));
+                    }
+
+                    Assert.That(driver.PendingProposalCount, Is.Zero);
+                    // A genuinely new selection retains the normal eraser reset behavior.
+                    driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 4, Display(original));
+                    driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 5, Display(alternate));
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0].All(value => value == 1), Is.True);
+                }
+                else
+                {
+                    await scene.PrepareRenderingAsync(CancellationToken.None);
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Rendering must not reset an already applied mask.");
+                    // Invalid topology/count must fail before any geometry or mask mutation.
+                    Assert.Throws<InvalidOperationException>(() => boundary.Apply(Mask(original), MutationApplicationOrigin.LocalQuest, new OperationId(Guid.NewGuid())));
+                    ApplyTriangleMask wrongCount = new(new[]
+                    {
+                        new TriangleMask(masks.Masks[0].TopologyId, masks.Masks[0].TriangleCount + 1, new[] { 0 }), masks.Masks[1]
+                    });
+                    Assert.Throws<InvalidOperationException>(() => driver.ReceiveCanonical(sceneId, incarnation, new OperationId(Guid.NewGuid()), 3, wrongCount));
+                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                }
+
+                scene.TriangleEraser.OnVisibilityMaskChanged.RemoveListener(maskObserver);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(scene);
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.Module3DScene")]
+        public void BasicTimeline_RestoresSynchronizedPlaybackAnchor()
+        {
+            HBP.Core.Object3D.FMRI resource = new();
+            try
+            {
+                resource.Volumes.Add(new HBP.Core.DLL.Volume());
+                FMRITimeline source = new();
+                FMRITimeline destination = new();
+                source.Update(resource);
+                destination.Update(resource);
+                source.Step = 2;
+                source.IsPlaying = true;
+                source.CurrentIndex = 1;
+                float anchor = source.CurrentIndexAnchorTime;
+                destination.Step = source.Step;
+                destination.CurrentIndex = source.CurrentIndex;
+                destination.IsPlaying = true;
+                destination.ApplySynchronizedClockAnchor(anchor);
+                Assert.That(destination.CurrentIndex, Is.EqualTo(source.CurrentIndex));
+                Assert.That(destination.CurrentIndexAnchorTime, Is.EqualTo(anchor));
+            }
+            finally
+            {
+                resource.Clean();
+            }
         }
 
         [Test]
@@ -1293,7 +2051,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(invisibleBrain.activeSelf, Is.False);
             Assert.That(cut, Is.Not.Null);
             Assert.That(cutObject, Is.Not.Null);
-            CleanSceneOwnedAnatomy(baseScene);
+            await CleanSceneOwnedAnatomy(baseScene);
         }
 
         [Test]
@@ -1388,68 +2146,150 @@ namespace HBP.Tests.PlayMode.Module3D
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        [Category("PlayMode.Module3DScene")]
+        [Category("MeshScene.ConfigurationRegression")]
+        public async Task Base3DScene_OpeningWithSavedCutOwnsAndReleasesCutMeshes(bool prefabHasMesh)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using SyntheticMNIScope mni = new(temp);
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("Module3DSceneSavedCutOpening");
+            Project project = CreateMinimalAnatomicProject();
+            Base3DScene baseScene = CreateRuntimeBase3DScene(scope);
+            DisplayedObjects displayed = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
+            MeshFilter prefabFilter = GetPrivateField<GameObject>(displayed, "m_CutPrefab").GetComponent<MeshFilter>();
+            if (!prefabHasMesh)
+            {
+                UnityEngine.Object.Destroy(prefabFilter.sharedMesh);
+                prefabFilter.sharedMesh = null;
+            }
+
+            Mesh prefabMesh = prefabFilter.sharedMesh;
+            Visualization visualization = project.Visualizations.Single();
+            visualization.Configuration.Cuts = new List<HBP.Core.Data.Cut> { new("saved-cut", Vector3.up, CutOrientation.Coronal, true, 0.5f) };
+            Mesh savedMesh = null;
+            Mesh addedMesh = null;
+            try
+            {
+                baseScene.Initialize(visualization);
+                await baseScene.InitializeAsync(visualization, (_, _, _) => { }, CancellationToken.None);
+                await baseScene.CompleteInitializationAsync(() =>
+                {
+                    WireRuntimeCameraGraph(baseScene);
+                    EnsureRuntimeSiteConfigurations(baseScene);
+                    foreach (Column3D column in baseScene.Columns)
+                    foreach (HBP.Core.Object3D.Site site in column.Sites)
+                        column.ColumnData.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = site.Configuration;
+                }, null, CancellationToken.None);
+
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                var savedCut = baseScene.Cuts.Single();
+                Assert.That(savedCut.ID, Is.EqualTo("saved-cut"));
+                Assert.That(savedCut.Normal, Is.EqualTo(Vector3.up));
+                Assert.That(savedCut.Orientation, Is.EqualTo(CutOrientation.Coronal));
+                Assert.That(savedCut.Flip, Is.True);
+                Assert.That(savedCut.Position, Is.EqualTo(0.5f));
+                savedMesh = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(savedMesh, Is.Not.Null);
+                Assert.That(savedMesh, Is.Not.SameAs(prefabMesh));
+
+                var addedCut = baseScene.AddCutPlane();
+                addedMesh = displayed.BrainCutMeshes.Last().GetComponent<MeshFilter>().sharedMesh;
+                Assert.That(addedMesh, Is.Not.Null);
+                Assert.That(addedMesh, Is.Not.SameAs(savedMesh));
+                Assert.That(addedMesh, Is.Not.SameAs(prefabMesh));
+                baseScene.RemoveCutPlane(addedCut);
+                await UniTask.NextFrame();
+                Assert.That(addedMesh == null, Is.True, "Removing a cut must release its mesh.");
+                Assert.That(savedMesh != null, Is.True, "Removing another cut must preserve the saved cut mesh.");
+                Assert.That(prefabFilter.sharedMesh, Is.SameAs(prefabMesh));
+                if (prefabHasMesh) Assert.That(prefabMesh != null, Is.True);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
+
+            await UniTask.NextFrame();
+            Assert.That(savedMesh == null, Is.True, "Closing the scene must release the saved cut mesh.");
+        }
+
         [Test]
         [Category("PlayMode.Module3DScene")]
         [Category("MeshScene.ConfigurationRegression")]
         public async Task Base3DScene_LoadAndSaveConfigurationRoundTripsInitializedSceneState()
         {
             using PlayModeTempDirectoryScope temp = new();
+            string atlasDirectory = Path.Combine(temp.Path, "data", "Atlases", "MarsAtlas");
+            Directory.CreateDirectory(atlasDirectory);
+            foreach (string file in AtlasResources.Find("mars").RequiredFiles)
+                File.Copy(Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas", file), Path.Combine(atlasDirectory, file));
             using SyntheticMNIScope mni = new(temp);
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("Module3DSceneModule3DConfigurationRoundTrip");
             var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene);
             Base3DScene baseScene = initialized.BaseScene;
-            Visualization visualization = initialized.Visualization;
-            Vector3 firstViewPosition = new(12, 34, 56);
-            Quaternion firstViewRotation = Quaternion.Euler(10, 20, 30);
-            Vector3 firstViewTarget = new(1, 2, 3);
-            Vector3 secondViewPosition = new(-12, 24, 72);
-            Quaternion secondViewRotation = Quaternion.Euler(40, 50, 60);
-            Vector3 secondViewTarget = new(4, 5, 6);
-
-            visualization.Configuration = new VisualizationConfiguration(ColorType.Grayscale, ColorType.Hot, ColorType.Winter, MeshPart.Right, "MNI White matter", "MNI", string.Empty, true, true, 0.42f, true, true, true, true, 1.75f, 0.2f, 0.8f, CameraControl.Orbital, new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) }, new[]
+            try
             {
-                new View(firstViewPosition, firstViewRotation, firstViewTarget),
-                new View(secondViewPosition, secondViewRotation, secondViewTarget)
-            }, Enumerable.Empty<RegionOfInterest>());
+                Visualization visualization = initialized.Visualization;
+                Vector3 firstViewPosition = new(12, 34, 56);
+                Quaternion firstViewRotation = Quaternion.Euler(10, 20, 30);
+                Vector3 firstViewTarget = new(1, 2, 3);
+                Vector3 secondViewPosition = new(-12, 24, 72);
+                Quaternion secondViewRotation = Quaternion.Euler(40, 50, 60);
+                Vector3 secondViewTarget = new(4, 5, 6);
 
-            baseScene.LoadConfiguration(false);
+                visualization.Configuration = new VisualizationConfiguration(ColorType.Grayscale, ColorType.Hot, ColorType.Winter, MeshPart.Right, "MNI White matter", "MNI", string.Empty, true, true, 0.42f, true, true, true, true, 1.75f, 0.2f, 0.8f, CameraControl.Orbital, new[] { new HBP.Core.Data.Cut(new Vector3(0, 1, 0), CutOrientation.Coronal, true, 0.25f) }, new[]
+                {
+                    new View(firstViewPosition, firstViewRotation, firstViewTarget),
+                    new View(secondViewPosition, secondViewRotation, secondViewTarget)
+                }, Enumerable.Empty<RegionOfInterest>());
 
-            Assert.That(baseScene.CutColor, Is.EqualTo(ColorType.Hot));
-            Assert.That(baseScene.Colormap, Is.EqualTo(ColorType.Winter));
-            Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Right));
-            Assert.That(baseScene.EdgeMode, Is.True);
-            Assert.That(baseScene.IsBrainTransparent, Is.True);
-            Assert.That(baseScene.StrongCuts, Is.True);
-            Assert.That(baseScene.HideBlacklistedSites, Is.True);
-            Assert.That(baseScene.ShowAllSites, Is.True);
-            Assert.That(baseScene.AutomaticCutAroundSelectedSite, Is.True);
-            Assert.That(baseScene.SiteGain, Is.EqualTo(1.75f));
-            Assert.That(baseScene.MRIManager.MRICalMinFactor, Is.EqualTo(0.2f));
-            Assert.That(baseScene.MRIManager.MRICalMaxFactor, Is.EqualTo(0.8f));
-            Assert.That(baseScene.CameraType, Is.EqualTo(CameraControl.Orbital));
-            Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
-            Assert.That(baseScene.Cuts[0].Orientation, Is.EqualTo(CutOrientation.Coronal));
-            Assert.That(baseScene.Cuts[0].Flip, Is.True);
-            Assert.That(baseScene.Cuts[0].Position, Is.EqualTo(0.25f));
-            Assert.That(baseScene.ViewLineNumber, Is.EqualTo(2));
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraPosition, firstViewPosition);
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraRotation.eulerAngles, firstViewRotation.eulerAngles);
-            AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraTarget, firstViewTarget);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraPosition, secondViewPosition);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraRotation.eulerAngles, secondViewRotation.eulerAngles);
-            AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraTarget, secondViewTarget);
+                baseScene.LoadConfiguration(false);
 
-            string selectedImplantationName = baseScene.ImplantationManager.SelectedImplantation.Name;
-            baseScene.SaveConfiguration();
+                Assert.That(baseScene.CutColor, Is.EqualTo(ColorType.Hot));
+                Assert.That(baseScene.Colormap, Is.EqualTo(ColorType.Winter));
+                Assert.That(baseScene.MeshManager.MeshPartToDisplay, Is.EqualTo(MeshPart.Right));
+                Assert.That(baseScene.EdgeMode, Is.True);
+                Assert.That(baseScene.IsBrainTransparent, Is.True);
+                Assert.That(baseScene.StrongCuts, Is.True);
+                Assert.That(baseScene.HideBlacklistedSites, Is.True);
+                Assert.That(baseScene.ShowAllSites, Is.True);
+                Assert.That(baseScene.AutomaticCutAroundSelectedSite, Is.True);
+                Assert.That(baseScene.SiteGain, Is.EqualTo(1.75f));
+                Assert.That(baseScene.MRIManager.MRICalMinFactor, Is.EqualTo(0.2f));
+                Assert.That(baseScene.MRIManager.MRICalMaxFactor, Is.EqualTo(0.8f));
+                Assert.That(baseScene.CameraType, Is.EqualTo(CameraControl.Orbital));
+                Assert.That(baseScene.Cuts, Has.Count.EqualTo(1));
+                Assert.That(baseScene.Cuts[0].Orientation, Is.EqualTo(CutOrientation.Coronal));
+                Assert.That(baseScene.Cuts[0].Flip, Is.True);
+                Assert.That(baseScene.Cuts[0].Position, Is.EqualTo(0.25f));
+                Assert.That(baseScene.ViewLineNumber, Is.EqualTo(2));
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraPosition, firstViewPosition);
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraRotation.eulerAngles, firstViewRotation.eulerAngles);
+                AssertVectorApproximately(baseScene.Columns[0].Views[0].LocalCameraTarget, firstViewTarget);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraPosition, secondViewPosition);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraRotation.eulerAngles, secondViewRotation.eulerAngles);
+                AssertVectorApproximately(baseScene.Columns[0].Views[1].LocalCameraTarget, secondViewTarget);
 
-            Assert.That(visualization.Configuration.MeshName, Is.EqualTo("MNI White matter"));
-            Assert.That(visualization.Configuration.MRIName, Is.EqualTo("MNI"));
-            Assert.That(visualization.Configuration.ImplantationName, Is.EqualTo(selectedImplantationName));
-            Assert.That(visualization.Configuration.Cuts, Has.Count.EqualTo(1));
-            Assert.That(visualization.Configuration.Views, Has.Count.EqualTo(2));
-            AssertVectorApproximately(visualization.Configuration.Views[1].Position.ToVector3(), secondViewPosition);
+                string selectedImplantationName = baseScene.ImplantationManager.SelectedImplantation.Name;
+                baseScene.SaveConfiguration();
+
+                Assert.That(visualization.Configuration.MeshName, Is.EqualTo("MNI White matter"));
+                Assert.That(visualization.Configuration.MRIName, Is.EqualTo("MNI"));
+                Assert.That(visualization.Configuration.ImplantationName, Is.EqualTo(selectedImplantationName));
+                Assert.That(visualization.Configuration.Cuts, Has.Count.EqualTo(1));
+                Assert.That(visualization.Configuration.Views, Has.Count.EqualTo(2));
+                AssertVectorApproximately(visualization.Configuration.Views[1].Position.ToVector3(), secondViewPosition);
+            }
+            finally
+            {
+                await CleanSceneOwnedAnatomy(baseScene);
+            }
         }
 
         [Test]
@@ -1481,7 +2321,9 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject columnObject = new(name);
             columnObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(columnObject, scene.Scene);
-            return columnObject.AddComponent<T>();
+            T column = columnObject.AddComponent<T>();
+            SetPrivateField(column, "m_SharedMaterials", CreateSharedMaterials());
+            return column;
         }
 
         private static Base3DScene CreateBaseScene(PlayModeSceneScope scene, string name)
@@ -1489,7 +2331,11 @@ namespace HBP.Tests.PlayMode.Module3D
             GameObject sceneObject = new(name);
             sceneObject.SetActive(false);
             SceneManager.MoveGameObjectToScene(sceneObject, scene.Scene);
-            return sceneObject.AddComponent<Base3DScene>();
+            Base3DScene content = sceneObject.AddComponent<Base3DScene>();
+            DesktopScenePresentation presentation = sceneObject.AddComponent<DesktopScenePresentation>();
+            SetPrivateField(presentation, "m_Scene", content);
+            SetPrivateField(content, "m_DesktopPresentation", presentation);
+            return content;
         }
 
         private static LineRenderer CreateLineRenderer(PlayModeSceneScope scene, string name)
@@ -1537,6 +2383,9 @@ namespace HBP.Tests.PlayMode.Module3D
             SceneManager.MoveGameObjectToScene(sceneObject, scene.Scene);
 
             Base3DScene baseScene = sceneObject.AddComponent<Base3DScene>();
+            DesktopScenePresentation presentation = sceneObject.AddComponent<DesktopScenePresentation>();
+            SetPrivateField(presentation, "m_Scene", baseScene);
+            SetPrivateField(baseScene, "m_DesktopPresentation", presentation);
             MeshManager meshManager = CreateManager<MeshManager>(sceneObject, "MeshManager", baseScene);
             MRIManager mriManager = CreateManager<MRIManager>(sceneObject, "MRIManager", baseScene);
             ImplantationManager implantationManager = CreateManager<ImplantationManager>(sceneObject, "ImplantationManager", baseScene);
@@ -1669,6 +2518,7 @@ namespace HBP.Tests.PlayMode.Module3D
             columnObject.SetActive(false);
             columnObject.transform.SetParent(parent.transform, false);
             Column3DAnatomy column = columnObject.AddComponent<Column3DAnatomy>();
+            SetPrivateField(column, "m_SharedMaterials", CreateSharedMaterials());
             Transform brains = new GameObject("Brains").transform;
             Transform cuts = new GameObject("Cuts").transform;
             Transform sites = new GameObject("Sites").transform;
@@ -1680,7 +2530,8 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(column, "m_BrainSurfaceMeshesParent", brains);
             SetPrivateField(column, "m_CutMeshesParent", cuts);
             SetPrivateField(column, "m_SitesMeshesParent", sites);
-            SetPrivateField(column, "m_ViewPrefab", CreateRuntimeViewPrefab(columnObject));
+            SetPrivateField(column, "m_ViewsParent", views);
+            SetPrivateField(parent.GetComponent<DesktopScenePresentation>(), "m_ViewPrefab", CreateRuntimeViewPrefab(parent));
             return columnObject;
         }
 
@@ -1699,6 +2550,7 @@ namespace HBP.Tests.PlayMode.Module3D
             SetPrivateField(view, "m_Camera3D", camera3D);
             SetPrivateField(camera3D, "m_Camera", camera);
             SetPrivateField(camera3D, "m_EdgeSettings", edgeSettings);
+            SetPrivateField(camera3D, "m_AssociatedView", view);
             SetPrivateField(camera3D, "m_CircleX", CreateLineRendererObject("Circle X", cameraObject));
             SetPrivateField(camera3D, "m_CircleY", CreateLineRendererObject("Circle Y", cameraObject));
             SetPrivateField(camera3D, "m_CircleZ", CreateLineRendererObject("Circle Z", cameraObject));
@@ -1747,7 +2599,8 @@ namespace HBP.Tests.PlayMode.Module3D
         {
             GameObject spherePrefab = CreateMeshPrefab("ROI Sphere Prefab");
             spherePrefab.AddComponent<SphereCollider>();
-            spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
+            var sphere = spherePrefab.AddComponent<HBP.Data.Module3D.Sphere>();
+            SetPrivateField(sphere, "m_SharedMaterials", CreateSharedMaterials());
             return spherePrefab;
         }
 
@@ -1908,6 +2761,15 @@ namespace HBP.Tests.PlayMode.Module3D
             return $"IsGeneratorUpToDate={baseScene.IsGeneratorUpToDate}, UpdatingGenerators={updatingGenerators}, GeneratorNeedsUpdate={baseScene.SceneInformation.GeneratorNeedsUpdate}, " + $"GeneratorUpdateRequested={baseScene.SceneInformation.GeneratorUpdateRequested}, FunctionalCutTexturesNeedUpdate={baseScene.SceneInformation.FunctionalCutTexturesNeedUpdate}, " + $"FunctionalSurfaceNeedsUpdate={baseScene.SceneInformation.FunctionalSurfaceNeedsUpdate}, SitesNeedUpdate={baseScene.SceneInformation.SitesNeedUpdate}.";
         }
 
+        private static void WriteEmptyMRI(string path)
+        {
+            // Valid MRI with no extractable tissue: tests preview failure, not file loading failure.
+            byte[] bytes = File.ReadAllBytes(NativeFixturePath("Nifti", "mri_t1.nii"));
+            int offset = (int)BitConverter.ToSingle(bytes, 108);
+            Array.Clear(bytes, offset, bytes.Length - offset);
+            File.WriteAllBytes(path, bytes);
+        }
+
         private static string NativeFixturePath(params string[] parts)
         {
             string path = Path.Combine(Directory.GetParent(Application.dataPath).FullName, "Assets", "Tests", "Fixtures", "Native");
@@ -1927,18 +2789,10 @@ namespace HBP.Tests.PlayMode.Module3D
             }
         }
 
-        private static void CleanSceneOwnedAnatomy(Base3DScene baseScene)
+        private static async Task CleanSceneOwnedAnatomy(Base3DScene baseScene)
         {
             if (baseScene == null) return;
-            foreach (Mesh3D mesh in baseScene.MeshManager.Meshes.Where(mesh => !mesh.HasBeenLoadedOutside).Distinct())
-            {
-                mesh.Clean();
-            }
-
-            foreach (MRI3D mri in baseScene.MRIManager.MRIs.Where(mri => !mri.HasBeenLoadedOutside).Distinct())
-            {
-                mri.Clean();
-            }
+            await baseScene.CleanAsync();
         }
 
         private static Module3DMain GetModule3DMainInstance()

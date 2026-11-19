@@ -1,4 +1,5 @@
 name: Build HiBoP
+run-name: Build HiBoP (${{ inputs.platform || 'all' }}) on ${{ github.ref_name }}
 
 on:
   release:
@@ -15,12 +16,13 @@ on:
           - linux
           - windows
           - macos
+          - quest
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-${{ github.event_name }}-${{ github.ref }}-${{ inputs.platform || 'all' }}
   cancel-in-progress: true
 
 defaults:
@@ -38,25 +40,24 @@ jobs:
         env:
           SELECTED_PLATFORM: ${{ inputs.platform || 'all' }}
         run: |
+          set -euo pipefail
+          matrix='{"include":[
+            {"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},
+            {"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},
+            {"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
+            {"name":"Quest","platform":"quest","os":"windows-latest","module":"Android","modules":"","artifact":"HiBoP-Quest"}
+          ]}'
           case "$SELECTED_PLATFORM" in
-            all)
-              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
-              ;;
-            linux)
-              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"}]}'
-              ;;
-            windows)
-              matrix='{"include":[{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"}]}'
-              ;;
-            macos)
-              matrix='{"include":[{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+            all) ;;
+            linux|windows|macos|quest)
+              matrix=$(jq --arg platform "$SELECTED_PLATFORM" '.include |= map(select(.platform == $platform))' <<< "$matrix")
               ;;
             *)
               echo "Unsupported platform: $SELECTED_PLATFORM" >&2
               exit 1
               ;;
           esac
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          printf 'matrix=%s\n' "$(jq -c . <<< "$matrix")" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.name }}
@@ -93,50 +94,75 @@ jobs:
           done
 
       - name: Cache Library
+        if: matrix.platform != 'quest'
         uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.module }}-
-            Library-
 
-      - name: Install Unity Hub (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo install -d /etc/apt/keyrings
-          curl -fsSL https://hub.unity3d.com/linux/keys/public |
-            sudo gpg --dearmor --yes -o /etc/apt/keyrings/unityhub.gpg
-          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb stable main" |
-            sudo tee /etc/apt/sources.list.d/unityhub.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install --yes desktop-file-utils unityhub xvfb
-          unity_hub_path="$(readlink -f "$(command -v unityhub)")"
-          test -x "$unity_hub_path"
-          test -r "$(dirname "$unity_hub_path")/resources/app.asar"
-          echo "UNITY_HUB_PATH=$unity_hub_path" >> "$GITHUB_ENV"
-          sudo tee /usr/local/bin/unity-hub > /dev/null <<'EOF'
-          #!/usr/bin/env bash
-          exec xvfb-run --auto-servernum "$UNITY_HUB_PATH" "$@"
-          EOF
-          sudo chmod +x /usr/local/bin/unity-hub
+      - name: Restore Quest Library cache
+        if: matrix.platform == 'quest'
+        uses: actions/cache/restore@v5
+        with:
+          path: Library
+          key: Library-Quest-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-Quest-Android-
+
+      - name: Restore Quest Gradle cache
+        if: matrix.platform == 'quest'
+        uses: actions/cache/restore@v5
+        with:
+          path: .gradle/quest
+          key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
+          restore-keys: Gradle-Quest-6000.5.2f1-
 
       - name: Install Unity
-        uses: RageAgainstThePixel/unity-setup@v2
+        uses: RageAgainstThePixel/unity-setup@8acd5e29b6961f6338f8073304e9551353709521 # v3.0.4
         with:
           unity-version: 6000.5.2f1
           build-targets: ${{ matrix.module }}
           modules: ${{ matrix.modules }}
-          auto-update-hub: false
 
       - name: Activate Unity licence
-        uses: RageAgainstThePixel/activate-unity-license@v2
+        uses: RageAgainstThePixel/activate-unity-license@f9a4e114ed89feaddf8a8dc4b958f3e538fb9be6 # v3.0.2
         with:
           license: Personal
           username: ${{ secrets.UNITY_USERNAME }}
           password: ${{ secrets.UNITY_PASSWORD }}
 
-      - name: Build ${{ matrix.name }}
+      - name: Test Quest network primitives on host OS
+        if: matrix.platform != 'quest'
+        run: |
+          set -euo pipefail
+          mkdir -p .test-results
+          filter='HBP.Tests.Transfer.QuestNetworkTests'
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            filter="$filter;HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.MacNetworkPrivacyPlistRemainsReadable"
+          fi
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -buildTarget ${{ matrix.cli_target }} \
+            -runTests -testPlatform EditMode \
+            -testFilter "$filter" \
+            -testResults "$GITHUB_WORKSPACE/.test-results/quest-network.xml" \
+            -logFile "$GITHUB_WORKSPACE/.test-results/quest-network.log"
+
+      - name: Upload Quest network test results
+        if: always() && matrix.platform != 'quest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: Quest-network-tests-${{ matrix.platform }}
+          path: |
+            .test-results/quest-network.xml
+            .test-results/quest-network.log
+          include-hidden-files: true
+          if-no-files-found: ignore
+
+      - name: Build Desktop player
+        if: matrix.platform != 'quest'
         run: |
           set -euo pipefail
           "$UNITY_EDITOR_PATH" \
@@ -226,11 +252,13 @@ jobs:
 
       - name: Validate and sign macOS application
         if: matrix.platform == 'macos'
+        id: macos_signing
         run: |
           set -euo pipefail
           folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
           app=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*.app' -print -quit)
           test -n "$app"
+          plutil -lint "$app/Contents/Info.plist"
           for bundle_name in hbp_core hbp_math EEGFormat; do
             bundle="$app/Contents/PlugIns/$bundle_name.bundle"
             test -d "$bundle"
@@ -259,14 +287,42 @@ jobs:
             exit 1
           fi
 
-          # HBPBuilder moves ARM64 plugins after BuildPipeline.BuildPlayer. Sign
-          # the completed bundle so those post-build changes and resources are
-          # sealed too.
+          # Seal Info.plist, the moved plugins and copied resources after post-processing.
           codesign --force --deep --sign - "$app"
-          codesign --verify --deep --strict --verbose=2 "$app"
-          echo "Validated and signed application: $app"
+          if codesign --verify --deep --strict --verbose=2 "$app"; then
+            echo "Validated and signed application: $app"
+          else
+            status=$?
+            codesign --display --verbose=4 --requirements - "$app" || true
+            exit "$status"
+          fi
+
+      - name: Archive macOS build for signature diagnosis
+        if: failure() && steps.macos_signing.outcome == 'failure'
+        id: macos_recovery
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d -print -quit)
+          test -n "$folder"
+          ditto -c -k --sequesterRsrc --keepParent "$folder" "$RUNNER_TEMP/macos-signing-recovery.zip"
+
+      - name: Preserve macOS build for signature diagnosis
+        if: failure() && steps.macos_recovery.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-signing-recovery
+          path: ${{ runner.temp }}/macos-signing-recovery.zip
+          compression-level: 0
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Validate absence of bundled ADB
+        if: matrix.platform != 'quest'
+        shell: pwsh
+        run: ./Tools/Test-NoAdb.ps1 -Path build
 
       - name: Package build
+        if: matrix.platform != 'quest'
         id: package
         run: |
           set -euo pipefail
@@ -281,15 +337,127 @@ jobs:
           echo "archive=$archive" >> "$GITHUB_OUTPUT"
           ls -lh "$archive"
 
+      - name: Validate archive contains no ADB
+        if: matrix.platform != 'quest'
+        shell: pwsh
+        run: ./Tools/Test-NoAdb.ps1 -Path '${{ steps.package.outputs.archive }}'
+
       - name: Upload build artifact
+        if: matrix.platform != 'quest'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
 
-      - name: Attach to release
-        if: github.event_name == 'release'
+      - name: Build Quest
+        if: matrix.platform == 'quest'
+        env:
+          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle/quest
+          HIBOP_QUEST_KEYSTORE_BASE64: ${{ secrets.HIBOP_QUEST_KEYSTORE_BASE64 }}
+          HIBOP_QUEST_KEYSTORE_PASSWORD: ${{ secrets.HIBOP_QUEST_KEYSTORE_PASSWORD }}
+          HIBOP_QUEST_KEY_ALIAS_PASSWORD: ${{ secrets.HIBOP_QUEST_KEY_ALIAS_PASSWORD }}
+        run: |
+          set -euo pipefail
+          : "${HIBOP_QUEST_KEYSTORE_BASE64:?Missing GitHub Actions secret HIBOP_QUEST_KEYSTORE_BASE64}"
+          : "${HIBOP_QUEST_KEYSTORE_PASSWORD:?Missing GitHub Actions secret HIBOP_QUEST_KEYSTORE_PASSWORD}"
+          : "${HIBOP_QUEST_KEY_ALIAS_PASSWORD:?Missing GitHub Actions secret HIBOP_QUEST_KEY_ALIAS_PASSWORD}"
+          signing_dir="$(mktemp -d "$(cygpath -u "$RUNNER_TEMP")/hibop-quest-signing.XXXXXX")"
+          trap 'rm -f -- "$signing_dir/quest.keystore" "$signing_dir/unity.log" "$signing_dir/unity-console.log"; rmdir -- "$signing_dir"' EXIT
+          printf '%s' "$HIBOP_QUEST_KEYSTORE_BASE64" | base64 --decode > "$signing_dir/quest.keystore"
+          unset HIBOP_QUEST_KEYSTORE_BASE64
+          export HIBOP_QUEST_KEYSTORE_PATH="$(cygpath -w "$signing_dir/quest.keystore")"
+          "$UNITY_EDITOR_PATH" \
+            -batchmode -quit -nographics \
+            -projectPath "$GITHUB_WORKSPACE" \
+            -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset \
+            -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine \
+            -questCiSigning \
+            -buildOutput "$GITHUB_WORKSPACE/build" \
+            -buildCommit "$GITHUB_SHA" \
+            -logFile "$(cygpath -w "$signing_dir/unity.log")" > "$signing_dir/unity-console.log" 2>&1 || {
+              build_status=$?
+              grep -ohsE 'error CS[0-9]{4}|BuildFailedException|GradleInvokationException' \
+                "$signing_dir/unity.log" "$signing_dir/unity-console.log" | sort -u || true
+              echo "::error::Unity Quest build failed with exit code $build_status."
+              exit "$build_status"
+            }
+      - name: Package and validate Quest APK
+        if: matrix.platform == 'quest'
+        id: quest_package
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content -Raw -LiteralPath codemeta.json | ConvertFrom-Json).version
+          if ([string]::IsNullOrWhiteSpace($version)) { throw 'Missing version in codemeta.json.' }
+          $apk = "build/HiBoP.$version.quest.apk"
+          Move-Item -LiteralPath build/HiBoP.Quest.apk -Destination $apk
+          $build = Get-Content -Raw -LiteralPath build/Quest.build-report.json | ConvertFrom-Json
+          $expectedCode = [int]$build.androidVersionCode
+          if ($build.result -ne 'Succeeded' -or $build.target -ne 'Android' -or $expectedCode -le 0) {
+            throw 'Missing Android version code in the successful Quest build report.'
+          }
+          $editor = Split-Path -Parent $env:UNITY_EDITOR_PATH
+          $aapt = Get-ChildItem -Path (Join-Path $editor 'Data/PlaybackEngines/AndroidPlayer/SDK/build-tools/*/aapt.exe') -File |
+            Sort-Object FullName -Descending | Select-Object -First 1
+          if (!$aapt) { throw 'Unity Android SDK aapt.exe was not found.' }
+          $manifest = & $aapt.FullName dump badging $apk
+          if ($LASTEXITCODE -ne 0) { throw 'Could not read the packaged Android manifest.' }
+          $package = ($manifest | Select-String '^package:' | Select-Object -First 1).Line
+          if ($package -notmatch "versionCode='(?<code>[0-9]+)'\s+versionName='(?<version>[^']+)'") {
+            throw 'Missing version fields in the packaged Android manifest.'
+          }
+          if ([int]$Matches.code -ne $expectedCode -or $Matches.version -cne $version) {
+            throw "Quest APK contains version $($Matches.version) and versionCode $($Matches.code); expected $version and $expectedCode."
+          }
+          Write-Host "Verified Quest APK version $version and versionCode $expectedCode."
+          ./Tools/Test-QuestApk.ps1 -Apk $apk -ReportPath build/quest-apk-content.json
+          "apk=$apk" >> $env:GITHUB_OUTPUT
+
+      - name: Upload Quest build and reports
+        if: matrix.platform == 'quest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: |
+            ${{ steps.quest_package.outputs.apk }}
+            build/Quest.build-report.json
+            build/quest-apk-content.json
+          if-no-files-found: error
+
+  attach_release:
+    name: Attach four builds to release
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: HiBoP-*
+          path: release-assets
+          merge-multiple: true
+      - name: Attach release files
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.archive }}" --clobber
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          apk=(release-assets/HiBoP.*.quest.apk)
+          if [[ ${#apk[@]} -ne 1 ]]; then
+            echo 'Expected exactly one versioned Quest APK.' >&2
+            exit 1
+          fi
+          version="${apk[0]#release-assets/HiBoP.}"
+          version="${version%.quest.apk}"
+          files=("release-assets/HiBoP.$version.win64.zip" "release-assets/HiBoP.$version.linux64.zip"
+            "release-assets/HiBoP.$version.macos64.zip" "${apk[0]}")
+          for file in "${files[@]}"; do
+            if [[ ! -s "$file" ]]; then
+              echo "Missing release file: $file" >&2
+              exit 1
+            fi
+          done
+          gh release upload --repo "$GITHUB_REPOSITORY" --clobber -- "$RELEASE_TAG" "${files[@]}"

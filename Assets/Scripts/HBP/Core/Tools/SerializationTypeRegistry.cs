@@ -11,6 +11,7 @@ namespace HBP.Core.Tools
         private static readonly object s_Lock = new();
         private static readonly Dictionary<string, Type> s_TypesBySerializedName = new(StringComparer.Ordinal);
         private static readonly HashSet<Type> s_RegisteredTypes = new();
+        private static readonly Dictionary<Type, List<SerializationPropertyAlias>> s_PropertyAliases = new();
 
         static SerializationTypeRegistry()
         {
@@ -44,6 +45,30 @@ namespace HBP.Core.Tools
 
                 s_RegisteredTypes.Add(type);
             }
+        }
+
+        public static void RegisterGeneratedPropertyAlias(Type owner, string serializedProperty, string currentProperty, string migration = null)
+        {
+            var alias = new SerializationPropertyAlias(serializedProperty, currentProperty, migration);
+            lock (s_Lock)
+            {
+                if (!s_PropertyAliases.TryGetValue(owner, out var aliases)) s_PropertyAliases.Add(owner, aliases = new());
+                foreach (var existing in aliases)
+                {
+                    if (existing.SerializedProperty != serializedProperty) continue;
+                    if (existing.CurrentProperty != currentProperty || existing.Migration != migration)
+                        throw new InvalidOperationException($"Conflicting property alias '{owner}.{serializedProperty}'.");
+                    return;
+                }
+
+                aliases.Add(alias);
+            }
+        }
+
+        internal static SerializationPropertyAlias[] GetPropertyAliases(Type owner)
+        {
+            lock (s_Lock)
+                return s_PropertyAliases.TryGetValue(owner, out var aliases) ? aliases.ToArray() : Array.Empty<SerializationPropertyAlias>();
         }
 
         public static Type Resolve(string assemblyName, string typeName)

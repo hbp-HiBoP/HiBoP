@@ -13,10 +13,17 @@
 /.test-results/
 /.native-plugin-update/
 /LoadingBenchmarks/
-/Tools/InflationBaseline/__pycache__/
+__pycache__/
+*.pyc
+/.codex-temp/
+/.artifacts/
 
 # Never ignore Asset meta data
 !/[Aa]ssets/**/*.meta
+
+# Temporary settings moved by AR Foundation during Player builds
+/Assets/XR/Temp/
+/Assets/XR/Temp.meta
 
 # Uncomment this line if you wish to ignore the asset store tools plugin
 # /[Aa]ssets/AssetStoreTools*
@@ -68,3 +75,6 @@ Docs/Doxygen/html
 
 # Localizers atlas
 /Assets/Data/Atlases/Localizers
+
+# Android deployment
+.android/

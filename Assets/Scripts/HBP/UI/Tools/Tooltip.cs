@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
@@ -61,7 +62,7 @@ namespace HBP.UI.Tools
                         TooltipManager.ShowTooltip(m_Text, m_Image, m_FollowMouse);
                     }
 
-                    if (Input.GetAxis("Mouse X") != 0 && Input.GetAxis("Mouse Y") != 0)
+                    if (DesktopInput.MouseDelta.x != 0 && DesktopInput.MouseDelta.y != 0)
                     {
                         m_TimeSinceEntered = 0;
                     }

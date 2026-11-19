@@ -41,7 +41,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.InvalidateActivityField();
+                SelectedScene.SetProjectionEnabled(false);
                 UpdateInteractable();
             });
         }
@@ -93,8 +93,7 @@ namespace HBP.UI.Toolbar
                     }
                 }
 
-                scene.InvalidateActivityField();
-                scene.SceneInformation.GeneratorUpdateRequested = true;
+                scene.RequestActivityProjection();
             }
             finally
             {

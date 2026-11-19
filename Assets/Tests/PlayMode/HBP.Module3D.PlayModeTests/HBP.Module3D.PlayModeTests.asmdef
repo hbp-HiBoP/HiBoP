@@ -7,6 +7,8 @@
         "HBP.Rendering.Runtime",
         "HBP.UI.Runtime",
         "HBP.PlayModeTestUtilities",
+        "HBP.Sync.Runtime",
+        "HBP.Sync.Scene",
         "UniTask"
     ],
     "includePlatforms": [],

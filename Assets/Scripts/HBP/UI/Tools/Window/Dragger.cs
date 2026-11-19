@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
@@ -17,14 +18,14 @@ namespace HBP.UI.Tools
 
         public void OnBeginDrag()
         {
-            m_InitialDistanceBetweenMouseAndObject = transform.position - Input.mousePosition;
+            m_InitialDistanceBetweenMouseAndObject = transform.position - DesktopInput.MousePosition;
         }
 
         public void OnDrag()
         {
-            if (RectTransformUtility.RectangleContainsScreenPoint(m_ParentRectTransform, Input.mousePosition) && isActiveAndEnabled)
+            if (RectTransformUtility.RectangleContainsScreenPoint(m_ParentRectTransform, DesktopInput.MousePosition) && isActiveAndEnabled)
             {
-                m_RectTransform.position = Input.mousePosition + m_InitialDistanceBetweenMouseAndObject;
+                m_RectTransform.position = DesktopInput.MousePosition + m_InitialDistanceBetweenMouseAndObject;
             }
         }
 

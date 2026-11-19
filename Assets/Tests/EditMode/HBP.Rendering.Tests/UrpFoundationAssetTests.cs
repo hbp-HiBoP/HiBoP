@@ -73,7 +73,10 @@ namespace HBP.Tests.Rendering
 
             Assert.That(GraphicsSettings.defaultRenderPipeline, Is.SameAs(expected));
             for (int index = 0; index < QualitySettings.count; ++index)
-                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.SameAs(expected), $"Quality level {index}");
+            {
+                var pipeline = QualitySettings.names[index] == "Quest" ? AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>("Assets/Settings/Rendering/HBP-Quest-URP.asset") : expected;
+                Assert.That(QualitySettings.GetRenderPipelineAssetAt(index), Is.SameAs(pipeline), $"Quality level {index}");
+            }
         }
 
         [TestCase("HBP/Brain")]
@@ -83,7 +86,7 @@ namespace HBP.Tests.Rendering
         [TestCase("HBP/Utility/UnlitColor")]
         [TestCase("HBP/Site")]
         [TestCase("HBP/Site/Selection")]
-        [TestCase("HBP/ROI/AnalyticCage")]
+        [TestCase("HBP/ROI/Sphere")]
         [TestCase("HBP/UI/Texture")]
         [TestCase("HBP/UI/Mask")]
         public void FoundationShader_ImportsWithoutCompilerErrors(string shaderName)

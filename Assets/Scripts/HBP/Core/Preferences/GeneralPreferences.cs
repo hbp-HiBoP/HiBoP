@@ -14,22 +14,24 @@ namespace HBP.Core.Preferences
         [JsonProperty] public ThemePreferences Theme { get; set; }
         [JsonProperty] public LocalizationPreferences Localization { get; set; }
         [JsonProperty] public SystemPreferences System { get; set; }
+        [JsonProperty] public QuestPreferences Quest { get; set; }
         [JsonProperty] public MiscPreferences Misc { get; set; }
 
         #endregion
 
         #region Constructors
 
-        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences())
+        public GeneralPreferences() : this(new ProjectPreferences(), new ThemePreferences(), new LocalizationPreferences(), new SystemPreferences(), new MiscPreferences(), new QuestPreferences())
         {
         }
 
-        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc)
+        public GeneralPreferences(ProjectPreferences project, ThemePreferences theme, LocalizationPreferences localization, SystemPreferences system, MiscPreferences misc, QuestPreferences quest)
         {
             Project = project;
             Theme = theme;
             Localization = localization;
             System = system;
+            Quest = quest;
             Misc = misc;
         }
 
@@ -39,7 +41,7 @@ namespace HBP.Core.Preferences
 
         public object Clone()
         {
-            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Localization.Clone() as LocalizationPreferences, System.Clone() as SystemPreferences, Misc.Clone() as MiscPreferences);
+            return new GeneralPreferences(Project.Clone() as ProjectPreferences, Theme.Clone() as ThemePreferences, Localization.Clone() as LocalizationPreferences, System.Clone() as SystemPreferences, Misc.Clone() as MiscPreferences, Quest.Clone() as QuestPreferences);
         }
 
         #endregion
@@ -76,8 +78,11 @@ namespace HBP.Core.Preferences
             else
                 DefaultExportLocation = defaultExportLocation;
 
+#if !UNITY_ANDROID || UNITY_EDITOR
+            // Received Desktop project paths are preferences, not Android directories.
             Directory.CreateDirectory(DefaultLocation);
             Directory.CreateDirectory(DefaultExportLocation);
+#endif
         }
 
         #endregion
@@ -86,6 +91,10 @@ namespace HBP.Core.Preferences
 
         private static string GetDefaultPath(string subfolder)
         {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            // PATH is cached at startup; deserialization can also run on a worker.
+            return Path.Combine(Path.GetDirectoryName(UserPreferences.PATH), subfolder);
+#else
             if (Environment.OSVersion.Platform == PlatformID.Unix)
             {
                 string home = Environment.GetEnvironmentVariable("HOME") ?? "";
@@ -103,6 +112,7 @@ namespace HBP.Core.Preferences
             }
 
             return Path.Combine(documentsPath, "HiBoP", subfolder);
+#endif
         }
 
         #endregion

@@ -1,40 +1,91 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
+using System;
 using HBP.Core.Enums;
+using HBP.Core.Interfaces;
 
 namespace HBP.Core.Object3D
 {
     /// <summary>
     /// Class representing a cut on the scene
     /// </summary>
-    public class Cut : HBP.Core.DLL.Plane
+    public class Cut : HBP.Core.DLL.Plane, IIdentifiable
     {
         #region Properties
 
         /// <summary>
-        /// ID of the cut
+        /// Stable identity of the cut
         /// </summary>
-        public int ID { get; set; }
+        public string ID { get; set; } = Guid.NewGuid().ToString();
+
+        /// <summary>Index into cut textures and geometry generators; changes when cuts are removed.</summary>
+        public int Index { get; set; }
+
+        public void GenerateID() => ID = Guid.NewGuid().ToString();
 
         /// <summary>
         /// Orientation of the cut
         /// </summary>
-        public CutOrientation Orientation { get; set; }
+        private CutOrientation m_Orientation;
+
+        public CutOrientation Orientation
+        {
+            get => m_Orientation;
+            set
+            {
+                bool changed = m_Orientation != value;
+                m_Orientation = value;
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Is the cut flipped ?
         /// </summary>
-        public bool Flip { get; set; }
+        private bool m_Flip;
+
+        public bool Flip
+        {
+            get => m_Flip;
+            set
+            {
+                bool changed = m_Flip != value;
+                m_Flip = value;
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Number of cuts (levels in the MRI)
         /// </summary>
-        public int NumberOfCuts { get; set; }
+        private int m_NumberOfCuts;
+
+        public int NumberOfCuts
+        {
+            get => m_NumberOfCuts;
+            set
+            {
+                bool changed = m_NumberOfCuts != value;
+                m_NumberOfCuts = value;
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
+            }
+        }
 
         /// <summary>
         /// Position of the cut (between 0 and 1)
         /// </summary>
-        public float Position { get; set; }
+        private float m_Position;
+
+        public float Position
+        {
+            get => m_Position;
+            set
+            {
+                bool changed = m_Position != value;
+                m_Position = value;
+                if (changed) m_OnDefinitionChanged?.Invoke(this);
+            }
+        }
 
         #endregion
 

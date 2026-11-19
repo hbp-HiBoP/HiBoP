@@ -49,6 +49,8 @@ MonoBehaviour:
     type: 3}
   m_ScrollableDialogBoxPrefab: {fileID: 1106456193739494, guid: 968c702d005437848baa3c2a4640371e,
     type: 3}
+  m_InputDialogBoxPrefab: {fileID: 2088972377282197318, guid: 474e5e77e83ed834ea6bd487ca15ba51,
+    type: 3}
   m_Canvas: {fileID: 190181020182457322}
 --- !u!1 &2589678534130936724
 GameObject:

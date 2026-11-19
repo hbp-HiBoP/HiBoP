@@ -1,0 +1,840 @@
+using UnityEngine.Events;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Security.Authentication;
+using System.Threading;
+using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
+using HBP.Core.Tools;
+using HBP.Core.Database;
+using HBP.Core.Object3D;
+using HBP.Core.Preferences;
+using HBP.Core.Enums;
+using HBP.Data.Module3D;
+using HBP.Data.Tools;
+using HBP.Transfer.Scene;
+using HBP.Transfer.Transport;
+using HBP.Sync.Scene;
+using HBP.Sync;
+using HBP.UI.Quest;
+using HBP.UI.Tools;
+using UnityEngine;
+
+namespace HBP.Quest.Desktop
+{
+    /// <summary>Owns the Desktop Quest connection independently of disposable windows.</summary>
+    public sealed partial class QuestManager : Manager<QuestManager>
+    {
+        public static QuestManager Instance => m_Instance;
+        public UnityEvent OnChanged { get; } = new();
+
+        public IReadOnlyList<QuestDevice> Devices => devices;
+        public string Status { get; private set; } = "Select a Quest to pair.";
+        public string SelectedId { get; private set; }
+        public string SelectedRouteKey { get; private set; }
+        public bool IsManualSelection => manualSelected;
+        public bool ManualUsesUsb { get; private set; }
+        public string ManualInterfaceId => selectedManualRoute?.InterfaceId;
+        internal bool ManualInterfaceWasExplicit { get; private set; }
+        public string SelectedAddress => manualSelected ? selectedEndpoint : string.Empty;
+        public bool IsBusy => busy;
+        public bool LastOperationCancelled { get; private set; }
+        public bool CanRetryReconciliation => reconciliationNeedsRetry;
+        public bool CanRetrySceneOperations => CanRetryReconciliation || CanRetryScenes;
+        private IDisposable pairingTiming;
+        public bool IsPaired => connected && credential != null;
+        public string ConnectedId => pin == null ? null : Convert.ToBase64String(pin);
+        public string ConnectedLabel => pin == null ? "Quest" : (devices.FirstOrDefault(device => device.Id == ConnectedId)?.Name ?? "Quest") + " · " + (activeEndpoint?.Path == QuestNetworkPath.Usb ? "USB" : "Network") + " · " + BitConverter.ToString(pin, 0, 3).Replace("-", "");
+        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId &&
+            (manualSelected || SelectedRouteKey == activeEndpoint?.RouteKey(ConnectedId));
+        public bool LastOperationSucceeded { get; private set; }
+        public Exception BlockingError { get; private set; }
+        private string selectedEndpoint;
+        private QuestEndpoint selectedManualRoute;
+        private byte[] selectedPin;
+        private string activeRequest;
+        private bool automaticOperation;
+        private LoadingManager.PresentationHandle pairingPresentation;
+        private Action<float, float, LoadingText> pairingProgress;
+        public bool CanRetry => HasRetryableDelivery && IsPaired;
+        public bool HasRetryableDelivery => publications.Values.Any(value => value.Error != null && value.Offer?.CanRetry == true);
+
+        private byte[] pin, credential;
+        private string endpoint, store;
+        private bool reconciliationNeedsRetry;
+        private PairingSnapshot globals;
+        private DesktopSessionPreferences sessionPreferences;
+        private readonly SemaphoreSlim sessionOperations = new(1, 1);
+
+        private long sessionGeneration;
+
+        // User intent survives a sleeping headset and replacement connection owners.
+        private readonly Dictionary<string, bool> atlasIntents = new(StringComparer.Ordinal);
+        public bool HasSharedScene => publications.Values.Any(value => !value.Removed && value.Binding != null && value.Scene != null && !value.Scene.IsClosing);
+
+        public async UniTask<string> ValidatePreferencesChangeAsync(NormalizationType requested)
+        {
+            string blocked = ValidatePreferencesChangeNow(requested);
+            if (blocked != null || requested == PersistentDataManager.UserPreferences.Data.EEG.Normalization || !IsPaired) return blocked;
+            try
+            {
+                var inventory = await InventoryAsync(lifetime.Token);
+                if (inventory.Any(remote => remote.Orphan || !publications.Values.Any(local => !local.Removed && local.Binding?.TransferId == remote.TransferId)))
+                    return "Close local/orphan visualizations on Quest before changing EEG normalization. Their original recordings cannot be reloaded from Desktop.";
+                return null;
+            }
+            catch (Exception error)
+            {
+                return "Cannot prepare the Quest reload: " + TransferError.Describe(error);
+            }
+        }
+
+        public string ValidatePreferencesChangeNow(NormalizationType requested)
+        {
+            if (requested == PersistentDataManager.UserPreferences.Data.EEG.Normalization) return null;
+            if (busy || reloadingScenes || restoringScenes || !inventoryWork.IsCompleted || publications.Values.Any(value => value.Work != null && !value.Work.IsCompleted)) return "Wait for Quest operations to finish before reloading visualizations.";
+            return HasSharedScene && !IsPaired ? "Reconnect Quest before reloading shared visualizations." : null;
+        }
+
+
+        public async UniTask SetAtlasLoadedAsync(string id, bool loaded)
+        {
+            if (loaded)
+            {
+                var result = await AtlasResources.LoadAsync(id, lifetime.Token);
+                if (!result.Succeeded) throw new InvalidOperationException(result.Error);
+            }
+            else AtlasResources.Unload(id);
+
+            atlasIntents[id] = loaded;
+            sessionPreferences?.RequestAtlasSynchronization(id);
+            OnChanged.Invoke();
+        }
+
+        public string GetAtlasSynchronizationStatus(string id) => AtlasResources.IsLoaded(id) ? IsPaired && SessionAtlasCatalog.Active && SessionAtlasCatalog.CanUse(id) ? "Loaded on Desktop and ready on Quest." : "Loaded and usable on Desktop. Quest synchronization is pending; wake the headset to resume automatically." + (IsPaired && sessionPreferences != null ? "\n" + sessionPreferences.GetAtlasState(id) : "") : "Not loaded on Desktop. Any requested Quest unload will synchronize when the headset is available.";
+
+        /// <summary>Explicit toolbar recovery requires confirmation in the current Quest session.</summary>
+        public async UniTask EnsureAtlasReadyAsync(string id, CancellationToken cancellationToken)
+        {
+            using var stop = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token, cancellationToken);
+            await sessionOperations.WaitAsync(stop.Token);
+            try
+            {
+                if (!IsPaired || sessionPreferences == null)
+                    throw new InvalidOperationException("Wake Quest and connect it from Desktop before retrying the atlas load.");
+                // The toolbar owns its error dialog, including connection loss and cancellation.
+                await sessionPreferences.EnsureAtlasReadyAsync(id, stop.Token, reportError: false);
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                sessionOperations.Release();
+            }
+        }
+
+        private void SessionConnectionLost()
+        {
+            definitionsAttempt?.Cancel();
+            connected = false;
+            ResetHeadsetActivity();
+            LastOperationSucceeded = false;
+            sessionPreferences?.Dispose();
+            foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
+            UpdateDiscoveryWatch();
+            SetStatus("Quest unavailable or asleep. Desktop remains usable; atlases and visualizations will synchronize when Quest is awake.");
+        }
+
+        private static bool IsQuestConnectionInterruption(Exception error) => error is TimeoutException or System.Net.Sockets.SocketException or OperationCanceledException or QuestRouteUnavailableException or QuestIdentityMismatchException || error.GetType() == typeof(IOException) || error is EndOfStreamException;
+
+        private CancellationTokenSource operation;
+        private readonly CancellationTokenSource lifetime = new();
+        private Task running = Task.CompletedTask, discovering = Task.CompletedTask;
+        private QuestEndpoint activeEndpoint;
+        private List<QuestDevice> devices = new();
+        private bool busy, scanning, connected, reconnect, failedDelivery, discoveryActive;
+        private bool manualSelected;
+        private float nextDiscovery, nextHeartbeat;
+        private long nextTransferCaptureGeneration;
+        private Task headsetActivityProbe = Task.CompletedTask;
+        private float nextHeadsetActivityProbe;
+        private int headsetActivityGeneration;
+        private IDisposable headsetAwake;
+
+        protected override void Initialization()
+        {
+            base.Initialization();
+            store = Path.Combine(Application.persistentDataPath, "QuestPairings");
+            PairingTiming.OnMeasured += LogPairingTiming;
+            InitializeSceneLifecycle();
+            InitializeDefinitions();
+            InitializeDiscovery();
+        }
+
+        private static void LogPairingTiming(string message) => Debug.Log(message);
+
+        private void Update()
+        {
+            TickDefinitions();
+            TickSceneLifecycle();
+            TickDiscovery();
+            // Transfers and reconciliation can keep the regular heartbeat busy.
+            if (IsPaired && headsetActivityProbe.IsCompleted && Time.unscaledTime >= nextHeadsetActivityProbe)
+            {
+                nextHeadsetActivityProbe = Time.unscaledTime + 5;
+                headsetActivityProbe = RefreshHeadsetActivityAsync(headsetActivityGeneration);
+            }
+
+            // Once disconnected, discovery owns retry timing and endpoint selection. Probing
+            // the old address here can continuously preempt its per-headset retry backoff.
+            if (!busy && IsPaired && reconnect && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
+            {
+                nextHeartbeat = Time.unscaledTime + 5;
+                _ = RunAsync(async token =>
+                {
+                    bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
+                    if (!ready || !IsPaired || sessionPreferences == null) await RestoreAsync(token);
+                    // A live app may still be loading a large atlas. Keep that owner and its
+                    // in-flight native request while scenes wait for its confirmation.
+                    else if (NeedsSceneReconnection)
+                    {
+                        await sessionPreferences.ReopenAsync(token);
+                        await RestoreScenesAsync(token);
+                    }
+                    else sessionPreferences?.RetryPendingAtlasUnloads();
+                }, true);
+            }
+        }
+
+        private async Task RefreshHeadsetActivityAsync(int generation)
+        {
+            bool active = false;
+            try
+            {
+                active = await QuestPairing.IsHeadsetActiveAsync(endpoint, pin, credential, lifetime.Token);
+            }
+            catch (Exception error) when (IsQuestConnectionInterruption(error) || error is IOException or AuthenticationException)
+            {
+                // A failed presence probe releases the sleep hold. The session owns reconnects.
+            }
+
+            if (generation != headsetActivityGeneration || !isActiveAndEnabled || !IsPaired) return;
+            if (active)
+            {
+                if (headsetAwake == null && PerformanceManager.IsInitialized)
+                    headsetAwake = UnityEngine.Object.FindAnyObjectByType<PerformanceManager>()?.KeepAwake();
+            }
+            else
+            {
+                headsetAwake?.Dispose();
+                headsetAwake = null;
+            }
+        }
+
+        private void ResetHeadsetActivity()
+        {
+            headsetActivityGeneration++;
+            nextHeadsetActivityProbe = 0;
+            headsetAwake?.Dispose();
+            headsetAwake = null;
+        }
+
+        private void OnDisable() => ResetHeadsetActivity();
+
+        public void SetDiscoveryActive(bool active)
+        {
+            discoveryActive = active;
+            if (active) RequestDiscovery();
+            else routeChoicePending = false;
+            UpdateDiscoveryWatch();
+        }
+
+        public void Disconnect()
+        {
+            if (busy) throw new InvalidOperationException("Wait for the current Quest operation to finish.");
+            autoConnectSuspended = true;
+            DisconnectTransport();
+            SetStatus("Quest disconnected. Select Connect to reconnect.");
+        }
+
+        private void DisconnectTransport()
+        {
+            definitionsAttempt?.Cancel();
+            connected = reconnect = false;
+            ResetHeadsetActivity();
+            LastOperationSucceeded = false;
+            sessionPreferences?.Dispose();
+            sessionPreferences = null;
+            foreach (var entry in publications.Values)
+            {
+                entry.Owner?.Dispose();
+                entry.Owner = null;
+            }
+        }
+
+        public void Select(QuestDevice device)
+        {
+            if (busy || device?.Pin == null) return;
+            routeChoicePending = true;
+            Select(device, true);
+        }
+
+        private void Select(QuestDevice device, bool explicitChoice)
+        {
+            if (busy || device?.Pin == null) return;
+            manualSelected = false;
+            explicitlySelectedRoute = explicitChoice;
+            SelectedId = device.Id;
+            SelectedRouteKey = device.RouteKey;
+            selectedEndpoint = device.Endpoint.AddressText;
+            selectedPin = (byte[])device.Pin.Clone();
+            OnChanged.Invoke();
+        }
+
+        public void SelectManual(string address) => SelectManual(address, false);
+
+        internal void SelectManual(string address, bool usb, QuestEndpoint route = null, bool explicitInterface = false)
+        {
+            if (busy) return;
+            ManualInterfaceWasExplicit = explicitInterface;
+            string text = address?.Trim();
+            if (manualSelected && ManualUsesUsb == usb && selectedEndpoint == text && selectedManualRoute?.ConnectionAddress == route?.ConnectionAddress) return;
+            manualSelected = true;
+            ManualUsesUsb = usb;
+            selectedEndpoint = text;
+            selectedManualRoute = route;
+            selectedPin = null;
+            SelectedId = null;
+            SelectedRouteKey = null;
+            explicitlySelectedRoute = false;
+            routeChoicePending = false;
+            OnChanged.Invoke();
+        }
+
+        public void SelectAutomatic()
+        {
+            if (busy) return;
+            manualSelected = false;
+            routeChoicePending = false;
+            var device = devices.FirstOrDefault(candidate => candidate.Id == SelectedId) ?? devices.FirstOrDefault();
+            if (device != null)
+            {
+                Select(device, false);
+                return;
+            }
+
+            SelectedId = null;
+            SelectedRouteKey = null;
+            explicitlySelectedRoute = false;
+            selectedEndpoint = null;
+            selectedPin = null;
+            OnChanged.Invoke();
+        }
+
+        public Task PairAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode)
+        {
+            string target = SelectedRouteKey ?? selectedEndpoint;
+            if (busy) return activeRequest == target ? running : Task.FromException(new InvalidOperationException("Another Quest operation is in progress."));
+            routeChoicePending = false;
+            autoConnectSuspended = false;
+            if (SelectedId != null) automaticExcluded.Remove(SelectedId);
+            if (SelectedId != null) automaticRetryAfter.Remove(SelectedId);
+            activeRequest = target;
+            return RunAsync(token => ConnectCandidatesAsync(requestCode, false, token));
+        }
+
+        private async Task ConnectSelectedAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, bool automatic, CancellationToken token, QuestEndpoint candidate = null)
+        {
+            if (candidate == null && IsSelectedConnected)
+            {
+                await PrepareDatabaseAsync(token);
+                {
+                    var stop = token;
+                    // A manual reconnect may refresh definitions only once neither side uses the old snapshot.
+                    if (!HasSharedScene && inventoryWork.IsCompleted && !publications.Values.Any(entry => entry.HasPendingWork))
+                    {
+                        await FlushClosesAsync(stop);
+                        if ((await InventoryAsync(stop)).Length == 0)
+                        {
+                            stop.ThrowIfCancellationRequested();
+                            DisconnectTransport();
+                            globals?.Dispose();
+                            globals = null;
+                            ClearDefinitions();
+                        }
+                    }
+
+                    await RestoreAsync(stop);
+                    if (CanRetryScenes) await RetryFailedScenesAsync(stop);
+                }
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedEndpoint)) throw new ArgumentException("Select a Quest or enter its IP address.");
+            var route = candidate ?? selectedManualRoute ?? QuestEndpoint.Parse(selectedEndpoint, manual: true);
+            Debug.Log("Quest connection candidate: " + route.AddressText + (manualSelected ? " (Manual IP)" : " (discovery)"));
+            byte[] nextPin = selectedPin;
+            if (nextPin == null)
+            {
+                nextPin = await QuestPairing.InspectAsync(route.ConnectionAddress, token);
+                SelectedId = Convert.ToBase64String(nextPin);
+                selectedPin = nextPin;
+            }
+
+            token.ThrowIfCancellationRequested();
+            if (pin != null && !pin.SequenceEqual(nextPin))
+            {
+                if (HasSharedScene) throw new InvalidOperationException("Close the visualizations shared with the current Quest before connecting another headset.");
+                ClearPairing();
+            }
+
+            DisconnectTransport();
+            pin = (byte[])nextPin.Clone();
+            endpoint = route.ConnectionAddress;
+            activeEndpoint = route;
+            if (credential == null) credential = await Task.Run(() => ReadCredential(pin), token);
+            await UniTask.SwitchToMainThread(token);
+            if (automatic && credential == null) throw new AuthenticationException("Pair this Quest manually before connecting automatically.");
+            reconciliationNeedsRetry = false;
+            await PrepareDatabaseAsync(token);
+            if (credential == null) await AuthenticateWithCodeAsync(requestCode, token);
+            try
+            {
+                await RestoreAsync(token);
+            }
+            catch (AuthenticationException) when (!automatic)
+            {
+                if (credential != null) Array.Clear(credential, 0, credential.Length);
+                credential = null;
+                await AuthenticateWithCodeAsync(requestCode, token);
+                await RestoreAsync(token);
+            }
+        }
+
+        private async Task PrepareDatabaseAsync(CancellationToken token)
+        {
+            async UniTask Prepare(Action<float, float, LoadingText> progress, CancellationToken stop)
+            {
+                SetStatus("Waiting for the Desktop database");
+                await ApplicationManager.WaitForDatabaseInitializationAsync(stop);
+                stop.ThrowIfCancellationRequested();
+                await DatabaseManager.Database.EnsureDatabaseReadyAsync(progress, stop);
+            }
+
+            try
+            {
+                await Prepare(pairingProgress, token);
+            }
+            catch (Exception error) when (error is not OperationCanceledException)
+            {
+                BlockingError = error;
+                throw;
+            }
+        }
+
+        private async Task PresentPhaseAsync(Func<Action<float, float, LoadingText>, CancellationToken, UniTask> phase, CancellationToken token)
+        {
+            var previous = pairingPresentation;
+            var previousProgress = pairingProgress;
+            try
+            {
+                await LoadingManager.PresentAsync(async (update, stop) =>
+                {
+                    pairingProgress = update;
+                    update(0, 0, new LoadingText(Status));
+                    await phase(update, stop);
+                }, token, handle => pairingPresentation = handle);
+            }
+            finally
+            {
+                pairingPresentation = previous;
+                pairingProgress = previousProgress;
+            }
+        }
+
+        private async Task AuthenticateWithCodeAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, CancellationToken token)
+        {
+            if (requestCode == null) throw new AuthenticationException("Connect manually to enter the Quest code.");
+            Guid codeRequest = await QuestPairing.RequestCodeAsync(endpoint, pin, token);
+            try
+            {
+                InputDialogResult answer;
+                var presentation = pairingPresentation;
+                if (presentation != null) await presentation.PauseAsync();
+                try
+                {
+                    answer = await requestCode(token);
+                }
+                finally
+                {
+                    if (!token.IsCancellationRequested) presentation?.Resume();
+                }
+
+                if (!answer.Confirmed) throw new OperationCanceledException(token);
+                if (answer.Value == null || answer.Value.Length != 6 || !answer.Value.All(char.IsDigit))
+                    throw new ArgumentException("Enter the six-digit code shown in your Quest.");
+                {
+                    var stop = token;
+                    SetStatus("Checking the Quest code");
+                    pairingTiming?.Dispose();
+                    pairingTiming = PairingTiming.Measure("desktop.pairing-total");
+                    credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, stop);
+                    // Once received, persist even if cancellation arrives: the receiver already owns this secret.
+                    await Task.Run(() => PairingStorage.Write(CredentialPath(pin), credential));
+                    stop.ThrowIfCancellationRequested();
+                }
+            }
+            finally
+            {
+                try
+                {
+                    using var close = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+                    await QuestPairing.RequestCodeAsync(endpoint, pin, close.Token, codeRequest);
+                }
+                catch (Exception)
+                {
+                    /* The bounded display request expires if the peer disappeared. */
+                }
+            }
+        }
+
+        private async Task RestoreAsync(CancellationToken token)
+        {
+            SetStatus("Preparing Quest pairing");
+            await UniTask.NextFrame(cancellationToken: token);
+            globals ??= await PairingSnapshot.CaptureAsync(token, definitionsRevision: definitionsRevision);
+            foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
+            sessionPreferences?.Dispose();
+            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences, atlasIntents, stop => QuestPairing.PingAsync(endpoint, pin, credential, stop));
+            sessionPreferences = controls;
+            controls.OnAtlasError.AddListener(message =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls) && !lifetime.IsCancellationRequested)
+                    DialogBoxManager.Open(DialogBoxType.Error, "Atlas operation failed", message, "OK");
+            });
+            controls.OnChanged.AddListener(() =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls)) OnChanged.Invoke();
+            });
+            controls.OnConnectionLost.AddListener(() =>
+            {
+                if (ReferenceEquals(sessionPreferences, controls)) SessionConnectionLost();
+            });
+            try
+            {
+                SetStatus("Applying shared preferences and definitions on Quest");
+                // TCP/USB can remain reachable while Unity is asleep. Probe the app before a long globals transfer.
+                await QuestPairing.PingAsync(endpoint, pin, credential, token);
+                bool installedGlobals = false;
+                using (PairingTiming.Measure("desktop.globals-resume"))
+                    await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, async (stream, stop) =>
+                    {
+                        installedGlobals = true;
+                        return await SendGlobalsAsync(stream, stop);
+                    });
+                SetStatus("Opening the Quest session");
+                await controls.StartAsync(token);
+                token.ThrowIfCancellationRequested();
+                connected = reconnect = true;
+                await RestoreDefinitionsHistoryAsync(token);
+                if (installedGlobals) await controls.SynchronizeCurrentPreferencesAsync();
+                await FlushDefinitionsAsync(token);
+                LastOperationSucceeded = true;
+                long date = DateTime.UtcNow.Ticks;
+                history[ConnectedId] = date;
+                try
+                {
+                    await Task.Run(() => associations.RecordSuccess(pin, date));
+                }
+                catch (Exception error)
+                {
+                    Debug.LogWarning("Could not save Quest connection history: " + error.Message);
+                }
+            }
+            catch
+            {
+                controls.Dispose();
+                throw;
+            }
+
+            nextHeartbeat = Time.unscaledTime + 5;
+            try
+            {
+                // Pairing is silent in automatic mode; scene reconciliation remains visible.
+                if (automaticOperation && (HasSharedScene || autoSync && Module3DMain.IsInitialized && Module3DMain.Scenes.Count != 0))
+                    await PresentPhaseAsync(async (_, stop) => await RestoreScenesAsync(stop), token);
+                else await RestoreScenesAsync(token);
+            }
+            catch (Exception error)
+            {
+                if (!token.IsCancellationRequested && IsQuestConnectionInterruption(error))
+                {
+                    reconciliationNeedsRetry = false;
+                    SessionConnectionLost();
+                    return;
+                }
+
+                reconciliationNeedsRetry = true;
+                LastOperationCancelled = error is OperationCanceledException || token.IsCancellationRequested;
+                LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);
+                SetStatus(LastOperationSucceeded ? "Quest connected. Scene synchronization needs attention: " + TransferError.Describe(error) : "Quest disconnected. Reconnect to resume scene synchronization.");
+                return;
+            }
+
+            LastOperationSucceeded = IsPaired && ReferenceEquals(sessionPreferences, controls);
+            if (!LastOperationSucceeded)
+            {
+                SetStatus("Quest disconnected. Reconnect to resume scene synchronization.");
+                return;
+            }
+
+            SetStatus(reconciliationNeedsRetry ? "Quest connected. Some visualizations could not reconnect. Select Retry." : "Quest connected. Scene synchronization is ready.");
+        }
+
+        private async Task<ConflictChoice> ChooseConflictAsync(CheckpointConflict conflict, CancellationToken stop)
+        {
+            await UniTask.SwitchToMainThread(stop);
+            var presentation = displayReservation?.Presentation ?? pairingPresentation;
+            if (presentation != null) await presentation.PauseAsync();
+            try
+            {
+                int answer = await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Warning, "Choose which changes to keep", "This choice applies to conflicts in all common visualizations during this reconnection. Each visualization has its own result.\n\n" + conflict.Description + "\n\nDesktop changes:\n" + conflict.DesktopSummary + "\n\nQuest changes:\n" + conflict.QuestSummary + "\n\nChoose Desktop to keep the Desktop version of these conflicting changes, or Quest to keep the Quest version. Independent changes from both devices are kept automatically. Select one to continue.", stop, "Desktop", "Quest");
+                return answer == 0 ? ConflictChoice.Desktop : ConflictChoice.Quest;
+            }
+            finally
+            {
+                if (!stop.IsCancellationRequested) presentation?.Resume();
+            }
+        }
+
+        private async Task<DeliveryReceipt> SendGlobalsAsync(Stream stream, CancellationToken token)
+        {
+            var transfer = PairingTiming.Measure("desktop.globals-transfer");
+            try
+            {
+                var snapshot = retiredDefinitionSnapshots.FirstOrDefault() ?? globals;
+                return await snapshot.Delivery.SendAsync(stream, token, null, (sent, total) =>
+                {
+                    if (sent < total) return;
+                    transfer?.Dispose();
+                    transfer = null;
+                });
+            }
+            finally
+            {
+                transfer?.Dispose();
+            }
+        }
+
+        public Task<bool> SendAsync(bool retry, Base3DScene sourceScene = null)
+        {
+            var scene = sourceScene != null ? sourceScene : Module3DMain.IsInitialized ? Module3DMain.SelectedScene : null;
+            if (scene == null)
+            {
+                SetStatus("Select an open visualization first.");
+                return Task.FromResult(false);
+            }
+
+            var entry = GetPublication(scene);
+            if (entry.Work != null && !entry.Work.IsCompleted) return entry.Work;
+            if (retry) return RetryPublishedSceneAsync(scene);
+            if (!retry && entry.Owner is { IsLive: true, IsClosed: false } && !entry.UserRetryRequired && entry.Owner.IsInitialRenderingReady) return Task.FromResult(true);
+            if (entry.UserRetryRequired && !retry) return Task.FromResult(false);
+            entry.Work = SendSceneAsync(entry, retry);
+            return entry.Work;
+        }
+
+        private async Task<bool> RetryPublishedSceneAsync(Base3DScene scene)
+        {
+            await RetryDisplayScenesAsync(new[] { scene }, lifetime.Token);
+            return IsSceneSynchronized(scene);
+        }
+
+        public void Cancel()
+        {
+            CancelConnectionAttempt();
+            foreach (var entry in publications.Values) entry.Stop?.Cancel();
+        }
+
+        public void CancelConnectionAttempt()
+        {
+            autoConnectSuspended = true;
+            operation?.Cancel();
+        }
+
+        private Task RunAsync(Func<CancellationToken, Task> action, bool automatic = false)
+        {
+            if (busy) return Task.FromException(new InvalidOperationException("Another Quest operation is in progress."));
+            if (!isActiveAndEnabled) return Task.FromException(new ObjectDisposedException(nameof(QuestManager)));
+            automaticOperation = automatic;
+            LastOperationSucceeded = false;
+            BlockingError = null;
+            busy = true;
+            LastOperationCancelled = false;
+            OnChanged.Invoke();
+            return running = ExecuteAsync(action);
+        }
+
+        private async Task ExecuteAsync(Func<CancellationToken, Task> action)
+        {
+            using var attempt = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+            operation = attempt;
+            long initialGeneration = sessionGeneration;
+            bool initialReconnect = reconnect;
+            bool acquired = false;
+
+            async Task InvokeAsync(CancellationToken token)
+            {
+                // Finish an existing inventory before taking its session gate: it can itself await scene sends.
+                if (!inventoryWork.IsCompleted)
+                {
+                    SetStatus("Waiting for Quest scene operations");
+                    // This work already owns any scene-transfer presentation. Drain it even after cancellation,
+                    // so this attempt cannot finish while the inventory still starts new sends behind it.
+                    await inventoryWork;
+                    token.ThrowIfCancellationRequested();
+                }
+
+                await UniTask.SwitchToMainThread(token);
+                await sessionOperations.WaitAsync(token);
+                acquired = true;
+                await action(token);
+            }
+
+            try
+            {
+                if (automaticOperation) await InvokeAsync(attempt.Token);
+                else
+                    await PresentPhaseAsync(async (_, stop) =>
+                    {
+                        using var cancel = stop.Register(attempt.Cancel);
+                        await InvokeAsync(attempt.Token);
+                    }, attempt.Token);
+            }
+            catch (Exception exception)
+            {
+                await UniTask.SwitchToMainThread();
+                bool restoreSession = (reconnect || initialReconnect) && exception is not AuthenticationException && exception is not OperationCanceledException && !attempt.IsCancellationRequested;
+                bool preserved = IsPaired && initialGeneration == sessionGeneration && exception is ArgumentException or InvalidOperationException or OperationCanceledException;
+                if (!preserved) DisconnectTransport();
+                if (exception is QuestRouteUnavailableException or QuestIdentityMismatchException)
+                {
+                    foreach (var key in presence.Where(item => item.Value.Device.Endpoint.Key == activeEndpoint?.Key).Select(item => item.Key).ToArray()) presence.Remove(key);
+                    PublishPresence();
+                }
+
+                reconnect = preserved || restoreSession;
+                nextHeartbeat = Time.unscaledTime + 1;
+                nextAutomaticAttempt = Time.unscaledTime + 1;
+                if (automaticOperation && ConnectedId != null) automaticRetryAfter[ConnectedId] = Time.unscaledTime + 2;
+                if (!automaticOperation && !restoreSession) autoConnectSuspended = true;
+                if (BlockingError != null) autoConnectSuspended = true;
+                if (exception is QuestContextException)
+                {
+                    reconnect = false;
+                    if (ConnectedId != null) automaticExcluded.Add(ConnectedId);
+                }
+
+                if (exception is AuthenticationException)
+                {
+                    if (ConnectedId != null) automaticExcluded.Add(ConnectedId);
+                    reconnect = false;
+                    if (credential != null) Array.Clear(credential, 0, credential.Length);
+                    credential = null;
+                    SetStatus("Pairing needs attention. Connect manually to enter the Quest code, or forget the association on Quest if it is locked.");
+                }
+                else if (reconciliationNeedsRetry)
+                {
+                    LastOperationCancelled = exception is OperationCanceledException || attempt.IsCancellationRequested;
+                    SetStatus("Some visualizations could not reconnect. Select Retry.");
+                }
+                else if (exception is OperationCanceledException || attempt.IsCancellationRequested)
+                {
+                    LastOperationCancelled = true;
+                    SetStatus("Operation cancelled.");
+                }
+                else
+                {
+                    if (!automaticOperation && !restoreSession) BlockingError ??= exception;
+                    SetStatus(exception is ArgumentException || exception is InvalidOperationException ? TransferError.Describe(exception) : reconnect ? "Shared data or connection interrupted. Reconnecting with the saved association" : "Quest unreachable. Check USB or Wi-Fi.");
+                }
+
+                Debug.LogWarning("Quest operation failed: " + exception.Message);
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                pairingTiming?.Dispose();
+                pairingTiming = null;
+                if (acquired) sessionOperations.Release();
+                operation = null;
+                activeRequest = null;
+                busy = false;
+                OnChanged.Invoke();
+            }
+        }
+
+        private string CredentialPath(byte[] identity) => associations.CredentialPath(identity);
+
+        private byte[] ReadCredential(byte[] identity)
+        {
+            try
+            {
+                byte[] saved = PairingStorage.Read(CredentialPath(identity));
+                if (saved == null || saved.Length == 32) return saved;
+                Array.Clear(saved, 0, saved.Length);
+            }
+            catch (Exception)
+            {
+                // Report on the owning Unity thread through the connection result.
+            }
+
+            return null;
+        }
+
+        private void ClearPairing()
+        {
+            ClearSceneLifecycle();
+            reconciliationNeedsRetry = false;
+            sessionPreferences?.Dispose();
+            sessionPreferences = null;
+            if (credential != null) Array.Clear(credential, 0, credential.Length);
+            credential = pin = null;
+            globals?.Dispose();
+            globals = null;
+            ClearDefinitions();
+            endpoint = null;
+            connected = reconnect = failedDelivery = false;
+            ResetHeadsetActivity();
+            OnChanged.Invoke();
+        }
+
+        private void SetStatus(string value)
+        {
+            Status = value;
+            pairingProgress?.Invoke(0, 0, new LoadingText(value));
+            OnChanged.Invoke();
+        }
+
+        private async void OnDestroy()
+        {
+            PairingTiming.OnMeasured -= LogPairingTiming;
+            DisposeDiscovery();
+            DisposeSceneLifecycle();
+            DisposeDefinitions();
+            lifetime.Cancel();
+            operation?.Cancel();
+            try
+            {
+                await Task.WhenAll(new[] { running, discovering, listening, inventoryWork, definitionsWork, headsetActivityProbe }.Concat(publications.Values.Where(value => value.Work != null).Select(value => (Task)value.Work)));
+            }
+            catch (Exception)
+            {
+            }
+
+            ClearPairing();
+            lifetime.Dispose();
+        }
+    }
+}

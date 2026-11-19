@@ -14,10 +14,12 @@ namespace HBP.Core.Tools
     {
         private const int STREAM_BUFFER_SIZE = 64 * 1024;
         private static readonly GeneratedSerializationBinder m_Binder = new();
+        private static readonly SerializationAliasContractResolver m_Resolver = new();
         private static readonly UTF8Encoding m_Utf8WithoutBom = new(false);
 
         private static readonly JsonSerializerSettings m_ReadSettings = new()
         {
+            ContractResolver = m_Resolver,
             TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             SerializationBinder = m_Binder,
@@ -25,6 +27,7 @@ namespace HBP.Core.Tools
 
         private static readonly JsonSerializerSettings m_WriteSettings = new()
         {
+            ContractResolver = m_Resolver,
             TypeNameHandling = TypeNameHandling.Auto,
             TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Simple,
             Formatting = Formatting.Indented,

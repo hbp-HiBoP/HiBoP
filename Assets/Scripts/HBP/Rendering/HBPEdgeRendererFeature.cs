@@ -8,6 +8,10 @@ namespace HBP.Rendering
 {
     public sealed class HBPEdgeRendererFeature : ScriptableRendererFeature
     {
+        public const int QuestTimelineRenderQueue = 3998;
+        public const int QuestWindowRenderQueue = 3999;
+        public const uint QuestEdgeRenderingLayerMask = 1u << 1; // Quest Edges in TagManager.asset.
+
         [System.Serializable]
         public sealed class Settings
         {
@@ -18,8 +22,13 @@ namespace HBP.Rendering
         }
 
         [SerializeField] private Settings m_Settings = new();
+        [SerializeField] private Shader m_Shader;
+        [SerializeField] private Shader m_QuestCompositionShader;
+        [SerializeField] private Shader m_QuestPanelShader;
 
         private Material m_Material;
+        private Material m_QuestCompositionMaterial;
+        private HBPQuestCompositionPass m_QuestPass;
         private HBPTransparentBrainRenderPass m_TransparentBrainPass;
         private HBPEdgeRenderPass m_Pass;
 
@@ -28,7 +37,10 @@ namespace HBP.Rendering
         public override void Create()
         {
             CoreUtils.Destroy(m_Material);
-            Shader shader = Shader.Find("Hidden/HBP/Edges");
+            CoreUtils.Destroy(m_QuestCompositionMaterial);
+            m_QuestCompositionMaterial = m_QuestCompositionShader != null ? CoreUtils.CreateEngineMaterial(m_QuestCompositionShader) : null;
+            m_QuestPass = m_QuestCompositionMaterial != null ? new HBPQuestCompositionPass() : null;
+            Shader shader = m_Shader != null ? m_Shader : Shader.Find("Hidden/HBP/Edges");
             m_Material = shader == null ? null : CoreUtils.CreateEngineMaterial(shader);
             m_TransparentBrainPass = new HBPTransparentBrainRenderPass();
             m_Pass = new HBPEdgeRenderPass();
@@ -36,6 +48,14 @@ namespace HBP.Rendering
 
         public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
         {
+            if (m_QuestPass != null && m_QuestPanelShader != null)
+            {
+                var settings = renderingData.cameraData.camera.GetComponent<HBPEdgeCameraSettings>();
+                m_QuestPass.Setup(m_QuestCompositionMaterial, m_QuestPanelShader, settings != null && settings.EdgesEnabled ? m_Settings : null);
+                renderer.EnqueuePass(m_QuestPass);
+                return;
+            }
+
             if (m_Material == null || renderingData.cameraData.cameraType != CameraType.Game)
                 return;
 
@@ -53,8 +73,12 @@ namespace HBP.Rendering
         protected override void Dispose(bool disposing)
         {
             CoreUtils.Destroy(m_Material);
+            CoreUtils.Destroy(m_QuestCompositionMaterial);
             m_Material = null;
+            m_QuestCompositionMaterial = null;
         }
+
+        internal static TextureHandle CreateOpaqueEdgeData(RenderGraph graph, ContextContainer frameData, UniversalResourceData resources, out TextureHandle depth, uint renderingLayerMask) => HBPEdgeRenderPass.CreateOpaqueData(graph, frameData, resources, out depth, renderingLayerMask);
 
         private sealed class HBPTransparentBrainRenderPass : ScriptableRenderPass
         {
@@ -219,7 +243,7 @@ namespace HBP.Rendering
                 if (resourceData.isActiveTargetBackBuffer || !resourceData.activeColorTexture.IsValid())
                     return;
 
-                TextureHandle opaqueData = CreateOpaqueData(renderGraph, frameData, resourceData);
+                TextureHandle opaqueData = CreateOpaqueData(renderGraph, frameData, resourceData, out _);
                 TextureHandle transparentMask = CreateTransparentMask(renderGraph, frameData, resourceData);
                 if (!opaqueData.IsValid() || !transparentMask.IsValid())
                     return;
@@ -252,14 +276,15 @@ namespace HBP.Rendering
                 resourceData.cameraColor = destination;
             }
 
-            private static TextureHandle CreateOpaqueData(RenderGraph renderGraph, ContextContainer frameData, UniversalResourceData resourceData)
+            internal static TextureHandle CreateOpaqueData(RenderGraph renderGraph, ContextContainer frameData, UniversalResourceData resourceData, out TextureHandle depth, uint renderingLayerMask = uint.MaxValue)
             {
+                depth = TextureHandle.nullHandle;
                 UniversalRenderingData renderingData = frameData.Get<UniversalRenderingData>();
                 UniversalCameraData cameraData = frameData.Get<UniversalCameraData>();
                 UniversalLightData lightData = frameData.Get<UniversalLightData>();
 
                 DrawingSettings drawingSettings = RenderingUtils.CreateDrawingSettings(OpaqueDataTag, renderingData, cameraData, lightData, SortingCriteria.CommonOpaque);
-                FilteringSettings filteringSettings = new(RenderQueueRange.opaque, cameraData.camera.cullingMask);
+                FilteringSettings filteringSettings = new(RenderQueueRange.opaque, cameraData.camera.cullingMask, renderingLayerMask);
                 RendererListParams rendererListParams = new(renderingData.cullResults, drawingSettings, filteringSettings);
                 RendererListHandle rendererList = renderGraph.CreateRendererList(rendererListParams);
                 if (!rendererList.IsValid())
@@ -270,6 +295,7 @@ namespace HBP.Rendering
                 dataDescriptor.format = GraphicsFormat.R16G16B16A16_SFloat;
                 dataDescriptor.depthBufferBits = DepthBits.None;
                 dataDescriptor.msaaSamples = MSAASamples.None;
+                dataDescriptor.bindTextureMS = false;
                 dataDescriptor.clearBuffer = true;
                 dataDescriptor.clearColor = Color.clear;
                 TextureHandle data = renderGraph.CreateTexture(dataDescriptor);
@@ -279,8 +305,9 @@ namespace HBP.Rendering
                 depthDescriptor.format = GraphicsFormat.None;
                 depthDescriptor.depthBufferBits = DepthBits.Depth24;
                 depthDescriptor.msaaSamples = MSAASamples.None;
+                depthDescriptor.bindTextureMS = false;
                 depthDescriptor.clearBuffer = true;
-                TextureHandle depth = renderGraph.CreateTexture(depthDescriptor);
+                depth = renderGraph.CreateTexture(depthDescriptor);
 
                 using (IRasterRenderGraphBuilder builder = renderGraph.AddRasterRenderPass<MaskPassData>("HBP Opaque Edge Data", out MaskPassData passData))
                 {

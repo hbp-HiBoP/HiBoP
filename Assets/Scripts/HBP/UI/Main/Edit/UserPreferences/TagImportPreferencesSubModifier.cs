@@ -29,27 +29,43 @@ namespace HBP.UI.Main
         public override void Initialize()
         {
             base.Initialize();
-            m_TrueValues.onValueChanged.AddListener(value => Object.TrueValues = Parse(value));
-            m_FalseValues.onValueChanged.AddListener(value => Object.FalseValues = Parse(value));
-            m_IgnoredValues.onValueChanged.AddListener(value => Object.IgnoredValues = Parse(value));
+            Bind(m_TrueValues, values => Object.TrueValues = values);
+            Bind(m_FalseValues, values => Object.FalseValues = values);
+            Bind(m_IgnoredValues, values => Object.IgnoredValues = values);
         }
 
         protected override void SetFields(TagImportPreferences objectToDisplay)
         {
             base.SetFields(objectToDisplay);
-            m_TrueValues.text = Format(objectToDisplay.TrueValues);
-            m_FalseValues.text = Format(objectToDisplay.FalseValues);
-            m_IgnoredValues.text = Format(objectToDisplay.IgnoredValues);
+            m_TrueValues.SetTextWithoutNotify(Format(objectToDisplay.TrueValues));
+            m_FalseValues.SetTextWithoutNotify(Format(objectToDisplay.FalseValues));
+            m_IgnoredValues.SetTextWithoutNotify(Format(objectToDisplay.IgnoredValues));
+        }
+
+        private static void Bind(InputField input, Action<List<string>> setValues)
+        {
+            input.onValueChanged.AddListener(value => setValues(Parse(value)));
+            input.onEndEdit.AddListener(value =>
+            {
+                List<string> values = Parse(value);
+                setValues(values);
+                input.SetTextWithoutNotify(Format(values));
+            });
         }
 
         private static List<string> Parse(string value)
         {
-            return (value ?? string.Empty).Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries).Select(token => token.Trim()).Where(token => token.Length > 0).ToList();
+            return Normalize((value ?? string.Empty).Split(new[] { '\r', '\n', ',' }, StringSplitOptions.RemoveEmptyEntries)).ToList();
+        }
+
+        private static IEnumerable<string> Normalize(IEnumerable<string> values)
+        {
+            return (values ?? Enumerable.Empty<string>()).Where(value => !string.IsNullOrWhiteSpace(value)).Select(value => value.Trim()).Distinct(StringComparer.OrdinalIgnoreCase);
         }
 
         private static string Format(IEnumerable<string> values)
         {
-            return string.Join("\n", values ?? Enumerable.Empty<string>());
+            return string.Join(",", Normalize(values));
         }
     }
 }

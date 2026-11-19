@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "connectome_workbench": {
+    "role": "External visual and metric reference; no vertex-by-vertex equality is required.",
+    "command_template": [
+      "wb_command",
+      "-surface-generate-inflated",
+      "{anatomical_surface}",
+      "{inflated_surface}",
+      "{very_inflated_surface}",
+      "-iterations-scale",
+      "1.0"
+    ],
+    "parameters": "iterations-scale is explicitly set to 1.0; other values are the defaults of the version archived in the execution report.",
+    "eligible_entries": [
+      "mni_left_anatomical",
+      "mni_right_anatomical",
+      "patient_proxy_low_density",
+      "patient_proxy_medium_density",
+      "patient_proxy_high_density",
+      "open_surface",
+      "multi_component_surface"
+    ],
+    "automation": "Tools/InflationReference/analyze_reference_corpus.py --generate-workbench-references --workbench-executable <path-to-wb_command>"
+  },
+  "freesurfer": {
+    "role": "Second external reference when a validated FreeSurfer environment is available.",
+    "status": "manual_until_mris_convert_and_freesurfer_environment_are_validated",
+    "required_tools": [
+      "mris_convert",
+      "mris_inflate"
+    ],
+    "parameters_to_archive": [
+      "FreeSurferVersion",
+      "FREESURFER_HOME",
+      "exact conversion commands",
+      "exact mris_inflate command",
+      "stdout/stderr and exit codes",
+      "SHA-256 of inputs and outputs"
+    ]
+  },
+  "comparison_metrics": [
+    "topological invariants",
+    "edge-length ratios at percentiles 50, 90, 95, 99 and maximum",
+    "triangle-area ratios at percentiles 50, 90, 95, 99 and maximum",
+    "total area change",
+    "bounding box change",
+    "RMS radius change",
+    "visual inspection of sulcal visibility"
+  ]
+}

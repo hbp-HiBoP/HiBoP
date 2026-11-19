@@ -10,6 +10,7 @@ namespace HBP.Core.DLL
         private int m_CachedHistogramBinCount;
         private float m_CachedHistogramMin;
         private float m_CachedHistogramMax;
+        private int m_CachedHistogramFilters;
 
         public Tools.MRICalValues ExtremeValues
         {
@@ -87,16 +88,20 @@ namespace HBP.Core.DLL
             volume.MarkLoaded();
         }
 
-        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        /// <param name="excludeMinimum">Exclude exact source minima for histogram display. This is not an anatomical background mask.</param>
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f, bool excludeMinimum = false, bool excludeZero = false)
         {
             if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
-            if (m_CachedHistogramBins == null || m_CachedHistogramBinCount != binCount || m_CachedHistogramMin != min || m_CachedHistogramMax != max)
+            int filters = (excludeMinimum ? 1 : 0) | (excludeZero ? 2 : 0);
+            if (m_CachedHistogramBins == null || m_CachedHistogramBinCount != binCount || m_CachedHistogramMin != min || m_CachedHistogramMax != max || m_CachedHistogramFilters != filters)
             {
-                m_CachedHistogramBins = new int[binCount];
-                ThrowIfFailed(hbp_nifti_copy_histogram_bins(_handle.Handle, m_CachedHistogramBins, m_CachedHistogramBins.Length, min, max));
+                int[] bins = new int[binCount];
+                ThrowIfFailed(filters != 0 ? hbp_nifti_copy_histogram_bins_filtered(_handle.Handle, bins, bins.Length, min, max, filters) : hbp_nifti_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+                m_CachedHistogramBins = bins;
                 m_CachedHistogramBinCount = binCount;
                 m_CachedHistogramMin = min;
                 m_CachedHistogramMax = max;
+                m_CachedHistogramFilters = filters;
             }
 
             return (int[])m_CachedHistogramBins.Clone();
@@ -150,5 +155,8 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_copy_histogram_bins(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_copy_histogram_bins_filtered", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_copy_histogram_bins_filtered(IntPtr nifti, int[] bins, int binCount, float minValue, float maxValue, int filters);
     }
 }

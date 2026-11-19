@@ -70,7 +70,35 @@ namespace HBP.UI.Module3D
 
         public override async UniTask ApplyAsync()
         {
-            await LoadingManager.LoadAsync(ApplyAsync);
+            var changes = new List<SiteConfigurationChange>();
+            var targets = new HashSet<Site>(Sites);
+            foreach (Column3D column in Scene.Columns)
+            foreach (Site site in column.Sites)
+            {
+                if (!targets.Contains(site)) continue;
+                bool highlighted = m_UnhighlightToggle.isOn ? false : m_HighlightToggle.isOn || site.State.IsHighlighted;
+                bool blacklisted = m_UnblacklistToggle.isOn ? false : m_BlacklistToggle.isOn || site.State.IsBlackListed;
+                Color color = m_ColorToggle.isOn ? m_ColorPickedImage.color : site.State.Color;
+                var labels = new List<string>(site.State.Labels);
+                if (m_AddLabelToggle.isOn)
+                    foreach (string label in ParseLabels(m_AddLabelInputField.text))
+                        if (!labels.Contains(label))
+                            labels.Add(label);
+                if (m_RemoveLabelToggle.isOn)
+                    foreach (string label in ParseLabels(m_RemoveLabelInputField.text))
+                        labels.Remove(label);
+                if (m_RemoveAllLabelsToggle.isOn) labels.Clear();
+                if (highlighted == site.State.IsHighlighted && blacklisted == site.State.IsBlackListed && color == site.State.Color && labels.SequenceEqual(site.State.Labels)) continue;
+                changes.Add(new SiteConfigurationChange(column, site.Information.FullID, site.State, new Core.Data.SiteConfiguration(blacklisted, highlighted, color, labels)));
+            }
+
+            Base3DScene scene = Scene;
+            await LoadingManager.LoadAsync(async (update, token) =>
+            {
+                await UniTask.SwitchToMainThread(token);
+                token.ThrowIfCancellationRequested();
+                scene.ApplySiteConfigurationBatch(changes);
+            });
         }
 
         public override void StoreSettings()
@@ -109,54 +137,7 @@ namespace HBP.UI.Module3D
 
         #region Private Methods
 
-        private async UniTask ApplyAsync(Action<float, float, LoadingText> updateProgress, CancellationToken token)
-        {
-            await UniTask.SwitchToMainThread();
-
-            foreach (var site in Sites)
-            {
-                if (m_HighlightToggle.isOn) site.State.IsHighlighted = true;
-                if (m_UnhighlightToggle.isOn) site.State.IsHighlighted = false;
-                if (m_BlacklistToggle.isOn) site.State.IsBlackListed = true;
-                if (m_UnblacklistToggle.isOn) site.State.IsBlackListed = false;
-                if (m_ColorToggle.isOn) site.State.Color = m_ColorPickedImage.color;
-                if (m_AddLabelToggle.isOn)
-                {
-                    string text = m_AddLabelInputField.text;
-                    if (text.Contains(","))
-                    {
-                        string[] labels = text.Split(',');
-                        foreach (string label in labels)
-                        {
-                            site.State.AddLabel(label.Trim());
-                        }
-                    }
-                    else
-                    {
-                        site.State.AddLabel(m_AddLabelInputField.text);
-                    }
-                }
-
-                if (m_RemoveLabelToggle.isOn)
-                {
-                    string text = m_RemoveLabelInputField.text;
-                    if (text.Contains(","))
-                    {
-                        string[] labels = text.Split(',');
-                        foreach (string label in labels)
-                        {
-                            site.State.RemoveLabel(label.Trim());
-                        }
-                    }
-                    else
-                    {
-                        site.State.RemoveLabel(m_RemoveLabelInputField.text);
-                    }
-                }
-
-                if (m_RemoveAllLabelsToggle.isOn) site.State.RemoveAllLabels();
-            }
-        }
+        private static IEnumerable<string> ParseLabels(string text) => text.Contains(',') ? text.Split(',').Select(label => label.Trim()) : new[] { text };
 
         #endregion
     }

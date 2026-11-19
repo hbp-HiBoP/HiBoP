@@ -110,6 +110,13 @@ namespace HBP.Dev
             List<SerializableTypeEntry> entries = DiscoverSerializableTypes().ToList();
             AliasConfiguration configuration = LoadAliasConfiguration();
             ApplyAliases(entries, configuration);
+            foreach (var group in configuration.PropertyAliases.GroupBy(alias => alias.OwnerType))
+            {
+                var owner = entries.SingleOrDefault(entry => entry.Type.FullName == group.Key);
+                if (owner == null) throw new InvalidOperationException($"Unknown property alias owner '{group.Key}'.");
+                SerializationAliasContractResolver.ValidateAliases(owner.Type, group.Select(alias => new SerializationPropertyAlias(alias.SerializedProperty, alias.CurrentProperty, alias.Migration)));
+                owner.PropertyAliases.AddRange(group);
+            }
 
             return new Dictionary<string, string>
             {
@@ -145,6 +152,7 @@ namespace HBP.Dev
 
             configuration.NamespaceAliases ??= new List<NamespaceAlias>();
             configuration.TypeAliases ??= new List<TypeAlias>();
+            configuration.PropertyAliases ??= new List<PropertyAlias>();
             return configuration;
         }
 
@@ -258,6 +266,16 @@ namespace HBP.Dev
                 source.Append("), ");
                 source.Append(string.Join(", ", serializedNames.Select(JsonConvert.ToString)));
                 source.AppendLine(");");
+                foreach (var alias in entry.PropertyAliases.OrderBy(value => value.SerializedProperty, StringComparer.Ordinal))
+                {
+                    source.Append("            ");
+                    source.Append(registryTypeName);
+                    source.Append(".RegisterGeneratedPropertyAlias(typeof(global::");
+                    source.Append(GetCSharpTypeName(entry.Type));
+                    source.Append("), ");
+                    source.Append(string.Join(", ", new[] { alias.SerializedProperty, alias.CurrentProperty, alias.Migration }.Select(JsonConvert.ToString)));
+                    source.AppendLine(");");
+                }
             }
         }
 
@@ -292,6 +310,7 @@ namespace HBP.Dev
         {
             public Type Type { get; }
             public List<string> Aliases { get; } = new();
+            public List<PropertyAlias> PropertyAliases { get; } = new();
 
             public SerializableTypeEntry(Type type)
             {
@@ -306,6 +325,15 @@ namespace HBP.Dev
             [JsonProperty("namespaceAliases")] public List<NamespaceAlias> NamespaceAliases { get; set; }
 
             [JsonProperty("typeAliases")] public List<TypeAlias> TypeAliases { get; set; }
+            [JsonProperty("propertyAliases")] public List<PropertyAlias> PropertyAliases { get; set; }
+        }
+
+        private sealed class PropertyAlias
+        {
+            [JsonProperty("ownerType")] public string OwnerType { get; set; }
+            [JsonProperty("serializedProperty")] public string SerializedProperty { get; set; }
+            [JsonProperty("currentProperty")] public string CurrentProperty { get; set; }
+            [JsonProperty("migration")] public string Migration { get; set; }
         }
 
         private sealed class NamespaceAlias

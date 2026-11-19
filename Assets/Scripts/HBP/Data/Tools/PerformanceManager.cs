@@ -1,3 +1,4 @@
+using HBP.Input;
 using UnityEngine;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
@@ -32,6 +33,30 @@ namespace HBP.Data.Tools
         }
 
         private bool m_SleepModeSuspended;
+        private int m_ActiveOperations;
+
+        public System.IDisposable KeepAwake()
+        {
+            m_ActiveOperations++;
+            m_TimeSinceLastAction = 0;
+            Application.targetFrameRate = PersistentDataManager.UserPreferences.General.System.TargetFramerate;
+            if (m_DarkImage != null) m_DarkImage.SetActive(false);
+            return new AwakeOperation(this);
+        }
+
+        private sealed class AwakeOperation : System.IDisposable
+        {
+            private PerformanceManager owner;
+            internal AwakeOperation(PerformanceManager owner) => this.owner = owner;
+
+            public void Dispose()
+            {
+                if (owner == null) return;
+                owner.m_ActiveOperations--;
+                owner.m_TimeSinceLastAction = 0;
+                owner = null;
+            }
+        }
 
         #endregion
 
@@ -39,13 +64,13 @@ namespace HBP.Data.Tools
 
         private void Update()
         {
-            if (m_SleepModeSuspended)
+            if (m_SleepModeSuspended || m_ActiveOperations != 0)
             {
                 return;
             }
 
             m_TimeSinceLastAction += Time.deltaTime;
-            if (Input.GetAxis("Mouse X") != 0 || Input.GetAxis("Mouse Y") != 0 || Input.anyKey || Input.anyKeyDown)
+            if (DesktopInput.MouseDelta.x != 0 || DesktopInput.MouseDelta.y != 0 || DesktopInput.IsAnyKeyPressed || DesktopInput.WasAnyKeyPressedThisFrame || DesktopInput.IsLeftMouseButtonPressed || DesktopInput.IsRightMouseButtonPressed || DesktopInput.IsMiddleMouseButtonPressed)
             {
                 m_TimeSinceLastAction = 0;
             }

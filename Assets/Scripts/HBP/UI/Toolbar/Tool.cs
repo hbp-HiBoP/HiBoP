@@ -1,4 +1,4 @@
-﻿using HBP.Data.Module3D;
+using HBP.Data.Module3D;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -59,7 +59,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public void UpdateTool()
         {
-            if (SelectedScene != null && SelectedColumn != null && SelectedView != null)
+            if (SelectedScene != null && !SelectedScene.IsClosing && SelectedScene.SceneInformation.Initialized && SelectedScene.AnatomyCompletion.Status == Cysharp.Threading.Tasks.UniTaskStatus.Succeeded && SelectedColumn != null && SelectedView != null)
             {
                 UpdateInteractable();
                 UpdateStatus();
@@ -81,40 +81,7 @@ namespace HBP.UI.Toolbar
         /// <returns>List containing the selected column or all columns</returns>
         protected List<Column3D> GetColumnsDependingOnTypeAndGlobal(bool isGlobal)
         {
-            List<Column3D> columns = new();
-            if (isGlobal)
-            {
-                if (SelectedColumn is Column3DAnatomy)
-                {
-                    columns.AddRange(SelectedScene.ColumnsAnatomy);
-                }
-                else if (SelectedColumn is Column3DIEEG)
-                {
-                    columns.AddRange(SelectedScene.ColumnsIEEG);
-                }
-                else if (SelectedColumn is Column3DCCEP)
-                {
-                    columns.AddRange(SelectedScene.ColumnsCCEP);
-                }
-                else if (SelectedColumn is Column3DFMRI)
-                {
-                    columns.AddRange(SelectedScene.ColumnsFMRI);
-                }
-                else if (SelectedColumn is Column3DMEG)
-                {
-                    columns.AddRange(SelectedScene.ColumnsMEG);
-                }
-                else if (SelectedColumn is Column3DStatic)
-                {
-                    columns.AddRange(SelectedScene.ColumnsStatic);
-                }
-            }
-            else
-            {
-                columns.Add(SelectedColumn);
-            }
-
-            return columns;
+            return SelectedScene != null && SelectedColumn != null ? SelectedScene.GetColumnGroup(SelectedColumn, isGlobal) : new List<Column3D>();
         }
 
         #endregion

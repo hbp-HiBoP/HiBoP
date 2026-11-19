@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -17,6 +18,9 @@ namespace HBP.Data.Module3D
     /// </remarks>
     public class MRIManager : MonoBehaviour
     {
+        /// <summary>Raised when the selected MRI resource changes.</summary>
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
+
         #region Properties
 
         /// <summary>
@@ -138,6 +142,7 @@ namespace HBP.Data.Module3D
                 MRICalMinFactor = min;
                 MRICalMaxFactor = max;
                 m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
+                m_Scene.OnSharedStateChanged.Invoke();
             }
         }
 
@@ -150,7 +155,23 @@ namespace HBP.Data.Module3D
             int mriID = MRIs.FindIndex(m => m.Name == mriName);
             if (mriID == -1 || (onlyIfAlreadyLoaded && !MRIs[mriID].IsLoaded)) mriID = 0;
 
+            bool selectionChanged = SelectedMRIID != mriID;
             SelectedMRIID = mriID;
+            if (selectionChanged) OnResourceSelectionChanged.Invoke();
+            VolumeCenter = SelectedMRI.Volume.Center;
+            m_Scene.SceneInformation.GeometryNeedsUpdate = true;
+            m_Scene.InvalidateProjectionGrid();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+        }
+
+        /// <summary>Select an exact resource from the prepared scene without name fallback.</summary>
+        public void SelectPrepared(Core.Object3D.MRI3D mri)
+        {
+            int index = MRIs.FindIndex(item => ReferenceEquals(item, mri));
+            if (index < 0 || !MRIs[index].IsLoaded) throw new System.InvalidOperationException("Prepared MRI is unavailable.");
+            if (SelectedMRIID == index) return;
+            SelectedMRIID = index;
+            OnResourceSelectionChanged.Invoke();
             VolumeCenter = SelectedMRI.Volume.Center;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateProjectionGrid();
@@ -162,9 +183,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void LoadMissing()
         {
-            foreach (var mri in MRIs)
+            foreach (var mri in MRIs.Distinct())
             {
                 if (!mri.IsLoaded) mri.Load();
+                if (!mri.IsLoaded) throw new System.IO.IOException($"Unable to prepare MRI '{mri.Name}'.");
             }
         }
 

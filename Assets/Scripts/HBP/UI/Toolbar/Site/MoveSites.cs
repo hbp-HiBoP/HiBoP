@@ -1,6 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Enums;
 
 namespace HBP.UI.Toolbar
 {
@@ -45,32 +44,19 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, false);
-                Vector3 center = SelectedScene.MeshManager.MeshCenter;
-                foreach (var column in SelectedScene.Columns)
-                {
-                    column.MoveAllSitesToTheSameSideOfAPlane(center, orientation);
-                }
+                SelectedScene.MoveSitesToHemisphere(false);
             });
             m_MoveToRightHemisphere.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                Vector3 orientation = SelectedScene.MRIManager.SelectedMRI.Volume.GetOrientationVector(CutOrientation.Sagittal, true);
-                Vector3 center = SelectedScene.MeshManager.MeshCenter;
-                foreach (var column in SelectedScene.Columns)
-                {
-                    column.MoveAllSitesToTheSameSideOfAPlane(center, orientation);
-                }
+                SelectedScene.MoveSitesToHemisphere(true);
             });
             m_Reset.onClick.AddListener(() =>
             {
                 if (ListenerLock) return;
 
-                foreach (var column in SelectedScene.Columns)
-                {
-                    column.ResetSitesPositions();
-                }
+                SelectedScene.ResetSitesPositions();
             });
         }
 

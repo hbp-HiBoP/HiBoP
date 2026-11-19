@@ -77,12 +77,13 @@ namespace HBP.UI.Module3D
                 m_Image.enabled = true;
                 Vector3 centerPosition = Site.transform.position;
                 Vector3 borderPosition = centerPosition + Site.transform.localScale.x * ViewCamera.transform.right;
-                Vector3 centerScreenPosition = ViewCamera.WorldToScreenPoint(centerPosition);
-                Vector3 borderScreenPosition = ViewCamera.WorldToScreenPoint(borderPosition);
-                float size = 2 * (borderScreenPosition.x - centerScreenPosition.x);
+                Vector3 centerViewportPosition = ViewCamera.WorldToViewportPoint(centerPosition);
+                Vector3 borderViewportPosition = ViewCamera.WorldToViewportPoint(borderPosition);
+                float size = 2 * (borderViewportPosition.x - centerViewportPosition.x) * Viewport.rect.width;
                 size += size * m_RatioOffset;
                 size = Mathf.Max(size, m_MinSize);
-                m_RectTransform.localPosition = centerScreenPosition + (Vector3)Viewport.rect.min;
+                Vector2 centerLocalPosition = Viewport.rect.min + Vector2.Scale(centerViewportPosition, Viewport.rect.size);
+                m_RectTransform.localPosition = new Vector3(centerLocalPosition.x, centerLocalPosition.y, 0);
                 m_RectTransform.sizeDelta = new Vector2(size, size);
             }
         }
