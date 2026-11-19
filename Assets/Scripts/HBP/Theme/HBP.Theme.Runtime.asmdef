@@ -2,6 +2,7 @@
     "name": "HBP.Theme.Runtime",
     "rootNamespace": "",
     "references": [
+        "HBP.Input.Runtime",
         "HBP.Core.Runtime",
         "Unity.TextMeshPro"
     ],

@@ -69,8 +69,9 @@ namespace HBP.UI.Module3D
                 }
             }, gameObject);
 
-            m_Toggle.isOn = true;
+            m_Toggle.isOn = scene.IsVisible;
             m_Toggle.onValueChanged.AddListener((isOn) => { scene.UpdateVisibleState(isOn); });
+            scene.OnChangeVisibleState.AddSafeListener(m_Toggle.SetIsOnWithoutNotify, gameObject);
         }
 
         #endregion

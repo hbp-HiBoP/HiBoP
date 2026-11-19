@@ -14,6 +14,7 @@ namespace HBP.Core.Object3D
         /// </summary>
         public string Name { get; set; }
 
+        private readonly object m_LoadLock = new();
         private DLL.Volume m_Volume = new();
 
         /// <summary>
@@ -23,9 +24,11 @@ namespace HBP.Core.Object3D
         {
             get
             {
-                while (m_IsLoading) System.Threading.Thread.Sleep(10);
-                if (!IsLoaded) Load();
-                return m_Volume;
+                lock (m_LoadLock)
+                {
+                    if (!IsLoaded) Load();
+                    return m_Volume;
+                }
             }
             protected set { m_Volume = value; }
         }
@@ -35,7 +38,10 @@ namespace HBP.Core.Object3D
         /// </summary>
         public bool IsLoaded
         {
-            get { return m_Volume != null ? m_Volume.IsLoaded : false; }
+            get
+            {
+                lock (m_LoadLock) return m_Volume != null && m_Volume.IsLoaded;
+            }
         }
 
         /// <summary>
@@ -65,11 +71,11 @@ namespace HBP.Core.Object3D
             HasBeenLoadedOutside = false;
         }
 
-        public MRI3D(string name, DLL.Volume volume)
+        public MRI3D(string name, DLL.Volume volume, bool shared = true)
         {
             Name = name;
             Volume = volume;
-            HasBeenLoadedOutside = true;
+            HasBeenLoadedOutside = shared;
         }
 
         public MRI3D()
@@ -85,9 +91,21 @@ namespace HBP.Core.Object3D
         /// </summary>
         public void Load()
         {
-            m_IsLoading = true;
-            m_Volume.LoadNIFTIFile(m_MRI.File);
-            m_IsLoading = false;
+            lock (m_LoadLock)
+            {
+                // Configuration, anatomy preparation and lazy readers can request the
+                // same MRI. Never replace a native volume another reader already uses.
+                if (IsLoaded) return;
+                m_IsLoading = true;
+                try
+                {
+                    if (!m_Volume.LoadNIFTIFile(m_MRI.File)) throw new System.IO.IOException($"Unable to load MRI '{Name}'.");
+                }
+                finally
+                {
+                    m_IsLoading = false;
+                }
+            }
         }
 
         /// <summary>
@@ -95,7 +113,7 @@ namespace HBP.Core.Object3D
         /// </summary>
         public void Clean()
         {
-            m_Volume?.Dispose();
+            lock (m_LoadLock) m_Volume?.Dispose();
         }
 
         public object Clone()

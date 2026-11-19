@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+using HBP.Core.Tools;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace HBP.Core.Object3D
 {
     public class BrainMaterials
     {
+        public GenericEvent<float> OnAlphaChanged { get; } = new();
+
         #region Properties
 
         /// <summary>
@@ -199,10 +202,12 @@ namespace HBP.Core.Object3D
         /// <param name="alpha">Alpha value to be used</param>
         public void SetAlpha(float alpha)
         {
+            bool changed = Alpha != alpha;
             Alpha = alpha;
             Color color = new(1, 1, 1, alpha);
             m_TransparentBrain.SetColor("_Color", color);
             m_TransparentCut.SetColor("_Color", color);
+            if (changed) OnAlphaChanged.Invoke(alpha);
         }
 
         #endregion

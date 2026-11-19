@@ -228,6 +228,39 @@ namespace HBP.Tests.Serialization
         }
 
         [Test]
+        public void GenerateDistributionHistogramPixels_UsesEqualClassesAndIncludesMaximumInLastClass()
+        {
+            float[] values = { -1, 0, 1.999f, 2, 3.999f, 98, 99.999f, 100 };
+            int[] expectedBins = new int[50];
+            expectedBins[0] = 3;
+            expectedBins[1] = 2;
+            expectedBins[49] = 3;
+            Color32[] actual = UnityTextureFactory.GenerateDistributionHistogramPixels(values, 101, 501, 0, 100, false);
+            Color32[] expected = UnityTextureFactory.GenerateDistributionHistogramPixels(expectedBins, 101, 501, false);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void GenerateDistributionHistogramPixels_PlacesPointsAtClassCenters()
+        {
+            Color32[] pixels = UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 4, 1, 0 }, 101, 301, false);
+            Color32 red = new(255, 0, 0, 255);
+            Color32 background = new(40, 40, 40, 255);
+            Assert.That(pixels[100 * 301 + 50], Is.EqualTo(red), "First class center is 1/6 of the range.");
+            Assert.That(pixels[50 * 301 + 150], Is.EqualTo(red), "Middle class center and square-root height.");
+            Assert.That(pixels[250], Is.EqualTo(red), "Last class center is 5/6 of the range.");
+            Assert.That(pixels[100 * 301], Is.EqualTo(background), "No data point at the range minimum.");
+            Assert.That(pixels[300], Is.EqualTo(background), "No data point at the range maximum.");
+        }
+
+        [Test]
+        public void GenerateDistributionHistogramPixels_SingleClassDrawsItsCenter()
+        {
+            Color32[] pixels = UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 5 }, 5, 11, false);
+            Assert.That(pixels[4 * 11 + 5], Is.EqualTo(new Color32(255, 0, 0, 255)));
+        }
+
+        [Test]
         [Category("NativeMigration")]
         public void UpdateDistributionHistogram_ReinitializesTextureAndRejectsInvalidInputs()
         {
@@ -242,6 +275,90 @@ namespace HBP.Tests.Serialization
                 Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels((float[])null, 1, 1), Throws.ArgumentNullException);
                 Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 1.0f }, 0, 1), Throws.TypeOf<ArgumentOutOfRangeException>());
                 Assert.That(() => UnityTextureFactory.GenerateDistributionHistogramPixels(new[] { 1 }, 1, 0), Throws.TypeOf<ArgumentOutOfRangeException>());
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [TestCase(1)]
+        [TestCase(440)]
+        public void UpdateDistributionHistogram_DisablesMipmapsForResizedAndSameSizeTextures(int initialSize)
+        {
+            Texture2D texture = new(initialSize, initialSize);
+            try
+            {
+                UnityTextureFactory.UpdateDistributionHistogram(texture, new[] { 0, 10, 0 }, 440, 440, false);
+                Assert.That(texture.mipmapCount, Is.EqualTo(1), "UI must sample the populated base level when the histogram is reduced.");
+                Assert.That(texture.GetPixels32(), Has.Some.EqualTo(new Color32(255, 0, 0, 255)));
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        public void UpdateSolidTexture_DisablesMipmapsBeforeHistogramReuse()
+        {
+            Texture2D texture = new(8, 8);
+            try
+            {
+                UnityTextureFactory.UpdateSolidTexture(texture, 8, 8, new Color32(40, 40, 40, 255));
+                Assert.That(texture.mipmapCount, Is.EqualTo(1));
+                UnityTextureFactory.UpdateDistributionHistogram(texture, new[] { 0, 10, 0 }, 8, 8, false);
+                Assert.That(texture.mipmapCount, Is.EqualTo(1));
+                Assert.That(texture.GetPixels32(), Has.Some.EqualTo(new Color32(255, 0, 0, 255)));
+            }
+            finally
+            {
+                UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [Test]
+        public void UpdateDistributionHistogram_CurveRemainsVisibleWhenMinified()
+        {
+            if (SystemInfo.graphicsDeviceType == UnityEngine.Rendering.GraphicsDeviceType.Null)
+                Assert.Ignore("Histogram minification requires a graphics device; structural mipmap tests still run headless.");
+
+            Texture2D texture = new(1, 1);
+            Texture2D preview = new(176, 176, TextureFormat.RGBA32, false);
+            RenderTexture target = RenderTexture.GetTemporary(176, 176, 0, RenderTextureFormat.ARGB32);
+            RenderTexture previous = RenderTexture.active;
+            try
+            {
+                UnityTextureFactory.UpdateDistributionHistogram(texture, new[] { 0, 10, 0 }, 440, 440, false);
+                Graphics.Blit(texture, target);
+                RenderTexture.active = target;
+                preview.ReadPixels(new Rect(0, 0, 176, 176), 0, 0);
+                preview.Apply(false);
+                Assert.That(preview.GetPixels32().Count(pixel => pixel.r > 100 && pixel.g < 80 && pixel.b < 80), Is.GreaterThan(100), "The UI-sized render must contain the red histogram curve.");
+            }
+            finally
+            {
+                RenderTexture.active = previous;
+                RenderTexture.ReleaseTemporary(target);
+                UnityObject.DestroyImmediate(preview);
+                UnityObject.DestroyImmediate(texture);
+            }
+        }
+
+        [TestCase(0.25f, 0.75f, 2, 6)]
+        [TestCase(-1.0f, 2.0f, 0, 8)]
+        [TestCase(0.5f, 0.5f, 4, 4)]
+        public void GenerateDistributionHistogram_UsesCalibrationBand(float min, float max, int firstGrey, int endGrey)
+        {
+            Texture2D texture = UnityTextureFactory.GenerateDistributionHistogram(new int[3], 3, 8, greyAreaMin: min, greyAreaMax: max);
+            try
+            {
+                Color32[] pixels = texture.GetPixels32();
+                for (int x = 0; x < 8; ++x)
+                {
+                    Color32 expected = x >= firstGrey && x < endGrey ? new Color32(90, 90, 90, 255) : new Color32(40, 40, 40, 255);
+                    Assert.That(pixels[x], Is.EqualTo(expected), $"calibration background at x={x}");
+                }
             }
             finally
             {

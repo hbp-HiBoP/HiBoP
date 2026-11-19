@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.IO;
 using System.Linq;
@@ -95,7 +96,7 @@ namespace HBP.Core.Data
             return request.Force || (request.Includes(ValidationAspect.PatientAssets) && m_Patients.Where(request.Matches).Any(patient => !patient.IsAssetValidationCurrent)) || (dataInfoAspects != ValidationAspect.None && m_Datasets.SelectMany(dataset => dataset.Data).Where(request.Matches).Any(dataInfo => !dataInfo.IsValidationCurrent(dataInfoAspects, request)));
         }
 
-        public event Action OnValidationStateChanged;
+        public UnityEvent OnValidationStateChanged { get; } = new();
 
         /// <summary>
         /// Project extension.
@@ -547,7 +548,7 @@ namespace HBP.Core.Data
 
                     foreach (var anatomicColumn in visualization.AnatomicColumns) addToDict(anatomicColumn.AnatomicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(anatomicColumn), getType(anatomicColumn.AnatomicConfiguration)));
                     foreach (var ieegColumn in visualization.IEEGColumns) addToDict(ieegColumn.DynamicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(ieegColumn), getType(ieegColumn.DynamicConfiguration)));
-                    foreach (var ccepColumn in visualization.CCEPColumns) addToDict(ccepColumn.DynamicConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(ccepColumn), getType(ccepColumn.DynamicConfiguration)));
+                    foreach (var ccepColumn in visualization.CCEPColumns) addToDict(ccepColumn.CCEPConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(ccepColumn), getType(ccepColumn.CCEPConfiguration)));
                     foreach (var fmriColumn in visualization.FMRIColumns) addToDict(fmriColumn.FMRIConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(fmriColumn), getType(fmriColumn.FMRIConfiguration)));
                     foreach (var megColumn in visualization.MEGColumns) addToDict(megColumn.MEGConfiguration, string.Format("{0} / {1} / {2}", getName(visualization), getName(megColumn), getType(megColumn.MEGConfiguration)));
                 }
@@ -852,7 +853,7 @@ namespace HBP.Core.Data
 
             operation.Cancel();
             _ = replacement.EnsureReadyAsync();
-            OnValidationStateChanged?.Invoke();
+            OnValidationStateChanged.Invoke();
         }
 
         private void MarkRequestedValidationStale(ValidationRequest request)
@@ -924,7 +925,7 @@ namespace HBP.Core.Data
                     }
                 }
 
-                OnValidationStateChanged?.Invoke();
+                OnValidationStateChanged.Invoke();
                 return assetResult.HasIssues || dataInfoResult.HasIssues;
             }
             catch (OperationCanceledException)

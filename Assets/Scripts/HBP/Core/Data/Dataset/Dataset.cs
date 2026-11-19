@@ -324,8 +324,9 @@ namespace HBP.Core.Data
                 }
 
                 IEnumerable<Patient> patients = ApplicationState.LoadedProject?.Patients ?? DatabaseManager.Database.Patients;
-                LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, patients, new[] { result });
-                context.ResolveProject(patients, Array.Empty<Group>(), new[] { result }, Array.Empty<Visualization>());
+                LoadingContext context = new(Array.Empty<BaseTag>(), DatabaseManager.Database.Protocols, patients);
+                result.ResolveReferences(context);
+                context.ThrowIfInvalid();
                 return true;
             }
             catch (Exception e)

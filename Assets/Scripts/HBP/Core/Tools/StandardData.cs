@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using Cysharp.Threading.Tasks;
+using UnityEngine;
+using UnityEngine.Networking;
+
+namespace HBP.Core.Tools
+{
+    /// <summary>Installed reference files, accessible to native readers through filesystem paths.</summary>
+    public static class StandardData
+    {
+        public const string ManifestName = "standard-data.sha256";
+        private static AsyncLazy s_Installation;
+
+        internal static void ValidateInstalledFile(string relative)
+        {
+            if (!File.Exists(Resolve(ApplicationState.DataPath, relative)))
+                throw new FileNotFoundException("Installed reference is missing: " + relative);
+        }
+
+        // Android's asset merger expands .gz files. Keep their original bytes in
+        // the package; installation restores the scientific filename on disk.
+        public static string PackagedPath(string relative) => relative.EndsWith(".gz", StringComparison.OrdinalIgnoreCase) ? relative + ".bytes" : relative;
+
+        public static bool IsPackagedForQuest(string relative) => relative != null && !relative.StartsWith("Atlases/Localizers/", StringComparison.Ordinal);
+
+        public static IEnumerable<string> EnumerateMniFiles()
+        {
+            yield return "IRM/MNI.nii";
+            foreach (string name in new[] { "MNI.trm", "MNI_Lhemi.gii", "MNI_Rhemi.gii", "MNI_Lwhite.gii", "MNI_Rwhite.gii" }) yield return "Meshes/" + name;
+        }
+
+        public static IEnumerable<string> EnumerateFiles(string root)
+        {
+            foreach (string file in EnumerateMniFiles()) yield return file;
+            foreach (string file in Directory.EnumerateFiles(Path.Combine(root, "Atlases"), "*", SearchOption.AllDirectories).OrderBy(p => p, StringComparer.Ordinal))
+                if (!file.EndsWith(".meta", StringComparison.OrdinalIgnoreCase))
+                    yield return file.Substring(root.Length + 1).Replace('\\', '/');
+        }
+
+        public static string HashFile(string path) => Sha256.HashFile(path);
+
+        public static string CompanionFile(string path)
+        {
+            string extension = Path.GetExtension(path).ToLowerInvariant();
+            return extension == ".img" ? Path.ChangeExtension(path, ".hdr") : extension == ".hdr" ? Path.ChangeExtension(path, ".img") : null;
+        }
+
+        public static string Resolve(string root, string relative)
+        {
+            if (string.IsNullOrEmpty(relative) || relative.Contains('\\') || relative.Split('/').Any(p => p.Length == 0 || p == "." || p == "..") || relative.Contains(':')) throw new InvalidDataException("Invalid resource path.");
+            string prefix = Path.GetFullPath(root).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
+            string result = Path.GetFullPath(Path.Combine(prefix, relative));
+            if (!result.StartsWith(prefix, StringComparison.Ordinal)) throw new InvalidDataException("Resource escaped its directory.");
+            return result;
+        }
+
+        public static UniTask EnsureInstalledAsync()
+        {
+            s_Installation ??= UniTask.Lazy(InstallAsync);
+            return s_Installation.Task;
+        }
+
+        private static async UniTask InstallAsync()
+        {
+#if UNITY_ANDROID && !UNITY_EDITOR
+            await UniTask.SwitchToMainThread();
+            string source = Application.streamingAssetsPath + "/ScientificData/";
+            string root = ApplicationState.DataPath;
+            using var manifestRequest = UnityWebRequest.Get(source + ManifestName);
+            await manifestRequest.SendWebRequest();
+            if (manifestRequest.result != UnityWebRequest.Result.Success) throw new IOException("Scientific manifest unavailable: " + manifestRequest.error);
+            foreach (string line in manifestRequest.downloadHandler.text.Split('\n'))
+            {
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                string hash = line.Substring(0, 64), relative = line.Substring(65).TrimEnd('\r');
+                string path = Resolve(root, relative);
+                bool installed = await UniTask.RunOnThreadPool(() => File.Exists(path) && HashFile(path) == hash);
+                await UniTask.SwitchToMainThread();
+                if (installed) continue;
+                await UniTask.RunOnThreadPool(() => Directory.CreateDirectory(Path.GetDirectoryName(path)));
+                await UniTask.SwitchToMainThread();
+                string temporary = path + ".installing";
+                try
+                {
+                    using var request = UnityWebRequest.Get(source + PackagedPath(relative));
+                    request.downloadHandler = new DownloadHandlerFile(temporary);
+                    await request.SendWebRequest();
+                    if (request.result != UnityWebRequest.Result.Success) throw new IOException("Scientific file unavailable: " + relative + ": " + request.error);
+                    await UniTask.RunOnThreadPool(() =>
+                    {
+                        if (HashFile(temporary) != hash) throw new InvalidDataException($"Installed reference checksum mismatch: {relative}");
+                        if (File.Exists(path)) File.Delete(path);
+                        File.Move(temporary, path);
+                    });
+                    await UniTask.SwitchToMainThread();
+                }
+                finally { if (File.Exists(temporary)) File.Delete(temporary); }
+            }
+#else
+            await UniTask.CompletedTask;
+#endif
+        }
+    }
+}

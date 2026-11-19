@@ -6,6 +6,7 @@ using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.UI.Tools;
+using HBP.Quest.Desktop;
 
 namespace HBP.UI.Main
 {
@@ -20,6 +21,7 @@ namespace HBP.UI.Main
         [SerializeField] ThemePreferencesSubModifier m_ThemePreferencesSubModifier;
         [SerializeField] LocationPreferencesSubModifier m_LocationPreferencesSubModifier;
         [SerializeField] SystemPreferencesSubModifier m_SystemPreferencesSubModifier;
+        [SerializeField] QuestPreferencesSubModifier m_QuestPreferencesSubModifier;
         [SerializeField] MiscPreferencesSubModifier m_MiscPreferencesSubModifier;
         [SerializeField] EEGPreferencesSubModifier m_EEGPreferencesSubModifier;
         [SerializeField] ProtocolPreferencesSubModifier m_ProtocolPreferencesSubModifier;
@@ -58,6 +60,7 @@ namespace HBP.UI.Main
                 m_ThemePreferencesSubModifier.Interactable = value;
                 m_LocationPreferencesSubModifier.Interactable = value;
                 m_SystemPreferencesSubModifier.Interactable = value;
+                m_QuestPreferencesSubModifier.Interactable = value;
                 m_MiscPreferencesSubModifier.Interactable = value;
                 m_EEGPreferencesSubModifier.Interactable = value;
                 m_ProtocolPreferencesSubModifier.Interactable = value;
@@ -90,7 +93,17 @@ namespace HBP.UI.Main
                 return;
             }
 
-            NormalizationType requestedNormalization = m_ObjectTemp.Data.EEG.Normalization;
+            NormalizationType requestedNormalization = m_EEGPreferencesSubModifier.RequestedNormalization;
+            if (QuestManager.IsInitialized)
+            {
+                string blocked = await QuestManager.Instance.ValidatePreferencesChangeAsync(requestedNormalization);
+                if (blocked != null)
+                {
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Close shared visualizations", blocked, "OK");
+                    return;
+                }
+            }
+
             bool normalizationChanged = requestedNormalization != m_InitialNormalization;
             bool memoryLimitChanged = m_ObjectTemp.General.System.MemoryCacheLimit != m_InitialMemoryCacheLimit;
 
@@ -105,6 +118,37 @@ namespace HBP.UI.Main
                 }
             }
 
+            string currentBlock = QuestManager.IsInitialized ? QuestManager.Instance.ValidatePreferencesChangeNow(requestedNormalization) : null;
+            if (currentBlock != null)
+            {
+                await DialogBoxManager.OpenAsync(DialogBoxType.Warning, "Close shared visualizations", currentBlock, "OK");
+                return;
+            }
+
+            if (normalizationChanged && QuestManager.IsInitialized)
+            {
+                try
+                {
+                    await LoadingManager.LoadAsync(async (update, token) =>
+                    {
+                        await QuestManager.Instance.ReloadForPreferencesAsync(() =>
+                        {
+                            m_ObjectTemp.Data.EEG.Normalization = requestedNormalization;
+                            base.OK();
+                            PersistentDataManager.UserPreferences.Save();
+                        }, update, token);
+                    });
+                }
+                catch (System.Exception exception)
+                {
+                    await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Visualization reload", exception.Message, "OK");
+                }
+
+                UITools.ShowMemoryCacheBudgetWarningIfNeeded();
+                return;
+            }
+
+            m_ObjectTemp.Data.EEG.Normalization = requestedNormalization;
             base.OK();
             PersistentDataManager.UserPreferences.Save();
 
@@ -156,6 +200,7 @@ namespace HBP.UI.Main
             m_ThemePreferencesSubModifier.Object = objectToDisplay.General.Theme;
             m_LocationPreferencesSubModifier.Object = objectToDisplay.General.Localization;
             m_SystemPreferencesSubModifier.Object = objectToDisplay.General.System;
+            m_QuestPreferencesSubModifier.Object = objectToDisplay.General.Quest;
             m_MiscPreferencesSubModifier.Object = objectToDisplay.General.Misc;
 
             // Data

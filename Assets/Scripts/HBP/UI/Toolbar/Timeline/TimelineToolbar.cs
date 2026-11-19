@@ -1,5 +1,6 @@
 ﻿using HBP.Data.Module3D;
 using UnityEngine;
+using HBP.Quest.Desktop;
 
 namespace HBP.UI.Toolbar
 {
@@ -15,14 +16,20 @@ namespace HBP.UI.Toolbar
         public bool IsGlobal
         {
             get { return m_IsGlobal; }
-            set
-            {
-                m_IsGlobal = value;
-                m_TimelineLoop.IsGlobal = value;
-                m_TimelineSlider.IsGlobal = value;
-                m_TimelineStep.IsGlobal = value;
-                m_TimelinePlay.IsGlobal = value;
-            }
+            set => SetDesktopGlobal(value, true);
+        }
+
+        internal static bool? QuestGlobal(Base3DScene scene) => QuestManager.Instance?.QuestTimelineGlobal(scene);
+
+        internal static bool ResolveGlobal(Base3DScene scene, bool desktopGlobal) => QuestGlobal(scene) ?? desktopGlobal;
+
+        internal void SetDesktopGlobal(bool value, bool applyImmediately)
+        {
+            m_IsGlobal = value;
+            m_TimelineLoop.SetGlobal(value, applyImmediately);
+            m_TimelineSlider.SetGlobal(value, applyImmediately);
+            m_TimelineStep.SetGlobal(value, applyImmediately);
+            m_TimelinePlay.SetGlobal(value, applyImmediately);
         }
 
         /// <summary>
@@ -81,6 +88,7 @@ namespace HBP.UI.Toolbar
 
             m_TimelineGlobal.OnChangeValue.AddListener((global) =>
             {
+                if (QuestGlobal(Module3DMain.SelectedScene).HasValue) return;
                 IsGlobal = global;
                 m_ToolbarMenu.ActivitySettingsToolbar.IsGlobal = global;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();

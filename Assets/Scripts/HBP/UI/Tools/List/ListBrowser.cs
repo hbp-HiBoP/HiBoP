@@ -1,3 +1,5 @@
+using HBP.Input;
+using UnityEngine.InputSystem;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -45,12 +47,12 @@ namespace HBP.UI.Tools.Lists
             if (m_ParentSelector != null && !m_ParentSelector.Selected)
                 return;
 
-            if ((Input.GetKeyDown(KeyCode.DownArrow) && m_Direction == Direction.UpDown) || (Input.GetKeyDown(KeyCode.RightArrow) && m_Direction == Direction.LeftRight))
+            if ((DesktopInput.WasPressedThisFrame(Key.DownArrow) && m_Direction == Direction.UpDown) || (DesktopInput.WasPressedThisFrame(Key.RightArrow) && m_Direction == Direction.LeftRight))
             {
                 OnSelectNext.Invoke();
                 m_DownKeyHoldTimer = 0f;
             }
-            else if ((Input.GetKey(KeyCode.DownArrow) && m_Direction == Direction.UpDown) || (Input.GetKey(KeyCode.RightArrow) && m_Direction == Direction.LeftRight))
+            else if ((DesktopInput.IsPressed(Key.DownArrow) && m_Direction == Direction.UpDown) || (DesktopInput.IsPressed(Key.RightArrow) && m_Direction == Direction.LeftRight))
             {
                 m_DownKeyHoldTimer += Time.deltaTime;
                 if (m_DownKeyHoldTimer >= m_KeyHoldDelay)
@@ -67,12 +69,12 @@ namespace HBP.UI.Tools.Lists
                 m_DownKeyHoldTimer = 0f;
             }
 
-            if ((Input.GetKeyDown(KeyCode.UpArrow) && m_Direction == Direction.UpDown) || (Input.GetKeyDown(KeyCode.LeftArrow) && m_Direction == Direction.LeftRight))
+            if ((DesktopInput.WasPressedThisFrame(Key.UpArrow) && m_Direction == Direction.UpDown) || (DesktopInput.WasPressedThisFrame(Key.LeftArrow) && m_Direction == Direction.LeftRight))
             {
                 OnSelectPrevious.Invoke();
                 m_UpKeyHoldTimer = 0f;
             }
-            else if ((Input.GetKey(KeyCode.UpArrow) && m_Direction == Direction.UpDown) || (Input.GetKey(KeyCode.LeftArrow) && m_Direction == Direction.LeftRight))
+            else if ((DesktopInput.IsPressed(Key.UpArrow) && m_Direction == Direction.UpDown) || (DesktopInput.IsPressed(Key.LeftArrow) && m_Direction == Direction.LeftRight))
             {
                 m_UpKeyHoldTimer += Time.deltaTime;
                 if (m_UpKeyHoldTimer >= m_KeyHoldDelay)

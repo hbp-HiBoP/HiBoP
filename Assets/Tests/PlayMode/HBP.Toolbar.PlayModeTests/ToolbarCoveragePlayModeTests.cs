@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using AssetDatabase = UnityEditor.AssetDatabase;
+using Object = UnityEngine.Object;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -10,6 +15,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Tests.PlayMode.Utilities;
 using HBP.UI.Toolbar;
+using HBP.UI.Tools;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -21,11 +27,327 @@ using ModuleSphere = HBP.Data.Module3D.Sphere;
 using ObjectSite = HBP.Core.Object3D.Site;
 using ObjectSiteInformation = HBP.Core.Object3D.SiteInformation;
 using ObjectSiteState = HBP.Core.Object3D.SiteState;
+using CsvImportFromCSVSection = HBP.UI.Module3D.ImportFromCSVSection;
 
 namespace HBP.Tests.PlayMode.Toolbar
 {
     public class ToolbarCoveragePlayModeTests
     {
+        [Test]
+        public void DensityToolsUseSerializedPrefabReferencesAndApplyRatiosGlobally()
+        {
+            var holder = new GameObject("Density tools test");
+            holder.SetActive(false);
+            var scene = holder.AddComponent<Base3DScene>();
+            var first = holder.AddComponent<Column3DAnatomy>();
+            var second = holder.AddComponent<Column3DAnatomy>();
+            scene.Columns.Add(first);
+            scene.Columns.Add(second);
+            first.AnatomyParameters.PublishReference(4);
+            second.AnatomyParameters.PublishReference(8);
+            first.AnatomyParameters.PublishProjectionMaximum(2);
+            second.AnatomyParameters.PublishProjectionMaximum(6);
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/3D Menu.prefab");
+            var menu = Object.Instantiate(prefab, holder.transform, false);
+            var tool = menu.GetComponentInChildren<DensityParameters>(true);
+            try
+            {
+                Assert.That(tool, Is.Not.Null);
+                tool.SelectedScene = scene;
+                tool.SelectedColumn = first;
+                tool.IsGlobal = true;
+                tool.Initialize();
+                tool.UpdateInteractable();
+                tool.UpdateStatus();
+                var columnUIPrefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/Scenes/Column 3D UI.prefab");
+                var columnUI = Object.Instantiate(columnUIPrefab, holder.transform, false).GetComponent<HBP.UI.Module3D.Column3DUI>();
+                var overlay = columnUI.GetComponentInChildren<HBP.UI.Module3D.Colormap>(true);
+                overlay.Setup(scene, first, columnUI);
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("5%"));
+                Assert.That(GetField<Text>(overlay, "m_Mid").text, Is.EqualTo("35%"));
+                Assert.That(GetField<Text>(overlay, "m_Max").text, Is.EqualTo("65%"));
+                Assert.That(tool.transform.Find("Threshold Density/Window/Content/Reference Status"), Is.Null);
+                Assert.That(GetField<Tooltip>(tool, "m_Tooltip").Text, Does.Contain("\n").And.Contain("15 mm").And.Contain("current projection"));
+                var threshold = GetField<ThresholdIEEG>(tool, "m_Threshold");
+                Assert.That(GetField<Text>(threshold, "m_MaxText").text, Is.EqualTo("100%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                Assert.That(GetField<InputField>(threshold, "m_MiddleInput").text, Is.EqualTo("35"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMaxInput").text, Is.EqualTo("65"));
+                GetField<InputField>(threshold, "m_SpanMinInput").onEndEdit.Invoke("25");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                Assert.That(second.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                Assert.That(second.AnatomyParameters.SpanMin, Is.EqualTo(1.5f));
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("25%"));
+                first.AnatomyParameters.PublishProjectionMaximum(8);
+                tool.UpdateStatus();
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("25%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("25"));
+                Assert.That(GetField<ThresholdHandler>(threshold, "m_MinHandler").Position, Is.EqualTo(.25f));
+                GetField<InputField>(threshold, "m_SpanMinInput").onEndEdit.Invoke("NaN");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.25f));
+                GetField<InputField>(tool, "m_InputField").onEndEdit.Invoke("27");
+                Assert.That(second.AnatomyParameters.InfluenceDistance, Is.EqualTo(27f));
+                GetField<Button>(tool, "m_Auto").onClick.Invoke();
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.05f));
+                Assert.That(second.AnatomyParameters.SpanMaxRatio, Is.EqualTo(.65f));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                first.AnatomyParameters.PublishProjectionMaximum(0);
+                tool.UpdateStatus();
+                tool.UpdateInteractable();
+                Assert.That(GetField<Button>(tool, "m_Button").interactable, Is.True, "The nonempty reference remains accessible for an empty projection.");
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").interactable, Is.True);
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").text, Is.EqualTo("5"));
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.05f));
+                GetField<InputField>(threshold, "m_MiddleInput").onEndEdit.Invoke("40");
+                Assert.That(first.AnatomyParameters.MiddleRatio, Is.EqualTo(.4f));
+                Assert.That(second.AnatomyParameters.MiddleRatio, Is.EqualTo(.4f));
+                Assert.That(first.AnatomyParameters.Middle, Is.Zero);
+                var input = GetField<InputField>(threshold, "m_SpanMinInput");
+                input.SetTextWithoutNotify("12");
+                first.AnatomyParameters.PublishProjectionMaximum(8);
+                tool.UpdateStatus();
+                Assert.That(input.text, Is.EqualTo("12"), "Recalculating the projection must not overwrite an edit in progress.");
+                input.onEndEdit.Invoke("12");
+                Assert.That(first.AnatomyParameters.SpanMinRatio, Is.EqualTo(.12f).Within(1e-6f));
+                Assert.That(first.AnatomyParameters.SpanMin, Is.EqualTo(.96f).Within(1e-6f));
+                Assert.That(GetField<Text>(overlay, "m_Min").text, Is.EqualTo("12%"));
+                Assert.That(GetField<InputField>(threshold, "m_SpanMinInput").interactable, Is.True);
+                Assert.That(GetField<Button>(tool, "m_Button").GetComponent<HBP.UI.Tools.DropWindow>().Window.transform.IsChildOf(tool.transform), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(holder);
+            }
+        }
+
+        [TestCase("m_IBCToggle", "ibc", false, false)]
+        [TestCase("m_IBCToggle", "ibc", true, false)]
+        [TestCase("m_JubrainToggle", "jubrain", false, false)]
+        [TestCase("m_MarsAtlasToggle", "mars", false, false)]
+        [TestCase("m_DiFuMoToggle", "difumo:64", false, false)]
+        [TestCase("m_LocalizersToggle", "localizer:AUDI", false, false)]
+        [TestCase("m_IBCToggle", "ibc", false, true)]
+        public async Task UnconfirmedAtlasOffersQuestRecoveryWithoutThrowingOrEnablingItsDisplay(string field, string id, bool retryDisconnected, bool switchFromMars)
+        {
+            using var scope = new PlayModeSceneScope("AtlasRecoveryDialog");
+            using var harness = new ToolbarSceneHarness(scope.Scene);
+            var flags = BindingFlags.Static | BindingFlags.NonPublic;
+            var dialogSingleton = typeof(Singleton<DialogBoxManager>).GetField("m_Instance", flags);
+            var questSingleton = typeof(Singleton<HBP.Quest.Desktop.QuestManager>).GetField("m_Instance", flags);
+            var oldDialog = dialogSingleton.GetValue(null);
+            var oldQuest = questSingleton.GetValue(null);
+            dialogSingleton.SetValue(null, null);
+            questSingleton.SetValue(null, null);
+            var dialogs = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab"));
+            var tool = new GameObject("Atlas recovery toolbar").AddComponent<AtlasState>();
+            var group = tool.gameObject.AddComponent<ToggleGroup>();
+            group.allowSwitchOff = true;
+            var toggles = new Dictionary<string, Toggle>();
+            foreach (string name in new[] { "m_IBCToggle", "m_JubrainToggle", "m_MarsAtlasToggle", "m_DiFuMoToggle", "m_LocalizersToggle" })
+            {
+                var toggle = CreateToggle(name);
+                toggle.transform.SetParent(tool.transform, false);
+                toggle.group = group;
+                toggles[name] = toggle;
+                SetPrivateField(tool, name, toggle);
+            }
+
+            tool.SelectedScene = harness.Scene;
+            SetPrivateField(harness.Scene.FMRIManager, "m_SelectedDiFuMoAtlas", "64");
+            SetPrivateField(harness.Scene.FMRIManager, "m_SelectedLocalizersProtocol", "AUDI");
+            string validatedAtlas = null;
+            harness.Scene.AtlasUseValidator = atlas =>
+            {
+                validatedAtlas = atlas;
+                throw new InvalidOperationException("The atlas is not ready on both devices: " + atlas);
+            };
+            tool.Initialize();
+            using var timeout = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+            string Text(DialogBox dialog, string member)
+            {
+                var text = GetField<object>(dialog, member);
+                return (string)text.GetType().GetProperty("text").GetValue(text);
+            }
+
+            try
+            {
+                if (switchFromMars)
+                {
+                    SetPrivateField(harness.Scene.AtlasManager, "m_DisplayMarsAtlas", true);
+                    toggles["m_MarsAtlasToggle"].SetIsOnWithoutNotify(true);
+                }
+
+                toggles[field].isOn = true;
+                Assert.That(validatedAtlas, Is.EqualTo(id));
+                Assert.That(harness.Scene.AtlasManager.DisplayMarsAtlas, Is.False);
+                await UniTask.WaitUntil(() => dialogs.GetComponentInChildren<DialogBox>() != null, cancellationToken: timeout.Token);
+                var dialog = dialogs.GetComponentInChildren<DialogBox>();
+                Assert.That(Text(dialog, "m_Title"), Is.EqualTo("Atlas not ready on both devices"));
+                Assert.That(Text(dialog, "m_Message"), Does.Contain(id).And.Contain("Desktop and Quest").And.Contain("Wake Quest"));
+                Assert.That(toggles[field].isOn, Is.False);
+                Assert.That(harness.Scene.FMRIManager.DisplayIBCContrasts, Is.False);
+                var buttons = dialog.GetComponentsInChildren<Button>();
+                Assert.That(buttons.Select(button => button.GetComponentInChildren<Text>().text), Is.EqualTo(new[] { "Retry on Quest", "Cancel" }));
+                buttons[retryDisconnected ? 0 : 1].onClick.Invoke();
+                if (retryDisconnected)
+                {
+                    DialogBox notice = null;
+                    await UniTask.WaitUntil(() => (notice = dialogs.GetComponentsInChildren<DialogBox>().FirstOrDefault(value => Text(value, "m_Title") == "Atlas reload did not complete")) != null, cancellationToken: timeout.Token);
+                    Assert.That(Text(notice, "m_Message"), Does.Contain("Wake Quest").And.Contain("display has remained disabled"));
+                    notice.GetComponentInChildren<Button>().onClick.Invoke();
+                }
+
+                await UniTask.NextFrame();
+                Assert.That(toggles[field].isOn, Is.False);
+                Assert.That(GetField<bool>(tool, "m_AtlasRecoveryPending"), Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tool.gameObject);
+                Object.DestroyImmediate(dialogs);
+                dialogSingleton.SetValue(null, oldDialog);
+                questSingleton.SetValue(null, oldQuest);
+            }
+        }
+
+        [TestCase(2), TestCase(300), Category("Sync.SceneFocused")]
+        public async Task SiteActions_ProductionPrefabPublishesOneBatchAcrossColumns(int siteCount)
+        {
+            using var scene = new PlayModeSceneScope("M2SiteActions");
+            using var harness = new ToolbarSceneHarness(scene.Scene);
+            using var peerScene = new PlayModeSceneScope("M2SiteActionsPeer");
+            using var peer = new ToolbarSceneHarness(peerScene.Scene);
+            for (int c = 0; c < 3; c++)
+            {
+                var column = harness.CreateColumn("batch-" + c, selected: c == 0);
+                var peerColumn = peer.CreateColumn("batch-" + c, selected: c == 0);
+                column.ColumnData.ID = peerColumn.ColumnData.ID = "batch-" + c;
+                for (int i = 0; i < siteCount; i++)
+                {
+                    harness.CreateSite("batch-site-" + i, i, Vector3.zero, column).State.IsFiltered = true;
+                    peer.CreateSite("batch-site-" + i, i, Vector3.zero, peerColumn).State.IsFiltered = true;
+                }
+            }
+
+            using var boundary = new ReflectedMutationBoundary(harness.Scene, peer.Scene);
+            using var ui = new SiteToolsPrefabScope();
+            ui.Window.Scene = harness.Scene;
+            var section = ui.Window.GetComponentInChildren<HBP.UI.Module3D.ChangeSitesAttributesSection>(true);
+            section.ApplyFor = HBP.UI.Module3D.ApplyFor.FilteredSites;
+            GetField<Dropdown>(section, "m_ScopeDropdown").SetValueWithoutNotify(1);
+            GetField<Toggle>(section, "m_HighlightToggle").isOn = true;
+            GetField<Toggle>(section, "m_ColorToggle").isOn = true;
+            GetField<Image>(section, "m_ColorPickedImage").color = Color.magenta;
+            GetField<Toggle>(section, "m_AddLabelToggle").isOn = true;
+            GetField<InputField>(section, "m_AddLabelInputField").text = "first, second, first";
+            await section.ApplyAsync();
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1));
+            Assert.That(boundary.Mutations[0].GetType().Name, Is.EqualTo("SetSiteConfigurationBatch"));
+            foreach (ObjectSite site in peer.Scene.Columns.SelectMany(column => column.Sites))
+            {
+                Assert.That(site.State.Color, Is.EqualTo(Color.magenta));
+                Assert.That(site.State.IsHighlighted, Is.True);
+                Assert.That(site.State.Labels, Is.EqualTo(new[] { "first", "second" }));
+            }
+
+            await section.ApplyAsync();
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1), "Repeated unchanged assignments must publish nothing.");
+            harness.Scene.Columns[0].Sites[0].State.Color = Color.cyan;
+            Assert.That(peer.Scene.Columns[0].Sites[0].State.Color, Is.EqualTo(Color.cyan), "Synchronization must remain usable after the bulk gesture.");
+        }
+
+        [TestCase("success"), TestCase("cancel"), TestCase("error"), Category("Sync.SceneFocused")]
+        public async Task SiteActions_ExportIsSingleFlightAndCapturesOptionsBeforeDialog(string outcome)
+        {
+            using var temp = new PlayModeTempDirectoryScope();
+            using var scene = new PlayModeSceneScope("M2SiteExport");
+            using var harness = new ToolbarSceneHarness(scene.Scene);
+            var column = harness.CreateColumn("export", selected: true);
+            ObjectSite site = harness.CreateSite("ExportSite", 0, Vector3.one, column);
+            site.State.IsFiltered = true;
+            site.State.Color = Color.magenta;
+            using var ui = new SiteToolsPrefabScope();
+            ui.Window.Scene = harness.Scene;
+            var section = ui.Window.GetComponentInChildren<HBP.UI.Module3D.ExportToCSVSection>(true);
+            section.ApplyFor = HBP.UI.Module3D.ApplyFor.AllSites;
+            foreach (string field in new[] { "m_ExportHighlighted", "m_ExportBlacklisted", "m_ExportColor", "m_ExportLabels", "m_ExportPosition", "m_ExportData", "m_ExportTags" }) GetField<Toggle>(section, field).isOn = field == "m_ExportColor";
+            GetField<Dropdown>(section, "m_ExportModeDropdown").SetValueWithoutNotify(0);
+            var sections = GetField<HBP.UI.Module3D.SiteToolSection[]>(ui.Window, "m_SiteToolSections");
+            GetField<Dropdown>(ui.Window, "m_SelectToolDropdown").SetValueWithoutNotify(Array.IndexOf(sections, section));
+            Button applyButton = GetField<Button>(ui.Window, "m_ApplyChangesButton");
+            var dialog = new UniTaskCompletionSource<string>();
+            int dialogs = 0;
+            string path = Path.Combine(temp.Path, "sites.csv");
+            var previous = ToolbarExternalActions.GetSavedFileNameAsync;
+            ToolbarExternalActions.GetSavedFileNameAsync = (_, _) =>
+            {
+                dialogs++;
+                return dialog.Task;
+            };
+            try
+            {
+                Task first = ui.Window.ApplyAsync().AsTask();
+                Assert.That(applyButton.interactable, Is.False);
+                await ui.Window.ApplyAsync();
+                Assert.That(dialogs, Is.EqualTo(1));
+                site.State.Color = Color.cyan;
+                GetField<Toggle>(section, "m_ExportColor").isOn = false;
+                if (outcome == "error") dialog.TrySetException(new IOException("fixture dialog error"));
+                else dialog.TrySetResult(outcome == "cancel" ? string.Empty : path);
+                Exception failure = null;
+                try
+                {
+                    await first;
+                }
+                catch (IOException exception)
+                {
+                    failure = exception;
+                }
+
+                Assert.That(failure != null, Is.EqualTo(outcome == "error"));
+                Assert.That(applyButton.interactable, Is.True);
+                Assert.That(dialogs, Is.EqualTo(1));
+                Assert.That(File.Exists(path), Is.EqualTo(outcome == "success"));
+                if (outcome == "success")
+                {
+                    string csv = File.ReadAllText(path);
+                    Assert.That(csv, Does.Contain("Color"));
+                    Assert.That(csv, Does.Contain(Color.magenta.ToHexString()));
+                    Assert.That(csv, Does.Not.Contain(Color.cyan.ToHexString()));
+                }
+            }
+            finally
+            {
+                ToolbarExternalActions.GetSavedFileNameAsync = previous;
+            }
+        }
+
+        private static T GetField<T>(object target, string name) => (T)target.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(target);
+
+        private sealed class SiteToolsPrefabScope : IDisposable
+        {
+            private readonly List<GameObject> m_Owned = new();
+            public HBP.UI.Module3D.SiteToolsWindow Window { get; }
+
+            public SiteToolsPrefabScope()
+            {
+                if (!Object.FindFirstObjectByType<SelectionManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Selection Manager.prefab")));
+                if (!Object.FindFirstObjectByType<LoadingManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/LoadingCircle/Loading Manager.prefab")));
+                if (!Object.FindFirstObjectByType<DialogBoxManager>()) m_Owned.Add(Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Managers/Dialog Box Manager.prefab")));
+                GameObject window = Object.Instantiate(Resources.Load<GameObject>("Prefabs/UI/Windows/Site Tools window"));
+                m_Owned.Add(window);
+                Window = window.GetComponent<HBP.UI.Module3D.SiteToolsWindow>();
+            }
+
+            public void Dispose()
+            {
+                foreach (GameObject root in m_Owned.AsEnumerable().Reverse())
+                    if (root)
+                        Object.DestroyImmediate(root);
+            }
+        }
+
         [Test]
         [Category("PlayMode.Toolbar")]
         public void DisplayToolbarTools_UpdateSceneRotationCameraAndResetEvents()
@@ -385,6 +707,18 @@ namespace HBP.Tests.PlayMode.Toolbar
             Assert.That(roiSelector.options, Has.Count.EqualTo(2));
             Assert.That(remove.interactable, Is.True);
 
+            roiSelector.onValueChanged.Invoke(0);
+            roiTool.UpdateStatus();
+            Assert.That(harness.Scene.ROIManager.SelectedROI, Is.Null);
+            Assert.That(roiName.interactable, Is.False);
+            Assert.That(remove.interactable, Is.False);
+            AssertNoException("Stale rename callback with None selected", () => roiName.onEndEdit.Invoke("Must be ignored"));
+            AssertNoException("Stale sphere callback with None selected", () => sphereSelector.onValueChanged.Invoke(1));
+            AssertNoException("Stale sphere removal with None selected", removeSphere.onClick.Invoke);
+            Assert.That(harness.Scene.ROIManager.ROIs[0].Name, Is.EqualTo("Synthetic ROI"));
+            roiSelector.onValueChanged.Invoke(1);
+            roiTool.UpdateStatus();
+
             AssertNoException("Remove ROI toolbar click", remove.onClick.Invoke);
             AssertNoException("Update ROI toolbar status after removal", roiTool.UpdateStatus);
 
@@ -410,6 +744,7 @@ namespace HBP.Tests.PlayMode.Toolbar
         {
             using PlayModeSceneScope scene = new("ToolbarToolbarSafeStates");
             using ToolbarSceneHarness harness = new(scene.Scene);
+            harness.Scene.SceneInformation.Initialized = true;
             ToolbarTestColumn selectedColumn = harness.CreateColumn("safe-state-column", selected: true);
             ObjectSite selectedSite = harness.CreateSite("A2", 0, new Vector3(2, 0, 0), selectedColumn);
             SelectSite(selectedColumn, selectedSite);
@@ -606,10 +941,21 @@ namespace HBP.Tests.PlayMode.Toolbar
             using ToolbarSceneHarness harness = new(scene.Scene);
             ToolbarTestColumn selectedColumn = harness.CreateColumn("site-state-column", selected: true);
             ToolbarTestColumn otherColumn = harness.CreateColumn("site-state-column-2", selected: false);
+            selectedColumn.ColumnData.ID = "site-state-column";
+            otherColumn.ColumnData.ID = "site-state-column-2";
             ObjectSite selectedSite = harness.CreateSite("A3", 0, new Vector3(3, 0, 0), selectedColumn);
             ObjectSite otherSite = harness.CreateSite("A3", 0, new Vector3(6, 0, 0), otherColumn);
             SelectSite(selectedColumn, selectedSite);
             View3D selectedView = harness.CreateDetachedView(lineID: 0, selected: true);
+            using PlayModeSceneScope peerScene = new("ToolbarSiteStatePeer");
+            using ToolbarSceneHarness peerHarness = new(peerScene.Scene);
+            ToolbarTestColumn peerSelectedColumn = peerHarness.CreateColumn("site-state-column", selected: true);
+            ToolbarTestColumn peerOtherColumn = peerHarness.CreateColumn("site-state-column-2", selected: false);
+            peerSelectedColumn.ColumnData.ID = "site-state-column";
+            peerOtherColumn.ColumnData.ID = "site-state-column-2";
+            ObjectSite peerSelectedSite = peerHarness.CreateSite("A3", 0, new Vector3(3, 0, 0), peerSelectedColumn);
+            ObjectSite peerOtherSite = peerHarness.CreateSite("A3", 0, new Vector3(6, 0, 0), peerOtherColumn);
+            using var boundary = new ReflectedMutationBoundary(harness.Scene, peerHarness.Scene);
 
             Button import = CreateButton("Import Site State");
             Button export = CreateButton("Export Site State");
@@ -629,14 +975,35 @@ namespace HBP.Tests.PlayMode.Toolbar
 
             Assert.That(selectedSite.State.IsBlackListed, Is.True);
             Assert.That(selectedSite.State.IsHighlighted, Is.True);
+            Assert.That(selectedSite.State.Color, Is.EqualTo(new Color(17f / 255f, 34f / 255f, 51f / 255f, 1f)));
             Assert.That(selectedSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Toolbar" }));
+            Assert.That(peerSelectedSite.State.IsBlackListed, Is.True);
+            Assert.That(peerSelectedSite.State.IsHighlighted, Is.True);
+            Assert.That(peerSelectedSite.State.Color, Is.EqualTo(selectedSite.State.Color));
+            Assert.That(peerSelectedSite.State.Labels, Is.EqualTo(selectedSite.State.Labels));
+            Assert.That(boundary.QuestLastObservedCanonicalSequence, Is.EqualTo(1UL));
+            Assert.That(boundary.CanonicalMutations, Has.Count.EqualTo(1));
             Assert.That(otherSite.State.IsBlackListed, Is.False);
+            object selectedBatch = boundary.Mutations.Single(mutation => mutation.GetType().Name == "SetSiteConfigurationBatch");
+            Assert.That(Enumerate(GetProperty(selectedBatch, "Assignments")), Has.Count.EqualTo(1));
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1), "The toolbar import must publish one atomic persisted assignment batch.");
 
+            boundary.Mutations.Clear();
             siteStateExport.LoadSiteStates(csvPath, allColumns: true);
 
             Assert.That(otherSite.State.IsBlackListed, Is.True);
             Assert.That(otherSite.State.IsHighlighted, Is.True);
+            Assert.That(otherSite.State.Color, Is.EqualTo(selectedSite.State.Color));
             Assert.That(otherSite.State.Labels, Is.EquivalentTo(new[] { "Imported", "Toolbar" }));
+            Assert.That(peerOtherSite.State.IsBlackListed, Is.True);
+            Assert.That(peerOtherSite.State.IsHighlighted, Is.True);
+            Assert.That(peerOtherSite.State.Color, Is.EqualTo(otherSite.State.Color));
+            Assert.That(peerOtherSite.State.Labels, Is.EqualTo(otherSite.State.Labels));
+            Assert.That(boundary.QuestLastObservedCanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(boundary.CanonicalMutations, Has.Count.EqualTo(2));
+            object allColumnsBatch = boundary.Mutations.Single(mutation => mutation.GetType().Name == "SetSiteConfigurationBatch");
+            Assert.That(Enumerate(GetProperty(allColumnsBatch, "Assignments")), Has.Count.EqualTo(1), "The unchanged selected-column assignment should be elided.");
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(1), "An all-column import must publish one batch, not one event per field.");
 
             Button movePanel = CreateButton("Move Sites Panel");
             Button moveLeft = CreateButton("Move Sites Left");
@@ -672,6 +1039,140 @@ namespace HBP.Tests.PlayMode.Toolbar
             Assert.That(openFilters.interactable, Is.True);
             Assert.That(resetFilters.interactable, Is.True);
             Assert.That(openTools.interactable, Is.True);
+            File.Delete(csvPath);
+        }
+
+        [Test]
+        [Category("PlayMode.Toolbar")]
+        public async Task ImportFromCsvSection_PreservesPartialFieldsAndPublishesCompletePersistedAssignment()
+        {
+            using PlayModeSceneScope scene = new("ToolbarCsvSiteStateImport");
+            using ToolbarSceneHarness harness = new(scene.Scene);
+            ToolbarTestColumn selectedColumn = harness.CreateColumn("csv-import-column", selected: true);
+            selectedColumn.ColumnData.ID = "csv-import-column";
+            ObjectSite site = harness.CreateSite("CSV1", 0, Vector3.zero, selectedColumn);
+            site.State.ApplySynchronizedState(false, false, false, Color.white, new[] { "existing" });
+            ObjectSite noOpSite = harness.CreateSite("CSV2", 1, Vector3.zero, selectedColumn);
+            noOpSite.State.ApplySynchronizedState(false, false, false, Color.white, new[] { "existing" });
+            using PlayModeSceneScope peerScene = new("ToolbarCsvSiteStatePeer");
+            using ToolbarSceneHarness peerHarness = new(peerScene.Scene);
+            ToolbarTestColumn peerColumn = peerHarness.CreateColumn("csv-import-column", selected: true);
+            peerColumn.ColumnData.ID = "csv-import-column";
+            ObjectSite peerSite = peerHarness.CreateSite("CSV1", 0, Vector3.zero, peerColumn);
+            peerSite.State.ApplySynchronizedState(false, false, false, Color.white, new[] { "existing" });
+            ObjectSite peerNoOpSite = peerHarness.CreateSite("CSV2", 1, Vector3.zero, peerColumn);
+            peerNoOpSite.State.ApplySynchronizedState(false, false, false, Color.white, new[] { "existing" });
+            using var boundary = new ReflectedMutationBoundary(harness.Scene, peerHarness.Scene);
+
+            Toggle importHighlighted = CreateToggle("Import Highlighted");
+            Toggle importBlacklisted = CreateToggle("Import Blacklisted");
+            Toggle importColor = CreateToggle("Import Color");
+            Toggle importLabels = CreateToggle("Import Labels");
+            importBlacklisted.isOn = true;
+            importLabels.isOn = true;
+            Dropdown labelsMode = CreateDropdown("Labels Import Mode", "Override", "Merge");
+            labelsMode.SetValueWithoutNotify(1);
+            Dropdown scope = CreateDropdown("Import Scope", "Selected Column", "All Columns");
+            scope.SetValueWithoutNotify(0);
+            var sectionObject = new GameObject("CSV Site Import Section");
+            CsvImportFromCSVSection section = sectionObject.AddComponent<CsvImportFromCSVSection>();
+            section.Scene = harness.Scene;
+            section.ApplyFor = HBP.UI.Module3D.ApplyFor.AllSites;
+            SetPrivateField(section, "m_ImportHighlighted", importHighlighted);
+            SetPrivateField(section, "m_ImportBlacklisted", importBlacklisted);
+            SetPrivateField(section, "m_ImportColor", importColor);
+            SetPrivateField(section, "m_ImportLabels", importLabels);
+            SetPrivateField(section, "m_LabelsImportModeDropdown", labelsMode);
+            SetPrivateField(section, "m_ScopeDropdown", scope);
+
+            string csvPath = Path.Combine(Application.temporaryCachePath, $"toolbar_csv_site_states_{Guid.NewGuid():N}.csv");
+            File.WriteAllLines(csvPath, new[]
+            {
+                "Site,Blacklisted,Labels",
+                $"{site.Information.FullID},True,Imported;CSV",
+                $"{noOpSite.Information.FullID},True,Imported;CSV"
+            });
+            MethodInfo importMethod = typeof(CsvImportFromCSVSection).GetMethod("ImportSitesAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+            Assert.That(importMethod, Is.Not.Null);
+            var parsingPaused = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            var resumeParsing = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            try
+            {
+                Func<UniTask> pauseBackgroundParsing = async () =>
+                {
+                    parsingPaused.TrySetResult(true);
+                    await resumeParsing.Task;
+                };
+                object pending = importMethod.Invoke(section, new object[]
+                {
+                    csvPath,
+                    new Action<float, float, LoadingText>((_, _, _) => { }),
+                    System.Threading.CancellationToken.None,
+                    pauseBackgroundParsing
+                });
+                Assert.That(pending, Is.Not.Null, "The CSV import operation should be created.");
+                await parsingPaused.Task;
+                Color concurrentColor = new(0.2f, 0.4f, 0.6f, 1f);
+                string[] concurrentLabels = { "latest", "existing" };
+                var concurrentConfiguration = new HBP.Core.Data.SiteConfiguration(false, true, concurrentColor, concurrentLabels);
+                Color noOpColor = new(0.3f, 0.5f, 0.7f, 1f);
+                string[] noOpLabels = { "latest", "existing", "Imported", "CSV" };
+                var concurrentNoOpConfiguration = new HBP.Core.Data.SiteConfiguration(true, true, noOpColor, noOpLabels);
+                Assert.That(harness.Scene.ApplySiteConfigurationBatch(new[]
+                {
+                    new SiteConfigurationChange(selectedColumn, site.Information.FullID, site.State, concurrentConfiguration),
+                    new SiteConfigurationChange(selectedColumn, noOpSite.Information.FullID, noOpSite.State, concurrentNoOpConfiguration)
+                }), Is.True, "Canonical updates must land while CSV parsing is paused.");
+                Assert.That(peerSite.State.IsHighlighted, Is.True);
+                Assert.That(peerSite.State.Color, Is.EqualTo(concurrentColor));
+                Assert.That(peerSite.State.Labels, Is.EqualTo(concurrentLabels));
+                Assert.That(peerNoOpSite.State.IsBlackListed, Is.True);
+                Assert.That(peerNoOpSite.State.Labels, Is.EqualTo(noOpLabels));
+                resumeParsing.TrySetResult(true);
+                await (UniTask)pending;
+            }
+            catch (Exception exception)
+            {
+                Exception reported = exception is TargetInvocationException invocation && invocation.InnerException != null ? invocation.InnerException : exception;
+                Assert.Fail("CSV import operation failed: " + reported);
+            }
+            finally
+            {
+                resumeParsing.TrySetResult(true);
+                File.Delete(csvPath);
+                UnityEngine.Object.Destroy(sectionObject);
+            }
+
+            Assert.That(site.State.IsBlackListed, Is.True);
+            Assert.That(site.State.IsHighlighted, Is.True, "A disabled CSV field must retain the current value received during parsing.");
+            Assert.That(site.State.Color, Is.EqualTo(new Color(0.2f, 0.4f, 0.6f, 1f)), "A disabled CSV field must retain the current value received during parsing.");
+            Assert.That(site.State.Labels, Is.EqualTo(new[] { "latest", "existing", "Imported", "CSV" }), "Merge mode must append imported labels to the current ordered labels without duplicating values.");
+            Assert.That(noOpSite.State.IsBlackListed, Is.True);
+            Assert.That(noOpSite.State.IsHighlighted, Is.True);
+            Assert.That(noOpSite.State.Color, Is.EqualTo(new Color(0.3f, 0.5f, 0.7f, 1f)));
+            Assert.That(noOpSite.State.Labels, Is.EqualTo(new[] { "latest", "existing", "Imported", "CSV" }));
+            Assert.That(peerSite.State.IsBlackListed, Is.True);
+            Assert.That(peerSite.State.IsHighlighted, Is.True);
+            Assert.That(peerSite.State.Color, Is.EqualTo(site.State.Color));
+            Assert.That(peerSite.State.Labels, Is.EqualTo(site.State.Labels));
+            Assert.That(peerNoOpSite.State.IsBlackListed, Is.EqualTo(noOpSite.State.IsBlackListed));
+            Assert.That(peerNoOpSite.State.IsHighlighted, Is.EqualTo(noOpSite.State.IsHighlighted));
+            Assert.That(peerNoOpSite.State.Color, Is.EqualTo(noOpSite.State.Color));
+            Assert.That(peerNoOpSite.State.Labels, Is.EqualTo(noOpSite.State.Labels));
+            Assert.That(boundary.QuestLastObservedCanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(boundary.CanonicalMutations, Has.Count.EqualTo(2));
+            object[] batches = boundary.Mutations.Where(mutation => mutation.GetType().Name == "SetSiteConfigurationBatch").ToArray();
+            Assert.That(batches, Has.Length.EqualTo(2));
+            Assert.That(Enumerate(GetProperty(batches[0], "Assignments")), Has.Count.EqualTo(2));
+            object batch = batches.Last();
+            object assignment = Enumerate(GetProperty(batch, "Assignments")).Single();
+            Assert.That(GetProperty(assignment, "Blacklisted"), Is.EqualTo(true));
+            Assert.That(GetProperty(assignment, "Highlighted"), Is.EqualTo(true));
+            Assert.That(new Color((float)GetProperty(assignment, "Red"), (float)GetProperty(assignment, "Green"), (float)GetProperty(assignment, "Blue"), (float)GetProperty(assignment, "Alpha")), Is.EqualTo(site.State.Color));
+            Assert.That(Enumerate(GetProperty(assignment, "Labels")), Is.EqualTo(new[] { "latest", "existing", "Imported", "CSV" }));
+            object importedSiteId = GetProperty(assignment, "SiteId");
+            Assert.That(GetProperty(importedSiteId, "Value"), Is.EqualTo(site.Information.FullID), "No-op detection must use the current configuration and omit already-satisfied sites.");
+            Assert.That(boundary.Mutations, Has.Count.EqualTo(2), "The paused import must publish one complete batch and suppress per-field echoes.");
         }
 
         [Test]
@@ -1085,6 +1586,118 @@ namespace HBP.Tests.PlayMode.Toolbar
             tool.SelectedColumn = column;
             tool.SelectedView = view;
             return tool;
+        }
+
+        private static object GetProperty(object target, string propertyName)
+        {
+            PropertyInfo property = target.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
+            Assert.That(property, Is.Not.Null, $"{target.GetType().Name}.{propertyName}");
+            return property.GetValue(target);
+        }
+
+        private static List<object> Enumerate(object values)
+        {
+            Assert.That(values, Is.InstanceOf<System.Collections.IEnumerable>());
+            return ((System.Collections.IEnumerable)values).Cast<object>().ToList();
+        }
+
+        private sealed class ReflectedMutationBoundary : IDisposable
+        {
+            private readonly object m_DesktopBoundary;
+            private readonly object m_QuestBoundary;
+            private readonly object m_MutationEvent;
+            private readonly Delegate m_MutationHandler;
+            private readonly object m_Authority;
+            private readonly object m_QuestDriver;
+            private readonly object m_CanonicalEvent;
+            private readonly Delegate m_CanonicalHandler;
+            public List<object> Mutations { get; } = new();
+            public List<object> CanonicalMutations { get; } = new();
+            public ulong QuestLastObservedCanonicalSequence => Convert.ToUInt64(GetProperty(m_QuestDriver, "LastObservedCanonicalSequence"));
+
+            public ReflectedMutationBoundary(Base3DScene desktopScene, Base3DScene questScene)
+            {
+                Type boundaryType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.Scene.SceneMutationBoundary", throwOnError: false)).FirstOrDefault(type => type != null);
+                Type originType = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType("HBP.Sync.OriginDevice", throwOnError: false)).FirstOrDefault(type => type != null);
+                Assert.That(boundaryType, Is.Not.Null, "The synchronization boundary must be loaded for the integration test.");
+                Assert.That(originType, Is.Not.Null);
+                m_DesktopBoundary = CreateBoundary(boundaryType, originType, desktopScene, "Desktop");
+                m_QuestBoundary = CreateBoundary(boundaryType, originType, questScene, "Quest");
+
+                m_MutationEvent = boundaryType.GetProperty("OnMutationProposed", BindingFlags.Instance | BindingFlags.Public).GetValue(m_DesktopBoundary);
+                Assert.That(m_MutationEvent, Is.Not.Null);
+                MethodInfo addMutationListener = m_MutationEvent.GetType().GetMethod("AddListener");
+                Type mutationListenerType = addMutationListener.GetParameters()[0].ParameterType;
+                MethodInfo invoke = mutationListenerType.GetMethod("Invoke");
+                ParameterExpression[] parameters = invoke.GetParameters().Select(parameter => Expression.Parameter(parameter.ParameterType)).ToArray();
+                MethodInfo record = GetType().GetMethod(nameof(RecordMutation), BindingFlags.Instance | BindingFlags.NonPublic);
+                Expression body = Expression.Call(Expression.Constant(this), record, Expression.Convert(parameters[1], typeof(object)));
+                m_MutationHandler = Expression.Lambda(mutationListenerType, body, parameters).Compile();
+                addMutationListener.Invoke(m_MutationEvent, new object[] { m_MutationHandler });
+
+                Type sceneIdType = FindType("HBP.Sync.SceneId");
+                Type incarnationIdType = FindType("HBP.Sync.IncarnationId");
+                Type sessionIdType = FindType("HBP.Sync.SessionId");
+                object sceneId = Activator.CreateInstance(sceneIdType, Guid.NewGuid());
+                object incarnationId = Activator.CreateInstance(incarnationIdType, Guid.NewGuid());
+                object sessionId = Activator.CreateInstance(sessionIdType, Guid.NewGuid());
+
+                Type authorityType = FindType("HBP.Sync.Scene.DesktopMutationAuthority");
+                ConstructorInfo authorityConstructor = authorityType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 5);
+                m_Authority = authorityConstructor.Invoke(new object[] { sceneId, incarnationId, m_DesktopBoundary, 4096, 65536 });
+
+                Type schedulerType = FindType("HBP.Sync.OutgoingScheduler");
+                ConstructorInfo schedulerConstructor = schedulerType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 7);
+                object scheduler = schedulerConstructor.Invoke(new[] { sessionId, sceneId, incarnationId, Enum.Parse(originType, "Quest"), null, null, null });
+
+                Type driverType = FindType("HBP.Sync.Scene.QuestMutationDriver");
+                ConstructorInfo driverConstructor = driverType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).Single(candidate => candidate.GetParameters().Length == 5);
+                m_QuestDriver = driverConstructor.Invoke(new[] { sceneId, incarnationId, m_QuestBoundary, scheduler, (object)0UL });
+
+                m_CanonicalEvent = authorityType.GetProperty("OnCanonicalReady", BindingFlags.Instance | BindingFlags.Public).GetValue(m_Authority);
+                Assert.That(m_CanonicalEvent, Is.Not.Null);
+                MethodInfo addCanonicalListener = m_CanonicalEvent.GetType().GetMethod("AddListener");
+                Type canonicalListenerType = addCanonicalListener.GetParameters()[0].ParameterType;
+                Type canonicalType = canonicalListenerType.GetMethod("Invoke").GetParameters()[0].ParameterType;
+                MethodInfo recordAndDeliver = GetType().GetMethod(nameof(RecordAndDeliverCanonical), BindingFlags.Instance | BindingFlags.NonPublic);
+                ParameterExpression canonical = Expression.Parameter(canonicalType);
+                Expression canonicalBody = Expression.Call(Expression.Constant(this), recordAndDeliver, Expression.Convert(canonical, typeof(object)));
+                m_CanonicalHandler = Expression.Lambda(canonicalListenerType, canonicalBody, canonical).Compile();
+                addCanonicalListener.Invoke(m_CanonicalEvent, new object[] { m_CanonicalHandler });
+            }
+
+            private static object CreateBoundary(Type boundaryType, Type originType, Base3DScene scene, string origin)
+            {
+                ConstructorInfo constructor = boundaryType.GetConstructors(BindingFlags.Instance | BindingFlags.Public).FirstOrDefault(candidate => candidate.GetParameters().Length == 5 && candidate.GetParameters()[0].ParameterType == typeof(Base3DScene));
+                Assert.That(constructor, Is.Not.Null);
+                return constructor.Invoke(new object[] { scene, Enum.Parse(originType, origin), null, null, null });
+            }
+
+            private static Type FindType(string fullName)
+            {
+                Type type = AppDomain.CurrentDomain.GetAssemblies().Select(assembly => assembly.GetType(fullName, throwOnError: false)).FirstOrDefault(candidate => candidate != null);
+                Assert.That(type, Is.Not.Null, fullName);
+                return type;
+            }
+
+            private void RecordMutation(object mutation) => Mutations.Add(mutation);
+
+            private void RecordAndDeliverCanonical(object canonical)
+            {
+                CanonicalMutations.Add(canonical);
+                MethodInfo receive = m_QuestDriver.GetType().GetMethods(BindingFlags.Instance | BindingFlags.Public).Single(method => method.Name == "ReceiveCanonical" && method.GetParameters().Length == 1);
+                receive.Invoke(m_QuestDriver, new[] { canonical });
+            }
+
+            public void Dispose()
+            {
+                m_CanonicalEvent.GetType().GetMethod("RemoveListener").Invoke(m_CanonicalEvent, new object[] { m_CanonicalHandler });
+                m_MutationEvent.GetType().GetMethod("RemoveListener").Invoke(m_MutationEvent, new object[] { m_MutationHandler });
+                ((IDisposable)m_Authority).Dispose();
+                ((IDisposable)m_QuestDriver).Dispose();
+                ((IDisposable)m_DesktopBoundary).Dispose();
+                ((IDisposable)m_QuestBoundary).Dispose();
+            }
         }
 
         private static Button CreateButton(string name)

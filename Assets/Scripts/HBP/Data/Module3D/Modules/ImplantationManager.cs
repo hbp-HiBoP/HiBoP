@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using UnityEngine.Events;
+using System.Collections.Generic;
 using UnityEngine;
 using HBP.Core.Enums;
 using HBP.Core.Exceptions;
@@ -34,7 +35,21 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Selected implantation3D ID
         /// </summary>
-        public int SelectedImplantationID { get; set; }
+        private int m_SelectedImplantationID;
+
+        public int SelectedImplantationID
+        {
+            get => m_SelectedImplantationID;
+            set
+            {
+                if (m_SelectedImplantationID == value) return;
+                m_SelectedImplantationID = value;
+                OnResourceSelectionChanged.Invoke();
+            }
+        }
+
+        /// <summary>Raised when the selected prepared implantation resource changes.</summary>
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
 
         /// <summary>
         /// Selected implantation3D
@@ -48,6 +63,13 @@ namespace HBP.Data.Module3D
         /// Site to compare with when using the comparing site feature
         /// </summary>
         public Core.Object3D.Site SiteToCompare { get; private set; }
+
+        /// <summary>Restore the comparison target from an already validated prepared scene.</summary>
+        public void SetComparisonSiteForSynchronization(Core.Object3D.Site site)
+        {
+            SiteToCompare = site;
+            m_ComparingSites = site != null;
+        }
 
         private bool m_ComparingSites;
 
@@ -74,14 +96,6 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Private Methods
-
-        private void OnDestroy()
-        {
-            foreach (var implantation in Implantations)
-            {
-                implantation.Clean();
-            }
-        }
 
         #endregion
 
@@ -115,15 +129,31 @@ namespace HBP.Data.Module3D
         {
             int implantationID = Implantations.FindIndex(i => i.Name == implantationName);
             SelectedImplantationID = implantationID > 0 ? implantationID : 0;
-            m_DisplayedObjects.InstantiateImplantation(SelectedImplantation);
-
-            // reset selected site
-            for (int ii = 0; ii < m_Scene.Columns.Count; ++ii)
-            {
-                m_Scene.Columns[ii].UnselectSite();
-            }
+            RebuildSites(SelectedImplantation);
+            if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
 
             m_Scene.InvalidateActivityField();
+        }
+
+        /// <summary>Select the exact implantation bound to a prepared scene delivery.</summary>
+        public void SelectPrepared(Core.Object3D.Implantation3D implantation)
+        {
+            int index = Implantations.FindIndex(item => ReferenceEquals(item, implantation));
+            if (index < 0) throw new System.ArgumentException("Implantation is outside the prepared scene.", nameof(implantation));
+            if (SelectedImplantationID == index) return;
+            SelectedImplantationID = index;
+            RebuildSites(implantation);
+            if (m_Scene.ColumnsIEEG.Exists(column => column.CorrelationBySitePair.Count > 0 || column.CorrelationMeanBySitePair.Count > 0)) m_Scene.ResetCorrelations();
+            m_Scene.InvalidateActivityField();
+        }
+
+        private void RebuildSites(Core.Object3D.Implantation3D implantation)
+        {
+            string selectedId = m_Scene.SelectedSite?.Information.FullID;
+            bool wasComparing = SiteToCompare;
+            SetComparisonSiteForSynchronization(null);
+            m_DisplayedObjects.InstantiateImplantation(implantation);
+            m_Scene.RestoreSiteSelection(selectedId, wasComparing);
         }
 
         /// <summary>
@@ -132,11 +162,10 @@ namespace HBP.Data.Module3D
         /// <param name="canDisplay">Is a site under the mouse ?</param>
         /// <param name="column">Column on which the raycast is performed</param>
         /// <param name="hit">RaycastHit of the raycast</param>
-        public void DisplaySiteInformation(bool canDisplay, Column3D column, RaycastHit hit)
+        public Core.Object3D.SiteInfo GetSiteInformation(Core.Object3D.Site site, Column3D column, Vector2 screenPosition = default)
         {
-            if (canDisplay)
+            if (site != null)
             {
-                Core.Object3D.Site site = hit.collider.GetComponent<Core.Object3D.Site>();
                 // Compute each required variable
                 int siteID = site.Information.Index;
                 string CCEPLatency = "none", CCEPAmplitude = "none";
@@ -183,11 +212,11 @@ namespace HBP.Data.Module3D
                     displayMode = SiteInformationDisplayMode.Anatomy;
                 }
 
-                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(site, true, Input.mousePosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency));
+                return new Core.Object3D.SiteInfo(site, true, screenPosition, displayMode, iEEGActivity.ToString("0.00"), iEEGUnit, CCEPAmplitude, CCEPLatency);
             }
             else
             {
-                Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+                return new Core.Object3D.SiteInfo(null, false, screenPosition);
             }
         }
 

@@ -38,6 +38,8 @@ namespace HBP.Core.Tools
         /// </summary>
 #if UNITY_EDITOR
         public static string DataPath { get; private set; } = Path.Combine(Application.dataPath, "Data");
+#elif UNITY_ANDROID
+        public static string DataPath { get; private set; } = Path.Combine(Application.persistentDataPath, "Data");
 #elif UNITY_STANDALONE_OSX
         public static string DataPath { get; private set; } = Path.Combine(Application.dataPath, "Resources", "Data");
 #else

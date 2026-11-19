@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,6 +11,8 @@ namespace HBP.Data.Module3D
     public class Column3DFMRI : Column3D
     {
         #region Properties
+
+        public override Core.Data.BasicTimeline NavigationTimeline => Timeline;
 
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
@@ -89,6 +91,30 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, Core.Enums.SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.FMRIGenerator)ActivityGenerator;
+            var volumesAndMasks = new List<(Core.DLL.Volume, Core.DLL.Volume)>();
+            foreach (var item in ColumnFMRIData.Data.FMRIs)
+            foreach (var volume in item.Item1.Volumes)
+                volumesAndMasks.Add((volume, item.Item1.MaskVolume));
+            float negativeMin = FMRIParameters.FMRINegativeCalMinFactor;
+            float negativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
+            float positiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
+            float positiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            bool hideLower = FMRIParameters.HideLowerValues;
+            bool hideMiddle = FMRIParameters.HideMiddleValues;
+            bool hideHigher = FMRIParameters.HideHigherValues;
+            return (() =>
+            {
+                updateMasks();
+                generator.ComputeActivity(volumesAndMasks);
+                generator.AdjustValues(negativeMin, negativeMax, positiveMin, positiveMax);
+                generator.HideExtremeValues(hideLower, hideMiddle, hideHigher);
+            }, null);
+        }
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
@@ -111,15 +137,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public override void ComputeActivityData()
         {
-            Timeline.OnUpdateCurrentIndex.AddListener(() =>
-            {
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
-                }
-            });
-            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
+            ObserveTimeline(Timeline, OnUpdateCurrentTimelineID.Invoke);
         }
 
         /// <summary>
@@ -129,6 +147,7 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedFMRIIndex = ColumnFMRIData.FMRIConfiguration.SelectedResourceIndex;
             FMRIParameters.SetSpanValues(ColumnFMRIData.FMRIConfiguration.NegativeMin, ColumnFMRIData.FMRIConfiguration.NegativeMax, ColumnFMRIData.FMRIConfiguration.PositiveMin, ColumnFMRIData.FMRIConfiguration.PositiveMax);
             FMRIParameters.SetHideValues(ColumnFMRIData.FMRIConfiguration.HideLowerValues, ColumnFMRIData.FMRIConfiguration.HideMiddleValues, ColumnFMRIData.FMRIConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
@@ -137,16 +156,19 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnFMRIData.FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
-            ColumnFMRIData.FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
-            ColumnFMRIData.FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
-            ColumnFMRIData.FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
-            ColumnFMRIData.FMRIConfiguration.HideLowerValues = FMRIParameters.HideLowerValues;
-            ColumnFMRIData.FMRIConfiguration.HideMiddleValues = FMRIParameters.HideMiddleValues;
-            ColumnFMRIData.FMRIConfiguration.HideHigherValues = FMRIParameters.HideHigherValues;
-            base.SaveConfiguration();
+            ((FMRIColumn)target).FMRIConfiguration.SelectedResourceIndex = SelectedFMRIIndex;
+            ((FMRIColumn)target).FMRIConfiguration.NegativeMin = FMRIParameters.FMRINegativeCalMinFactor;
+            ((FMRIColumn)target).FMRIConfiguration.NegativeMax = FMRIParameters.FMRINegativeCalMaxFactor;
+            ((FMRIColumn)target).FMRIConfiguration.PositiveMin = FMRIParameters.FMRIPositiveCalMinFactor;
+            ((FMRIColumn)target).FMRIConfiguration.PositiveMax = FMRIParameters.FMRIPositiveCalMaxFactor;
+            ((FMRIColumn)target).FMRIConfiguration.HideLowerValues = FMRIParameters.HideLowerValues;
+            ((FMRIColumn)target).FMRIConfiguration.HideMiddleValues = FMRIParameters.HideMiddleValues;
+            ((FMRIColumn)target).FMRIConfiguration.HideHigherValues = FMRIParameters.HideHigherValues;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

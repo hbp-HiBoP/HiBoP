@@ -69,13 +69,14 @@ namespace HBP.Tests.Serialization
         {
             List<DllImportSignature> imports = ReadCurrentDllImports();
 
-            Assert.That(imports, Has.Count.EqualTo(262));
+            // Includes scene-capture copies and the two filtered histogram imports.
+            Assert.That(imports, Has.Count.EqualTo(267));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_export"), Is.Zero);
             Assert.That(imports.Count(imported => imported.Dll == "EEGFormat"), Is.EqualTo(37));
             Assert.That(imports.Count(imported => imported.Dll == "hbp_math"), Is.EqualTo(17));
             string[] hbpCoreImportFiles = imports.Where(imported => imported.Dll == "hbp_core").Select(imported => imported.RelativeFile).Distinct().ToArray();
             Assert.That(hbpCoreImportFiles, Is.EquivalentTo(new[] { "BBox.cs", "BrainAtlas.cs", "Electrodes.cs", "Generators/ActivityGenerator.cs", "Generators/ActivityProjectionGrid.cs", "Generators/CutGenerator.cs", "Generators/CutGeometryGenerator.cs", "Generators/DensityGenerator.cs", "Generators/FMRIGenerator.cs", "Generators/IEEGGenerator.cs", "Generators/MEGGenerator.cs", "Generators/SurfaceGenerator.cs", "HbpCore/HbpCoreRuntime.cs", "JuBrainAtlas.cs", "MarsAtlas.cs", "NIFTI.cs", "Plane.cs", "Segment3.cs", "Surface.cs", "SurfaceList.cs", "Transformation3.cs", "Volume.cs" }));
-            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(208));
+            Assert.That(imports.Count(imported => imported.Dll == "hbp_core"), Is.EqualTo(213));
             Assert.That(imports.Where(imported => imported.RelativeFile == "VideoStream.cs"), Is.Empty);
             Assert.That(imports.Any(imported => imported.Entry.Contains("PatientElectrodesList")), Is.False);
             Assert.That(imports.Any(imported => imported.RelativeFile == "ROI.cs"), Is.False);
@@ -302,7 +303,7 @@ namespace HBP.Tests.Serialization
             string dllFolder = Path.Combine(TestPathUtility.ProjectRoot, "Assets", "Scripts", "HBP", "Core", "DLL");
             Dictionary<string, int> allowedFalseConversions = new()
             {
-                ["Electrodes.cs"] = 1,
+                ["Electrodes.cs"] = 2, // AddSite and GetNativePositions both use native scientific coordinates.
                 ["Volume.cs"] = 1
             };
             Dictionary<string, int> actualFalseConversions = Directory.GetFiles(dllFolder, "*.cs", SearchOption.AllDirectories).Select(file => new
@@ -632,6 +633,96 @@ namespace HBP.Tests.Serialization
         [Category("NativeMigration")]
         [Category("NativeDll")]
         [Category("HbpCoreOnly")]
+        public void HbpCoreHistograms_ExplicitMinimumFilterPreservesCountsAndCacheIsolation()
+        {
+            using NIFTI nifti = new();
+            Assert.That(nifti.Load(NativePath("Nifti", "mri_t1.nii")), Is.True);
+            int[] full = nifti.GetHistogramBins(50);
+            int[] filtered = nifti.GetHistogramBins(50, excludeMinimum: true);
+            Assert.That(full.Sum(), Is.EqualTo(125));
+            Assert.That(filtered.Sum(), Is.EqualTo(124));
+            Assert.That(filtered[0], Is.EqualTo(full[0] - 1), "Retain nonminimum intensities within the first bin.");
+            Assert.That(filtered.Skip(1), Is.EqualTo(full.Skip(1)));
+            filtered[0] = -1;
+            Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true)[0], Is.EqualTo(full[0] - 1), "Returned arrays must not mutate the cache.");
+            Assert.That(nifti.GetHistogramBins(50), Is.EqualTo(full), "The filter is part of the cache key.");
+            using Volume volume = nifti.ExtractVolume(0);
+            Assert.That(volume.GetHistogramBins(50), Is.EqualTo(full));
+            Assert.That(volume.GetHistogramBins(50, excludeMinimum: true).Sum(), Is.EqualTo(124));
+            Assert.That(nifti.Load(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+            Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true).Sum(), Is.EqualTo(124));
+        }
+
+        [Test]
+        public void AnatomicalHistogram_ExcludesOnlyZeroAndRetainsSignalBelowCalibration()
+        {
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("anatomical-histogram.nii");
+            byte[] fixture = File.ReadAllBytes(NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)BitConverter.ToSingle(fixture, 108);
+            Buffer.BlockCopy(BitConverter.GetBytes(120.0f), 0, fixture, 124, 4); // cal_max
+            Buffer.BlockCopy(BitConverter.GetBytes(40.0f), 0, fixture, 128, 4); // cal_min
+            for (int i = 0; i < 125; ++i)
+            {
+                float value = i switch { 0 => 0, 1 => 1, 2 => 40, 3 => 41, 4 => 120, _ => 100 };
+                Buffer.BlockCopy(BitConverter.GetBytes(value), 0, fixture, offset + 4 * i, 4);
+            }
+
+            File.WriteAllBytes(path, fixture);
+            using NIFTI nifti = new();
+            Assert.That(nifti.Load(path), Is.True);
+            using Volume volume = nifti.ExtractVolume(0);
+            int[] full = volume.GetHistogramBins(50);
+            int[] filtered = volume.GetHistogramBins(50, excludeZero: true);
+            Assert.That(filtered.Sum(), Is.EqualTo(124));
+            Assert.That(filtered[0], Is.EqualTo(full[0] - 1), "Retain intensity 1 despite the anatomical calibration starting at 40.");
+            Assert.That(filtered.Skip(1), Is.EqualTo(full.Skip(1)));
+            Assert.That(nifti.GetHistogramBins(50).Sum(), Is.EqualTo(125));
+        }
+
+        [TestCase(false, 124)]
+        [TestCase(true, 3)]
+        public async System.Threading.Tasks.Task FmriHistogram_ZeroExclusionIsOptInAndRetainsNearbyValues(bool excludeZero, int expectedCount)
+        {
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("signed-histogram.nii");
+            byte[] fixture = File.ReadAllBytes(NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)BitConverter.ToSingle(fixture, 108);
+            for (int i = 0; i < 125; ++i)
+            {
+                float value = i switch { 0 => -5, 1 => -0.001f, 2 => 0.001f, 3 => 5, _ => 0 };
+                Buffer.BlockCopy(BitConverter.GetBytes(value), 0, fixture, offset + 4 * i, 4);
+            }
+
+            File.WriteAllBytes(path, fixture);
+            using (NIFTI nifti = new())
+            {
+                Assert.That(nifti.Load(path), Is.True);
+                Assert.That(nifti.GetHistogramBins(50).Sum(), Is.EqualTo(125));
+                Assert.That(nifti.GetHistogramBins(50, excludeZero: true).Sum(), Is.EqualTo(4));
+                Assert.That(nifti.GetHistogramBins(50, excludeMinimum: true, excludeZero: true).Sum(), Is.EqualTo(3));
+                Assert.That(nifti.GetHistogramBins(50).Sum(), Is.EqualTo(125), "Filter changes must invalidate the histogram cache.");
+            }
+
+            var fmri = new Core.Object3D.FMRI("histogram", path, loadInBackground: false, excludeZeroFromHistogram: excludeZero);
+            try
+            {
+                await fmri.LoadAsync();
+                Assert.That(fmri.HistogramBins.Sum(), Is.EqualTo(expectedCount));
+                Assert.That(fmri.HistogramBins[24], Is.EqualTo(1), "Retain the small negative nonzero value.");
+                if (excludeZero) Assert.That(fmri.HistogramBins[25], Is.EqualTo(1), "Retain the small positive nonzero value in the zero interval.");
+                Assert.That(fmri.HistogramBins[49], Is.EqualTo(1), "Include the maximum in the last regular class.");
+            }
+            finally
+            {
+                fmri.Clean();
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        [Category("HbpCoreOnly")]
         public void HbpCoreSurface_CreatesUnityMeshFromBuffers_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -899,6 +990,117 @@ namespace HBP.Tests.Serialization
         [Test]
         [Category("NativeMigration")]
         [Category("NativeDll")]
+        public void CutDisplayModes_PreserveNativeVoxelsAndReconstructWithoutAnatomicalBlur()
+        {
+            using Volume volume = new();
+            Assert.That(volume.LoadNIFTIFile(NativePath("Nifti", "fmri_3d.nii")), Is.True);
+            using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward) { Orientation = CutOrientation.Axial };
+            using CutGeometryGenerator geometry = new();
+            using CutGenerator generator = new();
+            Color32[] gray = Enumerable.Range(0, 256).Select(value => new Color32((byte)value, (byte)value, (byte)value, 255)).ToArray();
+            geometry.InitializeDisplay(volume, cut, true);
+            Assert.That(geometry.TextureSize, Is.EqualTo(new Vector2Int(5, 5)));
+            Assert.That(geometry.PhysicalSize.x, Is.EqualTo(5).Within(0.001f));
+            Assert.That(geometry.PhysicalSize.y, Is.EqualTo(5).Within(0.001f));
+            generator.Initialize(null, geometry, 4);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Color32[] raw = generator.CopyBasePixels();
+            // This fixture stores the ramp with Z varying fastest: the middle Z plane contains 2, 7, ..., 122.
+            int[] expected = Enumerable.Range(0, 25).Select(index => (int)((2 + 5 * index) / 124.0f * 255)).ToArray();
+            Assert.That(raw.Select(pixel => (int)pixel.r).OrderBy(value => value), Is.EqualTo(expected));
+            geometry.InitializeDisplay(volume, cut, false, 17);
+            Assert.That(geometry.TextureSize, Is.EqualTo(new Vector2Int(17, 17)));
+            generator.Initialize(null, geometry, 4);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Color32[] reconstructed = generator.CopyBasePixels();
+            generator.Initialize(null, geometry, 0);
+            generator.FillTextureWithVolume(gray, 0, 1);
+            Assert.That(generator.CopyBasePixels(), Is.EqualTo(reconstructed), "Display interpolation must replace anatomical blur.");
+            Assert.That(reconstructed.Select(pixel => pixel.r).Distinct().Count(), Is.GreaterThan(25));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
+        public void AnatomicalCoverage_IsSharedByAnatomyAndProjection()
+        {
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("anatomical-coverage.nii");
+            byte[] fixture = File.ReadAllBytes(NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)BitConverter.ToSingle(fixture, 108);
+            Buffer.BlockCopy(BitConverter.GetBytes(40.0f), 0, fixture, 128, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(120.0f), 0, fixture, 124, 4);
+            for (int i = 0; i < 125; ++i)
+            {
+                Buffer.BlockCopy(BitConverter.GetBytes((i % 5) * 20.0f), 0, fixture, offset + 4 * i, 4);
+            }
+
+            File.WriteAllBytes(path, fixture);
+
+            using Volume volume = new();
+            Assert.That(volume.LoadNIFTIFile(path), Is.True);
+            using HBP.Core.Object3D.Cut cut = new(volume.Center, Vector3.forward) { Orientation = CutOrientation.Axial };
+            using CutGeometryGenerator geometry = new();
+            geometry.Initialize(volume, cut, 8);
+            using CutGenerator generator = new();
+            generator.Initialize(null, geometry, 0);
+            generator.FillTextureWithVolume(new[] { new Color32(255, 255, 255, 255) }, 0, 1);
+            Color32[] anatomy = generator.CopyBasePixels();
+            generator.FillTextureWithLocalizer(volume, 0, 40, 80, null, new[] { new Color32(255, 0, 0, 255) });
+            Color32[] overlay = generator.CopyOverlayPixels();
+
+            Assert.That(anatomy.Any(pixel => pixel.r == 0), Is.True, "Retain empty pixels.");
+            Assert.That(anatomy.Any(pixel => pixel.r == 255), Is.True, "Retain fully covered tissue.");
+            Assert.That(anatomy.Any(pixel => pixel.r > 0 && pixel.r < 255), Is.True, "Antialias the anatomical contour.");
+            for (int i = 0; i < anatomy.Length; ++i)
+            {
+                Assert.That(overlay[i].r, Is.EqualTo(anatomy[i].r), "Anatomy and projection must share the same coverage.");
+                Assert.That(overlay[i].g, Is.Zero);
+                Assert.That(overlay[i].b, Is.Zero);
+            }
+        }
+
+        [TestCase(CutOrientation.Axial, false)]
+        [TestCase(CutOrientation.Axial, true)]
+        [TestCase(CutOrientation.Coronal, false)]
+        [TestCase(CutOrientation.Sagittal, false)]
+        public void AnatomicalCoverage_PreservesExtremeSlicesWithAffineRoundoff(CutOrientation orientation, bool flip)
+        {
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("anatomical-affine-coverage.nii");
+            byte[] fixture = File.ReadAllBytes(NativePath("Nifti", "fmri_3d.nii"));
+            int offset = (int)BitConverter.ToSingle(fixture, 108);
+            Buffer.BlockCopy(BitConverter.GetBytes((short)0), 0, fixture, 252, 2); // Use the sform.
+            Buffer.BlockCopy(BitConverter.GetBytes((short)1), 0, fixture, 254, 2);
+            float[] affine = { 1.1f, 0, 0, -111.3f, 0, 1.3f, 0, -92.1f, 0, 0, 0.9f, -70.7f };
+            Buffer.BlockCopy(affine, 0, fixture, 280, 48);
+            Buffer.BlockCopy(BitConverter.GetBytes(40.0f), 0, fixture, 128, 4);
+            Buffer.BlockCopy(BitConverter.GetBytes(120.0f), 0, fixture, 124, 4);
+            for (int i = 0; i < 125; ++i)
+                Buffer.BlockCopy(BitConverter.GetBytes(100.0f), 0, fixture, offset + 4 * i, 4);
+            File.WriteAllBytes(path, fixture);
+
+            using Volume volume = new();
+            Assert.That(volume.LoadNIFTIFile(path), Is.True);
+            using BBox bbox = volume.BoundingBox;
+            int axis = orientation == CutOrientation.Axial ? 2 : orientation == CutOrientation.Coronal ? 1 : 0;
+            foreach (Vector3 extreme in new[] { bbox.Min, bbox.Max })
+            {
+                Vector3 center = volume.Center;
+                center[axis] = extreme[axis];
+                using HBP.Core.Object3D.Cut cut = new(center, volume.GetOrientationVector(orientation, flip)) { Orientation = orientation, Flip = flip };
+                using CutGeometryGenerator geometry = new();
+                geometry.Initialize(volume, cut, 8);
+                using CutGenerator generator = new();
+                generator.Initialize(null, geometry, 0);
+                generator.FillTextureWithVolume(new[] { new Color32(255, 255, 255, 255) }, 0, 1);
+                Assert.That(generator.CopyBasePixels().Any(pixel => pixel.r == 255), Is.True, "A valid extreme slice must retain fully covered tissue.");
+            }
+        }
+
+        [Test]
+        [Category("NativeMigration")]
+        [Category("NativeDll")]
         public void HbpCoreCutTextures_FilterNativeSiteAgainstCutInUnitySpace_WhenLibraryIsPresent()
         {
             if (!HbpCoreRuntime.TryGetVersion(out _, out string error))
@@ -915,7 +1117,7 @@ namespace HBP.Tests.Serialization
                 Vector3 unityCenter = volume.Center;
                 using HBP.Core.Object3D.Cut cut = new(unityCenter, Vector3.right)
                 {
-                    ID = 0,
+                    Index = 0,
                     Orientation = CutOrientation.Sagittal
                 };
                 using CutGeometryGenerator geometryGenerator = ExecuteNativeOrIgnore(() => new CutGeometryGenerator(), "hbp_core CutGeometryGenerator wrapper");

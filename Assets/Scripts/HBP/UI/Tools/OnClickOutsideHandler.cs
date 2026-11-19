@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace HBP.UI.Tools
@@ -22,9 +23,9 @@ namespace HBP.UI.Tools
 
         void Update()
         {
-            if (Input.GetMouseButtonUp(0))
+            if (DesktopInput.WasLeftMouseButtonReleasedThisFrame)
             {
-                if (!RectTransformUtility.RectangleContainsScreenPoint(m_RectTransform, Input.mousePosition))
+                if (!RectTransformUtility.RectangleContainsScreenPoint(m_RectTransform, DesktopInput.MousePosition))
                 {
                     OnClick.Invoke();
                 }

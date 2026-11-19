@@ -56,6 +56,7 @@ namespace HBP.UI.Informations.TrialMatrix
         }
 
         data.TrialMatrixGrid m_TrialMatrixGridData;
+        internal data.TrialMatrixGrid PresentationData => m_TrialMatrixGridData;
 
         #endregion
 

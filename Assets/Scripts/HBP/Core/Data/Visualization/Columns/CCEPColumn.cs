@@ -1,4 +1,4 @@
-﻿using HBP.Core.Tools;
+using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -78,7 +78,7 @@ namespace HBP.Core.Data
         /// <summary>
         /// Configuration of the column.
         /// </summary>
-        [JsonProperty] public DynamicConfiguration DynamicConfiguration { get; set; }
+        [JsonProperty] public CCEPConfiguration CCEPConfiguration { get; set; }
 
         /// <summary>
         /// Data of the column.
@@ -89,20 +89,20 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration, string ID) : base(name, baseConfiguration, ID)
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, CCEPConfiguration configuration, string ID) : base(name, baseConfiguration, ID)
         {
             Dataset = dataset;
             DataName = dataName;
             Bloc = bloc;
-            DynamicConfiguration = configuration;
+            CCEPConfiguration = configuration;
         }
 
-        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, DynamicConfiguration configuration) : base(name, baseConfiguration)
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration, Dataset dataset, string dataName, Bloc bloc, CCEPConfiguration configuration) : base(name, baseConfiguration)
         {
             Dataset = dataset;
             DataName = dataName;
             Bloc = bloc;
-            DynamicConfiguration = configuration;
+            CCEPConfiguration = configuration;
         }
 
         public CCEPColumn(string name, BaseConfiguration baseConfiguration, IEnumerable<Patient> patients) : this(name, baseConfiguration)
@@ -123,11 +123,11 @@ namespace HBP.Core.Data
             }
         }
 
-        public CCEPColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new DynamicConfiguration())
+        public CCEPColumn(string name, BaseConfiguration baseConfiguration) : this(name, baseConfiguration, null, string.Empty, null, new CCEPConfiguration())
         {
         }
 
-        public CCEPColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new DynamicConfiguration())
+        public CCEPColumn() : this("New column", new BaseConfiguration(), null, string.Empty, null, new CCEPConfiguration())
         {
         }
 
@@ -144,13 +144,13 @@ namespace HBP.Core.Data
         public override void GenerateID()
         {
             base.GenerateID();
-            DynamicConfiguration.GenerateID();
+            CCEPConfiguration.GenerateID();
         }
 
         public override List<BaseData> GetAllIdentifiable()
         {
             List<BaseData> IDs = base.GetAllIdentifiable();
-            IDs.AddRange(DynamicConfiguration.GetAllIdentifiable());
+            IDs.AddRange(CCEPConfiguration.GetAllIdentifiable());
             return IDs;
         }
 
@@ -175,7 +175,7 @@ namespace HBP.Core.Data
         /// <returns>Clone of this instance.</returns>
         public override object Clone()
         {
-            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, DynamicConfiguration.Clone() as DynamicConfiguration, ID);
+            return new CCEPColumn(Name, BaseConfiguration.Clone() as BaseConfiguration, Dataset, DataName, Bloc, CCEPConfiguration.Clone() as CCEPConfiguration, ID);
         }
 
         public override void Copy(object copy)
@@ -186,7 +186,7 @@ namespace HBP.Core.Data
                 Dataset = ccepColumn.Dataset;
                 DataName = ccepColumn.DataName;
                 Bloc = ccepColumn.Bloc;
-                DynamicConfiguration.Copy(ccepColumn.DynamicConfiguration);
+                CCEPConfiguration.Copy(ccepColumn.CCEPConfiguration);
             }
         }
 

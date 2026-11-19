@@ -1,4 +1,4 @@
-﻿using HBP.Core.Data;
+using HBP.Core.Data;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -11,6 +11,8 @@ namespace HBP.Data.Module3D
     public class Column3DMEG : Column3D
     {
         #region Properties
+
+        public override Core.Data.BasicTimeline NavigationTimeline => Timeline;
 
         /// <summary>
         /// FMRI data of this column (contains information about what to display)
@@ -94,6 +96,30 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, Core.Enums.SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.MEGGenerator)ActivityGenerator;
+            var volumesAndMasks = new List<(Core.DLL.Volume, Core.DLL.Volume)>();
+            foreach (var item in ColumnMEGData.Data.MEGItems)
+            foreach (var volume in item.FMRI.Volumes)
+                volumesAndMasks.Add((volume, item.FMRI.MaskVolume));
+            float negativeMin = MEGParameters.FMRINegativeCalMinFactor;
+            float negativeMax = MEGParameters.FMRINegativeCalMaxFactor;
+            float positiveMin = MEGParameters.FMRIPositiveCalMinFactor;
+            float positiveMax = MEGParameters.FMRIPositiveCalMaxFactor;
+            bool hideLower = MEGParameters.HideLowerValues;
+            bool hideMiddle = MEGParameters.HideMiddleValues;
+            bool hideHigher = MEGParameters.HideHigherValues;
+            return (() =>
+            {
+                updateMasks();
+                generator.ComputeActivity(volumesAndMasks);
+                generator.AdjustValues(negativeMin, negativeMax, positiveMin, positiveMax);
+                generator.HideExtremeValues(hideLower, hideMiddle, hideHigher);
+            }, null);
+        }
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
             base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
@@ -116,15 +142,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public override void ComputeActivityData()
         {
-            Timeline.OnUpdateCurrentIndex.AddListener(() =>
-            {
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
-                }
-            });
-            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
+            ObserveTimeline(Timeline, OnUpdateCurrentTimelineID.Invoke);
         }
 
         /// <summary>
@@ -134,6 +152,7 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
+            SelectedMEGIndex = ColumnMEGData.MEGConfiguration.SelectedResourceIndex;
             MEGParameters.SetSpanValues(ColumnMEGData.MEGConfiguration.NegativeMin, ColumnMEGData.MEGConfiguration.NegativeMax, ColumnMEGData.MEGConfiguration.PositiveMin, ColumnMEGData.MEGConfiguration.PositiveMax);
             MEGParameters.SetHideValues(ColumnMEGData.MEGConfiguration.HideLowerValues, ColumnMEGData.MEGConfiguration.HideMiddleValues, ColumnMEGData.MEGConfiguration.HideHigherValues);
             base.LoadConfiguration(false);
@@ -142,16 +161,19 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnMEGData.MEGConfiguration.NegativeMin = MEGParameters.FMRINegativeCalMinFactor;
-            ColumnMEGData.MEGConfiguration.NegativeMax = MEGParameters.FMRINegativeCalMaxFactor;
-            ColumnMEGData.MEGConfiguration.PositiveMin = MEGParameters.FMRIPositiveCalMinFactor;
-            ColumnMEGData.MEGConfiguration.PositiveMax = MEGParameters.FMRIPositiveCalMaxFactor;
-            ColumnMEGData.MEGConfiguration.HideLowerValues = MEGParameters.HideLowerValues;
-            ColumnMEGData.MEGConfiguration.HideMiddleValues = MEGParameters.HideMiddleValues;
-            ColumnMEGData.MEGConfiguration.HideHigherValues = MEGParameters.HideHigherValues;
-            base.SaveConfiguration();
+            ((MEGColumn)target).MEGConfiguration.SelectedResourceIndex = SelectedMEGIndex;
+            ((MEGColumn)target).MEGConfiguration.NegativeMin = MEGParameters.FMRINegativeCalMinFactor;
+            ((MEGColumn)target).MEGConfiguration.NegativeMax = MEGParameters.FMRINegativeCalMaxFactor;
+            ((MEGColumn)target).MEGConfiguration.PositiveMin = MEGParameters.FMRIPositiveCalMinFactor;
+            ((MEGColumn)target).MEGConfiguration.PositiveMax = MEGParameters.FMRIPositiveCalMaxFactor;
+            ((MEGColumn)target).MEGConfiguration.HideLowerValues = MEGParameters.HideLowerValues;
+            ((MEGColumn)target).MEGConfiguration.HideMiddleValues = MEGParameters.HideMiddleValues;
+            ((MEGColumn)target).MEGConfiguration.HideHigherValues = MEGParameters.HideHigherValues;
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

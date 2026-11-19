@@ -1,11 +1,10 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
 using System.IO;
 using HBP.Core.Tools;
 using HBP.Core.DLL.HbpCore;
-using HBP.Core.Enums;
 using AOT;
 
 namespace HBP.Core.DLL
@@ -49,11 +48,6 @@ namespace HBP.Core.DLL
         /// </summary>
         [SerializeField] private bool m_GetInformationAboutDLLObjects = true;
 
-        [Header("Activity Projection")] [SerializeField, Min(2)]
-        private int m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
-
-        [SerializeField] private VolumeInterpolation m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
-
         /// <summary>
         /// Enum used to know how a DLL object has been cleaned
         /// </summary>
@@ -67,11 +61,17 @@ namespace HBP.Core.DLL
         /// <summary>
         /// List of all DLL objects created during this instance of the program
         /// </summary>
-        public List<DLLObject> DLLObjects { get; private set; } = new List<DLLObject>();
+        private readonly List<DLLObject> dllObjects = new();
+
+        public List<DLLObject> DLLObjects
+        {
+            get
+            {
+                lock (dllObjects) return new List<DLLObject>(dllObjects);
+            }
+        }
 
         public static string CurrentLogFilePath { get; private set; } = string.Empty;
-        public int ActivityProjectionVolumeGridDimension => m_VolumeGridDimension;
-        public VolumeInterpolation ActivityProjectionVolumeInterpolation => m_VolumeInterpolation;
 
         #endregion;
 
@@ -80,7 +80,6 @@ namespace HBP.Core.DLL
         protected override void Initialization()
         {
             base.Initialization();
-            ApplyActivityProjectionSettings();
             if (m_LogDLLToUnity)
             {
                 TryAttachHbpCoreLogger(out _);
@@ -100,11 +99,6 @@ namespace HBP.Core.DLL
                     Debug.LogWarning($"Unable to initialize the hbp_core log file: {error}");
                 }
             }
-        }
-
-        private void OnValidate()
-        {
-            ApplyActivityProjectionSettings();
         }
 
         private void OnDestroy()
@@ -145,18 +139,20 @@ namespace HBP.Core.DLL
         /// <param name="id">ID of the object</param>
         public static void AddDLLObject(string typeString, Guid id)
         {
-            if (m_Instance == null) return;
+            var instance = m_Instance;
+            if (ReferenceEquals(instance, null)) return;
 
-            if (m_Instance.m_GetInformationAboutDLLObjects)
+            if (instance.m_GetInformationAboutDLLObjects)
             {
                 if (typeString == "Tools.CSharp.EEG.Trigger") return;
-                m_Instance.DLLObjects.Add(new DLLObject()
+                var entry = new DLLObject()
                 {
                     Type = typeString,
                     StackTrace = Environment.StackTrace,
                     ID = id,
                     CleanedBy = CleanedBy.NotCleaned
-                });
+                };
+                lock (instance.dllObjects) instance.dllObjects.Add(entry);
             }
         }
 
@@ -168,12 +164,16 @@ namespace HBP.Core.DLL
         /// <param name="cleanedBy">How do we remove this object ?</param>
         public static void RemoveDLLOBject(string typeString, Guid id, CleanedBy cleanedBy)
         {
-            if (m_Instance == null) return;
+            var instance = m_Instance;
+            if (ReferenceEquals(instance, null)) return;
 
-            if (m_Instance.m_GetInformationAboutDLLObjects)
+            if (instance.m_GetInformationAboutDLLObjects)
             {
-                var objectToRemove = m_Instance.DLLObjects.Find(d => d.Type == typeString && d.ID == id);
-                if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
+                lock (instance.dllObjects)
+                {
+                    var objectToRemove = instance.dllObjects.Find(d => d.Type == typeString && d.ID == id);
+                    if (objectToRemove != null) objectToRemove.CleanedBy = cleanedBy;
+                }
             }
         }
 
@@ -192,22 +192,6 @@ namespace HBP.Core.DLL
             TryResetHbpCoreLogger(out _);
             HbpCoreRuntime.TryResetLogFile(out _);
             CurrentLogFilePath = string.Empty;
-        }
-
-        public void ApplyActivityProjectionSettings()
-        {
-            if (m_VolumeGridDimension < 2)
-            {
-                m_VolumeGridDimension = ActivityProjectionSettings.DefaultVolumeGridDimension;
-            }
-
-            if (!Enum.IsDefined(typeof(VolumeInterpolation), m_VolumeInterpolation))
-            {
-                m_VolumeInterpolation = ActivityProjectionSettings.DefaultVolumeInterpolation;
-            }
-
-            ActivityProjectionSettings.VolumeGridDimension = m_VolumeGridDimension;
-            ActivityProjectionSettings.VolumeInterpolation = m_VolumeInterpolation;
         }
 
         #endregion

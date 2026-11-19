@@ -1,0 +1,48 @@
+{
+  "ID": "quest-013-visualization",
+  "Name": "MNI Contacts",
+  "Patients": [
+    "quest-013-patient-left",
+    "quest-013-patient-right"
+  ],
+  "Configuration": {
+    "ID": "quest-013-visualization-configuration",
+    "Brain Color": 15,
+    "Brain Cut Color": 14,
+    "Colormap": 13,
+    "Mesh Part": 2,
+    "Mesh": "MNI Grey matter",
+    "Surface Representation": 0,
+    "MRI": "MNI",
+    "Implantation": "MNI",
+    "Edges": false,
+    "Transparent Brain": false,
+    "Brain Alpha": 0.2,
+    "Strong Cuts": false,
+    "Hide Blacklisted Sites": false,
+    "ShowAllSites": true,
+    "AutomaticCutAroundSelectedSite": false,
+    "Site Gain": 1.0,
+    "MRI Min": 0.0,
+    "MRI Max": 1.0,
+    "Camera Type": 0,
+    "Cuts": [],
+    "Views": [],
+    "RegionsOfInterest": []
+  },
+  "Columns": [
+    {
+      "$type": "HBP.Core.Data.AnatomicColumn, HBP.Core.Runtime",
+      "ID": "quest-013-column",
+      "Name": "MNI Contacts",
+      "AnatomicConfiguration": {
+        "ID": "quest-013-anatomic-configuration"
+      },
+      "BaseConfiguration": {
+        "ID": "quest-013-base-configuration",
+        "Activity Alpha": 0.8,
+        "ConfigurationBySite": {}
+      }
+    }
+  ]
+}

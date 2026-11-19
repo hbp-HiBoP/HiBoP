@@ -89,8 +89,11 @@ namespace HBP.Core.Preferences
         public void Save()
         {
             ClassLoaderSaver.SaveToJSon(this, PATH, true);
-            OnSavePreferences.Invoke();
+            NotifyChanged();
         }
+
+        /// <summary>Notify existing consumers after applying in-memory preferences without persisting them.</summary>
+        public void NotifyChanged() => OnSavePreferences.Invoke();
 
         public override object Clone()
         {

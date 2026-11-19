@@ -9,6 +9,22 @@ namespace HBP.Core.DLL
     {
         private const int MaximumParallelWorkerCount = 16;
 
+        /// <summary>
+        /// Compute all prepared samples using the current effective site masks, then apply
+        /// the supplied calibration through the native generator. Calibration belongs to
+        /// the full preparation; never derive it from the selected sample.
+        /// Buffers and native resources are borrowed for this synchronous call. The caller
+        /// must serialize computation, calibration, UV reads and disposal on this generator.
+        /// Read renderer-ready UVs afterwards through the bound SurfaceGenerator.
+        /// </summary>
+        public IEEGComputeMetrics ComputeCalibratedActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, SiteInfluenceByDistanceType siteInfluenceByDistance, float middle, float spanMin, float spanMax)
+        {
+            ComputeActivity(rawElectrodes, influenceDistance, activityValues, timelineLength, numberOfSites, siteInfluenceByDistance);
+            var metrics = GetLastComputeMetrics();
+            AdjustValues(middle, spanMin, spanMax);
+            return metrics;
+        }
+
         public void ComputeActivity(RawSiteList rawElectrodes, float influenceDistance, float[] activityValues, int timelineLength, int numberOfSites, SiteInfluenceByDistanceType siteInfluenceByDistance)
         {
             if (rawElectrodes == null) throw new ArgumentNullException(nameof(rawElectrodes));

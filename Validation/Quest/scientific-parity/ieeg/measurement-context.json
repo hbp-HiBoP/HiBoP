@@ -1,0 +1,875 @@
+{
+  "description": "Historical measurement context, curated without rerunning the campaign. Original JSON fields selected below are unchanged.",
+  "historicalTask": "QUEST-023",
+  "archiveCommit": "003edbcf53ac2697525dee688b2a9be082159794",
+  "originalManifest": {
+    "path": "Docs/dev/quest-autonomous/evidence/QUEST-023/manifest.json",
+    "sha256": "8667d345559313bc2f5f7dcf79997e83ed72b1f080b4d2d6a7e5015558819d8f"
+  },
+  "referencePolicy": "Paths inside original records are historical provenance, not current runnable commands or guaranteed available artifacts. Resolve relocated records with retainedFiles; recover other versioned records from archiveCommit.",
+  "retainedFiles": [
+    {
+      "path": "comparison-results.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-023/parity.json",
+      "sha256": "ae37bc323c19fa42c4b28622e634fa7fa26d73e962a11682a8d53edaca9f770e"
+    },
+    {
+      "path": "numerical-acceptance.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-023/numerical-acceptance.json",
+      "sha256": "7f344b6a39443038546e71a4108975661ce1e9f506d16e08d0a6047244d5c028"
+    },
+    {
+      "path": "fixture-provenance.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-023/fixture-provenance.json",
+      "sha256": "0d947cf43d05feadd8973c01f4323fca848da63a96a6106d00ba197ddb95c737"
+    },
+    {
+      "path": "offline-device-validation.json",
+      "originalPath": "Docs/dev/quest-autonomous/evidence/QUEST-023/manual-m2.json",
+      "sha256": "e9e442a3526731f7a6016d52fad329ac0e3131be89be7909798968e0ee14f7e3"
+    }
+  ],
+  "originalManifestFields": {
+    "utc": "2026-09-10T07:53:20.7461479Z",
+    "source": {
+      "branch": "feature/xr-autonomous",
+      "baseCommit": "7e2b13d9f00d241bd67493f058c0624bff07258d",
+      "initialWorkingTree": "clean",
+      "committed": false,
+      "files": [
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Dev\\HBP.Dev.Runtime.asmdef",
+          "bytes": 709,
+          "sha256": "81d18ce8764cdbf2a601f66e60848ca04a3e29305990ace88dcfbe52e754d40e"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Dev\\IEEGProjectionDiagnostic.cs",
+          "bytes": 15526,
+          "sha256": "c5b0af37d87ff18f6feab7e388886427711e86f63fad77cd5bbe6ec9a4c9e28b"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestAnatomyInput.cs",
+          "bytes": 3650,
+          "sha256": "aca054f0aa834ab2827dcc26e258a0c0657cb60f8a6634ba4d25872448757c81"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestAnatomySession.cs",
+          "bytes": 10838,
+          "sha256": "1389ea096b25c26385345da3f13d114575c97d176354ccebc21da7f560f86bb9"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestAnatomyView.cs",
+          "bytes": 16035,
+          "sha256": "5ab51ba813e836cdf07fa00708baa6ba1fe9c0964feda290386b3d757ca93b42"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestConnectionPanel.cs",
+          "bytes": 7191,
+          "sha256": "d6481c56b720353f9f4e2c64127fa0dcfd7d467b62acef9124dee930597751e8"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestContactRenderer.cs",
+          "bytes": 5431,
+          "sha256": "69f9af1ce4363cfec42486c990a30558ca2224bab7c26076eb4ac5474e675dbf"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Quest\\Runtime\\QuestIEEGDiagnostic.cs",
+          "bytes": 6663,
+          "sha256": "e88fd2c50e6ee45a1215b3ab949d4e022b3d0b8c7e525e5ee160ba123ad334b3"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Anatomy\\Desktop\\DensityDeliveryDiagnostic.cs",
+          "bytes": 4779,
+          "sha256": "23c919153c52dc5ab33e3504d9484432b02a2ea808bfc4ebc85778e9dd2370a9"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Projection\\IEEGBenchmark.cs",
+          "bytes": 6384,
+          "sha256": "0348861d2c3a5ab17288d028c98b376c8505d32525630887d536e658e94f424c"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Scripts\\HBP\\Transfer\\Projection\\NativeProjectionInputs.cs",
+          "bytes": 13457,
+          "sha256": "27511d1ee9d92d46afc31f5e0c6e36911348f634f5047db3f0c868834c631051"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\EditMode\\HBP.Quest.Anatomy.Tests\\IEEGCalculationTests.cs",
+          "bytes": 7598,
+          "sha256": "948d86c446f2cab2cc6f19b08c1c703faa0819bee1c99eeef6250f2c35a2f45a"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Assets\\Tests\\PlayMode\\HBP.Quest.PlayModeTests\\AnatomyDeliveryTests.cs",
+          "bytes": 33424,
+          "sha256": "72beaa4f3961a82aab9274ef53915e4b0092ed2dfecea94b4957a6d9fb299072"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Compare-QuestIEEG.py",
+          "bytes": 4442,
+          "sha256": "8e9a9b05d3d0860f3f9c666d15f3858cb4de9bdc524d80c20f4454eae7ed3a37"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Run-QuestIEEGBenchmark.ps1",
+          "bytes": 4880,
+          "sha256": "3d475afd7253d9933eb9e86795760d0c9fa203e3851f08035a4466550c0dcc17"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Run-QuestIEEGDelivery.ps1",
+          "bytes": 6577,
+          "sha256": "0504d006089e036e22f6749812f794339e79eee1ac4767714c8336861ef47308"
+        },
+        {
+          "path": "C:\\HBP\\Software\\HiBoP\\Tools\\Run-QuestIEEGProjection.ps1",
+          "bytes": 1970,
+          "sha256": "fe96d18370d2b9ae2223b245c89ddac982c4970a180dd4b4be5c2d953bc024a3"
+        }
+      ],
+      "notes": "Windows built before final Quest-only dispatch cancellation correction. Windows excludes HBP.Quest.Runtime; shared calculation and Desktop sources are unchanged between tested binaries."
+    },
+    "environment": {
+      "unity": "6000.5.2f1",
+      "host": "Windows-11-10.0.26200-SP0",
+      "quest": "Quest 3",
+      "adbTransport": "USB",
+      "serial": "2G0YC5ZHB20370",
+      "profiles": [
+        "Assets/Settings/BuildProfiles/DesktopWindows.asset",
+        "Assets/Settings/BuildProfiles/Quest.asset"
+      ]
+    },
+    "nativeLock": {
+      "path": "C:\\HBP\\Software\\HiBoP\\Tools\\NativePlugins.lock.json",
+      "bytes": 8169,
+      "sha256": "3d96ef4de48733d846032b7210ae7850eac127950cd0bcb49ac59e778882f240"
+    },
+    "nativeLibraries": [
+      {
+        "name": "EEGFormat",
+        "repository": "hbp-HiBoP/EEGFormat",
+        "commit": "99b54e9faf607973451233c069315978d3c6bffd",
+        "runId": 34339376344,
+        "runUrl": "https://github.com/hbp-HiBoP/EEGFormat/actions/runs/34339376344",
+        "artifacts": [
+          {
+            "platform": "Linux",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Linux/x86_64/libEEGFormat.so",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 921304,
+                "sha256": "a81e7d3ac1ab6bef5921e2d4656d08fb9ac4f84c962f0f0505ab3aff157d5074"
+              }
+            ]
+          },
+          {
+            "platform": "Windows",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Windows/x86_64/EEGFormat.dll",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 1005056,
+                "sha256": "7e2c552185358d06983d2c6104fc0d71a081d54368cb3ddb5ccc52dda226b4ec"
+              }
+            ]
+          },
+          {
+            "platform": "MacOS",
+            "architecture": "arm64",
+            "destination": "Assets/Plugins/Native/macOS/arm64/EEGFormat.bundle",
+            "files": [
+              {
+                "relativePath": "Contents/_CodeSignature/CodeResources",
+                "sizeBytes": 2200,
+                "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+              },
+              {
+                "relativePath": "Contents/Info.plist",
+                "sizeBytes": 688,
+                "sha256": "0da4164ae2156275b6b9b8a9f7589b5ba53f2283cf0a907cdedd11bcbcdcf3d9"
+              },
+              {
+                "relativePath": "Contents/MacOS/libEEGFormat",
+                "sizeBytes": 604288,
+                "sha256": "598aa66cedbc2e2e93e194a0b4838d6881e03d143064d5816bc0d9808eff2e2d"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "hbp_core",
+        "repository": "hbp-HiBoP/hbp_core",
+        "commit": "ffb7686011f37a21e6c5ab4f88ad6cfcbc53ffc1",
+        "runId": 34339388439,
+        "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/34339388439",
+        "artifacts": [
+          {
+            "platform": "Android",
+            "architecture": "arm64",
+            "destination": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 1450608,
+                "sha256": "96ea8cd31ac5f572560403fc177f53f2dc56009780ad9de91c0d63ddb74c4a8e"
+              }
+            ],
+            "provenance": {
+              "sourceTree": "53fa0fbfbdc6fccc279c57cc7a895f1d860fcae2",
+              "sourceMode": "git-archive",
+              "android": {
+                "ndkVersion": "27.2.12479018",
+                "cmakeVersion": "3.22.1",
+                "ninjaVersion": "1.10.2",
+                "api": 32,
+                "abi": "arm64-v8a",
+                "stl": "c++_static",
+                "pageSize": 16384
+              },
+              "runtimeDependencies": [
+                "libc.so",
+                "libdl.so",
+                "libm.so"
+              ],
+              "publicExportCount": 226,
+              "buildTools": [
+                {
+                  "path": "tools/Invoke-HbpCoreBuild.ps1",
+                  "sha256": "246049c188685e3dbf662c4d2b4853ea96c2a474c1fefa254203462fa0f55ebb"
+                },
+                {
+                  "path": "tools/Invoke-HbpCoreAndroidBuild.ps1",
+                  "sha256": "f083c3e258835f33976c014e2c36c03760a06396cffcbce5ea735146b7481933"
+                },
+                {
+                  "path": "tools/AndroidBuild.json",
+                  "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+                },
+                {
+                  "path": "tools/Test-HbpCoreAbi.ps1",
+                  "sha256": "c05943a415c5ef6dd6feaf3a879918bd2a58bcb4ad154910ad581c1dae24eb87"
+                },
+                {
+                  "path": "tools/Test-HbpCoreAndroidArtifact.ps1",
+                  "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
+                }
+              ],
+              "artifactManifestSha256": "5ec0ef6c29380b6001dcdf0bdd47218f08394c32f9b7f5ae0a4e47d25ed0584d"
+            }
+          },
+          {
+            "platform": "Linux",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_core.so",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 1535512,
+                "sha256": "6ac03d016c2fba89ae35a26b5c14d9d8ccaa82e876345537d5cd28f16f2f1e90"
+              }
+            ]
+          },
+          {
+            "platform": "Windows",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_core.dll",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 1378816,
+                "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+              }
+            ]
+          },
+          {
+            "platform": "MacOS",
+            "architecture": "arm64",
+            "destination": "Assets/Plugins/Native/macOS/arm64/hbp_core.bundle",
+            "files": [
+              {
+                "relativePath": "Contents/_CodeSignature/CodeResources",
+                "sizeBytes": 2200,
+                "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+              },
+              {
+                "relativePath": "Contents/Info.plist",
+                "sizeBytes": 770,
+                "sha256": "8bc6c425689af281a6403a8f54612fc7cef98c67e539fbeaf9af7a6c73d706ac"
+              },
+              {
+                "relativePath": "Contents/MacOS/libhbp_core",
+                "sizeBytes": 1262832,
+                "sha256": "a1bce13a5c155a51138994b1a17e3999c3c1cf5eea7ddb4b0c1e02dabfbadb1d"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "hbp_math",
+        "repository": "hbp-HiBoP/hbp_math",
+        "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
+        "runId": 34339402353,
+        "runUrl": "https://github.com/hbp-HiBoP/hbp_math/actions/runs/34339402353",
+        "artifacts": [
+          {
+            "platform": "Linux",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Linux/x86_64/libhbp_math.so",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 50400,
+                "sha256": "95192df09d373343b28f20ecbef32bce04c0b29cc3a758c3a1241ba30725c34b"
+              }
+            ]
+          },
+          {
+            "platform": "Windows",
+            "architecture": "x86_64",
+            "destination": "Assets/Plugins/Native/Windows/x86_64/hbp_math.dll",
+            "files": [
+              {
+                "relativePath": "",
+                "sizeBytes": 246784,
+                "sha256": "d55766c1c2223ca6d2732270224a4487ac4412cf5cd9bde296cf7743103722aa"
+              }
+            ]
+          },
+          {
+            "platform": "MacOS",
+            "architecture": "arm64",
+            "destination": "Assets/Plugins/Native/macOS/arm64/hbp_math.bundle",
+            "files": [
+              {
+                "relativePath": "Contents/_CodeSignature/CodeResources",
+                "sizeBytes": 2200,
+                "sha256": "6686de10a28a2fe11b36cbb86dcbacc827cfc4ea116b4dabf1845e5aee629e9b"
+              },
+              {
+                "relativePath": "Contents/Info.plist",
+                "sizeBytes": 685,
+                "sha256": "c859897d9c2aaa61a2288f61ab843b660617306a09b8a0bd0bd8c6d753b336c9"
+              },
+              {
+                "relativePath": "Contents/MacOS/libhbp_math",
+                "sizeBytes": 77088,
+                "sha256": "a78fe04c5163c50343da555e592f7ddf0431af89b95026428ebc1c74e1b38d20"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "binaries": [
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-023\\Windows\\HiBoP.6.1.0.win64\\HiBoP.exe",
+        "bytes": 667648,
+        "sha256": "a90fed92ff703f0c866db23882431170d10a3612cd913b9f185498c46a8d12c1"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-023\\Windows\\HiBoP.6.1.0.win64\\GameAssembly.dll",
+        "bytes": 66131968,
+        "sha256": "aa6f38fc61b0fa05d4f090c243d949d8d83b78fb397a174e08c4b4831524db60"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-023\\Windows\\HiBoP.6.1.0.win64\\UnityPlayer.dll",
+        "bytes": 88157104,
+        "sha256": "b9991f8b5d64e9f5d1c8d056f22a2688076df56d29fe281e018d94f90903dbd4"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-023\\Android\\HiBoP.Quest.apk",
+        "bytes": 163079207,
+        "sha256": "87a4941a6b22da3eb7a1978019a4ab2b429a75490e39670a41f5db241945eb96"
+      },
+      {
+        "path": "C:\\HBP\\Software\\HiBoP\\.artifacts\\quest-023\\Windows\\HiBoP.6.1.0.win64\\HiBoP_Data\\Plugins\\x86_64\\hbp_core.dll",
+        "bytes": 1378816,
+        "sha256": "4eca81420c5bc0db4e38d074c4b1f689718492c82c2e4cf3bad51ec8c4eeb278"
+      }
+    ],
+    "limitations": [
+      "Float differences accepted only under D31, not universal.",
+      "No exact native peak, GPU completion or command-to-photon measurement.",
+      "Initial staging remains on the Unity main thread.",
+      "Screenshots with passthrough remain local."
+    ]
+  },
+  "runs": {
+    "desktopComparison": {
+      "command": "Tools/Run-QuestIEEGProjection.ps1 -EvidenceId quest-023",
+      "exitCode": 0,
+      "exactComparisons": 18,
+      "exports": 36
+    },
+    "questBenchmark": {
+      "command": "Tools/Run-QuestIEEGBenchmark.ps1 -Serial 2G0YC5ZHB20370 -Fixture .test-results/quest-023/player-20260910-071223/fixtures -SkipInstall",
+      "exitCode": 0,
+      "runs": 36,
+      "stoppedAfterCollection": true
+    },
+    "parity": {
+      "command": "python Tools/Compare-QuestIEEG.py .test-results/quest-023/player-20260910-071223/Windows .test-results/quest-023/benchmark-20260910-072512/Android Docs/dev/quest-autonomous/evidence/QUEST-023/parity.json",
+      "exitCode": 0,
+      "acceptance": "D31"
+    }
+  },
+  "rawInputAndBufferIdentities": [
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index0.hbna",
+      "bytes": 15533227,
+      "sha256": "b3389c3f005471ced318acb5baa1640139b2a30a9f724e2b4f44d8b4172f1151"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index10.hbna",
+      "bytes": 15533227,
+      "sha256": "6610017510de73532065e40fdfce5e0a2692fa9883fd279f1d0680ec3730a8de"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index130.hbna",
+      "bytes": 15533227,
+      "sha256": "2526600649fc4697c6669af4b263f172329f065cf96c47b996b9e385cfc62845"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index150.hbna",
+      "bytes": 15533227,
+      "sha256": "f7360d87290fae70c1210ef7e730a48983aab8fb9e7f293aa4a7ec740ffb288c"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index50.hbna",
+      "bytes": 15533227,
+      "sha256": "20bf3d8871e84118e057619e1f74f5715510289e71c4c48f900de987612b01dc"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config0-index75.hbna",
+      "bytes": 15533227,
+      "sha256": "97cebc1c652723a2de135f1726c79671e5f1825eb507cc35b4d00287c75d8c2a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index0.hbna",
+      "bytes": 15533227,
+      "sha256": "ffbd580f2bc9e79c750346d241d778734805c9419b134ede249c5e9b3adee9e3"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index10.hbna",
+      "bytes": 15533227,
+      "sha256": "2199d415b33f0b49df1286d7d0a85c5ef167ccb310988ee23b425c93c62b6369"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index130.hbna",
+      "bytes": 15533227,
+      "sha256": "1171a78a6262965c37dca7459e834c1d5b0423736012d72d7924fb95f2001e24"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index150.hbna",
+      "bytes": 15533227,
+      "sha256": "b78be6c08fb00153b96eb7512a4dfaf7ddb96a0c85a10bbe9649d0ba6f560b0f"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index50.hbna",
+      "bytes": 15533227,
+      "sha256": "a3ebba7aecf288930e792d114cbb6a9d1e4655f7ce47dc9e377333fd31b3e2f7"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config1-index75.hbna",
+      "bytes": 15533227,
+      "sha256": "4852cca09faabdf41063f28e2f1150835ef19085663f908eebec53551a743839"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index0.hbna",
+      "bytes": 15533227,
+      "sha256": "e25f72e3440359e09024565048d4a9e0c977927a5b056c26633ceec943fb728b"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index10.hbna",
+      "bytes": 15533227,
+      "sha256": "d5dac74600f38f2e72c6f0c888be9c8b6c8e1bf671c344193b9e0fd2fe007133"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index130.hbna",
+      "bytes": 15533227,
+      "sha256": "050c24b1450563a43a04c51591ebe3ebb1ee5249c8d7d1783e3f2a09b6133c28"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index150.hbna",
+      "bytes": 15533227,
+      "sha256": "e2a2176526c62eadb5b0be713bf61dedc078c702ed05ef6fe3743d8867dc046d"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index50.hbna",
+      "bytes": 15533227,
+      "sha256": "5597085d6a8895392ca975da3b56dcf17f19cbb8420346e5c9c0b95c59121bea"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\fixtures\\config2-index75.hbna",
+      "bytes": 15533227,
+      "sha256": "9a9a3b4c9af135d7a7b8ed3368d562238353b6e3c78826e53c439f9427bf67aa"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "4f4bbb98d9e573fff01e9e45d483a4c5ad2a0dd88e492ae6a6f22c72311b424a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "4f4bbb98d9e573fff01e9e45d483a4c5ad2a0dd88e492ae6a6f22c72311b424a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config0-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "7fbf2dfa2a89bbd7b8ecfa3558375dc694eed720a573d65389972caf7eb16747"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "7fbf2dfa2a89bbd7b8ecfa3558375dc694eed720a573d65389972caf7eb16747"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "95b51e5bc784f72b8f1153e67015db5cb8e54107a540e78aa632944df5d776b0"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "95b51e5bc784f72b8f1153e67015db5cb8e54107a540e78aa632944df5d776b0"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "95b51e5bc784f72b8f1153e67015db5cb8e54107a540e78aa632944df5d776b0"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "95b51e5bc784f72b8f1153e67015db5cb8e54107a540e78aa632944df5d776b0"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "169c5e179b37e4d07e043e8ed37b42f8701c49a0ad6c810c7e585c810dd743a3"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "169c5e179b37e4d07e043e8ed37b42f8701c49a0ad6c810c7e585c810dd743a3"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "718c97c24ea3a9f06808b3494c2585764c604231fbd6689a3514e0b6b3ef9a48"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "718c97c24ea3a9f06808b3494c2585764c604231fbd6689a3514e0b6b3ef9a48"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "ad81387c0514b7b7aed45f04089b6bc14d35a4bf7a61ee42c2489a4bf91f4833"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config1-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "ad81387c0514b7b7aed45f04089b6bc14d35a4bf7a61ee42c2489a4bf91f4833"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "6dd86e2982cb5fe08567334d90dab9e8847236de83590e5e9fee70cc15abd532"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "dfee496967c4bad951eae6270cd9e3554f04dabbd7f17402406f7dcf974ba8b1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "c620c361c99eb47187fc263d8631774927927d67d64c12199c18c3c25a790417"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "4f4bbb98d9e573fff01e9e45d483a4c5ad2a0dd88e492ae6a6f22c72311b424a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "4f4bbb98d9e573fff01e9e45d483a4c5ad2a0dd88e492ae6a6f22c72311b424a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\player-20260910-071223\\Windows\\config2-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "7d0009d610d675fe0ebdccbc46985cd13aaf250d9b883d154310778f3b6b6c38"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "5e0c5d465db001ec04958282245ea842d427bbdbf8e16587f6e4064be7c9c84a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "5e0c5d465db001ec04958282245ea842d427bbdbf8e16587f6e4064be7c9c84a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "f7930fec40f4b810f9135355f29e95ac5729485d6d9b5ad9a4dc5236dc0fa9d1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "f7930fec40f4b810f9135355f29e95ac5729485d6d9b5ad9a4dc5236dc0fa9d1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "4e430ffe298a61bb23685d62dae2c0035d8b59c7f2c9125dd609dd06b6f385b4"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "4e430ffe298a61bb23685d62dae2c0035d8b59c7f2c9125dd609dd06b6f385b4"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "a1aba23c4d1a4b081958e2f0748821153853477277d2a6c06d8cbeb64662ef46"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config0-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "a1aba23c4d1a4b081958e2f0748821153853477277d2a6c06d8cbeb64662ef46"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "089fb77bb22f61c13d6f947e35760bac41df5e26a241788c94b52214facd6270"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "089fb77bb22f61c13d6f947e35760bac41df5e26a241788c94b52214facd6270"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "173972bed72aef507c23045ab47bb176b9c20b589b914286b77d224b4ccab774"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "173972bed72aef507c23045ab47bb176b9c20b589b914286b77d224b4ccab774"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "173972bed72aef507c23045ab47bb176b9c20b589b914286b77d224b4ccab774"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "173972bed72aef507c23045ab47bb176b9c20b589b914286b77d224b4ccab774"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "3f71833550a0ae5aeda336cbefd1092dde8341a8e2db9e67841ddfad7bd80236"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "3f71833550a0ae5aeda336cbefd1092dde8341a8e2db9e67841ddfad7bd80236"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "f27a9212d22d7c2c15e76591ed19286609188961059bce8b8f044d072dd37480"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "f27a9212d22d7c2c15e76591ed19286609188961059bce8b8f044d072dd37480"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "adaafef8cf56c1150e15eadc57ff692939c2ffe2911c79ad4953036960832d74"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config1-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "adaafef8cf56c1150e15eadc57ff692939c2ffe2911c79ad4953036960832d74"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index0-0.bin",
+      "bytes": 5348864,
+      "sha256": "5e0c5d465db001ec04958282245ea842d427bbdbf8e16587f6e4064be7c9c84a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index0-1.bin",
+      "bytes": 5348864,
+      "sha256": "5e0c5d465db001ec04958282245ea842d427bbdbf8e16587f6e4064be7c9c84a"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index10-0.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index10-1.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index130-0.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index130-1.bin",
+      "bytes": 5348864,
+      "sha256": "85fcfdbdfc810301e870d7886b75951df37c22403c12022a9440d8cba2c40f60"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index150-0.bin",
+      "bytes": 5348864,
+      "sha256": "f7930fec40f4b810f9135355f29e95ac5729485d6d9b5ad9a4dc5236dc0fa9d1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index150-1.bin",
+      "bytes": 5348864,
+      "sha256": "f7930fec40f4b810f9135355f29e95ac5729485d6d9b5ad9a4dc5236dc0fa9d1"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index50-0.bin",
+      "bytes": 5348864,
+      "sha256": "4e430ffe298a61bb23685d62dae2c0035d8b59c7f2c9125dd609dd06b6f385b4"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index50-1.bin",
+      "bytes": 5348864,
+      "sha256": "4e430ffe298a61bb23685d62dae2c0035d8b59c7f2c9125dd609dd06b6f385b4"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index75-0.bin",
+      "bytes": 5348864,
+      "sha256": "a1aba23c4d1a4b081958e2f0748821153853477277d2a6c06d8cbeb64662ef46"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\benchmark-20260910-072512\\Android\\config2-index75-1.bin",
+      "bytes": 5348864,
+      "sha256": "a1aba23c4d1a4b081958e2f0748821153853477277d2a6c06d8cbeb64662ef46"
+    },
+    {
+      "path": "C:\\HBP\\Software\\HiBoP\\.test-results\\quest-023\\delivery-20260910-072831\\received-source.hbna",
+      "bytes": 15533226,
+      "sha256": "0b20dbb4dd5244a08503ab492c201ebce3b086f17457f620fddfa6450847f9e9"
+    }
+  ]
+}

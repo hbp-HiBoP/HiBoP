@@ -1,3 +1,5 @@
+using HBP.Input;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -431,7 +433,7 @@ namespace HBP.UI.Tools.Lists
                         Deselect(m_DisplayedObjects.Where((o) => !o.Equals(obj)), Toggle.ToggleTransition.Fade);
                         break;
                     case SelectionType.MultipleItems:
-                        if (Input.GetKey(KeyCode.LeftShift))
+                        if (DesktopInput.IsPressed(Key.LeftShift))
                         {
                             int lastIndex = m_DisplayedObjects.IndexOf(m_LastSelectedObject);
                             int actualIndex = m_DisplayedObjects.IndexOf(obj);

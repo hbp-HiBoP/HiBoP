@@ -49,6 +49,8 @@ namespace HBP.Tests.Serialization
                 Assert.That(mesh.GetSurface(simplified: true), Is.SameAs(first.SimplifiedBoth));
 
                 second = await mesh.GenerateInflatedRepresentationAsync(FastSettings(iterationCount: 5));
+                SurfaceInflationResult anatomicalResult = await anatomical.InflateAsync(FastSettings(5).Options);
+                using (anatomicalResult.Surface) AssertSurfaceBuffersEqual(second.Both, anatomicalResult.Surface);
                 Assert.That(second, Is.Not.SameAs(first));
                 Assert.That(second.CacheKey, Is.Not.EqualTo(first.CacheKey));
                 Assert.That(mesh.InflatedRepresentationCacheCount, Is.EqualTo(2));
@@ -303,6 +305,146 @@ namespace HBP.Tests.Serialization
             finally
             {
                 mesh.Clean();
+            }
+        }
+
+        [Test, Category("NativeDll")]
+        public async Task PreparedAnatomicalSource_PreservesAnisotropicInflationAndScientificAttributesWithoutFiles()
+        {
+            RequireInflationLibrary();
+            using TempDirectoryScope temp = new();
+            string gifti = temp.GetPath("source.gii");
+            string transform = temp.GetPath("source.trm");
+            string parcels = temp.GetPath("atlas.gii");
+            WriteOctahedronGifti(gifti);
+            File.WriteAllText(parcels, "<?xml version=\"1.0\"?><GIFTI Version=\"1.0\" NumberOfDataArrays=\"1\"><MetaData /><LabelTable /><DataArray Intent=\"NIFTI_INTENT_LABEL\" DataType=\"NIFTI_TYPE_INT32\" ArrayIndexingOrder=\"RowMajorOrder\" Dimensionality=\"1\" Dim0=\"6\" Encoding=\"ASCII\" Endian=\"LittleEndian\" ExternalFileName=\"\" ExternalFileOffset=\"0\"><MetaData /><Data>1 2 3 4 5 6</Data></DataArray></GIFTI>");
+            File.WriteAllText(transform, string.Join(Environment.NewLine, "5 7 11", "2 0 0", "0 1 0", "0 0 0.5"));
+            var desktop = new SingleMesh3D(new SingleMesh("Native", transform, gifti, string.Empty), MeshType.Patient, true);
+            Mesh3D restored = null;
+            try
+            {
+                var buffers = desktop.Both.CopyTransferBuffers();
+                var uv = new Vector2[buffers.vertices.Length];
+                var colors = new Color[buffers.vertices.Length];
+                for (int index = 0; index < uv.Length; ++index)
+                {
+                    uv[index] = new Vector2(index / 10f, (index + 1) / 10f);
+                    colors[index] = new Color(index / 10f, 0.25f, 0.75f, 1f);
+                }
+
+                desktop.Both.SetBuffers(buffers.vertices, buffers.triangles, buffers.normals, uv, colors);
+                using MarsAtlas atlas = new();
+                string atlasDirectory = Path.GetFullPath("Assets/Data/Atlases/MarsAtlas");
+                Assert.That(atlas.Load(Path.Combine(atlasDirectory, "mars_atlas_index.csv"), Path.Combine(atlasDirectory, "brodmann_areas.txt"), Path.Combine(atlasDirectory, "colin27_MNI_MarsAtlas.nii")), Is.True);
+                Assert.That(desktop.Both.SearchMarsParcelFileAndUpdateColors(atlas, parcels), Is.True);
+                int[] mask = desktop.Both.VisibilityMask;
+                mask[0] = 0;
+                desktop.Both.UpdateVisibilityMask(mask).Dispose();
+                using Surface anatomicalBefore = (Surface)desktop.Both.Clone();
+                long geometryVersion = desktop.Both.GeometryVersion;
+                restored = Mesh3D.FromPrepared(desktop.Name, desktop.Type, (Surface)desktop.Both.Clone(), (Surface)desktop.SimplifiedBoth.Clone(), null, null, null, null, null, null, null, null, null, null);
+                File.Delete(gifti);
+                File.Delete(transform);
+                File.Delete(parcels);
+                Mesh3DInflatedRepresentation expected = await desktop.GenerateInflatedRepresentationAsync(FastSettings(20));
+                Mesh3DInflatedRepresentation actual = await restored.GenerateInflatedRepresentationAsync(FastSettings(20));
+                desktop.SelectRepresentation(SurfaceRepresentation.Inflated);
+                restored.SelectRepresentation(SurfaceRepresentation.Inflated);
+                Assert.That(actual.CoordinateSpace, Is.EqualTo(SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates));
+                Assert.That(actual.Both.IsMarsAtlasLoaded, Is.True);
+                AssertSurfaceBuffersEqual(desktop.Both, anatomicalBefore);
+                Assert.That(desktop.Both.GeometryVersion, Is.EqualTo(geometryVersion));
+                Mesh expectedMesh = new(), actualMesh = new();
+                try
+                {
+                    expected.Both.UpdateMeshFromDLL(expectedMesh);
+                    actual.Both.UpdateMeshFromDLL(actualMesh);
+                    Assert.That(actualMesh.vertices, Is.EqualTo(expectedMesh.vertices));
+                    Assert.That(actualMesh.colors, Is.EqualTo(expectedMesh.colors));
+                    Assert.That(actualMesh.uv, Is.EqualTo(expectedMesh.uv));
+                    Assert.That(actual.Both.VisibilityMask, Is.EqualTo(mask));
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(expectedMesh);
+                    UnityEngine.Object.DestroyImmediate(actualMesh);
+                }
+            }
+            finally
+            {
+                restored?.Clean();
+                desktop.Clean();
+            }
+        }
+
+        [TestCase(SurfaceInflationCoordinateSpace.NativeGifti)]
+        [TestCase(SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed)]
+        [Category("NativeDll")]
+        public void FromPrepared_RejectsObsoleteInflationWithoutTakingOwnership(SurfaceInflationCoordinateSpace coordinates)
+        {
+            RequireInflationLibrary();
+            using Surface anatomical = CreateOctahedron();
+            using Surface inflated = CreateOctahedron();
+            var exception = Assert.Throws<InvalidOperationException>(() => Mesh3D.FromPrepared("obsolete", MeshType.Patient, anatomical, anatomical, null, null, null, null, inflated, inflated, null, null, null, null, coordinateSpace: coordinates));
+            Assert.That(exception.Message, Does.Contain("Prepare and send"));
+            Assert.That(anatomical.IsLoaded && inflated.IsLoaded, Is.True);
+        }
+
+        [Test, Category("NativeDll")]
+        public async Task LoadedHemispheres_InflateIndependentlyWithoutFilesAndInvalidateCacheOnMutation()
+        {
+            RequireInflationLibrary();
+            using TempDirectoryScope temp = new();
+            string left = temp.GetPath("left.gii"), right = temp.GetPath("right.gii"), transform = temp.GetPath("surface.trm");
+            WriteOctahedronGifti(left);
+            WriteOctahedronGifti(right);
+            File.WriteAllText(transform, string.Join(Environment.NewLine, "5 7 11", "2 0 0", "0 1 0", "0 0 0.5"));
+            var mesh = new LeftRightMesh3D(new LeftRightMesh("Loaded hemispheres", transform, left, right, string.Empty, string.Empty), MeshType.Patient, true);
+            try
+            {
+                using Surface leftBefore = (Surface)mesh.Left.Clone(), rightBefore = (Surface)mesh.Right.Clone(), bothBefore = (Surface)mesh.Both.Clone();
+                File.Delete(left);
+                File.Delete(right);
+                File.Delete(transform);
+                Mesh3DInflationSettings settings = FastSettings(20);
+                var result = await mesh.GenerateInflatedRepresentationAsync(settings);
+                var expectedLeft = await mesh.Left.InflateAsync(settings.Options);
+                var expectedRight = await mesh.Right.InflateAsync(settings.Options);
+                using (expectedLeft.Surface) AssertSurfaceBuffersEqual(result.Left, expectedLeft.Surface);
+                using (expectedRight.Surface) AssertSurfaceBuffersEqual(result.Right, expectedRight.Surface);
+                AssertSurfaceBuffersEqual(mesh.Left, leftBefore);
+                AssertSurfaceBuffersEqual(mesh.Right, rightBefore);
+                AssertSurfaceBuffersEqual(mesh.Both, bothBefore);
+                Assert.That(await mesh.GenerateInflatedRepresentationAsync(settings), Is.SameAs(result));
+                mesh.Left.FlipTriangles();
+                mesh.Left.FlipTriangles();
+                var regenerated = await mesh.GenerateInflatedRepresentationAsync(settings);
+                Assert.That(regenerated, Is.Not.SameAs(result));
+                Assert.That(regenerated.CacheKey.SourceGeometryIdentity, Is.Not.EqualTo(result.CacheKey.SourceGeometryIdentity));
+            }
+            finally
+            {
+                mesh.Clean();
+            }
+        }
+
+        private static void AssertSurfaceBuffersEqual(Surface actual, Surface expected)
+        {
+            Mesh actualMesh = new(), expectedMesh = new();
+            try
+            {
+                actual.UpdateMeshFromDLL(actualMesh);
+                expected.UpdateMeshFromDLL(expectedMesh);
+                Assert.That(actualMesh.vertices, Is.EqualTo(expectedMesh.vertices));
+                Assert.That(actualMesh.triangles, Is.EqualTo(expectedMesh.triangles));
+                Assert.That(actualMesh.colors, Is.EqualTo(expectedMesh.colors));
+                Assert.That(actualMesh.uv, Is.EqualTo(expectedMesh.uv));
+                Assert.That(actual.VisibilityMask, Is.EqualTo(expected.VisibilityMask));
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(actualMesh);
+                UnityEngine.Object.DestroyImmediate(expectedMesh);
             }
         }
 

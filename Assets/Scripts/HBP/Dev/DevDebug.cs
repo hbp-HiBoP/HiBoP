@@ -1,3 +1,5 @@
+using HBP.Input;
+using UnityEngine.InputSystem;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Core.Enums;
@@ -69,7 +71,7 @@ namespace HBP.Dev
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.F1))
+            if (DesktopInput.WasPressedThisFrame(Key.F1))
             {
                 //LoadingManager.Load(SaveActivityAsNifti);
                 //Core.Object3D.FMRI fmri = new("FMRI", Path.Join(PersistentDataManager.UserPreferences.General.Project.DefaultExportLocation, "FRUIT.nii.gz"));

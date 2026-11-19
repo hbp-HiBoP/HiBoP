@@ -1,4 +1,6 @@
-﻿using System.Linq;
+using HBP.Input;
+using UnityEngine.InputSystem;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using data = HBP.Data.Informations.TrialMatrix;
@@ -80,7 +82,7 @@ namespace HBP.UI.Informations.TrialMatrix
                                 m_SubBlocText.text = subBloc.SubBlocProtocol.Name;
 
                                 data.SubTrial[] subTrials = subBloc.SubTrials;
-                                Vector2 ratio = m_SubBlocRectTransform.GetRatioPosition(Input.mousePosition);
+                                Vector2 ratio = m_SubBlocRectTransform.GetRatioPosition(DesktopInput.MousePosition);
                                 int trial = Mathf.Clamp(Mathf.FloorToInt(Mathf.Clamp01(1 - ratio.y) * subTrials.Length), 0, subTrials.Length - 1);
                                 data.SubTrial subTrial = subTrials[trial];
                                 m_WindowText.transform.parent.gameObject.SetActive(true);

@@ -12,8 +12,53 @@ Shader "HBP/Cut/Transparent"
         {
             "RenderPipeline" = "UniversalPipeline"
             "RenderType" = "Transparent"
+            "HBPQuestComposition" = "Peel"
             "Queue" = "Transparent"
         }
+
+        HLSLINCLUDE
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+        struct Attributes
+        {
+            float4 positionOS : POSITION;
+            float2 uv : TEXCOORD0;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+        };
+        struct Varyings
+        {
+            float4 positionCS : SV_POSITION;
+            float2 uv : TEXCOORD0;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+            UNITY_VERTEX_OUTPUT_STEREO
+        };
+
+        TEXTURE2D(_MainTex);
+        SAMPLER(sampler_MainTex);
+        CBUFFER_START(UnityPerMaterial)
+            float4 _MainTex_ST;
+            float4 _Color;
+        CBUFFER_END
+
+        Varyings Vert(Attributes input)
+        {
+            Varyings output = (Varyings)0;
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_TRANSFER_INSTANCE_ID(input, output);
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+            output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+            output.uv = TRANSFORM_TEX(input.uv, _MainTex);
+            return output;
+        }
+
+        half4 Frag(Varyings input) : SV_Target
+        {
+            UNITY_SETUP_INSTANCE_ID(input);
+            UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+            half4 sampled = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
+            return half4(sampled.rgb * _Color.rgb, sampled.a * _Color.a);
+        }
+        ENDHLSL
 
         Pass
         {
@@ -28,47 +73,28 @@ Shader "HBP/Cut/Transparent"
             #pragma vertex Vert
             #pragma fragment Frag
             #pragma multi_compile_instancing
+            ENDHLSL
+        }
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        Pass
+        {
+            Name "HBPQuestTransparent"
+            Tags { "LightMode" = "HBPQuestTransparent" }
+            Cull Back
+            ZWrite On
 
-            struct Attributes
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment QuestFrag
+            #pragma multi_compile_instancing
+
+            #include "../Includes/HBPQuestPeel.hlsl"
+
+            half4 QuestFrag(Varyings input) : SV_Target
             {
-                float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            CBUFFER_START(UnityPerMaterial)
-                float4 _MainTex_ST;
-                float4 _Color;
-            CBUFFER_END
-
-            Varyings Vert(Attributes input)
-            {
-                Varyings output = (Varyings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                return output;
-            }
-
-            half4 Frag(Varyings input) : SV_Target
-            {
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                half4 sampled = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv);
-                return half4(sampled.rgb * _Color.rgb, sampled.a * _Color.a);
+                half4 color = Frag(input);
+                return HBP_QuestPeel(color, input.positionCS);
             }
             ENDHLSL
         }
@@ -84,46 +110,11 @@ Shader "HBP/Cut/Transparent"
 
             HLSLPROGRAM
             #pragma target 3.5
-            #pragma vertex MaskVert
+            #pragma vertex Vert
             #pragma fragment MaskFrag
             #pragma multi_compile_instancing
 
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            struct MaskAttributes
-            {
-                float4 positionOS : POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct MaskVaryings
-            {
-                float4 positionCS : SV_POSITION;
-                float2 uv : TEXCOORD0;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
-
-            TEXTURE2D(_MainTex);
-            SAMPLER(sampler_MainTex);
-            CBUFFER_START(UnityPerMaterial)
-                float4 _MainTex_ST;
-                float4 _Color;
-            CBUFFER_END
-
-            MaskVaryings MaskVert(MaskAttributes input)
-            {
-                MaskVaryings output = (MaskVaryings)0;
-                UNITY_SETUP_INSTANCE_ID(input);
-                UNITY_TRANSFER_INSTANCE_ID(input, output);
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                output.uv = TRANSFORM_TEX(input.uv, _MainTex);
-                return output;
-            }
-
-            half MaskFrag(MaskVaryings input) : SV_Target
+            half MaskFrag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_INSTANCE_ID(input);
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);

@@ -116,7 +116,10 @@ namespace HBP.UI.Informations.Graphs
                 else
                 {
 #if UNITY_EDITOR
-                    UnityEditor.EditorApplication.delayCall += () => { DestroyImmediate(curveToRemove.gameObject); };
+                    UnityEditor.EditorApplication.delayCall += () =>
+                    {
+                        if (curveToRemove != null) DestroyImmediate(curveToRemove.gameObject);
+                    };
 #endif
                 }
             }

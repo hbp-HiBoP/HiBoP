@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Informations.Graphs
@@ -49,7 +50,7 @@ namespace HBP.UI.Informations.Graphs
             GraphRectTransform.GetWorldCorners(parentCorners);
 
 
-            Vector3 mousePosition = Input.mousePosition;
+            Vector3 mousePosition = DesktopInput.MousePosition;
             float RightLimit = mousePosition.x + Mathf.Max(TopRight.x, BotRight.x) + m_RectTransform.rect.width;
             float TopLimit = mousePosition.y + Mathf.Max(TopRight.y, TopLeft.y) + m_RectTransform.rect.height;
 
@@ -89,7 +90,7 @@ namespace HBP.UI.Informations.Graphs
 
         private void UpdateValues()
         {
-            Vector2 mousePosition = Input.mousePosition;
+            Vector2 mousePosition = DesktopInput.MousePosition;
             Vector2 localPosition = Vector2.zero;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(GraphRectTransform, mousePosition, null, out localPosition);
             Vector2 ratioPosition = new Vector2(localPosition.x / GraphRectTransform.rect.width, localPosition.y / GraphRectTransform.rect.height) + GraphRectTransform.pivot;

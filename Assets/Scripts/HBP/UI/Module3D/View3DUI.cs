@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
@@ -295,8 +296,8 @@ namespace HBP.UI.Module3D
 
                 if (m_Scene.DisplayCorrelations)
                 {
-                    // If using the CompareSite feature, keep the site to compare focused
-                    Core.Object3D.Site baseSite = m_Scene.ImplantationManager.SiteToCompare != null ? m_Scene.ImplantationManager.SiteToCompare : column.SelectedSite;
+                    var comparison = m_Scene.ImplantationManager.SiteToCompare;
+                    Core.Object3D.Site baseSite = comparison ? column.FindSite(comparison.Information.FullID, comparison.Information.Index) : column.SelectedSite;
                     if (baseSite != null)
                     {
                         foreach (var correlatedSite in column.CorrelatedSites(baseSite))
@@ -325,7 +326,7 @@ namespace HBP.UI.Module3D
             if (IsMinimized) return;
 
             m_View.IsSelected = true;
-            if (Input.GetMouseButton(1) || Input.GetMouseButton(2))
+            if (data.button == PointerEventData.InputButton.Right || data.button == PointerEventData.InputButton.Middle)
             {
                 m_View.DisplayRotationCircles = true;
                 m_ThemeElement.Set(m_MoveState);
@@ -334,7 +335,7 @@ namespace HBP.UI.Module3D
             {
                 if (CursorToRay(out Ray ray))
                 {
-                    m_Scene.ClickOnScene(ray);
+                    m_Scene.ClickOnScene(ray, m_Column);
                 }
             }
         }
@@ -350,7 +351,7 @@ namespace HBP.UI.Module3D
                 case PointerEventData.InputButton.Left:
                     if (m_Scene.ROIManager.ROICreationMode)
                     {
-                        m_Scene.ROIManager.MoveSelectedROISphere(m_View.Camera, delta);
+                        m_Scene.DesktopPresentation.MoveSelectedROISphere(m_View.Camera, delta);
                     }
 
                     break;
@@ -411,7 +412,9 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
-            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, Input.mousePosition));
+            if (m_Scene && m_Scene.AtlasManager)
+                Module3DMain.OnDisplayAtlasInformation.Invoke(m_Scene.AtlasManager.GetAtlasInformation(false, default, eventData.position));
+            Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, eventData.position));
         }
 
         /// <summary>
@@ -465,7 +468,7 @@ namespace HBP.UI.Module3D
             }
 
             Vector2 localPosition = new();
-            Vector2 position = new(Input.mousePosition.x, Input.mousePosition.y);
+            Vector2 position = DesktopInput.MousePosition;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
             localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
             ray = m_View.Camera.ViewportPointToRay(localPosition);

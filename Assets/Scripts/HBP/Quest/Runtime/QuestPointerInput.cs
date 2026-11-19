@@ -1,0 +1,758 @@
+using System.Collections.Generic;
+using HBP.Data.Module3D;
+using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.UI;
+using UnityEngine.UI;
+
+namespace HBP.Quest
+{
+    public sealed class QuestPointerEventData : ExtendedPointerEventData
+    {
+        public Ray Ray;
+        public bool Cancelled;
+
+        public QuestPointerEventData(EventSystem system) : base(system)
+        {
+            pointerType = UIPointerType.Tracked;
+        }
+    }
+
+    /// <summary>Universal two-hand UI pointer and primary/secondary interaction arbiter. No pairing dependency.</summary>
+    public sealed partial class QuestPointerInput : BaseInputModule
+    {
+        private const float AnatomyReticleWidthMultiplier = 1.25f;
+
+        [SerializeField] private QuestInteractionPolicy policy;
+        [SerializeField] private QuestDevicePoseTracker head, left, right;
+        [SerializeField] private QuestAnatomyView anatomy;
+        [SerializeField] private QuestSiteProbe siteProbe;
+        [SerializeField] private QuestCutHandles cuts;
+        [SerializeField] private QuestROIHandles rois;
+        [SerializeField] private Transform trackingOrigin;
+        [SerializeField] private LineRenderer leftRay, rightRay;
+        [SerializeField] private Transform leftReticle, rightReticle;
+        [SerializeField] private Material overlayFeedbackMaterial;
+        [SerializeField] private QuestAtlasHoverTooltip atlasTooltip;
+        private Vector3 leftReticleScale, rightReticleScale;
+        private readonly Hand[] hands = { new Hand(), new Hand() };
+        private readonly List<RaycastResult> hits = new();
+        private bool focused = true, paused;
+        private QuestDialogBox modalDialog;
+        private Base3DScene hoveredAtlasScene;
+        private MaterialPropertyBlock feedbackProperties;
+        private readonly Dictionary<Renderer, (Material Material, int SortingOrder)> feedbackDefaults = new();
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+        private string diagnosticOutput;
+        private readonly object[] diagnosticHands = new object[2];
+        private int diagnosticProcessCount;
+        internal void RequestPointerDiagnostic(string output)
+        {
+            diagnosticOutput = output;
+            System.Array.Clear(diagnosticHands, 0, diagnosticHands.Length);
+        }
+#endif
+
+        private sealed class Hand
+        {
+            public readonly QuestInteractionCapture Capture = new();
+            public QuestPointerEventData Data;
+            public InputAction Primary, Secondary;
+            public InputAction Position, Rotation;
+            public InputAction Thumbstick;
+            public QuestThumbstickGesture ThumbstickGesture;
+            public QuestWindow Hovered;
+            public Vector2 LastPosition;
+            public QuestAnatomyManipulator AnatomyTarget;
+            public Pose AnatomyPose;
+            public bool Valid, Distant, AimContact;
+            public float GrabDistance;
+            public float AtlasRayLimit;
+        }
+
+        public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
+        public bool IsAnatomyCaptured(QuestAnatomyManipulator target) => System.Array.Exists(hands, hand => hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.AnatomyTarget == target);
+        public bool IsROIColumnCaptured(QuestAnatomyManipulator target) => rois != null && rois.IsColumnLocked(target);
+
+        public void CancelCutGrabs()
+        {
+            foreach (var hand in hands)
+                if (hand.Capture.Owner is QuestInteractionOwner.Cut or QuestInteractionOwner.ROI)
+                    Cancel(hand);
+            if (cuts != null) cuts.CancelAll();
+            if (rois != null) rois.CancelAll();
+        }
+
+        private void OnPresentationChanging(HBP.Data.Module3D.Base3DScene scene)
+        {
+            if (hoveredAtlasScene == scene) ClearAtlasHover();
+            if (thumbstickScene == scene) CancelThumbsticks();
+            for (int i = 0; i < hands.Length; i++)
+            {
+                var hand = hands[i];
+                if (CapturedTimeline(hand.Data)?.Column?.Scene == scene || hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
+            }
+
+            if (cuts != null) cuts.CancelScene(scene);
+            if (rois != null) rois.CancelScene(scene);
+        }
+
+        private static QuestTimeline CapturedTimeline(QuestPointerEventData data)
+        {
+            var target = data?.pointerDrag != null ? data.pointerDrag : data?.pointerPress;
+            return target != null ? target.GetComponentInParent<QuestTimeline>(true) : null;
+        }
+
+        private void OnTimelineScopeChanged(HBP.Data.Module3D.Base3DScene scene)
+        {
+            foreach (var hand in hands)
+                if (CapturedTimeline(hand.Data)?.Column?.Scene == scene)
+                    Cancel(hand);
+        }
+
+        public bool TryGetAnatomyPose(bool leftHand, QuestAnatomyManipulator target, out Pose pose, out bool distant)
+        {
+            var hand = hands[leftHand ? 0 : 1];
+            pose = hand.AnatomyPose;
+            distant = hand.Distant;
+            return AllowsAnatomy(leftHand) && hand.AnatomyTarget == target;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            if (leftReticle != null) leftReticleScale = leftReticle.localScale;
+            if (rightReticle != null) rightReticleScale = rightReticle.localScale;
+            if (anatomy != null) anatomy.OnPresentationChanging.AddListener(OnPresentationChanging);
+            if (anatomy != null) anatomy.OnTimelineScopeChanged.AddListener(OnTimelineScopeChanged);
+            feedbackProperties = new MaterialPropertyBlock();
+            feedbackDefaults.Clear();
+            for (int i = 0; i < hands.Length; i++)
+            {
+                hands[i].Data = new QuestPointerEventData(eventSystem) { pointerId = -10 - i };
+                hands[i].Primary = QuestInteractionInput.CreateAction("Quest select", i == 0, QuestInteraction.Primary);
+                hands[i].Secondary = QuestInteractionInput.CreateAction("Quest secondary", i == 0, QuestInteraction.Secondary);
+                hands[i].Primary.Enable();
+                hands[i].Secondary.Enable();
+                hands[i].Thumbstick = QuestInteractionInput.CreateThumbstickAction(i == 0);
+                hands[i].Thumbstick.Enable();
+                string device = i == 0 ? "<XRController>{LeftHand}" : "<XRController>{RightHand}";
+                hands[i].Position = new InputAction("Quest aim position", binding: device + "/pointerPosition", expectedControlType: "Vector3");
+                hands[i].Rotation = new InputAction("Quest aim rotation", binding: device + "/pointerRotation", expectedControlType: "Quaternion");
+                hands[i].Position.Enable();
+                hands[i].Rotation.Enable();
+            }
+
+            Feedback(leftRay, leftReticle, false, default, default);
+            Feedback(rightRay, rightReticle, false, default, default);
+        }
+
+        public override void Process()
+        {
+            if (policy == null) return;
+            RefreshModal();
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            diagnosticProcessCount++;
+#endif
+            // Presentation wrappers can move after the last physics tick.
+            bool canHoverAtlas = HasAtlasHoverScene();
+            if (policy.EnableDistantAnatomy || canHoverAtlas) Physics.SyncTransforms();
+            if (cuts != null) cuts.Refresh();
+            // Sample both poses before either hand can join or release a shared capture.
+            SampleHand(0, left);
+            SampleHand(1, right);
+            ProcessHand(0, left, leftRay, leftReticle);
+            RefreshModal(); // The first hand's click may open or close a dialog in this same frame.
+            ProcessHand(1, right, rightRay, rightReticle);
+            if (rois != null)
+                for (int i = 0; i < hands.Length; i++)
+                    if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
+                        Cancel(hands[i]);
+            UpdateThumbsticks();
+            if (atlasFeedback != null && atlasTooltip != null)
+                atlasTooltip.ShowSelection(atlasFeedback, left.transform, head.transform);
+            else if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
+                UpdateAtlasHover();
+            else
+                ClearAtlasHover();
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            if (diagnosticOutput != null)
+            {
+                string output = diagnosticOutput;
+                diagnosticOutput = null;
+                System.IO.File.WriteAllText(output, Newtonsoft.Json.JsonConvert.SerializeObject(new
+                {
+                    utc = System.DateTime.UtcNow, frame = Time.frameCount, processCount = diagnosticProcessCount,
+                    build = Resources.Load<TextAsset>("BuildInfo")?.text, focused, paused, hands = diagnosticHands
+                }, Newtonsoft.Json.Formatting.Indented));
+            }
+#endif
+        }
+
+        private void RefreshModal()
+        {
+            var dialog = QuestDialogBox.Current;
+            if (ReferenceEquals(modalDialog, dialog)) return;
+            foreach (var hand in hands) Cancel(hand);
+            if (siteProbe != null) siteProbe.Cancel();
+            modalDialog = dialog;
+        }
+
+        private void SampleHand(int index, QuestDevicePoseTracker tracker)
+        {
+            Hand hand = hands[index];
+            var data = hand.Data;
+            bool valid = hand.Valid = focused && !paused && head != null && head.IsTracked && tracker != null && tracker.IsTracked;
+            Vector3 grip = valid ? tracker.transform.position : Vector3.zero;
+            Quaternion rotation = valid ? tracker.transform.rotation : Quaternion.identity;
+            if (valid)
+            {
+                data.Ray = new Ray(grip, tracker.transform.forward);
+                if (trackingOrigin != null && hand.Position.activeControl != null && hand.Rotation.activeControl != null)
+                    data.Ray = new Ray(trackingOrigin.TransformPoint(hand.Position.ReadValue<Vector3>()), trackingOrigin.rotation * hand.Rotation.ReadValue<Quaternion>() * Vector3.forward);
+            }
+
+            if (cuts != null) cuts.SetHand(index, valid, grip, data.Ray.origin, rotation, data.Ray);
+            if (rois != null) rois.SetHand(index, valid, grip, data.Ray.origin, rotation, data.Ray);
+        }
+
+        private void ProcessHand(int index, QuestDevicePoseTracker tracker, LineRenderer line, Transform reticle)
+        {
+            Hand hand = hands[index];
+            hand.AtlasRayLimit = 0;
+            var data = hand.Data;
+            bool valid = hand.Valid;
+            bool pressed = hand.Primary.IsPressed();
+            bool secondaryPressed = hand.Secondary.IsPressed();
+
+            if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
+            {
+                Cancel(hand);
+                Feedback(line, reticle, false, default, default);
+                return;
+            }
+
+            if (!valid)
+            {
+                Cancel(hand);
+                Feedback(line, reticle, false, default, default);
+                return;
+            }
+
+            var capturedWindow = data.pointerDrag != null ? data.pointerDrag.GetComponentInParent<QuestWindow>() : data.pointerPress != null ? data.pointerPress.GetComponentInParent<QuestWindow>() : null;
+            if (hand.Capture.Owner == QuestInteractionOwner.UI && capturedWindow != null && !capturedWindow.IsOpen) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.UI && CapturedTimeline(data) is { CanInteract: false }) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && !HasAnatomyTarget(hand.AnatomyTarget)) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.Cut && (cuts == null || !cuts.IsCaptured(index))) Cancel(hand);
+            if (hand.Capture.Owner == QuestInteractionOwner.ROI && (rois == null || !rois.IsCaptured(index))) Cancel(hand);
+            data.trackedDevicePosition = data.Ray.origin;
+            data.trackedDeviceOrientation = Quaternion.LookRotation(data.Ray.direction, tracker.transform.up);
+            hits.Clear();
+            eventSystem.RaycastAll(data, hits);
+            data.pointerCurrentRaycast = default;
+            float secondaryRayLimit = policy.RayDistance;
+            foreach (var hit in hits)
+                if (hit.isValid && hit.module is TrackedDeviceRaycaster && hit.distance <= policy.RayDistance && hit.gameObject.TryGetComponent<Graphic>(out var graphic) && graphic.raycastTarget && !graphic.canvasRenderer.cull && (modalDialog == null || hit.gameObject.GetComponentInParent<QuestDialogBox>() == modalDialog))
+                {
+                    secondaryRayLimit = Mathf.Min(secondaryRayLimit, hit.distance);
+                    if (IsUiHitAbove(hit, data.pointerCurrentRaycast)) data.pointerCurrentRaycast = hit;
+                }
+
+            GameObject target = data.pointerCurrentRaycast.gameObject;
+            var window = target != null ? target.GetComponentInParent<QuestWindow>() : null;
+            if (window != hand.Hovered)
+            {
+                if (hand.Hovered != null) hand.Hovered.SetHovered(index, false);
+                hand.Hovered = window;
+                if (window != null) window.SetHovered(index, true);
+            }
+
+            HandlePointerExitAndEnter(data, target);
+            data.position = data.pointerCurrentRaycast.screenPosition;
+            data.delta = data.position - hand.LastPosition;
+            hand.LastPosition = data.position;
+            bool loadingOverlay = modalDialog != null || IsLoadingOverlay(data.pointerCurrentRaycast);
+            var candidate = loadingOverlay ? null : AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
+            bool near = candidate != null;
+            float distantDistance = policy.RayDistance;
+            var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
+            bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
+            var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
+            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, false) : null;
+            if (roiCandidate != null && cutCandidate != null)
+            {
+                float cutDistance = Mathf.Min(cutCandidate.ContactDistance(tracker.transform.position), cutCandidate.ContactDistance(data.Ray.origin));
+                if (rois.Distance(roiCandidate, index) <= cutDistance) cutCandidate = null;
+                else roiCandidate = null;
+            }
+
+            var oldOwner = hand.Capture.Owner;
+            float? secondaryRayDistance = null;
+            if (!loadingOverlay && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
+            {
+                float limit = secondaryRayLimit;
+                if (rois != null) roiCandidate = rois.RayCandidate(index, ref limit);
+                // A cut must be strictly closer than the ROI or window already found.
+                if (cuts != null) cutCandidate = cuts.RayCandidate(index, ref limit);
+                if (cutCandidate != null)
+                {
+                    roiCandidate = null;
+                    secondaryRayDistance = limit;
+                }
+                else if (roiCandidate != null) secondaryRayDistance = limit;
+                else if (target == null && rois != null)
+                {
+                    roiCandidate = rois.JoiningCandidate(index);
+                }
+            }
+
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate, secondaryRayDistance)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
+            if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate, secondaryRayDistance)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.ROI && !secondaryPressed) rois.End(index);
+
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
+            {
+                hand.AnatomyTarget = near ? candidate : distantCandidate;
+                hand.Distant = !near;
+                // Quest grip and aim origins differ; keep the point that started this contact for the entire gesture.
+                hand.AimContact = near && !candidate.CanGrab(tracker.transform.position) && candidate.CanGrab(data.Ray.origin);
+                hand.GrabDistance = distantDistance;
+            }
+
+            hand.AnatomyPose = hand.Distant ? new Pose(data.Ray.GetPoint(hand.GrabDistance), data.trackedDeviceOrientation) : new Pose(hand.AimContact ? data.Ray.origin : tracker.transform.position, tracker.transform.rotation);
+            if (!pressed)
+            {
+                hand.AnatomyTarget = null;
+                hand.AimContact = false;
+            }
+
+            if (began && hand.Capture.Owner == QuestInteractionOwner.UI)
+            {
+                if (!loadingOverlay) window?.Select();
+                data.pressPosition = data.position;
+                data.pointerPressRaycast = data.pointerCurrentRaycast;
+                data.eligibleForClick = true;
+                data.pointerPress = ExecuteEvents.ExecuteHierarchy(target, data, ExecuteEvents.pointerDownHandler);
+                if (data.pointerPress == null) data.pointerPress = ExecuteEvents.GetEventHandler<IPointerClickHandler>(target);
+                data.rawPointerPress = target;
+                data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
+                // Tag checkboxes and dropdown options share their list's drag gesture after the scroll threshold.
+                // Other click controls retain their gesture against an ancestor ScrollRect.
+                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll);
+                bool dropdownScroll = data.pointerPress != null && data.pointerPress.TryGetComponent<Toggle>(out _) && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out _) && data.pointerDrag.GetComponentInParent<QuestDropdown>() is { } dropdown && data.pointerDrag.transform != dropdown.template;
+                if (!tagChoiceScroll && !dropdownScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
+                    data.pointerDrag = null;
+                if (tagChoiceScroll || dropdownScroll) data.useDragThreshold = true;
+                if (!loadingOverlay && data.pointerPress == null && data.pointerDrag == null && window != null)
+                    data.pointerDrag = window.GetBackgroundDragTarget(target);
+                if (data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.initializePotentialDrag);
+            }
+
+            if (oldOwner == QuestInteractionOwner.UI && !pressed) Release(hand, target, true);
+            else if (hand.Capture.Owner == QuestInteractionOwner.UI)
+            {
+                if (data.pointerPress == null && data.pointerDrag == null) hand.Capture.Cancel();
+                else if (data.pointerDrag != null)
+                {
+                    // Controller rotation can keep the hit in place while the ray origin moves.
+                    if (!data.dragging && (!data.useDragThreshold || (data.position - data.pressPosition).sqrMagnitude >= eventSystem.pixelDragThreshold * eventSystem.pixelDragThreshold))
+                    {
+                        ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.beginDragHandler);
+                        data.dragging = true;
+                        data.eligibleForClick = false;
+                    }
+
+                    if (data.dragging) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.dragHandler);
+                }
+            }
+
+            bool actionable = target != null && (window != null || modalDialog != null || ExecuteEvents.GetEventHandler<IPointerClickHandler>(target) != null || ExecuteEvents.GetEventHandler<IDragHandler>(target) != null);
+            bool distantFeedback = hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.Distant || hand.Capture.Owner == QuestInteractionOwner.None && !near && distantCandidate != null && !uiFirst;
+            bool rayHover = hand.Capture.Owner == QuestInteractionOwner.None && secondaryRayDistance.HasValue;
+            var aimedColumn = rayHover ? (cutCandidate?.Column ?? roiCandidate?.Column)?.Manipulator : hand.Capture.Owner == QuestInteractionOwner.None && distantDistance < secondaryRayLimit ? distantCandidate : null;
+            if (cuts != null) cuts.SetRayHover(index, rayHover ? cutCandidate : null, aimedColumn);
+            if (rois != null) rois.SetRayHover(index, rayHover ? roiCandidate : null);
+            float? secondaryFeedback = hand.Capture.Owner switch
+            {
+                QuestInteractionOwner.Cut => cuts.CapturedRayDistance(index),
+                QuestInteractionOwner.ROI => rois.CapturedRayDistance(index),
+                QuestInteractionOwner.None => secondaryRayDistance,
+                _ => null
+            };
+            // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
+            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
+            if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
+            else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
+            Feedback(line, reticle, useful, data.Ray.origin, end, distantFeedback && !secondaryFeedback.HasValue);
+            if (!loadingOverlay && hand.Capture.Owner == QuestInteractionOwner.None && oldOwner == QuestInteractionOwner.None)
+                hand.AtlasRayLimit = roiCandidate != null && secondaryRayDistance.HasValue ? secondaryRayDistance.Value : secondaryRayLimit;
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            if (diagnosticOutput != null)
+            {
+                var brains = new List<object>();
+                var cutHandles = new List<object>();
+                if (cuts != null)
+                    foreach (var gizmo in cuts.Gizmos)
+                        cutHandles.Add(new
+                        {
+                            cut = gizmo.Cut.ID, column = gizmo.Column.Column.ColumnData.ID,
+                            gizmo.IsValid, gizmo.IsVisible, position = gizmo.Cut.Position,
+                            normal = DiagnosticVector(gizmo.Cut.Normal), point = DiagnosticVector(gizmo.Cut.Point),
+                            planeCenter = DiagnosticVector(gizmo.PlaneCenter),
+                            gripDistanceMeters = gizmo.ContactDistance(tracker.transform.position),
+                            aimDistanceMeters = gizmo.ContactDistance(data.Ray.origin),
+                            span = gizmo.Scene.GetCutPositionGeometry(gizmo.Cut).Span
+                        });
+                if (anatomy != null)
+                    foreach (var column in anatomy.AllColumns)
+                    {
+                        if (column == null || column.Column == null || column.Manipulator.SharedMesh == null) continue;
+                        var mesh = column.Manipulator.SharedMesh;
+                        var frame = column.Column.BrainMesh.transform;
+                        var gripLocal = frame.InverseTransformPoint(tracker.transform.position);
+                        var aimLocal = frame.InverseTransformPoint(data.Ray.origin);
+                        brains.Add(new
+                        {
+                            name = column.Column.Name, center = DiagnosticVector(mesh.bounds.center), size = DiagnosticVector(mesh.bounds.size),
+                            meshWorldPosition = DiagnosticVector(frame.position), meshWorldScale = DiagnosticVector(frame.lossyScale),
+                            gripLocal = DiagnosticVector(gripLocal), aimLocal = DiagnosticVector(aimLocal),
+                            gripInside = mesh.bounds.Contains(gripLocal), aimInside = mesh.bounds.Contains(aimLocal),
+                            gripDistanceMeters = Vector3.Distance(tracker.transform.position, column.Manipulator.ClosestGrabPoint(tracker.transform.position)),
+                            grabbed = column.Manipulator.IsGrabbed
+                        });
+                    }
+                diagnosticHands[index] = new
+                {
+                    hand = index == 0 ? "left" : "right", pressed, secondaryPressed, near, candidate = candidate?.name,
+                    distantCandidate = distantCandidate?.name, distantDistance, uiTarget = target?.name, uiFirst,
+                    owner = hand.Capture.Owner.ToString(), capturedTarget = hand.AnatomyTarget?.name, hand.Distant, hand.AimContact, hand.GrabDistance,
+                    grip = DiagnosticVector(tracker.transform.position), aim = DiagnosticVector(data.Ray.origin),
+                    aimControl = hand.Position.activeControl?.path, gripControl = tracker.DiagnosticPositionControl,
+                    rawGrip = DiagnosticVector(tracker.DiagnosticPositionValue), trackerFrame = tracker.DiagnosticPoseFrame,
+                    useful, lineEnabled = line != null && line.enabled, lineEnd = DiagnosticVector(end), brains,
+                    cutsActive = cuts != null && cuts.Active, cutCandidate = cutCandidate?.Cut.ID,
+                    cutColumn = cutCandidate?.Column.Column.ColumnData.ID, cutHandles,
+                    uiScreen = new { data.position.x, data.position.y }, uiPressScreen = new { data.pressPosition.x, data.pressPosition.y },
+                    data.eligibleForClick, data.dragging, uiDrag = data.pointerDrag?.name,
+                    uiPress = data.pointerPress?.name
+                };
+            }
+#endif
+        }
+
+        private static bool IsUiHitAbove(RaycastResult hit, RaycastResult previous)
+        {
+            if (!previous.isValid) return true;
+            bool loading = IsLoadingOverlay(hit);
+            if (loading != IsLoadingOverlay(previous)) return loading;
+            var canvas = hit.module.GetComponent<Canvas>();
+            var other = previous.module.GetComponent<Canvas>();
+            if (canvas != null && other != null && canvas != other)
+            {
+                var window = canvas.GetComponentInParent<QuestWindow>();
+                var otherWindow = other.GetComponentInParent<QuestWindow>();
+                if (window != null && otherWindow != null && window != otherWindow && window.SortingOrder != otherWindow.SortingOrder)
+                    return window.SortingOrder > otherWindow.SortingOrder;
+            }
+
+            // TrackedDeviceRaycaster does not fill sortingLayer/sortingOrder. EventSystem
+            // otherwise compares a popup's local graphic depth to the window underneath.
+            if (canvas != null && other != null && canvas.rootCanvas == other.rootCanvas)
+            {
+                int layer = SortingLayer.GetLayerValueFromID(canvas.sortingLayerID);
+                int otherLayer = SortingLayer.GetLayerValueFromID(other.sortingLayerID);
+                if (layer != otherLayer) return layer > otherLayer;
+                if (canvas.sortingOrder != other.sortingOrder) return canvas.sortingOrder > other.sortingOrder;
+                if (canvas == other && hit.depth != previous.depth) return hit.depth > previous.depth;
+            }
+
+            return hit.distance < previous.distance;
+        }
+
+        private static bool IsLoadingOverlay(RaycastResult hit) => hit.module != null && hit.module.GetComponentInParent<QuestLoadingOverlay>() is { isActiveAndEnabled: true };
+
+        private bool HasAtlasHoverScene()
+        {
+            if (atlasTooltip == null || anatomy == null) return false;
+            foreach (var presentation in anatomy.Scenes)
+                if (presentation.IsPlaced && presentation.Scene.IsVisible && presentation.Scene.AtlasManager is { CanHover: true })
+                    return true;
+            return false;
+        }
+
+        private void UpdateAtlasHover()
+        {
+            // Resolve both hands before changing the scene-wide highlight.
+            for (int index = hands.Length - 1; index >= 0; index--)
+            {
+                var hand = hands[index];
+                if (hand.AtlasRayLimit <= 0 || hand.Capture.Owner != QuestInteractionOwner.None) continue;
+                var ray = hand.Data.Ray;
+                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var hit);
+                if (column == null) continue;
+                var scene = column.Scene;
+                var atlas = scene.AtlasManager;
+                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
+
+                if (hoveredAtlasScene != scene)
+                {
+                    ClearAtlasHover();
+                    hoveredAtlasScene = scene;
+                    scene.OnClosing.AddListener(ClearAtlasHover);
+                }
+
+                atlas.HoveredArea = label;
+                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, hit.point, true);
+                atlasTooltip.Show(region, hit.point, head.transform);
+                return;
+            }
+
+            ClearAtlasHover();
+        }
+
+        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out RaycastHit nearest)
+        {
+            nearest = default;
+            QuestColumnPresentation target = null;
+            foreach (var presentation in anatomy.Scenes)
+            foreach (var column in presentation.Columns)
+            {
+                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) || !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) || hit.distance >= limit) continue;
+                limit = hit.distance;
+                nearest = hit;
+                target = column;
+            }
+
+            return target;
+        }
+
+        private void ClearAtlasHover()
+        {
+            if (hoveredAtlasScene != null)
+            {
+                hoveredAtlasScene.OnClosing.RemoveListener(ClearAtlasHover);
+                hoveredAtlasScene.AtlasManager.HoveredArea = -1;
+            }
+
+            hoveredAtlasScene = null;
+            if (atlasTooltip != null) atlasTooltip.Hide();
+        }
+
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+        private static object DiagnosticVector(Vector3 value) => new { value.x, value.y, value.z };
+#endif
+
+        private bool HasAnatomyTarget(QuestAnatomyManipulator target)
+        {
+            if (target == null || anatomy == null || target.SharedMesh == null) return false;
+            foreach (var column in anatomy.AllColumns)
+                if (anatomy.CanInteractWithColumn(column) && column.Manipulator == target)
+                    return true;
+            return false;
+        }
+
+        private QuestAnatomyManipulator DistantAnatomyCandidate(Ray ray, out float distance)
+        {
+            distance = policy.RayDistance;
+            QuestAnatomyManipulator nearest = null;
+            if (anatomy == null) return null;
+            QuestAnatomyManipulator grabbed = null;
+            foreach (var column in anatomy.AllColumns)
+                if (anatomy.CanInteractWithColumn(column) && anatomy.Find(column.Scene)?.SurfaceHidden != true && column.Manipulator.IsGrabbed)
+                {
+                    grabbed = column.Manipulator;
+                    break;
+                }
+
+            foreach (var column in anatomy.AllColumns)
+                if (anatomy.CanInteractWithColumn(column) && !column.Scene.IsSurfaceRepresentationTransitioning && anatomy.Find(column.Scene)?.SurfaceHidden != true && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (grabbed == null || grabbed == column.Manipulator) && column.Manipulator.Raycast(ray, distance, out float hitDistance))
+                {
+                    nearest = column.Manipulator;
+                    distance = hitDistance;
+                }
+
+            return nearest;
+        }
+
+        private QuestAnatomyManipulator AnatomyCandidate(Vector3 position, bool allowJoining, Vector3? aimPosition = null)
+        {
+            if (anatomy == null) return null;
+            foreach (var column in anatomy.AllColumns)
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && column.Manipulator.IsGrabbed)
+                {
+                    if (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))) return column.Manipulator;
+                    // Preserve joining a direct gesture, but don't mix physical and remote poses accidentally.
+                    if (allowJoining)
+                        foreach (var hand in hands)
+                            if (hand.Capture.Owner == QuestInteractionOwner.Anatomy && hand.AnatomyTarget == column.Manipulator && !hand.Distant)
+                                return column.Manipulator;
+                    return null;
+                }
+
+            QuestAnatomyManipulator nearest = null;
+            float nearestCenter = float.PositiveInfinity;
+            foreach (var column in anatomy.AllColumns)
+                if (anatomy.CanInteractWithColumn(column) && (cuts == null || !cuts.IsColumnLocked(column.Manipulator)) && !IsROIColumnCaptured(column.Manipulator) && (column.Manipulator.CanGrab(position) || (aimPosition.HasValue && column.Manipulator.CanGrab(aimPosition.Value))))
+                {
+                    float distance = (position - column.Manipulator.GrabCenter).sqrMagnitude;
+                    if (distance < nearestCenter)
+                    {
+                        nearest = column.Manipulator;
+                        nearestCenter = distance;
+                    }
+                }
+
+            return nearest;
+        }
+
+        private void Feedback(LineRenderer line, Transform reticle, bool visible, Vector3 start, Vector3 end, bool anatomyImpact = false)
+        {
+            bool overlay = visible && overlayFeedbackMaterial != null;
+            float rayWidth = policy != null ? policy.RayWidth : 0.002f;
+            if (line != null)
+            {
+                SetFeedbackOverlay(line, overlay);
+                line.enabled = visible;
+                line.positionCount = 2;
+                line.useWorldSpace = true;
+                line.startWidth = line.endWidth = rayWidth;
+                // The overlay shader multiplies vertex color by the shared feedback tint.
+                if (policy != null && policy.FeedbackColor != null) line.startColor = line.endColor = overlay ? Color.white : policy.FeedbackColor.Value;
+                ApplyFeedbackColor(line);
+                if (visible)
+                {
+                    line.SetPosition(0, start);
+                    line.SetPosition(1, end);
+                }
+            }
+
+            if (reticle != null)
+            {
+                Vector3 defaultScale = reticle == leftReticle ? leftReticleScale : rightReticleScale;
+                reticle.localScale = anatomyImpact ? Vector3.one * (rayWidth * AnatomyReticleWidthMultiplier) : defaultScale;
+                reticle.gameObject.SetActive(visible);
+                var renderer = reticle.GetComponent<Renderer>();
+                SetFeedbackOverlay(renderer, overlay);
+                ApplyFeedbackColor(renderer);
+                if (visible) reticle.position = end;
+            }
+        }
+
+        private void SetFeedbackOverlay(Renderer renderer, bool overlay)
+        {
+            if (renderer == null) return;
+            if (!feedbackDefaults.TryGetValue(renderer, out var original))
+            {
+                original = (renderer.sharedMaterial, renderer.sortingOrder);
+                feedbackDefaults.Add(renderer, original);
+            }
+
+            renderer.sharedMaterial = overlay ? overlayFeedbackMaterial : original.Material;
+            renderer.sortingOrder = overlay ? short.MaxValue : original.SortingOrder;
+        }
+
+        private void ApplyFeedbackColor(Renderer renderer)
+        {
+            if (renderer == null || policy == null || policy.FeedbackColor == null) return;
+            feedbackProperties.SetColor("_BaseColor", policy.FeedbackColor.Value);
+            feedbackProperties.SetColor("_Color", policy.FeedbackColor.Value);
+            renderer.SetPropertyBlock(feedbackProperties);
+        }
+
+        private void Release(Hand hand, GameObject target, bool click)
+        {
+            var data = hand.Data;
+            data.Cancelled = !click;
+            if (data.pointerPress != null) ExecuteEvents.Execute(data.pointerPress, data, ExecuteEvents.pointerUpHandler);
+            if (click && data.eligibleForClick && data.pointerPress == ExecuteEvents.GetEventHandler<IPointerClickHandler>(target))
+                ExecuteEvents.Execute(data.pointerPress, data, ExecuteEvents.pointerClickHandler);
+            if (data.dragging && data.pointerDrag != null) ExecuteEvents.Execute(data.pointerDrag, data, ExecuteEvents.endDragHandler);
+            data.eligibleForClick = data.dragging = false;
+            data.pointerPress = data.rawPointerPress = data.pointerDrag = null;
+            data.Cancelled = false;
+        }
+
+        private void Cancel(Hand hand)
+        {
+            int index = hand == hands[0] ? 0 : 1;
+            if (cuts != null)
+            {
+                cuts.End(index);
+                cuts.SetRayHover(index, null, null);
+            }
+
+            if (rois != null)
+            {
+                rois.End(index);
+                rois.SetRayHover(index, null);
+            }
+
+            if (hand.Data != null)
+            {
+                Release(hand, null, false);
+                HandlePointerExitAndEnter(hand.Data, null);
+            }
+
+            if (hand.Hovered != null) hand.Hovered.SetHovered(index, false);
+            hand.Hovered = null;
+            hand.Capture.Cancel();
+            hand.AtlasRayLimit = 0;
+            hand.AnatomyTarget = null;
+            hand.Distant = false;
+            hand.AimContact = false;
+        }
+
+        private void OnApplicationFocus(bool value)
+        {
+            focused = value;
+            if (!value)
+            {
+                CancelThumbsticks();
+                ClearAtlasHover();
+                if (siteProbe != null) siteProbe.Cancel();
+                foreach (var hand in hands)
+                    Cancel(hand);
+            }
+        }
+
+        private void OnApplicationPause(bool value)
+        {
+            paused = value;
+            if (value)
+            {
+                CancelThumbsticks();
+                ClearAtlasHover();
+                if (siteProbe != null) siteProbe.Cancel();
+                foreach (var hand in hands)
+                    Cancel(hand);
+            }
+        }
+
+        protected override void OnDisable()
+        {
+            CancelThumbsticks();
+            ClearAtlasHover();
+            if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
+            if (anatomy != null) anatomy.OnTimelineScopeChanged.RemoveListener(OnTimelineScopeChanged);
+            if (siteProbe != null) siteProbe.Cancel();
+            foreach (var hand in hands)
+            {
+                Cancel(hand);
+                hand.Primary?.Dispose();
+                hand.Secondary?.Dispose();
+                hand.Position?.Dispose();
+                hand.Rotation?.Dispose();
+                hand.Thumbstick?.Dispose();
+            }
+
+            Feedback(leftRay, leftReticle, false, default, default);
+            Feedback(rightRay, rightReticle, false, default, default);
+            base.OnDisable();
+        }
+    }
+}

@@ -8,7 +8,7 @@ using UnityEngine.Events;
 
 namespace HBP.UI.Tools
 {
-    public class LoadingCircle : MonoBehaviour
+    public class LoadingCircle : MonoBehaviour, ILoadingPresenter
     {
         #region Properties
 
@@ -89,6 +89,15 @@ namespace HBP.UI.Tools
 
             gameObject.SetActive(false);
             Reset();
+        }
+
+        public async void SetOptions(bool showInformations, bool cancelable)
+        {
+            await UniTask.SwitchToMainThread();
+            if (this == null) return;
+            m_CancelButtonContainer.SetActive(cancelable && !m_IsCancelling);
+            if (showInformations) ShowInformations();
+            else HideInformations();
         }
 
         public void ShowInformations()

@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 
@@ -63,11 +64,11 @@ namespace HBP.UI.Main
 
         void Update()
         {
-            if (Input.GetMouseButtonUp(0))
+            if (DesktopInput.WasLeftMouseButtonReleasedThisFrame)
             {
                 PointerEventData pointer = new(EventSystem.current)
                 {
-                    position = Input.mousePosition
+                    position = DesktopInput.MousePosition
                 };
                 List<RaycastResult> raycastResults = new();
                 EventSystem.current.RaycastAll(pointer, raycastResults);

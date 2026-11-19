@@ -64,7 +64,7 @@ namespace HBP.Tests.Serialization
             budget.Configure(1, 0);
             bool evicted = false;
             MemoryCacheSnapshot warning = default;
-            budget.BudgetExceeded += snapshot => warning = snapshot;
+            budget.OnBudgetExceeded += snapshot => warning = snapshot;
 
             budget.Register("active", MemoryCacheCategory.NativeProjection, MiB(3), true, () => evicted = true);
 

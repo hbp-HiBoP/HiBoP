@@ -1,3 +1,4 @@
+using UnityEngine.Events;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +59,12 @@ namespace HBP.Data.Module3D
         /// Selected Mesh3D ID
         /// </summary>
         public int SelectedMeshID { get; private set; }
+
+        /// <summary>Raised when the selected prepared mesh resource changes.</summary>
+        public UnityEvent OnResourceSelectionChanged { get; } = new();
+
+        /// <summary>Raised when the selected mesh part or representation changes.</summary>
+        public UnityEvent OnDisplaySelectionChanged { get; } = new();
 
         /// <summary>
         /// Selected Mesh3D
@@ -215,6 +222,14 @@ namespace HBP.Data.Module3D
             SelectAtIndex(meshID);
         }
 
+        /// <summary>Select an exact resource from the prepared scene without name fallback.</summary>
+        public void SelectPrepared(Core.Object3D.Mesh3D mesh)
+        {
+            int index = Meshes.FindIndex(item => ReferenceEquals(item, mesh));
+            if (index < 0 || !Meshes[index].IsLoaded) throw new InvalidOperationException("Prepared mesh is unavailable.");
+            if (SelectedMeshID != index) SelectAtIndex(index);
+        }
+
         /// <summary>
         /// Applies the initial single-patient selection policy without ever treating a transient
         /// preview name as persistent configuration.
@@ -259,8 +274,17 @@ namespace HBP.Data.Module3D
             if (meshID < 0 || meshID >= Meshes.Count)
                 throw new InvalidOperationException("No mesh is available for selection.");
 
+            bool selectionChanged = SelectedMeshID != meshID;
             SelectedMeshID = meshID;
-            ApplySelectedMeshCapabilities();
+            try
+            {
+                ApplySelectedMeshCapabilities();
+            }
+            finally
+            {
+                if (selectionChanged) OnResourceSelectionChanged.Invoke();
+            }
+
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
 
@@ -316,9 +340,12 @@ namespace HBP.Data.Module3D
         /// <param name="meshPartToDisplay">Mesh part to be displayed</param>
         public void SelectMeshPart(MeshPart meshPartToDisplay)
         {
-            MeshPartToDisplay = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
+            MeshPart selected = SelectedMesh.SupportsHemispheres ? meshPartToDisplay : MeshPart.Both;
+            bool changed = MeshPartToDisplay != selected;
+            MeshPartToDisplay = selected;
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceProjection();
+            if (changed) OnDisplaySelectionChanged.Invoke();
         }
 
         /// <summary>
@@ -332,6 +359,7 @@ namespace HBP.Data.Module3D
             SelectedMesh.SelectRepresentation(representation);
             m_Scene.SceneInformation.GeometryNeedsUpdate = true;
             m_Scene.InvalidateSurfaceMesh();
+            OnDisplaySelectionChanged.Invoke();
         }
 
         /// <summary>
@@ -339,9 +367,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void LoadMissing()
         {
-            foreach (var mesh in Meshes)
+            foreach (var mesh in Meshes.Distinct())
             {
                 if (!mesh.IsLoaded) mesh.Load();
+                if (!mesh.IsLoaded) throw new System.IO.IOException($"Unable to prepare mesh '{mesh.Name}'.");
             }
         }
 
@@ -350,7 +379,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateMeshesFromDLL(bool preserveScientificData = false)
         {
-            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh;
             if (preserveScientificData)
             {
                 BrainSurface.UpdateMeshFromDLL(brainMesh, all: false, vertices: true, normals: true, uv: false, triangles: false, colors: false);
@@ -371,6 +400,7 @@ namespace HBP.Data.Module3D
             }
 
             m_Scene.BrainMaterials.SetInflationBlend(0.0f);
+            m_Scene.AtlasManager.InvalidateHoverGeometry();
         }
 
         /// <summary>
@@ -381,7 +411,7 @@ namespace HBP.Data.Module3D
             MeshPart selectedPart = SelectedMesh.SupportsHemispheres ? MeshPartToDisplay : MeshPart.Both;
             Core.DLL.Surface anatomical = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, selectedPart);
             Core.DLL.Surface inflated = SelectedMesh.GetSurface(Core.Object3D.SurfaceRepresentation.Inflated, selectedPart);
-            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh;
+            Mesh brainMesh = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh;
             Mesh inflatedMesh = new();
             try
             {

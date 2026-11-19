@@ -30,9 +30,11 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
         /// </summary>
+        private Timeline m_NavigationTimeline;
+
         public override Timeline Timeline
         {
-            get { return ColumnCCEPData.Data.Timeline; }
+            get { return m_NavigationTimeline ??= ColumnCCEPData?.Data?.Timeline?.CopyForNavigation(); }
         }
 
         public override Timeline ProjectionTimeline => ColumnCCEPData.Data.ProjectionTimeline;
@@ -76,6 +78,8 @@ namespace HBP.Data.Module3D
             get { return m_SelectedSiteSource; }
             set
             {
+                if (value != null && !Sources.Contains(value))
+                    throw new System.ArgumentException("The CCEP source must belong to this column's available sources.", nameof(value));
                 if (m_SelectedSiteSource != value)
                 {
                     m_SelectedSiteSource = value;
@@ -103,6 +107,12 @@ namespace HBP.Data.Module3D
             get { return m_SelectedSourceMarsAtlasLabel; }
             set
             {
+                if (value >= 0)
+                {
+                    Core.Tools.ResourceRetention.EnsureCanUse("mars");
+                    GetComponentInParent<Base3DScene>()?.EnsureAtlasCanBeUsed("mars");
+                }
+
                 if (m_SelectedSourceMarsAtlasLabel != value)
                 {
                     m_SelectedSourceMarsAtlasLabel = value;
@@ -110,6 +120,29 @@ namespace HBP.Data.Module3D
                     SetActivityData();
                 }
             }
+        }
+
+        /// <summary>Applies the complete synchronized source selection with one activity refresh.</summary>
+        public void ApplySynchronizedSource(CCEPMode mode, Core.Object3D.Site sourceSite, int marsAtlasLabel)
+        {
+            if (mode == CCEPMode.MarsAtlas && marsAtlasLabel >= 0)
+            {
+                Core.Tools.ResourceRetention.EnsureCanUse("mars");
+                GetComponentInParent<Base3DScene>()?.EnsureAtlasCanBeUsed("mars");
+            }
+
+            if (mode != CCEPMode.Site && mode != CCEPMode.MarsAtlas) throw new System.ArgumentOutOfRangeException(nameof(mode));
+            if (mode == CCEPMode.Site && marsAtlasLabel != -1 || mode == CCEPMode.MarsAtlas && sourceSite != null)
+                throw new System.ArgumentException("CCEP source fields do not match the selected mode.");
+            if (sourceSite != null && !Sources.Contains(sourceSite))
+                throw new System.ArgumentException("The CCEP source must belong to this column's available sources.", nameof(sourceSite));
+            if (m_Mode == mode && m_SelectedSiteSource == sourceSite && m_SelectedSourceMarsAtlasLabel == marsAtlasLabel) return;
+
+            m_Mode = mode;
+            m_SelectedSiteSource = sourceSite;
+            m_SelectedSourceMarsAtlasLabel = marsAtlasLabel;
+            OnSelectSource.Invoke();
+            SetActivityData();
         }
 
         /// <summary>
@@ -193,6 +226,7 @@ namespace HBP.Data.Module3D
                     site.State.IsMasked = false;
                 }
             }
+            DynamicParameters.RefreshSpanValues(this);
         }
 
         /// <summary>
@@ -283,7 +317,6 @@ namespace HBP.Data.Module3D
             ActivityStatistics = statistics;
             DynamicParameters.MinimumAmplitude = minimum;
             DynamicParameters.MaximumAmplitude = maximum;
-            DynamicParameters.ResetSpanValues(this);
         }
 
         private void SetActivityDataSourceArea()
@@ -296,7 +329,7 @@ namespace HBP.Data.Module3D
                 site.State.IsMasked = true;
             }
 
-            StringTag marsAtlasTag = PersistentDataManager.Tags.AllTags.FirstOrDefault(t => t.Name == "MarsAtlas") as StringTag;
+            StringTag marsAtlasTag = Sites.SelectMany(site => site.Information.SiteData.Tags).Select(value => value.Tag).OfType<StringTag>().FirstOrDefault(tag => tag.Name == "MarsAtlas");
             if (marsAtlasTag == null)
                 throw new System.Exception("MarsAtlas tag has not been found !");
 
@@ -304,7 +337,7 @@ namespace HBP.Data.Module3D
 
             // Sort sites by mars atlas label
             Dictionary<int, List<Core.Object3D.Site>> sitesByMarsAtlasLabel = new();
-            List<StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag == marsAtlasTag) as StringTagValue).ToList(); // FIXME: try perf with linq
+            List<StringTagValue> marsAtlasTagValues = Sites.Select(s => s.Information.SiteData.Tags.FirstOrDefault(t => t.Tag?.ID == marsAtlasTag.ID) as StringTagValue).ToList();
             foreach (var label in marsAtlasLabels)
             {
                 string labelName = string.Format("{0}_{1}", Object3DManager.MarsAtlas.Hemisphere(label), Object3DManager.MarsAtlas.Name(label));
@@ -422,8 +455,6 @@ namespace HBP.Data.Module3D
                 DynamicParameters.MaximumAmplitude = 1f;
             }
 
-            DynamicParameters.ResetSpanValues(this);
-
             // Set value by site ID
             int mainEventIndex = ProjectionTimeline.Frequency.ConvertToFlooredNumberOfSamples(ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].StatisticsByEvent[ColumnCCEPData.Bloc.MainSubBloc.MainEvent].RoundedTimeFromStart);
             int subTimelineLength = ProjectionTimeline.SubTimelinesBySubBloc[ColumnCCEPData.Bloc.MainSubBloc].Length;
@@ -431,7 +462,8 @@ namespace HBP.Data.Module3D
             {
                 float[] areaActivity = activityByMarsAtlasArea[kv.Key];
                 float amplitude = 0, latency = 0;
-                for (int i = mainEventIndex + 2; i < subTimelineLength; i++)
+                int searchEnd = System.Math.Min(subTimelineLength, areaActivity.Length) - 2;
+                for (int i = System.Math.Max(2, mainEventIndex + 2); i < searchEnd; i++)
                 {
                     if (areaActivity[i - 1] > areaActivity[i - 2] && areaActivity[i] > areaActivity[i - 1] && areaActivity[i] > areaActivity[i + 1] && areaActivity[i + 1] > areaActivity[i + 2]) // Maybe FIXME: method to compute amplitude and latency
                     {
@@ -454,6 +486,30 @@ namespace HBP.Data.Module3D
         #endregion
 
         #region Public Methods
+
+        protected override System.Func<Core.DLL.IEEGComputeMetrics> PrepareCalibratedSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            if (!IsSourceMarsAtlasLabelSelected) return base.PrepareCalibratedSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            if (!supportsMarsAtlas)
+            {
+                Debug.LogWarning("MarsAtlas CCEP projection was skipped because the selected mesh does not support MarsAtlas.");
+                return null;
+            }
+
+            var mask = AreaMask;
+            var atlas = Object3DManager.MarsAtlas;
+            float middle = DynamicParameters.Middle;
+            float minimum = DynamicParameters.SpanMin;
+            float maximum = DynamicParameters.SpanMax;
+            return () =>
+            {
+                generator.ComputeActivityAtlas(values, length, mask, atlas);
+                var metrics = generator.GetLastComputeMetrics();
+                generator.AdjustValues(middle, minimum, maximum);
+                return metrics;
+            };
+        }
+
 
         /// <summary>
         /// Update the sites of this column (when changing the implantation of the scene)
@@ -513,7 +569,7 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
         }
@@ -525,21 +581,29 @@ namespace HBP.Data.Module3D
         public override void LoadConfiguration(bool firstCall = true)
         {
             if (firstCall) ResetConfiguration();
-            DynamicParameters.InfluenceDistance = ColumnCCEPData.DynamicConfiguration.MaximumInfluence;
-            DynamicParameters.SetSpanValues(ColumnCCEPData.DynamicConfiguration.SpanMin, ColumnCCEPData.DynamicConfiguration.Middle, ColumnCCEPData.DynamicConfiguration.SpanMax);
+            var configuration = ColumnCCEPData.CCEPConfiguration;
+            Mode = configuration.UseMarsAtlas ? CCEPMode.MarsAtlas : CCEPMode.Site;
+            SelectedSourceSite = configuration.SiteID == null ? null : Sources.FirstOrDefault(site => site.Information.FullID == configuration.SiteID);
+            SelectedSourceMarsAtlasLabel = configuration.MarsAtlasLabel;
+            DynamicParameters.InfluenceDistance = configuration.MaximumInfluence;
+            DynamicParameters.LoadConfiguration(configuration);
             base.LoadConfiguration(false);
         }
 
         /// <summary>
         /// Save the configuration of this column to the data column
         /// </summary>
-        public override void SaveConfiguration()
+        public override void SaveConfiguration() => CaptureConfiguration(ColumnData);
+
+        public override void CaptureConfiguration(Core.Data.Column target)
         {
-            ColumnCCEPData.DynamicConfiguration.MaximumInfluence = DynamicParameters.InfluenceDistance;
-            ColumnCCEPData.DynamicConfiguration.SpanMin = DynamicParameters.SpanMin;
-            ColumnCCEPData.DynamicConfiguration.Middle = DynamicParameters.Middle;
-            ColumnCCEPData.DynamicConfiguration.SpanMax = DynamicParameters.SpanMax;
-            base.SaveConfiguration();
+            var configuration = ((CCEPColumn)target).CCEPConfiguration;
+            configuration.UseMarsAtlas = Mode == CCEPMode.MarsAtlas;
+            configuration.SiteID = SelectedSourceSite?.Information.FullID;
+            configuration.MarsAtlasLabel = SelectedSourceMarsAtlasLabel;
+            configuration.MaximumInfluence = DynamicParameters.InfluenceDistance;
+            DynamicParameters.CaptureConfiguration(configuration);
+            base.CaptureConfiguration(target);
         }
 
         /// <summary>

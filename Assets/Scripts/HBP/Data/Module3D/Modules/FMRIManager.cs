@@ -1,4 +1,5 @@
-﻿using HBP.Core.Data;
+using UnityEngine.Events;
+using HBP.Core.Data;
 using HBP.Core.DLL;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
@@ -12,6 +13,77 @@ namespace HBP.Data.Module3D
     /// </summary>
     public class FMRIManager : MonoBehaviour
     {
+        public UnityEvent OnPresentationChanged { get; } = new();
+
+        public AtlasConfiguration CaptureConfiguration()
+        {
+            return new AtlasConfiguration(m_Scene.AtlasManager.DisplayMarsAtlas, m_Scene.AtlasManager.DisplayJuBrainAtlas, m_Scene.AtlasManager.AtlasAlpha, m_DisplayIBCContrasts, m_SelectedIBCContrastID, m_DisplayDiFuMo, m_SelectedDiFuMoAtlas, m_SelectedDiFuMoArea, m_DisplayLocalizers, m_SelectedLocalizersProtocol, m_SelectedLocalizersData, m_SelectedLocalizersBloc, m_SelectedLocalizersTimelineIndex, m_FMRIAlpha, m_FMRINegativeCalMinFactor, m_FMRINegativeCalMaxFactor, m_FMRIPositiveCalMinFactor, m_FMRIPositiveCalMaxFactor, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_Scene.Visualization.Configuration.AtlasConfiguration?.ID);
+        }
+
+        public void LoadConfiguration(AtlasConfiguration configuration)
+        {
+            if (configuration == null) return; // Legacy visualizations retain their normal defaults.
+            m_Scene.AtlasManager.AtlasAlpha = configuration.AtlasAlpha;
+            m_Scene.AtlasManager.DisplayMarsAtlas = configuration.MarsAtlas;
+            m_Scene.AtlasManager.DisplayJuBrainAtlas = configuration.JuBrain;
+            // Assign the complete resource selection before notifying dependent renderers.
+            m_SelectedIBCContrastID = configuration.IBCIndex;
+            m_SelectedDiFuMoAtlas = configuration.DiFuMoAtlas;
+            m_SelectedDiFuMoArea = configuration.DiFuMoArea;
+            m_SelectedLocalizersProtocol = configuration.LocalizerProtocol;
+            m_SelectedLocalizersData = configuration.LocalizerData;
+            m_SelectedLocalizersBloc = configuration.LocalizerBloc;
+            m_SelectedLocalizersTimelineIndex = configuration.LocalizerTime;
+            m_FMRIAlpha = configuration.FMRIAlpha;
+            m_FMRINegativeCalMinFactor = configuration.NegativeMin;
+            m_FMRINegativeCalMaxFactor = configuration.NegativeMax;
+            m_FMRIPositiveCalMinFactor = configuration.PositiveMin;
+            m_FMRIPositiveCalMaxFactor = configuration.PositiveMax;
+            m_LocalizersMin = configuration.LocalizerMin;
+            m_LocalizersMiddle = configuration.LocalizerMiddle;
+            m_LocalizersMax = configuration.LocalizerMax;
+            bool supportsMNI = m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
+            m_DisplayIBCContrasts = configuration.IBC && supportsMNI;
+            m_DisplayDiFuMo = configuration.DiFuMo && supportsMNI;
+            m_DisplayLocalizers = configuration.Localizers && supportsMNI;
+            UpdateSurfaceFMRIValues();
+            UpdateSurfaceFMRIColors();
+        }
+
+        /// <summary>Apply prepared IBC and DiFuMo selections before recomputing their surface output.</summary>
+        public void ApplySynchronizedAtlasSources(bool ibc, int ibcContrast, bool difumo, string difumoAtlas, int difumoArea)
+        {
+            if (ibc) m_Scene.EnsureAtlasCanBeUsed("ibc");
+            if (difumo) m_Scene.EnsureAtlasCanBeUsed("difumo:" + difumoAtlas);
+            if (m_DisplayIBCContrasts == ibc && m_SelectedIBCContrastID == ibcContrast && m_DisplayDiFuMo == difumo && m_SelectedDiFuMoAtlas == difumoAtlas && m_SelectedDiFuMoArea == difumoArea) return;
+            m_SelectedIBCContrastID = ibcContrast;
+            m_SelectedDiFuMoAtlas = difumoAtlas;
+            m_SelectedDiFuMoArea = difumoArea;
+            m_DisplayIBCContrasts = ibc;
+            m_DisplayDiFuMo = difumo;
+            UpdateSurfaceFMRIValues();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            OnPresentationChanged.Invoke();
+        }
+
+        /// <summary>Apply the prepared localizer selection and thresholds with one surface update.</summary>
+        public void ApplySynchronizedLocalizer(bool enabled, string protocol, string data, string bloc, int timelineIndex, float min, float middle, float max)
+        {
+            if (enabled) m_Scene.EnsureAtlasCanBeUsed("localizer:" + protocol);
+            if (m_DisplayLocalizers == enabled && m_SelectedLocalizersProtocol == protocol && m_SelectedLocalizersData == data && m_SelectedLocalizersBloc == bloc && m_SelectedLocalizersTimelineIndex == timelineIndex && m_LocalizersMin == min && m_LocalizersMiddle == middle && m_LocalizersMax == max) return;
+            m_DisplayLocalizers = enabled;
+            m_SelectedLocalizersProtocol = protocol;
+            m_SelectedLocalizersData = data;
+            m_SelectedLocalizersBloc = bloc;
+            m_SelectedLocalizersTimelineIndex = timelineIndex;
+            m_LocalizersMin = min;
+            m_LocalizersMiddle = middle;
+            m_LocalizersMax = max;
+            UpdateSurfaceFMRIValues();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            OnPresentationChanged.Invoke();
+        }
+
         #region Properties
 
         /// <summary>
@@ -34,9 +106,11 @@ namespace HBP.Data.Module3D
             get { return m_DisplayIBCContrasts; }
             set
             {
+                if (value) m_Scene.EnsureAtlasCanBeUsed("ibc");
                 m_DisplayIBCContrasts = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -53,6 +127,7 @@ namespace HBP.Data.Module3D
                 m_SelectedIBCContrastID = value;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -63,9 +138,11 @@ namespace HBP.Data.Module3D
             get { return m_DisplayDiFuMo; }
             set
             {
+                if (value && !string.IsNullOrEmpty(SelectedDiFuMoAtlas)) m_Scene.EnsureAtlasCanBeUsed("difumo:" + SelectedDiFuMoAtlas);
                 m_DisplayDiFuMo = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -84,10 +161,12 @@ namespace HBP.Data.Module3D
             }
             set
             {
+                if (m_DisplayDiFuMo && !string.IsNullOrEmpty(value)) m_Scene.EnsureAtlasCanBeUsed("difumo:" + value);
                 m_SelectedDiFuMoAtlas = value;
                 m_SelectedDiFuMoArea = 0;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -101,6 +180,7 @@ namespace HBP.Data.Module3D
                 m_SelectedDiFuMoArea = value;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -114,9 +194,11 @@ namespace HBP.Data.Module3D
             get { return m_DisplayLocalizers; }
             set
             {
+                if (value && !string.IsNullOrEmpty(SelectedLocalizersProtocol)) m_Scene.EnsureAtlasCanBeUsed("localizer:" + SelectedLocalizersProtocol);
                 m_DisplayLocalizers = value && m_Scene.MeshManager.SelectedMesh.SupportsMNIResources;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -138,9 +220,11 @@ namespace HBP.Data.Module3D
             }
             set
             {
+                if (m_DisplayLocalizers && !string.IsNullOrEmpty(value)) m_Scene.EnsureAtlasCanBeUsed("localizer:" + value);
                 m_SelectedLocalizersProtocol = value;
                 SelectedLocalizersData = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol)?.Datas.FirstOrDefault()?.Name;
                 SetLocalizersDefaultParameters();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -166,6 +250,7 @@ namespace HBP.Data.Module3D
                 var protocol = Object3DManager.Localizers.Protocols.FirstOrDefault(p => p.Name == m_SelectedLocalizersProtocol);
                 var data = protocol?.Datas.FirstOrDefault(d => d.Name == m_SelectedLocalizersData);
                 SelectedLocalizersBloc = data?.Blocs.FirstOrDefault()?.Name;
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -191,6 +276,7 @@ namespace HBP.Data.Module3D
             {
                 m_SelectedLocalizersBloc = value;
                 SelectedLocalizersTimelineIndex = m_SelectedLocalizersTimelineIndex;
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -226,6 +312,7 @@ namespace HBP.Data.Module3D
 
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -298,6 +385,7 @@ namespace HBP.Data.Module3D
                 m_FMRIAlpha = value;
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -314,6 +402,7 @@ namespace HBP.Data.Module3D
                 m_FMRINegativeCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -330,6 +419,7 @@ namespace HBP.Data.Module3D
                 m_FMRINegativeCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -346,6 +436,7 @@ namespace HBP.Data.Module3D
                 m_FMRIPositiveCalMinFactor = value;
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -362,7 +453,22 @@ namespace HBP.Data.Module3D
                 m_FMRIPositiveCalMaxFactor = value;
                 UpdateSurfaceFMRIColors();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
+        }
+
+        /// <summary>Apply synchronized atlas display calibration with one color rebuild.</summary>
+        public void ApplySynchronizedAtlasCalibration(float alpha, float negativeMin, float negativeMax, float positiveMin, float positiveMax)
+        {
+            if (m_FMRIAlpha == alpha && m_FMRINegativeCalMinFactor == negativeMin && m_FMRINegativeCalMaxFactor == negativeMax && m_FMRIPositiveCalMinFactor == positiveMin && m_FMRIPositiveCalMaxFactor == positiveMax) return;
+            m_FMRIAlpha = alpha;
+            m_FMRINegativeCalMinFactor = negativeMin;
+            m_FMRINegativeCalMaxFactor = negativeMax;
+            m_FMRIPositiveCalMinFactor = positiveMin;
+            m_FMRIPositiveCalMaxFactor = positiveMax;
+            UpdateSurfaceFMRIColors();
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
+            OnPresentationChanged.Invoke();
         }
 
         private const float m_DiFuMoNegativeMin = 0;
@@ -386,6 +492,7 @@ namespace HBP.Data.Module3D
                 m_LocalizersMin = value;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -402,6 +509,7 @@ namespace HBP.Data.Module3D
                 m_LocalizersMiddle = value;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -418,6 +526,7 @@ namespace HBP.Data.Module3D
                 m_LocalizersMax = value;
                 UpdateSurfaceFMRIValues();
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
+                OnPresentationChanged.Invoke();
             }
         }
 
@@ -431,7 +540,7 @@ namespace HBP.Data.Module3D
                 if (m_DisplayLocalizers)
                 {
                     var currentFMRI = Object3DManager.Localizers.GetCurrentFMRI(SelectedLocalizersProtocol, SelectedLocalizersData, SelectedLocalizersBloc);
-                    return currentFMRI?.MaskVolume;
+                    return currentFMRI?.MaskVolume?.IsLoaded == true ? currentFMRI.MaskVolume : null;
                 }
 
                 return null;
@@ -449,6 +558,8 @@ namespace HBP.Data.Module3D
                 m_FMRIValues = CurrentVolume.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface);
             if (CurrentLocalizersMask != null)
                 m_FMRIMask = CurrentLocalizersMask.GetVerticesValues(m_Scene.MeshManager.ReferenceSurface).Select(v => v > 0 ? 1 : 0).ToArray();
+            else
+                m_FMRIMask = null;
 
             UpdateSurfaceFMRIColors();
         }
@@ -458,6 +569,12 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void UpdateSurfaceFMRIColors()
         {
+            if (!DisplayFMRI && m_Scene.AtlasManager.DisplayAtlas)
+            {
+                m_Scene.AtlasManager.UpdateAtlasColors();
+                return;
+            }
+
             Color[] colors = new Color[0];
             if (m_DisplayIBCContrasts)
             {
@@ -472,7 +589,7 @@ namespace HBP.Data.Module3D
                 colors = CurrentVolume.ConvertValuesToColors(m_FMRIValues, m_FMRIMask, m_LocalizersMin, m_LocalizersMiddle, m_LocalizersMax, m_LocalizersColorSchemePixels);
             }
 
-            m_DisplayedObjects.Brain.GetComponent<MeshFilter>().mesh.colors = colors;
+            m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh.colors = colors;
             foreach (Column3D column in m_Scene.Columns)
             {
                 column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;

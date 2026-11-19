@@ -37,6 +37,16 @@ namespace HBP.Core.Exceptions
         }
     }
 
+    /// <summary>Readable opening context; the original cause remains available in the application log.</summary>
+    [Serializable]
+    public sealed class VisualizationLoadException : HBPException
+    {
+        public VisualizationLoadException(string visualizationName, Exception inner, string columnName = null) : base($"The visualization \"{visualizationName}\" could not be opened." + (columnName == null ? string.Empty : $"\nThe error occurred while preparing column \"{columnName}\".") + "\n\nAn internal application error interrupted loading. Try opening the visualization again. If the problem persists, send the application log to support.", inner)
+        {
+            Title = "Visualization could not be opened";
+        }
+    }
+
     [Serializable]
     public class CannotFindDataInfoException : HBPException
     {

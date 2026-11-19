@@ -422,6 +422,249 @@ namespace HBP.Tests.PlayMode.UI
 
         [Test]
         [Category("PlayMode.InformationGraph")]
+        public void Presentation_CalculatesTrialSelectionAndEmptyStateWithoutAnyView()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            var type = typeof(GraphZone).Assembly.GetType("HBP.UI.Informations.InformationPresentation", true);
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            var presentation = Activator.CreateInstance(type, flags, null, new object[] { null, null }, null);
+            object Read(string name) => type.GetProperty(name, flags).GetValue(presentation);
+            try
+            {
+                ChannelStruct channel = new(fixture.Channel, fixture.Patient);
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
+                var rebuild = type.GetMethod("Rebuild", flags);
+                rebuild.Invoke(presentation, new object[] { new[] { channel }, new[] { column }, true });
+                var matrices = (HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)Read("Matrices");
+                var graphs = (Tuple<Graph.Curve[], TimeWindow, bool>[])Read("Graphs");
+                var curve = FlattenCurves(graphs[0].Item1).Single(c => c.Name == "A1");
+                long samples = (long)Read("SamplesRevision");
+                long revision = (long)Read("Revision");
+                matrices.Data[0].Blocs[0].ChannelBlocs[0].TrialIsSelected = new[] { false, true };
+                CollectionAssert.AreEqual(new[] { 20f, 22f }, curve.Data.Points.Select(p => p.y));
+                Assert.That(Read("SamplesRevision"), Is.EqualTo(samples));
+                Assert.That((long)Read("Revision"), Is.GreaterThan(revision));
+                rebuild.Invoke(presentation, new object[] { Array.Empty<ChannelStruct>(), Array.Empty<HBP.Data.Informations.Column>(), true });
+                Assert.That((Array)Read("Graphs"), Is.Empty);
+                Assert.That(((HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)Read("Matrices")).Data, Is.Empty);
+            }
+            finally
+            {
+                ((IDisposable)presentation).Dispose();
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public void SceneSelection_PreservesTrialsAcrossFocusAndReplacesMissingChannelRows()
+        {
+            using PlayModeSceneScope scope = new("SceneSelectionTrialMatrix");
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeModule3DTestHarness harness = new(scope.Scene);
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            InformationsWrapper wrapper = null;
+            try
+            {
+                Base3DScene scene = harness.Scene;
+                SetPrivateField(scene, "m_ROIManager", scene.gameObject.AddComponent<ROIManager>());
+                scene.SceneInformation.CompletelyLoaded = true;
+                Column3D anatomy = harness.SourceColumn;
+                SetAutoProperty(anatomy, "Layer", "Default");
+                ObjectSite recorded = harness.SourceSiteA;
+                ObjectSite missing = harness.SourceSiteB;
+                recorded.Information.Patient = missing.Information.Patient = fixture.Patient;
+                recorded.transform.position = new Vector3(1000, 1000, 1000);
+                missing.transform.position = new Vector3(1010, 1000, 1000);
+                recorded.gameObject.AddComponent<SphereCollider>();
+                missing.gameObject.AddComponent<SphereCollider>();
+                Physics.SyncTransforms();
+
+                GameObject owner = new("Inactive signals fixture");
+                owner.SetActive(false);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(owner, scope.Scene);
+                Column3DIEEG ieeg = owner.AddComponent<Column3DIEEG>();
+                SetAutoProperty(ieeg, "ColumnData", new IEEGColumn("SEEG", new BaseConfiguration(), fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc, new DynamicConfiguration()));
+                CoreSubBloc subBloc = fixture.Bloc.MainSubBloc;
+                SetPrivateField(ieeg, "m_NavigationTimeline", new Timeline(fixture.Bloc,
+                    new Dictionary<CoreSubBloc, List<SubBlocEventsStatistics>> { { subBloc, new() } },
+                    new Dictionary<CoreSubBloc, int> { { subBloc, 0 } }, new Frequency(1000)));
+                ObjectSite recordedReplica = CreateRuntimeSite(scope, fixture.Channel, fixture.Patient, Vector3.zero);
+                recordedReplica.State.IsMasked = true;
+                SetAutoProperty(ieeg, "Sites", new List<ObjectSite> { recordedReplica });
+                scene.Columns.Add(ieeg);
+
+                UITrialMatrixGrid grid = CreateTrialMatrixGridHarness(scope);
+                ChannelInformations channels = owner.AddComponent<ChannelInformations>();
+                SetPrivateField(channels, "m_GraphZone", CreateGraphZoneHarness(scope, grid));
+                SetPrivateField(channels, "m_TrialMatrixZone", CreateTrialMatrixZoneHarness(scope, grid));
+                GridInformations gridInformations = owner.AddComponent<GridInformations>();
+                SetPrivateField(gridInformations, "m_Grid", CreateGraphsGridHarness(scope));
+                wrapper = owner.AddComponent<InformationsWrapper>();
+                InitializeSerializedEvents(wrapper);
+                wrapper.ChannelInformations = channels;
+                wrapper.GridInformations = gridInformations;
+                wrapper.Scene = scene;
+
+                const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                var flush = typeof(InformationsWrapper).GetMethod("FlushPresentation", flags);
+                object presentation = typeof(InformationsWrapper).GetProperty("Presentation", flags).GetValue(wrapper);
+                var matrices = presentation.GetType().GetProperty("Matrices", flags);
+                HBP.Data.Informations.TrialMatrix.ChannelBloc CurrentRow()
+                {
+                    flush.Invoke(wrapper, null);
+                    return ((HBP.Data.Informations.TrialMatrix.TrialMatrixGrid)matrices.GetValue(presentation)).Data.Single().Blocs.Single().ChannelBlocs.Single();
+                }
+
+                scene.ClickOnScene(new Ray(recorded.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                var recordedRow = CurrentRow();
+                Assert.That(recordedRow.IsFound, Is.True);
+                Assert.That(recordedRow.SubBlocs.Single().SubTrials.Select(trial => trial.Data.Values[0]), Is.EqualTo(new[] { 10f, 20f }));
+                recordedRow.TrialIsSelected = new[] { true, false };
+
+                scene.SelectColumn(ieeg);
+                Assert.That(scene.SelectedSite, Is.SameAs(recorded));
+                Assert.That(ieeg.SelectedSite, Is.SameAs(recordedReplica));
+                Assert.That(CurrentRow(), Is.SameAs(recordedRow));
+                Assert.That(recordedRow.TrialIsSelected, Is.EqualTo(new[] { true, false }));
+
+                scene.ClickOnScene(new Ray(missing.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                Assert.That(scene.SelectedSite, Is.SameAs(missing));
+                var missingRow = CurrentRow();
+                Assert.That(missingRow.Channel.Channel, Is.EqualTo(missing.Information.Name));
+                Assert.That(missingRow.IsFound, Is.False);
+                Assert.That(missingRow.SubBlocs.Single().SubTrials, Is.Empty);
+
+                var emptyRow = CreateChannelBlocPrefab().GetComponent<UITrialMatrixChannelBloc>();
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(emptyRow.gameObject, scope.Scene);
+                emptyRow.Set(missingRow, new[] { Color.black, Color.white }, Vector2.zero);
+                var previousKeyboard = UnityEngine.InputSystem.Keyboard.current;
+                var keyboard = UnityEngine.InputSystem.InputSystem.AddDevice<UnityEngine.InputSystem.Keyboard>();
+                try
+                {
+                    UnityEngine.InputSystem.InputSystem.QueueStateEvent(keyboard, new UnityEngine.InputSystem.LowLevel.KeyboardState(UnityEngine.InputSystem.Key.LeftCtrl));
+                    UnityEngine.InputSystem.InputSystem.Update();
+                    PointerEventData pointer = new(null) { button = PointerEventData.InputButton.Left };
+                    emptyRow.OnPointerDown(pointer);
+                    emptyRow.OnBeginDrag(pointer);
+                    emptyRow.OnDrag(pointer);
+                    Assert.That(emptyRow.TrialIsSelected, Is.Empty);
+                }
+                finally
+                {
+                    UnityEngine.InputSystem.InputSystem.RemoveDevice(keyboard);
+                    previousKeyboard?.MakeCurrent();
+                }
+
+                scene.ClickOnScene(new Ray(recorded.transform.position - Vector3.forward * 2, Vector3.forward), anatomy);
+                Assert.That(CurrentRow().SubBlocs.Single().SubTrials.Select(trial => trial.Data.Values[0]), Is.EqualTo(new[] { 10f, 20f }));
+            }
+            finally
+            {
+                if (wrapper != null)
+                {
+                    var presentation = typeof(InformationsWrapper).GetProperty("Presentation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(wrapper);
+                    (presentation as IDisposable)?.Dispose();
+                }
+
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public async Task SharedPresentation_BindingAfterStandaloneDisplayStaysStableAndPreservesItsOwner()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("InformationGraphSharedOwnership");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            Texture2D colormap = CreateColormap();
+            var type = typeof(GraphZone).Assembly.GetType("HBP.UI.Informations.InformationPresentation", true);
+            const BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            object first = null, second = null;
+            ChannelInformations information = null;
+            object Read(object model, string property) => type.GetProperty(property, flags).GetValue(model);
+            long[] Revisions(object model) => new[] { "Revision", "ContentRevision", "CurvesRevision", "SamplesRevision" }.Select(name => (long)Read(model, name)).ToArray();
+
+            object Build(ChannelStruct channel, HBP.Data.Informations.Column column)
+            {
+                var model = Activator.CreateInstance(type, flags, null, new object[] { null, null }, null);
+                type.GetMethod("Rebuild", flags).Invoke(model, new object[] { new[] { channel }, new[] { column }, true });
+                return model;
+            }
+
+            void Bind(object model) => typeof(ChannelInformations).GetMethod("Bind", flags).Invoke(information, new[] { model });
+            void Render() => typeof(ChannelInformations).GetMethod("DisplayPresentation", flags).Invoke(information, null);
+            try
+            {
+                ChannelStruct channel = new(fixture.Channel, fixture.Patient);
+                HBP.Data.Informations.Column column = new("Column A", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>());
+                UITrialMatrixGrid grid = CreateTrialMatrixGridHarness(scene);
+                var matrixData = new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.IEEGTrialMatrixData(fixture.Dataset, fixture.DataInfo.Name, fixture.Protocol.OrderedBlocs.ToList());
+                grid.Display(new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid(new[] { channel }, new HBP.Data.Informations.TrialMatrix.TrialMatrixGrid.TrialMatrixData[] { matrixData }), colormap);
+                GraphZone zone = CreateGraphZoneHarness(scene, grid);
+                zone.Display(new[] { channel }, new[] { column });
+                var standalone = typeof(GraphZone).GetProperty("Presentation", flags).GetValue(zone);
+                var oldCurve = FlattenCurves(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0].Curves).Single(curve => curve.Name == "A1");
+                var oldData = oldCurve.Data;
+                oldCurve.Enabled = false;
+
+                var root = new GameObject("Bound channel information");
+                root.SetActive(false);
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(root, scene.Scene);
+                information = root.AddComponent<ChannelInformations>();
+                SetPrivateField(information, "m_GraphZone", zone);
+                SetPrivateField(information, "m_TrialMatrixZone", CreateTrialMatrixZoneHarness(scene, grid));
+                root.SetActive(true);
+                first = Build(channel, column);
+                long[] stable = Revisions(first);
+                Bind(first);
+                Assert.That(Read(standalone, "Matrices"), Is.Null, "The old standalone model must be released on binding.");
+                Render();
+                for (int frame = 0; frame < 3; frame++)
+                {
+                    await UniTask.NextFrame();
+                    Render();
+                    CollectionAssert.AreEqual(stable, Revisions(first), "Rendering must not invalidate a shared presentation or restart its transfer.");
+                }
+
+                Assert.That(oldData == null, Is.True);
+                var displayed = GetPrivateField<List<Graph>>(zone, "m_Graphs")[0];
+                Assert.That(FlattenCurves(displayed.Curves).Single(curve => curve.Name == "A1").Enabled, Is.True, "Standalone visibility must not override the shared model.");
+                Bind(first);
+                Render();
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0], Is.SameAs(displayed), "Rebinding the same source must not rebuild the view.");
+
+                second = Build(channel, new HBP.Data.Informations.Column("Column B", column.Data, Array.Empty<ChannelStructsGroup>()));
+                CollectionAssert.AreEqual(stable, Revisions(second));
+                Bind(second);
+                Render();
+                Assert.That(GetPrivateField<HBP.Data.Informations.TrialMatrix.TrialMatrixGrid>(grid, "m_TrialMatrixGridData"), Is.SameAs(Read(second, "Matrices")), "Equal revision numbers must not hide a changed source.");
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs")[0].Curves[0].Name, Is.EqualTo("Column B"));
+                Assert.That(Read(first, "Matrices"), Is.Not.Null, "A view must not dispose a previous shared owner.");
+                CollectionAssert.AreEqual(stable, Revisions(second));
+                information.enabled = false;
+                Object.Destroy(zone.gameObject);
+                await UniTask.NextFrame();
+                Assert.That(Read(second, "Matrices"), Is.Not.Null);
+                Assert.That(((Tuple<Graph.Curve[], TimeWindow, bool>[])Read(second, "Graphs"))[0].Item1, Is.Not.Empty, "Destroying a shared view must preserve the scientific model.");
+            }
+            finally
+            {
+                if (information != null) information.enabled = false;
+                ((IDisposable)first)?.Dispose();
+                ((IDisposable)second)?.Dispose();
+                Object.Destroy(colormap);
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
         public void GraphZone_DisplayUsesTrialMatrixSelectionAndUpdatesCurveWhenSelectionChanges()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -498,6 +741,63 @@ namespace HBP.Tests.PlayMode.UI
             finally
             {
                 Object.Destroy(colormap);
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public void GraphZone_MixedEpochedAndMEGColumnsGrowAndReuseThePrefabPool()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("MixedGraphPool");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            try
+            {
+                GraphZone zone = CreateGraphZoneHarness(scene, CreateTrialMatrixGridHarness(scene));
+                zone.CreateGraphPool(1);
+                var columns = new[]
+                {
+                    new HBP.Data.Informations.Column("IEEG", new HBP.Data.Informations.IEEGData(fixture.Dataset, fixture.DataInfo.Name, fixture.Bloc), Array.Empty<ChannelStructsGroup>()),
+                    new HBP.Data.Informations.Column("MEG", new HBP.Data.Informations.MEGData(fixture.Dataset, "MEG", new TimeWindow(0, 2)), Array.Empty<ChannelStructsGroup>())
+                };
+                zone.Display(Array.Empty<ChannelStruct>(), columns);
+                var first = GetPrivateField<List<Graph>>(zone, "m_Graphs").ToArray();
+                Assert.That(first, Has.Length.EqualTo(2));
+                zone.Display(Array.Empty<ChannelStruct>(), columns);
+                Assert.That(GetPrivateField<List<Graph>>(zone, "m_Graphs"), Is.EquivalentTo(first));
+                Assert.That(GetPrivateField<Queue<Graph>>(zone, "m_GraphPool"), Is.Empty);
+            }
+            finally
+            {
+                DataManager.Clear();
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.InformationGraph")]
+        public void GraphZone_CCEPDoesNotRequestResponsesFromAnotherPatient()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("CCEPGraphPatients");
+            IEEGTrialMatrixFixture fixture = CreateInjectedTrialMatrixFixture();
+            try
+            {
+                Patient other = new("other", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), Array.Empty<Site>(), Array.Empty<BaseTagValue>(), string.Empty, "other-patient");
+                var channel = new ChannelStruct("B1", other);
+                var group = new ChannelStructsGroup("Other patient ROI", new[] { channel }, ChannelStructsGroup.GroupType.ROI);
+                var data = new HBP.Data.Informations.CCEPData(fixture.Dataset, "Responses", new ChannelStruct("A1", fixture.Patient), fixture.Bloc);
+                var column = new HBP.Data.Informations.Column("CCEP", data, new[] { group });
+                GraphZone zone = CreateGraphZoneHarness(scene, CreateTrialMatrixGridHarness(scene));
+                zone.Display(new[] { channel }, new[] { column });
+                var curves = FlattenCurves(GetPrivateField<List<Graph>>(zone, "m_Graphs").Single().Curves).ToArray();
+                Assert.That(curves.Single(c => c.Name == "B1").Data, Is.Null);
+                Assert.That(curves.Single(c => c.Name == group.Name).Data, Is.Null);
+            }
+            finally
+            {
                 DataManager.Clear();
             }
         }
@@ -586,12 +886,17 @@ namespace HBP.Tests.PlayMode.UI
             using PlayModeSceneScope scene = new("InformationGraphTrialMatrixExplorerInformationPanels");
 
             BoolTag patientTag = new("Included", "information-graph-info-patient-tag-001");
+            StringTag secondPatientTag = new("Group", "information-graph-info-patient-tag-002");
             StringTag siteTag = new("Location", "information-graph-info-site-tag-001");
-            PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag }, false);
+            PersistentDataManager.Tags.SetPatientTags(new BaseTag[] { patientTag, secondPatientTag }, false);
             PersistentDataManager.Tags.SetSiteTags(new BaseTag[] { siteTag }, false);
 
             Site site = new("A1", new[] { new Coordinate("information-graph-space", Vector3.one, "information-graph-info-coordinate-001") }, new BaseTagValue[] { new StringTagValue(siteTag, "temporal", "information-graph-info-site-tag-value-001") }, "information-graph-info-site-001");
-            Patient patient = new("patient-info", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, new BaseTagValue[] { new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001") }, string.Empty, "information-graph-info-patient-001");
+            Patient patient = new("patient-info", Array.Empty<BaseMesh>(), Array.Empty<MRI>(), new[] { site }, new BaseTagValue[]
+            {
+                new BoolTagValue(patientTag, true, "information-graph-info-patient-tag-value-001"),
+                new StringTagValue(secondPatientTag, "A", "information-graph-info-patient-tag-value-002")
+            }, string.Empty, "information-graph-info-patient-001");
 
             DBInformationPanels panels = CreateInformationPanelsHarness(scene);
             DBTagDisplaySettingsContextMenu patientMenu = GetPrivateField<DBTagDisplaySettingsContextMenu>(panels, "m_PatientTagDisplaySettingsContextMenu");
@@ -601,18 +906,24 @@ namespace HBP.Tests.PlayMode.UI
 
             patientMenu.SelectAll();
             siteMenu.SelectAll();
+            panels.gameObject.SetActive(false);
             panels.Set(new ChannelStruct("A1", patient));
+            panels.gameObject.SetActive(true);
 
-            Assert.That(patientText.text, Does.Contain("Included"));
-            Assert.That(patientText.text, Does.Contain("True"));
-            Assert.That(siteText.text, Does.Contain("Location"));
-            Assert.That(siteText.text, Does.Contain("temporal"));
+            var patientCells = patientText.transform.parent.GetComponentsInChildren<Text>();
+            Assert.That(patientCells.Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Included", "True", "Group", "A" }));
+            Assert.That(siteText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Location", "temporal" }));
+            Assert.That(patientCells.Select(cell => cell.fontStyle), Is.EqualTo(new[] { FontStyle.Bold, FontStyle.Bold, FontStyle.Bold, FontStyle.Normal, FontStyle.Bold, FontStyle.Normal }));
+            var backgrounds = patientText.transform.parent.GetComponentsInChildren<Image>();
+            Assert.That(backgrounds, Has.Length.EqualTo(3));
+            Assert.That(backgrounds[0].color.r, Is.GreaterThan(backgrounds[1].color.r));
+            Assert.That(backgrounds[1].color.r, Is.GreaterThan(backgrounds[2].color.r));
 
             siteMenu.DeselectAll();
             panels.Refresh();
 
-            Assert.That(patientText.text, Does.Contain("Included"));
-            Assert.That(siteText.text, Is.EqualTo("No site information available."));
+            Assert.That(patientText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "Tag", "Value", "Included", "True", "Group", "A" }));
+            Assert.That(siteText.transform.parent.GetComponentsInChildren<Text>().Select(cell => cell.text), Is.EqualTo(new[] { "No site information available." }));
         }
 
         [Test]
@@ -923,9 +1234,18 @@ namespace HBP.Tests.PlayMode.UI
             panelsObject.SetActive(false);
             UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(panelsObject, scene.Scene);
             DBInformationPanels panels = panelsObject.AddComponent<DBInformationPanels>();
-            SetPrivateField(panels, "m_PatientInformationText", CreateTextChild(panelsObject.transform, "PatientText"));
+            var patientContent = new GameObject("Patient content", typeof(RectTransform));
+            patientContent.transform.SetParent(panelsObject.transform, false);
+            var siteContent = new GameObject("Site content", typeof(RectTransform));
+            siteContent.transform.SetParent(panelsObject.transform, false);
+            var prefab = Resources.Load<GameObject>("Prefabs/UI/Windows/Trial matrix explorer window");
+            var authoredPanels = prefab.GetComponentInChildren<DBInformationPanels>(true);
+            SetPrivateField(panels, "m_TagRowTemplate", GetPrivateField<GameObject>(authoredPanels, "m_TagRowTemplate"));
+            SetPrivateField(panels, "m_TagHeaderState", GetPrivateField<ScriptableObject>(authoredPanels, "m_TagHeaderState"));
+            SetPrivateField(panels, "m_AlternateTagRowState", GetPrivateField<ScriptableObject>(authoredPanels, "m_AlternateTagRowState"));
+            SetPrivateField(panels, "m_PatientInformationText", CreateTextChild(patientContent.transform, "PatientText"));
             SetPrivateField(panels, "m_PatientTagDisplaySettingsContextMenu", CreateTagDisplaySettingsContextMenu(panelsObject.transform, DBTagDisplaySettingsContextMenu.TagsType.Patient));
-            SetPrivateField(panels, "m_SiteInformationText", CreateTextChild(panelsObject.transform, "SiteText"));
+            SetPrivateField(panels, "m_SiteInformationText", CreateTextChild(siteContent.transform, "SiteText"));
             SetPrivateField(panels, "m_SiteTagDisplaySettingsContextMenu", CreateTagDisplaySettingsContextMenu(panelsObject.transform, DBTagDisplaySettingsContextMenu.TagsType.Site));
             panelsObject.SetActive(true);
             return panels;

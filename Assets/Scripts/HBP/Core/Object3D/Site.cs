@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -82,14 +83,38 @@ namespace HBP.Core.Object3D
     /// The information avaiable in this class depends on which column the site is
     /// Each instance of the <see cref="Site"/> class has its own instance of this class
     /// </remarks>
+    public enum SiteStateChangeKind : byte
+    {
+        Other,
+        Color,
+        Presentation,
+        ScientificMask
+    }
+
     public class SiteState
     {
+        /// <summary>Raised synchronously after a requested site color changes.</summary>
+        private GenericEvent<SiteState> m_OnColorChanged;
+
+        public GenericEvent<SiteState> OnColorChanged => m_OnColorChanged ??= new();
+
+        private SiteStateChangeKind m_CurrentChangeKind;
+
+        /// <summary>The innermost site-state change whose listeners are currently running.</summary>
+        public SiteStateChangeKind CurrentChangeKind => m_CurrentChangeKind;
+
+        /// <summary>True only while color listeners for the innermost change are running.</summary>
+        public bool IsColorChangeInProgress => m_CurrentChangeKind == SiteStateChangeKind.Color;
+
         #region Properties
 
         /// <summary>
         /// Default color of any site
         /// </summary>
         public static Color DefaultColor = new(0.53f, 0.15f, 0.15f);
+
+        /// <summary>Prepared scientific exclusion shared by native updates and snapshot capture.</summary>
+        public bool IsEffectivelyMasked(bool roiActive) => IsMasked || IsBlackListed || (IsOutOfROI && roiActive) || !IsFiltered;
 
         /// <summary>
         /// Is the site completely masked ?
@@ -115,7 +140,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsFiltered = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.ScientificMask);
             }
         }
 
@@ -130,7 +155,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsBlackListed = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.ScientificMask);
             }
         }
 
@@ -145,7 +170,7 @@ namespace HBP.Core.Object3D
             set
             {
                 m_IsHighlighted = value;
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Presentation);
             }
         }
 
@@ -159,8 +184,10 @@ namespace HBP.Core.Object3D
             get { return m_Color; }
             set
             {
+                bool changed = m_Color != value;
                 m_Color = value;
-                OnChangeState.Invoke();
+                if (changed) m_OnColorChanged?.Invoke(this);
+                NotifyStateChanged(SiteStateChangeKind.Color);
             }
         }
 
@@ -191,7 +218,7 @@ namespace HBP.Core.Object3D
             if (!Labels.Contains(label))
             {
                 Labels.Add(label);
-                OnChangeState.Invoke();
+                NotifyStateChanged(SiteStateChangeKind.Presentation);
             }
         }
 
@@ -202,7 +229,7 @@ namespace HBP.Core.Object3D
         public void RemoveLabel(string label)
         {
             Labels.Remove(label);
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Presentation);
         }
 
         /// <summary>
@@ -211,7 +238,7 @@ namespace HBP.Core.Object3D
         public void RemoveAllLabels()
         {
             Labels.Clear();
-            OnChangeState.Invoke();
+            NotifyStateChanged(SiteStateChangeKind.Presentation);
         }
 
         /// <summary>
@@ -232,15 +259,48 @@ namespace HBP.Core.Object3D
         /// <param name="labels">Labels of the site</param>
         public void ApplyState(bool blacklisted, bool highlighted, Color color, IEnumerable<string> labels)
         {
+            bool scientificMaskChanged = m_IsBlackListed != blacklisted;
             m_IsBlackListed = blacklisted;
             m_IsHighlighted = highlighted;
             m_Color = color;
             Labels = labels.ToList();
-            OnChangeState.Invoke();
+            NotifyStateChanged(scientificMaskChanged ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
+        }
+
+        /// <summary>Apply one synchronized site assignment with a single change event.</summary>
+        public void ApplySynchronizedState(bool filtered, bool blacklisted, bool highlighted, Color color, IReadOnlyList<string> labels)
+        {
+            if (m_IsFiltered == filtered && m_IsBlackListed == blacklisted && m_IsHighlighted == highlighted && m_Color == color && Labels.SequenceEqual(labels)) return;
+            bool scientificMaskChanged = m_IsFiltered != filtered || m_IsBlackListed != blacklisted;
+            m_IsFiltered = filtered;
+            m_IsBlackListed = blacklisted;
+            m_IsHighlighted = highlighted;
+            m_Color = color;
+            Labels = labels.ToList();
+            NotifyStateChanged(scientificMaskChanged ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
+        }
+
+        /// <summary>Stages a complete filter mask before notifying any site-state listeners.</summary>
+        public static void ApplyFilteredStateBatch(IEnumerable<(SiteState State, bool Included)> assignments)
+        {
+            if (assignments == null) throw new ArgumentNullException(nameof(assignments));
+            var staged = new List<(SiteState State, bool Included)>();
+            var seen = new HashSet<SiteState>();
+            foreach ((SiteState state, bool included) in assignments)
+            {
+                if (state == null) throw new ArgumentException("A filter-mask assignment requires a site state.", nameof(assignments));
+                if (!seen.Add(state)) throw new ArgumentException("A filter-mask batch cannot assign a site state more than once.", nameof(assignments));
+                staged.Add((state, included));
+            }
+
+            var changes = staged.Where(change => change.State.m_IsFiltered != change.Included).ToArray();
+            foreach ((SiteState state, bool included) in changes) state.m_IsFiltered = included;
+            foreach ((SiteState state, _) in changes) state.NotifyStateChanged(SiteStateChangeKind.ScientificMask);
         }
 
         public void ApplySpecificState(bool importHighlighted, bool isHighlighted, bool importBlacklisted, bool isBlacklisted, bool importColor, Color color, bool importLabels, IEnumerable<string> labels, bool mergeLabels = false)
         {
+            bool previousBlacklisted = m_IsBlackListed;
             if (importHighlighted && m_IsHighlighted != isHighlighted)
                 m_IsHighlighted = isHighlighted;
 
@@ -268,7 +328,21 @@ namespace HBP.Core.Object3D
                 }
             }
 
-            OnChangeState.Invoke();
+            NotifyStateChanged(previousBlacklisted != m_IsBlackListed ? SiteStateChangeKind.ScientificMask : SiteStateChangeKind.Presentation);
+        }
+
+        private void NotifyStateChanged(SiteStateChangeKind changeKind)
+        {
+            SiteStateChangeKind previousChangeKind = m_CurrentChangeKind;
+            m_CurrentChangeKind = changeKind;
+            try
+            {
+                OnChangeState.Invoke();
+            }
+            finally
+            {
+                m_CurrentChangeKind = previousChangeKind;
+            }
         }
 
         #endregion
@@ -328,6 +402,8 @@ namespace HBP.Core.Object3D
             }
         }
 
+        public void RequestSelection() => OnSelectionRequested.Invoke();
+
         /// <summary>
         /// Information about this site (common to all sites with the same ID in the scene)
         /// </summary>
@@ -361,6 +437,8 @@ namespace HBP.Core.Object3D
         /// Event called when selecting or unselecting this site
         /// </summary>
         public GenericEvent<bool> OnSelectSite = new();
+
+        [HideInInspector] public UnityEvent OnSelectionRequested = new();
 
         /// <summary>
         /// Event called when loading or reseting the configuration of this site

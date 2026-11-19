@@ -47,6 +47,9 @@ namespace HBP.UI.Main
                 }
             }
 
+            if (!openedScenesConfirmed) return;
+
+            base.OK();
             await ProjectWorkflowService.Default.OpenProjectAsync(info, openedScenesConfirmed);
         }
 

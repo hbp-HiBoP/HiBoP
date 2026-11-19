@@ -1,3 +1,5 @@
+using HBP.Input;
+using UnityEngine.InputSystem;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using UnityEngine;
@@ -72,6 +74,7 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 if (SetPropertyUtility.SetClass(ref m_TrialIsSelected, value))
                 {
+                    if (Data != null) Data.TrialIsSelected = value;
                     SetSelections();
                 }
             }
@@ -143,12 +146,14 @@ namespace HBP.UI.Informations.TrialMatrix
             Data = data;
             Clear();
             foreach (var subBloc in data.SubBlocs) AddSubBloc(subBloc, colors, limits);
-            m_TrialIsSelected = Enumerable.Repeat(true, SubBlocs.First(s => s.Data.SubBlocProtocol == Data.Bloc.MainSubBloc).Data.SubTrials.Length).ToArray();
+            m_TrialIsSelected = data.TrialIsSelected;
+            SetSelections();
             OnSet.Invoke();
         }
 
         public void OnPointerDown(BaseEventData baseEventData)
         {
+            if (m_TrialIsSelected is not { Length: > 0 }) return;
             PointerEventData pointerEventData = (PointerEventData)baseEventData;
             m_OnPointerDownTrial = GetTrialAtPosition(pointerEventData.pressPosition);
             m_LastDragTrial = m_OnPointerDownTrial;
@@ -156,7 +161,7 @@ namespace HBP.UI.Informations.TrialMatrix
             {
                 if (pointerEventData.button == PointerEventData.InputButton.Left)
                 {
-                    if (Input.GetKey(KeyCode.LeftShift))
+                    if (DesktopInput.IsPressed(Key.LeftShift))
                     {
                         int start, end;
                         if (m_AnchorTrial < m_OnPointerDownTrial)
@@ -171,7 +176,7 @@ namespace HBP.UI.Informations.TrialMatrix
                         }
 
                         // LeftClick and Shift and Ctrl
-                        if (Input.GetKey(KeyCode.LeftControl))
+                        if (DesktopInput.IsPressed(Key.LeftCtrl))
                         {
                             SelectTrials(start, end, true, true);
                         }
@@ -185,7 +190,7 @@ namespace HBP.UI.Informations.TrialMatrix
                     {
                         m_AnchorTrial = m_OnPointerDownTrial;
                         // LeftClick and Ctrl
-                        if (Input.GetKey(KeyCode.LeftControl))
+                        if (DesktopInput.IsPressed(Key.LeftCtrl))
                         {
                             SelectTrials(m_OnPointerDownTrial, m_OnPointerDownTrial, !m_TrialIsSelected[m_OnPointerDownTrial], true);
                         }
@@ -213,15 +218,16 @@ namespace HBP.UI.Informations.TrialMatrix
 
         public void OnDrag(BaseEventData baseEventData)
         {
+            if (m_TrialIsSelected is not { Length: > 0 }) return;
             PointerEventData pointerEventData = (PointerEventData)baseEventData;
             int dragTrial = GetTrialAtPosition(pointerEventData.position);
 
             if (m_LastDragTrial != dragTrial)
             {
-                if (Input.GetKey(KeyCode.LeftShift))
+                if (DesktopInput.IsPressed(Key.LeftShift))
                 {
                     // Shift and Ctrl
-                    if (Input.GetKey(KeyCode.LeftControl))
+                    if (DesktopInput.IsPressed(Key.LeftCtrl))
                     {
                         bool[] selectedTrials = m_OnBeginDragStates.ToArray();
                         int start, end;
@@ -264,7 +270,7 @@ namespace HBP.UI.Informations.TrialMatrix
                 else
                 {
                     // Ctrl
-                    if (Input.GetKey(KeyCode.LeftControl))
+                    if (DesktopInput.IsPressed(Key.LeftCtrl))
                     {
                         bool[] selectedTrials = m_OnBeginDragStates.ToArray();
                         int start, end;
@@ -313,7 +319,7 @@ namespace HBP.UI.Informations.TrialMatrix
         {
             if (m_TrialIsSelected.Length == 0) return;
 
-            int delta = Mathf.RoundToInt(Input.GetAxis("Mouse ScrollWheel") * 10);
+            int delta = Mathf.RoundToInt(((PointerEventData)baseEventData).scrollDelta.y);
             if (delta < 0)
             {
                 for (int i = 0; i < -delta; i++)

@@ -107,94 +107,114 @@ namespace HBP.UI.Module3D
 
         #endregion
 
-        #region Private Methods
-
-        /// <summary>
-        /// Check conditions on the state of the site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if all conditions match</returns>
-        private bool CheckState(Core.Object3D.Site site)
+        protected override System.Func<Core.Object3D.Site, bool> CreateFilter()
         {
-            bool result = true;
-            if (m_Highlighted.isOn) result &= CheckHighlighted(site);
-            if (m_NotHighlighted.isOn) result &= !CheckHighlighted(site);
-            if (m_Blacklisted.isOn) result &= CheckBlacklisted(site);
-            if (m_NotBlacklisted.isOn) result &= !CheckBlacklisted(site);
-            if (m_Label.isOn) result &= CheckLabel(site, m_LabelFilter.text);
-            return result;
-        }
+            var Highlighted_isOn = m_Highlighted.isOn;
+            var NotHighlighted_isOn = m_NotHighlighted.isOn;
+            var Blacklisted_isOn = m_Blacklisted.isOn;
+            var NotBlacklisted_isOn = m_NotBlacklisted.isOn;
+            var Label_isOn = m_Label.isOn;
+            var LabelFilter_text = m_LabelFilter.text;
+            var InROI_isOn = m_InROI.isOn;
+            var OutOfROI_isOn = m_OutOfROI.isOn;
+            var InMesh_isOn = m_InMesh.isOn;
+            var OutOfMesh_isOn = m_OutOfMesh.isOn;
+            var LeftHemisphere_isOn = m_LeftHemisphere.isOn;
+            var RightHemisphere_isOn = m_RightHemisphere.isOn;
+            var OnPlane_isOn = m_OnPlane.isOn;
+            var NotOnPlane_isOn = m_NotOnPlane.isOn;
+            var Atlas_isOn = m_Atlas.isOn;
+            var AtlasFilter_text = m_AtlasFilter.text;
+            var X_isOn = m_X.isOn;
+            var XSuperior_isOn = m_XSuperior.isOn;
+            var XValue_text = m_XValue.text;
+            var Y_isOn = m_Y.isOn;
+            var YValue_text = m_YValue.text;
+            var Z_isOn = m_Z.isOn;
+            var ZValue_text = m_ZValue.text;
+            var SiteName_isOn = m_SiteName.isOn;
+            var SiteNameFilter_text = m_SiteNameFilter.text;
+            var Patient_isOn = m_Patient.isOn;
+            var PatientNameFilter_text = m_PatientNameFilter.text;
+            var Tag_isOn = m_Tag.isOn;
+            var TagFilter_text = m_TagFilter.text;
+            var Mean_isOn = m_Mean.isOn;
+            var MeanSuperior_isOn = m_MeanSuperior.isOn;
+            var MeanValue_text = m_MeanValue.text;
+            var Median_isOn = m_Median.isOn;
+            var MedianSuperior_isOn = m_MedianSuperior.isOn;
+            var MedianValue_text = m_MedianValue.text;
+            var Max_isOn = m_Max.isOn;
+            var MaxSuperior_isOn = m_MaxSuperior.isOn;
+            var MaxValue_text = m_MaxValue.text;
+            var Min_isOn = m_Min.isOn;
+            var MinSuperior_isOn = m_MinSuperior.isOn;
+            var MinValue_text = m_MinValue.text;
+            var StandardDeviation_isOn = m_StandardDeviation.isOn;
+            var StandardDeviationSuperior_isOn = m_StandardDeviationSuperior.isOn;
+            var StandardDeviationValue_text = m_StandardDeviationValue.text;
+            var selectedTag = m_SelectedTag;
 
-        /// <summary>
-        /// Check conditions on the position of the site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if all conditions match</returns>
-        private bool CheckPosition(Core.Object3D.Site site)
-        {
-            bool result = true;
-            if (m_InROI.isOn) result &= CheckInROI(site);
-            if (m_OutOfROI.isOn) result &= !CheckInROI(site);
-            if (m_InMesh.isOn) result &= CheckInMesh(site);
-            if (m_OutOfMesh.isOn) result &= !CheckInMesh(site);
-            if (m_LeftHemisphere.isOn) result &= CheckInLeftHemisphere(site);
-            if (m_RightHemisphere.isOn) result &= CheckInRightHemisphere(site);
-            if (m_OnPlane.isOn) result &= CheckOnPlane(site);
-            if (m_NotOnPlane.isOn) result &= !CheckOnPlane(site);
-            if (m_Atlas.isOn) result &= CheckAtlas(site, m_AtlasFilter.text);
-            if (m_X.isOn) result &= CheckX(site, m_XSuperior.isOn, m_XValue.text);
-            if (m_Y.isOn) result &= CheckY(site, m_XSuperior.isOn, m_YValue.text);
-            if (m_Z.isOn) result &= CheckZ(site, m_XSuperior.isOn, m_ZValue.text);
-            return result;
-        }
+            var YSuperior_isOn = m_YSuperior.isOn;
+            var ZSuperior_isOn = m_ZSuperior.isOn;
 
-        /// <summary>
-        /// Check conditions on the information of the site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if all conditions match</returns>
-        private bool CheckInformation(Core.Object3D.Site site)
-        {
-            bool result = true;
-            if (m_SiteName.isOn) result &= CheckName(site, m_SiteNameFilter.text);
-            if (m_Patient.isOn)
+            bool CheckState(Core.Object3D.Site site)
             {
-                if (!string.IsNullOrEmpty(m_PatientNameFilter.text))
-                {
-                    result &= CheckPatientName(site, m_PatientNameFilter.text);
-                }
+                bool result = true;
+                if (Highlighted_isOn) result &= Conditions.CheckHighlighted(site);
+                if (NotHighlighted_isOn) result &= !Conditions.CheckHighlighted(site);
+                if (Blacklisted_isOn) result &= Conditions.CheckBlacklisted(site);
+                if (NotBlacklisted_isOn) result &= !Conditions.CheckBlacklisted(site);
+                if (Label_isOn) result &= Conditions.CheckLabel(site, LabelFilter_text);
+                return result;
             }
 
-            if (m_Tag.isOn) result &= CheckTag(site, m_SelectedTag, m_TagFilter.text);
-            return result;
-        }
+            bool CheckPosition(Core.Object3D.Site site)
+            {
+                bool result = true;
+                if (InROI_isOn) result &= Conditions.CheckInROI(site);
+                if (OutOfROI_isOn) result &= !Conditions.CheckInROI(site);
+                if (InMesh_isOn) result &= Conditions.CheckInMesh(site);
+                if (OutOfMesh_isOn) result &= !Conditions.CheckInMesh(site);
+                if (LeftHemisphere_isOn) result &= Conditions.CheckInLeftHemisphere(site);
+                if (RightHemisphere_isOn) result &= Conditions.CheckInRightHemisphere(site);
+                if (OnPlane_isOn) result &= Conditions.CheckOnPlane(site);
+                if (NotOnPlane_isOn) result &= !Conditions.CheckOnPlane(site);
+                if (Atlas_isOn) result &= Conditions.CheckAtlas(site, AtlasFilter_text);
+                if (X_isOn) result &= Conditions.CheckX(site, XSuperior_isOn, XValue_text);
+                if (Y_isOn) result &= Conditions.CheckY(site, YSuperior_isOn, YValue_text);
+                if (Z_isOn) result &= Conditions.CheckZ(site, ZSuperior_isOn, ZValue_text);
+                return result;
+            }
 
-        /// <summary>
-        /// Check conditions on the values of the channel associated with the site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if all conditions match</returns>
-        private bool CheckValues(Core.Object3D.Site site)
-        {
-            bool result = true;
-            if (m_Mean.isOn) result &= CheckMean(site, m_MeanSuperior.isOn, m_MeanValue.text);
-            if (m_Median.isOn) result &= CheckMedian(site, m_MedianSuperior.isOn, m_MedianValue.text);
-            if (m_Max.isOn) result &= CheckMax(site, m_MaxSuperior.isOn, m_MaxValue.text);
-            if (m_Min.isOn) result &= CheckMin(site, m_MinSuperior.isOn, m_MinValue.text);
-            if (m_StandardDeviation.isOn) result &= CheckStandardDeviation(site, m_StandardDeviationSuperior.isOn, m_StandardDeviationValue.text);
-            return result;
-        }
+            bool CheckInformation(Core.Object3D.Site site)
+            {
+                bool result = true;
+                if (SiteName_isOn) result &= Conditions.CheckName(site, SiteNameFilter_text);
+                if (Patient_isOn)
+                {
+                    if (!string.IsNullOrEmpty(PatientNameFilter_text))
+                    {
+                        result &= Conditions.CheckPatientName(site, PatientNameFilter_text);
+                    }
+                }
 
-        /// <summary>
-        /// Check all the set conditions for a specific site
-        /// </summary>
-        /// <param name="site">Site to check</param>
-        /// <returns>True if the conditions are met</returns>
-        protected override bool CheckConditions(Core.Object3D.Site site)
-        {
-            return CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
-        }
+                if (Tag_isOn) result &= Conditions.CheckTag(site, selectedTag, TagFilter_text);
+                return result;
+            }
 
-        #endregion
+            bool CheckValues(Core.Object3D.Site site)
+            {
+                bool result = true;
+                if (Mean_isOn) result &= Conditions.CheckMean(site, MeanSuperior_isOn, MeanValue_text);
+                if (Median_isOn) result &= Conditions.CheckMedian(site, MedianSuperior_isOn, MedianValue_text);
+                if (Max_isOn) result &= Conditions.CheckMax(site, MaxSuperior_isOn, MaxValue_text);
+                if (Min_isOn) result &= Conditions.CheckMin(site, MinSuperior_isOn, MinValue_text);
+                if (StandardDeviation_isOn) result &= Conditions.CheckStandardDeviation(site, StandardDeviationSuperior_isOn, StandardDeviationValue_text);
+                return result;
+            }
+
+            return site => CheckState(site) && CheckPosition(site) && CheckInformation(site) && CheckValues(site);
+        }
     }
 }

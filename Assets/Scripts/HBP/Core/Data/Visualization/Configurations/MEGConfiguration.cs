@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -7,6 +7,8 @@ namespace HBP.Core.Data
     public class MEGConfiguration : BaseData
     {
         #region Properties
+
+        [JsonProperty] public int SelectedResourceIndex { get; set; }
 
         [JsonProperty("Negative Min")] public float NegativeMin { get; set; }
         [JsonProperty("Negative Max")] public float NegativeMax { get; set; }
@@ -20,8 +22,9 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public MEGConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher) : base()
+        public MEGConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, int selectedResourceIndex = 0) : base()
         {
+            SelectedResourceIndex = selectedResourceIndex;
             NegativeMin = negativeMin;
             NegativeMax = negativeMax;
             PositiveMin = positiveMin;
@@ -31,8 +34,9 @@ namespace HBP.Core.Data
             HideHigherValues = higher;
         }
 
-        public MEGConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, string ID) : base(ID)
+        public MEGConfiguration(float negativeMin, float negativeMax, float positiveMin, float positiveMax, bool lower, bool middle, bool higher, string ID, int selectedResourceIndex = 0) : base(ID)
         {
+            SelectedResourceIndex = selectedResourceIndex;
             NegativeMin = negativeMin;
             NegativeMax = negativeMax;
             PositiveMin = positiveMin;
@@ -52,7 +56,7 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new MEGConfiguration(NegativeMin, NegativeMax, PositiveMin, PositiveMax, HideLowerValues, HideMiddleValues, HideHigherValues, ID);
+            return new MEGConfiguration(NegativeMin, NegativeMax, PositiveMin, PositiveMax, HideLowerValues, HideMiddleValues, HideHigherValues, ID, SelectedResourceIndex);
         }
 
         public override void Copy(object copy)
@@ -60,6 +64,7 @@ namespace HBP.Core.Data
             base.Copy(copy);
             if (copy is MEGConfiguration fmriConfiguration)
             {
+                SelectedResourceIndex = fmriConfiguration.SelectedResourceIndex;
                 NegativeMin = fmriConfiguration.NegativeMin;
                 NegativeMax = fmriConfiguration.NegativeMax;
                 PositiveMin = fmriConfiguration.PositiveMin;

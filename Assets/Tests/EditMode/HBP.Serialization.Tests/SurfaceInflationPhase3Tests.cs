@@ -119,7 +119,7 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeDll")]
-        public async Task InflateGIIFileAsync_InflatesBeforeApplyingAnisotropicTransformation()
+        public async Task InflateAsync_UsesLoadedAnisotropicCoordinatesAfterSourceFilesAreDeleted()
         {
             RequireInflationLibrary();
             using TempDirectoryScope temp = new();
@@ -129,17 +129,25 @@ namespace HBP.Tests.Serialization
             WriteOctahedronGifti(giftiPath);
             SurfaceInflationOptions options = TestOptions();
 
-            SurfaceInflationResult actual = await Surface.InflateGIIFileAsync(giftiPath, transformationPath, options);
+            using Surface loaded = new();
+            Assert.That(loaded.LoadGIIFile(giftiPath, transformationPath), Is.True);
+            Vector3[] anatomicalVertices = CopyVertices(loaded);
+            long geometryVersion = loaded.GeometryVersion;
             using Surface nativeSource = new();
             Assert.That(nativeSource.LoadGIIFile(giftiPath), Is.True);
-            SurfaceInflationResult expected = await nativeSource.InflateAsync(options);
             using Transformation3 transformation = Transformation3.FromFile(transformationPath);
-            expected.Surface.ApplyTransformation(transformation);
+            nativeSource.ApplyTransformation(transformation);
+            File.Delete(giftiPath);
+            File.Delete(transformationPath);
+            SurfaceInflationResult actual = await loaded.InflateAsync(options);
+            SurfaceInflationResult expected = await nativeSource.InflateAsync(options);
 
             using (actual.Surface)
             using (expected.Surface)
             {
-                Assert.That(actual.CoordinateSpace, Is.EqualTo(SurfaceInflationCoordinateSpace.NativeGiftiThenTransformed));
+                Assert.That(actual.CoordinateSpace, Is.EqualTo(SurfaceInflationCoordinateSpace.CurrentSurfaceCoordinates));
+                Assert.That(CopyVertices(loaded), Is.EqualTo(anatomicalVertices));
+                Assert.That(loaded.GeometryVersion, Is.EqualTo(geometryVersion));
                 Vector3[] actualVertices = CopyVertices(actual.Surface);
                 Vector3[] expectedVertices = CopyVertices(expected.Surface);
                 Assert.That(actualVertices.Length, Is.EqualTo(expectedVertices.Length));

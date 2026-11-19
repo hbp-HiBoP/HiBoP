@@ -1,0 +1,92 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+namespace HBP.Quest
+{
+    // Adapted from P04DevicePoseTracker on feature/xr. Head movement is owned by TrackedPoseDriver.
+    public sealed class QuestDevicePoseTracker : MonoBehaviour
+    {
+        public enum DeviceRole
+        {
+            Head,
+            LeftController,
+            RightController
+        }
+
+        [SerializeField] private DeviceRole role;
+        [SerializeField] private Transform poseTarget;
+        [SerializeField] private Renderer diagnosticRenderer;
+        [SerializeField] private MeshRenderer solidBackgroundController;
+        private QuestPassthroughStatus passthrough;
+        private InputAction positionAction;
+        private InputAction rotationAction;
+        private InputAction trackedAction;
+        private InputAction trackingStateAction;
+
+        public bool IsTracked { get; private set; }
+        public DeviceRole Role => role;
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+        internal string DiagnosticPositionControl => positionAction?.activeControl?.path;
+        internal Vector3 DiagnosticPositionValue => positionAction != null ? positionAction.ReadValue<Vector3>() : default;
+        internal int DiagnosticPoseFrame { get; private set; }
+#endif
+
+        public void Configure(DeviceRole configuredRole, Transform target, Renderer marker)
+        {
+            role = configuredRole;
+            poseTarget = target;
+            diagnosticRenderer = marker;
+        }
+
+        private void OnEnable()
+        {
+            string layout = role switch
+            {
+                DeviceRole.Head => "<XRHMD>",
+                DeviceRole.LeftController => "<XRController>{LeftHand}",
+                _ => "<XRController>{RightHand}"
+            };
+            positionAction = new InputAction("Quest position", binding: $"{layout}/{(role == DeviceRole.Head ? "centerEyePosition" : "devicePosition")}");
+            rotationAction = new InputAction("Quest rotation", binding: $"{layout}/{(role == DeviceRole.Head ? "centerEyeRotation" : "deviceRotation")}");
+            trackedAction = new InputAction("Quest tracked", binding: $"{layout}/isTracked");
+            trackingStateAction = new InputAction("Quest tracking state", binding: $"{layout}/trackingState");
+            positionAction.Enable();
+            rotationAction.Enable();
+            trackedAction.Enable();
+            trackingStateAction.Enable();
+            if (diagnosticRenderer != null) diagnosticRenderer.enabled = false;
+            if (solidBackgroundController != null)
+                passthrough = GetComponentInParent<QuestPassthroughStatus>();
+            Application.onBeforeRender += UpdatePose;
+        }
+
+        private void OnDisable()
+        {
+            Application.onBeforeRender -= UpdatePose;
+            positionAction?.Dispose();
+            rotationAction?.Dispose();
+            trackedAction?.Dispose();
+            trackingStateAction?.Dispose();
+            positionAction = rotationAction = trackedAction = trackingStateAction = null;
+            IsTracked = false;
+            if (diagnosticRenderer != null) diagnosticRenderer.enabled = false;
+            if (solidBackgroundController != null) solidBackgroundController.enabled = false;
+        }
+
+        private void Update() => UpdatePose();
+
+        private void UpdatePose()
+        {
+#if DEVELOPMENT_BUILD && UNITY_ANDROID
+            DiagnosticPoseFrame = Time.frameCount;
+#endif
+            // Require both position and rotation: a stale or partially tracked marker is misleading.
+            IsTracked = trackedAction != null && trackedAction.ReadValue<float>() > 0.5f && (trackingStateAction.ReadValue<int>() & 3) == 3;
+            if (diagnosticRenderer != null) diagnosticRenderer.enabled = IsTracked;
+            if (IsTracked && poseTarget != null && role != DeviceRole.Head)
+                poseTarget.SetLocalPositionAndRotation(positionAction.ReadValue<Vector3>(), rotationAction.ReadValue<Quaternion>());
+            if (solidBackgroundController != null)
+                solidBackgroundController.enabled = IsTracked && passthrough != null && passthrough.IsSolidBackgroundActive;
+        }
+    }
+}

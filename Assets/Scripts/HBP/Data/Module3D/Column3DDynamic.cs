@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using HBP.Core.Enums;
@@ -13,6 +13,8 @@ namespace HBP.Data.Module3D
     public abstract class Column3DDynamic : Column3D
     {
         #region Properties
+
+        public override Core.Data.BasicTimeline NavigationTimeline => Timeline;
 
         /// <summary>
         /// Timeline of this column (contains information about the length, the number of samples, the events etc.)
@@ -107,39 +109,14 @@ namespace HBP.Data.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("update_sites_size_and_color_arrays");
 
-            float diffMin = DynamicParameters.SpanMin - DynamicParameters.Middle;
-            float diffMax = DynamicParameters.SpanMax - DynamicParameters.Middle;
-
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
                 if ((Sites[ii].State.IsOutOfROI && !showAllSites) || Sites[ii].State.IsMasked)
                     continue;
 
-                float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[ii]);
-                if (value < DynamicParameters.SpanMin)
-                    value = DynamicParameters.SpanMin;
-                if (value > DynamicParameters.SpanMax)
-                    value = DynamicParameters.SpanMax;
-
-                value -= DynamicParameters.Middle;
-
-                if (value < 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f + 2 * (value / diffMin);
-                }
-                else if (value > 0)
-                {
-                    m_ElectrodesPositiveColor[ii] = true;
-                    value = 0.5f + 2 * (value / diffMax);
-                }
-                else
-                {
-                    m_ElectrodesPositiveColor[ii] = false;
-                    value = 0.5f;
-                }
-
-                m_ElectrodesSizeScale[ii] = new Vector3(value, value, value);
+                var appearance = EvaluateSiteActivity(ii);
+                m_ElectrodesPositiveColor[ii] = appearance.Type == SiteType.Positive;
+                m_ElectrodesSizeScale[ii] = Vector3.one * appearance.Scale;
             }
 
             UnityEngine.Profiling.Profiler.EndSample();
@@ -149,11 +126,39 @@ namespace HBP.Data.Module3D
 
         #region Public Methods
 
+        public override (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var updateMasks = PrepareSitesMaskUpdate(roiActive);
+            var generator = (Core.DLL.IEEGGenerator)ActivityGenerator;
+            var values = ActivityValues;
+            int length = ProjectionTimeline.Length;
+            var computeSignal = PrepareCalibratedSignalComputation(generator, values, length, influenceRule, supportsMarsAtlas);
+            if (computeSignal == null) return (updateMasks, null);
+            Core.DLL.IEEGComputeMetrics metrics = default;
+            long valueCount = values.LongLength;
+            return (() =>
+            {
+                updateMasks();
+                metrics = computeSignal();
+            }, () => UpdateProjectionMemoryAccounting(metrics, valueCount));
+        }
+
+        protected virtual System.Func<Core.DLL.IEEGComputeMetrics> PrepareCalibratedSignalComputation(Core.DLL.IEEGGenerator generator, float[] values, int length, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            var sites = RawElectrodes;
+            int siteCount = sites.NumberOfSites;
+            float distance = DynamicParameters.InfluenceDistance;
+            float middle = DynamicParameters.Middle;
+            float minimum = DynamicParameters.SpanMin;
+            float maximum = DynamicParameters.SpanMax;
+            return () => generator.ComputeCalibratedActivity(sites, distance, values, length, siteCount, influenceRule, middle, minimum, maximum);
+        }
+
         public override void Initialize(int idColumn, Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
-
+            // Base initialization updates sites and can publish threshold changes.
             ActivityGenerator = new Core.DLL.IEEGGenerator();
+            base.Initialize(idColumn, baseColumn, implantation, sceneSitePatientParent);
         }
 
         /// <summary>
@@ -182,15 +187,7 @@ namespace HBP.Data.Module3D
         /// </summary>
         public override void ComputeActivityData()
         {
-            Timeline.OnUpdateCurrentIndex.AddListener(() =>
-            {
-                OnUpdateCurrentTimelineID.Invoke();
-                if (IsSelected)
-                {
-                    Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
-                }
-            });
-            Timeline.OnStopTimelinePlay.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
+            ObserveTimeline(Timeline, OnUpdateCurrentTimelineID.Invoke);
             SetActivityData();
         }
 
@@ -202,43 +199,38 @@ namespace HBP.Data.Module3D
         /// <param name="isGeneratorUpToDate">Is the activity generator up to date ?</param>
         public override void UpdateSitesRendering(bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate, float gain)
         {
-            UpdateSitesSizeAndColorOfSites(showAllSites);
-
             for (int i = 0; i < Sites.Count; ++i)
             {
                 Core.Object3D.Site site = Sites[i];
-                bool activity = site.IsActive;
-                SiteType siteType;
-                if (site.State.IsMasked || (site.State.IsOutOfROI && !showAllSites) || !site.State.IsFiltered)
+                var appearance = EvaluateSiteAppearance(i, showAllSites, hideBlacklistedSites, isGeneratorUpToDate);
+                if (!appearance.Visible)
                 {
-                    if (activity) site.IsActive = false;
+                    // Preserve the previous hidden-blacklist transform behavior.
+                    if (!site.State.IsMasked && (!site.State.IsOutOfROI || showAllSites) && site.State.IsFiltered && site.State.IsBlackListed)
+                        site.transform.localScale = Vector3.one;
+                    if (site.IsActive) site.IsActive = false;
                     continue;
                 }
-                else if (site.State.IsBlackListed)
-                {
-                    site.transform.localScale = Vector3.one;
-                    siteType = SiteType.BlackListed;
-                    if (hideBlacklistedSites)
-                    {
-                        if (activity) site.IsActive = false;
-                        continue;
-                    }
-                }
-                else if (isGeneratorUpToDate)
-                {
-                    site.transform.localScale = m_ElectrodesSizeScale[i];
-                    siteType = m_ElectrodesPositiveColor[i] ? SiteType.Positive : SiteType.Negative;
-                }
-                else
-                {
-                    site.transform.localScale = Vector3.one;
-                    siteType = SiteType.Normal;
-                }
 
-                if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
-                site.transform.localScale *= gain;
+                if (!site.IsActive) site.IsActive = true;
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, appearance.Type, site.State.Color);
+                site.transform.localScale = Vector3.one * appearance.Scale * gain;
             }
+        }
+
+        private Core.Object3D.SiteAppearance EvaluateSiteActivity(int index)
+        {
+            float value = CurrentProjectionSample.Evaluate(ActivityValuesBySiteID[index]);
+            return Core.Object3D.SiteAppearance.FromActivity(value, DynamicParameters.SpanMin, DynamicParameters.Middle, DynamicParameters.SpanMax);
+        }
+
+        /// <summary>Prepared scientific result, independent of Desktop renderers and local selection.
+        /// Call synchronously with the other prepared column reads on the Unity thread.</summary>
+        public Core.Object3D.SiteAppearance EvaluateSiteAppearance(int index, bool showAllSites, bool hideBlacklistedSites, bool isGeneratorUpToDate)
+        {
+            var state = Sites[index].State;
+            var activity = state.IsMasked || (state.IsOutOfROI && !showAllSites) ? default : EvaluateSiteActivity(index);
+            return Core.Object3D.SiteAppearance.Resolve(state.IsMasked || (state.IsOutOfROI && !showAllSites) ? 1 : activity.Scale, activity.Type == SiteType.Positive, state.IsMasked, state.IsOutOfROI, state.IsFiltered, state.IsBlackListed, showAllSites, hideBlacklistedSites, isGeneratorUpToDate);
         }
 
         /// <summary>
@@ -256,12 +248,12 @@ namespace HBP.Data.Module3D
             if (binCount <= 0)
                 throw new System.ArgumentOutOfRangeException(nameof(binCount));
             int[] bins = new int[binCount];
-            float difference = maximum - minimum;
+            double difference = (double)maximum - minimum;
             if (difference == 0f)
             {
                 minimum -= 1f;
                 maximum += 1f;
-                difference = maximum - minimum;
+                difference = (double)maximum - minimum;
             }
 
             for (int site = 0; site < Sites.Count; ++site)
@@ -271,8 +263,8 @@ namespace HBP.Data.Module3D
                 float[] values = ActivityValuesBySiteID[site];
                 for (int index = 0; index < values.Length; ++index)
                 {
-                    float coefficient = Mathf.Abs((values[index] - minimum) / difference);
-                    int bin = Mathf.Clamp((int)(coefficient * (binCount - 1)), 0, binCount - 1);
+                    double coefficient = System.Math.Max(0.0, System.Math.Min(1.0, ((double)values[index] - minimum) / difference));
+                    int bin = Mathf.Clamp((int)(coefficient * binCount), 0, binCount - 1);
                     bins[bin]++;
                 }
             }
@@ -280,9 +272,11 @@ namespace HBP.Data.Module3D
             return bins;
         }
 
-        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics)
+        public void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics) => UpdateProjectionMemoryAccounting(metrics, ActivityValues?.LongLength ?? 0);
+
+        private void UpdateProjectionMemoryAccounting(Core.DLL.IEEGComputeMetrics metrics, long valueCount)
         {
-            long managedBytes = ActivityValues?.LongLength * sizeof(float) ?? 0;
+            long managedBytes = valueCount * sizeof(float);
             long nativeBytes = (metrics.storedValueCount + metrics.storedWeightCount) * sizeof(float) + metrics.spatialIndexCacheBytes;
             DataManager.RegisterMemoryUsage(this, MemoryCacheCategory.NativeProjection, managedBytes + nativeBytes, true);
         }

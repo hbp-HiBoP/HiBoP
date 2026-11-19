@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 
 namespace HBP.Theme
 {
@@ -10,7 +11,7 @@ namespace HBP.Theme
 
         public override void Set(GameObject gameObject)
         {
-            if (gameObject.activeSelf && !Input.GetMouseButton(0)) UnityEngine.Cursor.SetCursor(SourceImage, Hotspot, CursorMode.Auto);
+            if (gameObject.activeSelf && !DesktopInput.IsLeftMouseButtonPressed) UnityEngine.Cursor.SetCursor(SourceImage, Hotspot, CursorMode.Auto);
         }
     }
 }

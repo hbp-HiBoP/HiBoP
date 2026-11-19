@@ -1,7 +1,8 @@
-﻿using Cysharp.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using HBP.Core.Enums;
 using HBP.Core.Tools;
 using UnityEngine;
+using System.Threading;
 
 namespace HBP.UI.Tools
 {
@@ -11,6 +12,7 @@ namespace HBP.UI.Tools
 
         [SerializeField] private GameObject m_DialogBoxPrefab;
         [SerializeField] private GameObject m_ScrollableDialogBoxPrefab;
+        [SerializeField] private GameObject m_InputDialogBoxPrefab;
         [SerializeField] private Canvas m_Canvas;
 
         #endregion
@@ -29,25 +31,44 @@ namespace HBP.UI.Tools
 
         public static async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, params string[] buttons)
         {
-            return await OpenAsync(m_Instance.m_DialogBoxPrefab, type, title, message, buttons);
+            return await OpenAsync(type, title, message, CancellationToken.None, buttons);
+        }
+
+        public static async UniTask<int> OpenAsync(DialogBoxType type, string title, string message, CancellationToken token, params string[] buttons)
+        {
+            return await OpenAsync(m_Instance.m_DialogBoxPrefab, type, title, message, token, buttons);
         }
 
         public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, params string[] buttons)
         {
-            return await OpenAsync(m_Instance.m_ScrollableDialogBoxPrefab, type, title, message, buttons);
+            return await OpenScrollableAsync(type, title, message, CancellationToken.None, buttons);
+        }
+
+        public static async UniTask<int> OpenScrollableAsync(DialogBoxType type, string title, string message, CancellationToken token, params string[] buttons)
+        {
+            return await OpenAsync(m_Instance.m_ScrollableDialogBoxPrefab, type, title, message, token, buttons);
+        }
+
+        public static async UniTask<InputDialogResult> OpenInputAsync(string title, string message, string placeholder, string confirmLabel, string cancelLabel, CancellationToken token = default)
+        {
+            await UniTask.SwitchToMainThread();
+            GameObject dialog = Instantiate(m_Instance.m_InputDialogBoxPrefab, m_Instance.m_Canvas.transform);
+            dialog.transform.SetAsLastSibling();
+            return await dialog.GetComponent<InputDialogBox>().OpenAsync(title, message, placeholder, confirmLabel, cancelLabel, token);
         }
 
         #endregion
 
         #region Private Methods
 
-        private static async UniTask<int> OpenAsync(GameObject prefab, DialogBoxType type, string title, string message, params string[] buttons)
+        private static async UniTask<int> OpenAsync(GameObject prefab, DialogBoxType type, string title, string message, CancellationToken token, params string[] buttons)
         {
-            await UniTask.SwitchToMainThread();
+            await UniTask.SwitchToMainThread(token);
+            token.ThrowIfCancellationRequested();
             GameObject dialogBox = Instantiate(prefab, m_Instance.m_Canvas.transform);
             dialogBox.transform.SetAsLastSibling();
             if (buttons.Length == 0) buttons = new string[] { "OK" };
-            return await dialogBox.GetComponent<DialogBox>().OpenAsync(type, title, message, buttons);
+            return await dialogBox.GetComponent<DialogBox>().OpenAsync(type, title, message, buttons, token);
         }
 
         #endregion

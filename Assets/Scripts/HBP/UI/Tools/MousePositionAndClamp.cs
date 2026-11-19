@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+using HBP.Input;
+using UnityEngine;
 
 namespace HBP.UI.Tools
 {
@@ -55,7 +56,7 @@ namespace HBP.UI.Tools
 
         void Clamp(RectTransform rectTransform, RectTransform containerRectTransform)
         {
-            Vector2 mousePosition = Input.mousePosition;
+            Vector2 mousePosition = DesktopInput.MousePosition;
 
             // Ne pas suivre l'axe X ou Y si désactivé
             if (!FollowX)

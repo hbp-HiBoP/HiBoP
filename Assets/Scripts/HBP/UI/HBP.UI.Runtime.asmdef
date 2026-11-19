@@ -2,6 +2,9 @@
     "name": "HBP.UI.Runtime",
     "rootNamespace": "",
     "references": [
+        "HBP.Transfer.Transport",
+        "HBP.Input.Runtime",
+        "Unity.InputSystem",
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
         "HBP.Rendering.Runtime",
@@ -9,7 +12,10 @@
         "UniTask",
         "ThirdParty.UIExtensions.Runtime",
         "ThirdParty.SFB.Runtime",
-        "Unity.TextMeshPro"
+        "Unity.TextMeshPro",
+        "HBP.Transfer.Scene"
+        ,"HBP.Sync.Scene"
+        ,"HBP.Sync.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

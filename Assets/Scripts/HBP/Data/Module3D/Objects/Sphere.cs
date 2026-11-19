@@ -1,15 +1,29 @@
-﻿using HBP.Core.Object3D;
+using HBP.Core.Object3D;
 using UnityEngine;
 using UnityEngine.Events;
+using System;
+using HBP.Core.Interfaces;
 
 namespace HBP.Data.Module3D
 {
     /// <summary>
     /// This class defines a Sphere of a <see cref="ROI"/>
     /// </summary>
-    public class Sphere : MonoBehaviour
+    public class Sphere : MonoBehaviour, IIdentifiable
     {
+        private string m_ID;
+
+        public string ID
+        {
+            get => m_ID ??= Guid.NewGuid().ToString();
+            set => m_ID = value;
+        }
+
+        public void GenerateID() => ID = Guid.NewGuid().ToString();
+
         #region Properties
+
+        [SerializeField] private SharedMaterials m_SharedMaterials;
 
         /// <summary>
         /// Minimum value for the radius of the sphere
@@ -29,11 +43,7 @@ namespace HBP.Data.Module3D
         public Vector3 Position
         {
             get { return m_Position; }
-            set
-            {
-                m_Position = value;
-                transform.localPosition = value;
-            }
+            set { SetDefinition(value, m_InfluenceRadius); }
         }
 
         /// <summary>
@@ -94,16 +104,11 @@ namespace HBP.Data.Module3D
             set
             {
                 m_Selected = value;
-                if (m_Selected)
-                {
-                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Selected;
-                }
-                else
-                {
-                    GetComponent<Renderer>().sharedMaterial = Module3DMain.SharedMaterials.ROI.Normal;
-                }
+                GetComponent<Renderer>().sharedMaterial = GetMaterial(value);
             }
         }
+
+        public Material GetMaterial(bool selected) => selected ? m_SharedMaterials.ROI.Selected : m_SharedMaterials.ROI.Normal;
 
         #endregion
 
@@ -113,6 +118,10 @@ namespace HBP.Data.Module3D
         /// Event called when changing the radius of the sphere
         /// </summary>
         public UnityEvent OnChangeRadius = new();
+
+        public UnityEvent OnChangeInfluenceRadius = new();
+
+        public UnityEvent OnDefinitionChanged = new();
 
         #endregion
 
@@ -176,9 +185,24 @@ namespace HBP.Data.Module3D
         /// <param name="radius">New radius</param>
         public void SetInfluenceRadius(float radius)
         {
-            m_InfluenceRadius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
-            m_TargetRadius = m_InfluenceRadius;
-            Radius = m_InfluenceRadius;
+            SetDefinition(Position, radius);
+        }
+
+        /// <summary>Apply one complete scientific definition before notifying observers.</summary>
+        public bool SetDefinition(Vector3 position, float radius)
+        {
+            if (!float.IsFinite(position.x) || !float.IsFinite(position.y) || !float.IsFinite(position.z) || !float.IsFinite(radius))
+                throw new ArgumentException("ROI sphere coordinates and radius must be finite.");
+            radius = Mathf.Clamp(radius, m_MinRadiusSphere, m_MaxRadiusSphere);
+            if (m_Position == position && m_InfluenceRadius == radius) return false;
+            bool radiusChanged = m_InfluenceRadius != radius;
+            m_Position = position;
+            transform.localPosition = position;
+            m_InfluenceRadius = m_TargetRadius = radius;
+            Radius = radius;
+            if (radiusChanged) OnChangeInfluenceRadius.Invoke();
+            OnDefinitionChanged.Invoke();
+            return true;
         }
 
         /// <summary>

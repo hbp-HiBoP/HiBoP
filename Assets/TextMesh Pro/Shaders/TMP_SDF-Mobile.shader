@@ -59,6 +59,7 @@ SubShader {
 		"Queue"="Transparent"
 		"IgnoreProjector"="True"
 		"RenderType"="Transparent"
+		"HBPQuestComposition"="Peel"
 	}
 
 
@@ -79,17 +80,7 @@ SubShader {
 	Blend One OneMinusSrcAlpha
 	ColorMask [_ColorMask]
 
-	Pass {
-		CGPROGRAM
-		#pragma enable_d3d11_debug_symbols
-		#pragma vertex VertShader
-		#pragma fragment PixShader
-		#pragma shader_feature __ OUTLINE_ON
-		#pragma shader_feature __ UNDERLAY_ON UNDERLAY_INNER
-
-		#pragma multi_compile __ UNITY_UI_CLIP_RECT
-		#pragma multi_compile __ UNITY_UI_ALPHACLIP
-
+	CGINCLUDE
 		#include "UnityCG.cginc"
 		#include "UnityUI.cginc"
 		#include "TMPro_Properties.cginc"
@@ -206,6 +197,7 @@ SubShader {
 		fixed4 PixShader(pixel_t input) : SV_Target
 		{
 			UNITY_SETUP_INSTANCE_ID(input);
+			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
 
 			half d = tex2D(_MainTex, input.texcoord0.xy).a * input.param.x;
 			half4 c = input.faceColor * saturate(d - input.param.w);
@@ -241,6 +233,43 @@ SubShader {
 			#endif
 
 			return c;
+		}
+	ENDCG
+
+	Pass {
+		CGPROGRAM
+		#pragma enable_d3d11_debug_symbols
+		#pragma vertex VertShader
+		#pragma fragment PixShader
+		#pragma shader_feature __ OUTLINE_ON
+		#pragma shader_feature __ UNDERLAY_ON UNDERLAY_INNER
+
+		#pragma multi_compile __ UNITY_UI_CLIP_RECT
+		#pragma multi_compile __ UNITY_UI_ALPHACLIP
+		ENDCG
+	}
+
+	Pass {
+		Name "HBPQuestTransparent"
+		Tags { "LightMode" = "HBPQuestTransparent" }
+		CGPROGRAM
+		#pragma target 3.5
+		#pragma vertex VertShader
+		#pragma fragment QuestPixShader
+		#pragma multi_compile_instancing
+		#pragma shader_feature __ OUTLINE_ON
+		#pragma shader_feature __ UNDERLAY_ON UNDERLAY_INNER
+
+		#pragma multi_compile __ UNITY_UI_CLIP_RECT
+		#pragma multi_compile __ UNITY_UI_ALPHACLIP
+		#include "Assets/Shaders/HBP/Includes/HBPQuestPeel.hlsl"
+
+		half4 QuestPixShader(pixel_t input) : SV_Target
+		{
+			UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
+			half4 color = PixShader(input);
+			color.rgb /= max(color.a, 0.0001h);
+			return HBP_QuestPeel(color, input.vertex);
 		}
 		ENDCG
 	}

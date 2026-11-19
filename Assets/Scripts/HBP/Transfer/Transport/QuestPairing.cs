@@ -1,0 +1,817 @@
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace HBP.Transfer.Transport
+{
+    public enum PairingPhase
+    {
+        Available,
+        Authenticating,
+        AttemptsExhausted,
+        InstallingGlobals,
+        Paired
+    }
+
+    public readonly struct PairingStatus
+    {
+        public string Code { get; }
+        public TimeSpan Remaining { get; }
+        public int AttemptsRemaining { get; }
+        public PairingPhase Phase { get; }
+
+        public PairingStatus(string code, TimeSpan remaining, int attemptsRemaining, PairingPhase phase)
+        {
+            Code = code;
+            Remaining = remaining;
+            AttemptsRemaining = attemptsRemaining;
+            Phase = phase;
+        }
+    }
+
+    public sealed class QuestContextException : InvalidOperationException
+    {
+        public QuestContextException() : base("This Quest has open visualizations from another pairing context. Close them on Quest, then connect again from Desktop.")
+        {
+        }
+    }
+
+    /// <summary>Serialized authenticated receiver. Discovery is never an authentication decision.</summary>
+    public sealed class QuestPairing : IDisposable
+    {
+        public const int Port = 45871;
+        private readonly X509Certificate2 identity;
+        private byte[] secret;
+        private readonly string storagePath;
+        private readonly string deviceName;
+        private readonly Stopwatch age = Stopwatch.StartNew();
+        private readonly object codeGate = new();
+        private readonly Func<TimeSpan> clock;
+        private TimeSpan codeExpires;
+        private string code;
+        private bool authenticating;
+        public static readonly TimeSpan CodeLifetime = TimeSpan.FromMinutes(5);
+        private readonly SemaphoreSlim pairingGate = new(1, 1);
+        private readonly SemaphoreSlim admissionSlots = new(72, 72);
+        private readonly SemaphoreSlim replicationSlots = new(64, 64);
+        private long lastContact;
+        private int attempts, paired, ownerClaimed, preparing, receiving;
+        private string globalsId;
+        private string desktopAddress;
+        private Guid codeRequest;
+        private TimeSpan displayExpires, nextDisplayRequest;
+
+        public bool IsCodeRequested
+        {
+            get
+            {
+                lock (codeGate) return codeRequest != Guid.Empty && clock() < displayExpires && !IsPaired;
+            }
+        }
+
+        public string Code => GetStatus().Code;
+        public byte[] Pin => TransportIdentity.Hash(identity.RawData);
+        public string Fingerprint => FormatPin(Pin);
+        public string Announcement => QuestDescription.Encode(Pin, deviceName);
+        public bool IsPaired => Volatile.Read(ref paired) != 0;
+        public string DesktopAddress => Volatile.Read(ref desktopAddress);
+        public bool IsConnected => IsPaired && (Volatile.Read(ref receiving) != 0 || DateTime.UtcNow.Ticks - Interlocked.Read(ref lastContact) < TimeSpan.FromSeconds(15).Ticks);
+        public bool IsPreparing => Volatile.Read(ref preparing) != 0;
+        public bool IsLocked => GetStatus().Phase is PairingPhase.AttemptsExhausted or PairingPhase.InstallingGlobals or PairingPhase.Paired;
+
+        public QuestPairing(string storagePath = null, string deviceName = "Quest", bool renew = false) : this(storagePath, deviceName, renew, null)
+        {
+        }
+
+        public QuestPairing(string storagePath, string deviceName, bool renew, Func<TimeSpan> clock)
+        {
+            this.clock = clock ?? (() => age.Elapsed);
+            this.storagePath = storagePath;
+            this.deviceName = deviceName;
+            byte[] stored = storagePath == null ? null : PairingStorage.Read(storagePath);
+            if (stored == null)
+            {
+                identity = TransportIdentity.Create();
+                secret = RandomBytes(32);
+                Save();
+            }
+            else
+            {
+                try
+                {
+                    using var reader = new BinaryReader(new MemoryStream(stored, false));
+                    if (reader.ReadInt32() != 1) throw new InvalidDataException("Unsupported saved Quest identity.");
+                    secret = reader.ReadBytes(32);
+                    int length = reader.ReadInt32();
+                    if (secret.Length != 32 || length < 1 || length > 32768) throw new InvalidDataException("Invalid saved Quest identity.");
+                    byte[] pfx = reader.ReadBytes(length);
+                    try
+                    {
+                        identity = new X509Certificate2(pfx, "", X509KeyStorageFlags.Exportable | X509KeyStorageFlags.EphemeralKeySet);
+                    }
+                    finally
+                    {
+                        Array.Clear(pfx, 0, pfx.Length);
+                    }
+                }
+                finally
+                {
+                    Array.Clear(stored, 0, stored.Length);
+                }
+            }
+
+            if (renew)
+            {
+                Array.Clear(secret, 0, secret.Length);
+                secret = RandomBytes(32);
+                Save();
+            }
+
+            RotateCode();
+        }
+
+        private void RotateCode()
+        {
+            string previous = code;
+            do
+            {
+                uint value;
+                do
+                {
+                    value = BitConverter.ToUInt32(RandomBytes(4), 0);
+                } while (value >= 4294000000u);
+
+                code = (value % 1000000).ToString("D6");
+            } while (code == previous);
+
+            codeExpires = clock() + CodeLifetime;
+        }
+
+        public PairingStatus GetStatus()
+        {
+            lock (codeGate)
+            {
+                if (!authenticating && Volatile.Read(ref ownerClaimed) == 0 && attempts < 5 && clock() >= codeExpires) RotateCode();
+                var phase = IsPaired ? PairingPhase.Paired : Volatile.Read(ref ownerClaimed) != 0 ? PairingPhase.InstallingGlobals : authenticating ? PairingPhase.Authenticating : attempts >= 5 ? PairingPhase.AttemptsExhausted : PairingPhase.Available;
+                var remaining = codeExpires - clock();
+                return new(code, remaining > TimeSpan.Zero ? remaining : TimeSpan.Zero, Math.Max(0, 5 - attempts), phase);
+            }
+        }
+
+        public bool RearmCode()
+        {
+            lock (codeGate)
+            {
+                if (authenticating || Volatile.Read(ref ownerClaimed) != 0 || IsPaired) return false;
+                attempts = 0;
+                RotateCode();
+                return true;
+            }
+        }
+
+        private void Save()
+        {
+            if (storagePath == null) return;
+            byte[] pfx = identity.Export(X509ContentType.Pkcs12, "");
+            using var buffer = new MemoryStream();
+            using (var writer = new BinaryWriter(buffer, Encoding.UTF8, true))
+            {
+                writer.Write(1);
+                writer.Write(secret);
+                writer.Write(pfx.Length);
+                writer.Write(pfx);
+            }
+
+            byte[] bytes = buffer.ToArray();
+            try
+            {
+                PairingStorage.Write(storagePath, bytes);
+            }
+            finally
+            {
+                Array.Clear(pfx, 0, pfx.Length);
+                Array.Clear(bytes, 0, bytes.Length);
+            }
+        }
+
+        public async Task ServeAsync(TcpListener listener, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals = null, Func<Stream, CancellationToken, Task> receiveReplica = null, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl = null, Func<CancellationToken, Task<string>> activeGlobals = null, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions = null, Func<CancellationToken, Task<bool>> isHeadsetActive = null)
+        {
+            using var cancelAccept = stop.Register(listener.Stop);
+            // Keep eight admission slots available beside the 64 persistent replica slots.
+            var slots = admissionSlots;
+            var replicaSlots = replicationSlots;
+            var handlers = new List<Task>();
+            try
+            {
+                while (!stop.IsCancellationRequested)
+                {
+                    TcpClient peer;
+                    try
+                    {
+                        peer = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                    }
+                    catch (Exception) when (stop.IsCancellationRequested)
+                    {
+                        break;
+                    }
+
+                    try
+                    {
+                        await slots.WaitAsync(stop).ConfigureAwait(false);
+                        handlers.Add(HandleAndReleaseAsync(peer, slots, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions, isHeadsetActive));
+                        handlers.RemoveAll(task => task.Status == TaskStatus.RanToCompletion);
+                    }
+                    catch
+                    {
+                        peer.Dispose();
+                        throw;
+                    }
+                }
+            }
+            finally
+            {
+                listener.Stop();
+                await Task.WhenAll(handlers).ConfigureAwait(false);
+            }
+        }
+
+        private async Task HandleAndReleaseAsync(TcpClient peer, SemaphoreSlim slots, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions, Func<CancellationToken, Task<bool>> isHeadsetActive)
+        {
+            try
+            {
+                await HandlePeerAsync(peer, replicaSlots, stop, receive, state, receiveGlobals, receiveReplica, receiveSessionControl, activeGlobals, receiveDefinitions, isHeadsetActive).ConfigureAwait(false);
+            }
+            finally
+            {
+                slots.Release();
+            }
+        }
+
+        private async Task HandlePeerAsync(TcpClient peer, SemaphoreSlim replicaSlots, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receive, Action<string> state, Func<Stream, CancellationToken, Task<DeliveryReceipt>> receiveGlobals, Func<Stream, CancellationToken, Task> receiveReplica, Func<SessionControlRequest, CancellationToken, Task<SessionControlResponse>> receiveSessionControl, Func<CancellationToken, Task<string>> activeGlobals, Func<SessionControlRequest, Stream, CancellationToken, Task<DeliveryReceipt>> receiveDefinitions, Func<CancellationToken, Task<bool>> isHeadsetActive)
+        {
+            using (peer)
+            using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop))
+            using (deadline.Token.Register(peer.Close))
+            {
+                peer.NoDelay = true;
+                deadline.CancelAfter(TimeSpan.FromSeconds(15));
+                try
+                {
+                    using var tls = new SslStream(peer.GetStream(), false);
+                    using (PairingTiming.Measure("quest.tls"))
+                        await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
+                    int command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
+                    if (command == 0) return;
+                    if (command == 20)
+                    {
+                        byte[] info = Encoding.UTF8.GetBytes(Announcement);
+                        await tls.WriteAsync(info, 0, info.Length, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    if (command == 21 || command == 22)
+                    {
+                        byte[] bytes = new byte[16];
+                        await PinnedTlsTransfer.ReadExactAsync(tls, bytes, 0, bytes.Length, deadline.Token).ConfigureAwait(false);
+                        Guid request = new Guid(bytes);
+                        bool accepted;
+                        lock (codeGate)
+                        {
+                            if (command == 22)
+                            {
+                                accepted = request == codeRequest;
+                                if (accepted) codeRequest = Guid.Empty;
+                            }
+                            else
+                            {
+                                accepted = request != Guid.Empty && GetStatus().Phase == PairingPhase.Available && clock() >= nextDisplayRequest && (codeRequest == Guid.Empty || clock() >= displayExpires);
+                                if (accepted)
+                                {
+                                    codeRequest = request;
+                                    displayExpires = clock() + CodeLifetime;
+                                    nextDisplayRequest = clock() + TimeSpan.FromSeconds(5);
+                                }
+                            }
+                        }
+
+                        await ReplyAsync(tls, accepted, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    // Versions that send a raw code are deliberately rejected.
+                    if (command == 1 || command == 3)
+                    {
+                        await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
+                    if (command == 10 || command == 11)
+                    {
+                        await pairingGate.WaitAsync(deadline.Token).ConfigureAwait(false);
+                        try
+                        {
+                            bool allowed;
+                            string admittedCode;
+                            lock (codeGate)
+                            {
+                                var snapshot = GetStatus();
+                                allowed = snapshot.Phase == PairingPhase.Available && ((command == 11) == (receiveGlobals != null));
+                                admittedCode = snapshot.Code;
+                                if (allowed)
+                                {
+                                    attempts++;
+                                    authenticating = true;
+                                } // Includes abandoned/malformed exchanges.
+                            }
+
+                            await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
+                            if (!allowed) return;
+                            using (PairingTiming.Measure("quest.pake"))
+                                await Task.Run(() => PairingPake.AuthenticateAsync(tls, admittedCode, Pin, true, deadline.Token), deadline.Token).ConfigureAwait(false);
+                            Interlocked.Exchange(ref ownerClaimed, 1);
+                            Array.Clear(secret, 0, secret.Length);
+                            secret = RandomBytes(32);
+                            Save(); // Durable ownership before acknowledging authentication.
+                            try
+                            {
+                                await tls.WriteAsync(secret, 0, secret.Length, deadline.Token).ConfigureAwait(false);
+                                if (await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false) != 1) throw new IOException("Credential delivery was not acknowledged.");
+                            }
+                            catch
+                            {
+                                // Keep the durable secret usable, but allow code recovery if Desktop never received it.
+                                Interlocked.Exchange(ref ownerClaimed, 0);
+                                throw;
+                            }
+
+                            Volatile.Write(ref desktopAddress, ((IPEndPoint)peer.Client.RemoteEndPoint).Address.ToString());
+                            if (receiveGlobals == null) Interlocked.Exchange(ref paired, 1);
+                            Touch();
+                            state(receiveGlobals == null ? "Paired. Ready to receive." : "Desktop recognized. Waiting for shared data...");
+                        }
+                        finally
+                        {
+                            lock (codeGate) authenticating = false;
+                            pairingGate.Release();
+                        }
+                    }
+                    else if (command == 2 || command == 12 || command == 13 || command == 14 || command == 15 || command == 16)
+                    {
+                        byte[] offered = new byte[32];
+                        await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
+                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null) && (command != 15 || receiveSessionControl != null) && (command != 16 || receiveDefinitions != null);
+                        Array.Clear(offered, 0, offered.Length);
+                        await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
+                        if (!allowed) return;
+                        Volatile.Write(ref desktopAddress, ((IPEndPoint)peer.Client.RemoteEndPoint).Address.ToString());
+                        Touch();
+                        if (command == 12)
+                        {
+                            // Application readiness, not just a surviving Android socket.
+                            if (activeGlobals != null) await activeGlobals(deadline.Token).ConfigureAwait(false);
+                            if (isHeadsetActive == null)
+                                await ReplyAsync(tls, IsPaired, deadline.Token).ConfigureAwait(false);
+                            else
+                            {
+                                bool active = await isHeadsetActive(deadline.Token).ConfigureAwait(false);
+                                // Keep the readiness byte first for clients that only read that byte.
+                                var reply = new[] { (byte)(IsPaired ? 1 : 0), (byte)(active ? 1 : 0) };
+                                await tls.WriteAsync(reply, 0, reply.Length, deadline.Token).ConfigureAwait(false);
+                            }
+
+                            return;
+                        }
+
+                        if (command == 15)
+                        {
+                            deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                            var request = SessionControlCodec.DecodeRequest(await SessionControlCodec.ReadAsync(tls, deadline.Token).ConfigureAwait(false));
+                            using var requestStop = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+                            using var monitorStop = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+                            Task monitor = ObserveSessionPeerAsync(tls, requestStop, monitorStop.Token);
+                            try
+                            {
+                                var response = await receiveSessionControl(request, requestStop.Token).ConfigureAwait(false);
+                                requestStop.Token.ThrowIfCancellationRequested();
+                                await SessionControlCodec.WriteAsync(tls, SessionControlCodec.Encode(response), deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                monitorStop.Cancel();
+                                peer.Close();
+                                await monitor.ConfigureAwait(false);
+                            }
+
+                            return;
+                        }
+
+                        if (command == 16)
+                        {
+                            deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                            var request = SessionControlCodec.DecodeRequest(await SessionControlCodec.ReadAsync(tls, deadline.Token).ConfigureAwait(false));
+                            if (request.Kind != SessionControlKind.Definitions) throw new InvalidDataException("Invalid definitions update.");
+                            Interlocked.Increment(ref receiving);
+                            try
+                            {
+                                await receiveDefinitions(request, tls, deadline.Token).ConfigureAwait(false);
+                                Touch();
+                            }
+                            finally
+                            {
+                                Interlocked.Decrement(ref receiving);
+                            }
+
+                            return;
+                        }
+
+                        if (command == 14)
+                        {
+                            deadline.CancelAfter(Timeout.InfiniteTimeSpan);
+                            if (!await replicaSlots.WaitAsync(0, deadline.Token).ConfigureAwait(false)) throw new InvalidOperationException("The Quest replica capacity is reached.");
+                            try
+                            {
+                                await receiveReplica(tls, deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                replicaSlots.Release();
+                            }
+
+                            return;
+                        }
+
+                        deadline.CancelAfter(TimeSpan.FromMinutes(30));
+                        if (command == 13)
+                        {
+                            byte[] id = new byte[32];
+                            await PinnedTlsTransfer.ReadExactAsync(tls, id, 0, id.Length, deadline.Token).ConfigureAwait(false);
+                            string nextId = Encoding.ASCII.GetString(id);
+                            if (!Guid.TryParseExact(nextId, "N", out _)) throw new InvalidDataException("Invalid global snapshot identity.");
+                            string activeId = activeGlobals == null ? null : await activeGlobals(deadline.Token).ConfigureAwait(false);
+                            if (activeId != null && activeId != nextId)
+                            {
+                                await tls.WriteAsync(new byte[] { 2 }, 0, 1, deadline.Token).ConfigureAwait(false);
+                                return;
+                            }
+
+                            if (activeId == nextId)
+                            {
+                                globalsId = nextId;
+                                Interlocked.Exchange(ref paired, 1);
+                            }
+
+                            bool needsGlobals = !IsPaired || globalsId != nextId;
+                            await ReplyAsync(tls, needsGlobals, deadline.Token).ConfigureAwait(false);
+                            if (needsGlobals)
+                            {
+                                if (receiveGlobals == null) throw new InvalidOperationException("Shared data receiver unavailable.");
+                                Interlocked.Exchange(ref preparing, 1);
+                                try
+                                {
+                                    await receiveGlobals(tls, deadline.Token).ConfigureAwait(false);
+                                }
+                                finally
+                                {
+                                    Interlocked.Exchange(ref preparing, 0);
+                                }
+
+                                globalsId = nextId;
+                                Interlocked.Exchange(ref paired, 1);
+                            }
+
+                            Touch();
+                            state("Paired. Ready to receive.");
+                            await ReplyAsync(tls, true, deadline.Token).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            DeliveryReceipt receipt;
+                            Interlocked.Increment(ref receiving);
+                            try
+                            {
+                                receipt = await receive(tls, deadline.Token).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                Interlocked.Decrement(ref receiving);
+                            }
+
+                            Touch();
+                            state(receipt.Status == DeliveryStatus.Published || receipt.Status == DeliveryStatus.AlreadyPublished ? "Visualization ready. Desktop connected." : "Old delivery closed/replaced. Send a new snapshot from Desktop.");
+                        }
+                    }
+                    else throw new InvalidDataException("Unsupported pairing version. Update both applications.");
+                }
+                catch (Exception exception) when (exception is IOException || exception is InvalidDataException || exception is TransportProtocolException || exception is SocketException || exception is AuthenticationException || exception is OperationCanceledException || exception is ObjectDisposedException || exception is InvalidOperationException || exception is ArgumentException)
+                {
+                    if (!stop.IsCancellationRequested) state("Connection interrupted. Desktop will reconnect; check the code if pairing was refused.");
+                }
+            }
+        }
+
+        private void Touch() => Interlocked.Exchange(ref lastContact, DateTime.UtcNow.Ticks);
+
+        public static async Task<byte[]> InspectAsync(string host, CancellationToken stop)
+        {
+            byte[] observed = null;
+            await ConnectAsync(host, null, stop, async (tls, token) =>
+            {
+                observed = TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData());
+                await tls.WriteAsync(new byte[] { 0 }, 0, 1, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return observed;
+        }
+
+        public static async Task<QuestDevice> DescribeAsync(string host, CancellationToken stop)
+        {
+            QuestDevice result = null;
+            await ConnectAsync(host, null, stop, async (tls, token) =>
+            {
+                await tls.WriteAsync(new byte[] { 20 }, 0, 1, token).ConfigureAwait(false);
+                using var buffer = new MemoryStream();
+                byte[] chunk = new byte[512];
+                int count;
+                while ((count = await tls.ReadAsync(chunk, 0, chunk.Length, token).ConfigureAwait(false)) > 0)
+                {
+                    if (buffer.Length + count > 512) throw new InvalidDataException("Invalid Quest announcement.");
+                    buffer.Write(chunk, 0, count);
+                }
+
+                result = QuestDescription.Decode(Encoding.UTF8.GetString(buffer.ToArray()), host);
+                if (result == null || !TransportIdentity.Equal(result.Pin, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()))) throw new InvalidDataException("Unsupported Quest receiver.");
+            }).ConfigureAwait(false);
+            return result;
+        }
+
+        public static async Task<Guid> RequestCodeAsync(string host, byte[] pin, CancellationToken stop, Guid request = default)
+        {
+            bool show = request == Guid.Empty;
+            if (show) request = Guid.NewGuid();
+            await ConnectAsync(host, pin, stop, async (tls, token) =>
+            {
+                await tls.WriteAsync(new[] { (byte)(show ? 21 : 22) }, 0, 1, token).ConfigureAwait(false);
+                byte[] bytes = request.ToByteArray();
+                await tls.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
+                await AcceptedAsync(tls, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return request;
+        }
+
+        // Kept for transport clients; new UI persists the credential before starting global installation.
+        public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals = null)
+        {
+            byte[] credential = await AuthenticateAsync(host, confirmedPin, code, sendGlobals != null, stop).ConfigureAwait(false);
+            if (sendGlobals != null) await ResumeAsync(host, confirmedPin, credential, Guid.NewGuid().ToString("N"), stop, sendGlobals).ConfigureAwait(false);
+            return credential;
+        }
+
+        public static async Task<byte[]> AuthenticateAsync(string host, byte[] pin, string code, bool globals, CancellationToken stop)
+        {
+            RequirePin(pin); // Observed pin is bound by PAKE, not trusted from discovery.
+            byte[] credential = new byte[32];
+            try
+            {
+                await ConnectAsync(host, pin, stop, async (tls, token) =>
+                {
+                    await tls.WriteAsync(new[] { (byte)(globals ? 11 : 10) }, 0, 1, token).ConfigureAwait(false);
+                    await AcceptedAsync(tls, token).ConfigureAwait(false);
+                    using (PairingTiming.Measure("desktop.pake"))
+                        await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()), false, token), token).ConfigureAwait(false);
+                    await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, credential.Length, token).ConfigureAwait(false);
+                    await tls.WriteAsync(new byte[] { 1 }, 0, 1, token).ConfigureAwait(false);
+                }).ConfigureAwait(false);
+                return credential;
+            }
+            catch
+            {
+                Array.Clear(credential, 0, credential.Length);
+                throw;
+            }
+        }
+
+        public static async Task<bool> PingAsync(string host, byte[] pin, byte[] credential, CancellationToken stop)
+        {
+            bool ready = false;
+            await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) => ready = await ReadByteAsync(tls, token).ConfigureAwait(false) == 1, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            return ready;
+        }
+
+        public static async Task<bool> IsHeadsetActiveAsync(string host, byte[] pin, byte[] credential, CancellationToken stop)
+        {
+            bool active = false;
+            await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) =>
+            {
+                if (await ReadByteAsync(tls, token).ConfigureAwait(false) != 1) return;
+                // Older receivers close after the readiness byte.
+                var presence = new byte[1];
+                active = await tls.ReadAsync(presence, 0, presence.Length, token).ConfigureAwait(false) == 1 && presence[0] == 1;
+            }, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            return active;
+        }
+
+        public static Task ResumeAsync(string host, byte[] pin, byte[] credential, string contextId, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals)
+        {
+            if (!Guid.TryParseExact(contextId, "N", out _)) throw new ArgumentException("Invalid global snapshot identity.");
+            return AuthorizedAsync(host, pin, credential, 13, stop, async (tls, token) =>
+            {
+                byte[] id = Encoding.ASCII.GetBytes(contextId);
+                await tls.WriteAsync(id, 0, id.Length, token).ConfigureAwait(false);
+                int disposition = await ReadByteAsync(tls, token).ConfigureAwait(false);
+                if (disposition == 2) throw new QuestContextException();
+                if (disposition != 0 && disposition != 1) throw new InvalidDataException("Unsupported globals response. Update Desktop and Quest together.");
+                if (disposition == 1)
+                    using (PairingTiming.Measure("desktop.globals-transfer-and-apply"))
+                        await sendGlobals(tls, token).ConfigureAwait(false);
+                await AcceptedAsync(tls, token).ConfigureAwait(false);
+            });
+        }
+
+        public static async Task<DeliveryReceipt> SendAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send)
+        {
+            DeliveryReceipt receipt = null;
+            await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false)).ConfigureAwait(false);
+            return receipt;
+        }
+
+        public static async Task<DeliveryReceipt> UpdateDefinitionsAsync(string host, byte[] pin, byte[] credential, SessionControlRequest request, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send)
+        {
+            if (request.Kind != SessionControlKind.Definitions) throw new ArgumentException("Invalid definitions update.");
+            DeliveryReceipt receipt = null;
+            await AuthorizedAsync(host, pin, credential, 16, stop, async (stream, token) =>
+            {
+                await SessionControlCodec.WriteAsync(stream, SessionControlCodec.Encode(request), token).ConfigureAwait(false);
+                receipt = await send(stream, token).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+            return receipt;
+        }
+
+        private static async Task ObserveSessionPeerAsync(Stream stream, CancellationTokenSource requestStop, CancellationToken monitorStop)
+        {
+            try
+            {
+                // One request per connection: EOF or additional input revokes this operation.
+                await stream.ReadAsync(new byte[1], 0, 1, monitorStop).ConfigureAwait(false);
+                if (!monitorStop.IsCancellationRequested) requestStop.Cancel();
+            }
+            catch (Exception)
+            {
+                if (!monitorStop.IsCancellationRequested) requestStop.Cancel();
+            }
+        }
+
+        public static async Task<SessionControlResponse> SendSessionControlAsync(string host, byte[] pin, byte[] credential, SessionControlRequest request, CancellationToken stop)
+        {
+            SessionControlResponse response = null;
+            await AuthorizedAsync(host, pin, credential, 15, stop, async (stream, token) =>
+            {
+                await SessionControlCodec.WriteAsync(stream, SessionControlCodec.Encode(request), token).ConfigureAwait(false);
+                response = SessionControlCodec.DecodeResponse(await SessionControlCodec.ReadAsync(stream, token).ConfigureAwait(false));
+                if (response.OperationId != request.OperationId) throw new InvalidDataException("Session response identity mismatch.");
+            }, request.Kind == SessionControlKind.LoadAtlas ? TimeSpan.FromMinutes(30) : TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+            return response;
+        }
+
+        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, 14, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);
+
+        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, PersistentTransport session)
+        {
+            if (session == null)
+                throw new ArgumentNullException(nameof(session));
+            return OpenReplicaAsync(host, pin, credential, stop, session.RunConnectionAsync);
+        }
+
+        private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null)
+        {
+            RequirePin(pin);
+            if (credential == null || credential.Length != 32)
+                throw new ArgumentException("Pair with the headset first.");
+            credential = (byte[])credential.Clone();
+            try
+            {
+                await ConnectAsync(host, pin, stop, async (tls, token) =>
+                {
+                    {
+                        await tls.WriteAsync(new[] { command }, 0, 1, token).ConfigureAwait(false);
+                        await tls.WriteAsync(credential, 0, credential.Length, token).ConfigureAwait(false);
+                        await AcceptedAsync(tls, token).ConfigureAwait(false);
+                    }
+
+                    await action(tls, token).ConfigureAwait(false);
+                }, timeout ?? TimeSpan.FromMinutes(30)).ConfigureAwait(false);
+            }
+            finally
+            {
+                Array.Clear(credential, 0, credential.Length);
+            }
+        }
+
+        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null)
+        {
+            var route = QuestEndpoint.Parse(host);
+            IPAddress address = route.Address;
+            int port = route.Port;
+            pin = pin == null ? null : (byte[])pin.Clone();
+            using var deadline = CancellationTokenSource.CreateLinkedTokenSource(stop);
+            deadline.CancelAfter(TimeSpan.FromSeconds(5));
+            using var peer = new TcpClient(address.AddressFamily);
+            peer.NoDelay = true;
+            // TcpClient.Close nulls Client while Mono/IL2CPP EndConnect still dereferences it.
+            // Interrupt the socket without clearing that reference until ConnectAsync has drained.
+            Socket socket = peer.Client;
+            using var cancellation = deadline.Token.Register(socket.Close);
+            try
+            {
+                var source = route.GetLocalAddress();
+                if (source != null) socket.Bind(new IPEndPoint(source, 0));
+                await peer.ConnectAsync(address, port).ConfigureAwait(false);
+                bool identityMismatch = false;
+                using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) =>
+                {
+                    bool matches = pin == null || TransportIdentity.Matches(certificate, pin);
+                    identityMismatch = !matches;
+                    return matches;
+                });
+                try
+                {
+                    using (PairingTiming.Measure("desktop.tls"))
+                        await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
+                }
+                catch (AuthenticationException error)
+                {
+                    if (identityMismatch) throw new QuestIdentityMismatchException(error);
+                    throw new IOException("Could not establish the Quest TLS connection.", error);
+                }
+
+                deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
+                await action(tls, deadline.Token).ConfigureAwait(false);
+            }
+            catch (Exception error) when (deadline.IsCancellationRequested && (error is IOException || error is SocketException || error is ObjectDisposedException || error is OperationCanceledException))
+            {
+                // Closing a cancelled socket can surface as an IOException on Windows/Mono.
+                if (stop.IsCancellationRequested) throw new OperationCanceledException("Quest operation cancelled.", error, stop);
+                throw new TimeoutException("The Quest operation timed out. Check the connection and try again.", error);
+            }
+        }
+
+        private static async Task<int> ReadByteAsync(Stream stream, CancellationToken stop)
+        {
+            var value = new byte[1];
+            await PinnedTlsTransfer.ReadExactAsync(stream, value, 0, 1, stop).ConfigureAwait(false);
+            return value[0];
+        }
+
+        private static Task ReplyAsync(Stream stream, bool accepted, CancellationToken stop) => stream.WriteAsync(new[] { (byte)(accepted ? 1 : 0) }, 0, 1, stop);
+
+        private static async Task AcceptedAsync(Stream stream, CancellationToken stop)
+        {
+            if (await ReadByteAsync(stream, stop).ConfigureAwait(false) != 1) throw new AuthenticationException("Pairing refused. Check the current code and connection panel in Quest.");
+        }
+
+        private static void RequirePin(byte[] pin)
+        {
+            if (pin == null || pin.Length != 32) throw new ArgumentException("Missing headset identity.");
+        }
+
+        public static string FormatPin(byte[] pin)
+        {
+            RequirePin(pin);
+            string hex = BitConverter.ToString(pin).Replace("-", "");
+            var result = new StringBuilder();
+            for (int i = 0; i < hex.Length; i += 8)
+            {
+                if (i != 0) result.Append(i == 32 ? '\n' : ' ');
+                result.Append(hex, i, 8);
+            }
+
+            return result.ToString();
+        }
+
+        private static byte[] RandomBytes(int length)
+        {
+            var bytes = new byte[length];
+            using var random = RandomNumberGenerator.Create();
+            random.GetBytes(bytes);
+            return bytes;
+        }
+
+        // Cancel and await ServeAsync before disposal.
+        public void Dispose()
+        {
+            identity.Dispose();
+            pairingGate.Dispose();
+            admissionSlots.Dispose();
+            replicationSlots.Dispose();
+            Array.Clear(secret, 0, secret.Length);
+        }
+    }
+}

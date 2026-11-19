@@ -36,6 +36,14 @@ namespace HBP.Core.DLL
             ThrowIfFailed(hbp_surface_generator_initialize_projection_grid(_handle.Handle, activityGenerator.getHandle().Handle, surface.getHandle().Handle));
         }
 
+        /// <summary>Bind the surface and prepare its anatomical and empty-activity UVs.</summary>
+        public void Initialize(ActivityGenerator activityGenerator, Surface surface, float calibrationMin, float calibrationMax)
+        {
+            Initialize(activityGenerator, surface);
+            ComputeMainUV(calibrationMin, calibrationMax);
+            ComputeNullUV();
+        }
+
         public void ComputeMainUV(float calMin, float calMax)
         {
             ThrowIfFailed(hbp_surface_generator_compute_main_uv(_handle.Handle, calMin, calMax));

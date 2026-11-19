@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using HBP.Core.Tools;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -6,6 +7,11 @@ namespace HBP.Data.Module3D
 {
     public class ROIManager : MonoBehaviour
     {
+        public GenericEvent<ROI> OnRoiAdded { get; } = new();
+        public GenericEvent<ROI> OnRoiRemoved { get; } = new();
+        public GenericEvent<ROI> OnActiveRoiChanged { get; } = new();
+        public bool IsUpdatingSphereDefinition { get; private set; }
+
         #region Properties
 
         /// <summary>
@@ -33,6 +39,7 @@ namespace HBP.Data.Module3D
             get { return m_SelectedROI; }
             set
             {
+                bool changed = !ReferenceEquals(m_SelectedROI, value);
                 if (m_SelectedROI != null)
                 {
                     m_SelectedROI.SetVisibility(false);
@@ -49,6 +56,7 @@ namespace HBP.Data.Module3D
                 }
 
                 UpdateROIMasks();
+                if (changed) OnActiveRoiChanged.Invoke(m_SelectedROI);
             }
         }
 
@@ -96,11 +104,23 @@ namespace HBP.Data.Module3D
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
             roi.OnChangeNumberOfSpheres.AddListener(() => { UpdateROIMasks(); });
-            roi.OnChangeSphereParameters.AddListener(() => { UpdateROIMasks(); });
+            roi.OnChangeSphereParameters.AddListener(() =>
+            {
+                IsUpdatingSphereDefinition = true;
+                try
+                {
+                    UpdateROIMasks();
+                }
+                finally
+                {
+                    IsUpdatingSphereDefinition = false;
+                }
+            });
             roi.OnChangeSphereSelectionState.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
             ROIs.Add(roi);
             UpdateROIMasks();
             SelectedROI = ROIs.Last();
+            OnRoiAdded.Invoke(roi);
 
             return roi;
         }
@@ -115,7 +135,7 @@ namespace HBP.Data.Module3D
             newROI.Name = roi.Name;
             foreach (Sphere sphere in roi.Spheres)
             {
-                newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.Radius);
+                newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position, sphere.InfluenceRadius);
             }
         }
 
@@ -124,18 +144,19 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void RemoveSelectedROI()
         {
-            Destroy(m_SelectedROI.gameObject);
-            ROIs.Remove(m_SelectedROI);
-            UpdateROIMasks();
+            RemoveROI(m_SelectedROI);
+        }
 
-            if (ROIs.Count > 0)
-            {
-                SelectedROI = ROIs.Last();
-            }
-            else
-            {
-                SelectedROI = null;
-            }
+        public void RemoveROI(ROI roi)
+        {
+            if (roi == null || !ROIs.Contains(roi)) return;
+            bool wasSelected = m_SelectedROI == roi;
+            ROIs.Remove(roi);
+            OnRoiRemoved.Invoke(roi);
+            if (Application.isPlaying) Destroy(roi.gameObject);
+            else DestroyImmediate(roi.gameObject);
+            if (wasSelected) SelectedROI = ROIs.LastOrDefault();
+            else UpdateROIMasks();
         }
 
         /// <summary>
@@ -145,7 +166,8 @@ namespace HBP.Data.Module3D
         {
             foreach (var roi in ROIs)
             {
-                Destroy(roi.gameObject);
+                if (Application.isPlaying) Destroy(roi.gameObject);
+                else DestroyImmediate(roi.gameObject);
             }
 
             ROIs.Clear();
@@ -158,19 +180,10 @@ namespace HBP.Data.Module3D
         /// </summary>
         /// <param name="camera">Reference camera</param>
         /// <param name="delta">Distance and direction of the movement</param>
-        public void MoveSelectedROISphere(Camera camera, Vector3 delta)
+        public void MoveSelectedROISphere(Vector3 scientificDelta)
         {
-            if (m_SelectedROI)
-            {
-                if (m_SelectedROI.SelectedSphereID != -1)
-                {
-                    Vector3 position = camera.WorldToScreenPoint(m_SelectedROI.SelectedSphere.transform.position);
-                    position += delta;
-                    position = camera.ScreenToWorldPoint(position);
-                    position -= m_SelectedROI.SelectedSphere.transform.position;
-                    m_SelectedROI.MoveSelectedSphere(position);
-                }
-            }
+            if (m_SelectedROI && m_SelectedROI.SelectedSphereID != -1)
+                m_SelectedROI.MoveSelectedSphere(scientificDelta);
         }
 
         /// <summary>
@@ -217,9 +230,11 @@ namespace HBP.Data.Module3D
             foreach (Core.Data.RegionOfInterest roi in rois)
             {
                 ROI newROI = AddROI(roi.Name);
+                if (!string.IsNullOrEmpty(roi.ID)) newROI.ID = roi.ID;
                 foreach (Core.Data.Sphere sphere in roi.Spheres)
                 {
                     newROI.AddSphere(Module3DMain.DEFAULT_MESHES_LAYER, "Sphere", sphere.Position.ToVector3(), sphere.Radius);
+                    if (!string.IsNullOrEmpty(sphere.ID)) newROI.Spheres[newROI.Spheres.Count - 1].ID = sphere.ID;
                 }
             }
 

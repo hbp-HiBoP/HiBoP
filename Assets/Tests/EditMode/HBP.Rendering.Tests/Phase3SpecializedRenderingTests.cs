@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using HBP.Core.Enums;
 using HBP.Core.Object3D;
@@ -13,7 +14,7 @@ namespace HBP.Tests.Rendering
 {
     public class Phase3SpecializedRenderingTests
     {
-        private const string ROIShaderPath = "Assets/Shaders/HBP/ROI/HBPROIWireframe.shader";
+        private const string ROIShaderPath = "Assets/Shaders/HBP/ROI/HBPROISphere.shader";
         private const string SiteShaderPath = "Assets/Shaders/HBP/Sites/HBPSite.shader";
 
         [Test]
@@ -60,24 +61,15 @@ namespace HBP.Tests.Rendering
         }
 
         [Test]
-        public void ROIAnalyticCageShader_UsesSparseAnalyticLinesAndSupportsMetal()
+        public void ROISphereShader_UsesAnalyticSilhouetteAndSupportsMetal()
         {
             string source = File.ReadAllText(ROIShaderPath);
-            Shader shader = Shader.Find("HBP/ROI/AnalyticCage");
+            Shader shader = Shader.Find("HBP/ROI/Sphere");
 
             Assert.That(shader, Is.Not.Null);
             Assert.That(shader.isSupported, Is.True);
-            StringAssert.Contains("float primaryCircleDistance", source);
-            StringAssert.Contains("float diagonalMeridianDistance", source);
-            StringAssert.Contains("float latitudeDistance", source);
-            StringAssert.Contains("float intermediateCircleDistance", source);
-            StringAssert.Contains("float silhouetteDistance", source);
-            StringAssert.Contains("fwidth(primaryCircleDistance)", source);
-            StringAssert.Contains("fwidth(intermediateCircleDistance)", source);
-            StringAssert.Contains("fwidth(silhouetteDistance)", source);
-            StringAssert.Contains("_ContrastColor", source);
-            StringAssert.Contains("float contrastWidth = coreWidth * 2.25", source);
-            StringAssert.Contains("float wireColorWeight = saturate(core * 2.0)", source);
+            StringAssert.Contains("fwidth(limb)", source);
+            StringAssert.Contains("HBP_QuestPeel", source);
             StringAssert.DoesNotContain("barycentric", source);
             StringAssert.DoesNotContain("#pragma geometry", source);
             StringAssert.DoesNotContain("GeometryShader", source);
@@ -87,15 +79,16 @@ namespace HBP.Tests.Rendering
             Assert.That(ShaderUtil.GetShaderMessages(shader, ShaderCompilerPlatform.Metal), Is.Empty);
         }
 
-        [Test]
-        public void ROIAnalyticCage_RenderKeepsMostOfTheSphereTransparent()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ROISphere_RenderSeparatesFillAndRimWithoutAContrastBand(bool blue)
         {
-            Shader shader = Shader.Find("HBP/ROI/AnalyticCage");
-            GameObject cameraObject = new("ROI cage test camera", typeof(Camera));
-            GameObject sphereObject = new("ROI cage test sphere", typeof(MeshFilter), typeof(MeshRenderer));
+            Shader shader = Shader.Find("HBP/ROI/Sphere");
+            GameObject cameraObject = new("ROI test camera", typeof(Camera));
+            GameObject sphereObject = new("ROI test sphere", typeof(MeshFilter), typeof(MeshRenderer));
             Material material = new(shader);
-            RenderTexture target = RenderTexture.GetTemporary(256, 256, 24, RenderTextureFormat.ARGB32);
-            Texture2D readback = new(256, 256, TextureFormat.RGBA32, false);
+            RenderTexture target = RenderTexture.GetTemporary(256, 256, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Linear);
+            Texture2D readback = new(256, 256, TextureFormat.RGBA32, false, true);
             RenderTexture previousTarget = RenderTexture.active;
 
             try
@@ -108,27 +101,44 @@ namespace HBP.Tests.Rendering
                 camera.transform.position = new Vector3(0, 0, -3);
                 camera.targetTexture = target;
 
-                material.SetColor("_WireColor", Color.red);
-                material.SetColor("_ContrastColor", Color.black);
+                Color tint = blue ? Color.blue : Color.white;
+                material.SetColor("_FillColor", tint);
+                material.SetColor("_RimColor", tint);
+                material.SetFloat("_FillShading", 0f);
+                material.SetFloat("_FillHighlight", 0f);
                 sphereObject.GetComponent<MeshFilter>().sharedMesh = SharedMeshes.ROISphere;
                 sphereObject.GetComponent<MeshRenderer>().sharedMaterial = material;
 
-                camera.Render();
-                RenderTexture.active = target;
-                readback.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
-                readback.Apply();
-
-                int visiblePixels = 0;
-                Color32[] pixels = readback.GetPixels32();
-                foreach (Color32 pixel in pixels)
+                const int center = 128 * 256 + 128;
+                Color32[] pixels = RenderPixels();
+                Assert.That(pixels[0].a, Is.Zero);
+                Assert.That(pixels[center].a, Is.InRange(60, 77), "The default fill remains translucent.");
+                Assert.That(pixels.Max(pixel => pixel.a), Is.GreaterThan(235), "The rim remains visible.");
+                Assert.That(pixels.All(pixel =>
                 {
-                    if (pixel.a > 12)
-                        ++visiblePixels;
-                }
+                    int expectedRedAndGreen = blue ? 0 : pixel.a;
+                    return Mathf.Abs(pixel.r - expectedRedAndGreen) <= 2 && Mathf.Abs(pixel.g - expectedRedAndGreen) <= 2 && Mathf.Abs(pixel.b - pixel.a) <= 2;
+                }), Is.True, "With uniform color, the fill-to-rim transition must contain no dark or light band.");
 
-                float coverage = visiblePixels / (float)pixels.Length;
-                Assert.That(coverage, Is.GreaterThan(0.01f), "the cage must remain visible");
-                Assert.That(coverage, Is.LessThan(0.20f), "the cage must not become an opaque sphere");
+                material.SetFloat("_FillOpacity", 0f);
+                Color32[] rimOnly = RenderPixels();
+                Assert.That(rimOnly[center].a, Is.Zero);
+                Assert.That(rimOnly.Max(pixel => pixel.a), Is.GreaterThan(235));
+
+                material.SetFloat("_FillOpacity", 0.3f);
+                material.SetFloat("_RimThickness", 0f);
+                Color32[] fillOnly = RenderPixels();
+                Assert.That(fillOnly[center].a, Is.EqualTo(pixels[center].a));
+                Assert.That(fillOnly.Max(pixel => pixel.a), Is.LessThanOrEqualTo(77));
+
+                Color32[] RenderPixels()
+                {
+                    camera.Render();
+                    RenderTexture.active = target;
+                    readback.ReadPixels(new Rect(0, 0, 256, 256), 0, 0);
+                    readback.Apply();
+                    return readback.GetPixels32();
+                }
             }
             finally
             {
@@ -143,7 +153,7 @@ namespace HBP.Tests.Rendering
         }
 
         [Test]
-        public void ROIMaterialsAndPrefab_UseTheAnalyticCageAndPreservePicking()
+        public void ROIMaterialsAndPrefab_UseWhiteAndSelectionBlueAndPreservePicking()
         {
             Material normal = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/Materials/ROI/ROI.mat");
             Material selected = AssetDatabase.LoadAssetAtPath<Material>("Assets/Resources/Materials/ROI/ROISelected.mat");
@@ -151,15 +161,14 @@ namespace HBP.Tests.Rendering
 
             Assert.That(normal, Is.Not.Null);
             Assert.That(selected, Is.Not.Null);
-            Assert.That(normal.shader.name, Is.EqualTo("HBP/ROI/AnalyticCage"));
-            Assert.That(selected.shader.name, Is.EqualTo("HBP/ROI/AnalyticCage"));
-            Assert.That(normal.HasProperty("_BaseColor"), Is.False);
-            Assert.That(selected.HasProperty("_BaseColor"), Is.False);
-            Assert.That(normal.GetColor("_WireColor"), Is.Not.EqualTo(selected.GetColor("_WireColor")));
-            Assert.That(normal.HasColor("_ContrastColor"), Is.True);
-            Assert.That(selected.HasColor("_ContrastColor"), Is.True);
-            Assert.That(normal.GetColor("_ContrastColor").a, Is.GreaterThan(0f));
-            Assert.That(selected.GetColor("_ContrastColor").a, Is.GreaterThan(0f));
+            Assert.That(normal.shader.name, Is.EqualTo("HBP/ROI/Sphere"));
+            Assert.That(selected.shader, Is.SameAs(normal.shader));
+            Assert.That(normal.GetFloat("_FillOpacity"), Is.EqualTo(0.3f));
+            Assert.That(selected.GetFloat("_FillOpacity"), Is.EqualTo(0.3f));
+            Assert.That(normal.GetColor("_FillColor"), Is.EqualTo(Color.white));
+            Assert.That(normal.GetColor("_RimColor"), Is.EqualTo(Color.white));
+            Assert.That((Color32)selected.GetColor("_FillColor"), Is.EqualTo(new Color32(59, 122, 194, 255)));
+            Assert.That(selected.GetColor("_RimColor"), Is.EqualTo(selected.GetColor("_FillColor")));
             Assert.That(prefab.GetComponent<SphereCollider>(), Is.Not.Null);
             Assert.That(prefab.GetComponent<MeshRenderer>().motionVectorGenerationMode, Is.EqualTo(MotionVectorGenerationMode.ForceNoMotion));
         }

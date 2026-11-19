@@ -20,6 +20,7 @@ namespace HBP.UI.Toolbar
                 m_IsGlobal = value;
                 m_ActivityTransparency.IsGlobal = value;
                 m_DynamicParameters.IsGlobal = value;
+                m_DensityParameters.IsGlobal = value;
                 m_FMRIParameters.IsGlobal = value;
             }
         }
@@ -38,6 +39,8 @@ namespace HBP.UI.Toolbar
         /// Dynamic Parameters
         /// </summary>
         [SerializeField] private DynamicParameters m_DynamicParameters;
+
+        [SerializeField] private DensityParameters m_DensityParameters;
 
         /// <summary>
         /// FMRI Parameters
@@ -87,6 +90,7 @@ namespace HBP.UI.Toolbar
             m_Tools.Add(m_ActivityGlobal);
             m_Tools.Add(m_ActivityTransparency);
             m_Tools.Add(m_DynamicParameters);
+            m_Tools.Add(m_DensityParameters);
             m_Tools.Add(m_FMRIParameters);
             m_Tools.Add(m_CCEPModeSelector);
             m_Tools.Add(m_CCEPSiteSourceSelector);
@@ -109,7 +113,7 @@ namespace HBP.UI.Toolbar
             m_ActivityGlobal.OnChangeValue.AddListener((global) =>
             {
                 IsGlobal = global;
-                m_ToolbarMenu.TimelineToolbar.IsGlobal = global;
+                m_ToolbarMenu.TimelineToolbar.SetDesktopGlobal(global, !TimelineToolbar.QuestGlobal(Module3DMain.SelectedScene).HasValue);
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
             });
         }

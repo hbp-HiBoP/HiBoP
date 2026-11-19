@@ -1,0 +1,54 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace HBP.Quest
+{
+    public sealed class QuestToolbar : MonoBehaviour
+    {
+        [SerializeField] private QuestWindowsManager windows;
+        [SerializeField] private QuestConnectionPanel connection;
+        [SerializeField] private QuestCutsPanel cuts;
+        [SerializeField] private QuestROIPanel rois;
+        [SerializeField] private Button roiButton;
+        [SerializeField] private Button connectionButton, cutsButton, displayButton, siteButton, signalsButton;
+        [SerializeField] private Button displaySettingsButton;
+        [SerializeField] private Text connectionStatus;
+
+        private void Awake()
+        {
+            foreach (var button in GetComponentsInChildren<QuestToolbarButton>(true)) button.Configure(windows);
+            connectionButton.onClick.AddListener(() => ToggleWindow("Connection"));
+            if (siteButton != null) siteButton.onClick.AddListener(() => ToggleWindow("Site"));
+            if (signalsButton != null) signalsButton.onClick.AddListener(() => ToggleWindow("Signals"));
+            displayButton.onClick.AddListener(() => ToggleWindow("Display"));
+            if (displaySettingsButton != null) displaySettingsButton.onClick.AddListener(() => ToggleWindow("DisplaySettings"));
+            if (roiButton != null)
+                roiButton.onClick.AddListener(() =>
+                {
+                    if (rois != null && rois.Ready) ToggleWindow("ROI");
+                });
+            cutsButton.onClick.AddListener(() =>
+            {
+                if (cuts != null && cuts.Ready) ToggleWindow("Cuts");
+            });
+        }
+
+        private void ToggleWindow(string key)
+        {
+            var window = windows.Find(key);
+            if (window != null && window.IsOpen) window.Close();
+            else windows.Open(key);
+        }
+
+        private void Update()
+        {
+            if (connectionStatus != null && connection != null) connectionStatus.text = connection.Summary;
+            bool ready = cuts != null && cuts.Ready;
+            if (displaySettingsButton != null) displaySettingsButton.interactable = ready;
+            cutsButton.interactable = ready;
+            if (roiButton != null) roiButton.interactable = rois != null && rois.Ready;
+            if (siteButton != null) siteButton.interactable = ready;
+            if (signalsButton != null) signalsButton.interactable = ready;
+        }
+    }
+}

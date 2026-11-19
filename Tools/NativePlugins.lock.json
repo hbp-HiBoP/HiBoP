@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-08-28T10:48:22.1027862+00:00",
-  "requestId": "hibop-native-20260828-103443-a9024414",
+  "generatedAt": "2026-11-19T12:43:02.1766734+00:00",
+  "requestId": "hibop-native-20261119-123918-334fbb5d",
   "branch": "master",
   "libraries": [
     {
       "name": "EEGFormat",
       "repository": "hbp-HiBoP/EEGFormat",
-      "commit": "99b54e9faf607973451233c069315978d3c6bffd",
-      "runId": 33163913020,
-      "runUrl": "https://github.com/hbp-HiBoP/EEGFormat/actions/runs/33163913020",
+      "commit": "61742ca45aeeee2957fa70189baa28d90a32d199",
+      "runId": 44517607426,
+      "runUrl": "https://github.com/hbp-HiBoP/EEGFormat/actions/runs/44517607426",
       "artifacts": [
         {
           "platform": "Linux",
@@ -18,8 +18,8 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 921304,
-              "sha256": "a81e7d3ac1ab6bef5921e2d4656d08fb9ac4f84c962f0f0505ab3aff157d5074"
+              "sizeBytes": 969416,
+              "sha256": "b9c92accfa8fe8dbe9be01badbd2b2552e73e8142aa7949569878157e295c012"
             }
           ]
         },
@@ -30,8 +30,8 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1005056,
-              "sha256": "3b886cf1a31c67e7b8ddb2b38e93a634b56f8694f80deb3d9312839e2b69d448"
+              "sizeBytes": 1046016,
+              "sha256": "a465768c66063cf9ea508fd795d4319f45c22aded4ede2e1be9fec10c33ca30e"
             }
           ]
         },
@@ -52,8 +52,8 @@
             },
             {
               "relativePath": "Contents/MacOS/libEEGFormat",
-              "sizeBytes": 604288,
-              "sha256": "598aa66cedbc2e2e93e194a0b4838d6881e03d143064d5816bc0d9808eff2e2d"
+              "sizeBytes": 629424,
+              "sha256": "15c4eae476bf86acb947b9fe5c78a667f8630de658c6c1f71536f34ce176f7b3"
             }
           ]
         }
@@ -62,10 +62,68 @@
     {
       "name": "hbp_core",
       "repository": "hbp-HiBoP/hbp_core",
-      "commit": "1f26946e4d4e95523e637a21be70db0d1af6db8c",
-      "runId": 33163920791,
-      "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/33163920791",
+      "commit": "17afc5760e3ab4a40dac6579b585e57b9aaa1198",
+      "runId": null,
+      "runUrl": null,
       "artifacts": [
+        {
+          "platform": "Android",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_core.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 2038040,
+              "sha256": "0ce17af243a7ab2766e0ca152f39534fb55a095ee267d573dc076eb5bb6db8d0"
+            }
+          ],
+          "provenance": {
+            "sourceTree": "ae8271aaf827c82879bbf401f3c889bb1a7931fc",
+            "sourceMode": "git-archive",
+            "android": {
+              "ndkVersion": "27.2.12479018",
+              "cmakeVersion": "3.22.1",
+              "ninjaVersion": "1.10.2",
+              "api": 32,
+              "abi": "arm64-v8a",
+              "stl": "c++_static",
+              "pageSize": 16384
+            },
+            "runtimeDependencies": [
+              "libc.so",
+              "libdl.so",
+              "libm.so"
+            ],
+            "publicExportCount": 241,
+            "buildTools": [
+              {
+                "path": "tools/Invoke-HbpCoreBuild.ps1",
+                "sha256": "246049c188685e3dbf662c4d2b4853ea96c2a474c1fefa254203462fa0f55ebb"
+              },
+              {
+                "path": "tools/Invoke-HbpCoreAndroidBuild.ps1",
+                "sha256": "f083c3e258835f33976c014e2c36c03760a06396cffcbce5ea735146b7481933"
+              },
+              {
+                "path": "tools/AndroidBuild.json",
+                "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+              },
+              {
+                "path": "tools/Test-HbpCoreAbi.ps1",
+                "sha256": "70e5ee21b66d7965996736d7ed67fc9665b843cb500537c4cc6c5e6b2af40771"
+              },
+              {
+                "path": "tools/Test-HbpCoreAndroidArtifact.ps1",
+                "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
+              }
+            ],
+            "artifactManifestSha256": "549f0df14ac3923ce6cce90281d0cb7611137e5e9fab1d107e225fd86a333fae"
+          },
+          "sourceCommit": "17afc5760e3ab4a40dac6579b585e57b9aaa1198",
+          "sourceBranch": "master",
+          "runId": 44525893336,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/44525893336"
+        },
         {
           "platform": "Linux",
           "architecture": "x86_64",
@@ -73,10 +131,14 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1535512,
-              "sha256": "31c2cbb93fc49503492179dabe942d5a062fb5e852ed38d5583a45e5a600cd4c"
+              "sizeBytes": 2459048,
+              "sha256": "b24bf827619ac14763c55be3a8e0eeda3da3a1ad58460a0737ed05f27e77281a"
             }
-          ]
+          ],
+          "sourceCommit": "17afc5760e3ab4a40dac6579b585e57b9aaa1198",
+          "sourceBranch": "master",
+          "runId": 44525893336,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/44525893336"
         },
         {
           "platform": "Windows",
@@ -85,10 +147,14 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1378816,
-              "sha256": "98af2b1924f3c7a19a8a98400fa25ca63e8c93ae066118696e461e2d8b47947b"
+              "sizeBytes": 1801216,
+              "sha256": "fe56c7a969922ab52bb597305ad16b74930570a92a866efe0d096ab130cb3627"
             }
-          ]
+          ],
+          "sourceCommit": "17afc5760e3ab4a40dac6579b585e57b9aaa1198",
+          "sourceBranch": "master",
+          "runId": 44525893336,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/44525893336"
         },
         {
           "platform": "MacOS",
@@ -107,20 +173,79 @@
             },
             {
               "relativePath": "Contents/MacOS/libhbp_core",
-              "sizeBytes": 1262832,
-              "sha256": "e6add1dc25d6b2e29b5d4a5c8cb4059c17a8243e0f250e29843506259593fc3e"
+              "sizeBytes": 1880128,
+              "sha256": "a1e9eac261873fda20d11d9609651cd771e60e380483f16295ed539e4142e95c"
             }
-          ]
+          ],
+          "sourceCommit": "17afc5760e3ab4a40dac6579b585e57b9aaa1198",
+          "sourceBranch": "master",
+          "runId": 44525893336,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/44525893336"
         }
-      ]
+      ],
+      "localRequestId": "cut-reconstruction-working-tree-20261022"
     },
     {
       "name": "hbp_math",
       "repository": "hbp-HiBoP/hbp_math",
-      "commit": "646e96e7ff72a4e0466eac6a2d3c101d1fb736d7",
-      "runId": 33163929695,
-      "runUrl": "https://github.com/hbp-HiBoP/hbp_math/actions/runs/33163929695",
+      "commit": "8c3151470173129dd06502f8550c7dbc4b937074",
+      "runId": 44517649737,
+      "runUrl": "https://github.com/hbp-HiBoP/hbp_math/actions/runs/44517649737",
       "artifacts": [
+        {
+          "platform": "Android",
+          "architecture": "arm64",
+          "destination": "Assets/Plugins/Native/Android/arm64-v8a/libhbp_math.so",
+          "files": [
+            {
+              "relativePath": "",
+              "sizeBytes": 484072,
+              "sha256": "32ceb29b3e81760cefd9f1e5f3dbcc264536ed0295804a4c6938ec7b611ae5a7"
+            }
+          ],
+          "provenance": {
+            "sourceTree": "8b19866a7c779f9f2bc982c64570b3eae6af7396",
+            "sourceMode": "git-archive",
+            "android": {
+              "ndkVersion": "27.2.12479018",
+              "cmakeVersion": "3.22.1",
+              "ninjaVersion": "1.10.2",
+              "api": 32,
+              "abi": "arm64-v8a",
+              "stl": "c++_static",
+              "pageSize": 16384
+            },
+            "runtimeDependencies": [
+              "libc.so",
+              "libdl.so",
+              "libm.so"
+            ],
+            "publicExportCount": 17,
+            "buildTools": [
+              {
+                "path": "tools/Invoke-NativeBuild.ps1",
+                "sha256": "838fdebdeb5d5578fe812137483006d079c502bcc977f8e1ded7315fdb03c9b5"
+              },
+              {
+                "path": "tools/Invoke-NativeAndroidBuild.ps1",
+                "sha256": "1714185c9840daf0305ddf496018f46ffc7f46b4171518a6be37bd1ff1ced741"
+              },
+              {
+                "path": "tools/AndroidBuild.json",
+                "sha256": "a85885d15ba5e8628a055ec844d44e7d31147b076aabc7136a35237af883d24b"
+              },
+              {
+                "path": "tools/Test-NativeAbi.ps1",
+                "sha256": "efd0f647fe56b7be8438a6d2008eafabeeb449b69fdeb61f7a321684006e8f64"
+              },
+              {
+                "path": "tools/Test-NativeAndroidArtifact.ps1",
+                "sha256": "a0a559b2d72c54d624133dbd2c002c4f86ebd2eea9af0f13547ba58f10948bfb"
+              }
+            ],
+            "artifactManifestSha256": "854984f35ece8abf94fb4bc40337d6e50401b025eba19a141095d280d3f255b0"
+          }
+        },
         {
           "platform": "Linux",
           "architecture": "x86_64",
@@ -141,7 +266,7 @@
             {
               "relativePath": "",
               "sizeBytes": 246784,
-              "sha256": "d16619c4a967e0771505e472e898e1e7cd8420fac699b43bdebb3a8bb7836e9b"
+              "sha256": "5ef9241351643ea7e8e0bbfe8053536b4c6925b7b8c0743f5adc2cb0385a6f9b"
             }
           ]
         },

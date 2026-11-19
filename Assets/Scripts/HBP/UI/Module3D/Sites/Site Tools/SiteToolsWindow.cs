@@ -42,6 +42,7 @@ namespace HBP.UI.Module3D
 
         static int m_SelectToolDropdownValue;
         static int m_ApplyForDropdownValue;
+        private bool m_Applying;
 
         #endregion
 
@@ -61,9 +62,36 @@ namespace HBP.UI.Module3D
         /// </summary>
         public async void Apply()
         {
-            await m_SiteToolSections[m_SelectToolDropdown.value].ApplyAsync();
-            await UniTask.SwitchToMainThread();
-            OnToolApplied.Invoke();
+            try
+            {
+                await ApplyAsync();
+            }
+            catch (System.OperationCanceledException)
+            {
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogException(exception);
+            }
+        }
+
+        public async UniTask ApplyAsync()
+        {
+            if (m_Applying) return;
+            m_Applying = true;
+            m_ApplyChangesButton.interactable = false;
+            try
+            {
+                await m_SiteToolSections[m_SelectToolDropdown.value].ApplyAsync();
+                await UniTask.SwitchToMainThread();
+                OnToolApplied.Invoke();
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                m_Applying = false;
+                if (this && m_ApplyChangesButton) m_ApplyChangesButton.interactable = true;
+            }
         }
 
         public override void Close()

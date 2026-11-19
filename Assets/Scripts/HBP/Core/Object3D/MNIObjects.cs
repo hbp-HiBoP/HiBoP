@@ -32,6 +32,8 @@ namespace HBP.Core.Object3D
         /// </summary>
         public bool IsLoaded { get; private set; }
 
+        private AsyncLazy m_LoadWork;
+
         #endregion
 
         #region Private Methods
@@ -44,48 +46,79 @@ namespace HBP.Core.Object3D
         private async UniTask LoadDataAsync(string mniMRIDir, string mniMeshDir)
         {
             await UniTask.SwitchToThreadPool();
-            DLL.Volume volume = new();
-            volume.LoadNIFTIFile(Path.Combine(mniMRIDir, "MNI.nii"));
-            MRI = new MRI3D("MNI", volume);
+            var owned = new System.Collections.Generic.List<DLL.Surface>();
 
-            DLL.Surface leftHemi = new();
-            DLL.Surface rightHemi = new();
-            DLL.Surface bothHemi;
-            leftHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            leftHemi.FlipTriangles();
-            rightHemi.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rhemi.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            rightHemi.FlipTriangles();
-            bothHemi = (DLL.Surface)leftHemi.Clone();
-            bothHemi.Append(rightHemi);
-            leftHemi.ComputeNormals();
-            rightHemi.ComputeNormals();
-            bothHemi.ComputeNormals();
-            GreyMatter = new LeftRightMesh3D("MNI Grey matter", leftHemi, rightHemi, bothHemi, MeshType.MNI);
+            DLL.Surface Own(DLL.Surface surface)
+            {
+                owned.Add(surface);
+                return surface;
+            }
 
-            DLL.Surface leftWhite = new();
-            DLL.Surface rightWhite = new();
-            DLL.Surface bothWhite;
-            leftWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Lwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            leftWhite.FlipTriangles();
-            rightWhite.LoadGIIFile(Path.Combine(mniMeshDir, "MNI_Rwhite.gii"), Path.Combine(mniMeshDir, "MNI.trm"));
-            rightWhite.FlipTriangles();
-            bothWhite = (DLL.Surface)leftWhite.Clone();
-            bothWhite.Append(rightWhite);
-            leftWhite.ComputeNormals();
-            rightWhite.ComputeNormals();
-            bothWhite.ComputeNormals();
-            WhiteMatter = new LeftRightMesh3D("MNI White matter", leftWhite, rightWhite, bothWhite, MeshType.MNI);
+            var volume = new DLL.Volume();
+            try
+            {
+                string mniPath = Path.Combine(mniMRIDir, "MNI.nii");
+                if (!volume.LoadNIFTIFile(mniPath)) throw new IOException("MNI MRI could not be loaded.");
+
+                LeftRightMesh3D Prepare(string name, string leftFile, string rightFile)
+                {
+                    var left = Own(new DLL.Surface());
+                    var right = Own(new DLL.Surface());
+                    string transformation = Path.Combine(mniMeshDir, "MNI.trm");
+                    if (!left.LoadGIIFile(Path.Combine(mniMeshDir, leftFile), transformation) || !right.LoadGIIFile(Path.Combine(mniMeshDir, rightFile), transformation)) throw new IOException("MNI surface could not be loaded.");
+                    left.FlipTriangles();
+                    right.FlipTriangles();
+                    var both = Own((DLL.Surface)left.Clone());
+                    both.Append(right);
+                    left.ComputeNormals();
+                    right.ComputeNormals();
+                    both.ComputeNormals();
+                    var simplifiedLeft = Own(left.Simplify());
+                    var simplifiedRight = Own(right.Simplify());
+                    var simplifiedBoth = Own(both.Simplify());
+                    return new LeftRightMesh3D(name, MeshType.MNI, both, simplifiedBoth, left, right, simplifiedLeft, simplifiedRight, shared: true);
+                }
+
+                var grey = Prepare("MNI Grey matter", "MNI_Lhemi.gii", "MNI_Rhemi.gii");
+                var white = Prepare("MNI White matter", "MNI_Lwhite.gii", "MNI_Rwhite.gii");
+                MRI = new MRI3D("MNI", volume);
+                GreyMatter = grey;
+                WhiteMatter = white;
+                owned.Clear();
+            }
+            catch
+            {
+                foreach (var surface in owned) surface.Dispose();
+                volume.Dispose();
+                throw;
+            }
         }
 
         #endregion
 
         #region Public Methods
 
-        public async UniTaskVoid Load()
+        public UniTask Load()
         {
+            m_LoadWork ??= UniTask.Lazy(LoadCoreAsync);
+            return m_LoadWork.Task;
+        }
+
+        private async UniTask LoadCoreAsync()
+        {
+            await UniTask.SwitchToThreadPool();
             string baseIRMDir = Path.Combine(ApplicationState.DataPath, "IRM"), baseMeshDir = Path.Combine(ApplicationState.DataPath, "Meshes");
-            await LoadDataAsync(baseIRMDir, baseMeshDir);
-            IsLoaded = true;
+            try
+            {
+                await LoadDataAsync(baseIRMDir, baseMeshDir);
+                if (!GreyMatter.IsLoaded || !WhiteMatter.IsLoaded || !MRI.IsLoaded) throw new System.IO.IOException("MNI reference data could not be loaded.");
+                IsLoaded = true;
+            }
+            catch
+            {
+                Clean();
+                throw;
+            }
         }
 
         public void Clean()
@@ -93,6 +126,10 @@ namespace HBP.Core.Object3D
             GreyMatter?.Clean();
             WhiteMatter?.Clean();
             MRI?.Clean();
+            GreyMatter = WhiteMatter = null;
+            MRI = null;
+            IsLoaded = false;
+            m_LoadWork = null;
         }
 
         #endregion

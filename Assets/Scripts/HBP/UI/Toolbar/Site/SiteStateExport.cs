@@ -3,6 +3,7 @@ using HBP.Data.Module3D;
 using HBP.UI.Tools;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -127,7 +128,8 @@ namespace HBP.UI.Toolbar
         {
             try
             {
-                List<Column3D> columns = allColumns ? SelectedScene.Columns : new List<Column3D> { SelectedColumn };
+                Base3DScene scene = SelectedScene;
+                List<Column3D> columns = allColumns ? scene.Columns.ToList() : new List<Column3D> { SelectedColumn };
                 using StreamReader sr = new(path);
                 // Find which column of the csv corresponds to which argument
                 string firstLine = sr.ReadLine();
@@ -139,20 +141,21 @@ namespace HBP.UI.Toolbar
                     indices[i] = split == "ID" ? 0 : split == "Blacklisted" ? 1 : split == "Highlighted" ? 2 : split == "Color" ? 3 : split == "Labels" ? 4 : i;
                 }
 
-                // Fill states
+                // Parse and validate every row before changing any live state.
+                var configurationsBySiteId = new Dictionary<string, Core.Data.SiteConfiguration>();
                 string line;
                 while ((line = sr.ReadLine()) != null)
                 {
                     string[] args = line.Split(',');
-                    Core.Object3D.SiteState state = new();
+                    var state = new Core.Data.SiteConfiguration();
 
                     if (bool.TryParse(args[indices[1]], out bool stateValue))
                     {
-                        state.IsBlackListed = stateValue;
+                        state.IsBlacklisted = stateValue;
                     }
                     else
                     {
-                        state.IsBlackListed = false;
+                        state.IsBlacklisted = false;
                     }
 
                     if (bool.TryParse(args[indices[2]], out stateValue))
@@ -174,23 +177,20 @@ namespace HBP.UI.Toolbar
                     }
 
                     string[] labels = args[indices[4]].Split(new char[] { ';' }, System.StringSplitOptions.RemoveEmptyEntries);
-                    foreach (var label in labels)
-                    {
-                        state.AddLabel(label);
-                    }
-
-                    foreach (var column in columns)
-                    {
-                        if (column.SiteStateBySiteID.TryGetValue(args[indices[0]], out Core.Object3D.SiteState existingState))
-                        {
-                            existingState.ApplyState(state);
-                        }
-                        else
-                        {
-                            column.SiteStateBySiteID.Add(args[indices[0]], state);
-                        }
-                    }
+                    state.Labels = labels;
+                    configurationsBySiteId[args[indices[0]]] = state;
                 }
+
+                var changes = new List<SiteConfigurationChange>();
+                foreach (Column3D column in columns)
+                foreach (KeyValuePair<string, Core.Data.SiteConfiguration> entry in configurationsBySiteId)
+                {
+                    if (!column.SiteStateBySiteID.TryGetValue(entry.Key, out Core.Object3D.SiteState state))
+                        state = new Core.Object3D.SiteState();
+                    changes.Add(new SiteConfigurationChange(column, entry.Key, state, entry.Value));
+                }
+
+                scene.ApplySiteConfigurationBatch(changes);
             }
             catch (System.Exception e)
             {

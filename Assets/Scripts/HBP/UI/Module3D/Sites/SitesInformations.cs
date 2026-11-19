@@ -87,8 +87,10 @@ namespace HBP.UI.Module3D
 
         private void OnSelectSite(Core.Object3D.Site site)
         {
+            if (!m_Scene.SelectedColumn) return;
             UpdateList();
-            m_SiteList.ScrollToObject(site);
+            var representation = m_Scene.SelectedColumn.SelectedSite;
+            if (representation) m_SiteList.ScrollToObject(representation);
         }
 
         private void CountSites()

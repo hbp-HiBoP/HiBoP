@@ -11,6 +11,21 @@ namespace HBP.Data.Informations.TrialMatrix
         #region Properties
 
         public bool IsFound { get; set; }
+        private bool[] m_TrialIsSelected = Array.Empty<bool>();
+        public UnityEvent OnChangeTrialSelected { get; } = new();
+
+        public bool[] TrialIsSelected
+        {
+            get => m_TrialIsSelected;
+            set
+            {
+                if (value == null || value.Length != m_TrialIsSelected.Length) throw new ArgumentException("Wrong trial selection length.");
+                if (m_TrialIsSelected.SequenceEqual(value)) return;
+                m_TrialIsSelected = (bool[])value.Clone();
+                OnChangeTrialSelected.Invoke();
+            }
+        }
+
         public ChannelStruct Channel { get; set; }
         public Core.Data.Bloc Bloc { get; set; }
         public SubBloc[] SubBlocs { get; set; }
@@ -63,6 +78,7 @@ namespace HBP.Data.Informations.TrialMatrix
                 }
 
                 SubBlocs = subBlocs.ToArray();
+                m_TrialIsSelected = Enumerable.Repeat(true, blocChannelData.Trials.Count(t => t.IsValid)).ToArray();
             }
             else
             {

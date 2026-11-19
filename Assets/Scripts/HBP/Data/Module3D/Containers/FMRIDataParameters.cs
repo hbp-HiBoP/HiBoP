@@ -82,6 +82,19 @@ namespace HBP.Data.Module3D
             OnUpdateCalValues.Invoke();
         }
 
+        /// <summary>Apply validated calibration exactly, including all-zero values.</summary>
+        public void ApplySynchronizedCalibration(float negativeMin, float negativeMax, float positiveMin, float positiveMax)
+        {
+            if (negativeMin < 0 || negativeMin > negativeMax || negativeMax > 1 || positiveMin < 0 || positiveMin > positiveMax || positiveMax > 1)
+                throw new System.ArgumentOutOfRangeException(nameof(negativeMin));
+            if (FMRINegativeCalMinFactor == negativeMin && FMRINegativeCalMaxFactor == negativeMax && FMRIPositiveCalMinFactor == positiveMin && FMRIPositiveCalMaxFactor == positiveMax) return;
+            FMRINegativeCalMinFactor = negativeMin;
+            FMRINegativeCalMaxFactor = negativeMax;
+            FMRIPositiveCalMinFactor = positiveMin;
+            FMRIPositiveCalMaxFactor = positiveMax;
+            OnUpdateCalValues.Invoke();
+        }
+
         /// <summary>
         /// Reset span values to their default values
         /// </summary>

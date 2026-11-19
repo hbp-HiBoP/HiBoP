@@ -3,6 +3,7 @@ using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Core.Preferences;
 using HBP.UI.Module3D;
+using HBP.Sync.Scene;
 using HBP.UI.Tools;
 using System.Linq;
 using UnityEngine;
@@ -36,11 +37,9 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                foreach (var column in SelectedScene.Columns)
-                foreach (var site in column.Sites)
-                    site.State.IsFiltered = true;
-
-                Module3DMain.OnRequestUpdateInSiteList.Invoke();
+                Base3DScene scene = SelectedScene;
+                if (!SiteFilterUiRequestRunner.TryRun(scene, SiteFilterRequest.ResetAll(externalLoadingIndicator: true), () => scene.ResetSiteFilters()))
+                    scene.ResetSiteFilters();
             });
         }
 

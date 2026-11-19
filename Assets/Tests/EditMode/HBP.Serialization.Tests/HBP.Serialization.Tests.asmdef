@@ -5,6 +5,7 @@
         "HBP.Core.Runtime",
         "HBP.Data.Runtime",
         "HBP.Dev.Editor",
+        "HBP.PlayModeTestUtilities",
         "UniTask"
     ],
     "includePlatforms": [

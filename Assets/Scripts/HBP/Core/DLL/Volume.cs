@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using HBP.Core.DLL.HbpCore;
 using HBP.Core.Enums;
@@ -69,6 +70,9 @@ namespace HBP.Core.DLL
     public class Volume : CppDLLImportBase
     {
         public bool IsLoaded { get; private set; }
+        public string SourceFilePath { get; private set; }
+        public string SourceFileSha256 { get; private set; }
+        public string SourceCompanionSha256 { get; private set; }
 
         public Vector3 Center
         {
@@ -133,7 +137,62 @@ namespace HBP.Core.DLL
 
         public bool LoadNIFTIFile(string path)
         {
+            SourceFilePath = null;
+            SourceFileSha256 = null;
+            SourceCompanionSha256 = null;
+            // Keep provenance for single-file projection transfer without retaining a second volume in RAM.
+            // Sharing permits the native reader but denies concurrent writers on Windows.
+            if (File.Exists(path))
+            {
+                try
+                {
+                    using var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    string hash;
+                    hash = BitConverter.ToString(Sha256.ComputeHash(source));
+                    string companion = Core.Tools.StandardData.CompanionFile(path);
+                    string companionHash = companion == null ? null : Core.Tools.StandardData.HashFile(companion);
+                    IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
+                    source.Position = 0;
+                    string after;
+                    after = IsLoaded ? BitConverter.ToString(Sha256.ComputeHash(source)) : null;
+                    if (IsLoaded && hash == after && (companion == null || companionHash == Core.Tools.StandardData.HashFile(companion)))
+                    {
+                        SourceFilePath = Path.GetFullPath(path);
+                        SourceFileSha256 = hash;
+                        SourceCompanionSha256 = companionHash;
+                    }
+
+                    return IsLoaded;
+                }
+                catch (IOException)
+                {
+                    IsLoaded = false;
+                    return false;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    IsLoaded = false;
+                    return false;
+                }
+            }
+
             IsLoaded = hbp_volume_load_nifti(_handle.Handle, path) == HbpCoreStatus.Ok;
+            return IsLoaded;
+        }
+
+        internal bool LoadVerifiedNIFTIFile(Core.Tools.VerifiedResourceScope.Lease resource)
+        {
+            resource.RequireAlive();
+            SourceFilePath = SourceFileSha256 = SourceCompanionSha256 = null;
+            IsLoaded = false;
+            IsLoaded = hbp_volume_load_nifti(_handle.Handle, resource.Path) == HbpCoreStatus.Ok;
+            if (IsLoaded)
+            {
+                SourceFilePath = resource.Path;
+                SourceFileSha256 = resource.Hash;
+                SourceCompanionSha256 = resource.CompanionHash;
+            }
+
             return IsLoaded;
         }
 
@@ -223,7 +282,6 @@ namespace HBP.Core.DLL
         public Color[] ConvertValuesToColors(float[] values, int[] mask, float min, float middle, float max, Color32[] colorScheme)
         {
             if (values == null) throw new ArgumentNullException(nameof(values));
-            if (mask == null) throw new ArgumentNullException(nameof(mask));
             if (colorScheme == null) throw new ArgumentNullException(nameof(colorScheme));
             Color4[] nativeColorScheme = colorScheme.ToNativeColor4Array();
             Color4[] nativeColors = new Color4[values.Length];
@@ -249,11 +307,13 @@ namespace HBP.Core.DLL
             return average;
         }
 
-        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f)
+        /// <param name="excludeMinimum">Exclude exact source minima for histogram display. This is not an anatomical background mask.</param>
+        public int[] GetHistogramBins(int binCount, float min = 0.0f, float max = 0.0f, bool excludeMinimum = false, bool excludeZero = false)
         {
             if (binCount <= 0) throw new ArgumentOutOfRangeException(nameof(binCount));
             int[] bins = new int[binCount];
-            ThrowIfFailed(hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
+            int filters = (excludeMinimum ? 1 : 0) | (excludeZero ? 2 : 0);
+            ThrowIfFailed(filters != 0 ? hbp_volume_copy_histogram_bins_filtered(_handle.Handle, bins, bins.Length, min, max, filters) : hbp_volume_copy_histogram_bins(_handle.Handle, bins, bins.Length, min, max));
             return bins;
         }
 
@@ -322,6 +382,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_histogram_bins(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_histogram_bins_filtered", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_volume_copy_histogram_bins_filtered(IntPtr volume, int[] bins, int binCount, float minValue, float maxValue, int filters);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_volume_copy_surface_values", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_volume_copy_surface_values_ptr(IntPtr volume, IntPtr surface, IntPtr values, int valueCapacity);

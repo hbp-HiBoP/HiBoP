@@ -1,3 +1,5 @@
+using Cysharp.Threading.Tasks;
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -32,6 +34,19 @@ namespace HBP.Data.Module3D
         /// Layer on which the objects of this column are displayed
         /// </summary>
         public string Layer { get; protected set; }
+
+        public virtual Core.Data.BasicTimeline NavigationTimeline => null;
+        [SerializeField] private Core.Object3D.SharedMaterials m_SharedMaterials;
+        public Core.Object3D.SharedMaterials SharedMaterials => m_SharedMaterials;
+        [SerializeField] private Transform m_ViewsParent;
+        internal Transform ViewsParent => m_ViewsParent;
+
+        public void SetRenderLayer(string layer)
+        {
+            if (ColumnData != null) throw new System.InvalidOperationException("Set the render layer before initializing the column.");
+            if (LayerMask.NameToLayer(layer) < 0) throw new System.ArgumentException("Unknown render layer.", nameof(layer));
+            Layer = layer;
+        }
 
         private bool m_IsSelected;
 
@@ -80,6 +95,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         public GameObject BrainMesh { get; protected set; }
 
+        private Mesh m_OwnedBrainMesh;
+        private readonly List<Mesh> m_OwnedCutMeshes = new();
+
         /// <summary>
         /// Meshes of the cuts
         /// </summary>
@@ -102,6 +120,8 @@ namespace HBP.Data.Module3D
         /// Currently selected site
         /// </summary>
         public Core.Object3D.Site SelectedSite { get; private set; }
+
+        internal Action<Core.Object3D.Site> RequestSiteSelection { get; set; }
 
         /// <summary>
         /// Currently selected site ID
@@ -174,7 +194,6 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// View prefab
         /// </summary>
-        [SerializeField] protected GameObject m_ViewPrefab;
 
         #endregion
 
@@ -214,13 +233,84 @@ namespace HBP.Data.Module3D
 
         #region Private Methods
 
+        private readonly List<(Core.Object3D.SiteState State, UnityAction Listener)> m_SiteStateListeners = new();
+        private Core.Data.BasicTimeline m_ObservedTimeline;
+        private UnityAction m_TimelineChanged;
+        private static void NotifyTimelineStopped() => Module3DMain.OnRequestUpdateInToolbar.Invoke();
+
+        protected void ObserveTimeline(Core.Data.BasicTimeline timeline, UnityAction changed)
+        {
+            UnobserveTimeline();
+            m_ObservedTimeline = timeline;
+            m_TimelineChanged = () =>
+            {
+                changed();
+                if (IsSelected) Module3DMain.OnUpdateSelectedColumnTimeLineIndex.Invoke();
+            };
+            timeline.OnUpdateCurrentIndex.AddListener(m_TimelineChanged);
+            timeline.OnStopTimelinePlay.AddListener(NotifyTimelineStopped);
+        }
+
+        private void UnobserveTimeline()
+        {
+            if (m_ObservedTimeline == null) return;
+            m_ObservedTimeline.OnUpdateCurrentIndex.RemoveListener(m_TimelineChanged);
+            m_ObservedTimeline.OnStopTimelinePlay.RemoveListener(NotifyTimelineStopped);
+            m_ObservedTimeline = null;
+        }
+
+        private void UnobserveSites()
+        {
+            foreach (var listener in m_SiteStateListeners) listener.State.OnChangeState.RemoveListener(listener.Listener);
+            m_SiteStateListeners.Clear();
+        }
+
+        private async UniTaskVoid RetireSites(Core.DLL.RawSiteList sites, UniTask work)
+        {
+            await work;
+            sites?.Dispose();
+        }
+
+        internal UniTask GeneratorWork { get; set; } = UniTask.CompletedTask;
+
         private void OnDestroy()
         {
+            UnobserveTimeline();
+            UnobserveSites();
             Core.Data.DataManager.UnregisterMemoryUsage(this);
+            ReleaseGeneratorResources().Forget();
+        }
+
+        private AsyncLazy m_ReleaseWork;
+
+        internal UniTask ReleaseResources()
+        {
+            m_ReleaseWork ??= UniTask.Lazy(ReleaseGeneratorResourcesAsync);
+            return m_ReleaseWork.Task;
+        }
+
+        private async UniTaskVoid ReleaseGeneratorResources()
+        {
+            await ReleaseResources();
+        }
+
+        private async UniTask ReleaseGeneratorResourcesAsync()
+        {
+            await GeneratorWork;
             RawElectrodes?.Dispose();
             SurfaceGenerator?.Dispose();
             ActivityGenerator?.Dispose();
+            await UniTask.SwitchToMainThread();
             CutTextures.Clean();
+            DestroyOwnedMesh(m_OwnedBrainMesh);
+            foreach (var mesh in m_OwnedCutMeshes) DestroyOwnedMesh(mesh);
+            m_OwnedCutMeshes.Clear();
+        }
+
+        private static void DestroyOwnedMesh(Mesh mesh)
+        {
+            if (Application.isPlaying) Destroy(mesh);
+            else DestroyImmediate(mesh);
         }
 
         #endregion
@@ -236,11 +326,10 @@ namespace HBP.Data.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void Initialize(int idColumn, Core.Data.Column baseColumn, Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
-            Layer = "Column" + idColumn;
+            Layer ??= LayerMask.LayerToName(gameObject.layer);
             ColumnData = baseColumn;
             CutTextures.Column = this;
             UpdateSites(implantation, sceneSitePatientParent);
-            AddView();
 
             SurfaceGenerator = new Core.DLL.SurfaceGenerator();
         }
@@ -252,6 +341,10 @@ namespace HBP.Data.Module3D
         /// <param name="sceneSitePatientParent">List of the patient parent of the sites as instantiated in the scene</param>
         public virtual void UpdateSites(Core.Object3D.Implantation3D implantation, List<GameObject> sceneSitePatientParent)
         {
+            UnobserveSites();
+            var previousSites = RawElectrodes;
+            RawElectrodes = implantation != null ? new Core.DLL.RawSiteList(implantation.RawSiteList) : new Core.DLL.RawSiteList();
+            RetireSites(previousSites, GeneratorWork).Forget();
             foreach (Transform patientSite in m_SitesMeshesParent)
             {
                 Destroy(patientSite.gameObject);
@@ -262,7 +355,6 @@ namespace HBP.Data.Module3D
             if (implantation == null) return;
 
             Sites = new List<Core.Object3D.Site>(implantation.SiteInfos.Count);
-            RawElectrodes = new Core.DLL.RawSiteList(implantation.RawSiteList);
             for (int i = 0; i < sceneSitePatientParent.Count; ++i)
             {
                 Transform sceneSitePatient = sceneSitePatientParent[i].transform;
@@ -290,7 +382,9 @@ namespace HBP.Data.Module3D
                         }
 
                         site.State = siteState;
-                        site.State.OnChangeState.AddListener(() => OnChangeSiteState.Invoke(site));
+                        UnityAction changed = () => OnChangeSiteState.Invoke(site);
+                        site.State.OnChangeState.AddListener(changed);
+                        m_SiteStateListeners.Add((site.State, changed));
                         // Configuration
                         if (ColumnData.BaseConfiguration.ConfigurationBySite.TryGetValue(site.Information.FullID, out Core.Data.SiteConfiguration siteConfiguration))
                         {
@@ -302,20 +396,7 @@ namespace HBP.Data.Module3D
                         }
 
                         site.IsActive = true;
-                        site.OnSelectSite.AddListener((selected) =>
-                        {
-                            if (selected)
-                            {
-                                UnselectSite();
-                                SelectedSite = site;
-                            }
-                            else
-                            {
-                                SelectedSite = null;
-                            }
-
-                            OnSelectSite.Invoke(SelectedSite);
-                        });
+                        site.OnSelectionRequested.AddListener(() => RequestSiteSelection?.Invoke(site));
                         site.OnChangeConfiguration.AddListener(() => { Module3DMain.OnRequestUpdateInToolbar.Invoke(); });
                         Sites.Add(site);
                     }
@@ -330,10 +411,14 @@ namespace HBP.Data.Module3D
         public void InitializeColumnMeshes(GameObject brainMesh)
         {
             BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
+            AtlasHoverCollider = BrainMesh.GetComponentInChildren<MeshCollider>(true);
             BrainMesh.layer = LayerMask.NameToLayer(Layer);
-            BrainMesh.GetComponent<MeshFilter>().mesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
             BrainMesh.SetActive(true);
         }
+
+        internal MeshCollider AtlasHoverCollider { get; private set; }
 
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)
@@ -341,8 +426,9 @@ namespace HBP.Data.Module3D
         /// <param name="brainMesh">Mesh of the base scene</param>
         public void UpdateColumnBrainMesh(GameObject brainMesh)
         {
-            DestroyImmediate(BrainMesh.GetComponent<MeshFilter>().sharedMesh);
-            BrainMesh.GetComponent<MeshFilter>().sharedMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().mesh);
+            DestroyImmediate(m_OwnedBrainMesh);
+            m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
+            BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
         }
 
         /// <summary>
@@ -357,13 +443,17 @@ namespace HBP.Data.Module3D
                 GameObject cut = cutMeshes[BrainCutMeshes.Count];
                 GameObject columnCut = Instantiate(cut, m_CutMeshesParent);
                 columnCut.layer = LayerMask.NameToLayer(Layer);
-                columnCut.GetComponent<MeshFilter>().mesh = Instantiate(cut.GetComponent<MeshFilter>().mesh);
+                var mesh = Instantiate(cut.GetComponent<MeshFilter>().sharedMesh);
+                m_OwnedCutMeshes.Add(mesh);
+                columnCut.GetComponent<MeshFilter>().mesh = mesh;
                 columnCut.SetActive(true);
                 BrainCutMeshes.Add(columnCut);
             }
 
             while (BrainCutMeshes.Count > nbCuts)
             {
+                DestroyOwnedMesh(m_OwnedCutMeshes[m_OwnedCutMeshes.Count - 1]);
+                m_OwnedCutMeshes.RemoveAt(m_OwnedCutMeshes.Count - 1);
                 Destroy(BrainCutMeshes[BrainCutMeshes.Count - 1]);
                 BrainCutMeshes.RemoveAt(BrainCutMeshes.Count - 1);
             }
@@ -373,8 +463,9 @@ namespace HBP.Data.Module3D
         {
             for (int i = 0; i < BrainCutMeshes.Count; ++i)
             {
-                DestroyImmediate(BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh);
-                BrainCutMeshes[i].GetComponent<MeshFilter>().sharedMesh = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().mesh);
+                DestroyImmediate(m_OwnedCutMeshes[i]);
+                m_OwnedCutMeshes[i] = Instantiate(cutMeshes[i].GetComponent<MeshFilter>().sharedMesh);
+                BrainCutMeshes[i].GetComponent<MeshFilter>().mesh = m_OwnedCutMeshes[i];
             }
         }
 
@@ -413,32 +504,9 @@ namespace HBP.Data.Module3D
                 }
 
                 if (!activity) site.IsActive = true;
-                site.GetComponent<MeshRenderer>().sharedMaterial = Module3DMain.SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
+                site.GetComponent<MeshRenderer>().sharedMaterial = SharedMaterials.Site.GetSharedMaterial(site.State.IsHighlighted, siteType, site.State.Color);
                 site.transform.localScale *= gain;
             }
-        }
-
-        /// <summary>
-        /// Add a view to this column
-        /// </summary>
-        public void AddView()
-        {
-            View3D view = Instantiate(m_ViewPrefab, transform.Find("Views")).GetComponent<View3D>();
-            view.Initialize(Views.Count, Layer);
-            view.OnSelect.AddListener(() =>
-            {
-                foreach (View3D v in Views)
-                {
-                    if (v != view)
-                    {
-                        v.IsSelected = false;
-                    }
-                }
-
-                IsSelected = true;
-            });
-            view.OnMoveView.AddListener(() => { OnMoveView.Invoke(view); });
-            Views.Add(view);
         }
 
         /// <summary>
@@ -451,37 +519,21 @@ namespace HBP.Data.Module3D
             Views.RemoveAt(lineID);
         }
 
-        /// <summary>
-        /// Unselect the selected site
-        /// </summary>
-        public void UnselectSite()
+        public Core.Object3D.Site FindSite(string id, int index = -1)
         {
-            if (SelectedSite)
-            {
-                SelectedSite.IsSelected = false;
-            }
+            if (Sites == null) return null;
+            if (index >= 0 && index < Sites.Count && Sites[index].Information.FullID == id) return Sites[index];
+            return Sites.Find(candidate => candidate.Information.FullID == id);
         }
 
-        /// <summary>
-        /// Select the first unmasked site by name
-        /// </summary>
-        /// <param name="siteName">Name of the site to select</param>
-        public void SelectFirstOrDefaultSiteByName(string siteName = "")
+        internal bool SetSelectedSiteRepresentation(Core.Object3D.Site site)
         {
-            Core.Object3D.Site site;
-            if (!string.IsNullOrEmpty(siteName))
-            {
-                site = Sites.FirstOrDefault(s => s.Information.Name == siteName);
-            }
-            else
-            {
-                site = Sites.FirstOrDefault(s => !s.State.IsMasked);
-            }
-
-            if (site != null)
-            {
-                site.IsSelected = true;
-            }
+            if (ReferenceEquals(SelectedSite, site)) return false;
+            var previous = SelectedSite;
+            SelectedSite = site;
+            if (previous) previous.IsSelected = false;
+            if (site) site.IsSelected = true;
+            return true;
         }
 
         /// <summary>
@@ -515,13 +567,30 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>
-        /// Update the sites mask of the DLL using the state of each site
+        /// Prepare on the Unity thread. Compute uses only captured inputs on a worker;
+        /// Publish runs on the Unity thread after success, while this column still exists.
+        /// Input buffers/handles are borrowed until Compute returns. Internal data builders
+        /// replace activity arrays rather than mutating arrays used by a pending computation.
         /// </summary>
+        public virtual (System.Action Compute, System.Action Publish) PrepareActivityComputation(bool roiActive, SiteInfluenceByDistanceType influenceRule, bool supportsMarsAtlas)
+        {
+            return (PrepareSitesMaskUpdate(roiActive), null);
+        }
+
+        protected System.Action PrepareSitesMaskUpdate(bool roiActive)
+        {
+            var masks = new bool[Sites.Count];
+            for (int i = 0; i < masks.Length; ++i) masks[i] = Sites[i].State.IsEffectivelyMasked(roiActive);
+            var sites = RawElectrodes;
+            return () => sites.UpdateMasks(masks);
+        }
+
+        /// <summary>Update the native sites mask from the current site states.</summary>
         public void UpdateDLLSitesMask(bool isROI)
         {
             for (int ii = 0; ii < Sites.Count; ++ii)
             {
-                RawElectrodes.UpdateMask(ii, (Sites[ii].State.IsMasked || Sites[ii].State.IsBlackListed || (Sites[ii].State.IsOutOfROI && isROI) || !Sites[ii].State.IsFiltered));
+                RawElectrodes.UpdateMask(ii, Sites[ii].State.IsEffectivelyMasked(isROI));
             }
         }
 
@@ -572,10 +641,33 @@ namespace HBP.Data.Module3D
         /// </summary>
         public virtual void SaveConfiguration()
         {
-            ColumnData.BaseConfiguration.ActivityAlpha = ActivityAlpha;
+            CaptureConfiguration(ColumnData);
+        }
+
+        public virtual void CaptureConfiguration(Core.Data.Column target)
+        {
+            target.BaseConfiguration.ActivityAlpha = ActivityAlpha;
+            if (!ReferenceEquals(target, ColumnData))
+                foreach (var entry in SiteStateBySiteID)
+                {
+                    var state = entry.Value;
+                    var configuration = target.BaseConfiguration.ConfigurationBySite.TryGetValue(entry.Key, out var saved) ? (Core.Data.SiteConfiguration)saved.Clone() : new Core.Data.SiteConfiguration();
+                    configuration.IsBlacklisted = state.IsBlackListed;
+                    configuration.IsHighlighted = state.IsHighlighted;
+                    configuration.Color = state.Color;
+                    configuration.Labels = state.Labels.ToArray();
+                    target.BaseConfiguration.ConfigurationBySite[entry.Key] = configuration;
+                }
+
             foreach (Core.Object3D.Site site in Sites)
             {
-                site.SaveConfiguration();
+                var configuration = (Core.Data.SiteConfiguration)site.Configuration.Clone();
+                configuration.IsBlacklisted = site.State.IsBlackListed;
+                configuration.IsHighlighted = site.State.IsHighlighted;
+                configuration.Color = site.State.Color;
+                configuration.Labels = site.State.Labels.ToArray();
+                if (ReferenceEquals(target, ColumnData)) site.SaveConfiguration();
+                else target.BaseConfiguration.ConfigurationBySite[site.Information.FullID] = configuration;
             }
         }
 

@@ -74,6 +74,8 @@ namespace HBP.Data.Module3D
         public static int NumberOfScenesLoadedSinceStart { get; set; }
 
         private List<Base3DScene> m_Scenes = new();
+        private static readonly Dictionary<(Base3DScene Source, string Patient), Base3DScene> s_PatientScenes = new();
+        private static readonly Dictionary<(Base3DScene Source, string Patient), UniTask<Base3DScene>> s_PatientOpenings = new();
 
         /// <summary>
         /// List of open scenes
@@ -197,37 +199,12 @@ namespace HBP.Data.Module3D
 
         protected override void Initialization()
         {
-            SpecificSiteLocationFilterCondition.SceneLocationEvaluator = CheckSpecificSiteLocation;
             Preload3D();
-        }
-
-        private static bool? CheckSpecificSiteLocation(SpecificSiteLocationFilterCondition condition, Core.Object3D.Site site)
-        {
-            Base3DScene selectedScene = SelectedScene;
-            if (selectedScene == null) return false;
-
-            switch (condition.LocationType)
-            {
-                case SpecificSiteLocationFilterCondition.SpecificLocationType.BrainMesh:
-                    Surface mesh = condition.MeshPart switch
-                    {
-                        MeshPart.Both => selectedScene.MeshManager.SelectedMesh.SimplifiedBoth,
-                        MeshPart.Left => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedLeft : null,
-                        MeshPart.Right => selectedScene.MeshManager.SelectedMesh is LeftRightMesh3D leftRightMesh ? leftRightMesh.SimplifiedRight : null,
-                        _ => null
-                    };
-                    return mesh != null && mesh.IsPointInside(site.Information.DefaultPosition);
-                case SpecificSiteLocationFilterCondition.SpecificLocationType.CutPlane:
-                    var planes = selectedScene.Cuts.Select(c => (Core.DLL.Plane)c).ToList();
-                    return selectedScene.ImplantationManager.SelectedImplantation.RawSiteList.IsSiteOnAnyPlane(site, planes, 1.0f);
-                default:
-                    return null;
-            }
         }
 
         void OnDestroy()
         {
-            Object3DManager.Reset();
+            Base3DScene.ResetStandardResourcesWhenUnused();
         }
 
         #endregion
@@ -253,9 +230,75 @@ namespace HBP.Data.Module3D
         /// <param name="scene">Scene to be removed</param>
         public static void RemoveScene(Base3DScene scene)
         {
+            RemoveSceneAsync(scene).Forget();
+        }
+
+        /// <summary>Remove the opening and await native cleanup before changing shared global settings.</summary>
+        public static async UniTask RemoveSceneAsync(Base3DScene scene)
+        {
             OnRemoveScene.Invoke(scene);
             m_Instance.m_Scenes.Remove(scene);
-            scene.Clean().Forget();
+            foreach (var key in s_PatientScenes.Where(entry => entry.Value == scene).Select(entry => entry.Key).ToArray()) s_PatientScenes.Remove(key);
+            await scene.CleanAsync();
+        }
+
+        /// <summary>One derived opening per source opening and patient; concurrent requests share its load.</summary>
+        public static async UniTask<Base3DScene> OpenSinglePatientVisualizationAsync(Base3DScene source, Patient patient, Action<float, float, LoadingText> progress, CancellationToken token, Func<Visualization, CancellationToken, UniTask<Base3DScene>> loadScene = null)
+        {
+            await UniTask.SwitchToMainThread(token);
+            if (source == null || source.IsClosing || !Scenes.Contains(source) || source.Type != SceneType.MultiPatients || patient == null || !source.Visualization.Patients.Any(value => value.ID == patient.ID))
+                throw new InvalidOperationException("The source visualization or patient is no longer available.");
+            var key = (source, patient.ID);
+            if (s_PatientScenes.TryGetValue(key, out var existing) && existing != null && !existing.IsClosing && Scenes.Contains(existing))
+            {
+                existing.UpdateVisibleState(true);
+                SelectSceneContext(existing, existing.SelectedColumn);
+                return existing;
+            }
+
+            if (s_PatientOpenings.TryGetValue(key, out var pending)) return await pending;
+            var completion = new UniTaskCompletionSource<Base3DScene>();
+            s_PatientOpenings.Add(key, completion.Task);
+            try
+            {
+                var visualization = PrepareSinglePatientVisualizationFromMultiPatientScene(source.Visualization, patient);
+                Base3DScene opened;
+                if (loadScene != null) opened = await loadScene(visualization, token);
+                else
+                {
+                    await LoadAsync(new[] { visualization }, progress, token);
+                    await UniTask.SwitchToMainThread();
+                    opened = Scenes.Single(scene => scene.Visualization == visualization);
+                }
+
+                await UniTask.SwitchToMainThread();
+                s_PatientScenes[key] = opened;
+                SelectSceneContext(opened, opened.SelectedColumn);
+                completion.TrySetResult(opened);
+                return opened;
+            }
+            catch (Exception error)
+            {
+                await UniTask.SwitchToMainThread();
+                completion.TrySetException(error);
+                // Observe the shared task even when this was the only request.
+                completion.Task.Forget(_ => { });
+                throw;
+            }
+            finally
+            {
+                s_PatientOpenings.Remove(key);
+            }
+        }
+
+        public static void SelectSceneContext(Base3DScene scene, Column3D column)
+        {
+            if (scene == null || scene.IsClosing || !scene.IsVisible) return;
+            foreach (var other in Scenes)
+                if (other != scene && other.IsSelected)
+                    other.IsSelected = false;
+            scene.IsSelected = true;
+            if (column != null && scene.Columns.Contains(column)) column.IsSelected = true;
         }
 
         /// <summary>
@@ -273,6 +316,11 @@ namespace HBP.Data.Module3D
             visualizationToLoad.Configuration.MeshName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMeshInSinglePatientVisualization;
             visualizationToLoad.Configuration.MRIName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedMRIInSinglePatientVisualization;
             visualizationToLoad.Configuration.ImplantationName = PersistentDataManager.UserPreferences.Visualization._3D.DefaultSelectedImplantationInSinglePatientVisualization;
+            // Patient anatomy has its own topology; the source masks and MRI preview
+            // describe the multi-patient reference surface and cannot be reused.
+            visualizationToLoad.Configuration.ErasedTriangles = null;
+            visualizationToLoad.Configuration.ErasedSimplifiedTriangles = null;
+            visualizationToLoad.Configuration.PreviewMRIName = null;
             if (scene.SelectedColumn.SelectedSite)
             {
                 visualizationToLoad.Configuration.FirstSiteToSelect = scene.SelectedColumn.SelectedSite.Information.Name;
@@ -339,7 +387,18 @@ namespace HBP.Data.Module3D
         /// <returns></returns>
         public static async UniTask LoadAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
+            await LoadWithResultsAsync(visualizations, onChangeProgress, token);
+        }
+
+        /// <summary>
+        /// Returns the actual openings. The callback runs after configuration has
+        /// been applied; it can admit bounded preparation without waiting for a remote consumer.
+        /// Completed openings survive cancellation or failure of a later callback/opening.
+        /// </summary>
+        public static async UniTask<IReadOnlyList<Base3DScene>> LoadWithResultsAsync(IEnumerable<Visualization> visualizations, Action<float, float, LoadingText> onChangeProgress, CancellationToken token, Func<Base3DScene, CancellationToken, UniTask> onSceneReady = null, Action<Visualization> onVisualizationLoading = null)
+        {
             Visualization[] visualizationSnapshot = visualizations.ToArray();
+            var created = new List<Base3DScene>(visualizationSnapshot.Length);
             Project project = ApplicationState.LoadedProject;
             DataInfo[] requiredDataInfos = visualizationSnapshot.SelectMany(visualization => visualization.GetRequiredDataInfos()).Distinct().ToArray();
             Patient[] requiredPatients = visualizationSnapshot.SelectMany(visualization => visualization.Patients).Distinct().ToArray();
@@ -369,13 +428,15 @@ namespace HBP.Data.Module3D
             const float LOADING_SCENE_PROGRESS = 0.5f;
             foreach (Visualization visualization in visualizationSnapshot)
             {
+                onVisualizationLoading?.Invoke(visualization);
+                Base3DScene scene;
                 try
                 {
                     token.ThrowIfCancellationRequested();
                     float visualizationWeight = (float)weightByVisualization[visualization] / totalWeight;
                     if (!visualization.IsVisualizable) throw new CanNotLoadVisualization(visualization.Name);
                     await visualization.LoadAsync((localProgress, duration, text) => onChangeProgress(validationWeight + (progress + localProgress * visualizationWeight * LOADING_VISUALIZATION_PROGRESS) * (1 - validationWeight), duration, text), token);
-                    await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(validationWeight + (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) * (1 - validationWeight), duration, text), token);
+                    scene = await LoadSceneAsync(visualization, (localProgress, duration, text) => onChangeProgress(validationWeight + (progress + (LOADING_VISUALIZATION_PROGRESS + localProgress * LOADING_SCENE_PROGRESS) * visualizationWeight) * (1 - validationWeight), duration, text), token);
                     progress += visualizationWeight;
                 }
                 catch (OperationCanceledException e)
@@ -387,11 +448,19 @@ namespace HBP.Data.Module3D
                 {
                     Debug.LogException(e);
                     visualization.Unload();
-                    throw e;
+                    if (e is HBPException) throw;
+                    throw new VisualizationLoadException(visualization.Name, e);
                 }
+
+                created.Add(scene);
+                // Outside the construction catch: this scene is complete, so a
+                // consumer stopping admission must not unload its live visualization.
+                if (onSceneReady != null) await onSceneReady(scene, token);
+                await UniTask.SwitchToMainThread(token);
             }
 
             OnFinishedAddingNewScenes.Invoke();
+            return created;
         }
 
         /// <summary>
@@ -400,31 +469,56 @@ namespace HBP.Data.Module3D
         /// <param name="visualization">Visualization to be loaded</param>
         /// <param name="onChangeProgress">Event to update the loading circle</param>
         /// <returns></returns>
-        private static async UniTask LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
+        private static async UniTask<Base3DScene> LoadSceneAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)
         {
             await UniTask.SwitchToMainThread();
             Base3DScene scene = Instantiate(m_Instance.m_ScenePrefab, m_Instance.m_ScenesParent).GetComponent<Base3DScene>();
-            scene.Initialize(visualization);
-            token.ThrowIfCancellationRequested();
-            await scene.InitializeAsync(visualization, onChangeProgress, token);
-            // Add the listeners
-            scene.OnSelect.AddListener(() =>
+            try
             {
-                foreach (Base3DScene s in m_Instance.m_Scenes)
+                scene.Initialize(visualization);
+                token.ThrowIfCancellationRequested();
+                float lastProgress = 0;
+                await scene.InitializeAsync(visualization, (value, duration, text) =>
                 {
-                    if (s != scene)
+                    lastProgress = value;
+                    onChangeProgress(value, duration, text);
+                }, token);
+                // Add the listeners
+                scene.OnSelect.AddListener(() =>
+                {
+                    foreach (Base3DScene s in m_Instance.m_Scenes)
                     {
-                        s.IsSelected = false;
+                        if (s != scene)
+                        {
+                            s.IsSelected = false;
+                        }
                     }
+                });
+                // Add the scene to the list
+                m_Instance.m_Scenes.Add(scene);
+                bool preparing = true;
+                IProgress<float> preparationProgress = new Progress<float>(value =>
+                {
+                    if (preparing && !token.IsCancellationRequested) onChangeProgress(value, 0.0f, new LoadingText("Preparing scene display"));
+                });
+                onChangeProgress(lastProgress, 0, new LoadingText("Preparing scene display"));
+                try
+                {
+                    await scene.CompleteInitializationAsync(() => OnAddScene.Invoke(scene), preparationProgress, token);
                 }
-            });
-            // Add the scene to the list
-            m_Instance.m_Scenes.Add(scene);
-            scene.FinalizeInitialization();
-            OnAddScene.Invoke(scene);
-            scene.LoadConfiguration();
-            IProgress<float> inflationProgress = new Progress<float>(value => onChangeProgress(value, 0.0f, new LoadingText("Inflating surface")));
-            await scene.RestoreConfiguredSurfaceRepresentationAsync(inflationProgress, token, animate: false);
+                finally
+                {
+                    preparing = false;
+                }
+
+                return scene;
+            }
+            catch
+            {
+                if (m_Instance.m_Scenes.Remove(scene)) OnRemoveScene.Invoke(scene);
+                await scene.CleanAsync();
+                throw;
+            }
         }
 
         private static void Preload3D()
@@ -435,23 +529,8 @@ namespace HBP.Data.Module3D
             QualitySettings.vSyncCount = 0;
 
             // Objects 3D
-            Object3DManager.MNI.Load().Forget();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo64) Object3DManager.DiFuMo.Load("64");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo128) Object3DManager.DiFuMo.Load("128");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo256) Object3DManager.DiFuMo.Load("256");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo512) Object3DManager.DiFuMo.Load("512");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadDiFuMo1024) Object3DManager.DiFuMo.Load("1024");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadIBC) Object3DManager.IBC.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadMarsAtlas) Object3DManager.MarsAtlas.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadJuBrain) Object3DManager.JuBrain.Load();
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerAUDI) Object3DManager.Localizers.TryLoad("AUDI");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC1) Object3DManager.Localizers.TryLoad("LEC1");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerLEC2) Object3DManager.Localizers.TryLoad("LEC2");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMCSE) Object3DManager.Localizers.TryLoad("MCSE");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMOTO) Object3DManager.Localizers.TryLoad("MOTO");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVEB) Object3DManager.Localizers.TryLoad("MVEB");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerMVIS) Object3DManager.Localizers.TryLoad("MVIS");
-            if (PersistentDataManager.UserPreferences.Data.Atlases.PreloadLocalizerVISU) Object3DManager.Localizers.TryLoad("VISU");
+            Base3DScene.TrackStandardPreparation(Object3DManager.MNI.Load());
+            AtlasResources.PreloadAsync(PersistentDataManager.UserPreferences.Data.Atlases).Forget();
         }
 
         #endregion
