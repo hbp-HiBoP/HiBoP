@@ -1,5 +1,6 @@
 using System.IO;
 using System.Linq;
+using System.Xml.Linq;
 using HBP.Dev;
 using NUnit.Framework;
 using UnityEditor;
@@ -12,6 +13,34 @@ namespace HBP.Tests.PlatformConfiguration
 {
     public class BuildProfileConfigurationTests
     {
+        [Test]
+        public void MacNetworkPrivacyPlistRemainsReadable()
+        {
+            string application = Path.Combine(Path.GetTempPath(), "hibop-plist-" + System.Guid.NewGuid().ToString("N"));
+            try
+            {
+                string contents = Path.Combine(application, "Contents");
+                Directory.CreateDirectory(contents);
+                string path = Path.Combine(contents, "Info.plist");
+                File.WriteAllText(path, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" + "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n" + "<plist version=\"1.0\"><dict><key>CFBundleIdentifier</key><string>com.CRNL.HiBoP</string></dict></plist>");
+
+                var configure = typeof(HBPBuildProfiles).Assembly.GetType("HBP.Dev.QuestDistributionValidation", true).GetMethod("ConfigureMacNetworkPrivacy");
+                configure.Invoke(null, new object[] { application });
+                configure.Invoke(null, new object[] { application });
+
+                string xml = File.ReadAllText(path);
+                Assert.That(xml, Does.Not.Contain("<!DOCTYPE"));
+                var keys = XDocument.Parse(xml).Root.Element("dict").Elements("key").ToDictionary(key => key.Value);
+                Assert.That(((XElement)keys["CFBundleIdentifier"].NextNode).Value, Is.EqualTo("com.CRNL.HiBoP"));
+                Assert.That(((XElement)keys["NSLocalNetworkUsageDescription"].NextNode).Value, Is.Not.Empty);
+                Assert.That(((XElement)keys["NSBonjourServices"].NextNode).Elements("string").Select(service => service.Value), Is.EqualTo(new[] { "_hibop-quest._tcp" }));
+            }
+            finally
+            {
+                if (Directory.Exists(application)) Directory.Delete(application, true);
+            }
+        }
+
         [Test]
         public void QuestNetworkBridge_IsIncludedOnlyOnAndroid()
         {

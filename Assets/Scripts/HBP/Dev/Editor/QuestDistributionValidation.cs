@@ -43,6 +43,8 @@ namespace HBP.Dev
         {
             string path = Path.Combine(applicationDirectory, "Contents", "Info.plist");
             var document = XDocument.Load(path);
+            // LINQ to XML can write an inline DTD subset that macOS plutil rejects.
+            document.DocumentType?.Remove();
             var dictionary = document.Root.Element("dict");
             Set(dictionary, "NSLocalNetworkUsageDescription", new XElement("string", "HiBoP connects to your Quest over USB or your local network to synchronize visualizations."));
             Set(dictionary, "NSBonjourServices", new XElement("array", new XElement("string", "_hibop-quest._tcp")));

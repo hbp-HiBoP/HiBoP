@@ -44,7 +44,7 @@ jobs:
           matrix='{"include":[
             {"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},
             {"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},
-            {"name":"macOS (ARM64)","platform":"macos","os":"macos-15","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
+            {"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
             {"name":"Quest","platform":"quest","os":"windows-latest","module":"Android","modules":"","artifact":"HiBoP-Quest"}
           ]}'
           case "$SELECTED_PLATFORM" in
@@ -137,12 +137,16 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p .test-results
+          filter='HBP.Tests.Transfer.QuestNetworkTests'
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            filter="$filter;HBP.Tests.PlatformConfiguration.BuildProfileConfigurationTests.MacNetworkPrivacyPlistRemainsReadable"
+          fi
           "$UNITY_EDITOR_PATH" \
             -batchmode -nographics \
             -projectPath "$GITHUB_WORKSPACE" \
             -buildTarget ${{ matrix.cli_target }} \
             -runTests -testPlatform EditMode \
-            -testFilter HBP.Tests.Transfer.QuestNetworkTests \
+            -testFilter "$filter" \
             -testResults "$GITHUB_WORKSPACE/.test-results/quest-network.xml" \
             -logFile "$GITHUB_WORKSPACE/.test-results/quest-network.log"
 
@@ -254,6 +258,7 @@ jobs:
           folder=$(find build -mindepth 1 -maxdepth 1 -type d | head -1)
           app=$(find "$folder" -mindepth 1 -maxdepth 1 -type d -name '*.app' -print -quit)
           test -n "$app"
+          plutil -lint "$app/Contents/Info.plist"
           for bundle_name in hbp_core hbp_math EEGFormat; do
             bundle="$app/Contents/PlugIns/$bundle_name.bundle"
             test -d "$bundle"
@@ -282,27 +287,27 @@ jobs:
             exit 1
           fi
 
-          # HBPBuilder updates Info.plist and moves plugins after Unity signs
-          # the player. Recreate the outer signature after all nested code is signed.
-          plutil -lint "$app/Contents/Info.plist"
-          codesign --remove-signature "$app"
-          if ! codesign --sign - "$app"; then
-            # Unity may leave unsigned nested code in a clean build.
-            codesign --sign - --deep "$app"
-          fi
+          # Seal Info.plist, the moved plugins and copied resources after post-processing.
+          codesign --force --deep --sign - "$app"
           if codesign --verify --deep --strict --verbose=2 "$app"; then
             echo "Validated and signed application: $app"
           else
             status=$?
             codesign --display --verbose=4 --requirements - "$app" || true
-            if ditto -c -k --sequesterRsrc --keepParent "$folder" "$RUNNER_TEMP/macos-signing-recovery.zip"; then
-              echo "recovery_archive=true" >> "$GITHUB_OUTPUT"
-            fi
             exit "$status"
           fi
 
+      - name: Archive macOS build for signature diagnosis
+        if: failure() && steps.macos_signing.outcome == 'failure'
+        id: macos_recovery
+        run: |
+          set -euo pipefail
+          folder=$(find build -mindepth 1 -maxdepth 1 -type d -print -quit)
+          test -n "$folder"
+          ditto -c -k --sequesterRsrc --keepParent "$folder" "$RUNNER_TEMP/macos-signing-recovery.zip"
+
       - name: Preserve macOS build for signature diagnosis
-        if: failure() && steps.macos_signing.outputs.recovery_archive == 'true'
+        if: failure() && steps.macos_recovery.outcome == 'success'
         uses: actions/upload-artifact@v7
         with:
           name: macos-signing-recovery
