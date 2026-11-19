@@ -98,9 +98,10 @@ For CI setup/repair, the [build workflow](../../.github/workflows/build.yml)
 consumes repository secrets `UNITY_USERNAME` and `UNITY_PASSWORD`; configure
 values privately, never in Git or logs. Release archive attachment requires
 release-content write permission; manual builds still do not publish releases.
-The Linux Unity Hub headless wrapper resolves the installed package path
-dynamically; preserve that discovery instead of assuming an old `/opt/unityhub`
-layout or pinning a workstation-specific path in instructions.
+CI installs Unity through the official Unity CLI via `unity-setup` v3 and
+activates the Personal licence with `activate-unity-license` v3. Unity Hub 4
+does not support the Hub 3 headless CLI. The Quest Android editor module pulls
+its required child modules, including SDK Platform 34 for Unity 6000.5.2f1.
 
 ## Quest signing and archive validation
 

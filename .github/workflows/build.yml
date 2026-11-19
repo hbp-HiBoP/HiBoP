@@ -102,36 +102,15 @@ jobs:
           restore-keys: |
             Library-${{ matrix.module }}-
 
-      - name: Install Unity Hub (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          sudo install -d /etc/apt/keyrings
-          curl -fsSL https://hub.unity3d.com/linux/keys/public |
-            sudo gpg --dearmor --yes -o /etc/apt/keyrings/unityhub.gpg
-          echo "deb [arch=amd64 signed-by=/etc/apt/keyrings/unityhub.gpg] https://hub.unity3d.com/linux/repos/deb stable main" |
-            sudo tee /etc/apt/sources.list.d/unityhub.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install --yes desktop-file-utils unityhub xvfb
-          unity_hub_path="$(readlink -f "$(command -v unityhub)")"
-          test -x "$unity_hub_path"
-          test -r "$(dirname "$unity_hub_path")/resources/app.asar"
-          echo "UNITY_HUB_PATH=$unity_hub_path" >> "$GITHUB_ENV"
-          sudo tee /usr/local/bin/unity-hub > /dev/null <<'EOF'
-          #!/usr/bin/env bash
-          exec xvfb-run --auto-servernum "$UNITY_HUB_PATH" "$@"
-          EOF
-          sudo chmod +x /usr/local/bin/unity-hub
-
       - name: Install Unity
-        uses: RageAgainstThePixel/unity-setup@v2
+        uses: RageAgainstThePixel/unity-setup@8acd5e29b6961f6338f8073304e9551353709521 # v3.0.4
         with:
           unity-version: 6000.5.2f1
           build-targets: ${{ matrix.module }}
           modules: ${{ matrix.modules }}
-          auto-update-hub: false
 
       - name: Activate Unity licence
-        uses: RageAgainstThePixel/activate-unity-license@v2
+        uses: RageAgainstThePixel/activate-unity-license@f9a4e114ed89feaddf8a8dc4b958f3e538fb9be6 # v3.0.2
         with:
           license: Personal
           username: ${{ secrets.UNITY_USERNAME }}
@@ -347,14 +326,13 @@ jobs:
           key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
           restore-keys: Gradle-Quest-6000.5.2f1-
       - name: Install Unity with Android toolchain
-        uses: RageAgainstThePixel/unity-setup@v2
+        uses: RageAgainstThePixel/unity-setup@8acd5e29b6961f6338f8073304e9551353709521 # v3.0.4
         with:
           unity-version: 6000.5.2f1
+          # The Android target installs its child modules, including OpenJDK and SDK Platform 34.
           build-targets: Android
-          modules: android-sdk-ndk-tools, android-open-jdk
-          auto-update-hub: false
       - name: Activate Unity licence
-        uses: RageAgainstThePixel/activate-unity-license@v2
+        uses: RageAgainstThePixel/activate-unity-license@f9a4e114ed89feaddf8a8dc4b958f3e538fb9be6 # v3.0.2
         with:
           license: Personal
           username: ${{ secrets.UNITY_USERNAME }}

@@ -119,10 +119,10 @@ GitHub commit in `BuildInfo.json`. The macOS job also installs Unity's
 selected platform. Command-line builds are release builds by default; pass
 `-developmentBuild` explicitly when a diagnostic development player is needed.
 
-The Linux runner installs Unity Hub from Unity's Debian repository and creates
-the headless wrapper expected by `unity-setup`. It resolves the actual package
-path dynamically because Unity Hub 3.20+ uses `/usr/lib/unityhub`, while the
-action still defaults to the obsolete `/opt/unityhub` location.
+All runners install the editor through the official Unity CLI via `unity-setup`
+v3. The `activate-unity-license` v3 action uses the existing Unity credentials
+for Personal activation. The Quest Android module installs its required child
+modules, including SDK Platform 34 for Unity 6000.5.2f1.
 
 ## One-time setup
 
