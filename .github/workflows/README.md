@@ -12,6 +12,17 @@ release. The job uploads the minimal `HiBoP.Quest.apk` and its content/build
 reports. `Tools/Test-QuestApk.ps1` checks the actual packaged ELF headers and
 rejects Desktop native libraries. Quest Library and Gradle caches have their
 own keys; Desktop restores only the matching platform Library cache.
+Quest restores its caches without saving signed build intermediates.
+
+Set these repository Actions secrets for the manual Quest job.
+
+- `HIBOP_QUEST_KEYSTORE_BASE64` holds the Base64 contents of the existing Quest keystore.
+- `HIBOP_QUEST_KEYSTORE_PASSWORD` holds the password for that keystore.
+- `HIBOP_QUEST_KEY_ALIAS_PASSWORD` holds the password for the key alias in the Quest Build Profile.
+
+The runner decodes the keystore into a temporary directory for the build.
+Unity uses the alias from the Quest Build Profile and signs the APK during packaging.
+The signed job prints a summary on failure and removes the temporary Unity log.
 
 Local builds from the same checkout (Unity closed) use the existing entry point:
 

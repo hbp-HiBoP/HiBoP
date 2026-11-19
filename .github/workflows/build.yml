@@ -134,7 +134,10 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: Quest-network-tests-${{ matrix.platform }}
-          path: .test-results/quest-network.*
+          path: |
+            .test-results/quest-network.xml
+            .test-results/quest-network.log
+          include-hidden-files: true
           if-no-files-found: ignore
 
       - name: Build ${{ matrix.name }}
@@ -314,13 +317,13 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Cache Quest Library
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: Library
           key: Library-Quest-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: Library-Quest-Android-
       - name: Cache Quest Gradle
-        uses: actions/cache@v5
+        uses: actions/cache/restore@v5
         with:
           path: .gradle/quest
           key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
@@ -338,16 +341,35 @@ jobs:
           username: ${{ secrets.UNITY_USERNAME }}
           password: ${{ secrets.UNITY_PASSWORD }}
       - name: Build Quest
+        env:
+          HIBOP_QUEST_KEYSTORE_BASE64: ${{ secrets.HIBOP_QUEST_KEYSTORE_BASE64 }}
+          HIBOP_QUEST_KEYSTORE_PASSWORD: ${{ secrets.HIBOP_QUEST_KEYSTORE_PASSWORD }}
+          HIBOP_QUEST_KEY_ALIAS_PASSWORD: ${{ secrets.HIBOP_QUEST_KEY_ALIAS_PASSWORD }}
         run: |
           set -euo pipefail
+          : "${HIBOP_QUEST_KEYSTORE_BASE64:?Missing GitHub Actions secret HIBOP_QUEST_KEYSTORE_BASE64}"
+          : "${HIBOP_QUEST_KEYSTORE_PASSWORD:?Missing GitHub Actions secret HIBOP_QUEST_KEYSTORE_PASSWORD}"
+          : "${HIBOP_QUEST_KEY_ALIAS_PASSWORD:?Missing GitHub Actions secret HIBOP_QUEST_KEY_ALIAS_PASSWORD}"
+          signing_dir="$(mktemp -d "$(cygpath -u "$RUNNER_TEMP")/hibop-quest-signing.XXXXXX")"
+          trap 'rm -f -- "$signing_dir/quest.keystore" "$signing_dir/unity.log" "$signing_dir/unity-console.log"; rmdir -- "$signing_dir"' EXIT
+          printf '%s' "$HIBOP_QUEST_KEYSTORE_BASE64" | base64 --decode > "$signing_dir/quest.keystore"
+          unset HIBOP_QUEST_KEYSTORE_BASE64
+          export HIBOP_QUEST_KEYSTORE_PATH="$(cygpath -w "$signing_dir/quest.keystore")"
           "$UNITY_EDITOR_PATH" \
             -batchmode -quit -nographics \
             -projectPath "$GITHUB_WORKSPACE" \
             -activeBuildProfile Assets/Settings/BuildProfiles/Quest.asset \
             -executeMethod HBP.Dev.HBPBuilder.BuildFromCommandLine \
+            -questCiSigning \
             -buildOutput "$GITHUB_WORKSPACE/build" \
             -buildCommit "$GITHUB_SHA" \
-            -logFile "$GITHUB_WORKSPACE/quest-build.log"
+            -logFile "$(cygpath -w "$signing_dir/unity.log")" > "$signing_dir/unity-console.log" 2>&1 || {
+              build_status=$?
+              grep -ohsE 'error CS[0-9]{4}|BuildFailedException|GradleInvokationException' \
+                "$signing_dir/unity.log" "$signing_dir/unity-console.log" | sort -u || true
+              echo "::error::Unity Quest build failed with exit code $build_status."
+              exit "$build_status"
+            }
       - name: Validate APK contents and packaging overhead
         shell: pwsh
         run: ./Tools/Test-QuestApk.ps1 -Apk build/HiBoP.Quest.apk -ReportPath build/quest-apk-content.json
@@ -360,9 +382,3 @@ jobs:
             build/Quest.build-report.json
             build/quest-apk-content.json
           if-no-files-found: error
-      - name: Upload Unity log
-        if: always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: HiBoP-Quest-log
-          path: quest-build.log

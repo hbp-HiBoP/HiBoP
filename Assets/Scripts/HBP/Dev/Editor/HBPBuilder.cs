@@ -268,6 +268,8 @@ namespace HBP.Dev
             BuildProfile profile = HBPBuildProfiles.Load(true);
             if (BuildProfile.GetActiveBuildProfile() != profile)
                 throw new BuildFailedException("Quest must be the active Build Profile before building.");
+            if (HasCommandLineArgument("-questCiSigning"))
+                ConfigureQuestCiSigning();
             ValidateQuestSigning();
             string version = HBPBuildProfiles.ApplyProductVersion();
             WriteBuildInfo(version);
@@ -294,6 +296,22 @@ namespace HBP.Dev
                 EditorUserBuildSettings.buildAppBundle = bundle;
                 EditorUserBuildSettings.exportAsGoogleAndroidProject = export;
             }
+        }
+
+        private static void ConfigureQuestCiSigning()
+        {
+            string keystorePath = Environment.GetEnvironmentVariable("HIBOP_QUEST_KEYSTORE_PATH");
+            string keystorePassword = Environment.GetEnvironmentVariable("HIBOP_QUEST_KEYSTORE_PASSWORD");
+            string aliasPassword = Environment.GetEnvironmentVariable("HIBOP_QUEST_KEY_ALIAS_PASSWORD");
+            if (string.IsNullOrWhiteSpace(keystorePath) || string.IsNullOrEmpty(keystorePassword) || string.IsNullOrEmpty(aliasPassword))
+                throw new BuildFailedException("Quest CI signing requires the keystore path, keystore password and key alias password.");
+
+            string keyAlias = PlayerSettings.Android.keyaliasName;
+            PlayerSettings.Android.useCustomKeystore = true;
+            PlayerSettings.Android.keystoreName = keystorePath;
+            PlayerSettings.Android.keystorePass = keystorePassword;
+            PlayerSettings.Android.keyaliasName = keyAlias;
+            PlayerSettings.Android.keyaliasPass = aliasPassword;
         }
 
         public static void ValidateQuestSigning()

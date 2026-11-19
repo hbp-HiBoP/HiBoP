@@ -118,6 +118,13 @@ When changing computer, transfer the same private key securely and configure
 credentials locally. A historical signing JSON does not override Unity's identity.
 Never version or log keys/passwords; inspect readiness without exposing values.
 
+The manual Quest CI job uses `HIBOP_QUEST_KEYSTORE_BASE64`,
+`HIBOP_QUEST_KEYSTORE_PASSWORD` and `HIBOP_QUEST_KEY_ALIAS_PASSWORD` as
+repository Actions secrets. The `-questCiSigning` build argument loads the
+temporary keystore and passwords into the active Quest profile for the CI process.
+The profile owns the alias. Quest caches are restore-only because generated
+Gradle files can contain signing credentials.
+
 On `INSTALL_FAILED_UPDATE_INCOMPATIBLE`, recover the original key or obtain
 explicit approval for a one-time reinstall after backing up the installed APK and
 accessible app data/evidence. `adb install -r` cannot solve differing keys;
