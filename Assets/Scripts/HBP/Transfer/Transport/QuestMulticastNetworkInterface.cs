@@ -25,12 +25,18 @@ namespace HBP.Transfer.Transport
 
         private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private static readonly bool IsMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
-        public static bool NeedsAdapter => IsWindows || IsMac;
+#if UNITY_EDITOR_LINUX || (UNITY_STANDALONE_LINUX && !UNITY_EDITOR)
+        private static readonly bool IsLinuxDesktop = true;
+#else
+        private static readonly bool IsLinuxDesktop = false;
+#endif
+        public static bool NeedsAdapter => IsWindows || IsMac || IsLinuxDesktop;
 
         public static int GetIndex(NetworkInterface network, bool ipv6)
         {
             if (!network.Supports(ipv6 ? NetworkInterfaceComponent.IPv6 : NetworkInterfaceComponent.IPv4)) return 0;
             if (IsMac) return (int)if_nametoindex(network.Name);
+            if (IsLinuxDesktop) return (int)LinuxInterfaceIndex(network.Name);
             if (ipv6) return network.GetIPProperties().GetIPv6Properties()?.Index ?? 0;
             if (IsWindows) return GetWindowsIPv4Index(network);
             return network.GetIPProperties().GetIPv4Properties()?.Index ?? 0;
@@ -44,6 +50,9 @@ namespace HBP.Transfer.Transport
 
         [DllImport("/usr/lib/libSystem.B.dylib", ExactSpelling = true)]
         private static extern uint if_nametoindex(string name);
+
+        [DllImport("libc.so.6", EntryPoint = "if_nametoindex", ExactSpelling = true)]
+        private static extern uint LinuxInterfaceIndex(string name);
 
         [DllImport("iphlpapi.dll", ExactSpelling = true)]
         private static extern uint ConvertInterfaceGuidToLuid(ref Guid interfaceGuid, out ulong interfaceLuid);
@@ -61,7 +70,7 @@ namespace HBP.Transfer.Transport
             {
                 properties = network.GetIPProperties();
                 ipv4 = new MulticastIPv4Properties(GetIndex(network, false));
-                if (IsMac) ipv6 = new MulticastIPv6Properties(GetIndex(network, true));
+                if (IsMac || IsLinuxDesktop) ipv6 = new MulticastIPv6Properties(GetIndex(network, true));
             }
 
             public override IPv4InterfaceProperties GetIPv4Properties() => ipv4;

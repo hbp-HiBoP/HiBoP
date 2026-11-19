@@ -1,20 +1,18 @@
 # GitHub Actions builds
 
-`build.yml` builds HiBoP for Linux x64, Windows x64 and macOS ARM64 when a
-GitHub Release is published, and on demand. Each target is built on its native
-runner: this guarantees that the macOS player is ARM64 and avoids a dependency
-on cross-platform IL2CPP toolchains.
+`build.yml` builds HiBoP for Linux x64, Windows x64, macOS ARM64 and Quest
+when a GitHub Release is published and on demand. Each Desktop target builds on
+its native runner. Quest builds on Windows with Unity's Android toolchain.
 
-`platform: quest` runs a separate Windows job with the Android SDK/NDK/JDK,
-the versioned `Quest` Build Profile, and IL2CPP/ARM64. It is manual only: neither
-`all` nor a published release selects it, and it never attaches an APK to a
-release. The job uploads the minimal `HiBoP.Quest.apk` and its content/build
-reports. `Tools/Test-QuestApk.ps1` checks the actual packaged ELF headers and
-rejects Desktop native libraries. Quest Library and Gradle caches have their
+`platform: all` selects all four targets in one run. `platform: quest` selects
+only the Quest job. It uses the versioned `Quest` Build Profile with IL2CPP/ARM64
+and uploads `HiBoP.<application-version>.quest.apk` with its content and build
+reports under `HiBoP-Quest`. `Tools/Test-QuestApk.ps1` checks the packaged ELF
+headers and rejects Desktop native libraries. Quest Library and Gradle caches have their
 own keys; Desktop restores only the matching platform Library cache.
 Quest restores its caches without saving signed build intermediates.
 
-Set these repository Actions secrets for the manual Quest job.
+Set these repository Actions secrets for Quest builds.
 
 - `HIBOP_QUEST_KEYSTORE_BASE64` holds the Base64 contents of the existing Quest keystore.
 - `HIBOP_QUEST_KEYSTORE_PASSWORD` holds the password for that keystore.
@@ -155,15 +153,14 @@ is preferable so that licence activation does not affect a local editor.
 
 - **Manual test:** open **Actions > Build HiBoP > Run workflow**, select the
   `develop` branch and a platform (`all` by default), then run it. The selected
-  archives are available as artifacts on the workflow run; no release is
-  created or modified.
-- **Release:** publish a GitHub Release. The same archives are attached to that
-  release after all three builds finish.
+  packages are available as workflow artifacts.
+- **Release:** publish a GitHub Release from the desired tag. The workflow
+  attaches all four packages after every build passes.
 
-Each archive is named after the generated build directory:
-`HiBoP.<application-version>.<platform>.zip`. With the current application
-version, the expected names are `HiBoP.5.0.9.win64.zip`,
-`HiBoP.5.0.9.linux64.zip` and `HiBoP.5.0.9.macos64.zip`.
+The Desktop ZIPs and signed Quest APK use the version from `codemeta.json`.
+For 6.2.0 the four release files are `HiBoP.6.2.0.win64.zip`,
+`HiBoP.6.2.0.linux64.zip`, `HiBoP.6.2.0.macos64.zip` and
+`HiBoP.6.2.0.quest.apk`.
 
 The first build for each target takes longer because Unity installs the editor
 and imports the project. The `Library` cache is reused afterwards, but is

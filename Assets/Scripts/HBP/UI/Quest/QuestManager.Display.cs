@@ -377,7 +377,7 @@ namespace HBP.Quest.Desktop
                     {
                         return;
                     }
-                    catch (Exception error) when (IsQuestConnectionInterruption(error) || error is System.IO.IOException or System.Security.Authentication.AuthenticationException)
+                    catch (Exception error) when (IsQuestConnectionInterruption(error) || error is System.IO.IOException or System.IO.InvalidDataException or System.Security.Authentication.AuthenticationException)
                     {
                         // The progress monitor owns reconnects and error presentation.
                     }

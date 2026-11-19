@@ -1,4 +1,5 @@
 name: Build HiBoP
+run-name: Build HiBoP (${{ inputs.platform || 'all' }}) on ${{ github.ref_name }}
 
 on:
   release:
@@ -18,10 +19,10 @@ on:
           - quest
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: build-${{ inputs.platform == 'quest' && 'quest-' || '' }}${{ github.ref }}
+  group: build-${{ github.event_name }}-${{ github.ref }}-${{ inputs.platform || 'all' }}
   cancel-in-progress: true
 
 defaults:
@@ -31,7 +32,6 @@ defaults:
 jobs:
   prepare_matrix:
     name: Select build platforms
-    if: github.event_name != 'workflow_dispatch' || inputs.platform != 'quest'
     runs-on: ubuntu-24.04
     outputs:
       matrix: ${{ steps.select.outputs.matrix }}
@@ -40,25 +40,24 @@ jobs:
         env:
           SELECTED_PLATFORM: ${{ inputs.platform || 'all' }}
         run: |
+          set -euo pipefail
+          matrix='{"include":[
+            {"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},
+            {"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},
+            {"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"},
+            {"name":"Quest","platform":"quest","os":"windows-latest","module":"Android","modules":"","artifact":"HiBoP-Quest"}
+          ]}'
           case "$SELECTED_PLATFORM" in
-            all)
-              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"},{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"},{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
-              ;;
-            linux)
-              matrix='{"include":[{"name":"Linux","platform":"linux","os":"ubuntu-24.04","module":"StandaloneLinux64","modules":"","cli_target":"Linux64","artifact":"HiBoP-Linux"}]}'
-              ;;
-            windows)
-              matrix='{"include":[{"name":"Windows","platform":"windows","os":"windows-latest","module":"StandaloneWindows64","modules":"","cli_target":"Win64","artifact":"HiBoP-Windows"}]}'
-              ;;
-            macos)
-              matrix='{"include":[{"name":"macOS (ARM64)","platform":"macos","os":"macos-latest","module":"StandaloneOSX","modules":"mac-il2cpp","cli_target":"OSXUniversal","artifact":"HiBoP-macOS-arm64"}]}'
+            all) ;;
+            linux|windows|macos|quest)
+              matrix=$(jq --arg platform "$SELECTED_PLATFORM" '.include |= map(select(.platform == $platform))' <<< "$matrix")
               ;;
             *)
               echo "Unsupported platform: $SELECTED_PLATFORM" >&2
               exit 1
               ;;
           esac
-          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          printf 'matrix=%s\n' "$(jq -c . <<< "$matrix")" >> "$GITHUB_OUTPUT"
 
   build:
     name: Build ${{ matrix.name }}
@@ -95,12 +94,29 @@ jobs:
           done
 
       - name: Cache Library
+        if: matrix.platform != 'quest'
         uses: actions/cache@v5
         with:
           path: Library
           key: Library-${{ matrix.module }}-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
             Library-${{ matrix.module }}-
+
+      - name: Restore Quest Library cache
+        if: matrix.platform == 'quest'
+        uses: actions/cache/restore@v5
+        with:
+          path: Library
+          key: Library-Quest-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          restore-keys: Library-Quest-Android-
+
+      - name: Restore Quest Gradle cache
+        if: matrix.platform == 'quest'
+        uses: actions/cache/restore@v5
+        with:
+          path: .gradle/quest
+          key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
+          restore-keys: Gradle-Quest-6000.5.2f1-
 
       - name: Install Unity
         uses: RageAgainstThePixel/unity-setup@8acd5e29b6961f6338f8073304e9551353709521 # v3.0.4
@@ -117,6 +133,7 @@ jobs:
           password: ${{ secrets.UNITY_PASSWORD }}
 
       - name: Test Quest network primitives on host OS
+        if: matrix.platform != 'quest'
         run: |
           set -euo pipefail
           mkdir -p .test-results
@@ -130,7 +147,7 @@ jobs:
             -logFile "$GITHUB_WORKSPACE/.test-results/quest-network.log"
 
       - name: Upload Quest network test results
-        if: always()
+        if: always() && matrix.platform != 'quest'
         uses: actions/upload-artifact@v7
         with:
           name: Quest-network-tests-${{ matrix.platform }}
@@ -140,7 +157,8 @@ jobs:
           include-hidden-files: true
           if-no-files-found: ignore
 
-      - name: Build ${{ matrix.name }}
+      - name: Build Desktop player
+        if: matrix.platform != 'quest'
         run: |
           set -euo pipefail
           "$UNITY_EDITOR_PATH" \
@@ -271,10 +289,12 @@ jobs:
           echo "Validated and signed application: $app"
 
       - name: Validate absence of bundled ADB
+        if: matrix.platform != 'quest'
         shell: pwsh
         run: ./Tools/Test-NoAdb.ps1 -Path build
 
       - name: Package build
+        if: matrix.platform != 'quest'
         id: package
         run: |
           set -euo pipefail
@@ -290,58 +310,22 @@ jobs:
           ls -lh "$archive"
 
       - name: Validate archive contains no ADB
+        if: matrix.platform != 'quest'
         shell: pwsh
         run: ./Tools/Test-NoAdb.ps1 -Path '${{ steps.package.outputs.archive }}'
 
       - name: Upload build artifact
+        if: matrix.platform != 'quest'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
           path: ${{ steps.package.outputs.archive }}
           if-no-files-found: error
 
-      - name: Attach to release
-        if: github.event_name == 'release'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "${{ steps.package.outputs.archive }}" --clobber
-
-  quest:
-    name: Build Quest bootstrap (manual only)
-    if: github.event_name == 'workflow_dispatch' && inputs.platform == 'quest'
-    runs-on: windows-latest
-    permissions:
-      contents: read
-    env:
-      GRADLE_USER_HOME: ${{ github.workspace }}/.gradle/quest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Cache Quest Library
-        uses: actions/cache/restore@v5
-        with:
-          path: Library
-          key: Library-Quest-Android-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
-          restore-keys: Library-Quest-Android-
-      - name: Cache Quest Gradle
-        uses: actions/cache/restore@v5
-        with:
-          path: .gradle/quest
-          key: Gradle-Quest-6000.5.2f1-${{ hashFiles('Packages/**', 'Assets/Plugins/Android/**') }}
-          restore-keys: Gradle-Quest-6000.5.2f1-
-      - name: Install Unity with Android toolchain
-        uses: RageAgainstThePixel/unity-setup@8acd5e29b6961f6338f8073304e9551353709521 # v3.0.4
-        with:
-          unity-version: 6000.5.2f1
-          # The Android target installs its child modules, including OpenJDK and SDK Platform 34.
-          build-targets: Android
-      - name: Activate Unity licence
-        uses: RageAgainstThePixel/activate-unity-license@f9a4e114ed89feaddf8a8dc4b958f3e538fb9be6 # v3.0.2
-        with:
-          license: Personal
-          username: ${{ secrets.UNITY_USERNAME }}
-          password: ${{ secrets.UNITY_PASSWORD }}
       - name: Build Quest
+        if: matrix.platform == 'quest'
         env:
+          GRADLE_USER_HOME: ${{ github.workspace }}/.gradle/quest
           HIBOP_QUEST_KEYSTORE_BASE64: ${{ secrets.HIBOP_QUEST_KEYSTORE_BASE64 }}
           HIBOP_QUEST_KEYSTORE_PASSWORD: ${{ secrets.HIBOP_QUEST_KEYSTORE_PASSWORD }}
           HIBOP_QUEST_KEY_ALIAS_PASSWORD: ${{ secrets.HIBOP_QUEST_KEY_ALIAS_PASSWORD }}
@@ -370,15 +354,63 @@ jobs:
               echo "::error::Unity Quest build failed with exit code $build_status."
               exit "$build_status"
             }
-      - name: Validate APK contents and packaging overhead
+      - name: Package and validate Quest APK
+        if: matrix.platform == 'quest'
+        id: quest_package
         shell: pwsh
-        run: ./Tools/Test-QuestApk.ps1 -Apk build/HiBoP.Quest.apk -ReportPath build/quest-apk-content.json
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $version = (Get-Content -Raw -LiteralPath codemeta.json | ConvertFrom-Json).version
+          if ([string]::IsNullOrWhiteSpace($version)) { throw 'Missing version in codemeta.json.' }
+          $apk = "build/HiBoP.$version.quest.apk"
+          Move-Item -LiteralPath build/HiBoP.Quest.apk -Destination $apk
+          ./Tools/Test-QuestApk.ps1 -Apk $apk -ReportPath build/quest-apk-content.json
+          "apk=$apk" >> $env:GITHUB_OUTPUT
+
       - name: Upload Quest build and reports
+        if: matrix.platform == 'quest'
         uses: actions/upload-artifact@v7
         with:
-          name: HiBoP-Quest-bootstrap
+          name: ${{ matrix.artifact }}
           path: |
-            build/HiBoP.Quest.apk
+            ${{ steps.quest_package.outputs.apk }}
             build/Quest.build-report.json
             build/quest-apk-content.json
           if-no-files-found: error
+
+  attach_release:
+    name: Attach four builds to release
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: HiBoP-*
+          path: release-assets
+          merge-multiple: true
+      - name: Attach release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          apk=(release-assets/HiBoP.*.quest.apk)
+          if [[ ${#apk[@]} -ne 1 ]]; then
+            echo 'Expected exactly one versioned Quest APK.' >&2
+            exit 1
+          fi
+          version="${apk[0]#release-assets/HiBoP.}"
+          version="${version%.quest.apk}"
+          files=("release-assets/HiBoP.$version.win64.zip" "release-assets/HiBoP.$version.linux64.zip"
+            "release-assets/HiBoP.$version.macos64.zip" "${apk[0]}")
+          for file in "${files[@]}"; do
+            if [[ ! -s "$file" ]]; then
+              echo "Missing release file: $file" >&2
+              exit 1
+            fi
+          done
+          gh release upload --repo "$GITHUB_REPOSITORY" --clobber -- "$RELEASE_TAG" "${files[@]}"

@@ -30,7 +30,7 @@ try {
             throw "Unexpected native binary in Quest APK: $($entry.FullName)"
         }
         if ($entry.Name -notin @('libhbp_core.so', 'libhbp_math.so') -and $entry.Name -match '(?i)hbp_core|hbp_math|EEGFormat|hbp_export|opencv|boost') {
-            throw "Desktop scientific runtime is not part of Quest bootstrap: $($entry.FullName)"
+            throw "Desktop scientific runtime was packaged in the Quest APK: $($entry.FullName)"
         }
         $stream = $entry.Open()
         try {

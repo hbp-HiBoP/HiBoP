@@ -222,21 +222,52 @@ namespace HBP.Tests.Transfer
             if (addresses.Length == 0) Assert.Ignore("No multicast IPv4 interface on this host.");
             using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             var errors = new System.Collections.Concurrent.ConcurrentQueue<string>();
+            var announcement = Announcement("usb", TimeSpan.FromSeconds(30));
+            announcement.AdditionalRecords.Add(new ARecord { Name = "test.local", Address = IPAddress.Parse("192.0.2.1"), TTL = TimeSpan.FromSeconds(30) });
+            byte[] bytes = announcement.ToByteArray();
+            var multicast = new IPEndPoint(IPAddress.Parse("224.0.0.251"), 5353);
             var finding = Task.Run(() => QuestDiscovery.FindAsync(stop.Token, error: errors.Enqueue), stop.Token);
-            byte[] bytes = Announcement("usb", TimeSpan.FromSeconds(30)).ToByteArray();
-            for (int attempt = 0; attempt < 4; attempt++)
+            bool sent = false;
+            try
             {
-                await Task.Delay(300, stop.Token);
-                foreach (var address in addresses)
+                for (int attempt = 0; attempt < 4; attempt++)
                 {
-                    using var sender = new UdpClient(new IPEndPoint(address, 0));
-                    sender.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, address.GetAddressBytes());
-                    await sender.SendAsync(bytes, bytes.Length, new IPEndPoint(IPAddress.Parse("224.0.0.251"), 5353));
+                    await Task.Delay(300, stop.Token);
+                    foreach (var address in addresses)
+                    {
+                        try
+                        {
+                            using var sender = new UdpClient(new IPEndPoint(address, 0)) { MulticastLoopback = true };
+                            sender.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, address.GetAddressBytes());
+                            await sender.SendAsync(bytes, bytes.Length, multicast);
+                            sent = true;
+                        }
+                        catch (SocketException exception) when (exception.SocketErrorCode is SocketError.HostUnreachable or SocketError.NetworkUnreachable or SocketError.AddressNotAvailable)
+                        {
+                            // An interface can advertise multicast support without a usable route.
+                        }
+                    }
+                }
+
+                var found = await finding;
+                if (!sent)
+                {
+                    Assert.That(errors, Is.Empty, string.Join("; ", errors));
+                    Assert.Ignore("No usable IPv4 multicast route on this host.");
+                }
+                Assert.That(found.Any(device => device.Name == "Quest" && device.Endpoint.Path == QuestNetworkPath.Usb), Is.True, "Closing the discovery window must retain its final result. " + string.Join("; ", errors));
+            }
+            finally
+            {
+                stop.Cancel();
+                try
+                {
+                    await finding;
+                }
+                catch (OperationCanceledException) when (stop.IsCancellationRequested)
+                {
                 }
             }
-
-            var found = await finding;
-            Assert.That(found.Any(device => device.Name == "Quest" && device.Endpoint.Path == QuestNetworkPath.Usb), Is.True, "Closing the discovery window must retain its final result. " + string.Join("; ", errors));
         }
 
         [Test]

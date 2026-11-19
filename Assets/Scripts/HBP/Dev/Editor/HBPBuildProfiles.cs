@@ -20,7 +20,7 @@ namespace HBP.Dev
         public const string QuestPath = "Assets/Settings/BuildProfiles/Quest.asset";
         public const string DesktopScene = "Assets/_Scenes/HiBoP.unity";
 
-        public const string QuestScene = "Assets/_Scenes/QuestBootstrap.unity";
+        public const string QuestScene = "Assets/_Scenes/HiBoP_Quest.unity";
         public const string QuestUIDemoScene = "Assets/_Scenes/QuestUIDemo.unity";
         public const string QuestUIDemoIdentifier = "fr.crnl.hibop.quest.uidemo";
         public const string QuestSelectionLabScene = "Assets/_Scenes/QuestSelectionLab.unity";

@@ -73,9 +73,12 @@ Preserve manual `workflow_dispatch` and explicitly published release triggers;
 do not add push/pull_request triggers without an explicit request. Desktop builds
 target Windows x64, Linux x64 and macOS ARM64 on their native runners. CI uses
 IL2CPP Release; the local build window defaults Windows/Linux to IL2CPP and macOS
-to Mono, with a per-target IL2CPP toggle. `platform: quest` is a separate manual
-Android IL2CPP/ARM64 job: neither `all` nor release publishing selects it, and it
-does not attach an APK to a release. Manual builds do not publish releases.
+to Mono, with a per-target IL2CPP toggle. `all` and publication of a GitHub
+Release both select Windows, Linux, macOS and Quest in the same matrix.
+`platform: quest` selects only the Quest Android IL2CPP/ARM64 build.
+Once all four builds pass on a release run, the attachment job uploads three
+Desktop ZIPs and the signed, versioned `HiBoP.<version>.quest.apk`. Manual builds
+keep their packages as workflow artifacts.
 
 `HBP.Dev.HBPBuilder.BuildFromCommandLine` is the shared CLI entry point. Select
 the existing build profile, output and log explicitly; use `-developmentBuild`
@@ -118,7 +121,7 @@ When changing computer, transfer the same private key securely and configure
 credentials locally. A historical signing JSON does not override Unity's identity.
 Never version or log keys/passwords; inspect readiness without exposing values.
 
-The manual Quest CI job uses `HIBOP_QUEST_KEYSTORE_BASE64`,
+The Quest CI build uses `HIBOP_QUEST_KEYSTORE_BASE64`,
 `HIBOP_QUEST_KEYSTORE_PASSWORD` and `HIBOP_QUEST_KEY_ALIAS_PASSWORD` as
 repository Actions secrets. The `-questCiSigning` build argument loads the
 temporary keystore and passwords into the active Quest profile for the CI process.

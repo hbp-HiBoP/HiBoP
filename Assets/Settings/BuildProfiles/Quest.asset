@@ -23,7 +23,7 @@ MonoBehaviour:
   m_OverrideGlobalSceneList: 1
   m_Scenes:
   - m_enabled: 1
-    m_path: Assets/_Scenes/QuestBootstrap.unity
+    m_path: Assets/_Scenes/HiBoP_Quest.unity
     m_guid: 9a26f476c301fca42bf8aa95828edfd2
   m_HasScriptingDefines: 1
   m_ScriptingDefines:
