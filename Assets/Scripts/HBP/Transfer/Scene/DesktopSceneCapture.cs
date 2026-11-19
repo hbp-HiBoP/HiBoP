@@ -106,9 +106,15 @@ namespace HBP.Transfer.Scene
             string folder = Path.Combine(Application.temporaryCachePath, "SceneCapture", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(folder);
             string output = Path.Combine(folder, "visualization.hbscene");
+            bool detach = true;
+#if UNITY_EDITOR_OSX
+            // For a serial publication, write the compact JSON directly. A large token
+            // tree can stall even the background network work during a Mono collection.
+            detach = streaming || maximumOwnedSnapshotBytes != long.MaxValue;
+#endif
             var archive = new SceneArchive(Path.Combine(folder, "resources"), globals: globals, deferResourceWrites: true, cancellationToken: token)
             {
-                DetachCapture = true, MaximumOwnedCaptureBytes = maximumOwnedSnapshotBytes
+                DetachCapture = detach, MaximumOwnedCaptureBytes = maximumOwnedSnapshotBytes
             };
 
 
@@ -136,15 +142,36 @@ namespace HBP.Transfer.Scene
                     using (PairingTiming.Measure("source.capture-model-and-resources", transferId))
                         payload = Capture(scene, archive, transferId, sessionId, revision, standardFiles);
                     // No await across the live graph: metadata and numeric bytes are now owned.
-                    DetachedSceneMetadata metadata;
-                    using (PairingTiming.Measure("source.capture-json-tokens", transferId))
-                        metadata = archive.CaptureDetachedMetadata(payload);
-                    PairingTiming.Count("source.numeric-buffer-bytes", metadata.OwnedNumericBytes, transferId);
-                    PairingTiming.Count("source.estimated-owned-snapshot-bytes", metadata.EstimatedRetainedBytes, transferId);
-                    PairingTiming.Count("source.numeric-buffer-count", metadata.NumericBufferCount, transferId);
+                    DetachedSceneMetadata metadata = null;
+                    byte[] encoded = null;
+                    long numericBytes = 0;
+                    int numericCount = 0;
+                    if (detach)
+                    {
+                        using (PairingTiming.Measure("source.capture-json-tokens", transferId))
+                            metadata = archive.CaptureDetachedMetadata(payload);
+                        numericBytes = metadata.OwnedNumericBytes;
+                        numericCount = metadata.NumericBufferCount;
+                    }
+                    else
+                    {
+                        using (PairingTiming.Measure("source.capture-json", transferId))
+                            encoded = archive.CaptureMetadata(payload, bytes =>
+                            {
+                                if (bytes > SceneArchive.MaximumExpandedBytes - numericBytes)
+                                    throw new InvalidDataException("Snapshot exceeds its numeric byte budget.");
+                                numericBytes += bytes;
+                                numericCount++;
+                            });
+                    }
+
+                    long retained = metadata?.EstimatedRetainedBytes ?? (encoded.LongLength + archive.CapturedResourceBytes);
+                    PairingTiming.Count("source.numeric-buffer-bytes", numericBytes, transferId);
+                    PairingTiming.Count("source.estimated-owned-snapshot-bytes", retained, transferId);
+                    PairingTiming.Count("source.numeric-buffer-count", numericCount, transferId);
                     PairingTiming.Count("source.column-count", payload.Columns.Count, transferId);
                     PairingTiming.Count("source.mesh-count", payload.Meshes.Count, transferId);
-                    return (Metadata: metadata, Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
+                    return (Metadata: metadata, Encoded: encoded, RetainedBytes: retained, Summary: $"{payload.Visualization.Name} | {payload.Columns.Count} columns");
                 }, token, stage => PairingTiming.Measure(stage, transferId));
                 captureEnd = SyncTelemetry.CapturePoint();
                 token.ThrowIfCancellationRequested();
@@ -162,7 +189,7 @@ namespace HBP.Transfer.Scene
                         streamingDelivery.SetPreparedManifest(PreparedSceneManifest.FromMetadata(snapshot.Metadata.Token));
                         return resources;
                     }, archive.Dispose, token, telemetryIdentity);
-                    streamingDelivery.EstimatedOwnedSnapshotBytes = snapshot.Metadata.EstimatedRetainedBytes;
+                    streamingDelivery.EstimatedOwnedSnapshotBytes = snapshot.RetainedBytes;
                     streamingDelivery.SourceScene = scene;
                     streamingDelivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                     return streamingDelivery;
@@ -174,8 +201,7 @@ namespace HBP.Transfer.Scene
                     try
                     {
                         using var preparation = PairingTiming.Measure("source.encode-and-write-archive", transferId);
-                        byte[] metadata;
-                        metadata = snapshot.Metadata.Encode(archive);
+                        byte[] metadata = snapshot.Encoded ?? snapshot.Metadata.Encode(archive);
                         archive.WriteCaptured(metadata, output);
                         token.ThrowIfCancellationRequested();
                         Report("Checking prepared scene");
@@ -193,7 +219,7 @@ namespace HBP.Transfer.Scene
                         archive.Dispose();
                     }
                 });
-                delivery.EstimatedOwnedSnapshotBytes = snapshot.Metadata.EstimatedRetainedBytes;
+                delivery.EstimatedOwnedSnapshotBytes = snapshot.RetainedBytes;
                 delivery.SourceScene = scene;
                 delivery.SetCaptureTelemetry(captureStart, captureEnd, SyncTelemetry.CapturePoint());
                 return delivery;

@@ -115,10 +115,8 @@ namespace HBP.UI.Main
                         {
                             try
                             {
-                                using var begin = CancellationTokenSource.CreateLinkedTokenSource(stop);
-                                begin.CancelAfter(TimeSpan.FromSeconds(10));
-                                await reservation.UpdateRemoteAsync(0, false, begin.Token);
-                                monitor = MonitorRemoteAsync(monitorStop.Token);
+                                await reservation.UpdateRemoteAsync(0, false, stop, transportTimeout: TimeSpan.FromSeconds(10));
+                                monitor = Task.WhenAll(MonitorRemoteAsync(monitorStop.Token), reservation.KeepRemoteAliveAsync(monitorStop.Token));
                             }
                             catch (Exception error)
                             {
@@ -184,11 +182,10 @@ namespace HBP.UI.Main
 
                             if (reservation.CanFinish)
                             {
-                                using var end = new CancellationTokenSource(TimeSpan.FromSeconds(15));
                                 try
                                 {
                                     bool success = !cancelled && localError == null && failures.Count == 0 && remoteError == null;
-                                    await reservation.UpdateRemoteAsync(success ? 1 : percentage, true, end.Token, failures.Keys.Select(scene => scene.Visualization.ID).ToArray());
+                                    await reservation.UpdateRemoteAsync(success ? 1 : percentage, true, CancellationToken.None, failures.Keys.Select(scene => scene.Visualization.ID).ToArray(), TimeSpan.FromSeconds(15));
                                 }
                                 catch (Exception error)
                                 {
@@ -375,9 +372,7 @@ namespace HBP.UI.Main
                 while (true)
                 {
                     reservation.Validate();
-                    using var timeout = CancellationTokenSource.CreateLinkedTokenSource(token);
-                    timeout.CancelAfter(TimeSpan.FromSeconds(10));
-                    await reservation.UpdateRemoteAsync(percentage, false, timeout.Token);
+                    await reservation.UpdateRemoteAsync(percentage, false, token, transportTimeout: TimeSpan.FromSeconds(10));
                     int index = Array.FindIndex(requested, scene => scene.ID == reservation.ReceivingVisualization);
                     if (index >= 0)
                     {

@@ -4,8 +4,10 @@ using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Threading;
+using System.Threading.Tasks;
 using HBP.Core.Data;
 using HBP.Transfer.Scene;
+using HBP.Transfer.Transport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
@@ -33,6 +35,95 @@ namespace HBP.Tests.Transfer
         {
             using var sha = SHA256.Create();
             return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() + ".bin";
+        }
+
+        [Test]
+        public void DensePackIndexHasItsOwnBoundedMetadataBudget()
+        {
+            const int packedIndex = 20 * 1024 * 1024;
+            const int globalReferences = 1024 * 1024;
+            int sceneMetadata = SceneArchive.MaximumMetadataBytes - globalReferences;
+            Assert.DoesNotThrow(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata, globalReferences, packedIndex));
+            Assert.Throws<InvalidDataException>(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata + 1, globalReferences, packedIndex));
+            Assert.Throws<InvalidDataException>(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata, globalReferences, BufferPack.MaximumIndexBytes + 1));
+        }
+
+        [Test]
+        public void DetachedCaptureKeepsAllReferencesInADenseSceneWithRepeatedBuffers()
+        {
+            string samplesPath = Path.Combine(root, "source");
+            using var archive = new SceneArchive(samplesPath);
+            using var writer = new DetachedSceneMetadata();
+            writer.WriteStartObject();
+            writer.WritePropertyName("Meshes");
+            writer.WriteStartArray();
+            writer.WriteEndArray();
+            writer.WritePropertyName("Samples");
+            writer.WriteStartArray();
+            byte[] first = { 1, 2, 3, 4 };
+            byte[] second = { 5, 6, 7, 8 };
+            const int count = 100_001;
+            for (int index = 0; index < count; index++)
+                writer.WriteBuffer(index % 2 == 0 ? first : second);
+            writer.WriteEndArray();
+            writer.WriteEndObject();
+
+            var metadata = JObject.Parse(System.Text.Encoding.UTF8.GetString(writer.Encode(archive)));
+            var references = (JArray)metadata["Samples"];
+            Assert.That(references.Count, Is.EqualTo(count));
+            Assert.That(references.Select((reference, index) => (int)reference == index % 2), Is.All.True);
+            Assert.That(File.ReadAllBytes(Path.Combine(samplesPath, Identity(first))), Is.EqualTo(first));
+            Assert.That(File.ReadAllBytes(Path.Combine(samplesPath, Identity(second))), Is.EqualTo(second));
+            Assert.That(Directory.GetFiles(samplesPath), Has.Length.EqualTo(2));
+        }
+
+        [TestCase(false, true)]
+        [TestCase(true, true)]
+        [TestCase(false, false)]
+        public async Task DenseSceneTransferRestoresEveryDistinctSignal(bool streamBlocks, bool detach)
+        {
+            using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: true) { DetachCapture = detach };
+            var payload = PreparedSceneArchiveTests.Fixture(source);
+            var values = ((IEEGColumn)payload.Visualization.Columns[1]).Data.ProcessedValuesByChannel;
+            for (int index = 0; index < 100_001; index++)
+                values.Add("synthetic_" + index, new[] { (float)index, -index - .25f, index + .5f, index + .75f });
+
+            byte[] metadata = detach ? source.CaptureDetachedMetadata(payload).Encode(source) : source.CaptureMetadata(payload);
+            var manifest = PreparedSceneManifest.FromMetadata(JObject.Parse(System.Text.Encoding.UTF8.GetString(metadata)));
+            using var target = new SceneArchive(Path.Combine(root, "target"), reading: true, globals: source.Globals);
+            ScenePayload restored;
+            if (streamBlocks)
+            {
+                using var transport = new MemoryStream();
+                BlockContainer.Produce(source.CaptureBlockResources(metadata), packet => transport.Write(packet, 0, packet.Length), CancellationToken.None);
+                transport.Position = 4; // The receiver dispatches after reading the block format magic.
+                await BlockContainer.ReceiveAsync(transport, target, CancellationToken.None);
+                restored = target.ReadPrepared();
+            }
+            else
+            {
+                string path = Path.Combine(root, "scene.zip");
+                source.WriteCaptured(metadata, path);
+                restored = target.Read(path);
+            }
+
+            var received = ((IEEGColumn)restored.Visualization.Columns[1]).Data.ProcessedValuesByChannel;
+            Assert.That(target.PreparedManifest.VisualizationDescriptorHash, Is.EqualTo(manifest.VisualizationDescriptorHash));
+            Assert.That(target.PreparedManifest.Meshes.Select(mesh => mesh.DescriptorHash), Is.EqualTo(manifest.Meshes.Select(mesh => mesh.DescriptorHash)));
+            Assert.That(received.Count, Is.EqualTo(values.Count));
+            foreach (var signal in values)
+            {
+                if (!received.TryGetValue(signal.Key, out var samples) || !signal.Value.SequenceEqual(samples))
+                    Assert.Fail("Missing or changed signal: " + signal.Key);
+            }
+        }
+
+        [Test]
+        public void StreamedMetadataRejectsDuplicatePropertiesInsideTheVisualization()
+        {
+            using var reader = new StringReader("{\"Visualization\":{\"ID\":\"first\",\"Columns\":[{\"ID\":\"a\",\"ID\":\"b\"}]}}");
+            var error = Assert.Throws<InvalidDataException>(() => PreparedSceneManifest.Read(reader, CancellationToken.None));
+            Assert.That(error.Message, Is.EqualTo("Duplicate scene property: ID"));
         }
 
         [TestCase(3)]

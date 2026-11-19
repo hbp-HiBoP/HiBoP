@@ -20,6 +20,7 @@ namespace HBP.Transfer.Scene
     {
         public const long MaximumExpandedBytes = 4L * 1024 * 1024 * 1024;
         public const int MaximumMetadataBytes = 128 * 1024 * 1024;
+        private const int MaximumArchiveEntries = 100_000;
         private readonly string directory;
         private readonly bool deferResourceWrites;
         private readonly CancellationToken cancellationToken;
@@ -47,6 +48,7 @@ namespace HBP.Transfer.Scene
         private bool packedBuffers;
         internal bool DetachCapture { get; set; }
         internal long MaximumOwnedCaptureBytes { get; set; } = long.MaxValue;
+        internal long CapturedResourceBytes => capturedBufferBytes;
 
         private readonly List<SurfaceCapture> detachedSurfaces = new();
         private bool detachingIllustrations;
@@ -150,7 +152,9 @@ namespace HBP.Transfer.Scene
         }
 
         /// <summary>Freeze the live managed graph and numeric arrays before leaving Unity's thread.</summary>
-        public byte[] CaptureMetadata(ScenePayload payload)
+        public byte[] CaptureMetadata(ScenePayload payload) => CaptureMetadata(payload, null);
+
+        internal byte[] CaptureMetadata(ScenePayload payload, Action<long> captureNumeric)
         {
             EnsureWritable();
             if (payload.Version != ScenePayload.FormatVersion)
@@ -164,7 +168,7 @@ namespace HBP.Transfer.Scene
             cancellationToken.ThrowIfCancellationRequested();
             using var memory = new MemoryStream();
             using (var writer = new JsonTextWriter(new StreamWriter(memory, new UTF8Encoding(false), 8192, true)))
-                Serializer().Serialize(writer, payload);
+                Serializer(captureNumeric: captureNumeric).Serialize(writer, payload);
             if (memory.Length > MaximumMetadataBytes)
                 throw new InvalidDataException("Visualization metadata exceeds the transfer budget.");
             return memory.ToArray();
@@ -238,11 +242,16 @@ namespace HBP.Transfer.Scene
                     capturedFiles.TryAdd(Path.GetFileName(path), path);
             byte[] references = GlobalReferences.Encode();
             long indexBytes = 12L + pack.Entries.Count * 48L;
+            ValidatePackedMetadataBudget(metadata.LongLength, references.LongLength, indexBytes);
             long metadataBytes = metadata.LongLength + references.LongLength + indexBytes;
             var extraBuffers = capturedBuffers.Where(item => !item.Key.EndsWith(".bin", StringComparison.Ordinal)).ToArray();
             var files = capturedFiles.Where(item => !capturedBuffers.ContainsKey(item.Key)).OrderBy(item => item.Key, StringComparer.Ordinal).ToArray();
             long expanded = checked(metadataBytes + pack.Length + extraBuffers.Sum(item => item.Value.LongLength) + files.Sum(item => new FileInfo(item.Value).Length));
-            if (metadataBytes > MaximumMetadataBytes || expanded > MaximumExpandedBytes || pack.Entries.Count + files.Length + extraBuffers.Length + 4 > 100000)
+            int archiveEntries = files.Length + extraBuffers.Length + 4;
+            PairingTiming.Count("scene.packed-entry-count", pack.Entries.Count);
+            PairingTiming.Count("scene.packed-metadata-bytes", metadataBytes);
+            if (expanded > MaximumExpandedBytes || archiveEntries > MaximumArchiveEntries ||
+                pack.Entries.Count + archiveEntries > BufferPack.MaximumCount)
                 throw new InvalidDataException("Packed visualization exceeds its budget.");
             var zip = ZipFile.Open(output, ZipArchiveMode.Create);
             try
@@ -439,30 +448,25 @@ namespace HBP.Transfer.Scene
 
         private sealed class SceneMetadataReader : JsonTextReader
         {
-            private bool versionSeen;
+            private readonly CancellationToken token;
+            private int reads;
 
-            internal SceneMetadataReader(TextReader reader) : base(reader)
+            internal SceneMetadataReader(TextReader reader, CancellationToken token) : base(reader)
             {
+                this.token = token;
                 MaxDepth = 128;
             }
 
             public override bool Read()
             {
-                bool read = base.Read();
-                if (read && Depth == 1 && TokenType == JsonToken.PropertyName && (string)Value == "Version")
-                {
-                    if (versionSeen)
-                        throw new InvalidDataException("Duplicate scene version.");
-                    versionSeen = true;
-                }
-
-                return read;
+                if ((reads++ & 1023) == 0) token.ThrowIfCancellationRequested();
+                return base.Read();
             }
         }
 
-        private JsonSerializer Serializer(bool globalData = false, Action columnRestored = null)
+        private JsonSerializer Serializer(bool globalData = false, Action columnRestored = null, Action<long> captureNumeric = null)
         {
-            return PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers, numericConverter: new NumericBufferConverter(this), columnRestored: columnRestored);
+            return PreparedDataJson.Create(this, globalData ? null : Globals, !globalData && packedBuffers, numericConverter: new NumericBufferConverter(this, captureNumeric), columnRestored: columnRestored);
         }
 
         public void Write(ScenePayload payload, string output)
@@ -651,15 +655,16 @@ namespace HBP.Transfer.Scene
             if (packedBuffers)
                 using (PairingTiming.Measure("scene.decode-global-references"))
                     GlobalReferences = SceneGlobalReferences.Read(Path.Combine(directory, SceneGlobalReferences.FileName), Globals);
-            using var reader = new SceneMetadataReader(File.OpenText(Path.Combine(directory, "visualization.json")));
+            using var metadata = File.OpenRead(Path.Combine(directory, "visualization.json"));
             ScenePayload payload;
-            PairingTiming.Count("scene.metadata-bytes", new FileInfo(Path.Combine(directory, "visualization.json")).Length);
-            JObject metadata;
-            using (PairingTiming.Measure("scene.decode-json"))
-                metadata = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
-            if (reader.Read())
-                throw new InvalidDataException("Trailing scene metadata.");
-            int columns = (metadata["Visualization"]?["Columns"] as JArray)?.Count ?? 0;
+            PairingTiming.Count("scene.metadata-bytes", metadata.Length);
+            PreparedSceneManifest manifest;
+            using (PairingTiming.Measure("scene.decode-manifest"))
+            using (var text = new StreamReader(metadata, Encoding.UTF8, true, 8192, true))
+                manifest = PreparedSceneManifest.Read(text, readToken);
+            metadata.Position = 0;
+            using var reader = new SceneMetadataReader(new StreamReader(metadata), readToken);
+            int columns = manifest.Columns.Count;
             int restored = 0;
 
             void ReportRestored()
@@ -671,19 +676,18 @@ namespace HBP.Transfer.Scene
 
             ReportRestored();
             using (PairingTiming.Measure("scene.decode-object-graph"))
-                payload = metadata.ToObject<ScenePayload>(Serializer(columnRestored: progress == null ? null : () =>
+                payload = Serializer(columnRestored: progress == null ? null : () =>
                 {
                     restored++;
                     ReportRestored();
-                }));
+                }).Deserialize<ScenePayload>(reader);
             if (payload?.GlobalContextId != Globals.Id)
                 throw new InvalidDataException("This visualization belongs to a different pairing. Send a new snapshot.");
             PairingTiming.Count("scene.decoded-numeric-bytes", numericBytesRead, payload.TransferId);
             progress?.Invoke(.90f, 0, new LoadingText("Checking received scene"));
             using (PairingTiming.Measure("scene.decode-validation", payload.TransferId))
                 SceneValidation.Validate(payload, this);
-            using (PairingTiming.Measure("scene.decode-manifest", payload.TransferId))
-                PreparedManifest = PreparedSceneManifest.FromMetadata(metadata);
+            PreparedManifest = manifest;
             if (verifiedContentHash != null)
             {
                 if (verifiedContentHash.Length != 64 || verifiedContentHash.Any(character => character < '0' || character > '9' && character < 'a' || character > 'f'))
@@ -751,7 +755,7 @@ namespace HBP.Transfer.Scene
                 foreach (var entry in zip.Entries)
                 {
                     token.ThrowIfCancellationRequested();
-                    if (names.Count >= 100000)
+                    if (names.Count >= MaximumArchiveEntries)
                         throw new InvalidDataException("Too many content resources.");
                     if (!names.Add(entry.FullName))
                         throw new InvalidDataException("Duplicate archive entry.");
@@ -783,11 +787,10 @@ namespace HBP.Transfer.Scene
                     if (packedBuffers)
                     {
                         var index = zip.GetEntry(BufferPack.IndexName);
-                        if (zip.GetEntry(metadataName).Length + index.Length + zip.GetEntry(SceneGlobalReferences.FileName).Length > MaximumMetadataBytes)
-                            throw new InvalidDataException("Scene metadata exceeds its combined budget.");
+                        ValidatePackedMetadataBudget(zip.GetEntry(metadataName).Length, zip.GetEntry(SceneGlobalReferences.FileName).Length, index.Length);
                         using (var stream = index.Open())
                             pack = BufferPack.ReadIndex(stream, index.Length, zip.GetEntry(BufferPack.DataName).Length, token);
-                        if (pack.Entries.Count + names.Count > 100000)
+                        if (pack.Entries.Count + names.Count > BufferPack.MaximumCount)
                             throw new InvalidDataException("Too many logical resources.");
                     }
                 }
@@ -888,6 +891,14 @@ namespace HBP.Transfer.Scene
         }
 
         internal bool ContainsResource(string name) => name != null && (packedBuffers && pack.Contains(name) || File.Exists(Resolve(name)));
+
+        internal static void ValidatePackedMetadataBudget(long metadataBytes, long referenceBytes, long indexBytes)
+        {
+            if (metadataBytes > MaximumMetadataBytes || referenceBytes > MaximumMetadataBytes - metadataBytes)
+                throw new InvalidDataException("Scene metadata and global references exceed their budget.");
+            if (indexBytes > BufferPack.MaximumIndexBytes)
+                throw new InvalidDataException("The packed buffer index exceeds its budget.");
+        }
 
         internal Stream OpenBuffer(string name)
         {
@@ -1098,10 +1109,12 @@ namespace HBP.Transfer.Scene
         private sealed class NumericBufferConverter : JsonConverter
         {
             private readonly SceneArchive archive;
+            private readonly Action<long> captureNumeric;
 
-            public NumericBufferConverter(SceneArchive archive)
+            public NumericBufferConverter(SceneArchive archive, Action<long> captureNumeric)
             {
                 this.archive = archive;
+                this.captureNumeric = captureNumeric;
             }
 
             public override bool CanConvert(Type type) => type == typeof(float[]) || type == typeof(int[]);
@@ -1117,7 +1130,9 @@ namespace HBP.Transfer.Scene
                 // Own the bytes before asynchronous encoding; a source scene may change or close.
                 archive.cancellationToken.ThrowIfCancellationRequested();
                 var values = (Array)value;
-                if (writer is DetachedSceneMetadata budget) budget.CheckNumericBudget(checked(values.LongLength * 4));
+                long numericBytes = checked(values.LongLength * 4);
+                captureNumeric?.Invoke(numericBytes);
+                if (writer is DetachedSceneMetadata budget) budget.CheckNumericBudget(numericBytes);
                 byte[] bytes = new byte[checked(values.Length * 4)];
                 Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
                 if (!BitConverter.IsLittleEndian)

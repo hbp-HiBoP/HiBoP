@@ -113,8 +113,8 @@ namespace HBP.Transfer.Transport
 
                             generation = Interlocked.Increment(ref nextGeneration);
                             fingerprint = current;
-                            var multicastNetworks = QuestWindowsNetworkInterface.IsWindows
-                                ? networks.Select(network => (NetworkInterface)new QuestWindowsNetworkInterface(network)).ToArray()
+                            var multicastNetworks = QuestMulticastNetworkInterface.NeedsAdapter
+                                ? networks.Select(network => (NetworkInterface)new QuestMulticastNetworkInterface(network)).ToArray()
                                 : networks;
                             mdns = new MulticastService(_ => multicastNetworks) { IgnoreDuplicateMessages = false };
                             mdns.AnswerReceived += (_, packet) =>

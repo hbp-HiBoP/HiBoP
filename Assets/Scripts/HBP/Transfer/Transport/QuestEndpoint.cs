@@ -86,13 +86,8 @@ namespace HBP.Transfer.Transport
             .Where(n => n.OperationalStatus == OperationalStatus.Up && n.NetworkInterfaceType != NetworkInterfaceType.Loopback && GetInterfaceIndex(n, family) > 0)
             .Where(n => n.GetIPProperties().UnicastAddresses.Any(a => a.Address.AddressFamily == family)).ToArray();
 
-        public static int GetInterfaceIndex(NetworkInterface network, AddressFamily family)
-        {
-            if (family == AddressFamily.InterNetworkV6)
-                return network.Supports(NetworkInterfaceComponent.IPv6) ? network.GetIPProperties().GetIPv6Properties()?.Index ?? 0 : 0;
-            if (QuestWindowsNetworkInterface.IsWindows) return QuestWindowsNetworkInterface.GetIPv4Index(network);
-            return network.Supports(NetworkInterfaceComponent.IPv4) ? network.GetIPProperties().GetIPv4Properties()?.Index ?? 0 : 0;
-        }
+        public static int GetInterfaceIndex(NetworkInterface network, AddressFamily family) =>
+            QuestMulticastNetworkInterface.GetIndex(network, family == AddressFamily.InterNetworkV6);
 
         internal IPAddress GetLocalAddress()
         {

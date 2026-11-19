@@ -4,17 +4,17 @@ using System.Runtime.InteropServices;
 
 namespace HBP.Transfer.Transport
 {
-    // The Windows Unity/Mono GetIPv4Properties implementation also queries adapter settings.
-    // That extra native call can throw even on an active interface. The mDNS client needs only its index.
-    internal sealed class QuestWindowsNetworkInterface : NetworkInterface
+    // Supply the interface indices needed by the mDNS client when Mono's managed
+    // properties are unavailable or also query unrelated adapter settings.
+    internal sealed class QuestMulticastNetworkInterface : NetworkInterface
     {
         private readonly NetworkInterface network;
         private readonly IPInterfaceProperties properties;
 
-        public QuestWindowsNetworkInterface(NetworkInterface network)
+        public QuestMulticastNetworkInterface(NetworkInterface network)
         {
             this.network = network;
-            properties = new MulticastProperties(network.GetIPProperties(), GetIPv4Index(network));
+            properties = new MulticastProperties(network);
         }
 
         public override string Id => network.Id;
@@ -23,14 +23,27 @@ namespace HBP.Transfer.Transport
         public override bool SupportsMulticast => network.SupportsMulticast;
         public override IPInterfaceProperties GetIPProperties() => properties;
 
-        public static bool IsWindows => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private static readonly bool IsWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        private static readonly bool IsMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
+        public static bool NeedsAdapter => IsWindows || IsMac;
 
-        public static int GetIPv4Index(NetworkInterface network)
+        public static int GetIndex(NetworkInterface network, bool ipv6)
         {
-            if (!network.Supports(NetworkInterfaceComponent.IPv4)) return 0;
+            if (!network.Supports(ipv6 ? NetworkInterfaceComponent.IPv6 : NetworkInterfaceComponent.IPv4)) return 0;
+            if (IsMac) return (int)if_nametoindex(network.Name);
+            if (ipv6) return network.GetIPProperties().GetIPv6Properties()?.Index ?? 0;
+            if (IsWindows) return GetWindowsIPv4Index(network);
+            return network.GetIPProperties().GetIPv4Properties()?.Index ?? 0;
+        }
+
+        private static int GetWindowsIPv4Index(NetworkInterface network)
+        {
             return Guid.TryParse(network.Id, out var id) && ConvertInterfaceGuidToLuid(ref id, out ulong luid) == 0 &&
                 ConvertInterfaceLuidToIndex(ref luid, out int index) == 0 ? index : 0;
         }
+
+        [DllImport("/usr/lib/libSystem.B.dylib", ExactSpelling = true)]
+        private static extern uint if_nametoindex(string name);
 
         [DllImport("iphlpapi.dll", ExactSpelling = true)]
         private static extern uint ConvertInterfaceGuidToLuid(ref Guid interfaceGuid, out ulong interfaceLuid);
@@ -42,15 +55,17 @@ namespace HBP.Transfer.Transport
         {
             private readonly IPInterfaceProperties properties;
             private readonly IPv4InterfaceProperties ipv4;
+            private readonly IPv6InterfaceProperties ipv6;
 
-            public MulticastProperties(IPInterfaceProperties properties, int index)
+            public MulticastProperties(NetworkInterface network)
             {
-                this.properties = properties;
-                ipv4 = new MulticastIPv4Properties(index);
+                properties = network.GetIPProperties();
+                ipv4 = new MulticastIPv4Properties(GetIndex(network, false));
+                if (IsMac) ipv6 = new MulticastIPv6Properties(GetIndex(network, true));
             }
 
             public override IPv4InterfaceProperties GetIPv4Properties() => ipv4;
-            public override IPv6InterfaceProperties GetIPv6Properties() => properties.GetIPv6Properties();
+            public override IPv6InterfaceProperties GetIPv6Properties() => ipv6 ?? properties.GetIPv6Properties();
             public override UnicastIPAddressInformationCollection UnicastAddresses => properties.UnicastAddresses;
             public override MulticastIPAddressInformationCollection MulticastAddresses => properties.MulticastAddresses;
             public override IPAddressInformationCollection AnycastAddresses => properties.AnycastAddresses;
@@ -61,6 +76,14 @@ namespace HBP.Transfer.Transport
             public override bool IsDnsEnabled => properties.IsDnsEnabled;
             public override bool IsDynamicDnsEnabled => properties.IsDynamicDnsEnabled;
             public override string DnsSuffix => properties.DnsSuffix;
+        }
+
+        private sealed class MulticastIPv6Properties : IPv6InterfaceProperties
+        {
+            public MulticastIPv6Properties(int index) => Index = index;
+
+            public override int Index { get; }
+            public override int Mtu => throw new NotSupportedException();
         }
 
         private sealed class MulticastIPv4Properties : IPv4InterfaceProperties

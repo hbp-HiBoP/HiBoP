@@ -107,6 +107,7 @@ namespace HBP.Quest.Desktop
             private bool disposed;
             private string activeVisualization;
             private long nextDisplayRevision, acceptedDisplayRevision;
+            private SessionControlRequest latestProgressRequest;
             private readonly HashSet<Publication> owned = new();
             public string ReceivingVisualization { get; private set; }
             public float ReceivingProgress { get; private set; }
@@ -214,7 +215,11 @@ namespace HBP.Quest.Desktop
                 catch (Exception error)
                 {
                     await AbandonPreparationAsync(entry);
-                    if (!DeferScene(entry.Scene) && !RecoverConnection(error)) RequireRetry(entry.Scene, TransferError.Describe(error));
+                    if (!DeferScene(entry.Scene) && !RecoverConnection(error))
+                    {
+                        if (error is not OperationCanceledException) UnityEngine.Debug.LogException(error);
+                        RequireRetry(entry.Scene, TransferError.Describe(error));
+                    }
                     return false;
                 }
             }
@@ -346,7 +351,40 @@ namespace HBP.Quest.Desktop
                 }
             }
 
-            public async Task UpdateRemoteAsync(float progress, bool finished, CancellationToken token, string[] incomplete = null)
+            internal async Task KeepRemoteAliveAsync(CancellationToken token)
+            {
+                string endpoint = owner.endpoint;
+                byte[] pin = owner.pin, credential = owner.credential;
+                var previous = Volatile.Read(ref latestProgressRequest);
+                while (!token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(5), token).ConfigureAwait(false);
+                        var latest = Volatile.Read(ref latestProgressRequest);
+                        if (ReferenceEquals(previous, latest))
+                        {
+                            // Capture can hold Unity's thread for longer than the Quest's Display lease.
+                            // Reuse the latest status and revision so renewal cannot roll back newer progress.
+                            var renewal = new SessionControlRequest(latest.ContextId, latest.Generation, Guid.NewGuid(), latest.Kind, revision: latest.Revision, body: latest.GetBody());
+                            var response = await QuestPairing.SendSessionControlAsync(endpoint, pin, credential, renewal, token).ConfigureAwait(false);
+                            if (!response.Applied) return;
+                        }
+
+                        previous = latest;
+                    }
+                    catch (OperationCanceledException) when (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                    catch (Exception error) when (IsQuestConnectionInterruption(error) || error is System.IO.IOException or System.Security.Authentication.AuthenticationException)
+                    {
+                        // The progress monitor owns reconnects and error presentation.
+                    }
+                }
+            }
+
+            public async Task UpdateRemoteAsync(float progress, bool finished, CancellationToken token, string[] incomplete = null, TimeSpan? transportTimeout = null)
             {
                 if (finished ? !CanFinish : !IsCurrent) throw new InvalidOperationException("The Display target connection has changed.");
                 var sourceStatus = SourceStatus;
@@ -356,7 +394,22 @@ namespace HBP.Quest.Desktop
                 state.Validate();
                 long revision = Interlocked.Increment(ref nextDisplayRevision);
                 var request = new SessionControlRequest(Guid.ParseExact(context, "N"), generation, Guid.NewGuid(), SessionControlKind.DisplayBatch, revision: revision, body: SceneSessionState.Encode(state));
-                var response = await QuestPairing.SendSessionControlAsync(owner.endpoint, owner.pin, owner.credential, request, token);
+                if (!finished) Volatile.Write(ref latestProgressRequest, request);
+                SessionControlResponse response;
+                using (var deadline = CancellationTokenSource.CreateLinkedTokenSource(token))
+                {
+                    if (transportTimeout.HasValue) deadline.CancelAfter(transportTimeout.Value);
+                    try
+                    {
+                        response = await QuestPairing.SendSessionControlAsync(owner.endpoint, owner.pin, owner.credential, request, deadline.Token).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException error) when (deadline.IsCancellationRequested && !token.IsCancellationRequested)
+                    {
+                        throw new TimeoutException("The Quest Display progress request timed out.", error);
+                    }
+                }
+
+                // A prepared snapshot can occupy the Desktop main thread after the Quest has already replied.
                 await UniTask.SwitchToMainThread(token);
                 if (finished ? !CanFinish : !IsCurrent) throw new InvalidOperationException("The Display target connection has changed.");
                 if (!response.Applied) throw new InvalidOperationException(response.Message);

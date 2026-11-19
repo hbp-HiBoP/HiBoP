@@ -48,6 +48,8 @@ namespace HBP.Transfer.Scene
         internal void CheckNumericBudget(long count)
         {
             if (count > maximumBytes - EstimatedRetainedBytes) throw new ScenePreparationBudgetExceededException();
+            if (count > SceneArchive.MaximumExpandedBytes - bytes)
+                throw new InvalidDataException("Snapshot exceeds its numeric byte budget.");
         }
 
         public override void WriteStartObject()
@@ -210,8 +212,6 @@ namespace HBP.Transfer.Scene
         {
             CheckNumericBudget(owned.LongLength);
             bytes = checked(bytes + owned.LongLength);
-            if (bytes > SceneArchive.MaximumExpandedBytes || numeric.Count >= 100000)
-                throw new InvalidDataException("Snapshot exceeds its buffer budget.");
             WriteValue(0);
             numeric.Add(((JValue)CurrentToken, owned));
         }
@@ -221,6 +221,8 @@ namespace HBP.Transfer.Scene
             if (encoded)
                 throw new InvalidOperationException("A detached snapshot can only be encoded once.");
             encoded = true;
+            // This list counts references. The pack enforces its entry limit after
+            // merging identical buffers and assigning indices.
             foreach (var item in numeric)
                 item.token.Value = archive.RegisterCapturedNumericBuffer(item.bytes);
             numeric.Clear();

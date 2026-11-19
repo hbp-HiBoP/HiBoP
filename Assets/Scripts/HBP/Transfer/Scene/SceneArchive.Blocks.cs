@@ -21,8 +21,7 @@ namespace HBP.Transfer.Scene
             using var index = new MemoryStream();
             pack.WriteIndex(index);
             byte[] indexBytes = index.ToArray();
-            if ((long)metadata.Length + references.Length + indexBytes.Length > MaximumMetadataBytes)
-                throw new InvalidDataException("Combined metadata exceeds its budget.");
+            ValidatePackedMetadataBudget(metadata.LongLength, references.LongLength, indexBytes.LongLength);
             var result = new List<BlockResource>();
 
             void AddMemory(string name, byte[] bytes) =>
@@ -64,7 +63,7 @@ namespace HBP.Transfer.Scene
                 }));
             }
 
-            if (pack.Entries.Count + result.Count > 100000)
+            if (pack.Entries.Count + result.Count > BufferPack.MaximumCount)
                 throw new InvalidDataException("Too many logical resources.");
             return result;
         }
@@ -97,8 +96,7 @@ namespace HBP.Transfer.Scene
                 throw new InvalidOperationException("Empty paired workspace required.");
             if (resources.Count < 4 || resources[0].Name != "visualization.json" || resources[1].Name != SceneGlobalReferences.FileName || resources[2].Name != BufferPack.IndexName || resources[3].Name != BufferPack.DataName)
                 throw new InvalidDataException("Invalid packed resource order.");
-            if (resources.Take(3).Sum(r => r.Length) > MaximumMetadataBytes)
-                throw new InvalidDataException("Combined metadata exceeds its budget.");
+            ValidatePackedMetadataBudget(resources[0].Length, resources[1].Length, resources[2].Length);
             foreach (var resource in resources.Skip(4))
             {
                 Resolve(resource.Name);
@@ -129,7 +127,7 @@ namespace HBP.Transfer.Scene
             {
                 using var input = File.OpenRead(Path.Combine(directory, BufferPack.IndexName));
                 pack = BufferPack.ReadIndex(input, input.Length, resource.Length, readToken);
-                if (pack.Entries.Count + blockResources.Count > 100000)
+                if (pack.Entries.Count + blockResources.Count > BufferPack.MaximumCount)
                     throw new InvalidDataException("Too many logical resources.");
             }
 

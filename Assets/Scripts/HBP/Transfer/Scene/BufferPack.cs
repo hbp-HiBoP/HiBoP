@@ -12,7 +12,9 @@ namespace HBP.Transfer.Scene
     internal sealed class BufferPack
     {
         internal const string IndexName = "buffers.index", DataName = "buffers.pack";
-        internal const int MaximumCount = 100000, MaximumIndexBytes = 12 + 48 * MaximumCount;
+        // Dense recordings can have hundreds of thousands of short numeric ranges.
+        // The index stays within 24 MiB plus its header. Payload byte budgets still apply.
+        internal const int MaximumCount = 512 * 1024, MaximumIndexBytes = 12 + 48 * MaximumCount;
         internal readonly List<Entry> Entries = new();
         private readonly Dictionary<string, int> byName = new(StringComparer.Ordinal);
         private readonly object gate = new();
