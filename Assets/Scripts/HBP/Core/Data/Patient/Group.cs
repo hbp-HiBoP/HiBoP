@@ -126,24 +126,28 @@ namespace HBP.Core.Data
         {
             try
             {
-                result = ClassLoaderSaver.LoadFromJson<Group>(path);
-                if (result == null)
-                {
-                    return false;
-                }
-
-                Project project = ApplicationState.LoadedProject;
-                IEnumerable<Patient> patients = project != null ? project.Patients : Array.Empty<Patient>();
-                LoadingContext context = new(Array.Empty<BaseTag>(), Array.Empty<Protocol>(), patients);
-                result.ResolveReferences(context);
-                context.ThrowIfInvalid();
-                return true;
+                result = ReadFromFile(path, requireAllPatients: true);
+                return result != null;
             }
             catch (Exception e)
             {
                 UnityEngine.Debug.LogException(e);
                 throw new CanNotReadGroupFileException(Path.GetFileNameWithoutExtension(path));
             }
+        }
+
+        internal static Group ReadFromFile(string path, bool requireAllPatients)
+        {
+            Group group = ClassLoaderSaver.LoadFromJson<Group>(path);
+            if (group == null)
+                return null;
+
+            Project project = ApplicationState.LoadedProject;
+            IEnumerable<Patient> patients = project != null ? project.Patients : Array.Empty<Patient>();
+            LoadingContext context = new(Array.Empty<BaseTag>(), Array.Empty<Protocol>(), patients);
+            group.ResolvePatientReferences(context, requireAllPatients);
+            context.ThrowIfInvalid();
+            return group;
         }
 
         #endregion

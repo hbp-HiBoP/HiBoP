@@ -1,9 +1,8 @@
-using HBP.Core.Data;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using UnityEngine;
 using UnityEngine.Scripting;
 
 namespace HBP.Core.Data
@@ -20,17 +19,32 @@ namespace HBP.Core.Data
                 if (string.IsNullOrEmpty(GroupFilePath))
                     return "No group file selected";
 
-                if (LoadedGroup == null)
+                Group group = LoadedGroup;
+                if (group == null)
                     return $"Group file '{Path.GetFileNameWithoutExtension(GroupFilePath)}' not loaded";
 
-                string patientCount = LoadedGroup.PatientsID.Count == 1 ? "1 patient" : $"{LoadedGroup.PatientsID.Count} patients";
-                return $"The patient {(IsNot ? "is not" : "is")} in group '{LoadedGroup.Name}' ({patientCount})";
+                int count = group.PatientsID.Count;
+                string patientCount = count == 1 ? "1 patient" : $"{count} patients";
+                return $"The patient {(IsNot ? "is not" : "is")} in group '{group.Name}' ({patientCount})";
             }
         }
 
-        [JsonProperty("GroupFilePath")] public string GroupFilePath { get; set; }
+        private string m_GroupFilePath;
+        private Group m_LoadedGroup;
 
-        [JsonIgnore] private Group m_LoadedGroup;
+        [JsonProperty("GroupFilePath")]
+        public string GroupFilePath
+        {
+            get => m_GroupFilePath;
+            set
+            {
+                if (m_GroupFilePath == value)
+                    return;
+
+                m_GroupFilePath = value;
+                m_LoadedGroup = null;
+            }
+        }
 
         /// <summary>
         /// The loaded group from the file path. Loads on first access.
@@ -39,11 +53,17 @@ namespace HBP.Core.Data
         {
             get
             {
-                if (m_LoadedGroup == null && !string.IsNullOrEmpty(GroupFilePath))
+                if (m_LoadedGroup == null && File.Exists(GroupFilePath))
                 {
-                    if (File.Exists(GroupFilePath) && Group.LoadFromFile(GroupFilePath, out Group loadedGroup))
+                    try
                     {
-                        m_LoadedGroup = loadedGroup;
+                        // Filters use the IDs from the file, including patients outside the current project.
+                        m_LoadedGroup = Group.ReadFromFile(GroupFilePath, requireAllPatients: false);
+                    }
+                    catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or JsonException)
+                    {
+                        // The filter description and editor already report that the file could not be loaded.
+                        return null;
                     }
                 }
 
@@ -96,11 +116,11 @@ namespace HBP.Core.Data
         {
             if (obj is Patient patient)
             {
-                var group = LoadedGroup;
-                if (group == null || group.PatientsID == null || group.PatientsID.Count == 0)
+                List<string> patientIDs = LoadedGroup?.PatientsID;
+                if (patientIDs == null || patientIDs.Count == 0)
                     return false;
 
-                bool isInGroup = group.PatientsID.Contains(patient.ID);
+                bool isInGroup = patientIDs.Contains(patient.ID);
                 return IsNot ? !isInGroup : isInGroup;
             }
 
