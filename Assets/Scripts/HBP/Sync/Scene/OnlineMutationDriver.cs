@@ -417,7 +417,7 @@ namespace HBP.Sync.Scene
             try
             {
                 ulong acceptedSequence = m_CanonicalSequence + 1;
-                OperationAdmission admission = m_Ledger.Accept(operationId, descriptor, observedCanonicalSequence, acceptedSequence, payload);
+                OperationAdmission admission = m_Ledger.Accept(operationId, descriptor, observedCanonicalSequence, acceptedSequence, payload, orderedQuestProposal: originSequence != 0);
                 if (admission == OperationAdmission.Accepted)
                 {
                     m_Boundary.Apply(mutation, MutationApplicationOrigin.Remote, operationId);
@@ -593,8 +593,9 @@ namespace HBP.Sync.Scene
         private readonly SceneMutationBoundary m_Boundary;
         private readonly OutgoingScheduler m_Scheduler;
         private readonly Func<QuestMutationProposal, EnqueueResult> m_EnqueueProposal;
-        private readonly Dictionary<Guid, byte[]> m_Pending = new Dictionary<Guid, byte[]>();
+        private readonly Dictionary<Guid, (byte[] Payload, ColumnId TimelineColumn)> m_Pending = new();
         private readonly Dictionary<Guid, ulong> m_PendingObservations = new Dictionary<Guid, ulong>();
+        private readonly Dictionary<ColumnId, Guid> m_LatestPendingTimeline = new();
         private readonly LinkedList<QuestMutationProposal> m_DeferredProposals = new LinkedList<QuestMutationProposal>();
         private readonly Dictionary<TouchedKey, LinkedListNode<QuestMutationProposal>> m_DeferredByKey = new Dictionary<TouchedKey, LinkedListNode<QuestMutationProposal>>();
         private readonly Dictionary<Guid, byte[]> m_Received = new Dictionary<Guid, byte[]>();
@@ -664,7 +665,7 @@ namespace HBP.Sync.Scene
             }
 
             var protectedKeys = new HashSet<TouchedKey>();
-            foreach (byte[] payload in m_Pending.Values)
+            foreach (var (payload, _) in m_Pending.Values)
             foreach (TouchedKey key in ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, MutationPayloadCodec.Decode(payload)).TouchedKeys)
                 protectedKeys.Add(key);
             foreach (List<ReplayMutation> replay in m_TransactionReplayJournal.Values)
@@ -807,10 +808,10 @@ namespace HBP.Sync.Scene
             if (TryGetReceived(canonical.OperationId, payload)) return false;
 
             ScheduleDescriptor descriptor = ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, canonical.Mutation);
-            if (m_Pending.TryGetValue(canonical.OperationId.Value, out byte[] optimisticPayload))
+            if (m_Pending.TryGetValue(canonical.OperationId.Value, out var pending))
             {
                 bool keySuperseded = WasKeySuperseded(ApplicationKey(descriptor), canonical.CanonicalSequence) || WasSelectionSuperseded(canonical.Mutation, canonical.CanonicalSequence) || WasCutCheckpointSuperseded(canonical.Mutation, canonical.CanonicalSequence) || WasRoiCheckpointSuperseded(canonical.Mutation, canonical.CanonicalSequence);
-                bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+                bool matchesOptimistic = BytesEqual(pending.Payload, payload);
                 if (!keySuperseded)
                 {
                     if (IsPreparedGeometryMutation(canonical.Mutation)) ApplyCanonicalGeometry(canonical.Mutation, canonical.OperationId, canonical.CanonicalSequence);
@@ -911,12 +912,12 @@ namespace HBP.Sync.Scene
             RestoreCanonicalTriangleMask(operationId);
             if (restoreEarlierMasks)
                 for (int i = 0; i < resolvedIndex; i++)
-                    if (m_Pending.TryGetValue(m_PendingGeometryOrder[i], out byte[] earlier) && MutationPayloadCodec.Decode(earlier) is ApplyTriangleMask earlierMask && m_Boundary.IsSelectedTriangleTopology(earlierMask))
+                    if (m_Pending.TryGetValue(m_PendingGeometryOrder[i], out var earlier) && MutationPayloadCodec.Decode(earlier.Payload) is ApplyTriangleMask earlierMask && m_Boundary.IsSelectedTriangleTopology(earlierMask))
                         m_Boundary.ApplyPreparedTriangleMask(earlierMask, new OperationId(m_PendingGeometryOrder[i]));
             for (int i = resolvedIndex + 1; i < m_PendingGeometryOrder.Count; i++)
             {
-                if (!m_Pending.TryGetValue(m_PendingGeometryOrder[i], out byte[] pending)) continue;
-                Mutation overlay = MutationPayloadCodec.Decode(pending);
+                if (!m_Pending.TryGetValue(m_PendingGeometryOrder[i], out var pending)) continue;
+                Mutation overlay = MutationPayloadCodec.Decode(pending.Payload);
                 if (overlay is SetMeshDisplay mesh)
                 {
                     m_Boundary.ApplyOptimisticReplay(mesh, new OperationId(m_PendingGeometryOrder[i]));
@@ -927,7 +928,7 @@ namespace HBP.Sync.Scene
                 {
                     // An unchanged optimistic mask still has its original pre-edit rollback.
                     // Refresh it only when the reconciled base actually replaced that value.
-                    if (!BytesEqual(MutationPayloadCodec.Encode(m_Boundary.ReadCurrentMutation(mask)), pending))
+                    if (!BytesEqual(MutationPayloadCodec.Encode(m_Boundary.ReadCurrentMutation(mask)), pending.Payload))
                         m_Boundary.ApplyOptimisticReplay(mask, new OperationId(m_PendingGeometryOrder[i]));
                 }
             }
@@ -1012,15 +1013,16 @@ namespace HBP.Sync.Scene
 
             byte[] payload = MutationPayloadCodec.Encode(correction.AuthoritativeMutation);
             if (TryGetReceived(correction.OperationId, payload)) return false;
-            if (!m_Pending.TryGetValue(correction.OperationId.Value, out byte[] optimisticPayload)) return false;
+            if (!m_Pending.TryGetValue(correction.OperationId.Value, out var pending)) return false;
 
             ScheduleDescriptor descriptor = ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, correction.AuthoritativeMutation);
-            // A matching echo may have confirmed this canonical version while a
-            // later optimistic value still owns the visible state. Its correction
-            // must resolve that value; only a newer canonical makes it obsolete.
+            // A matching echo can confirm this version while a later optimistic edit still owns the visible state.
+            // Resolve that edit's own correction, but leave a newer pending timeline edit visible until its decision arrives.
             TouchedKey correctionKey = ApplicationKey(descriptor);
             bool keySuperseded = correctionKey != null && m_LastAppliedByKey.TryGetValue(correctionKey, out ulong lastApplied) && lastApplied > correction.CanonicalSequence || WasSelectionSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence, includeEqual: false) || WasCutCheckpointSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence) || WasRoiCheckpointSuperseded(correction.AuthoritativeMutation, correction.CanonicalSequence);
-            bool matchesOptimistic = BytesEqual(optimisticPayload, payload);
+            if (pending.TimelineColumn != null && m_LatestPendingTimeline.TryGetValue(pending.TimelineColumn, out Guid latestTimeline) && latestTimeline != correction.OperationId.Value)
+                keySuperseded = true;
+            bool matchesOptimistic = BytesEqual(pending.Payload, payload);
             if (!keySuperseded)
             {
                 if (IsPreparedGeometryMutation(correction.AuthoritativeMutation)) ApplyCanonicalGeometry(correction.AuthoritativeMutation, correction.OperationId, correction.CanonicalSequence);
@@ -1056,12 +1058,12 @@ namespace HBP.Sync.Scene
             ThrowIfDisposed();
             if (operationId == null) throw new ArgumentNullException(nameof(operationId));
             if (string.IsNullOrEmpty(rejectionCode)) throw new ArgumentException("A rejection code is required.", nameof(rejectionCode));
-            if (!m_Pending.TryGetValue(operationId.Value, out byte[] pendingPayload)) return false;
+            if (!m_Pending.TryGetValue(operationId.Value, out var pending)) return false;
             List<ReplayMutation> replay = m_TransactionReplayJournal.TryGetValue(operationId.Value, out List<ReplayMutation> entries) ? new List<ReplayMutation>(entries) : null;
             bool replayOverflowed = m_OverflowedTransactionReplayJournals.Contains(operationId.Value);
             SceneMutationCheckpoint liveCheckpoint = !replayOverflowed && replay != null && replay.Count > 0 ? m_Boundary.CaptureCheckpoint() : null;
             bool restored = !replayOverflowed && m_Boundary.TryRollbackOptimisticOperation(operationId);
-            if (restored && IsPreparedGeometryMutation(MutationPayloadCodec.Decode(pendingPayload)))
+            if (restored && IsPreparedGeometryMutation(MutationPayloadCodec.Decode(pending.Payload)))
             {
                 m_Boundary.RebuildSynchronizedGeometry(operationId);
                 ReplayPendingGeometry(operationId, restoreEarlierMasks: true);
@@ -1132,7 +1134,9 @@ namespace HBP.Sync.Scene
                 return;
             }
 
-            m_Pending.Add(operationId.Value, MutationPayloadCodec.Encode(proposal.Mutation));
+            ColumnId timelineColumn = (proposal.Mutation as SetTimelineAnchor)?.ColumnId;
+            m_Pending.Add(operationId.Value, (MutationPayloadCodec.Encode(proposal.Mutation), timelineColumn));
+            if (timelineColumn != null) m_LatestPendingTimeline[timelineColumn] = operationId.Value;
             if (IsPreparedGeometryMutation(mutation)) m_PendingGeometryOrder.Add(operationId.Value);
             m_PendingObservations.Add(operationId.Value, proposal.ObservedCanonicalSequence);
             OnRetentionProgressChanged.Invoke();
@@ -1195,7 +1199,7 @@ namespace HBP.Sync.Scene
             string roi = RoiTarget(mutation);
             if (roi == null || !IsRoiEdit(mutation)) return false;
             bool Deletes(Mutation value) => value is DeleteRoi removed && removed.RoiId.Value == roi || mutation is SetRoiSphereDefinition definition && value is DeleteRoiSphere sphere && sphere.RoiId.Equals(definition.RoiId) && sphere.SphereId.Equals(definition.Definition.SphereId) || mutation is CreateRoiSphere created && value is DeleteRoiSphere deleted && deleted.RoiId.Equals(created.RoiId) && deleted.SphereId.Equals(created.Definition.SphereId);
-            bool pending = m_ObjectEditInFlight != null && !m_ObjectEditInFlight.Equals(resolving) && m_Pending.TryGetValue(m_ObjectEditInFlight.Value, out var bytes) && Deletes(MutationPayloadCodec.Decode(bytes)) || m_WaitingObjectEdits.Any(value => !value.OperationId.Equals(resolving) && Deletes(value.Mutation));
+            bool pending = m_ObjectEditInFlight != null && !m_ObjectEditInFlight.Equals(resolving) && m_Pending.TryGetValue(m_ObjectEditInFlight.Value, out var inFlight) && Deletes(MutationPayloadCodec.Decode(inFlight.Payload)) || m_WaitingObjectEdits.Any(value => !value.OperationId.Equals(resolving) && Deletes(value.Mutation));
             if (!pending) return false;
             if (mutation is SetActiveRoi) return !TryReadObject(new RenameRoi(new RoiId(roi), "ROI"), out _);
             return !TryReadObject(mutation, out var live) || live is DeleteRoi or DeleteRoiSphere;
@@ -1332,7 +1336,7 @@ namespace HBP.Sync.Scene
         private bool HasPendingCutDeletion(Mutation mutation)
         {
             if (mutation is not SetCutDefinition definition) return false;
-            bool inFlight = m_ObjectEditInFlight != null && m_Pending.TryGetValue(m_ObjectEditInFlight.Value, out var payload) && MutationPayloadCodec.Decode(payload) is DeleteCut deleted && deleted.CutId.Equals(definition.CutId);
+            bool inFlight = m_ObjectEditInFlight != null && m_Pending.TryGetValue(m_ObjectEditInFlight.Value, out var pending) && MutationPayloadCodec.Decode(pending.Payload) is DeleteCut deleted && deleted.CutId.Equals(definition.CutId);
             return m_Boundary.ReadCurrentMutation(definition) is DeleteCut && (inFlight || m_WaitingObjectEdits.Any(p => p.Mutation is DeleteCut waiting && waiting.CutId.Equals(definition.CutId)));
         }
 
@@ -1400,7 +1404,7 @@ namespace HBP.Sync.Scene
                 }
 
                 var proposal = new QuestMutationProposal(m_SceneId, m_IncarnationId, waiting.OperationId, m_LastObservedCanonicalSequence, mutation);
-                m_Pending[proposal.OperationId.Value] = MutationPayloadCodec.Encode(mutation);
+                m_Pending[proposal.OperationId.Value] = (MutationPayloadCodec.Encode(mutation), null);
                 m_PendingObservations[proposal.OperationId.Value] = proposal.ObservedCanonicalSequence;
                 m_ObjectEditInFlight = proposal.OperationId;
                 ScheduleProposal(proposal);
@@ -1509,7 +1513,8 @@ namespace HBP.Sync.Scene
         private void RemovePendingProposal(OperationId operationId)
         {
             if (operationId == null) return;
-            m_Pending.Remove(operationId.Value);
+            if (m_Pending.Remove(operationId.Value, out var pending) && pending.TimelineColumn != null && m_LatestPendingTimeline.TryGetValue(pending.TimelineColumn, out Guid latestTimeline) && latestTimeline == operationId.Value)
+                m_LatestPendingTimeline.Remove(pending.TimelineColumn);
             m_PendingGeometryOrder.Remove(operationId.Value);
             m_PendingObservations.Remove(operationId.Value);
             m_Boundary.ForgetOptimisticOperation(operationId);
@@ -1666,6 +1671,7 @@ namespace HBP.Sync.Scene
                 m_Boundary.ForgetOptimisticOperation(new OperationId(operationId));
             m_Pending.Clear();
             m_PendingObservations.Clear();
+            m_LatestPendingTimeline.Clear();
             m_ColumnSelection.Clear();
             m_SiteSelection.Clear();
             m_ObjectEditInFlight = null;
@@ -1739,6 +1745,7 @@ namespace HBP.Sync.Scene
             m_Boundary.OnMutationProposed.RemoveListener(OnLocalMutationProposed);
             m_Pending.Clear();
             m_PendingObservations.Clear();
+            m_LatestPendingTimeline.Clear();
             m_ColumnSelection.Clear();
             m_SiteSelection.Clear();
             m_ObjectEditInFlight = null;

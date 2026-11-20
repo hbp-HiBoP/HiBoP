@@ -651,6 +651,32 @@ namespace HBP.Sync.Tests
         }
 
         [Test]
+        public void TimelineSeekConflict_StillTracksDesktopAndPlaybackEditsAfterNewerQuestSeeks()
+        {
+            var ledger = new OperationLedger();
+            var column = new ColumnId("column-A");
+            var seek = ScheduleDescriptor.ForMutation(Scene, Incarnation, new SetTimelineAnchor(column, 5, false, false, 1, 0, 1000, TimelineAnchorIntent.Seek));
+            var pause = ScheduleDescriptor.ForMutation(Scene, Incarnation, new SetTimelineAnchor(column, 5, false, false, 1, 0, 1000, TimelineAnchorIntent.Pause));
+            var payload = new byte[] { 0x10 };
+
+            Assert.That(ledger.Accept(new OperationId(GuidFor(410)), seek, 0, 1, payload), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(411)), seek, 1, 2, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(412)), seek, 0, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.TryGetLastAcceptedSequence(seek.CoalescingKey, out ulong latest), Is.True);
+            Assert.That(latest, Is.EqualTo(2UL));
+
+            Assert.That(ledger.Accept(new OperationId(GuidFor(413)), pause, 1, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(414)), pause, 2, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(415)), seek, 3, 4, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(416)), seek, 2, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+
+            ledger.AdvanceConflictFloor(Scene, Incarnation, 4);
+            Assert.That(ledger.IndexedKeyCount, Is.Zero);
+            Assert.That(ledger.Accept(new OperationId(GuidFor(417)), seek, 3, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(418)), seek, 4, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+        }
+
+        [Test]
         public void ConflictIndex_AllSceneBarriersConflictWithEarlierAndLaterProposalsAcrossKeys()
         {
             ScheduleDescriptor keyA = ScheduleDescriptor.ForMutation(Scene, Incarnation, SiteColor("column-A", "site-A", 0.1f));
