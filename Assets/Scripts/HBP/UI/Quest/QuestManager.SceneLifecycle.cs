@@ -175,23 +175,27 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private async UniTask PrepareSceneDependenciesAsync(Base3DScene scene, Action<float, float, LoadingText> update, CancellationToken token, bool reportAtlasErrors)
+        private async UniTask PrepareSceneDependenciesAsync(Base3DScene scene, Action<float, float, LoadingText> update, CancellationToken token, bool reportAtlasErrors, string timingScope)
         {
+            using var timing = PairingTiming.Measure("desktop.scene-preferences-and-atlas", timingScope);
             if (sessionPreferences == null) return;
             var pending = sessionPreferences.FlushPreferencesAsync();
             if (!pending.IsCompleted) update(0, 0, new LoadingText("Waiting for session settings"));
-            await pending.AsUniTask().AttachExternalCancellation(token);
-            foreach (string atlas in scene.RequiredAtlasIds())
-            {
-                if (!SessionAtlasCatalog.CanUse(atlas)) update(0, 0, new LoadingText("Preparing atlas ", atlas));
-                await sessionPreferences.EnsureAtlasReadyAsync(atlas, token, reportError: reportAtlasErrors);
-            }
+            using (PairingTiming.Measure("desktop.scene-wait-preferences", timingScope))
+                await pending.AsUniTask().AttachExternalCancellation(token);
+            using (PairingTiming.Measure("desktop.scene-wait-atlases", timingScope))
+                foreach (string atlas in scene.RequiredAtlasIds())
+                {
+                    if (!SessionAtlasCatalog.CanUse(atlas)) update(0, 0, new LoadingText("Preparing atlas ", atlas));
+                    await sessionPreferences.EnsureAtlasReadyAsync(atlas, token, reportError: reportAtlasErrors);
+                }
         }
 
         private async Task<bool> SendSceneCoreAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, Action validate = null, bool reportAtlasErrors = true, Action<SceneLoadingStatus> reportStatus = null, Func<Task> announcePreparation = null, CancellationToken? userCancellation = null)
         {
             await UniTask.SwitchToMainThread(token);
-            using var preparation = PairingTiming.Measure("desktop.scene-publication-total");
+            string timingScope = PairingTiming.Enabled ? entry.DisplayOwner?.TimingScope ?? Guid.NewGuid().ToString("N") : null;
+            using var preparation = PairingTiming.Measure("desktop.scene-publication-total", timingScope);
             var unity = SynchronizationContext.Current;
             bool reporting = true;
             long nextReport = 0, appliedReport = 0;
@@ -219,10 +223,7 @@ namespace HBP.Quest.Desktop
                 if (!IsPaired || globals == null) throw new InvalidOperationException("Pair a Quest first.");
                 if (entry.Removed || entry.Scene == null || entry.Scene.IsClosing) throw new InvalidOperationException("The visualization has been closed.");
                 if (sessionPreferences != null)
-                {
-                    using var preferences = PairingTiming.Measure("desktop.scene-preferences-and-atlas");
-                    await PrepareSceneDependenciesAsync(entry.Scene, (value, duration, text) => Report(value, duration, text), token, reportAtlasErrors);
-                }
+                    await PrepareSceneDependenciesAsync(entry.Scene, (value, duration, text) => Report(value, duration, text), token, reportAtlasErrors, timingScope);
 
                 await UniTask.SwitchToMainThread(token);
 
@@ -233,7 +234,8 @@ namespace HBP.Quest.Desktop
                     if (restart > 0 && sessionPreferences != null)
                         foreach (string atlas in entry.Scene.RequiredAtlasIds())
                             await sessionPreferences.EnsureAtlasReadyAsync(atlas, token, reportError: reportAtlasErrors);
-                    await PrepareSceneOfferAsync(entry, retry, token, (value, duration, text) => Report(value, duration, text), announcePreparation: announcePreparation);
+                    await PrepareSceneOfferAsync(entry, retry, token, (value, duration, text) => Report(value, duration, text), announcePreparation: announcePreparation, timingScope: timingScope);
+                    using var attempt = PairingTiming.Measure("desktop.scene-attempt-through-ready", entry.Offer.TransferId);
                     entry.PreparedForDisplay = false;
 
                     var owner = entry.Owner;
@@ -255,7 +257,7 @@ namespace HBP.Quest.Desktop
                                 float fraction = total == 0 ? 0 : Mathf.Clamp01((float)sent / total);
                                 Report(.20f + .65f * fraction, 0, new LoadingText("Sending scene to Quest ", entry.Scene.Visualization.Name, $" - {Mathf.RoundToInt(fraction * 100)}%"), true, fraction);
                             }, () => Report(.85f, 0, new LoadingText("Waiting for scene preparation on Quest")));
-                        });
+                        }, timingScope: entry.Offer.TransferId);
                         await UniTask.SwitchToMainThread(token);
                         validate?.Invoke();
                         if (entry.Removed) return false;
@@ -271,8 +273,10 @@ namespace HBP.Quest.Desktop
                         Report(.97f, 0, new LoadingText("Synchronizing scene"));
                         using (PairingTiming.Measure("desktop.scene-initial-sync", entry.Offer.TransferId))
                         {
-                            await owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, deliveryStop.Token);
-                            await owner.WaitInitialRenderingAsync(deliveryStop.Token);
+                            using (PairingTiming.Measure("desktop.scene-initial-state-sync", entry.Offer.TransferId))
+                                await owner.StartAfterPublicationAsync(entry.Binding, endpoint, pin, credential, deliveryStop.Token);
+                            using (PairingTiming.Measure("desktop.scene-initial-science-ready", entry.Offer.TransferId))
+                                await owner.WaitInitialRenderingAsync(deliveryStop.Token);
                         }
 
                         await UniTask.SwitchToMainThread(token);
@@ -327,11 +331,12 @@ namespace HBP.Quest.Desktop
             }
         }
 
-        private async Task PrepareSceneOfferAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, long maximumBytes = long.MaxValue, Func<Task> announcePreparation = null)
+        private async Task PrepareSceneOfferAsync(Publication entry, bool retry, CancellationToken token, Action<float, float, LoadingText> update, long maximumBytes = long.MaxValue, Func<Task> announcePreparation = null, string timingScope = null)
         {
             if (globals != null && globals.Context.Data.DefinitionsRevision < definitionsRevision)
                 update(0, 0, new LoadingText("Synchronizing shared definitions"));
-            await FlushDefinitionsAsync(token);
+            using (PairingTiming.Measure("desktop.scene-wait-definitions", timingScope))
+                await FlushDefinitionsAsync(token);
             bool reuse = entry.Offer != null && entry.Owner?.CanRetryTransfer == true && (entry.PreparedForDisplay && !entry.OfferWasSent || retry && entry.Offer.CanRetry);
             if (!reuse && (entry.OfferWasSent || entry.UncertainTransfers.Count != 0) && entry.Binding == null)
             {
@@ -352,6 +357,8 @@ namespace HBP.Quest.Desktop
                 if (entry.Offer != null) await entry.Offer.DisposeAsync();
                 entry.Offer = null;
                 string transferId = Guid.NewGuid().ToString("N");
+                if (timingScope != null)
+                    PairingTiming.Link(entry.DisplayOwner == null ? "desktop-publication" : "desktop-display", timingScope, transferId);
                 long generation = Interlocked.Increment(ref nextTransferCaptureGeneration);
                 update(.05f, 0, new LoadingText("Preparing scene for transfer"));
                 if (announcePreparation != null) await announcePreparation();
@@ -359,9 +366,16 @@ namespace HBP.Quest.Desktop
                 {
                     entry.Owner = new DesktopReplicaSession(scene, session, incarnation);
                     entry.Owner.OnActionReceived.AddListener(action => ReceiveSceneAction(entry, action));
-                }, maximumOwnedSnapshotBytes: maximumBytes);
+                }, maximumOwnedSnapshotBytes: maximumBytes, peerSupportsCompactScenes: sessionPreferences?.SupportsCompactScenes == true, peerSupportsGroupedScenes: sessionPreferences?.SupportsGroupedScenes == true);
             }
-            else update(.20f, 0, new LoadingText(entry.Offer.IsPreparingResources ? "Encoding scene data" : "Scene ready to send"));
+            else
+            {
+                if (entry.DisplayOwner != null)
+                    PairingTiming.Link("desktop-display", timingScope, entry.Offer.TransferId);
+                else
+                    PairingTiming.Link("desktop-publication", timingScope, entry.Offer.TransferId);
+                update(.20f, 0, new LoadingText(entry.Offer.IsPreparingResources ? "Encoding scene data" : "Scene ready to send"));
+            }
         }
 
         private async Task RetireInterruptedPublicationAsync(Publication entry, CancellationToken token)

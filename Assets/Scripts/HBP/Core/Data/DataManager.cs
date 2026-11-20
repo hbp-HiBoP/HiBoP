@@ -458,13 +458,19 @@ namespace HBP.Core.Data
             UpdateDerivedMemoryUsage(dataInfo);
         }
 
-        public static void NormalizeiEEGData(bool useParallelProcessing = false)
+        public static void NormalizeiEEGData(bool useParallelProcessing = false) => NormalizeiEEGData(null, useParallelProcessing);
+
+        internal static void NormalizeiEEGData(IEnumerable<IEEGDataInfo> recordings, bool useParallelProcessing)
         {
+            var requested = recordings?.ToHashSet();
+            if (requested?.Count == 0) return;
+
+            ILookup<IEEGDataInfo, BlocRequest> requestsByRecording;
             m_DataLock.EnterReadLock();
-            List<IEEGDataInfo> dataInfoCollection;
             try
             {
-                dataInfoCollection = m_DataByRequest.Select((d) => d.Key.DataInfo).OfType<IEEGDataInfo>().Distinct().ToList();
+                var loaded = m_DataByRequest.Keys.Select(request => request.DataInfo).OfType<IEEGDataInfo>().ToHashSet();
+                requestsByRecording = m_BlocDataByRequest.Keys.Where(request => request.DataInfo is IEEGDataInfo info && loaded.Contains(info) && (requested == null || requested.Contains(info))).ToLookup(request => (IEEGDataInfo)request.DataInfo);
             }
             finally
             {
@@ -473,16 +479,7 @@ namespace HBP.Core.Data
 
             Action<IEEGDataInfo> normalizeDataInfo = dataInfo =>
             {
-                m_DataLock.EnterReadLock();
-                IEnumerable<BlocRequest> dataRequestCollection;
-                try
-                {
-                    dataRequestCollection = m_BlocDataByRequest.Where((d) => d.Key.DataInfo == dataInfo).Select((d) => d.Key).ToList();
-                }
-                finally
-                {
-                    m_DataLock.ExitReadLock();
-                }
+                IEnumerable<BlocRequest> dataRequestCollection = requestsByRecording[dataInfo];
 
                 switch (dataInfo.Normalization)
                 {
@@ -711,7 +708,8 @@ namespace HBP.Core.Data
                 }
             };
 
-            int normalizationDegree = useParallelProcessing && dataInfoCollection.Count > 1 ? Math.Min(5, dataInfoCollection.Count) : 1;
+            var dataInfoCollection = requestsByRecording.Select(group => group.Key);
+            int normalizationDegree = useParallelProcessing ? Math.Min(5, requestsByRecording.Count) : 1;
             if (normalizationDegree > 1)
             {
                 Parallel.ForEach(dataInfoCollection, new ParallelOptions { MaxDegreeOfParallelism = normalizationDegree }, normalizeDataInfo);

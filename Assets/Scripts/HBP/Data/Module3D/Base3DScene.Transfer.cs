@@ -99,9 +99,9 @@ namespace HBP.Data.Module3D
         }
 
         /// <summary>Resource decoding feeds the same initializer as project loading.</summary>
-        public UniTask InitializePreparedAsync(Func<CancellationToken, UniTask> loadResources, Action<float, float, LoadingText> progress, CancellationToken token)
+        public UniTask InitializePreparedAsync(Func<CancellationToken, UniTask> loadResources, Action<float, float, LoadingText> progress, CancellationToken token, Func<string, IDisposable> measure = null)
         {
-            m_InitializationWork = InitializeContentAsync(Visualization, progress, token, loadResources).ToAsyncLazy().Task;
+            m_InitializationWork = InitializeContentAsync(Visualization, progress, token, loadResources, measure).ToAsyncLazy().Task;
             return m_InitializationWork;
         }
     }

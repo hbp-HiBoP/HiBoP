@@ -417,8 +417,7 @@ namespace HBP.Sync.Scene
             if (mutation == null) throw new ArgumentNullException(nameof(mutation));
             if (origin != MutationApplicationOrigin.Remote && m_ReconciliationLock != null) return;
             // Desktop lists can deliberately pick an unmasked contact hidden in the 3D view.
-            bool allowRetainedSiteSelection = origin == MutationApplicationOrigin.Remote ||
-                origin == MutationApplicationOrigin.LocalDesktop && mutation is SetSelectedSite { SiteId: not null } selection && !ResolveSite(selection.ColumnId, selection.SiteId).IsMasked;
+            bool allowRetainedSiteSelection = origin == MutationApplicationOrigin.Remote || origin == MutationApplicationOrigin.LocalDesktop && mutation is SetSelectedSite { SiteId: not null } selection && !ResolveSite(selection.ColumnId, selection.SiteId).IsMasked;
             ValidateMutation(mutation, allowRetainedSiteSelection);
             SceneMutationCheckpoint checkpointRollback = origin == MutationApplicationOrigin.LocalQuest && mutation is SetConfigurationTransaction ? CaptureCheckpoint() : null;
             SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
@@ -637,20 +636,17 @@ namespace HBP.Sync.Scene
         {
             rebased = checkpoint;
             rebasedProvenance = checkpointProvenance;
-            int batchIndex = -1;
-            SetSiteConfigurationBatch currentBatch = null;
+            T11CheckpointRecord[] records = null;
             for (int i = 0; i < checkpoint.T11Records.Count; i++)
             {
                 if (checkpoint.T11Records[i].Value is not SetSiteConfigurationBatch batch) continue;
-                batchIndex = i;
-                currentBatch = batch;
-                break;
+                if (!TryRebaseTargetedSiteConfigurationRollback(batch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, rebasedProvenance, out Mutation rebasedMutation, out var updatedProvenance)) continue;
+                records ??= checkpoint.T11Records.ToArray();
+                records[i] = new T11CheckpointRecord(rebasedMutation);
+                rebasedProvenance = updatedProvenance;
             }
 
-            if (currentBatch == null) return false;
-            if (!TryRebaseTargetedSiteConfigurationRollback(currentBatch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, checkpointProvenance, out Mutation rebasedMutation, out rebasedProvenance)) return false;
-            var records = checkpoint.T11Records.ToArray();
-            records[batchIndex] = new T11CheckpointRecord(rebasedMutation);
+            if (records == null) return false;
             rebased = new SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records, checkpoint.T12Records, checkpoint.T13Records);
             return true;
         }
@@ -1479,16 +1475,15 @@ namespace HBP.Sync.Scene
         {
             if (records == null) throw new ArgumentNullException(nameof(records));
             var touched = new HashSet<TouchedKey>();
+            var sites = new HashSet<(string ColumnId, string SiteId)>();
             var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
             var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
             foreach (T11CheckpointRecord record in records)
             {
                 if (record?.Value == null || record.Value is SetConfigurationTransaction)
                     throw new ArgumentException("Checkpoint contains an unsupported T11 record.", nameof(records));
-                MutationDescriptor descriptor = MutationDescriptor.Create(validationScene, validationIncarnation, record.Value);
-                foreach (TouchedKey key in descriptor.TouchedKeys)
-                    if (!touched.Add(key))
-                        throw new ArgumentException("Checkpoint contains a duplicate T11 record key.", nameof(records));
+                if (!SceneMutationCheckpointCodec.TryAddT11Keys(record.Value, validationScene, validationIncarnation, touched, sites))
+                    throw new ArgumentException("Checkpoint contains a duplicate T11 record key.", nameof(records));
                 ValidateMutation(record.Value);
             }
         }
@@ -2326,8 +2321,7 @@ namespace HBP.Sync.Scene
                 }
             }
 
-            if (m_SitesById.Count > 0)
-                Add(CreateSiteConfigurationBatch(m_SitesById.Keys.Select(key => (key.ColumnId, key.SiteId))));
+            records.AddRange(SceneMutationCheckpointCodec.CreateSiteConfigurationRecords(CaptureSiteConfigurationAssignments(m_SitesById.Keys.Select(key => (key.ColumnId, key.SiteId)))));
             return records;
         }
 
@@ -3116,16 +3110,15 @@ namespace HBP.Sync.Scene
 
         private static SetCcepSource CreateCcepSource(Column3DCCEP column) => new SetCcepSource(new ColumnId(column.ColumnData.ID), (CcepSourceMode)column.Mode, column.SelectedSourceSite == null ? null : new SiteId(column.SelectedSourceSite.Information.FullID), column.Mode == Column3DCCEP.CCEPMode.Site ? -1 : column.SelectedSourceMarsAtlasLabel);
 
-        private SetSiteConfigurationBatch CreateSiteConfigurationBatch(IEnumerable<(ColumnId ColumnId, SiteId SiteId)> targets)
+        private SetSiteConfigurationBatch CreateSiteConfigurationBatch(IEnumerable<(ColumnId ColumnId, SiteId SiteId)> targets) => new SetSiteConfigurationBatch(CaptureSiteConfigurationAssignments(targets));
+
+        private IEnumerable<SiteConfigurationAssignment> CaptureSiteConfigurationAssignments(IEnumerable<(ColumnId ColumnId, SiteId SiteId)> targets)
         {
-            var assignments = new List<SiteConfigurationAssignment>();
             foreach ((ColumnId columnId, SiteId siteId) in targets)
             {
                 SiteState state = ResolveSite(columnId, siteId);
-                assignments.Add(new SiteConfigurationAssignment(columnId, siteId, state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels));
+                yield return new SiteConfigurationAssignment(columnId, siteId, state.IsBlackListed, state.IsHighlighted, state.Color.r, state.Color.g, state.Color.b, state.Color.a, state.Labels);
             }
-
-            return new SetSiteConfigurationBatch(assignments);
         }
 
         private void ValidateT10Mutation(Mutation mutation)
@@ -3662,6 +3655,7 @@ namespace HBP.Sync.Scene
                         foreach (Column3D column in m_Scene.Columns) column.IsSelected = false;
                         m_LastSelectedColumn = selected;
                     }
+
                     return true;
                 case SetSceneBoolean value:
                     WriteSceneBoolean(value);
@@ -3885,9 +3879,7 @@ namespace HBP.Sync.Scene
 
         private SetSelectedSite CurrentSelectedSite()
         {
-            return m_Scene.SelectedSite
-                ? new SetSelectedSite(new ColumnId(m_Scene.SelectedSiteColumn.ColumnData.ID), new SiteId(m_Scene.SelectedSite.Information.FullID))
-                : CurrentEmptySiteSelection();
+            return m_Scene.SelectedSite ? new SetSelectedSite(new ColumnId(m_Scene.SelectedSiteColumn.ColumnData.ID), new SiteId(m_Scene.SelectedSite.Information.FullID)) : CurrentEmptySiteSelection();
         }
 
         private SetSelectedSite CurrentEmptySiteSelection() => m_Scene.Columns.Count == 0 ? null : new SetSelectedSite(new ColumnId(m_Scene.Columns[0].ColumnData.ID), null);

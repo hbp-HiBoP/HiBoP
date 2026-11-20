@@ -44,19 +44,19 @@ namespace HBP.Transfer.Scene
         public bool CanRetry => blocks == null || blocks.IsPrepared;
         public bool IsPreparingResources => blocks?.IsPreparingResources == true;
 
-        internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, SyncTelemetryIdentity telemetryIdentity = default)
+        internal SceneDelivery(string file, string transferId, string sessionId, string summary, Func<SceneDelivery, System.Collections.Generic.IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, SyncTelemetryIdentity telemetryIdentity = default)
         {
             this.file = file;
             TransferId = transferId;
             SessionId = sessionId;
             Summary = summary;
             this.telemetryIdentity = telemetryIdentity;
-            blocks = new BlockDelivery(file, prepare, release, token, bytes =>
+            blocks = new BlockDelivery(file, () => prepare(this), release, token, bytes =>
             {
                 if (!telemetryIdentity.IsValid) return;
                 encodedTelemetryPoint = SyncTelemetry.CapturePoint();
                 encodedTelemetryBytes = bytes;
-            });
+            }, transferId);
         }
 
         public SceneDelivery(string file, string transferId, string sessionId, string summary, SyncTelemetryIdentity telemetryIdentity = default)
@@ -72,7 +72,8 @@ namespace HBP.Transfer.Scene
                 encodedBytes = source.Length;
                 if (EncodedBytes < 1 || EncodedBytes > PinnedTlsTransfer.MaximumSceneFileBytes)
                     throw new InvalidDataException("Visualization exceeds the transfer budget.");
-                digest = HBP.Core.Tools.Sha256.ComputeHash(source);
+                using (PairingTiming.Measure("desktop.archive-file-sha256-with-read", transferId))
+                    digest = HBP.Core.Tools.Sha256.ComputeHash(source);
                 contentHash = BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant();
                 if (telemetryIdentity.IsValid)
                 {
@@ -104,7 +105,8 @@ namespace HBP.Transfer.Scene
         {
             if (PreparedManifest != null) return PreparedManifest;
             if (blocks != null) throw new InvalidOperationException("The block delivery is not prepared.");
-            return PreparedManifest = PreparedSceneManifest.FromArchiveFile(file);
+            using var timing = PairingTiming.Measure("desktop.archive-read-prepared-manifest", TransferId);
+            return PreparedManifest = PreparedSceneManifest.FromArchiveFile(file, TransferId);
         }
 
         public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress = null, Action<long, long> detailedProgress = null, Action payloadSent = null)
@@ -119,9 +121,11 @@ namespace HBP.Transfer.Scene
             bool entered = false;
             try
             {
-                await sendGate.WaitAsync(stop).ConfigureAwait(false);
+                using (PairingTiming.Measure("desktop.scene-send-gate", TransferId))
+                    await sendGate.WaitAsync(stop).ConfigureAwait(false);
                 entered = true;
                 long attemptId = Interlocked.Increment(ref nextAttemptId);
+                using var timing = PairingTiming.Measure("desktop.scene-send-and-receipt", TransferId, attemptId);
                 SyncTelemetryIdentity attemptIdentity = telemetryIdentity.WithAttempt(attemptId);
                 SyncTelemetryPoint firstWritten = default;
                 SyncTelemetryPoint lastWritten = default;
@@ -130,11 +134,7 @@ namespace HBP.Transfer.Scene
                 {
                     try
                     {
-                        receipt = await blocks.SendAsync(stream, stop, progress, detailedProgress, () => firstWritten = SyncTelemetry.CapturePoint(), () =>
-                        {
-                            lastWritten = SyncTelemetry.CapturePoint();
-                            payloadSent?.Invoke();
-                        }).ConfigureAwait(false);
+                        receipt = await blocks.SendAsync(stream, stop, progress, detailedProgress, () => firstWritten = SyncTelemetry.CapturePoint(), payloadSent, attemptId, () => lastWritten = SyncTelemetry.CapturePoint()).ConfigureAwait(false);
                     }
                     catch
                     {
@@ -153,7 +153,7 @@ namespace HBP.Transfer.Scene
                             progress?.Invoke(count);
                             detailedProgress?.Invoke(count, encodedBytes);
                             if (count >= encodedBytes) lastWritten = SyncTelemetry.CapturePoint();
-                        }, () => firstWritten = SyncTelemetry.CapturePoint(), payloadSent).ConfigureAwait(false);
+                        }, () => firstWritten = SyncTelemetry.CapturePoint(), payloadSent, TransferId, attemptId).ConfigureAwait(false);
                     }
                     catch
                     {
@@ -165,6 +165,7 @@ namespace HBP.Transfer.Scene
                 }
 
                 SyncTelemetryPoint publicationReceipt = SyncTelemetry.CapturePoint();
+                PairingTiming.Count("desktop.scene-publication-status", (long)receipt.Status, TransferId, attemptId);
                 PublishCapture();
                 PublishEncoded();
                 PublishAttempt(attemptIdentity, firstWritten, lastWritten, publicationReceipt, EncodedBytes);

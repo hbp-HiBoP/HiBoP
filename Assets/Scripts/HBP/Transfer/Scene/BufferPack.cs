@@ -1,4 +1,5 @@
 using System;
+using HBP.Transfer.Transport;
 using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
@@ -12,9 +13,12 @@ namespace HBP.Transfer.Scene
     internal sealed class BufferPack
     {
         internal const string IndexName = "buffers.index", DataName = "buffers.pack";
-        // Dense recordings can have hundreds of thousands of short numeric ranges.
-        // The index stays within 24 MiB plus its header. Payload byte budgets still apply.
-        internal const int MaximumCount = 512 * 1024, MaximumIndexBytes = 12 + 48 * MaximumCount;
+
+        internal const int IndexHeaderBytes = 12, IndexEntryBytes = 48;
+        internal const int LegacyMaximumCount = 512 * 1024;
+        internal const int MaximumCount = (int)((SceneArchive.MaximumExpandedBytes - IndexHeaderBytes) / IndexEntryBytes);
+        internal const long MaximumIndexBytes = IndexHeaderBytes + (long)IndexEntryBytes * MaximumCount;
+        internal long IndexLength => IndexHeaderBytes + (long)IndexEntryBytes * Entries.Count;
         internal readonly List<Entry> Entries = new();
         private readonly Dictionary<string, int> byName = new(StringComparer.Ordinal);
         private readonly object gate = new();
@@ -45,7 +49,7 @@ namespace HBP.Transfer.Scene
         internal bool Contains(string name) => name != null && byName.ContainsKey(name);
         internal int IndexOf(string name) => byName.TryGetValue(name, out int index) ? index : throw new InvalidDataException("Unknown packed buffer.");
 
-        internal void WriteIndex(Stream output)
+        internal void WriteIndex(Stream output, CancellationToken token = default)
         {
             using var writer = new BinaryWriter(output, Encoding.UTF8, true);
             writer.Write(0x49504248);
@@ -53,6 +57,7 @@ namespace HBP.Transfer.Scene
             writer.Write(Entries.Count);
             foreach (var entry in Entries)
             {
+                token.ThrowIfCancellationRequested();
                 writer.Write(entry.Hash);
                 writer.Write(entry.Offset);
                 writer.Write(entry.Length);
@@ -89,14 +94,20 @@ namespace HBP.Transfer.Scene
             file = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 65536);
         }
 
-        internal Stream Open(int index)
+        internal Stream Open(int index) => Open(index, 0, null);
+
+        internal Stream Open(int index, long offset, long? length)
         {
             lock (gate)
             {
                 if (retired) throw new ObjectDisposedException(nameof(BufferPack));
                 if (file == null || index < 0 || index >= Entries.Count) throw new InvalidDataException("Invalid packed buffer reference.");
+                var entry = Entries[index];
+                long size = length ?? entry.Length;
+                if (offset < 0 || size < 0 || offset > entry.Length || size > entry.Length - offset)
+                    throw new InvalidDataException("Numeric slice exceeds its verified buffer.");
                 readers++;
-                return new Range(this, Entries[index]);
+                return new Range(this, entry.Offset + offset, size);
             }
         }
 
@@ -127,12 +138,14 @@ namespace HBP.Transfer.Scene
         {
             private readonly BufferPack pack;
             private readonly SHA256 sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
+            private readonly PairingTiming.Accumulator hashing;
             private int index;
             private long position;
 
-            internal Verifier(BufferPack pack)
+            internal Verifier(BufferPack pack, PairingTiming.Accumulator hashing = null)
             {
                 this.pack = pack;
+                this.hashing = hashing;
                 try
                 {
                     FinishBoundaries();
@@ -148,7 +161,8 @@ namespace HBP.Transfer.Scene
             {
                 while (index < pack.Entries.Count && position == pack.Entries[index].Length)
                 {
-                    sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
+                    using (PairingTiming.Measure(hashing))
+                        sha.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                     byte[] actual = sha.Hash, expected = pack.Entries[index].Hash;
                     for (int i = 0; i < 32; i++)
                         if (actual[i] != expected[i])
@@ -166,7 +180,8 @@ namespace HBP.Transfer.Scene
                     token.ThrowIfCancellationRequested();
                     if (index == pack.Entries.Count) throw new InvalidDataException("Extra pack bytes.");
                     int take = (int)Math.Min(count - offset, pack.Entries[index].Length - position);
-                    sha.TransformBlock(buffer, offset, take, null, 0);
+                    using (PairingTiming.Measure(hashing, take))
+                        sha.TransformBlock(buffer, offset, take, null, 0);
                     position += take;
                     offset += take;
                     FinishBoundaries();
@@ -184,19 +199,20 @@ namespace HBP.Transfer.Scene
         private sealed class Range : Stream
         {
             private BufferPack owner;
-            private readonly Entry entry;
+            private readonly long start, length;
             private long position;
 
-            internal Range(BufferPack owner, Entry entry)
+            internal Range(BufferPack owner, long start, long length)
             {
                 this.owner = owner;
-                this.entry = entry;
+                this.start = start;
+                this.length = length;
             }
 
             public override bool CanRead => owner != null;
             public override bool CanSeek => owner != null;
             public override bool CanWrite => false;
-            public override long Length => entry.Length;
+            public override long Length => length;
 
             public override long Position
             {
@@ -212,8 +228,8 @@ namespace HBP.Transfer.Scene
                 lock (pack.gate)
                 {
                     if (owner == null) throw new ObjectDisposedException(nameof(Range));
-                    int count = (int)Math.Min(buffer.Length, entry.Length - position);
-                    pack.file.Position = entry.Offset + position;
+                    int count = (int)Math.Min(buffer.Length, length - position);
+                    pack.file.Position = start + position;
                     int read = pack.file.Read(buffer.Slice(0, count));
                     position += read;
                     return read;

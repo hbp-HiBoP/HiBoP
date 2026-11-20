@@ -136,7 +136,7 @@ namespace HBP.Sync.Scene
                                 if (result.State == AtlasLoadState.Loaded) loaded.Add(definition.Id, "");
                             }
 
-                        response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
+                        response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, fingerprint: request.Fingerprint == SessionControlCodec.GroupedSceneCapability ? SessionControlCodec.GroupedSceneCapability : SessionControlCodec.CompactSceneCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
                         break;
                     case SessionControlKind.AtlasInventory:
                         var inventory = m_Inventory?.Invoke() ?? new SessionAtlasInventory();

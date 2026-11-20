@@ -9,6 +9,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Data.Module3D;
 using HBP.Rendering;
 using HBP.Transfer.Scene;
+using HBP.Transfer.Transport;
 using UnityEngine;
 
 namespace HBP.Quest
@@ -169,6 +170,7 @@ namespace HBP.Quest
             try
             {
                 candidate = await SceneRestoration.PrepareAsync(payload, archive, contentPrefab, transform, lifetime.Token, scene => preparingScene = scene, progress);
+                using var setup = PairingTiming.Measure("quest.scene-setup-presentation", archive.TimingScope ?? payload.TransferId);
                 progress?.Invoke(.96f, 0, new HBP.Core.Tools.LoadingText("Setting up scene"));
                 if (candidate.Scene.SelectedColumn == null && candidate.Scene.Columns.Count > 0) candidate.Scene.Columns[0].IsSelected = true;
                 var previous = scenes.FirstOrDefault(value => value.Scene.Visualization.ID == candidate.Scene.Visualization.ID);

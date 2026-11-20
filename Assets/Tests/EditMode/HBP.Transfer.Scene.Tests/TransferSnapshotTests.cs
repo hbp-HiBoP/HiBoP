@@ -8,6 +8,7 @@ using Cysharp.Threading.Tasks;
 using HBP.Core.DLL;
 using HBP.Core.Object3D;
 using HBP.Transfer.Scene;
+using HBP.Transfer.Transport;
 using NUnit.Framework;
 using UnityEngine;
 
@@ -215,6 +216,44 @@ namespace HBP.Tests.Transfer
             {
                 if (Directory.Exists(root)) Directory.Delete(root, true);
             }
+        }
+
+        [Test]
+        public async Task CompactSceneKeepsSharedGeometryAndIndependentMasks()
+        {
+            string root = Path.Combine(Path.GetTempPath(), "hibop-compact-surface-" + Guid.NewGuid().ToString("N"));
+            using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: true) { DetachCapture = true };
+            using var surface = Triangle();
+            var payload = PreparedSceneArchiveTests.Fixture(source);
+            payload.Version = ScenePayload.CompactSignalFormatVersion;
+            payload.Meshes[0].SimplifiedBoth = source.AddSurface(surface);
+            surface.UpdateVisibilityMask(new[] { 0 }).Dispose();
+            payload.Meshes[0].SimplifiedLeft = source.AddSurface(surface);
+            byte[] metadata = source.CaptureDetachedMetadata(payload).Encode(source);
+            using var transport = new MemoryStream();
+            BlockContainer.Produce(source.CaptureBlockResources(metadata), packet => transport.Write(packet, 0, packet.Length), CancellationToken.None);
+            using var target = new SceneArchive(Path.Combine(root, "target"), true, source.Globals) { SurfaceCache = new ReceivedSurfaceCache() };
+            transport.Position = 4;
+            await BlockContainer.ReceiveAsync(transport, target, CancellationToken.None);
+            var descriptor = target.ReadPrepared().Meshes[0];
+
+            byte[] GeometryHash(string name)
+            {
+                using var reader = new BinaryReader(target.OpenBuffer(name));
+                reader.ReadInt32();
+                return reader.ReadBytes(64);
+            }
+
+            Assert.That(descriptor.SimplifiedBoth, Is.Not.EqualTo(descriptor.SimplifiedLeft));
+            Assert.That(GeometryHash(descriptor.SimplifiedBoth), Is.EqualTo(GeometryHash(descriptor.SimplifiedLeft)));
+            using var first = target.ReadSurface(descriptor.SimplifiedBoth);
+            using var second = target.ReadSurface(descriptor.SimplifiedLeft);
+            Assert.That(first.VisibilityMask, Is.EqualTo(new[] { 1 }));
+            Assert.That(second.VisibilityMask, Is.EqualTo(new[] { 0 }));
+            second.UpdateVisibilityMask(new[] { 1 }).Dispose();
+            AssertSameGeometry(first, second, "reused geometry");
+            first.UpdateVisibilityMask(new[] { 0 }).Dispose();
+            Assert.That(second.VisibilityMask, Is.EqualTo(new[] { 1 }));
         }
 
         private sealed class ReadForbiddenStream : MemoryStream

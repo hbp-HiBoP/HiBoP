@@ -636,10 +636,10 @@ namespace HBP.Transfer.Transport
             });
         }
 
-        public static async Task<DeliveryReceipt> SendAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send)
+        public static async Task<DeliveryReceipt> SendAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send, string timingScope = null)
         {
             DeliveryReceipt receipt = null;
-            await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false)).ConfigureAwait(false);
+            await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false), timingScope: timingScope).ConfigureAwait(false);
             return receipt;
         }
 
@@ -690,7 +690,7 @@ namespace HBP.Transfer.Transport
             return OpenReplicaAsync(host, pin, credential, stop, session.RunConnectionAsync);
         }
 
-        private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null)
+        private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null, string timingScope = null)
         {
             RequirePin(pin);
             if (credential == null || credential.Length != 32)
@@ -700,6 +700,7 @@ namespace HBP.Transfer.Transport
             {
                 await ConnectAsync(host, pin, stop, async (tls, token) =>
                 {
+                    using (timingScope == null ? null : PairingTiming.Measure("desktop.scene-command-admission", timingScope))
                     {
                         await tls.WriteAsync(new[] { command }, 0, 1, token).ConfigureAwait(false);
                         await tls.WriteAsync(credential, 0, credential.Length, token).ConfigureAwait(false);
@@ -707,7 +708,7 @@ namespace HBP.Transfer.Transport
                     }
 
                     await action(tls, token).ConfigureAwait(false);
-                }, timeout ?? TimeSpan.FromMinutes(30)).ConfigureAwait(false);
+                }, timeout ?? TimeSpan.FromMinutes(30), timingScope).ConfigureAwait(false);
             }
             finally
             {
@@ -715,7 +716,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null)
+        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null, string timingScope = null)
         {
             var route = QuestEndpoint.Parse(host);
             IPAddress address = route.Address;
@@ -733,7 +734,8 @@ namespace HBP.Transfer.Transport
             {
                 var source = route.GetLocalAddress();
                 if (source != null) socket.Bind(new IPEndPoint(source, 0));
-                await peer.ConnectAsync(address, port).ConfigureAwait(false);
+                using (timingScope == null ? null : PairingTiming.Measure("desktop.scene-tcp-connect", timingScope))
+                    await peer.ConnectAsync(address, port).ConfigureAwait(false);
                 bool identityMismatch = false;
                 using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) =>
                 {
@@ -743,7 +745,7 @@ namespace HBP.Transfer.Transport
                 });
                 try
                 {
-                    using (PairingTiming.Measure("desktop.tls"))
+                    using (PairingTiming.Measure("desktop.tls", timingScope))
                         await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false).ConfigureAwait(false);
                 }
                 catch (AuthenticationException error)
@@ -752,13 +754,16 @@ namespace HBP.Transfer.Transport
                     throw new IOException("Could not establish the Quest TLS connection.", error);
                 }
 
-                deadline.CancelAfter(operationTimeout ?? TimeSpan.FromSeconds(15));
+                var operationDeadline = operationTimeout ?? TimeSpan.FromSeconds(15);
+                if (timingScope != null) PairingTiming.Count("desktop.scene-deadline-ms", (long)operationDeadline.TotalMilliseconds, timingScope);
+                deadline.CancelAfter(operationDeadline);
                 await action(tls, deadline.Token).ConfigureAwait(false);
             }
             catch (Exception error) when (deadline.IsCancellationRequested && (error is IOException || error is SocketException || error is ObjectDisposedException || error is OperationCanceledException))
             {
                 // Closing a cancelled socket can surface as an IOException on Windows/Mono.
                 if (stop.IsCancellationRequested) throw new OperationCanceledException("Quest operation cancelled.", error, stop);
+                if (timingScope != null) PairingTiming.Count("desktop.scene-deadline-expired", 1, timingScope);
                 throw new TimeoutException("The Quest operation timed out. Check the connection and try again.", error);
             }
         }

@@ -108,6 +108,14 @@ namespace HBP.Transfer.Scene
                     if (ieeg.Data?.ProcessedValuesByChannel == null || ieeg.DynamicConfiguration == null) Fail("Missing iEEG data.");
                     ValidateDynamic(ieeg.Data, ieeg.Bloc, ieeg.Data.ProcessedValuesByChannel.Values);
                     ValidateTrials(ieeg.Data.DataByChannelID.Values, ieeg.Bloc);
+                    if (archive.CompactSignals)
+                    {
+                        if (ieeg.Data.StatisticsByChannelID == null) Fail("Missing iEEG statistics.");
+                        var subBlocs = new HashSet<SubBloc>(ieeg.Bloc.SubBlocs, ReferenceEqualityComparer.Instance);
+                        foreach (var channel in ieeg.Data.StatisticsByChannelID.Values)
+                            if (channel?.Trial.ChannelSubTrialBySubBloc == null || !channel.Trial.ChannelSubTrialBySubBloc.Keys.All(subBlocs.Contains))
+                                Fail("iEEG statistics protocol identities do not match the column.");
+                    }
                 }
                 else if (column is CCEPColumn ccep)
                 {

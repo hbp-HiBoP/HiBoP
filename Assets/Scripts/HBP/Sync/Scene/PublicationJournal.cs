@@ -151,6 +151,32 @@ namespace HBP.Sync.Scene
         public const int MaximumCheckpointBytes = 16 * 1024 * 1024;
         public const int MaximumRecords = 65536;
 
+        internal static IEnumerable<T11CheckpointRecord> CreateSiteConfigurationRecords(IEnumerable<SiteConfigurationAssignment> assignments)
+        {
+            var batch = new List<SiteConfigurationAssignment>();
+            foreach (SiteConfigurationAssignment assignment in assignments)
+            {
+                batch.Add(assignment);
+                if (batch.Count == SetSiteConfigurationBatch.MaximumAssignments)
+                {
+                    yield return new T11CheckpointRecord(new SetSiteConfigurationBatch(batch));
+                    batch.Clear();
+                }
+            }
+
+            if (batch.Count > 0) yield return new T11CheckpointRecord(new SetSiteConfigurationBatch(batch));
+        }
+
+        internal static bool TryAddT11Keys(Mutation mutation, SceneId scene, IncarnationId incarnation, HashSet<TouchedKey> touched, HashSet<(string ColumnId, string SiteId)> sites)
+        {
+            // The checkpoint is atomic across records. Site assignments must not overlap.
+            if (mutation is SetSiteConfigurationBatch batch)
+                return batch.Assignments.All(assignment => sites.Add((assignment.ColumnId.Value, assignment.SiteId.Value)));
+            if (mutation is SetSiteBlacklist blacklist)
+                return sites.Add((blacklist.ColumnId.Value, blacklist.SiteId.Value));
+            return MutationDescriptor.Create(scene, incarnation, mutation).TouchedKeys.All(touched.Add);
+        }
+
         public static byte[] Encode(ulong canonicalSequence, SceneMutationCheckpoint checkpoint)
         {
             if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
@@ -317,13 +343,13 @@ namespace HBP.Sync.Scene
             }
 
             var t11Keys = new HashSet<TouchedKey>();
+            var t11Sites = new HashSet<(string ColumnId, string SiteId)>();
             foreach (T11CheckpointRecord record in t11Records)
             {
                 if (record?.Value == null || record.Value is SetConfigurationTransaction)
                     throw new InvalidDataException("Typed scene checkpoint contains an unsupported T11 record.");
-                foreach (TouchedKey key in MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).TouchedKeys)
-                    if (!t11Keys.Add(key))
-                        throw new InvalidDataException("Typed scene checkpoint contains a duplicate T11 key.");
+                if (!TryAddT11Keys(record.Value, ValidationSceneId, ValidationIncarnationId, t11Keys, t11Sites))
+                    throw new InvalidDataException("Typed scene checkpoint contains a duplicate T11 key.");
             }
         }
 

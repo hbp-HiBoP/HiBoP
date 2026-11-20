@@ -44,6 +44,8 @@ namespace HBP.UI.Quest
         private long m_AtlasChanges;
         private readonly HashSet<string> m_ConfirmedAtlases = new(StringComparer.Ordinal);
         private readonly HashSet<string> m_InventoryRecoveryAttempted = new(StringComparer.Ordinal);
+        public bool SupportsGroupedScenes { get; private set; }
+        public bool SupportsCompactScenes { get; private set; }
         public bool QuestHasSharedScene { get; private set; }
         public string Status { get; private set; } = "Quest session is connecting.";
         private readonly Dictionary<string, string> m_AtlasStates = new(StringComparer.Ordinal);
@@ -73,7 +75,7 @@ namespace HBP.UI.Quest
             m_Preferences.OnSavePreferences.AddListener(OnPreferencesSaved);
         }
 
-        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, body: body);
+        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, fingerprint: kind == SessionControlKind.Open ? SessionControlCodec.GroupedSceneCapability : null, body: body);
 
         private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request, CancellationToken cancellationToken = default)
         {
@@ -140,6 +142,7 @@ namespace HBP.UI.Quest
             var response = await SendAsync(Request(SessionControlKind.Open), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
+            RecordSceneCapabilities(response);
             m_CatalogGeneration = SessionAtlasCatalog.Begin();
             m_Started = true;
             m_Opened.TrySetResult(true);
@@ -160,6 +163,7 @@ namespace HBP.UI.Quest
                     var response = await SendAsync(Request(SessionControlKind.Open), operation.Token);
                     if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability)
                         throw new InvalidOperationException("The Quest session could not resume: " + response.Message);
+                    RecordSceneCapabilities(response);
                 }
                 finally
                 {
@@ -170,6 +174,12 @@ namespace HBP.UI.Quest
             {
                 throw new IOException("Quest became unavailable while resuming its atlas session.");
             }
+        }
+
+        private void RecordSceneCapabilities(SessionControlResponse response)
+        {
+            SupportsGroupedScenes = response.Fingerprint == SessionControlCodec.GroupedSceneCapability;
+            SupportsCompactScenes = SupportsGroupedScenes || response.Fingerprint == SessionControlCodec.CompactSceneCapability;
         }
 
         private void AtlasChanged(AtlasLoadResult result)

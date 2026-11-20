@@ -6,6 +6,8 @@ namespace HBP.Transfer.Scene
 {
     public sealed class ScenePayload
     {
+        public const int GroupedBufferFormatVersion = 6;
+        public const int CompactSignalFormatVersion = 5;
         public const int FormatVersion = 4;
         public const int LegacyFormatVersion = 3;
         public int Version = FormatVersion;

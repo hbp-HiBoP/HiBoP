@@ -27,6 +27,7 @@ namespace HBP.Quest
         private readonly Queue<string> finishedDisplayBatches = new();
         private Guid patientRequestOperation;
         private Guid lastPatientRequestOperation;
+        private IDisposable patientRequestTiming;
         private Entry patientRequestSource;
         private float patientRequestExpires;
         private TaskCompletionSource<bool> patientRequestFinished;
@@ -36,6 +37,7 @@ namespace HBP.Quest
         private void BeginPatientRequest(Guid operation)
         {
             patientRequestOperation = operation;
+            patientRequestTiming = PairingTiming.Measure("quest.patient-request-through-release", operation.ToString("N"));
             patientRequestExpires = Time.realtimeSinceStartup + 60;
             patientRequestFinished = new(TaskCreationOptions.RunContinuationsAsynchronously);
             patientRequestPresentation = PresentPatientRequestAsync(operation, patientRequestFinished.Task);
@@ -58,6 +60,8 @@ namespace HBP.Quest
             if (displayBatch?.Id != patientRequestOperation.ToString("N")) RememberDisplayFinished(patientRequestOperation.ToString("N"));
             lastPatientRequestOperation = patientRequestOperation;
             patientRequestOperation = Guid.Empty;
+            patientRequestTiming?.Dispose();
+            patientRequestTiming = null;
             patientRequestSource = null;
             patientRequestFinished.TrySetResult(true);
             if (message != null) ActionStatus = message;

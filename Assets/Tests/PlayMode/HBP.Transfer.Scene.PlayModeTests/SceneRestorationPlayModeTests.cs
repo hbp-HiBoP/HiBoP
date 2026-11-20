@@ -228,7 +228,14 @@ namespace HBP.Tests.SceneTransfer
                 {
                     var archive = new SceneArchive(Path.Combine(temp.Path, "received-" + cycle), true, source.Globals);
                     await view.ApplyAsync(archive.Read(file), archive, timeout.Token);
-                    view.CompletePlacement(view.Find(view.Scene));
+                    var presentation = view.Find(view.Scene);
+                    view.CompletePlacement(presentation);
+                    if (presentation.DisplayMode != QuestColumnDisplayMode.Split)
+                    {
+                        Assert.That(view.SetColumnDisplayMode(view.Scene, QuestColumnDisplayMode.Split), Is.True);
+                        await UniTask.WaitUntil(() => !presentation.IsTransitioning, cancellationToken: timeout.Token);
+                    }
+
                     for (int columnIndex = 0; columnIndex < view.Columns.Count; columnIndex++)
                         view.Columns[columnIndex].transform.localPosition = Vector3.right * columnIndex * .35f;
                     panel.Refresh();
@@ -1923,7 +1930,7 @@ namespace HBP.Tests.SceneTransfer
                 }
 
                 Assert.That(decodeStages.First().ToString(), Is.EqualTo("Reading scene metadata"));
-                Assert.That(decodeStages.Where(text => text.Prefix == "Restoring scene data").Select(text => text.Suffix), Is.EqualTo(Enumerable.Range(0, 7).Select(index => $" - {index}/6 columns")));
+                Assert.That(decodeStages.Where(text => text.Prefix == "Restoring scene data").Select(text => text.Suffix), Is.EqualTo(Enumerable.Range(0, 7).Select(index => index == 0 ? "" : $" - {index} columns")));
                 Assert.That(decodeStages.Last().ToString(), Is.EqualTo("Checking received scene"));
 
                 var stages = new List<LoadingText>();

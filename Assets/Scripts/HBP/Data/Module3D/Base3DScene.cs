@@ -608,9 +608,7 @@ namespace HBP.Data.Module3D
         private Func<UniTask> m_BeforeColliderPublish;
 
         public Mesh BrainRaycastMesh { get; private set; }
-        public bool IsBrainRaycastGeometryCurrent => !IsClosing && !IsSurfaceRepresentationTransitioning &&
-            !SceneInformation.GeometryNeedsUpdate && !SceneInformation.CutsNeedUpdate &&
-            !SceneInformation.CollidersNeedUpdate && !m_UpdatingColliders;
+        public bool IsBrainRaycastGeometryCurrent => !IsClosing && !IsSurfaceRepresentationTransitioning && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.CollidersNeedUpdate && !m_UpdatingColliders;
         public GenericEvent<Mesh> OnBrainRaycastMeshUpdated { get; } = new();
 
         /// <summary>
@@ -2644,7 +2642,7 @@ namespace HBP.Data.Module3D
             return m_InitializationWork;
         }
 
-        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken, Func<CancellationToken, UniTask> loadPreparedResources = null)
+        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken, Func<CancellationToken, UniTask> loadPreparedResources = null, Func<string, IDisposable> measure = null)
         {
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             CancellationToken token = lifetime.Token;
@@ -2822,16 +2820,21 @@ namespace HBP.Data.Module3D
             }
 
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.92f, 0, new LoadingText("Preparing column data"));
-            await Visualization.CompletePreparedDataAsync(token);
-            await LoadConfiguredResourcesAsync(token);
+            using (measure?.Invoke("quest.restore-prepare-column-data"))
+                await Visualization.CompletePreparedDataAsync(token);
+            using (measure?.Invoke("quest.restore-load-configured-resources"))
+                await LoadConfiguredResourcesAsync(token);
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
-            m_MeshManager.InitializeMeshes();
+            using (measure?.Invoke("quest.restore-initialize-meshes"))
+                m_MeshManager.InitializeMeshes();
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.93f, 0, new LoadingText("Loading sites"));
-            await LoadSitesAsync(visualization.Patients);
+            using (measure?.Invoke("quest.restore-load-sites"))
+                await LoadSitesAsync(visualization.Patients);
             token.ThrowIfCancellationRequested();
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.94f, 0, new LoadingText("Setting up columns"));
-            await LoadColumnsAsync();
+            using (measure?.Invoke("quest.restore-load-columns"))
+                await LoadColumnsAsync();
 
             // Finalization
             token.ThrowIfCancellationRequested();
@@ -3025,8 +3028,9 @@ namespace HBP.Data.Module3D
             await UniTask.SwitchToMainThread();
             // Prepare only resources used by the current scene. Patient preload caches
             // belong to future single-patient scenes and must not be expanded for a send.
-            var existingMeshes = m_MeshManager.Meshes.Distinct().ToArray();
-            var existingMRIs = m_MRIManager.MRIs.Distinct().ToArray();
+            var existingMeshes = m_MeshManager.Meshes.Where(mesh => !mesh.IsLoaded).Distinct().ToArray();
+            var existingMRIs = m_MRIManager.MRIs.Where(mri => !mri.IsLoaded).Distinct().ToArray();
+            if (existingMeshes.Length == 0 && existingMRIs.Length == 0) return;
             // One sequential worker: the native GIFTI parser is not reentrant.
             // m_AnatomyWork retains the scene until this call actually returns.
             await UniTask.RunOnThreadPool(() =>

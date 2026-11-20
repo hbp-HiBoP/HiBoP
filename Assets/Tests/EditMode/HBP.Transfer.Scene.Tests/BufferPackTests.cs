@@ -40,12 +40,59 @@ namespace HBP.Tests.Transfer
         [Test]
         public void DensePackIndexHasItsOwnBoundedMetadataBudget()
         {
-            const int packedIndex = 20 * 1024 * 1024;
+            const long packedIndex = BufferPack.IndexHeaderBytes + (long)BufferPack.IndexEntryBytes * (BufferPack.LegacyMaximumCount + 1);
             const int globalReferences = 1024 * 1024;
             int sceneMetadata = SceneArchive.MaximumMetadataBytes - globalReferences;
             Assert.DoesNotThrow(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata, globalReferences, packedIndex));
             Assert.Throws<InvalidDataException>(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata + 1, globalReferences, packedIndex));
             Assert.Throws<InvalidDataException>(() => SceneArchive.ValidatePackedMetadataBudget(sceneMetadata, globalReferences, BufferPack.MaximumIndexBytes + 1));
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task GroupedNumericSlicesAreBoundedAndReconstructIndependentArrays(bool invalidRange)
+        {
+            using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: true) { DetachCapture = true, GroupNumericBuffers = true };
+            var payload = PreparedSceneArchiveTests.Fixture(source);
+            payload.Version = ScenePayload.GroupedBufferFormatVersion;
+            payload.Meshes[0].StandardBothMask = new[] { 1, 0, 1 };
+            payload.Meshes[0].StandardLeftMask = new[] { 1, 0, 1 };
+            var signals = ((IEEGColumn)payload.Visualization.Columns[1]).Data.ProcessedValuesByChannel;
+            for (int i = 0; i < 2000; i++) signals.Add("site-" + i, new[] { i, (float)i + .25f, 0, 1 });
+            var writer = source.CaptureDetachedMetadata(payload);
+            byte[] metadata = writer.Encode(source);
+            var mesh = writer.Token["Meshes"][0];
+            long both = (long)mesh["StandardBothMask"];
+            long left = (long)mesh["StandardLeftMask"];
+            Assert.That(both, Is.LessThan(0));
+            Assert.That(left, Is.LessThan(0));
+            Assert.That((~both) >> 32, Is.EqualTo((~left) >> 32));
+            Assert.That(left, Is.Not.EqualTo(both));
+            if (invalidRange)
+            {
+                mesh["StandardBothMask"] = ~(((~both >> 32) << 32) | ((long)ushort.MaxValue << 16) | 3L);
+                metadata = System.Text.Encoding.UTF8.GetBytes(writer.Token.ToString(Formatting.None));
+            }
+
+            var resources = source.CaptureBlockResources(metadata);
+            Assert.That(resources.Single(resource => resource.Name == BufferPack.IndexName).Length, Is.LessThan(BufferPack.IndexHeaderBytes + 20L * BufferPack.IndexEntryBytes), "Thousands of short scientific arrays should share a small number of pack entries.");
+            using var stream = new MemoryStream();
+            BlockContainer.Produce(resources, packet => stream.Write(packet, 0, packet.Length), CancellationToken.None);
+            stream.Position = 4;
+            using var target = new SceneArchive(Path.Combine(root, "target"), true, source.Globals);
+            await BlockContainer.ReceiveAsync(stream, target, CancellationToken.None);
+            if (invalidRange)
+            {
+                Assert.Throws<InvalidDataException>(() => target.ReadPrepared());
+                return;
+            }
+
+            var received = target.ReadPrepared();
+            var restored = received.Meshes[0];
+            Assert.That(((IEEGColumn)received.Visualization.Columns[1]).Data.ProcessedValuesByChannel["site-1999"], Is.EqualTo(new[] { 1999f, 1999.25f, 0f, 1f }));
+            Assert.That(restored.StandardBothMask, Is.EqualTo(new[] { 1, 0, 1 }));
+            restored.StandardBothMask[0] = 0;
+            Assert.That(restored.StandardLeftMask, Is.EqualTo(new[] { 1, 0, 1 }));
         }
 
         [Test]
@@ -108,7 +155,7 @@ namespace HBP.Tests.Transfer
             }
 
             var received = ((IEEGColumn)restored.Visualization.Columns[1]).Data.ProcessedValuesByChannel;
-            Assert.That(target.PreparedManifest.VisualizationDescriptorHash, Is.EqualTo(manifest.VisualizationDescriptorHash));
+            Assert.That(target.PreparedManifest.VisualizationId, Is.EqualTo(manifest.VisualizationId));
             Assert.That(target.PreparedManifest.Meshes.Select(mesh => mesh.DescriptorHash), Is.EqualTo(manifest.Meshes.Select(mesh => mesh.DescriptorHash)));
             Assert.That(received.Count, Is.EqualTo(values.Count));
             foreach (var signal in values)
@@ -118,11 +165,22 @@ namespace HBP.Tests.Transfer
             }
         }
 
-        [Test]
-        public void StreamedMetadataRejectsDuplicatePropertiesInsideTheVisualization()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void StreamedMetadataRejectsDuplicatePropertiesInsideTheVisualization(bool singlePass)
         {
             using var reader = new StringReader("{\"Visualization\":{\"ID\":\"first\",\"Columns\":[{\"ID\":\"a\",\"ID\":\"b\"}]}}");
-            var error = Assert.Throws<InvalidDataException>(() => PreparedSceneManifest.Read(reader, CancellationToken.None));
+            var error = Assert.Throws<InvalidDataException>(() =>
+            {
+                if (singlePass)
+                {
+                    using var stream = new PreparedSceneManifest.SinglePassReader(reader, CancellationToken.None);
+                    while (stream.Read())
+                    {
+                    }
+                }
+                else PreparedSceneManifest.Read(reader, CancellationToken.None);
+            });
             Assert.That(error.Message, Is.EqualTo("Duplicate scene property: ID"));
         }
 
@@ -160,6 +218,95 @@ namespace HBP.Tests.Transfer
             Assert.That(restored.Visualization.Configuration.ErasedTriangles, Is.Null);
             Assert.That(restored.Columns[5].Functional[0].Values["patient_A1"], Is.Empty);
             if (version == 4) Assert.That(Directory.GetFiles(target.DirectoryPath).Length, Is.EqualTo(4));
+        }
+
+        [TestCase(false, true, false)]
+        [TestCase(true, true, false)]
+        [TestCase(true, false, false)]
+        [TestCase(true, true, true)]
+        public async Task CompactIEEGPreservesScientificStateAcrossBlockTransport(bool recording, bool singlePass, bool earlyGraph)
+        {
+            using var source = new SceneArchive(Path.Combine(root, "source"), deferResourceWrites: true) { DetachCapture = true, GroupSignalsByRecording = recording };
+            var payload = PreparedSceneArchiveTests.Fixture(source);
+            payload.Version = ScenePayload.CompactSignalFormatVersion;
+            var original = (IEEGColumn)payload.Visualization.Columns[1];
+            var sub = original.Bloc.SubBlocs.Single();
+            var ev = sub.Events.Single();
+            var eventInfo = new EventInformation(new[] { new EventInformation.EventOccurence(1, 201, 4, -3, 205f, 30f, -15f) });
+            var samples = new float[300_000];
+            samples[0] = BitConverter.Int32BitsToSingle(int.MinValue);
+            samples[^1] = 172f;
+            var occurrences = new System.Collections.Generic.Dictionary<Event, EventInformation> { [ev] = eventInfo };
+            original.Data.DataByChannelID["patient_A1"] = new BlocChannelData(new[]
+            {
+                new ChannelTrial(new() { [sub] = new ChannelSubTrial(samples, "uV", true, occurrences) }, true),
+                new ChannelTrial(new() { [sub] = new ChannelSubTrial(new[] { 8f }, "mV", false, occurrences) }, false)
+            });
+            original.Data.StatisticsByChannelID["patient_A1"] = new BlocChannelStatistics(new ChannelTrialStat(new()
+            {
+                [sub] = new ChannelSubTrialStat { TotalNumberOfSubTrials = 10, NumberOfFoundSubTrials = 5, Values = new[] { 3f }, SEM = new[] { .25f } }
+            }, 10, 5));
+            original.Data.ProcessedValuesByChannel["patient_A1"] = new[] { 1f, 2f, 3f, 4f };
+            var alternate = new IEEGColumn("Same recording", new BaseConfiguration(), original.Dataset, original.DataName, original.Bloc, new DynamicConfiguration(), "ieeg-alternate");
+            alternate.Data.Timeline = original.Data.Timeline;
+            alternate.Data.ProjectionTimeline = original.Data.ProjectionTimeline;
+            alternate.Data.DataByChannelID["patient_A1"] = original.Data.DataByChannelID["patient_A1"];
+            alternate.Data.StatisticsByChannelID["patient_A1"] = original.Data.StatisticsByChannelID["patient_A1"];
+            alternate.Data.ProcessedValuesByChannel["patient_A1"] = new[] { 9f, 8f, 7f, 6f };
+            payload.Visualization.Columns.Add(alternate);
+            payload.Columns.Add(new ColumnState { Id = alternate.ID });
+            if (earlyGraph)
+                payload.Columns[4].Functional[0].File = source.AddBuffer(writer => writer.Write(42), ".nii");
+
+            byte[] metadata = source.CaptureDetachedMetadata(payload).Encode(source);
+            using var target = new SceneArchive(Path.Combine(root, "target"), reading: true, globals: source.Globals) { SinglePassMetadata = singlePass, StageGraphDuringBlocks = earlyGraph };
+            using var transport = new MemoryStream();
+            BlockContainer.Produce(source.CaptureBlockResources(metadata), packet => transport.Write(packet, 0, packet.Length), CancellationToken.None);
+            transport.Position = 4;
+            ScenePayload restored;
+            try
+            {
+                await BlockContainer.ReceiveAsync(transport, target, CancellationToken.None);
+                restored = await target.ReadStagedOrPreparedAsync(null, null);
+            }
+            finally
+            {
+                await target.DrainPrivateGraphAsync();
+            }
+
+            var result = (IEEGColumn)restored.Visualization.Columns[1];
+            var ccep = (CCEPColumn)restored.Visualization.Columns[2];
+            Assert.That(restored.Version, Is.EqualTo(ScenePayload.CompactSignalFormatVersion));
+            Assert.That(result.Data.Timeline, Is.SameAs(ccep.Data.Timeline));
+            Assert.That(result.Data.ProjectionTimeline, Is.SameAs(ccep.Data.ProjectionTimeline));
+            Assert.That(result.Bloc, Is.SameAs(original.Bloc));
+            Assert.That(restored.Visualization.Configuration.ErasedTriangles, Is.EqualTo(new[] { 1 }));
+
+            var trials = result.Data.DataByChannelID["patient_A1"].Trials;
+            var first = trials[0].ChannelSubTrialBySubBloc[sub];
+            var second = trials[1].ChannelSubTrialBySubBloc[sub];
+            Assert.That(trials[0].IsValid && first.Found, Is.True);
+            Assert.That(trials[1].IsValid || second.Found, Is.False);
+            Assert.That(first.Unit, Is.EqualTo("uV"));
+            Assert.That(second.Unit, Is.EqualTo("mV"));
+            Assert.That(first.InformationsByEvent[ev].Occurences.Single().TimeFromMainEvent, Is.EqualTo(-15f));
+            Assert.That(first.InformationsByEvent[ev], Is.SameAs(second.InformationsByEvent[ev]));
+            Assert.That(BitConverter.SingleToInt32Bits(first.Values[0]), Is.EqualTo(int.MinValue));
+            Assert.That(first.Values[^1], Is.EqualTo(172f));
+            var values = result.Data.ProcessedValuesByChannel["patient_A1"];
+            Assert.That(values, Is.EqualTo(new[] { 1f, 2f, 3f, 4f }));
+            values[^1] = 42;
+            Assert.That(first.Values[^1], Is.EqualTo(172f));
+            var alternateResult = (IEEGColumn)restored.Visualization.Columns.Last();
+            float[] alternateTrial = alternateResult.Data.DataByChannelID["patient_A1"].Trials[0].ChannelSubTrialBySubBloc[sub].Values;
+            first.Values[^1] = 91f;
+            Assert.That(alternateTrial[^1], Is.EqualTo(172f));
+            Assert.That(alternateResult.Data.ProcessedValuesByChannel["patient_A1"], Is.EqualTo(new[] { 9f, 8f, 7f, 6f }));
+            var stats = result.Data.StatisticsByChannelID["patient_A1"].Trial;
+            Assert.That(stats.TotalNumberOfTrials, Is.EqualTo(10));
+            Assert.That(stats.NumberOfValidTrials, Is.EqualTo(5));
+            Assert.That(stats.ChannelSubTrialBySubBloc[sub].Values, Is.EqualTo(new[] { 3f }));
+            Assert.That(stats.ChannelSubTrialBySubBloc[sub].SEM, Is.EqualTo(new[] { .25f }));
         }
 
         [Test]

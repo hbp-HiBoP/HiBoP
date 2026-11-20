@@ -329,8 +329,8 @@ namespace HBP.Data.Module3D
 
             if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
-                visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
-                visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
+                if (scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes)) visualizationToLoad.Configuration.PreloadedMeshes = meshes;
+                if (scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris)) visualizationToLoad.Configuration.PreloadedMRIs = mris;
             }
 
             visualizationToLoad.GenerateID();

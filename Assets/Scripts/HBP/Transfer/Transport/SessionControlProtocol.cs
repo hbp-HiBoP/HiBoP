@@ -93,6 +93,8 @@ namespace HBP.Transfer.Transport
     public static class SessionControlCodec
     {
         public const string AtlasInventoryCapability = "HiBoP-session-v2";
+        public const string CompactSceneCapability = "scene-format-5";
+        public const string GroupedSceneCapability = "scene-format-6";
         public const int MaximumBodyBytes = 1024 * 1024;
         private const int Version = 1;
 

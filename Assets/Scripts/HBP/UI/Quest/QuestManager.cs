@@ -47,8 +47,7 @@ namespace HBP.Quest.Desktop
         public bool IsPaired => connected && credential != null;
         public string ConnectedId => pin == null ? null : Convert.ToBase64String(pin);
         public string ConnectedLabel => pin == null ? "Quest" : (devices.FirstOrDefault(device => device.Id == ConnectedId)?.Name ?? "Quest") + " · " + (activeEndpoint?.Path == QuestNetworkPath.Usb ? "USB" : "Network") + " · " + BitConverter.ToString(pin, 0, 3).Replace("-", "");
-        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId &&
-            (manualSelected || SelectedRouteKey == activeEndpoint?.RouteKey(ConnectedId));
+        public bool IsSelectedConnected => IsPaired && SelectedId == ConnectedId && (manualSelected || SelectedRouteKey == activeEndpoint?.RouteKey(ConnectedId));
         public bool LastOperationSucceeded { get; private set; }
         public Exception BlockingError { get; private set; }
         private string selectedEndpoint;
@@ -186,9 +185,10 @@ namespace HBP.Quest.Desktop
                 headsetActivityProbe = RefreshHeadsetActivityAsync(headsetActivityGeneration);
             }
 
-            // Once disconnected, discovery owns retry timing and endpoint selection. Probing
-            // the old address here can continuously preempt its per-headset retry backoff.
-            if (!busy && IsPaired && reconnect && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
+            // Display monitors the current connection itself. The ordinary heartbeat needs
+            // a Quest main-thread reply that can be delayed while a large scene is restored.
+            // Once disconnected, discovery owns retry timing and endpoint selection.
+            if (!busy && displayReservation?.IsCurrent != true && IsPaired && reconnect && !autoConnectSuspended && !reconciliationNeedsRetry && Time.unscaledTime >= nextHeartbeat)
             {
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>

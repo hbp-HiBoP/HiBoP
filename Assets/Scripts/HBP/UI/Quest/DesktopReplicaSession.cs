@@ -207,7 +207,10 @@ namespace HBP.Quest.Desktop
                 m_InitialPublicationStarted = true;
             }
 
-            PublicationJournalResult journalResult = m_Journal.Complete(m_Boundary.CaptureCheckpoint, forceCheckpoint: true);
+            string timingScope = PairingTiming.Enabled ? m_Identity.IncarnationId.Value.ToString("N") : null;
+            PublicationJournalResult journalResult;
+            using (PairingTiming.Measure("desktop.sync-capture-checkpoint", timingScope))
+                journalResult = m_Journal.Complete(m_Boundary.CaptureCheckpoint, forceCheckpoint: true);
             ulong checkpointSequence = m_Authority.CanonicalSequence;
             m_Reconciliation = SceneReconciliationRecord.Retain(m_Scene, binding);
             m_Reconciliation.BeginPublication();
@@ -234,7 +237,10 @@ namespace HBP.Quest.Desktop
                 }
 
                 using var linked = CancellationTokenSource.CreateLinkedTokenSource(stop, m_PublicationAbort.Token, m_Lifetime.Token);
-                byte[] checkpointBytes = await Task.Run(() => SceneMutationCheckpointCodec.Encode(checkpointSequence, journalResult.Checkpoint), linked.Token).ConfigureAwait(false);
+                byte[] checkpointBytes;
+                using (PairingTiming.Measure("desktop.sync-encode-checkpoint", timingScope))
+                    checkpointBytes = await Task.Run(() => SceneMutationCheckpointCodec.Encode(checkpointSequence, journalResult.Checkpoint), linked.Token).ConfigureAwait(false);
+                PairingTiming.Count("desktop.sync-checkpoint-bytes", checkpointBytes.LongLength, timingScope);
                 await UniTask.SwitchToMainThread(linked.Token);
                 lock (m_Gate)
                 {
@@ -323,13 +329,17 @@ namespace HBP.Quest.Desktop
             stop = readinessStop.Token;
             var policy = m_InitialDisplayPolicy ?? throw new InvalidOperationException("The initial projection policy has not been published.");
             await UniTask.SwitchToMainThread(stop);
-            await m_Scene.PrepareRenderingAsync(stop);
-            while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
-                await UniTask.Yield(PlayerLoopTiming.Update, stop);
+            string timingScope = PairingTiming.Enabled ? m_Identity.IncarnationId.Value.ToString("N") : null;
+            using (PairingTiming.Measure("desktop.sync-local-render-readiness", timingScope))
+                await m_Scene.PrepareRenderingAsync(stop);
+            using (PairingTiming.Measure("desktop.sync-wait-local-scientific-jobs", timingScope))
+                while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
+                    await UniTask.Yield(PlayerLoopTiming.Update, stop);
             if (m_InitialProjectionFailed) throw new InvalidOperationException("The initial scientific projection failed. Retry to reconcile the visualization.");
             var ready = m_Transport.EnqueueSessionControl(PublicationControlCodec.EncodeRenderReady(policy), DeliveryReliability.Reliable);
             if (!ready.Accepted) throw new IOException("The render readiness request could not be retained.");
-            await m_RenderReadyAcknowledged.Task.AsUniTask().AttachExternalCancellation(readinessStop.Token);
+            using (PairingTiming.Measure("desktop.sync-wait-quest-render-ack", timingScope))
+                await m_RenderReadyAcknowledged.Task.AsUniTask().AttachExternalCancellation(readinessStop.Token);
             if (!policy.Equals(await m_RenderReadyAcknowledged.Task)) throw new InvalidDataException("Wrong render readiness policy.");
             stop.ThrowIfCancellationRequested();
             IsInitialRenderingReady = true;

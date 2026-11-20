@@ -171,7 +171,12 @@ namespace HBP.Tests.Transfer
             m_Preferences.OnSavePreferences.AddListener(() => applied++);
             try
             {
-                Assert.That((await receiver.HandleAsync(Request(SessionControlKind.Open), CancellationToken.None)).Applied, Is.True);
+                var legacyOpen = await receiver.HandleAsync(Request(SessionControlKind.Open), CancellationToken.None);
+                Assert.That(legacyOpen.Applied, Is.True);
+                Assert.That(legacyOpen.Fingerprint, Is.EqualTo(SessionControlCodec.CompactSceneCapability));
+                var groupedOpen = await receiver.HandleAsync(new(context, 2, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.GroupedSceneCapability), CancellationToken.None);
+                Assert.That(groupedOpen.Applied, Is.True);
+                Assert.That(groupedOpen.Fingerprint, Is.EqualTo(SessionControlCodec.GroupedSceneCapability));
                 var current = Request(SessionControlKind.Preferences, 2);
                 Assert.That((await receiver.HandleAsync(current, CancellationToken.None)).Applied, Is.True);
                 Assert.That((await receiver.HandleAsync(current, CancellationToken.None)).Applied, Is.True);

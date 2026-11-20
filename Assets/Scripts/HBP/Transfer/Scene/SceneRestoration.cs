@@ -60,22 +60,25 @@ namespace HBP.Transfer.Scene
         {
             void Report(string message, string item = "", string suffix = "", float value = .9f) => progress?.Invoke(value, 0, new HBP.Core.Tools.LoadingText(message, item, suffix));
             Report("Checking received scene");
-            using var total = PairingTiming.Measure("quest.restore-total", payload.TransferId);
-            using (PairingTiming.Measure("quest.restore-validation", payload.TransferId))
+            string timingScope = archive.TimingScope ?? payload.TransferId;
+            using var total = PairingTiming.Measure("quest.restore-total", timingScope);
+            using (PairingTiming.Measure("quest.restore-validation", timingScope))
                 SceneValidation.Validate(payload, archive);
-            using (PairingTiming.Measure("quest.restore-standard-install", payload.TransferId))
+            using (PairingTiming.Measure("quest.restore-standard-install", timingScope))
                 await StandardData.EnsureInstalledAsync();
             await UniTask.SwitchToThreadPool();
-            foreach (var entry in payload.StandardFiles)
-            {
-                token.ThrowIfCancellationRequested();
-                StandardData.ValidateInstalledFile(entry.Key);
-            }
+            using (PairingTiming.Measure("quest.restore-check-installed-files", timingScope))
+                foreach (var entry in payload.StandardFiles)
+                {
+                    token.ThrowIfCancellationRequested();
+                    StandardData.ValidateInstalledFile(entry.Key);
+                }
 
-            await UniTask.SwitchToMainThread();
+            using (PairingTiming.Measure("quest.restore-wait-main-thread", timingScope))
+                await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
             Report("Loading reference anatomy");
-            using (PairingTiming.Measure("quest.restore-standard-resources", payload.TransferId))
+            using (PairingTiming.Measure("quest.restore-standard-resources", timingScope))
                 await Base3DScene.PrepareStandardResourcesAsync();
             await UniTask.SwitchToMainThread();
             token.ThrowIfCancellationRequested();
@@ -89,10 +92,10 @@ namespace HBP.Transfer.Scene
             {
                 onCreated?.Invoke(scene);
                 scene.Initialize(payload.Visualization);
-                using (PairingTiming.Measure("quest.restore-initialize", payload.TransferId))
+                using (PairingTiming.Measure("quest.restore-initialize", timingScope))
                     await scene.InitializePreparedAsync(async resourceToken =>
                     {
-                        using var resources = PairingTiming.Measure("quest.restore-native-resources", payload.TransferId);
+                        using var resources = PairingTiming.Measure("quest.restore-native-resources", timingScope);
                         await UniTask.SwitchToMainThread();
                         foreach (var resource in payload.MRIs)
                         {
@@ -105,7 +108,7 @@ namespace HBP.Transfer.Scene
                             {
                                 mri = await NativePreparation.RunAsync(() =>
                                 {
-                                    using var measurement = PairingTiming.Measure("quest.restore-volume", payload.TransferId);
+                                    using var measurement = PairingTiming.Measure("quest.restore-volume", timingScope);
                                     var volume = new Core.DLL.Volume();
                                     try
                                     {
@@ -148,7 +151,7 @@ namespace HBP.Transfer.Scene
 
                             Mesh3D mesh = await NativePreparation.RunAsync(() =>
                             {
-                                using var measurement = PairingTiming.Measure("quest.restore-surface", payload.TransferId);
+                                using var measurement = PairingTiming.Measure("quest.restore-surface", timingScope);
                                 return RestoreMesh(resource, archive, standard, sourceMRI);
                             }, item => item.Clean(), resourceToken);
                             if (resource.PatientId == null)
@@ -166,13 +169,14 @@ namespace HBP.Transfer.Scene
                         {
                             if (payload.Columns[i].Functional.Count == 0) continue;
                             Report("Loading column ", payload.Visualization.Columns[i].Name, $" [{i + 1}/{payload.Columns.Count}]");
-                            await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
+                            using (PairingTiming.Measure("quest.restore-functional-volumes", timingScope))
+                                await RestoreFunctionalAsync(payload.Visualization.Columns[i], payload.Columns[i], payload, archive, resourceToken);
                         }
-                    }, progress, token);
+                    }, progress, token, PairingTiming.Enabled ? stage => PairingTiming.Measure(stage, timingScope) : null);
                 Report("Preparing scene display", value: .95f);
-                using (PairingTiming.Measure("quest.restore-configuration", payload.TransferId))
+                using (PairingTiming.Measure("quest.restore-configuration", timingScope))
                     await scene.CompleteInitializationAsync(null, null, token);
-                using (PairingTiming.Measure("quest.restore-render-ready", payload.TransferId))
+                using (PairingTiming.Measure("quest.restore-render-ready", timingScope))
                 {
                     Report("Preparing scene display", value: .95f);
                     await scene.PrepareRenderingAsync(token);

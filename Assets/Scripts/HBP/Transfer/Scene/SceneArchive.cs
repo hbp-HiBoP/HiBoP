@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using HBP.Core.Tools;
+using HBP.Transfer.Codecs;
 using HBP.Transfer.Transport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -54,7 +55,16 @@ namespace HBP.Transfer.Scene
         private bool detachingIllustrations;
         private readonly List<(string Path, FileStream Stream, string Extension)> illustrationSources = new();
         private JToken receivedPreferences;
-        internal int ContentVersion => packedBuffers ? ScenePayload.FormatVersion : ScenePayload.LegacyFormatVersion;
+        private static readonly bool UseSinglePassMetadata = Array.IndexOf(Environment.GetCommandLineArgs(), "-sceneTransferTwoPass") < 0;
+        public bool SinglePassMetadata { get; set; } = UseSinglePassMetadata;
+        internal int ContentVersion { get; private set; } = ScenePayload.LegacyFormatVersion;
+        internal bool CompactSignals => ContentVersion is ScenePayload.CompactSignalFormatVersion or ScenePayload.GroupedBufferFormatVersion;
+        internal bool GroupNumericBuffers { get; set; }
+        internal bool SupportsNumericSlices => ContentVersion == ScenePayload.GroupedBufferFormatVersion;
+        internal bool GroupSignalsByRecording { get; set; }
+        internal IReadOnlyList<string> SignalPatientIds { get; private set; }
+        internal CancellationToken CaptureCancellation => cancellationToken;
+        internal CancellationToken ReadCancellation => readToken;
         internal SceneGlobalReferences GlobalReferences { get; private set; }
 
         private readonly Dictionary<string, string> nativePaths = new(StringComparer.Ordinal);
@@ -62,9 +72,31 @@ namespace HBP.Transfer.Scene
         public string VerifiedContentHash { get; private set; }
         public PreparedSceneManifest PreparedManifest { get; private set; }
         public PairingContext Globals { get; set; }
+        public string TimingScope { get; }
+        private readonly PairingTiming.Accumulator captureBufferHash, captureSurfaceCopy, captureNumericCopy, sourceFileRead, sourceFileHash;
+        private readonly PairingTiming.Accumulator stagedFileWrite, stagedResourceHash, stagedPackHash;
+        internal PairingTiming.Accumulator DefinitionFingerprintTiming { get; }
+        private PairingTiming.Accumulator numericDecodeTiming;
 
-        public SceneArchive(string directory, bool reading = false, PairingContext globals = null, bool deferResourceWrites = false, CancellationToken cancellationToken = default)
+        public SceneArchive(string directory, bool reading = false, PairingContext globals = null, bool deferResourceWrites = false, CancellationToken cancellationToken = default, string timingScope = null)
         {
+            TimingScope = timingScope;
+            if (reading)
+            {
+                stagedFileWrite = PairingTiming.Aggregate("quest.staging-file-write", timingScope);
+                stagedResourceHash = PairingTiming.Aggregate("quest.staging-resource-sha256", timingScope);
+                stagedPackHash = PairingTiming.Aggregate("quest.staging-buffer-pack-sha256", timingScope);
+            }
+            else
+            {
+                captureBufferHash = PairingTiming.Aggregate("source.buffer-fingerprint-sha256", timingScope);
+                captureSurfaceCopy = PairingTiming.Aggregate("source.capture-surface-copy", timingScope);
+                captureNumericCopy = PairingTiming.Aggregate("source.capture-numeric-copy-and-allocate", timingScope);
+                sourceFileRead = PairingTiming.Aggregate("source.read-resource-files", timingScope);
+                sourceFileHash = PairingTiming.Aggregate("source.verify-resource-files-sha256", timingScope);
+                DefinitionFingerprintTiming = PairingTiming.Aggregate("source.global-definition-fingerprint", timingScope);
+            }
+
             this.directory = Path.GetFullPath(directory);
             Globals = globals;
             this.deferResourceWrites = deferResourceWrites;
@@ -113,8 +145,10 @@ namespace HBP.Transfer.Scene
         {
             EnsureWritable();
             cancellationToken.ThrowIfCancellationRequested();
-            using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
-            string name = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() + extension;
+            string name;
+            using (PairingTiming.Measure(captureBufferHash, bytes.LongLength))
+            using (var sha = TransferCodec.CreateHash())
+                name = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant() + extension;
             if (extension == ".bin" && !pack.Contains(name))
                 pack.Add(name, bytes.LongLength);
             string target = Resolve(name);
@@ -160,6 +194,7 @@ namespace HBP.Transfer.Scene
             if (payload.Version != ScenePayload.FormatVersion)
                 throw new InvalidOperationException("Capture requires the current scene format.");
             packedBuffers = true;
+            ContentVersion = payload.Version;
             if (!deferResourceWrites)
                 throw new InvalidOperationException("Deferred resource capture is required.");
             if (Globals == null || payload.GlobalContextId != Globals.Id)
@@ -177,9 +212,12 @@ namespace HBP.Transfer.Scene
         internal DetachedSceneMetadata CaptureDetachedMetadata(ScenePayload payload)
         {
             EnsureWritable();
-            if (!DetachCapture || !deferResourceWrites || payload.Version != ScenePayload.FormatVersion || Globals == null || payload.GlobalContextId != Globals.Id)
-                throw new InvalidOperationException("Detached capture requires the current format and pairing.");
+            if (!DetachCapture || !deferResourceWrites || payload.Version is not (ScenePayload.FormatVersion or ScenePayload.CompactSignalFormatVersion or ScenePayload.GroupedBufferFormatVersion) || Globals == null || payload.GlobalContextId != Globals.Id)
+                throw new InvalidOperationException("Detached capture requires a supported packed format and pairing.");
             packedBuffers = true;
+            ContentVersion = payload.Version;
+            if (CompactSignals && GroupSignalsByRecording)
+                SignalPatientIds = payload.Visualization.Patients.Select(patient => patient.ID).OrderByDescending(id => id.Length).ToArray();
             PrepareGlobalReferences();
             var writer = new DetachedSceneMetadata(MaximumOwnedCaptureBytes, detachedSurfaces.Sum(surface => surface.Data.Bytes + 4L * surface.Mask.Length));
             Serializer().Serialize(writer, payload);
@@ -241,17 +279,19 @@ namespace HBP.Transfer.Scene
                 if (Path.GetFileName(path) != "visualization.json" && !path.EndsWith(".bin", StringComparison.Ordinal))
                     capturedFiles.TryAdd(Path.GetFileName(path), path);
             byte[] references = GlobalReferences.Encode();
-            long indexBytes = 12L + pack.Entries.Count * 48L;
+            long indexBytes = pack.IndexLength;
             ValidatePackedMetadataBudget(metadata.LongLength, references.LongLength, indexBytes);
             long metadataBytes = metadata.LongLength + references.LongLength + indexBytes;
             var extraBuffers = capturedBuffers.Where(item => !item.Key.EndsWith(".bin", StringComparison.Ordinal)).ToArray();
             var files = capturedFiles.Where(item => !capturedBuffers.ContainsKey(item.Key)).OrderBy(item => item.Key, StringComparer.Ordinal).ToArray();
             long expanded = checked(metadataBytes + pack.Length + extraBuffers.Sum(item => item.Value.LongLength) + files.Sum(item => new FileInfo(item.Value).Length));
             int archiveEntries = files.Length + extraBuffers.Length + 4;
-            PairingTiming.Count("scene.packed-entry-count", pack.Entries.Count);
-            PairingTiming.Count("scene.packed-metadata-bytes", metadataBytes);
-            if (expanded > MaximumExpandedBytes || archiveEntries > MaximumArchiveEntries ||
-                pack.Entries.Count + archiveEntries > BufferPack.MaximumCount)
+            ValidateIndexForSceneVersion(indexBytes, archiveEntries);
+            PairingTiming.Count("scene.packed-entry-count", pack.Entries.Count, TimingScope);
+            PairingTiming.Count("scene.packed-metadata-bytes", metadataBytes, TimingScope);
+            PairingTiming.Count("scene.packed-unique-buffer-bytes", pack.Length, TimingScope);
+            PairingTiming.Count("source.archive-uncompressed-bytes", expanded, TimingScope);
+            if (expanded > MaximumExpandedBytes || archiveEntries > MaximumArchiveEntries)
                 throw new InvalidDataException("Packed visualization exceeds its budget.");
             var zip = ZipFile.Open(output, ZipArchiveMode.Create);
             try
@@ -473,6 +513,7 @@ namespace HBP.Transfer.Scene
         {
             if (Globals == null || payload.GlobalContextId != Globals.Id)
                 throw new InvalidOperationException("Pair with Quest before capturing a visualization.");
+            ContentVersion = payload.Version;
             packedBuffers = payload.Version != ScenePayload.LegacyFormatVersion;
             if (packedBuffers)
                 PrepareGlobalReferences();
@@ -637,9 +678,12 @@ namespace HBP.Transfer.Scene
             if (Globals == null)
                 throw new InvalidOperationException("Global pairing data is required before receiving a visualization.");
             using var source = new FileStream(input, FileMode.Open, FileAccess.Read, FileShare.Read);
-            string contentHash = BitConverter.ToString(HBP.Core.Tools.Sha256.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
+            string contentHash;
+            using (PairingTiming.Measure("quest.archive-file-sha256-with-read", TimingScope))
+                contentHash = BitConverter.ToString(HBP.Core.Tools.Sha256.ComputeHash(source)).Replace("-", "").ToLowerInvariant();
             source.Position = 0;
-            Extract(source, "visualization.json", token);
+            using (PairingTiming.Measure("quest.archive-extract-and-verify", TimingScope))
+                Extract(source, "visualization.json", token);
             ScenePayload payload = ReadPrepared(progress: progress);
             VerifiedContentHash = contentHash;
             return payload;
@@ -647,45 +691,75 @@ namespace HBP.Transfer.Scene
 
         public ScenePayload ReadPrepared(string verifiedContentHash = null, Action<float, float, LoadingText> progress = null)
         {
-            using var total = PairingTiming.Measure("scene.decode-total");
+            using var total = PairingTiming.Measure("scene.decode-total", TimingScope);
+            EnsureVerified();
+            var graph = ReadSceneGraph(progress);
+            return CompletePrepared(graph.payload, graph.manifest, verifiedContentHash, progress);
+        }
+
+        private void EnsureVerified()
+        {
             if (!verifiedContent || Globals == null)
                 throw new InvalidOperationException("Verified paired content is required.");
             readToken.ThrowIfCancellationRequested();
+        }
+
+        private (ScenePayload payload, PreparedSceneManifest manifest) ReadSceneGraph(Action<float, float, LoadingText> progress)
+        {
+            readToken.ThrowIfCancellationRequested();
             progress?.Invoke(.85f, 0, new LoadingText("Reading scene metadata"));
             if (packedBuffers)
-                using (PairingTiming.Measure("scene.decode-global-references"))
+                using (PairingTiming.Measure("scene.decode-global-references", TimingScope))
                     GlobalReferences = SceneGlobalReferences.Read(Path.Combine(directory, SceneGlobalReferences.FileName), Globals);
             using var metadata = File.OpenRead(Path.Combine(directory, "visualization.json"));
             ScenePayload payload;
-            PairingTiming.Count("scene.metadata-bytes", metadata.Length);
-            PreparedSceneManifest manifest;
-            using (PairingTiming.Measure("scene.decode-manifest"))
-            using (var text = new StreamReader(metadata, Encoding.UTF8, true, 8192, true))
-                manifest = PreparedSceneManifest.Read(text, readToken);
-            metadata.Position = 0;
-            using var reader = new SceneMetadataReader(new StreamReader(metadata), readToken);
-            int columns = manifest.Columns.Count;
+            PairingTiming.Count("scene.metadata-bytes", metadata.Length, TimingScope);
+            PreparedSceneManifest manifest = null;
+            if (!SinglePassMetadata)
+            {
+                using (PairingTiming.Measure("scene.decode-manifest", TimingScope))
+                using (var text = new StreamReader(metadata, Encoding.UTF8, true, 8192, true))
+                    manifest = PreparedSceneManifest.Read(text, readToken, TimingScope);
+                metadata.Position = 0;
+            }
+
+            using var textReader = new StreamReader(metadata);
+            using JsonReader reader = SinglePassMetadata ? new PreparedSceneManifest.SinglePassReader(textReader, readToken) : new SceneMetadataReader(textReader, readToken);
+            PairingTiming.Count("scene.decode-single-pass", SinglePassMetadata ? 1 : 0, TimingScope);
+            int columns = manifest?.Columns.Count ?? 0;
             int restored = 0;
 
             void ReportRestored()
             {
                 if (progress == null) return;
-                float fraction = columns == 0 ? 0 : (float)Math.Min(restored, columns) / columns;
-                progress(.86f + .03f * fraction, 0, new LoadingText("Restoring scene data", "", columns == 0 ? "" : $" - {Math.Min(restored, columns)}/{columns} columns"));
+                float fraction = columns == 0 ? Math.Min(.99f, (float)metadata.Position / metadata.Length) : (float)Math.Min(restored, columns) / columns;
+                string count = columns == 0 ? (restored == 0 ? "" : $" - {restored} columns") : $" - {Math.Min(restored, columns)}/{columns} columns";
+                progress(.86f + .03f * fraction, 0, new LoadingText("Restoring scene data", "", count));
             }
 
             ReportRestored();
-            using (PairingTiming.Measure("scene.decode-object-graph"))
+            using var numeric = PairingTiming.Aggregate("scene.decode-numeric-read-and-allocate", TimingScope);
+            numericDecodeTiming = numeric;
+            using (PairingTiming.Measure("scene.decode-object-graph", TimingScope))
                 payload = Serializer(columnRestored: progress == null ? null : () =>
                 {
                     restored++;
                     ReportRestored();
                 }).Deserialize<ScenePayload>(reader);
+            if (reader is PreparedSceneManifest.SinglePassReader singlePass)
+                using (PairingTiming.Measure("scene.decode-manifest", TimingScope))
+                    manifest = singlePass.Finish(TimingScope);
+            return (payload, manifest);
+        }
+
+        private ScenePayload CompletePrepared(ScenePayload payload, PreparedSceneManifest manifest, string verifiedContentHash, Action<float, float, LoadingText> progress)
+        {
+            EnsureVerified();
             if (payload?.GlobalContextId != Globals.Id)
                 throw new InvalidDataException("This visualization belongs to a different pairing. Send a new snapshot.");
-            PairingTiming.Count("scene.decoded-numeric-bytes", numericBytesRead, payload.TransferId);
+            PairingTiming.Count("scene.decoded-numeric-bytes", numericBytesRead, TimingScope ?? payload.TransferId);
             progress?.Invoke(.90f, 0, new LoadingText("Checking received scene"));
-            using (PairingTiming.Measure("scene.decode-validation", payload.TransferId))
+            using (PairingTiming.Measure("scene.decode-validation", TimingScope ?? payload.TransferId))
                 SceneValidation.Validate(payload, this);
             PreparedManifest = manifest;
             if (verifiedContentHash != null)
@@ -747,7 +821,8 @@ namespace HBP.Transfer.Scene
             readingStarted = true;
             readToken = token;
             byte[] buffer = new byte[65536];
-            using var sha = HBP.Transfer.Codecs.TransferCodec.CreateHash();
+            using var sha = TransferCodec.CreateHash();
+            using var unzip = PairingTiming.Aggregate("quest.archive-inflate-and-read", TimingScope);
             using (var zip = new ZipArchive(input, ZipArchiveMode.Read, true))
             {
                 long total = 0;
@@ -762,7 +837,7 @@ namespace HBP.Transfer.Scene
                     bool special = entry.FullName == BufferPack.DataName || entry.FullName == BufferPack.IndexName || entry.FullName == SceneGlobalReferences.FileName;
                     if (entry.FullName != metadataName && !special)
                         Resolve(entry.FullName);
-                    else if (entry.FullName != BufferPack.DataName && entry.Length > MaximumMetadataBytes)
+                    else if (entry.FullName != BufferPack.DataName && entry.FullName != BufferPack.IndexName && entry.Length > MaximumMetadataBytes)
                         throw new InvalidDataException("Visualization metadata exceeds the transfer budget.");
                     if (special && metadataName != "visualization.json")
                         throw new InvalidDataException("Scene resources are not valid pairing data.");
@@ -778,8 +853,9 @@ namespace HBP.Transfer.Scene
                     int version;
                     using (var metadata = zip.GetEntry(metadataName).Open())
                         version = ReadSceneVersion(metadata);
-                    packedBuffers = version == ScenePayload.FormatVersion;
-                    if (version != ScenePayload.FormatVersion && version != ScenePayload.LegacyFormatVersion)
+                    ContentVersion = version;
+                    packedBuffers = version is ScenePayload.FormatVersion or ScenePayload.CompactSignalFormatVersion or ScenePayload.GroupedBufferFormatVersion;
+                    if (!packedBuffers && version != ScenePayload.LegacyFormatVersion)
                         throw new InvalidDataException("Unknown visualization format. Rebuild Desktop and Quest together.");
                     bool hasPack = names.Contains(BufferPack.DataName), hasIndex = names.Contains(BufferPack.IndexName), hasRefs = names.Contains(SceneGlobalReferences.FileName);
                     if (packedBuffers ? !hasPack || !hasIndex || !hasRefs || names.Any(name => name.EndsWith(".bin", StringComparison.Ordinal)) : hasPack || hasIndex || hasRefs)
@@ -788,10 +864,9 @@ namespace HBP.Transfer.Scene
                     {
                         var index = zip.GetEntry(BufferPack.IndexName);
                         ValidatePackedMetadataBudget(zip.GetEntry(metadataName).Length, zip.GetEntry(SceneGlobalReferences.FileName).Length, index.Length);
+                        ValidateIndexForSceneVersion(index.Length, names.Count);
                         using (var stream = index.Open())
                             pack = BufferPack.ReadIndex(stream, index.Length, zip.GetEntry(BufferPack.DataName).Length, token);
-                        if (pack.Entries.Count + names.Count > BufferPack.MaximumCount)
-                            throw new InvalidDataException("Too many logical resources.");
                     }
                 }
 
@@ -800,7 +875,7 @@ namespace HBP.Transfer.Scene
                     string path = StandardData.Resolve(directory, entry.FullName);
                     bool isPack = entry.FullName == BufferPack.DataName;
                     bool verify = entry.FullName != metadataName && !isPack && entry.FullName != BufferPack.IndexName && entry.FullName != SceneGlobalReferences.FileName;
-                    using var packVerifier = isPack ? new BufferPack.Verifier(pack) : null;
+                    using var packVerifier = isPack ? new BufferPack.Verifier(pack, stagedPackHash) : null;
                     if (verify)
                         sha.Initialize();
                     using (var source = entry.Open())
@@ -811,14 +886,17 @@ namespace HBP.Transfer.Scene
                         {
                             token.ThrowIfCancellationRequested();
                             int read;
-                            read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining));
+                            using (PairingTiming.Measure(unzip, Math.Min(buffer.Length, remaining)))
+                                read = source.Read(buffer, 0, (int)Math.Min(buffer.Length, remaining));
                             if (read == 0)
                                 throw new InvalidDataException("Truncated content resource.");
                             if (verify)
-                                sha.TransformBlock(buffer, 0, read, null, 0);
+                                using (PairingTiming.Measure(stagedResourceHash, read))
+                                    sha.TransformBlock(buffer, 0, read, null, 0);
                             if (packVerifier != null)
                                 packVerifier.Append(buffer, read, token);
-                            target.Write(buffer, 0, read);
+                            using (PairingTiming.Measure(stagedFileWrite, read))
+                                target.Write(buffer, 0, read);
                             remaining -= read;
                         }
 
@@ -900,6 +978,12 @@ namespace HBP.Transfer.Scene
                 throw new InvalidDataException("The packed buffer index exceeds its budget.");
         }
 
+        private void ValidateIndexForSceneVersion(long indexBytes, int otherResources)
+        {
+            if (!SupportsNumericSlices && indexBytes > BufferPack.IndexHeaderBytes + (long)BufferPack.IndexEntryBytes * (BufferPack.LegacyMaximumCount - otherResources))
+                throw new InvalidDataException("The peer's scene format does not support an index of this size.");
+        }
+
         internal Stream OpenBuffer(string name)
         {
             if (disposed)
@@ -944,7 +1028,9 @@ namespace HBP.Transfer.Scene
                     throw new ScenePreparationBudgetExceededException();
             }
 
-            var snapshot = new SurfaceCapture(surface);
+            SurfaceCapture snapshot;
+            using (PairingTiming.Measure(captureSurfaceCopy))
+                snapshot = new SurfaceCapture(surface);
             if (!DetachCapture)
                 return WriteSurface(snapshot);
             if (detachedSurfaces.Count >= 100000)
@@ -953,9 +1039,24 @@ namespace HBP.Transfer.Scene
             return "snapshot-surface-" + (detachedSurfaces.Count - 1);
         }
 
+        private const int SeparateGeometryMarker = -5;
+
         private string WriteSurface(SurfaceCapture snapshot)
         {
-            return AddBuffer(writer => WriteSurfaceData(writer, snapshot));
+            using var timing = PairingTiming.Measure("source.encode-surface", TimingScope);
+            if (!CompactSignals)
+                return AddBuffer(writer =>
+                {
+                    WriteGeometryData(writer, snapshot);
+                    WriteSurfaceState(writer, snapshot);
+                });
+            string geometry = AddBuffer(writer => WriteGeometryData(writer, snapshot));
+            return AddBuffer(writer =>
+            {
+                writer.Write(SeparateGeometryMarker);
+                writer.Write(Encoding.ASCII.GetBytes(geometry.Substring(0, 64)));
+                WriteSurfaceState(writer, snapshot);
+            });
         }
 
         private static void WriteGeometryData(BinaryWriter writer, SurfaceCapture snapshot)
@@ -973,9 +1074,8 @@ namespace HBP.Transfer.Scene
             WriteComponents(writer, geometry.Colors);
         }
 
-        private static void WriteSurfaceData(BinaryWriter writer, SurfaceCapture snapshot)
+        private static void WriteSurfaceState(BinaryWriter writer, SurfaceCapture snapshot)
         {
-            WriteGeometryData(writer, snapshot);
             writer.Write(snapshot.Atlas);
             writer.Write(snapshot.Mask.Length);
             WriteComponents(writer, snapshot.Mask);
@@ -997,8 +1097,61 @@ namespace HBP.Transfer.Scene
         public HBP.Core.DLL.Surface ReadSurface(string name)
         {
             Stream input = OpenBuffer(name);
-            using var reader = new BinaryReader(verifiedContent && SurfaceCache != null ? SurfaceCache.Open(name, input, readToken, surfaceCacheGeneration) : input);
-            int vertexCount = ReadCount(reader, 12), triangleCount = ReadCount(reader, 4);
+            using var reader = new BinaryReader(CompactSignals ? input : ReuseSurface(name, input));
+            int vertexCount = reader.ReadInt32();
+            SurfaceCapture.Geometry geometry;
+            using (PairingTiming.Measure("quest.surface-read-geometry", TimingScope))
+            {
+                if (CompactSignals && vertexCount == SeparateGeometryMarker)
+                {
+                    byte[] hash = reader.ReadBytes(64);
+                    if (hash.Length != 64 || hash.Any(value => value is not (>= (byte)'0' and <= (byte)'9') and not (>= (byte)'a' and <= (byte)'f')))
+                        throw new InvalidDataException("Invalid geometry reference.");
+                    string geometryName = Encoding.ASCII.GetString(hash) + ".bin";
+                    using var geometryReader = new BinaryReader(ReuseSurface(geometryName, OpenBuffer(geometryName)));
+                    geometry = ReadSurfaceGeometry(geometryReader, geometryReader.ReadInt32());
+                    if (geometryReader.BaseStream.Position != geometryReader.BaseStream.Length)
+                        throw new InvalidDataException("Trailing geometry data.");
+                }
+                else geometry = ReadSurfaceGeometry(reader, vertexCount);
+            }
+
+            bool atlasAvailable = reader.ReadBoolean();
+            int count = ReadCount(reader, 4);
+            if (count != geometry.Triangles.Length / 3)
+                throw new InvalidDataException("Invalid surface visibility mask.");
+            var mask = ReadComponents<int>(reader, count);
+            for (int i = 0; i < count; i++)
+            {
+                if (mask[i] != 0 && mask[i] != 1)
+                    throw new InvalidDataException("Invalid surface visibility value.");
+            }
+
+            if (reader.BaseStream.Position != reader.BaseStream.Length)
+                throw new InvalidDataException("Trailing surface data.");
+            using var timing = PairingTiming.Measure("quest.surface-reconstruct-native", TimingScope);
+            var surface = new HBP.Core.DLL.Surface();
+            try
+            {
+                surface.SetBuffers(geometry.Vertices, geometry.Triangles, geometry.Normals.Length == 0 ? null : geometry.Normals, geometry.UV.Length == 0 ? null : geometry.UV, geometry.Colors.Length == 0 ? null : geometry.Colors);
+                surface.SetPreparedAtlasAvailability(atlasAvailable);
+                surface.UpdateVisibilityMask(mask).Dispose();
+                return surface;
+            }
+            catch
+            {
+                surface.Dispose();
+                throw;
+            }
+        }
+
+        private Stream ReuseSurface(string name, Stream input) => verifiedContent && SurfaceCache != null ? SurfaceCache.Open(name, input, readToken, surfaceCacheGeneration, TimingScope) : input;
+
+        private SurfaceCapture.Geometry ReadSurfaceGeometry(BinaryReader reader, int vertexCount)
+        {
+            if (vertexCount <= 0 || (long)vertexCount * 12 > reader.BaseStream.Length - reader.BaseStream.Position)
+                throw new InvalidDataException("Invalid surface dimensions.");
+            int triangleCount = ReadCount(reader, 4);
             if (vertexCount == 0 || triangleCount % 3 != 0)
                 throw new InvalidDataException("Invalid surface dimensions.");
             var vertices = ReadComponents<Vector3>(reader, vertexCount, true);
@@ -1021,32 +1174,7 @@ namespace HBP.Transfer.Scene
             if (count != 0 && count != vertexCount)
                 throw new InvalidDataException("Invalid colors.");
             var colors = ReadComponents<Color>(reader, count, true);
-            bool atlasAvailable = reader.ReadBoolean();
-            count = ReadCount(reader, 4);
-            if (count != triangleCount / 3)
-                throw new InvalidDataException("Invalid surface visibility mask.");
-            var mask = ReadComponents<int>(reader, count);
-            for (int i = 0; i < count; i++)
-            {
-                if (mask[i] != 0 && mask[i] != 1)
-                    throw new InvalidDataException("Invalid surface visibility value.");
-            }
-
-            if (reader.BaseStream.Position != reader.BaseStream.Length)
-                throw new InvalidDataException("Trailing surface data.");
-            var surface = new HBP.Core.DLL.Surface();
-            try
-            {
-                surface.SetBuffers(vertices, triangles, normals.Length == 0 ? null : normals, uv.Length == 0 ? null : uv, colors.Length == 0 ? null : colors);
-                surface.SetPreparedAtlasAvailability(atlasAvailable);
-                surface.UpdateVisibilityMask(mask).Dispose();
-                return surface;
-            }
-            catch
-            {
-                surface.Dispose();
-                throw;
-            }
+            return new SurfaceCapture.Geometry { Vertices = vertices, Triangles = triangles, Normals = normals, UV = uv, Colors = colors };
         }
 
         private static int ReadCount(BinaryReader reader, int stride)
@@ -1056,7 +1184,22 @@ namespace HBP.Transfer.Scene
             return count;
         }
 
-        private T[] ReadComponents<T>(BinaryReader reader, int count, bool finite = false) where T : struct
+        internal Stream OpenSignalChunk(int index) => pack.Open(index);
+
+        internal long SignalChunkLength(int index)
+        {
+            if (index < 0 || index >= pack.Entries.Count) throw new InvalidDataException("Invalid iEEG chunk reference.");
+            return pack.Entries[index].Length;
+        }
+
+        internal void AccountDecodedNumericBytes(long length)
+        {
+            if (length < 0 || length > MaximumExpandedBytes - numericBytesRead)
+                throw new InvalidDataException("Decoded numeric data exceeds the memory budget.");
+            numericBytesRead += length;
+        }
+
+        internal T[] ReadComponents<T>(BinaryReader reader, int count, bool finite = false) where T : struct
         {
             readToken.ThrowIfCancellationRequested();
             var values = new T[count];
@@ -1095,8 +1238,21 @@ namespace HBP.Transfer.Scene
             return values;
         }
 
+        public void ReportStagingTimings()
+        {
+            stagedFileWrite?.Dispose();
+            stagedResourceHash?.Dispose();
+            stagedPackHash?.Dispose();
+        }
+
         public void Dispose()
         {
+            captureBufferHash?.Dispose();
+            captureSurfaceCopy?.Dispose();
+            captureNumericCopy?.Dispose();
+            sourceFileRead?.Dispose();
+            sourceFileHash?.Dispose();
+            DefinitionFingerprintTiming?.Dispose();
             disposed = true;
             capturedBuffers.Clear();
             capturedFiles.Clear();
@@ -1133,14 +1289,19 @@ namespace HBP.Transfer.Scene
                 long numericBytes = checked(values.LongLength * 4);
                 captureNumeric?.Invoke(numericBytes);
                 if (writer is DetachedSceneMetadata budget) budget.CheckNumericBudget(numericBytes);
-                byte[] bytes = new byte[checked(values.Length * 4)];
-                Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
-                if (!BitConverter.IsLittleEndian)
-                    for (int i = 0; i < bytes.Length; i += 4)
-                        Array.Reverse(bytes, i, 4);
+                byte[] bytes;
+                using (PairingTiming.Measure(archive.captureNumericCopy, numericBytes))
+                {
+                    bytes = new byte[checked(values.Length * 4)];
+                    Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
+                    if (!BitConverter.IsLittleEndian)
+                        for (int i = 0; i < bytes.Length; i += 4)
+                            Array.Reverse(bytes, i, 4);
+                }
+
                 if (writer is DetachedSceneMetadata detached)
                 {
-                    detached.WriteBuffer(bytes);
+                    detached.WriteBuffer(bytes, numericArray: true);
                     return;
                 }
 
@@ -1159,9 +1320,24 @@ namespace HBP.Transfer.Scene
                 archive.readToken.ThrowIfCancellationRequested();
                 if (archive.packedBuffers)
                 {
-                    if (reader.TokenType != JsonToken.Integer || reader.Value is not long index || index < 0 || index >= archive.pack.Entries.Count)
-                        throw new InvalidDataException("Invalid numeric pack index.");
-                    file = archive.pack.Open((int)index);
+                    if (reader.TokenType != JsonToken.Integer || reader.Value is not long reference)
+                        throw new InvalidDataException("Invalid numeric pack reference.");
+                    if (reference < 0 && archive.SupportsNumericSlices)
+                    {
+                        long slice = ~reference;
+                        int index = (int)(slice >> 32);
+                        int offset = (int)((slice >> 16) & ushort.MaxValue) * sizeof(int);
+                        int sliceBytes = (int)(slice & ushort.MaxValue) * sizeof(int);
+                        if (sliceBytes == 0 || sliceBytes > DetachedSceneMetadata.MaximumGroupedBufferBytes)
+                            throw new InvalidDataException("Invalid grouped numeric buffer length.");
+                        file = archive.pack.Open(index, offset, sliceBytes);
+                    }
+                    else
+                    {
+                        if (reference < 0 || reference >= archive.pack.Entries.Count)
+                            throw new InvalidDataException("Invalid numeric pack index.");
+                        file = archive.pack.Open((int)reference);
+                    }
                 }
                 else
                 {
@@ -1173,10 +1349,9 @@ namespace HBP.Transfer.Scene
                 using var binary = new BinaryReader(file);
                 if (binary.BaseStream.Length % 4 != 0 || binary.BaseStream.Length > int.MaxValue)
                     throw new InvalidDataException("Invalid numeric buffer.");
-                archive.numericBytesRead = checked(archive.numericBytesRead + binary.BaseStream.Length);
-                if (archive.numericBytesRead > MaximumExpandedBytes)
-                    throw new InvalidDataException("Decoded numeric data exceeds the memory budget.");
+                archive.AccountDecodedNumericBytes(binary.BaseStream.Length);
                 int length = checked((int)(binary.BaseStream.Length / 4));
+                using var timing = PairingTiming.Measure(archive.numericDecodeTiming, binary.BaseStream.Length);
                 if (type == typeof(float[]))
                 {
                     return archive.ReadComponents<float>(binary, length);

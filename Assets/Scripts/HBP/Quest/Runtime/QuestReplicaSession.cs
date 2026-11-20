@@ -819,16 +819,21 @@ namespace HBP.Quest
 
         private async Task ObserveDisplayReadinessAsync(OperationId policy, CancellationToken stop)
         {
+            string timingScope = PairingTiming.Enabled ? m_Identity.IncarnationId.Value.ToString("N") : null;
+            using var timing = PairingTiming.Measure("quest.sync-render-readiness", timingScope);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(stop, m_DisplayReadinessStop.Token);
             linked.CancelAfter(TimeSpan.FromMinutes(3));
             try
             {
                 // This observer must stay outside the incoming reader: projection terminals use it.
                 await UniTask.Yield(PlayerLoopTiming.Update, linked.Token);
-                await m_Scene.PrepareRenderingAsync(linked.Token);
-                while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
-                    await UniTask.Yield(PlayerLoopTiming.Update, linked.Token);
-                await m_Scene.PrepareRenderingAsync(linked.Token);
+                using (PairingTiming.Measure("quest.sync-prepare-rendering", timingScope))
+                    await m_Scene.PrepareRenderingAsync(linked.Token);
+                using (PairingTiming.Measure("quest.sync-wait-scientific-jobs", timingScope))
+                    while (m_ActiveActivityProjectionJob != null || m_ActiveCorrelationJob != null || m_ActiveSiteFilterJob != null)
+                        await UniTask.Yield(PlayerLoopTiming.Update, linked.Token);
+                using (PairingTiming.Measure("quest.sync-settle-rendering", timingScope))
+                    await m_Scene.PrepareRenderingAsync(linked.Token);
                 linked.Token.ThrowIfCancellationRequested();
                 if (m_Disposed || !policy.Equals(m_AppliedDisplayPolicy)) return;
                 var queued = m_Transport.EnqueueSessionControl(PublicationControlCodec.EncodeRenderReady(policy, !m_InitialProjectionFailed), DeliveryReliability.Reliable);
@@ -1833,8 +1838,13 @@ namespace HBP.Quest
 
         private async Task ApplyCheckpointAsync(byte[] encodedCheckpoint, OperationId operationId, CancellationToken stop)
         {
-            PublishedSceneCheckpoint checkpoint = await Task.Run(() => SceneMutationCheckpointCodec.Decode(encodedCheckpoint), stop).ConfigureAwait(false);
+            string timingScope = PairingTiming.Enabled ? m_Identity.IncarnationId.Value.ToString("N") : null;
+            PairingTiming.Count("quest.sync-checkpoint-bytes", encodedCheckpoint.LongLength, timingScope);
+            PublishedSceneCheckpoint checkpoint;
+            using (PairingTiming.Measure("quest.sync-decode-checkpoint", timingScope))
+                checkpoint = await Task.Run(() => SceneMutationCheckpointCodec.Decode(encodedCheckpoint), stop).ConfigureAwait(false);
             await UniTask.SwitchToMainThread(PlayerLoopTiming.Initialization, stop);
+            using var timing = PairingTiming.Measure("quest.sync-apply-checkpoint", timingScope);
             m_Boundary.ApplyCheckpoint(checkpoint.Checkpoint, operationId);
             m_Reconciliation.InstallCommon(checkpoint.Checkpoint, checkpoint.CanonicalSequence);
             m_Driver.AdvanceCanonicalWatermark(checkpoint.CanonicalSequence, includesSelection: true);
