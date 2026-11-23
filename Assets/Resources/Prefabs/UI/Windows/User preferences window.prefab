@@ -22975,7 +22975,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload DiFuMo 64 on startup (650MB)
+      value: Preload DiFuMo 64 on startup (2.8 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -23354,7 +23354,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer MCSE on startup (????MB)
+      value: Preload localizer MCSE on startup (1.4 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -25260,7 +25260,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer AUDI on startup (????MB)
+      value: Preload localizer AUDI on startup (2.4 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -30319,7 +30319,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload DiFuMo 128 on startup (1300MB)
+      value: Preload DiFuMo 128 on startup (3.4 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -33981,7 +33981,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload MarsAtlas on startup (40MB)
+      value: Preload MarsAtlas on startup (15 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -37206,7 +37206,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload the IBC functional atlas on startup (370MB)
+      value: Preload the IBC functional atlas on startup (36 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -37954,7 +37954,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload DiFuMo 256 on startup (2600MB)
+      value: Preload DiFuMo 256 on startup (4.2 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -39182,7 +39182,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: "Preload the J\xFClich atlas on startup (130MB)"
+      value: "Preload the J\xFClich atlas on startup (18 MB)"
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -42381,7 +42381,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer VISU on startup (7900MB)
+      value: Preload localizer VISU on startup (2.6 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -46089,7 +46089,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer LEC2 on startup (????MB)
+      value: Preload localizer LEC2 on startup (490 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -46909,7 +46909,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer MVEB on startup (????MB)
+      value: Preload localizer MVEB on startup (5.0 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -47349,7 +47349,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload DiFuMo 512 on startup (5200MB)
+      value: Preload DiFuMo 512 on startup (6.0 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -50679,7 +50679,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer MOTO on startup (????MB)
+      value: Preload localizer MOTO on startup (7.7 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -51415,7 +51415,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload DiFuMo 1024 on startup (10400MB)
+      value: Preload DiFuMo 1024 on startup (9.5 MB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -53304,7 +53304,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer LEC1 on startup (????MB)
+      value: Preload localizer LEC1 on startup (2.2 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
@@ -53534,7 +53534,7 @@ PrefabInstance:
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
       propertyPath: m_Text
-      value: Preload localizer MVIS on startup (????MB)
+      value: Preload localizer MVIS on startup (6.1 GB)
       objectReference: {fileID: 0}
     - target: {fileID: 114368753409979726, guid: 055c61ff41259864080d3b988e779921,
         type: 3}
