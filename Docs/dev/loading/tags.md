@@ -7,8 +7,8 @@ Operational conventions remain in
 
 ## Import
 
-`GlobalDatabase.UpdateDatabaseAsync` uses a scan of all configured metadata
-references, even those not selected for the update, before constructing
+`GlobalDatabase.UpdateDatabasesAsync` scans the selected metadata
+references before constructing
 a draft. [TagImportScanner and importers](../../../Assets/Scripts/HBP/Core/Database)
 feed the services in [Core/Data/Tags](../../../Assets/Scripts/HBP/Core/Data/Tags).
 The key combines patient/site scope and normalized name; an existing `GeneralTag`

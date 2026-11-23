@@ -204,12 +204,26 @@ namespace HBP.UI.Database
         {
             if (!report.HasChanges) return;
 
-            await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "Databases updated", BuildUpdateReport(report), "OK");
+            bool hasAccessIssues = report.AccessIssues.Count > 0;
+            await DialogBoxManager.OpenScrollableAsync(hasAccessIssues ? DialogBoxType.Warning : DialogBoxType.Informational,
+                hasAccessIssues ? "Database update completed with warnings" : "Databases updated", BuildUpdateReport(report), "OK");
         }
 
         private static string BuildUpdateReport(DatabaseUpdateReport report)
         {
             StringBuilder stringBuilder = new();
+            if (report.AccessIssues.Count > 0)
+            {
+                stringBuilder.AppendLine("<b>Skipped because access was denied:</b>");
+                foreach (var issue in report.AccessIssues.OrderBy(issue => issue.SourceName).ThenBy(issue => issue.FolderPath).ThenBy(issue => issue.PatientID))
+                {
+                    var item = issue.PatientID == null ? "Folder" : $"Patient {issue.PatientID}";
+                    stringBuilder.AppendLine($"{issue.SourceName} · {item} ({issue.FolderPath})");
+                }
+
+                stringBuilder.AppendLine();
+            }
+
             AppendPatients(stringBuilder, "Removed patients", report.RemovedPatients);
             AppendPatients(stringBuilder, "Added patients", report.AddedPatients);
             AppendPatients(stringBuilder, "Updated patients", report.UpdatedPatients);

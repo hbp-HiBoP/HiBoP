@@ -16,6 +16,11 @@ namespace HBP.Core.Data
 
         public static TagImportObservations Scan(IEnumerable<DatabaseReference> references, CancellationToken token = default)
         {
+            return Scan(references, token, null);
+        }
+
+        internal static TagImportObservations Scan(IEnumerable<DatabaseReference> references, CancellationToken token, IReadOnlyDictionary<DatabaseReference, DatabaseSourceAccess> brainvisaAccess)
+        {
             TagImportObservations observations = new();
             foreach (DatabaseReference reference in references ?? Enumerable.Empty<DatabaseReference>())
             {
@@ -24,7 +29,7 @@ namespace HBP.Core.Data
                 switch (reference.Type)
                 {
                     case DatabaseType.Brainvisa:
-                        ScanIntranat(reference.Path, observations, token);
+                        ScanIntranat(reference.Path, observations, token, brainvisaAccess?[reference]);
                         break;
                     case DatabaseType.BIDS:
                         ScanBids(reference.Path, observations, token);
@@ -56,27 +61,34 @@ namespace HBP.Core.Data
             }
         }
 
-        private static void ScanIntranat(string path, TagImportObservations observations, CancellationToken token)
+        private static void ScanIntranat(string path, TagImportObservations observations, CancellationToken token, DatabaseSourceAccess access)
         {
             DirectoryInfo root = new(path);
-            if (!root.Exists) return;
-            foreach (DirectoryInfo patientDirectory in root.GetDirectories().Where(directory => Patient.IsPatientDirectory(directory.FullName)))
+            foreach (DirectoryInfo patientDirectory in DatabaseSourceAccess.ReadSourceDirectories(access, root))
             {
                 token.ThrowIfCancellationRequested();
-                string[] nameParts = patientDirectory.Name.Split(new[] { '_' }, 3);
-                if (nameParts.Length == 3 && int.TryParse(nameParts[1], out _))
+                var patientObservations = DatabaseSourceAccess.Read(access, patientDirectory, patientDirectory.Name, () =>
                 {
-                    observations.AddPatientValue("Place", nameParts[0]);
-                    observations.AddPatientValue("Date", nameParts[1]);
-                }
+                    if (!Patient.IsPatientDirectory(patientDirectory.FullName)) return null;
+                    TagImportObservations result = new();
+                    string[] nameParts = patientDirectory.Name.Split(new[] { '_' }, 3);
+                    if (nameParts.Length == 3 && int.TryParse(nameParts[1], out _))
+                    {
+                        result.AddPatientValue("Place", nameParts[0]);
+                        result.AddPatientValue("Date", nameParts[1]);
+                    }
 
-                DirectoryInfo implantation = new(Path.Combine(patientDirectory.FullName, "implantation"));
-                if (!implantation.Exists) continue;
-                foreach (FileInfo file in implantation.GetFiles("*.csv", SearchOption.TopDirectoryOnly))
-                {
-                    token.ThrowIfCancellationRequested();
-                    ScanIntranatSiteFile(file.FullName, observations);
-                }
+                    DirectoryInfo implantation = new(Path.Combine(patientDirectory.FullName, "implantation"));
+                    if (DatabaseSourceAccess.Exists(implantation))
+                        foreach (FileInfo file in implantation.GetFiles("*.csv", SearchOption.TopDirectoryOnly))
+                        {
+                            token.ThrowIfCancellationRequested();
+                            ScanIntranatSiteFile(file.FullName, result);
+                        }
+
+                    return result;
+                });
+                observations.Merge(patientObservations);
             }
         }
 
@@ -176,7 +188,6 @@ namespace HBP.Core.Data
 
         private static void ScanIntranatSiteFile(string path, TagImportObservations observations)
         {
-            if (!File.Exists(path)) return;
             string[] lines = File.ReadAllLines(path).Where(line => !string.IsNullOrWhiteSpace(line)).ToArray();
             int headerIndex = FindIntranatHeaderIndex(lines);
             if (headerIndex < 0) return;

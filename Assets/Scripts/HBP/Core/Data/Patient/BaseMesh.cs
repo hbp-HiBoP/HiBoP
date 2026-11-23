@@ -1,4 +1,5 @@
-﻿using HBP.Core.Interfaces;
+﻿using HBP.Core.Database;
+using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -171,57 +172,57 @@ namespace HBP.Core.Data
 
             DirectoryInfo preimplantationDirectory = null, preTransformationsDirectory = null;
             FileInfo preTransformation = null;
-            if (t1mri.Exists) preimplantationDirectory = t1mri.GetDirectories("T1pre_*").FirstOrDefault();
-            if (preimplantationDirectory != null && preimplantationDirectory.Exists)
+            if (DatabaseSourceAccess.Exists(t1mri)) preimplantationDirectory = t1mri.GetDirectories("T1pre_*").FirstOrDefault();
+            if (preimplantationDirectory != null && DatabaseSourceAccess.Exists(preimplantationDirectory))
             {
                 preTransformationsDirectory = new DirectoryInfo(Path.Combine(preimplantationDirectory.FullName, "registration"));
-                if (preTransformationsDirectory != null && preTransformationsDirectory.Exists)
+                if (preTransformationsDirectory != null && DatabaseSourceAccess.Exists(preTransformationsDirectory))
                 {
                     preTransformation = preTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + preimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
 
             string preTransformationPath = string.Empty;
-            if (preTransformation != null && preTransformation.Exists) preTransformationPath = preTransformation.FullName;
+            if (preTransformation != null && DatabaseSourceAccess.Exists(preTransformation)) preTransformationPath = preTransformation.FullName;
             // Post
             DirectoryInfo postimplantationDirectory = null, postTransformationsDirectory = null;
             FileInfo postTransformation = null;
-            if (t1mri.Exists) postimplantationDirectory = t1mri.GetDirectories("T1post_*").FirstOrDefault();
-            if (postimplantationDirectory != null && postimplantationDirectory.Exists)
+            if (DatabaseSourceAccess.Exists(t1mri)) postimplantationDirectory = t1mri.GetDirectories("T1post_*").FirstOrDefault();
+            if (postimplantationDirectory != null && DatabaseSourceAccess.Exists(postimplantationDirectory))
             {
                 postTransformationsDirectory = new DirectoryInfo(Path.Combine(postimplantationDirectory.FullName, "registration"));
-                if (postTransformationsDirectory != null && postTransformationsDirectory.Exists)
+                if (postTransformationsDirectory != null && DatabaseSourceAccess.Exists(postTransformationsDirectory))
                 {
                     postTransformation = postTransformationsDirectory.GetFiles("RawT1-" + parent.Name + "_" + postimplantationDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
 
             string postTransformationPath = string.Empty;
-            if (postTransformation != null && postTransformation.Exists) postTransformationPath = postTransformation.FullName;
+            if (postTransformation != null && DatabaseSourceAccess.Exists(postTransformation)) postTransformationPath = postTransformation.FullName;
             // CT
             DirectoryInfo ctDirectory = null, ctTransformationsDirectory = null;
             FileInfo ctTransformation = null;
-            if (ct.Exists) ctDirectory = ct.GetDirectories("CTpost_*").FirstOrDefault();
-            if (ctDirectory != null && ctDirectory.Exists)
+            if (DatabaseSourceAccess.Exists(ct)) ctDirectory = ct.GetDirectories("CTpost_*").FirstOrDefault();
+            if (ctDirectory != null && DatabaseSourceAccess.Exists(ctDirectory))
             {
                 ctTransformationsDirectory = new DirectoryInfo(Path.Combine(ctDirectory.FullName, "registration"));
-                if (ctTransformationsDirectory != null && ctTransformationsDirectory.Exists)
+                if (ctTransformationsDirectory != null && DatabaseSourceAccess.Exists(ctTransformationsDirectory))
                 {
                     ctTransformation = ctTransformationsDirectory.GetFiles("CT-" + parent.Name + "_" + ctDirectory.Name + "_TO_Scanner_Based.trm").FirstOrDefault();
                 }
             }
 
             string ctTransformationPath = string.Empty;
-            if (ctTransformation != null && ctTransformation.Exists) ctTransformationPath = ctTransformation.FullName;
+            if (ctTransformation != null && DatabaseSourceAccess.Exists(ctTransformation)) ctTransformationPath = ctTransformation.FullName;
             // Mesh
             if (preimplantationDirectory != null)
             {
                 DirectoryInfo meshDirectory = new(Path.Combine(preimplantationDirectory.FullName, "default_analysis", "segmentation", "mesh"));
-                if (meshDirectory.Exists)
+                if (DatabaseSourceAccess.Exists(meshDirectory))
                 {
                     FileInfo greyMatterLeftHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Lhemi" + MESH_EXTENSION));
                     FileInfo greyMatterRightHemisphere = new(Path.Combine(meshDirectory.FullName, parent.Name + "_Rhemi" + MESH_EXTENSION));
-                    if (greyMatterLeftHemisphere.Exists && greyMatterRightHemisphere.Exists)
+                    if (DatabaseSourceAccess.Exists(greyMatterLeftHemisphere) && DatabaseSourceAccess.Exists(greyMatterRightHemisphere))
                     {
                         meshes.Add(new LeftRightMesh("Grey matter", preTransformationPath, greyMatterLeftHemisphere.FullName, greyMatterRightHemisphere.FullName, string.Empty, string.Empty));
                         if (!string.IsNullOrEmpty(postTransformationPath))
@@ -240,9 +241,9 @@ namespace HBP.Core.Data
                     DirectoryInfo SurfaceAnalysisDirectory = new(Path.Combine(meshDirectory.FullName, "surface_analysis"));
                     FileInfo marsAtlasLeftHemisphere = new(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Lwhite_parcels_marsAtlas" + MESH_EXTENSION));
                     FileInfo marsAtlasRightHemisphere = new(Path.Combine(SurfaceAnalysisDirectory.FullName, parent.Name + "_Rwhite_parcels_marsAtlas" + MESH_EXTENSION));
-                    string marsAtlasLeftHemispherePath = marsAtlasLeftHemisphere.Exists ? marsAtlasLeftHemisphere.FullName : string.Empty;
-                    string marsAtlasRightHemispherePath = marsAtlasRightHemisphere.Exists ? marsAtlasRightHemisphere.FullName : string.Empty;
-                    if (whiteMatterLeftHemisphere.Exists && whiteMatterRightHemisphere.Exists)
+                    string marsAtlasLeftHemispherePath = DatabaseSourceAccess.Exists(marsAtlasLeftHemisphere) ? marsAtlasLeftHemisphere.FullName : string.Empty;
+                    string marsAtlasRightHemispherePath = DatabaseSourceAccess.Exists(marsAtlasRightHemisphere) ? marsAtlasRightHemisphere.FullName : string.Empty;
+                    if (DatabaseSourceAccess.Exists(whiteMatterLeftHemisphere) && DatabaseSourceAccess.Exists(whiteMatterRightHemisphere))
                     {
                         meshes.Add(new LeftRightMesh("White matter", preTransformationPath, whiteMatterLeftHemisphere.FullName, whiteMatterRightHemisphere.FullName, marsAtlasLeftHemispherePath, marsAtlasRightHemispherePath));
                         if (!string.IsNullOrEmpty(postTransformationPath))

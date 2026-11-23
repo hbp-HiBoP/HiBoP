@@ -1,4 +1,5 @@
-﻿using HBP.Core.Interfaces;
+﻿using HBP.Core.Database;
+using HBP.Core.Interfaces;
 using HBP.Core.Tools;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -152,19 +153,20 @@ namespace HBP.Core.Data
         public static MRI[] LoadFromDirectory(string path)
         {
             List<MRI> MRIs = new();
-            if (string.IsNullOrEmpty(path) || !Directory.Exists(path)) return MRIs.ToArray();
+            if (string.IsNullOrEmpty(path)) return MRIs.ToArray();
             DirectoryInfo directoryInfo = new(path);
+            if (!DatabaseSourceAccess.Exists(directoryInfo)) return MRIs.ToArray();
             DirectoryInfo t1mriDirectoy = directoryInfo.GetDirectories("t1mri", SearchOption.TopDirectoryOnly).FirstOrDefault();
             DirectoryInfo ct = directoryInfo.GetDirectories("ct", SearchOption.TopDirectoryOnly).FirstOrDefault();
 
-            if (t1mriDirectoy != null && t1mriDirectoy.Exists)
+            if (t1mriDirectoy != null && DatabaseSourceAccess.Exists(t1mriDirectoy))
             {
                 // Pre-implantation.
                 DirectoryInfo preimplantationDirectory = t1mriDirectoy.GetDirectories("T1pre_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-                if (preimplantationDirectory != null && preimplantationDirectory.Exists)
+                if (preimplantationDirectory != null && DatabaseSourceAccess.Exists(preimplantationDirectory))
                 {
                     FileInfo preimplantationMRIFile = GetMRIFileWithExtensions(preimplantationDirectory, directoryInfo.Name);
-                    if (preimplantationMRIFile != null && preimplantationMRIFile.Exists)
+                    if (preimplantationMRIFile != null && DatabaseSourceAccess.Exists(preimplantationMRIFile))
                     {
                         MRIs.Add(new MRI("Preimplantation", preimplantationMRIFile.FullName));
                     }
@@ -172,23 +174,23 @@ namespace HBP.Core.Data
 
                 // Post-implantation.
                 DirectoryInfo postimplantationDirectory = t1mriDirectoy.GetDirectories("T1post_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-                if (postimplantationDirectory != null && postimplantationDirectory.Exists)
+                if (postimplantationDirectory != null && DatabaseSourceAccess.Exists(postimplantationDirectory))
                 {
                     FileInfo postimplantationMRIFile = GetMRIFileWithExtensions(postimplantationDirectory, directoryInfo.Name);
-                    if (postimplantationMRIFile != null && postimplantationMRIFile.Exists)
+                    if (postimplantationMRIFile != null && DatabaseSourceAccess.Exists(postimplantationMRIFile))
                     {
                         MRIs.Add(new MRI("Postimplantation", postimplantationMRIFile.FullName));
                     }
                 }
 
                 // CT
-                if (ct != null && ct.Exists)
+                if (ct != null && DatabaseSourceAccess.Exists(ct))
                 {
                     DirectoryInfo ctDirectory = ct.GetDirectories("CTpost_*", SearchOption.TopDirectoryOnly).FirstOrDefault();
-                    if (ctDirectory != null && ctDirectory.Exists)
+                    if (ctDirectory != null && DatabaseSourceAccess.Exists(ctDirectory))
                     {
                         FileInfo ctMRIFile = GetMRIFileWithPattern(ctDirectory, directoryInfo.Name + "-CTPost_*");
-                        if (ctMRIFile != null && ctMRIFile.Exists)
+                        if (ctMRIFile != null && DatabaseSourceAccess.Exists(ctMRIFile))
                         {
                             MRIs.Add(new MRI("CT", ctMRIFile.FullName));
                         }
@@ -215,7 +217,7 @@ namespace HBP.Core.Data
             {
                 string fileName = baseName + extension;
                 FileInfo file = new(Path.Combine(directory.FullName, fileName));
-                if (file.Exists)
+                if (DatabaseSourceAccess.Exists(file))
                 {
                     return file;
                 }
