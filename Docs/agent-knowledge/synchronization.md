@@ -355,9 +355,11 @@ expire. Existing retries are bounded to three attempts with cancelable 500/1000 
 pauses and no endless inventory retry after exhaustion. Persistent failures use
 one Desktop error dialog, not status/Retry clutter in preferences; cancellation
 or disconnect abandons retries. Manual atlas buttons act immediately; preferences
-Cancel does not undo them. Auto-load flags apply on Desktop startup/new Quest
-session installation, not every save. An unrelated global atlas does not invalidate
-delivered mesh/MRI.
+Cancel does not undo them. Auto-load flags apply on Desktop startup and at the
+first session opening after a Quest globals installation. The Desktop sends the
+current preload list at session opening, excluding explicitly unloaded atlases.
+Reopening an installed context can remove queued preloads without starting a new
+preload batch. An unrelated global atlas does not invalidate delivered mesh/MRI.
 
 Entry points: [DesktopSessionPreferences](../../Assets/Scripts/HBP/UI/Quest/DesktopSessionPreferences.cs),
 [QuestManager.Definitions](../../Assets/Scripts/HBP/UI/Quest/QuestManager.Definitions.cs),

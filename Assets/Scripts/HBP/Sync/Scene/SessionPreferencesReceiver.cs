@@ -23,6 +23,7 @@ namespace HBP.Sync.Scene
         private readonly Func<UserPreferences> m_Preferences;
         private readonly Func<bool> m_HasScene;
         private readonly Func<SessionAtlasInventory> m_Inventory;
+        private readonly Action<string[]> m_PrepareAtlases;
         private readonly SemaphoreSlim m_Gate = new(1, 1);
         private CancellationTokenSource m_Epoch = new();
         private readonly Dictionary<string, PendingRelease> m_Releases = new(StringComparer.Ordinal);
@@ -39,12 +40,13 @@ namespace HBP.Sync.Scene
             public double Expires;
         }
 
-        public SessionPreferencesReceiver(Func<Guid> context, Func<UserPreferences> preferences, Func<bool> hasScene, Func<SessionAtlasInventory> inventory = null)
+        public SessionPreferencesReceiver(Func<Guid> context, Func<UserPreferences> preferences, Func<bool> hasScene, Func<SessionAtlasInventory> inventory = null, Action<string[]> prepareAtlases = null)
         {
             m_Context = context;
             m_Preferences = preferences;
             m_HasScene = hasScene;
             m_Inventory = inventory;
+            m_PrepareAtlases = prepareAtlases;
         }
 
         public void Tick()
@@ -105,9 +107,26 @@ namespace HBP.Sync.Scene
                 token.ThrowIfCancellationRequested();
                 Tick();
                 if (request.ContextId != m_Context()) return Reply(request, SessionControlStatus.Stale, "The pairing context has changed.");
+                string[] preloads = null;
                 if (request.Kind == SessionControlKind.Open)
                 {
                     if (request.ContextId == m_ContextId && request.Generation < m_Generation) return Reply(request, SessionControlStatus.Stale, "Old connection generation.");
+                    byte[] body = request.GetBody();
+                    if (body.Length != 0)
+                    {
+                        try
+                        {
+                            preloads = JsonConvert.DeserializeObject<string[]>(Encoding.UTF8.GetString(body));
+                        }
+                        catch (JsonException)
+                        {
+                            return Reply(request, SessionControlStatus.Rejected, "Invalid atlas preload list.");
+                        }
+
+                        if (preloads == null || preloads.Length > AtlasResources.Definitions.Count || preloads.Any(id => !AtlasResources.Definitions.Any(definition => definition.Id == id)))
+                            return Reply(request, SessionControlStatus.Rejected, "Invalid atlas preload list.");
+                    }
+
                     if (request.ContextId != m_ContextId || request.Generation != m_Generation)
                     {
                         Reset();
@@ -128,6 +147,7 @@ namespace HBP.Sync.Scene
                         response = Reply(request, SessionControlStatus.Applied, body: PreferencesSnapshot.Capture(m_Preferences()));
                         break;
                     case SessionControlKind.Open:
+                        m_PrepareAtlases?.Invoke(preloads);
                         var loaded = new Dictionary<string, string>(StringComparer.Ordinal);
                         foreach (var definition in AtlasResources.Definitions)
                             if (AtlasResources.IsLoaded(definition.Id))

@@ -761,6 +761,52 @@ namespace HBP.Tests.Quest
             }
         }
 
+        [TestCase(false, false, false)]
+        [TestCase(true, true, false)]
+        [TestCase(true, false, true)]
+        public async Task OpeningUsesCurrentDesktopAtlasPolicyAfterGlobalsInstallation(bool preloadEnabled, bool manuallyUnloaded, bool shouldLoad)
+        {
+            const string id = "difumo:64";
+            var archivedPreferences = new UserPreferences();
+            archivedPreferences.Data.Atlases.PreloadDiFuMo64 = true;
+            var desktopPreferences = new UserPreferences();
+            desktopPreferences.Data.Atlases.PreloadMarsAtlas = false;
+            desktopPreferences.Data.Atlases.PreloadJuBrain = false;
+            desktopPreferences.Data.Atlases.PreloadDiFuMo64 = preloadEnabled;
+            var intents = new Dictionary<string, bool>();
+            if (manuallyUnloaded) intents.Add(id, false);
+            Assert.That(AtlasResources.Status(id).State, Is.EqualTo(AtlasLoadState.Unloaded));
+
+            Guid context = Guid.NewGuid();
+            var loads = new List<string>();
+            SessionAtlasPreparation preparation = null;
+            var receiver = new SessionPreferencesReceiver(() => context, () => archivedPreferences, () => false, prepareAtlases: preloads =>
+            {
+                preparation = new SessionAtlasPreparation(preloads, () => UniTask.CompletedTask, (atlas, _) =>
+                {
+                    loads.Add(atlas);
+                    return UniTask.FromResult(new AtlasLoadResult(atlas, AtlasLoadState.Loaded));
+                });
+                preparation.Start();
+            });
+            using var owner = new DesktopSessionPreferences(context, 1, desktopPreferences, receiver.HandleAsync, archivedPreferences, intents);
+            try
+            {
+                await owner.StartAsync();
+                Assert.That(preparation, Is.Not.Null);
+                await preparation.Completion;
+                Assert.That(loads, Is.EqualTo(shouldLoad ? new[] { id } : Array.Empty<string>()));
+                Assert.That(archivedPreferences.Data.Atlases.PreloadDiFuMo64, Is.True);
+            }
+            finally
+            {
+                owner.Dispose();
+                await AtlasInventoryWork(owner);
+                if (preparation != null) await preparation.CloseAsync();
+                await receiver.CloseAsync();
+            }
+        }
+
         [Test]
         public async Task ManualLoadConfirmsBothDevicesWithoutComparingContentHashes()
         {

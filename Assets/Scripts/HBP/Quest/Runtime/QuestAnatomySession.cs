@@ -247,11 +247,23 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing, () => atlasPreparation?.Snapshot() ?? new SessionAtlasInventory());
+            sessionPreferences = new SessionPreferencesReceiver(() => globals == null ? Guid.Empty : Guid.ParseExact(globals.Id, "N"), () => HBP.Core.Preferences.PersistentDataManager.UserPreferences, () => IsReady || ReceptionState == AnatomyReceptionState.Preparing, () => atlasPreparation?.Snapshot() ?? new SessionAtlasInventory(), PrepareSessionAtlases);
             mainThread = Thread.CurrentThread.ManagedThreadId;
             unityContext = SynchronizationContext.Current;
             if (view != null) view.OnContextSelected.AddListener(OnContextSelected);
             if (view != null) view.OnTimelineScopeChanged.AddListener(OnTimelineScopeChanged);
+        }
+
+        private void PrepareSessionAtlases(string[] preloads)
+        {
+            if (atlasPreparation != null)
+            {
+                if (preloads != null) atlasPreparation.RestrictTo(preloads);
+                return;
+            }
+
+            atlasPreparation = preloads == null ? new SessionAtlasPreparation(globals.Data.Preferences.Data.Atlases, () => standardInstallation.AsUniTask()) : new SessionAtlasPreparation(preloads, () => standardInstallation.AsUniTask());
+            atlasPreparation.Start();
         }
 
         private void Start()
@@ -402,7 +414,12 @@ namespace HBP.Quest
                     if (destroyed)
                         throw new ObjectDisposedException(nameof(QuestAnatomySession));
                     if (sessionPreferences != null) await sessionPreferences.CloseAsync();
-                    if (atlasPreparation != null) await atlasPreparation.CloseAsync();
+                    if (atlasPreparation != null)
+                    {
+                        await atlasPreparation.CloseAsync();
+                        atlasPreparation = null;
+                    }
+
                     candidate.Data.Preferences = archive.MaterializeReceivedPreferences();
                     HBP.Core.Preferences.PersistentDataManager.ApplySessionData(candidate.Data.Preferences, candidate.Data.Tags, candidate.Data.Aliases, candidate.FilterPresets);
                     HBP.Core.Database.DatabaseManager.Database.SetProtocols(candidate.Data.Protocols, new HBP.Core.Data.ValidationRequest(HBP.Core.Data.ValidationAspect.None));
@@ -418,8 +435,6 @@ namespace HBP.Quest
                     deliveries.Clear();
                     sceneControls.Clear();
                     previous?.Dispose();
-                    atlasPreparation = new SessionAtlasPreparation(candidate.Data.Preferences.Data.Atlases, () => standardInstallation.AsUniTask());
-                    atlasPreparation.Start();
                     stop.ThrowIfCancellationRequested();
                 }, stop).ConfigureAwait(false);
                 await installation.ConfigureAwait(false);

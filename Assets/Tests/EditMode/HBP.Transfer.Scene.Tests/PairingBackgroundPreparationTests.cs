@@ -126,6 +126,33 @@ namespace HBP.Tests.Transfer
         }
 
         [Test]
+        public async Task ReopeningWithFewerPreloadsSkipsAtlasStillWaitingForInstallation()
+        {
+            var installed = new TaskCompletionSource<bool>();
+            var loads = new System.Collections.Generic.List<string>();
+            var preparation = new SessionAtlasPreparation(new[] { "difumo:64", "ibc" }, () => installed.Task.AsUniTask(), (id, _) =>
+            {
+                loads.Add(id);
+                return UniTask.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded));
+            }, id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
+            preparation.Start();
+            try
+            {
+                Assert.That(preparation.Snapshot().Atlases["difumo:64"].State, Is.EqualTo(AtlasLoadState.Loading));
+                preparation.RestrictTo(new[] { "ibc", "mars" });
+                Assert.That(preparation.Snapshot().Atlases["difumo:64"].State, Is.EqualTo(AtlasLoadState.Unloaded));
+                installed.SetResult(true);
+                await preparation.Completion;
+                Assert.That(loads, Is.EqualTo(new[] { "ibc" }));
+            }
+            finally
+            {
+                installed.TrySetResult(true);
+                await preparation.CloseAsync();
+            }
+        }
+
+        [Test]
         public async Task SuccessfulPreloadDoesNotResurrectAnUnloadedNativeResource()
         {
             bool loaded = true;

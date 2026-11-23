@@ -35,9 +35,13 @@ namespace HBP.Sync.Scene
         private bool preparing;
         public UniTask Completion => running;
 
-        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<UniTask> installed, Func<string, CancellationToken, UniTask<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
+        public SessionAtlasPreparation(AtlasesPreferences preferences, Func<UniTask> installed, Func<string, CancellationToken, UniTask<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null) : this(AtlasResources.Definitions.Where(definition => definition.Preload(preferences)).Select(definition => definition.Id), installed, load, status)
         {
-            requested = AtlasResources.Definitions.Where(d => d.Preload(preferences)).Select(d => d.Id).ToHashSet(StringComparer.Ordinal);
+        }
+
+        public SessionAtlasPreparation(IEnumerable<string> ids, Func<UniTask> installed, Func<string, CancellationToken, UniTask<AtlasLoadResult>> load = null, Func<string, AtlasLoadResult> status = null)
+        {
+            requested = ids.ToHashSet(StringComparer.Ordinal);
             this.installed = installed;
             this.load = load ?? ((id, token) => AtlasResources.LoadAsync(id, token));
             this.status = status ?? AtlasResources.Status;
@@ -50,6 +54,8 @@ namespace HBP.Sync.Scene
             running = RunAsync().ToAsyncLazy().Task;
         }
 
+        public void RestrictTo(IEnumerable<string> ids) => requested.IntersectWith(ids);
+
         private async UniTask RunAsync()
         {
             using var timing = PairingTiming.Measure("quest.atlas-preparation");
@@ -58,8 +64,10 @@ namespace HBP.Sync.Scene
                 // Only this context's wait is cancelled; the application owns and observes installation.
                 await installed().AttachExternalCancellation(stop.Token);
                 await UniTask.SwitchToMainThread();
-                foreach (string id in requested)
+                foreach (var definition in AtlasResources.Definitions)
                 {
+                    string id = definition.Id;
+                    if (!requested.Contains(id)) continue;
                     stop.Token.ThrowIfCancellationRequested();
                     var result = await load(id, stop.Token);
                     await UniTask.SwitchToMainThread();

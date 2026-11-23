@@ -139,7 +139,9 @@ namespace HBP.UI.Quest
         public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             using var timing = PairingTiming.Measure("desktop.session-open");
-            var response = await SendAsync(Request(SessionControlKind.Open), cancellationToken);
+            var preloads = AtlasResources.Definitions.Where(definition => definition.Preload(m_Preferences.Data.Atlases) && !ShouldUnloadAtlas(definition.Id, AtlasResources.Status(definition.Id).State)).Select(definition => definition.Id).ToArray();
+            byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(preloads));
+            var response = await SendAsync(Request(SessionControlKind.Open, body: body), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
             if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
             RecordSceneCapabilities(response);
@@ -203,6 +205,8 @@ namespace HBP.UI.Quest
             AtlasChanged(AtlasResources.Status(id));
         }
 
+        private bool ShouldUnloadAtlas(string id, AtlasLoadState localState) => localState == AtlasLoadState.Unloaded && m_AtlasIntents != null && m_AtlasIntents.TryGetValue(id, out bool desired) && !desired;
+
         private async Task RefreshInventoryAsync()
         {
             // Give StartAsync and pending saves their completion boundary before background requests.
@@ -234,10 +238,12 @@ namespace HBP.UI.Quest
 
                             if (remoteState != AtlasLoadState.Unloaded || local.State != AtlasLoadState.Unloaded)
                                 SetAtlasState(id, local.State.ToString(), remote?.Error ?? remoteState.ToString());
-                            bool unload = m_AtlasIntents != null && m_AtlasIntents.TryGetValue(id, out bool desired) && !desired && local.State == AtlasLoadState.Unloaded;
-                            if (unload && remoteState != AtlasLoadState.Unloaded) m_PendingRemoteUnloads.Add(id);
+                            bool unload = ShouldUnloadAtlas(id, local.State) && remoteState != AtlasLoadState.Unloaded;
+                            if (unload) m_PendingRemoteUnloads.Add(id);
                             else m_PendingRemoteUnloads.Remove(id);
-                            if ((local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(id) || unload && remoteState != AtlasLoadState.Unloaded) && m_InventoryRecoveryAttempted.Add(id))
+                            // A queued or running preload can publish after an early unload attempt.
+                            bool canUnload = unload && (!preparing || remoteState != AtlasLoadState.Loading);
+                            if ((local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(id) || canUnload) && m_InventoryRecoveryAttempted.Add(id))
                             {
                                 using var attempt = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token);
                                 m_AtlasAttempt = attempt;
