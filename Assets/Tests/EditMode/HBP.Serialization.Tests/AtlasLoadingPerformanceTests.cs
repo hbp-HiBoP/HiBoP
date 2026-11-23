@@ -26,6 +26,7 @@ namespace HBP.Tests.Serialization
 
         [TestCase("localizer:VISU")]
         [TestCase("difumo:1024")]
+        [TestCase("ibc")]
         [Explicit("Loads large installed scientific atlases; run explicitly for performance qualification.")]
         public async Task InstalledAtlasLoad(string id)
         {
@@ -40,7 +41,13 @@ namespace HBP.Tests.Serialization
                 var result = await AtlasResources.LoadAsync(id);
                 watch.Stop();
                 Assert.That(result.State, Is.EqualTo(AtlasLoadState.Loaded), result.Error);
-                var fmris = id.StartsWith("localizer:", StringComparison.Ordinal) ? Object3DManager.Localizers.Protocols.Single(p => "localizer:" + p.Name == id).Datas.SelectMany(d => d.Blocs).Select(b => b.FMRI).ToArray() : new[] { Object3DManager.DiFuMo.FMRIs[id.Substring(7)] };
+                var fmris = id switch
+                {
+                    "ibc" => new[] { Object3DManager.IBC.FMRI },
+                    _ when id.StartsWith("localizer:", StringComparison.Ordinal) => Object3DManager.Localizers.Protocols
+                        .Single(p => "localizer:" + p.Name == id).Datas.SelectMany(d => d.Blocs).Select(b => b.FMRI).ToArray(),
+                    _ => new[] { Object3DManager.DiFuMo.FMRIs[id.Substring(7)] }
+                };
                 process.Refresh();
                 measurement.seconds = watch.Elapsed.TotalSeconds;
                 measurement.workingSetAfter = ReportedBytes(process.WorkingSet64);

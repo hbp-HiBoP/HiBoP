@@ -1,4 +1,5 @@
 using HBP.Core.Tools;
+using HBP.Core.DLL;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
@@ -423,7 +424,7 @@ namespace HBP.Core.Object3D
         public LocalizerBloc(string name, string fmriFile, string maskFile = "", bool loadInBackground = true)
         {
             Name = name;
-            FMRI = new FMRI(name, fmriFile, maskFile, loadInBackground);
+            FMRI = new FMRI(name, fmriFile, maskFile, loadInBackground, atlasStorage: NIFTI.AtlasStorage.SharedSupport);
         }
 
         #endregion

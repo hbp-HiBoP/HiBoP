@@ -6,6 +6,13 @@ namespace HBP.Core.DLL
 {
     public class NIFTI : CppDLLImportBase
     {
+        public enum AtlasStorage
+        {
+            Dense = 0,
+            Cropped = 1,
+            SharedSupport = 2
+        }
+
         private int[] m_CachedHistogramBins;
         private int m_CachedHistogramBinCount;
         private float m_CachedHistogramMin;
@@ -74,6 +81,29 @@ namespace HBP.Core.DLL
             return IsLoaded;
         }
 
+        public bool LoadAtlas(string path, AtlasStorage storage)
+        {
+            m_CachedHistogramBins = null;
+            IsLoaded = hbp_nifti_load_atlas(_handle.Handle, path, storage) == HbpCoreStatus.Ok;
+            return IsLoaded;
+        }
+
+        public Volume TakeAtlasVolume(int t)
+        {
+            Volume volume = new();
+            try
+            {
+                ThrowIfFailed(hbp_nifti_take_atlas_volume(_handle.Handle, volume.getHandle().Handle, t));
+                volume.MarkLoaded();
+                return volume;
+            }
+            catch
+            {
+                volume.Dispose();
+                throw;
+            }
+        }
+
         public Volume ExtractVolume(int t)
         {
             Volume volume = new();
@@ -134,6 +164,12 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_load", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_load(IntPtr nifti, [MarshalAs(UnmanagedType.LPUTF8Str)] string path);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_load_atlas", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_load_atlas(IntPtr nifti, [MarshalAs(UnmanagedType.LPUTF8Str)] string path, AtlasStorage storage);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_take_atlas_volume", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_nifti_take_atlas_volume(IntPtr nifti, IntPtr volume, int t);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_nifti_convert_to_volume", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_nifti_convert_to_volume(IntPtr nifti, IntPtr volume, int t);

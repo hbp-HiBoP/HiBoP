@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using HBP.Core.Tools;
+using HBP.Core.DLL;
 
 namespace HBP.Core.Object3D
 {
@@ -31,7 +32,7 @@ namespace HBP.Core.Object3D
             ResourceRetention.EnsureCanUse("difumo:" + atlas);
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, string.Format("labels_{0}_dictionary.csv", atlas));
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "DiFuMo", atlas, "3mm", "maps.nii.gz");
-            FMRIs.Add(atlas, new FMRI(atlas, file, loadInBackground: loadInBackground));
+            FMRIs.Add(atlas, new FMRI(atlas, file, loadInBackground: loadInBackground, atlasStorage: NIFTI.AtlasStorage.Cropped));
             Information.Add(atlas, new DiFuMoInformation(csvFile));
         }
 

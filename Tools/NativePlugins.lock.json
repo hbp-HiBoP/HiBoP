@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-23T10:26:04.9816749+00:00",
-  "requestId": "hibop-native-20261123-102241-2abce69b",
+  "generatedAt": "2026-11-23T11:31:55.4156453+00:00",
+  "requestId": "hibop-native-20261123-112128-31f5bed1",
   "branch": "develop",
   "libraries": [
     {
@@ -62,7 +62,7 @@
     {
       "name": "hbp_core",
       "repository": "hbp-HiBoP/hbp_core",
-      "commit": "eaea7ad795b2252a697c7dc62b08ccfea4f43a7b",
+      "commit": "c5cbe30afb863a765c2d7f13b88f3e4866cb3506",
       "runId": null,
       "runUrl": null,
       "artifacts": [
@@ -73,12 +73,12 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 2043040,
-              "sha256": "e662e0cbb9a7e9845dd61c1237454ae5f0a1f5bd22f544080ab640427ff45067"
+              "sizeBytes": 2108576,
+              "sha256": "fbd081dab0be3dccfa14f08892e913ebd038872fcc10f8a13d966c32653eb9fc"
             }
           ],
           "provenance": {
-            "sourceTree": "5a31a60b11b73ea70a62c76c800a5039b8cbeb34",
+            "sourceTree": "fd6be7490d2f91531be9fd3e3f915d3c8a455fbf",
             "sourceMode": "git-archive",
             "android": {
               "ndkVersion": "27.2.12479018",
@@ -94,7 +94,7 @@
               "libdl.so",
               "libm.so"
             ],
-            "publicExportCount": 241,
+            "publicExportCount": 243,
             "buildTools": [
               {
                 "path": "tools/Invoke-HbpCoreBuild.ps1",
@@ -117,12 +117,12 @@
                 "sha256": "6668ddf4f3338d8449c6e8a996f40c57ebc142a5f811397b006ad9697e6ca64f"
               }
             ],
-            "artifactManifestSha256": "d11f582129b9b2e6250d5f3dde256e1e41ebf30d046ef4574e3158501be45dca"
+            "artifactManifestSha256": "b6997ff309ae3ee4023b5c1a276164dafa5ef524031f9920a98957c2c85e450a"
           },
-          "sourceCommit": "eaea7ad795b2252a697c7dc62b08ccfea4f43a7b",
+          "sourceCommit": "c5cbe30afb863a765c2d7f13b88f3e4866cb3506",
           "sourceBranch": "develop",
-          "runId": 45155641117,
-          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45155641117"
+          "runId": 45164565185,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45164565185"
         },
         {
           "platform": "Linux",
@@ -131,14 +131,14 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 2466144,
-              "sha256": "fe00870e722234b2953d25ea340aae8ceaa83a960153c6a8c472525dfdd3e38c"
+              "sizeBytes": 2571656,
+              "sha256": "267eb2a1ef4748ca859b1ffd238fb80f1434d0f2eb98a0dffc638366f165fd2f"
             }
           ],
-          "sourceCommit": "eaea7ad795b2252a697c7dc62b08ccfea4f43a7b",
+          "sourceCommit": "c5cbe30afb863a765c2d7f13b88f3e4866cb3506",
           "sourceBranch": "develop",
-          "runId": 45155641117,
-          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45155641117"
+          "runId": 45164565185,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45164565185"
         },
         {
           "platform": "Windows",
@@ -147,14 +147,14 @@
           "files": [
             {
               "relativePath": "",
-              "sizeBytes": 1803776,
-              "sha256": "c852a41d2bd38a80a2f77ac9d9780588df18ae433d5017b2f2f2138691635fd3"
+              "sizeBytes": 1856512,
+              "sha256": "e78c302152f4fe688e45b1b03e2c61c3a142fdd62658b749fc230c05f6e61a29"
             }
           ],
-          "sourceCommit": "eaea7ad795b2252a697c7dc62b08ccfea4f43a7b",
+          "sourceCommit": "c5cbe30afb863a765c2d7f13b88f3e4866cb3506",
           "sourceBranch": "develop",
-          "runId": 45155641117,
-          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45155641117"
+          "runId": 45164565185,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45164565185"
         },
         {
           "platform": "MacOS",
@@ -173,14 +173,14 @@
             },
             {
               "relativePath": "Contents/MacOS/libhbp_core",
-              "sizeBytes": 1884400,
-              "sha256": "d4b18776c4263c6ab134c09f7982f2e5db5138694dc2e4e63c775329a191cc09"
+              "sizeBytes": 1983120,
+              "sha256": "e024841af5e536d1b9f543dce5b3be54e832da5b9c28e5bac76128a4f0053e5e"
             }
           ],
-          "sourceCommit": "eaea7ad795b2252a697c7dc62b08ccfea4f43a7b",
+          "sourceCommit": "c5cbe30afb863a765c2d7f13b88f3e4866cb3506",
           "sourceBranch": "develop",
-          "runId": 45155641117,
-          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45155641117"
+          "runId": 45164565185,
+          "runUrl": "https://github.com/hbp-HiBoP/hbp_core/actions/runs/45164565185"
         }
       ],
       "localRequestId": "cut-reconstruction-working-tree-20261022"
