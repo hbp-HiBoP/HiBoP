@@ -480,6 +480,11 @@ namespace HBP.Tests.Quest
                     mesh.Clear();
                     mesh.vertices = vertices;
                     mesh.triangles = rayMesh.triangles;
+                    atlas.UpdateAtlasColors();
+                    var baseAtlasColors = testAtlas.ConvertIndicesToColors(atlasIndices, -1);
+                    Assert.That(mesh.uv6.All(label => label.x == testLabel), Is.True);
+                    Assert.That(mesh.uv6, Has.Length.EqualTo(vertices.Length));
+                    scene.SceneInformation.BaseCutTexturesNeedUpdate = false;
                     scene.OnBrainRaycastMeshUpdated.Invoke(rayMesh);
                     wrapper.transform.SetPositionAndRotation(Vector3.forward, Quaternion.Euler(6, 24, 10));
                     wrapper.transform.localScale = Vector3.one * 1.75f;
@@ -505,7 +510,7 @@ namespace HBP.Tests.Quest
                     Assert.That(atlas.HoveredArea, Is.EqualTo(testLabel));
                     Assert.That((rightMarker.transform.position - impact).magnitude, Is.LessThan(.001f));
                     Assert.That(marker.activeSelf, Is.False, "Only the winning atlas ray receives atlas feedback.");
-                    Assert.That(mesh.colors, Is.EqualTo(testAtlas.ConvertIndicesToColors(atlasIndices, testLabel)));
+                    Assert.That(mesh.colors, Is.EqualTo(baseAtlasColors), "Hover must leave the uploaded vertex colors intact.");
                     Assert.That(scene.SceneInformation.BaseCutTexturesNeedUpdate, Is.False);
 
                     scene.SceneInformation.FunctionalCutTexturesNeedUpdate = false;
@@ -528,7 +533,7 @@ namespace HBP.Tests.Quest
                     Tick();
                     Assert.That(tooltip.activeSelf, Is.False, "A foreground window takes priority over the cut.");
                     Assert.That(atlas.HoveredArea, Is.EqualTo(-1));
-                    Assert.That(mesh.colors, Is.EqualTo(testAtlas.ConvertIndicesToColors(atlasIndices, -1)));
+                    Assert.That(mesh.colors, Is.EqualTo(baseAtlasColors));
 
                     window.transform.position = away;
                     Tick();

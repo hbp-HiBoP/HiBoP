@@ -73,6 +73,44 @@ namespace HBP.Tests.Rendering
             }
         }
 
+        [TestCase("HBP/Brain")]
+        [TestCase("HBP/Brain/Transparent")]
+        public void AtlasHover_MatchesVertexRecoloringAcrossRegionBoundaries(string shaderName)
+        {
+            Mesh mesh = CreateQuadMesh(Vector3.back, ScientificColor);
+            Texture2D anatomyTexture = CreateSolidTexture(Color.black, false);
+            Material brain = CreateTexturedMaterial(shaderName, anatomyTexture);
+            Color highlight = new(1f, .25f, .1f, .75f);
+            Color baseColor = ScientificColor;
+            try
+            {
+                mesh.colors = new[] { baseColor, baseColor, baseColor, baseColor };
+                mesh.uv6 = new[] { new Vector2(7, 0), new Vector2(8, 0), new Vector2(8, 0), new Vector2(7, 0) };
+                brain.SetFloat("_Atlas", 1f);
+                Color32 plain = RenderCenterPixel(brain, mesh);
+
+                brain.SetFloat("_AtlasHoverLabel", 7);
+                brain.SetVector("_AtlasHoverColor", new Vector4(highlight.r, highlight.g, highlight.b, highlight.a));
+                Color32 hovered = RenderCenterPixel(brain, mesh);
+                Assert.That(hovered, Is.Not.EqualTo(plain));
+
+                brain.SetFloat("_FMRI", 1f);
+                AssertColorsEqual(plain, RenderCenterPixel(brain, mesh), "fMRI ignores the atlas highlight");
+                brain.SetFloat("_FMRI", 0f);
+                brain.SetFloat("_AtlasHoverLabel", -1);
+                AssertColorsEqual(plain, RenderCenterPixel(brain, mesh), "clearing the hover restores the palette");
+
+                mesh.colors = new[] { highlight, baseColor, baseColor, highlight };
+                AssertColorsEqual(hovered, RenderCenterPixel(brain, mesh), "highlight across an atlas boundary");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(brain);
+                UnityEngine.Object.DestroyImmediate(anatomyTexture);
+                UnityEngine.Object.DestroyImmediate(mesh);
+            }
+        }
+
         [Test]
         public void BrainForwardClipping_CoversZeroOneAndTwentyPlanes()
         {

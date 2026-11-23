@@ -16,6 +16,7 @@ struct HBPBrainAttributes
     float2 scientificUv : TEXCOORD2;
     float3 inflatedPositionOS : TEXCOORD3;
     float3 inflatedNormalOS : TEXCOORD4;
+    float2 atlasLabel : TEXCOORD5;
     float4 color : COLOR;
     UNITY_VERTEX_INPUT_INSTANCE_ID
 };
@@ -69,7 +70,9 @@ HBPBrainVaryings HBP_BrainVertex(HBPBrainAttributes input)
     output.uv = TRANSFORM_TEX(input.uv, _MainTex);
     output.alphaUv = TRANSFORM_TEX(input.alphaUv, _AoTex);
     output.scientificUv = TRANSFORM_TEX(input.scientificUv, _ColorTex);
-    output.color = input.color;
+    // Select the color before interpolation so label boundaries blend as vertex colors did.
+    output.color = _Atlas > 0.5 && _FMRI < 0.5 && _AtlasHoverLabel > 0 && input.atlasLabel.x == _AtlasHoverLabel
+        ? _AtlasHoverColor : input.color;
     return output;
 }
 

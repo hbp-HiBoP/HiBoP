@@ -1,5 +1,6 @@
 using UnityEngine;
 using HBP.Core.Object3D;
+using System.Collections.Generic;
 
 namespace HBP.Data.Module3D
 {
@@ -11,6 +12,8 @@ namespace HBP.Data.Module3D
     /// </remarks>
     public class AtlasManager : MonoBehaviour
     {
+        private const int AtlasLabelUVChannel = 5;
+
         #region Properties
 
         /// <summary>
@@ -147,7 +150,7 @@ namespace HBP.Data.Module3D
                 {
                     m_HoveredArea = value;
                     if (m_Scene.IsClosing) return;
-                    ApplySurfaceColors();
+                    ApplySurfaceHighlight();
                     m_Scene.SceneInformation.InvalidateAtlasHoverCutTextures(m_Scene.DesktopPresentation != null);
                 }
             }
@@ -183,6 +186,7 @@ namespace HBP.Data.Module3D
         public void UpdateAtlasColors()
         {
             ApplySurfaceColors();
+            ApplySurfaceHighlight();
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
 
@@ -193,12 +197,29 @@ namespace HBP.Data.Module3D
                 int[] indices = atlas is Core.DLL.MarsAtlas ? m_MarsAtlasIndices : m_JuBrainAtlasIndices;
                 if (indices != null)
                 {
-                    Color[] colors = atlas.ConvertIndicesToColors(indices, HoveredArea);
-                    m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                    Color[] colors = atlas.ConvertIndicesToColors(indices, -1);
+                    var labels = new List<Vector2>(indices.Length);
+                    foreach (int index in indices)
+                        labels.Add(new Vector2(index, 0));
+                    ApplySurfaceAtlas(m_DisplayedObjects.Brain, colors, labels);
                     foreach (Column3D column in m_Scene.Columns)
-                        column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                        ApplySurfaceAtlas(column.BrainMesh, colors, labels);
                 }
             }
+        }
+
+        private static void ApplySurfaceAtlas(GameObject brain, Color[] colors, List<Vector2> labels)
+        {
+            Mesh mesh = brain.GetComponent<MeshFilter>().sharedMesh;
+            mesh.colors = colors;
+            mesh.SetUVs(AtlasLabelUVChannel, labels);
+        }
+
+        private void ApplySurfaceHighlight()
+        {
+            if (m_Scene.BrainMaterials == null) return;
+            Color color = HoveredArea > 0 && SelectedAtlas is { Loaded: true } atlas ? atlas.GetHighlightedColor(HoveredArea) : Color.clear;
+            m_Scene.BrainMaterials.SetAtlasHighlight(HoveredArea, color);
         }
 
         /// <summary>
@@ -309,7 +330,11 @@ namespace HBP.Data.Module3D
 
         internal void InvalidateHoverGeometry()
         {
-            m_HoveredArea = -1;
+            if (m_HoveredArea != -1)
+            {
+                m_HoveredArea = -1;
+                ApplySurfaceHighlight();
+            }
             if (!m_InflatedHoverMesh) return;
             foreach (var column in m_Scene.Columns)
                 if (column && column.AtlasHoverCollider && column.AtlasHoverCollider.sharedMesh == m_InflatedHoverMesh)

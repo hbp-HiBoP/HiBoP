@@ -1238,16 +1238,31 @@ namespace HBP.Data.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
             m_CutTextureProperties ??= new MaterialPropertyBlock();
+            CutTexturesUtility sharedAtlasCuts = null;
+            if (m_AtlasManager.DisplayAtlas && Columns.Count > 0)
+            {
+                // The MRI, cut geometry, atlas and highlight are common to every column.
+                Column3D atlasColumn = Columns[0];
+                m_AtlasManager.ColorCuts(atlasColumn);
+                sharedAtlasCuts = atlasColumn.CutTextures;
+            }
+
             foreach (Column3D column in Columns)
             {
-                if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
-                else if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
-                else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                column.CutTextures.SetSharedAtlasCuts(sharedAtlasCuts);
+                if (sharedAtlasCuts == null)
+                {
+                    if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
+                    else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                }
+
                 for (int i = 0; i < Cuts.Count; ++i)
                 {
                     var renderer = column.BrainCutMeshes[i].GetComponent<Renderer>();
                     renderer.GetPropertyBlock(m_CutTextureProperties);
-                    m_CutTextureProperties.SetTexture("_MainTex", column.CutTextures.BrainCutTextures[i]);
+                    Texture2D texture = column.CutTextures.BrainCutTextures[i];
+                    if (m_CutTextureProperties.GetTexture("_MainTex") == texture) continue;
+                    m_CutTextureProperties.SetTexture("_MainTex", texture);
                     renderer.SetPropertyBlock(m_CutTextureProperties);
                 }
             }

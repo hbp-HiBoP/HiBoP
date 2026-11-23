@@ -32,7 +32,10 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Unity textures for the cuts displayed in 3D, potentially with activity or atlas coloring.
         /// </summary>
-        public List<Texture2D> BrainCutTextures = new();
+        public List<Texture2D> BrainCutTextures => m_SharedAtlasCuts?.m_OwnedBrainCutTextures ?? m_OwnedBrainCutTextures;
+
+        private readonly List<Texture2D> m_OwnedBrainCutTextures = new();
+        private CutTexturesUtility m_SharedAtlasCuts;
 
         /// <summary>
         /// Unity textures for the cuts for the GUI
@@ -65,7 +68,7 @@ namespace HBP.Data.Module3D
             while (Size < size)
             {
                 BaseBrainCutTextures.Add(Texture2DExtension.Generate());
-                BrainCutTextures.Add(Texture2DExtension.Generate());
+                m_OwnedBrainCutTextures.Add(Texture2DExtension.Generate());
                 GUIBrainCutTextures.Add(Texture2DExtension.Generate(1, 1, -10, 9, FilterMode.Point));
                 CutGenerators.Add(new Core.DLL.CutGenerator());
                 Size++;
@@ -75,8 +78,8 @@ namespace HBP.Data.Module3D
             {
                 DestroyTexture(BaseBrainCutTextures[BaseBrainCutTextures.Count - 1]);
                 BaseBrainCutTextures.RemoveAt(BaseBrainCutTextures.Count - 1);
-                DestroyTexture(BrainCutTextures[BrainCutTextures.Count - 1]);
-                BrainCutTextures.RemoveAt(BrainCutTextures.Count - 1);
+                DestroyTexture(m_OwnedBrainCutTextures[m_OwnedBrainCutTextures.Count - 1]);
+                m_OwnedBrainCutTextures.RemoveAt(m_OwnedBrainCutTextures.Count - 1);
                 DestroyTexture(GUIBrainCutTextures[GUIBrainCutTextures.Count - 1]);
                 GUIBrainCutTextures.RemoveAt(GUIBrainCutTextures.Count - 1);
                 CutGenerators[CutGenerators.Count - 1].Dispose();
@@ -89,7 +92,7 @@ namespace HBP.Data.Module3D
                 CutGenerators[i].Initialize(activityGenerator, cutGeometryGenerators[i], preferences.RawCuts ? 0 : 4);
                 FilterMode filter = preferences.RawCuts ? FilterMode.Point : FilterMode.Trilinear;
                 BaseBrainCutTextures[i].filterMode = filter;
-                BrainCutTextures[i].filterMode = filter;
+                m_OwnedBrainCutTextures[i].filterMode = filter;
                 CutGenerators[i].SetMaskActivityOnMRIBackground(preferences.MaskActivityOnMRIBackground);
             }
         }
@@ -108,7 +111,7 @@ namespace HBP.Data.Module3D
             cutGenerator.FillTextureWithVolume(m_BrainCutColorSchemePixels, MRICalMinFactor, MRICalMaxFactor);
             UnityEngine.Profiling.Profiler.EndSample();
             ApplyPixels(BaseBrainCutTextures[indexCut], cutGenerator.CopyBasePixels(), cutGenerator.CutGeometryGenerator.TextureSize);
-            CopyTexture(BaseBrainCutTextures[indexCut], BrainCutTextures[indexCut]);
+            CopyTexture(BaseBrainCutTextures[indexCut], m_OwnedBrainCutTextures[indexCut]);
         }
 
         /// <summary>
@@ -237,7 +240,7 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithActivity(m_CutActivityColorSchemePixels, timelineIndex, Column.ActivityAlpha);
-                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                ApplyPixels(m_OwnedBrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
 
@@ -247,8 +250,13 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithAtlas(selectedAtlas, alpha, selectedArea);
-                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                ApplyPixels(m_OwnedBrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
+        }
+
+        internal void SetSharedAtlasCuts(CutTexturesUtility source)
+        {
+            m_SharedAtlasCuts = ReferenceEquals(source, this) ? null : source;
         }
 
         public void ColorCutsTexturesWithFMRIAtlas(Core.DLL.Volume volume, float negativeMin, float negativeMax, float positiveMin, float positiveMax, float alpha)
@@ -257,7 +265,7 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithFMRI(volume, negativeMin, negativeMax, positiveMin, positiveMax, alpha);
-                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                ApplyPixels(m_OwnedBrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
 
@@ -270,7 +278,7 @@ namespace HBP.Data.Module3D
             {
                 Core.DLL.CutGenerator generator = CutGenerators[i];
                 generator.FillTextureWithLocalizer(volume, min, middle, max, mask, colorScheme);
-                ApplyPixels(BrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
+                ApplyPixels(m_OwnedBrainCutTextures[i], generator.CopyOverlayPixels(), generator.CutGeometryGenerator.TextureSize);
             }
         }
 
@@ -290,13 +298,14 @@ namespace HBP.Data.Module3D
         /// </summary>
         public void Clean()
         {
+            m_SharedAtlasCuts = null;
             foreach (var dllMRITextureCutGenerator in CutGenerators) dllMRITextureCutGenerator?.Dispose();
             CutGenerators.Clear();
             foreach (var texture in BaseBrainCutTextures) DestroyTexture(texture);
-            foreach (var texture in BrainCutTextures) DestroyTexture(texture);
+            foreach (var texture in m_OwnedBrainCutTextures) DestroyTexture(texture);
             foreach (var texture in GUIBrainCutTextures) DestroyTexture(texture);
             BaseBrainCutTextures.Clear();
-            BrainCutTextures.Clear();
+            m_OwnedBrainCutTextures.Clear();
             GUIBrainCutTextures.Clear();
             Size = 0;
         }

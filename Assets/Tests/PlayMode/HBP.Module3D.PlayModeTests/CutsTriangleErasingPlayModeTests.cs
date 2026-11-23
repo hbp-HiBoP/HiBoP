@@ -149,6 +149,61 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
+        public void AtlasCuts_ShareRenderedTexturesUntilAtlasIsDisabled()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("AtlasCutTextureSharing");
+            Base3DScene scene = CreateIsolatedCutsTriangleErasingScene(scope, temp, includeSurface: false);
+            var brain = GetPrivateField<DisplayedObjects>(scene, "m_DisplayedObjects").Brain;
+            CreateSelectedColumn(scope, scene, "first", brain, includeView: false);
+            CreateSelectedColumn(scope, scene, "second", brain, includeView: false);
+
+            var volume = scene.MRIManager.SelectedMRI.Volume;
+            Assert.That(volume.LoadNIFTIFile(Path.Combine(Application.dataPath, "Tests", "Fixtures", "Native", "Nifti", "mri_t1.nii")), Is.True);
+            var cut = scene.AddCutPlane();
+            scene.CutGeometryGenerators.Single().InitializeDisplay(volume, cut, rawCuts: true);
+            foreach (var column in scene.Columns) column.CutTextures.ResetColorSchemes(scene.Colormap, scene.CutColor);
+
+            string folder = Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas");
+            using HBP.Core.DLL.MarsAtlas atlas = new();
+            Assert.That(atlas.Load(Path.Combine(folder, "mars_atlas_index.csv"), Path.Combine(folder, "brodmann_areas.txt"), Path.Combine(folder, "colin27_MNI_MarsAtlas.nii")), Is.True);
+            var previousAtlas = Object3DManager.MarsAtlas;
+            var baseTextures = typeof(Base3DScene).GetMethod("ComputeBaseCutTextures", BindingFlags.Instance | BindingFlags.NonPublic);
+            var functionalTextures = typeof(Base3DScene).GetMethod("ComputeFunctionalCutTextures", BindingFlags.Instance | BindingFlags.NonPublic);
+            var first = scene.Columns[0].CutTextures;
+            var second = scene.Columns[1].CutTextures;
+            var secondOwnedTexture = second.BrainCutTextures.Single();
+
+            try
+            {
+                Object3DManager.MarsAtlas = atlas;
+                SetPrivateField(scene.AtlasManager, "m_DisplayMarsAtlas", true);
+                baseTextures.Invoke(scene, null);
+                functionalTextures.Invoke(scene, null);
+                Assert.That(second.BrainCutTextures.Single(), Is.SameAs(first.BrainCutTextures.Single()));
+                var rendererProperties = new MaterialPropertyBlock();
+                var renderer = scene.Columns[1].BrainCutMeshes.Single().GetComponent<Renderer>();
+                renderer.GetPropertyBlock(rendererProperties);
+                Assert.That(rendererProperties.GetTexture("_MainTex"), Is.SameAs(first.BrainCutTextures.Single()));
+
+                SetPrivateField(scene.AtlasManager, "m_DisplayMarsAtlas", false);
+                baseTextures.Invoke(scene, null);
+                functionalTextures.Invoke(scene, null);
+                Assert.That(second.BrainCutTextures.Single(), Is.SameAs(secondOwnedTexture));
+                Assert.That(secondOwnedTexture.GetPixels32(), Is.EqualTo(second.BaseBrainCutTextures.Single().GetPixels32()));
+                renderer.GetPropertyBlock(rendererProperties);
+                Assert.That(rendererProperties.GetTexture("_MainTex"), Is.SameAs(secondOwnedTexture));
+            }
+            finally
+            {
+                Object3DManager.MarsAtlas = previousAtlas;
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
         public async Task SceneMeshAndCutResources_AreReleasedAcrossRepeatedUpdates()
         {
             using PlayModeTempDirectoryScope temp = new();

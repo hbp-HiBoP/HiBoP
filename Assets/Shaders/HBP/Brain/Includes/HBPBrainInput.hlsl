@@ -14,9 +14,11 @@ CBUFFER_START(UnityPerMaterial)
     float4 _ColorTex_ST;
     float4 _Color;
     float4 _Center;
+    float4 _AtlasHoverColor;
     float _Glossiness;
     float _Metallic;
     float _Atlas;
+    float _AtlasHoverLabel;
     float _Activity;
     float _FMRI;
     float _Amount;

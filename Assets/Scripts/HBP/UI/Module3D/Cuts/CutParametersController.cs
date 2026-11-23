@@ -251,9 +251,13 @@ namespace HBP.UI.Module3D
         {
             Cut.OnUpdateGUITextures.AddListener(() =>
             {
-                Destroy(m_Image.sprite);
                 Texture2D texture = m_Scene.SelectedColumn.CutTextures.GUIBrainCutTextures[Cut.Index];
-                m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
+                Sprite sprite = m_Image.sprite;
+                if (!sprite || sprite.texture != texture || sprite.rect.width != texture.width || sprite.rect.height != texture.height)
+                {
+                    Destroy(sprite);
+                    m_Image.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0, 0));
+                }
                 SetImagePhysicalSize(UnityTextureFactory.RotateCutSize(m_Scene.CutGeometryGenerators[Cut.Index].PhysicalSize, Cut.Orientation, Cut.Flip));
                 DrawLines();
             });

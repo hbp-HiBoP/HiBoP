@@ -97,6 +97,8 @@ namespace HBP.Core.DLL
 
         public abstract string GetAreaName(int index);
 
+        public abstract Color GetHighlightedColor(int label);
+
         public Vector3[] GetAreaCoordinates(int labelIndex)
         {
             ThrowIfFailed(hbp_brain_atlas_get_region_coordinate_count(_handle.Handle, labelIndex, out int coordinateCount));

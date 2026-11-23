@@ -181,6 +181,11 @@ namespace HBP.Core.DLL
             return true;
         }
 
+        public override Color GetHighlightedColor(int label)
+        {
+            return TryGetMetadata(label, out JuBrainAtlasMetadata metadata) ? metadata.HighlightedColor : Color.clear;
+        }
+
         private bool TryGetMetadata(int label, out JuBrainAtlasMetadata metadata)
         {
             metadata = default;
