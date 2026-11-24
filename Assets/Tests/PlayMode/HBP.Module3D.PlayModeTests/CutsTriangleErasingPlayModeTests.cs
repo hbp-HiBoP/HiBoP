@@ -424,6 +424,52 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
+        public void TriangleEraser_StrokePublishesOnlyOnVisibilityCommitAndUndoesInOneStep()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("TriangleStroke");
+            var eraser = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: true).TriangleEraser;
+            eraser.IsEnabled = true;
+            int mutations = 0;
+            eraser.OnVisibilityMaskChanged.AddListener(() => mutations++);
+
+            Assert.That(eraser.BeginTriangleStroke(), Is.True);
+            Assert.That(eraser.RetouchTriangleStroke(0), Is.True);
+            Assert.That(eraser.RetouchTriangleStroke(0), Is.False);
+            Assert.That(eraser.RetouchTriangleStroke(1), Is.True);
+            eraser.FlushTriangleStrokePreview();
+            eraser.EndTriangleStroke();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(2));
+            Assert.That(mutations, Is.Zero);
+
+            eraser.ApplySelection(false);
+            Assert.That(eraser.VisibilityMask.Take(2), Is.All.EqualTo(0));
+            Assert.That(mutations, Is.EqualTo(1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(2));
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(mutations, Is.EqualTo(2));
+
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(eraser.CanCancelLastAction, Is.False);
+            Assert.That(mutations, Is.EqualTo(2));
+
+            Assert.That(eraser.BeginTriangleStroke(), Is.True);
+            eraser.RetouchTriangleStroke(0);
+            var incoming = eraser.VisibilityMask;
+            incoming[1] = 0;
+            eraser.ApplyExternalVisibility(incoming);
+            eraser.EndTriangleStroke();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(eraser.CanCancelLastAction, Is.False);
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(incoming));
+        }
+
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
         public void TriangleErasingToolbarTools_WriteModeDegreesAndCommandsToTriangleEraser()
         {
             using PlayModeTempDirectoryScope temp = new();

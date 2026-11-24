@@ -137,6 +137,17 @@ ROI sphere rows show their index, plain position/radius text and remove action;
 Add sphere is the final list item. Quest input and placeholder text is vertically
 centered while preserving its horizontal alignment.
 
+The Quest Triangle Erasing window activates the local selection preview when
+opened. Closing it hides the preview and keeps the selection for that scene.
+Atlas region controls open beside the main window and preserve the scene's
+checked regions when the side panel closes. A fresh side grip in Triangle, Angle or Activity owns the contact
+marker until release. Existing captures finish normally, and Atlas uses the
+window's region list. Contact uses a 3 mm sphere in tracking space against the
+complete displayed surface, including the erased-face overlay and cut
+boundaries. The first contact locks the column. A Triangle sweep is one local
+undo step. Angle and Activity take one seed per grip. Only applied visibility
+changes enter scene synchronization.
+
 Each visualization has one selected recording contact, independent of column
 focus. Per-column site objects mirror the selection and obey their own visibility
 and scientific masks. Automatic cuts follow the contact's scientific position.

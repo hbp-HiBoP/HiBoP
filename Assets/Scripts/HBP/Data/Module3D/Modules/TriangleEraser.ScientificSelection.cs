@@ -99,7 +99,7 @@ namespace HBP.Data.Module3D
         public void SetAtlasRegionSelected(AtlasSource source, string version, int id, bool selected)
         {
             var key = new AtlasRegionKey(source, version, id);
-            if (!IsEnabled || IsComputingSelection || !CanReadAtlas(source, version) || m_AtlasRegions.TryGetValue(key, out var region) == selected) return;
+            if (!IsEnabled || HasTriangleStroke || IsComputingSelection || !CanReadAtlas(source, version) || m_AtlasRegions.TryGetValue(key, out var region) == selected) return;
             if (!selected)
             {
                 var previous = m_AtlasRegions;

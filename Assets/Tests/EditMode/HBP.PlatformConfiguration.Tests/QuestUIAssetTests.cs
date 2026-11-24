@@ -463,7 +463,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(fields.FindProperty("head").objectReferenceValue, Is.Not.Null);
             Assert.That(fields.FindProperty("uiCamera").objectReferenceValue, Is.Not.Null);
             var initial = fields.FindProperty("initialWindows");
-            Assert.That(initial.arraySize, Is.EqualTo(8));
+            Assert.That(initial.arraySize, Is.EqualTo(9));
             for (int i = 0; i < initial.arraySize; i++) Assert.That(initial.GetArrayElementAtIndex(i).objectReferenceValue, Is.Not.Null);
             var pointer = root.GetComponentInChildren<QuestPointerInput>(true);
             Assert.That(pointer, Is.Not.Null);
@@ -498,6 +498,56 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(new SerializedObject(handles).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("horizontalOnly").boolValue, Is.True);
             Assert.That(new SerializedObject(toolbar.GetComponent<QuestWindowFollower>()).FindProperty("tiltTowardHead").boolValue, Is.True);
+        }
+
+        [Test]
+        public void TriangleErasingWindow_WiresGripPreviewAndAuthoredControls()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var panel = root.GetComponentInChildren<QuestTriangleErasingPanel>(true);
+            Assert.That(panel, Is.Not.Null);
+            var window = panel.GetComponent<QuestWindow>();
+            Assert.That(window.Key, Is.EqualTo("TriangleErasing"));
+            Assert.That(new SerializedObject(window).FindProperty("initiallyOpen").boolValue, Is.False);
+            var fields = new SerializedObject(panel);
+            foreach (string name in new[]
+                     {
+                         "view", "session", "window", "marker", "mode", "atlas", "diFuMoVersion", "add", "remove", "angle", "activity", "threshold",
+                         "search", "regionRows", "regionPrefab", "triangleOptions", "angleOptions", "activityOptions", "atlasOptions",
+                         "regionsButton", "regionsPanel", "diFuMoWeightOptions", "expand", "invert", "erase", "show", "keep", "clear", "undo", "reset", "status"
+                     })
+                Assert.That(fields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
+            var add = (UnityEngine.UI.Toggle)fields.FindProperty("add").objectReferenceValue;
+            var remove = (UnityEngine.UI.Toggle)fields.FindProperty("remove").objectReferenceValue;
+            Assert.That(add.group, Is.Not.Null);
+            Assert.That(remove.group, Is.SameAs(add.group));
+            var mode = (QuestDropdown)fields.FindProperty("mode").objectReferenceValue;
+            foreach (string option in new[] { "triangleOptions", "angleOptions", "activityOptions" })
+                Assert.That(((GameObject)fields.FindProperty(option).objectReferenceValue).transform.parent, Is.SameAs(mode.transform.parent), option);
+            var regionsPanel = (GameObject)fields.FindProperty("regionsPanel").objectReferenceValue;
+            var regionsButton = (UnityEngine.UI.Button)fields.FindProperty("regionsButton").objectReferenceValue;
+            var atlas = (QuestDropdown)fields.FindProperty("atlas").objectReferenceValue;
+            Assert.That(regionsButton.transform.parent, Is.SameAs(atlas.transform.parent));
+            Assert.That(regionsPanel.activeSelf, Is.False);
+            Assert.That(((RectTransform)regionsPanel.transform).anchorMin.x, Is.EqualTo(1));
+            Assert.That(((RectTransform)fields.FindProperty("regionRows").objectReferenceValue).IsChildOf(regionsPanel.transform), Is.True);
+            Assert.That(fields.FindProperty("marker").objectReferenceValue is Transform marker && marker.GetComponent<Collider>() == null, Is.True);
+            var pointer = new SerializedObject(root.GetComponentInChildren<QuestPointerInput>(true));
+            var toolbar = new SerializedObject(root.GetComponentInChildren<QuestToolbar>(true));
+            Assert.That(pointer.FindProperty("triangles").objectReferenceValue, Is.SameAs(panel));
+            Assert.That(toolbar.FindProperty("triangles").objectReferenceValue, Is.SameAs(panel));
+            var button = (UnityEngine.UI.Button)toolbar.FindProperty("trianglesButton").objectReferenceValue;
+            Assert.That(new SerializedObject(button.GetComponent<QuestToolbarButton>()).FindProperty("windowKey").stringValue, Is.EqualTo(window.Key));
+            foreach (string command in new[] { "expand", "invert", "erase", "show", "keep", "clear", "undo", "reset" })
+            {
+                var control = (UnityEngine.UI.Button)fields.FindProperty(command).objectReferenceValue;
+                Assert.That(control.transform.Find("Action Icon").GetComponent<Image>().sprite, Is.Not.Null, command);
+            }
+
+            var column = AssetDatabase.LoadAssetAtPath<QuestColumnPresentation>("Assets/Prefabs/Quest/3D/QuestColumn.prefab");
+            var preview = (MeshFilter)new SerializedObject(column).FindProperty("trianglePreview").objectReferenceValue;
+            Assert.That(preview, Is.Not.Null);
+            Assert.That(preview.GetComponent<MeshRenderer>().enabled, Is.False);
         }
 
         [Test]

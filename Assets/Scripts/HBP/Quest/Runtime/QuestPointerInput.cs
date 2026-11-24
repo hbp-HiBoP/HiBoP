@@ -30,6 +30,7 @@ namespace HBP.Quest
         [SerializeField] private QuestSiteProbe siteProbe;
         [SerializeField] private QuestCutHandles cuts;
         [SerializeField] private QuestROIHandles rois;
+        [SerializeField] private QuestTriangleErasingPanel triangles;
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
@@ -91,6 +92,7 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
+                if (hand.Capture.Owner == QuestInteractionOwner.Triangle && triangles != null && triangles.IsCapturedInScene(i, scene)) Cancel(hand);
                 if (CapturedTimeline(hand.Data)?.Column?.Scene == scene || hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
             }
 
@@ -273,13 +275,15 @@ namespace HBP.Quest
             data.delta = data.position - hand.LastPosition;
             hand.LastPosition = data.position;
             bool loadingOverlay = modalDialog != null || IsLoadingOverlay(data.pointerCurrentRaycast);
+            bool triangleGrip = !loadingOverlay && !HBP.UI.Tools.LoadingManager.IsPresenting && triangles != null && triangles.CapturesGrip;
+            if (hand.Capture.Owner == QuestInteractionOwner.Triangle && (!triangleGrip || !triangles.IsCaptured(index))) Cancel(hand);
             var candidate = loadingOverlay ? null : AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
             bool near = candidate != null;
             float distantDistance = policy.RayDistance;
             var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
-            var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
-            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, false) : null;
+            var cutCandidate = !loadingOverlay && !triangleGrip && cuts != null ? cuts.Candidate(index) : null;
+            var roiCandidate = !loadingOverlay && !triangleGrip && rois != null ? rois.Candidate(index, false) : null;
             if (roiCandidate != null && cutCandidate != null)
             {
                 float cutDistance = Mathf.Min(cutCandidate.ContactDistance(tracker.transform.position), cutCandidate.ContactDistance(data.Ray.origin));
@@ -289,7 +293,7 @@ namespace HBP.Quest
 
             var oldOwner = hand.Capture.Owner;
             float? secondaryRayDistance = null;
-            if (!loadingOverlay && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
+            if (!loadingOverlay && !triangleGrip && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
             {
                 float limit = secondaryRayLimit;
                 if (rois != null) roiCandidate = rois.RayCandidate(index, ref limit);
@@ -307,12 +311,15 @@ namespace HBP.Quest
                 }
             }
 
-            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null);
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null, triangleGrip && !triangles.HasGrip);
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
             if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.ROI && !secondaryPressed) rois.End(index);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Triangle && !triangles.BeginGrip(index)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.Triangle && !secondaryPressed) triangles.EndGrip(index);
+            if (hand.Capture.Owner == QuestInteractionOwner.Triangle && !triangles.MoveGrip(index, data.Ray.origin)) Cancel(hand);
 
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
             {
@@ -342,7 +349,7 @@ namespace HBP.Quest
                 data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
                 // Tag checkboxes and dropdown options share their list's drag gesture after the scroll threshold.
                 // Other click controls retain their gesture against an ancestor ScrollRect.
-                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll);
+                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && (data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll) || triangles != null && triangles.IsRegionScroll(choiceScroll));
                 bool dropdownScroll = data.pointerPress != null && data.pointerPress.TryGetComponent<Toggle>(out _) && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out _) && data.pointerDrag.GetComponentInParent<QuestDropdown>() is { } dropdown && data.pointerDrag.transform != dropdown.template;
                 if (!tagChoiceScroll && !dropdownScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
                     data.pointerDrag = null;
@@ -384,7 +391,7 @@ namespace HBP.Quest
                 _ => null
             };
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI or QuestInteractionOwner.Triangle) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
             else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
@@ -684,6 +691,7 @@ namespace HBP.Quest
         private void Cancel(Hand hand)
         {
             int index = hand == hands[0] ? 0 : 1;
+            if (triangles != null) triangles.EndGrip(index);
             if (cuts != null)
             {
                 cuts.End(index);

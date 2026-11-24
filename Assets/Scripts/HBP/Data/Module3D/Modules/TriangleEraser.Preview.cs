@@ -7,17 +7,22 @@ namespace HBP.Data.Module3D
     public sealed partial class TriangleEraser
     {
         private Material m_PreviewMaterial;
+        private Material[] m_PreviewMaterials;
         private MaterialPropertyBlock m_PreviewProperties;
         private Color m_ErasedTint = new Color(0f, 0f, 1f, 98f / 255);
         private Mesh m_PreviewMesh;
         private TriangleSelectionGeometry m_PreviewGeometry;
         private List<int> m_ErasedIndices;
+        private readonly List<int> m_PreviewFaces = new();
+        private readonly List<int> m_PreviewLines = new();
+        private readonly Dictionary<(int, int), int> m_PreviewEdges = new();
         private readonly Vector4[] m_CutPoints = new Vector4[20];
         private readonly Vector4[] m_CutNormals = new Vector4[20];
+        private bool HasPreview => IsEnabled && (SelectedCount != 0 || MeshHasInvisibleTriangles);
 
         private void UpdatePreview()
         {
-            if (!IsEnabled || SelectedCount == 0 && !MeshHasInvisibleTriangles || !m_Scene.DesktopPresentation)
+            if (!HasPreview)
             {
                 if (m_DisplayedObjects && m_DisplayedObjects.InvisibleBrain)
                     m_DisplayedObjects.InvisibleBrain.SetActive(false);
@@ -30,31 +35,21 @@ namespace HBP.Data.Module3D
                 var shader = Resources.Load<Shader>("Shaders/TriangleSelectionPreview");
                 if (!shader) return;
                 m_PreviewMaterial = new Material(shader);
+                m_PreviewMaterials = new[] { m_PreviewMaterial, m_PreviewMaterial, m_PreviewMaterial };
+                m_PreviewMesh = new Mesh { name = "Triangle erasing preview", indexFormat = IndexFormat.UInt32 };
+                m_PreviewMesh.MarkDynamic();
             }
 
-            if (!m_DisplayedObjects.InvisibleBrain)
-                m_DisplayedObjects.InstantiateInvisibleMesh(false);
-
-            var overlay = m_DisplayedObjects.InvisibleBrain;
-            var mesh = overlay.GetComponent<MeshFilter>().sharedMesh;
-            var renderer = overlay.GetComponent<MeshRenderer>();
+            var mesh = m_PreviewMesh;
             var geometry = Geometry;
-            bool updateGeometry = mesh != m_PreviewMesh || geometry != m_PreviewGeometry;
-            if (updateGeometry)
+            if (geometry != m_PreviewGeometry)
             {
-                if (mesh != m_PreviewMesh && renderer.sharedMaterial && renderer.sharedMaterial.HasProperty("_BaseColor"))
-                    m_ErasedTint = renderer.sharedMaterial.GetColor("_BaseColor");
-                m_PreviewMesh = mesh;
                 m_PreviewGeometry = geometry;
                 m_ErasedIndices = null;
                 mesh.Clear();
-                mesh.indexFormat = IndexFormat.UInt32;
                 mesh.vertices = geometry.Vertices;
                 mesh.subMeshCount = 3;
                 mesh.RecalculateBounds();
-                renderer.sharedMaterials = new[] { m_PreviewMaterial, m_PreviewMaterial, m_PreviewMaterial };
-                renderer.shadowCastingMode = ShadowCastingMode.Off;
-                renderer.receiveShadows = false;
             }
 
             if (m_ErasedIndices == null)
@@ -72,48 +67,72 @@ namespace HBP.Data.Module3D
                 mesh.SetIndices(m_ErasedIndices, MeshTopology.Triangles, 0, false);
             }
 
-            var faces = new List<int>(SelectedCount * 3);
-            var edges = new Dictionary<(int, int), int>();
+            m_PreviewFaces.Clear();
+            m_PreviewEdges.Clear();
+            m_PreviewLines.Clear();
             foreach (int face in SelectedFaces())
             {
                 for (int corner = 0; corner < 3; corner++)
                 {
                     int index = face * 3;
                     int a = geometry.Triangles[index + corner], b = geometry.Triangles[index + (corner + 1) % 3];
-                    faces.Add(a);
+                    m_PreviewFaces.Add(a);
                     if (a == b) continue;
                     var edge = a < b ? (a, b) : (b, a);
-                    edges.TryGetValue(edge, out int uses);
-                    edges[edge] = uses + 1;
+                    m_PreviewEdges.TryGetValue(edge, out int uses);
+                    m_PreviewEdges[edge] = uses + 1;
                 }
             }
 
-            var lines = new List<int>();
-            foreach (var edge in edges)
+            foreach (var edge in m_PreviewEdges)
             {
                 if (edge.Value != 1) continue;
-                lines.Add(edge.Key.Item1);
-                lines.Add(edge.Key.Item2);
+                m_PreviewLines.Add(edge.Key.Item1);
+                m_PreviewLines.Add(edge.Key.Item2);
             }
 
-            mesh.SetIndices(faces, MeshTopology.Triangles, 1, false);
-            mesh.SetIndices(lines, MeshTopology.Lines, 2, false);
-            overlay.SetActive(true);
-            UpdatePreviewProperties();
+            mesh.SetIndices(m_PreviewFaces, MeshTopology.Triangles, 1, false);
+            mesh.SetIndices(m_PreviewLines, MeshTopology.Lines, 2, false);
+            if (m_Scene.DesktopPresentation)
+            {
+                if (!m_DisplayedObjects.InvisibleBrain)
+                {
+                    m_DisplayedObjects.InstantiateInvisibleMesh(false);
+                    var material = m_DisplayedObjects.InvisibleBrain.GetComponent<MeshRenderer>().sharedMaterial;
+                    if (material && material.HasProperty("_BaseColor")) m_ErasedTint = material.GetColor("_BaseColor");
+                }
+
+                m_DisplayedObjects.InvisibleBrain.SetActive(true);
+                UpdateDesktopPreview();
+            }
+
             Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         private void LateUpdate()
         {
-            if (IsEnabled && m_DisplayedObjects && m_DisplayedObjects.InvisibleBrain && m_DisplayedObjects.InvisibleBrain.activeSelf)
-                UpdatePreviewProperties();
+            if (m_DisplayedObjects && m_DisplayedObjects.InvisibleBrain && m_DisplayedObjects.InvisibleBrain.activeSelf)
+                UpdateDesktopPreview();
         }
 
-        private void UpdatePreviewProperties()
+        private void UpdateDesktopPreview()
         {
-            var renderer = m_DisplayedObjects.InvisibleBrain.GetComponent<MeshRenderer>();
-            renderer.enabled = !m_Scene.IsSurfaceRepresentationTransitioning && !m_Scene.SceneInformation.GeometryNeedsUpdate && m_Scene.IsVisible;
+            var overlay = m_DisplayedObjects.InvisibleBrain;
+            PresentPreview(overlay.GetComponent<MeshFilter>(), overlay.GetComponent<MeshRenderer>(), true);
+        }
+
+        public void PresentPreview(MeshFilter filter, MeshRenderer renderer, bool presented)
+        {
+            renderer.enabled = presented && HasPreview && m_PreviewGeometry != null && !m_Scene.IsSurfaceRepresentationTransitioning && !m_Scene.SceneInformation.GeometryNeedsUpdate && m_Scene.IsVisible;
             if (!renderer.enabled) return;
+
+            if (filter.sharedMesh != m_PreviewMesh)
+            {
+                filter.sharedMesh = m_PreviewMesh;
+                renderer.sharedMaterials = m_PreviewMaterials;
+                renderer.shadowCastingMode = ShadowCastingMode.Off;
+                renderer.receiveShadows = false;
+            }
 
             int count = m_Scene.MeshManager.CanClipBrainSurface ? Mathf.Min(m_CutPoints.Length, m_Scene.Cuts.Count) : 0;
             for (int i = 0; i < count; i++)
@@ -137,6 +156,7 @@ namespace HBP.Data.Module3D
 
         private void OnDestroy()
         {
+            if (m_PreviewMesh) Destroy(m_PreviewMesh);
             if (m_PreviewMaterial) Destroy(m_PreviewMaterial);
         }
     }

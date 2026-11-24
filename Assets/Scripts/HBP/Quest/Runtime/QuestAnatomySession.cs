@@ -926,6 +926,8 @@ namespace HBP.Quest
         public bool CanOpenPatient => patientRequestOperation == Guid.Empty && patientRequestPresentation.IsCompleted && view.Scene != null && view.Scene.IsVisible && view.Scene.Type == HBP.Core.Enums.SceneType.MultiPatients && view.Scene.SelectedColumn?.SelectedSite != null && CanRequest(view.Scene);
         private bool CanRequest(HBP.Data.Module3D.Base3DScene scene) => CanInteractWith(scene) && view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Shared && entry.Replica?.TransportState == PersistentTransportState.Connected && SceneReconciliationRecord.Get(scene)?.Status == ReconciliationStatus.Synchronized;
 
+        internal bool HasPendingTriangleMask(HBP.Data.Module3D.Base3DScene scene) => scene != null && view.Find(scene) is { } presentation && deliveries.TryGetValue(presentation.TransferId, out var entry) && entry.Replica?.HasPendingTriangleMask == true;
+
         public void RequestOpenPatient()
         {
             if (!CanOpenPatient) return;

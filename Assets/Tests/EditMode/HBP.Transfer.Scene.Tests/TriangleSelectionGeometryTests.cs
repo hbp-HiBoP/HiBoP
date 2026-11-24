@@ -49,5 +49,33 @@ namespace HBP.Tests.Transfer
             Assert.That(geometry.Neighbors(0), Is.EqualTo(new[] { 1 }));
             Assert.That(geometry.Neighbors(2), Is.Empty);
         }
+
+        [TestCase(.001f)]
+        [TestCase(.002f)]
+        public void GripContactUsesWorldRadiusAndTheNearestRetainedPartOfTheFace(float scale)
+        {
+            var geometry = new TriangleSelectionGeometry(new[]
+            {
+                new Vector3(-10, -10, 0), new Vector3(10, -10, 0), new Vector3(0, 10, 0)
+            }, new[] { 0, 1, 2 });
+            Matrix4x4 frame = Matrix4x4.TRS(new Vector3(.32f, .04f, -.27f), Quaternion.Euler(21, 35, 12), new Vector3(scale, .002f, .004f));
+            using var plane = new Cut(Vector3.zero, Vector3.right);
+            var cuts = new List<Cut> { plane };
+            Vector3 center = frame.MultiplyPoint3x4(new Vector3(.002f / scale, 0, .001f / .004f));
+            float radius = .003f;
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out int face), Is.True);
+            Assert.That(face, Is.Zero);
+            Assert.That(radius, Is.EqualTo(Mathf.Sqrt(.002f * .002f + .001f * .001f)).Within(1e-6f));
+
+            center = frame.MultiplyPoint3x4(new Vector3(.004f / scale, 0, 0));
+            radius = .003f;
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out _), Is.False);
+
+            using var other = new Cut(Vector3.zero, Vector3.left);
+            cuts.Add(other);
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out _), Is.False);
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, false, ref radius, out face), Is.True);
+            Assert.That(face, Is.Zero);
+        }
     }
 }

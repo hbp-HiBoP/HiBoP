@@ -1838,6 +1838,7 @@ namespace HBP.Tests.PlayMode.Module3D
         [TestCase(4)]
         [TestCase(5)]
         [TestCase(6)]
+        [TestCase(7)]
         [Category("PlayMode.Module3DScene")]
         [Category("NativeDll")]
         public async Task TriangleMask_SurvivesPreparedMeshOrdering(int scenario)
@@ -1872,7 +1873,12 @@ namespace HBP.Tests.PlayMode.Module3D
                 UnityAction maskObserver = (UnityAction)Delegate.CreateDelegate(typeof(UnityAction), boundary, typeof(SceneMutationBoundary).GetMethod("ObserveTriangleMask", BindingFlags.Instance | BindingFlags.NonPublic));
                 scene.TriangleEraser.OnVisibilityMaskChanged.AddListener(maskObserver);
                 int publications = 0;
-                boundary.OnMutationProposed.AddListener((_, _, _) => publications++);
+                OperationId lastProposal = null;
+                boundary.OnMutationProposed.AddListener((id, _, _) =>
+                {
+                    lastProposal = id;
+                    publications++;
+                });
                 SceneId sceneId = new(Guid.NewGuid());
                 IncarnationId incarnation = new(Guid.NewGuid());
                 OutgoingScheduler scheduler = new(new SessionId(Guid.NewGuid()), sceneId, incarnation, OriginDevice.Quest);
@@ -1882,6 +1888,38 @@ namespace HBP.Tests.PlayMode.Module3D
                 SetMeshDisplay Display(Mesh3D mesh) => new(new ResourceId(catalog.MeshReference(mesh)), MutationMeshPart.Both, MutationSurfaceRepresentation.Anatomical);
 
                 ApplyTriangleMask Mask(Mesh3D mesh, int hidden = 0) => new(new TriangleMask(new TopologyId("surface:" + catalog.MeshReference(mesh) + ":both:complete"), mesh.GetSurface(SurfaceRepresentation.Anatomical).NumberOfTriangles, new[] { hidden }));
+
+                if (scenario == 7)
+                {
+                    maskObserver(); // Capture the initial prepared mask before observing local edits.
+                    var eraser = scene.TriangleEraser;
+                    eraser.IsEnabled = true;
+                    Assert.That(eraser.BeginTriangleStroke(), Is.True);
+                    Assert.That(eraser.RetouchTriangleStroke(0), Is.True);
+                    eraser.FlushTriangleStrokePreview();
+                    eraser.EndTriangleStroke();
+                    Assert.That(publications, Is.Zero);
+                    Assert.That(driver.HasPendingTriangleMask, Is.False);
+
+                    eraser.ApplySelection(false);
+                    Assert.That(publications, Is.EqualTo(1));
+                    Assert.That(driver.HasPendingTriangleMask, Is.True);
+                    var hidden = Mask(original);
+                    driver.ReceiveCanonical(sceneId, incarnation, lastProposal, 1, hidden);
+                    Assert.That(driver.HasPendingTriangleMask, Is.False);
+                    Assert.That(eraser.VisibilityMask[0], Is.Zero);
+                    Assert.That(eraser.WillUndoVisibility, Is.True);
+
+                    eraser.CancelLastAction();
+                    Assert.That(publications, Is.EqualTo(2));
+                    Assert.That(driver.HasPendingTriangleMask, Is.True);
+                    var visible = new ApplyTriangleMask(TriangleMask.FromVisibilityMask(hidden.Mask.TopologyId, eraser.VisibilityMask));
+                    driver.ReceiveCanonical(sceneId, incarnation, lastProposal, 2, visible);
+                    Assert.That(driver.HasPendingTriangleMask, Is.False);
+                    Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+                    Assert.That(eraser.SelectedCount, Is.EqualTo(1));
+                    return;
+                }
 
                 OperationId switchId = new(Guid.NewGuid());
                 OperationId restoreId = new(Guid.NewGuid());

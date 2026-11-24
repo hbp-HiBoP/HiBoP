@@ -37,6 +37,9 @@ namespace HBP.Data.Module3D
         private long m_AnatomicalVersion;
         private bool m_IsEnabled;
         private int m_EditRevision;
+        private List<int> m_Stroke;
+        private bool m_StrokeSelect;
+        private bool m_StrokePreviewDirty;
 
         public UnityEvent OnVisibilityMaskChanged { get; } = new();
         public bool MeshHasInvisibleTriangles { get; private set; }
@@ -44,6 +47,10 @@ namespace HBP.Data.Module3D
         public int SelectedErasedCount { get; private set; }
         public bool CanInvertSelection => m_Visibility.Length > 0 && !IsComputingSelection;
         public bool CanCancelLastAction => m_History.Count != 0;
+        public bool WillUndoVisibility => CanCancelLastAction && m_History[^1].Visibility != null;
+        public bool HasEditableSurface => m_Visibility.Length != 0 && m_Scene.MeshManager.BrainSurface != null;
+        public bool HasTriangleStroke => m_Stroke != null;
+        public uint EditReferenceVersion { get; private set; }
         public TriangleSelectionMode Mode { get; set; }
         public bool RemoveFromSelection { get; set; }
         public int Degrees { get; set; } = 30;
@@ -59,6 +66,7 @@ namespace HBP.Data.Module3D
             {
                 if (m_IsEnabled == value) return;
                 m_IsEnabled = value;
+                if (!value) EndTriangleStroke();
                 m_EditRevision++;
                 UpdatePreview();
             }
@@ -157,6 +165,7 @@ namespace HBP.Data.Module3D
         {
             Surface surface = m_Scene.MeshManager.BrainSurface;
             m_EditRevision++;
+            ResetStrokeReference();
             m_Visibility = Enumerable.Repeat(1, surface.NumberOfTriangles).ToArray();
             m_Selection = new BitArray(m_Visibility.Length);
             SelectedCount = 0;
@@ -172,6 +181,9 @@ namespace HBP.Data.Module3D
 
         public void ResetForRepresentationChange()
         {
+            EndTriangleStroke();
+            ++EditReferenceVersion;
+            m_EditRevision++;
             m_Geometry = null;
             UpdatePreview();
         }
@@ -204,7 +216,7 @@ namespace HBP.Data.Module3D
 
         public void SelectTriangle(Column3D column, int face)
         {
-            if (IsComputingSelection || (uint)face >= (uint)m_Visibility.Length) return;
+            if (IsComputingSelection || HasTriangleStroke || (uint)face >= (uint)m_Visibility.Length) return;
             switch (Mode)
             {
                 case TriangleSelectionMode.Triangle:
@@ -219,6 +231,59 @@ namespace HBP.Data.Module3D
                     SelectActivity(column, face);
                     break;
             }
+        }
+
+        public bool TryContact(Column3D column, Vector3 center, ref float distance, out int face)
+        {
+            face = -1;
+            if (!IsEnabled || !HasEditableSurface || m_Scene.IsClosing || m_Scene.IsSurfaceRepresentationTransitioning || m_Scene.SceneInformation.GeometryNeedsUpdate || !column || !column.BrainMesh || !column.BrainMesh.activeInHierarchy || !column.BrainMesh.TryGetComponent(out Renderer renderer) || !renderer.enabled || renderer.forceRenderingOff)
+                return false;
+
+            var frame = column.BrainMesh.transform;
+            var geometry = Geometry;
+            return geometry.Count == m_Visibility.Length && geometry.Contact(center, frame.localToWorldMatrix, frame.worldToLocalMatrix, m_Scene.MeshManager.CanClipBrainSurface ? m_Scene.Cuts : null, m_Scene.StrongCuts, ref distance, out face);
+        }
+
+        public bool BeginTriangleStroke()
+        {
+            if (!IsEnabled || Mode != TriangleSelectionMode.Triangle || IsComputingSelection || HasTriangleStroke || !HasEditableSurface)
+                return false;
+            m_Stroke = new List<int>();
+            m_StrokeSelect = !RemoveFromSelection;
+            return true;
+        }
+
+        public bool RetouchTriangleStroke(int face)
+        {
+            if (!HasTriangleStroke || (uint)face >= (uint)m_Selection.Length || m_Selection[face] == m_StrokeSelect)
+                return false;
+            ToggleSelection(face);
+            m_Stroke.Add(face);
+            m_StrokePreviewDirty = true;
+            return true;
+        }
+
+        public void FlushTriangleStrokePreview()
+        {
+            if (!m_StrokePreviewDirty) return;
+            m_StrokePreviewDirty = false;
+            UpdatePreview();
+        }
+
+        public void EndTriangleStroke()
+        {
+            if (!HasTriangleStroke) return;
+            var stroke = m_Stroke;
+            m_Stroke = null;
+            Record(stroke, null, updatePreview: m_StrokePreviewDirty);
+            m_StrokePreviewDirty = false;
+        }
+
+        private void ResetStrokeReference()
+        {
+            ++EditReferenceVersion;
+            m_Stroke = null;
+            m_StrokePreviewDirty = false;
         }
 
         private IEnumerable<int> Propagate(int seed, Func<int, bool> accept)
@@ -257,7 +322,7 @@ namespace HBP.Data.Module3D
 
         public void ExpandSelection()
         {
-            if (SelectedCount == 0) return;
+            if (SelectedCount == 0 || HasTriangleStroke) return;
             var changes = new List<int>();
             foreach (int face in SelectedFaces())
             foreach (int neighbor in Geometry.Neighbors(face))
@@ -294,7 +359,7 @@ namespace HBP.Data.Module3D
 
         public void InvertSelection()
         {
-            if (!CanInvertSelection) return;
+            if (!CanInvertSelection || HasTriangleStroke) return;
             var changed = new List<int>(m_Visibility.Length);
             for (int face = 0; face < m_Visibility.Length; face++)
             {
@@ -327,6 +392,7 @@ namespace HBP.Data.Module3D
             ValidateMask(mask);
             if (m_Visibility.SequenceEqual(mask)) return;
             m_EditRevision++;
+            ResetStrokeReference();
             m_Visibility = (int[])mask.Clone();
             m_History.Clear();
             m_Selection.SetAll(false);
@@ -345,6 +411,7 @@ namespace HBP.Data.Module3D
 
         private void ChangeVisibility(Func<int, int> getVisibility)
         {
+            if (HasTriangleStroke) return;
             var visibility = new List<int>();
             if (getVisibility != null)
             {
@@ -379,7 +446,7 @@ namespace HBP.Data.Module3D
             if (m_Visibility[face] == 0) SelectedErasedCount += delta;
         }
 
-        private void Record(List<int> selection, List<int> visibility, Dictionary<AtlasRegionKey, FaceChanges> previousRegions = null)
+        private void Record(List<int> selection, List<int> visibility, Dictionary<AtlasRegionKey, FaceChanges> previousRegions = null, bool updatePreview = true)
         {
             bool selectionChanged = selection.Count != 0;
             bool visibilityChanged = visibility is { Count: > 0 };
@@ -388,12 +455,12 @@ namespace HBP.Data.Module3D
             if (m_History.Count == HistoryLimit) m_History.RemoveAt(0);
             m_History.Add(new Edit(selectionChanged ? new FaceChanges(selection, m_Visibility.Length) : null, visibilityChanged ? new FaceChanges(visibility, m_Visibility.Length) : null, previousRegions));
             if (visibilityChanged) PublishVisibility();
-            UpdatePreview();
+            if (updatePreview) UpdatePreview();
         }
 
         public void CancelLastAction()
         {
-            if (m_History.Count == 0) return;
+            if (m_History.Count == 0 || HasTriangleStroke) return;
             m_EditRevision++;
             Edit edit = m_History[^1];
             m_History.RemoveAt(m_History.Count - 1);

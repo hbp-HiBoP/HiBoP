@@ -374,6 +374,8 @@ namespace HBP.Sync.Scene
             catch (Exception exception) when (exception is InvalidOperationException || exception is InvalidDataException)
             {
                 string rejectionCode = mutation is ApplyTriangleMask ? "topology_unavailable" : "prepared_resource_unavailable";
+                if (mutation is ApplyTriangleMask proposed && current is ApplyTriangleMask currentMask && !proposed.Mask.TopologyId.Equals(currentMask.Mask.TopologyId))
+                    current = null;
                 if (current != null && MutationPayloadCodec.Encode(current).Length <= TransportFrameCodec.MaximumPayloadBytes / 2)
                 {
                     ulong keySequence = GetLastAcceptedSequence(descriptor);
@@ -593,7 +595,7 @@ namespace HBP.Sync.Scene
         private readonly SceneMutationBoundary m_Boundary;
         private readonly OutgoingScheduler m_Scheduler;
         private readonly Func<QuestMutationProposal, EnqueueResult> m_EnqueueProposal;
-        private readonly Dictionary<Guid, (byte[] Payload, ColumnId TimelineColumn)> m_Pending = new();
+        private readonly Dictionary<Guid, (byte[] Payload, ColumnId TimelineColumn, OperationType Type)> m_Pending = new();
         private readonly Dictionary<Guid, ulong> m_PendingObservations = new Dictionary<Guid, ulong>();
         private readonly Dictionary<ColumnId, Guid> m_LatestPendingTimeline = new();
         private readonly LinkedList<QuestMutationProposal> m_DeferredProposals = new LinkedList<QuestMutationProposal>();
@@ -626,6 +628,7 @@ namespace HBP.Sync.Scene
 
         public ulong LastObservedCanonicalSequence => m_LastObservedCanonicalSequence;
         public int PendingProposalCount => m_Pending.Count;
+        public bool HasPendingTriangleMask => m_PendingGeometryOrder.Any(id => m_Pending.TryGetValue(id, out var pending) && pending.Type == OperationType.ApplyTriangleMask);
         public int DeferredProposalCount => m_DeferredProposals.Count;
         public int AbandonedProposalCount { get; private set; }
         public int ReceivedOperationCount => m_Received.Count;
@@ -665,7 +668,7 @@ namespace HBP.Sync.Scene
             }
 
             var protectedKeys = new HashSet<TouchedKey>();
-            foreach (var (payload, _) in m_Pending.Values)
+            foreach (var (payload, _, _) in m_Pending.Values)
             foreach (TouchedKey key in ScheduleDescriptor.ForMutation(m_SceneId, m_IncarnationId, MutationPayloadCodec.Decode(payload)).TouchedKeys)
                 protectedKeys.Add(key);
             foreach (List<ReplayMutation> replay in m_TransactionReplayJournal.Values)
@@ -1135,7 +1138,7 @@ namespace HBP.Sync.Scene
             }
 
             ColumnId timelineColumn = (proposal.Mutation as SetTimelineAnchor)?.ColumnId;
-            m_Pending.Add(operationId.Value, (MutationPayloadCodec.Encode(proposal.Mutation), timelineColumn));
+            m_Pending.Add(operationId.Value, (MutationPayloadCodec.Encode(proposal.Mutation), timelineColumn, proposal.Mutation.Type));
             if (timelineColumn != null) m_LatestPendingTimeline[timelineColumn] = operationId.Value;
             if (IsPreparedGeometryMutation(mutation)) m_PendingGeometryOrder.Add(operationId.Value);
             m_PendingObservations.Add(operationId.Value, proposal.ObservedCanonicalSequence);
@@ -1404,7 +1407,7 @@ namespace HBP.Sync.Scene
                 }
 
                 var proposal = new QuestMutationProposal(m_SceneId, m_IncarnationId, waiting.OperationId, m_LastObservedCanonicalSequence, mutation);
-                m_Pending[proposal.OperationId.Value] = (MutationPayloadCodec.Encode(mutation), null);
+                m_Pending[proposal.OperationId.Value] = (MutationPayloadCodec.Encode(mutation), null, mutation.Type);
                 m_PendingObservations[proposal.OperationId.Value] = proposal.ObservedCanonicalSequence;
                 m_ObjectEditInFlight = proposal.OperationId;
                 ScheduleProposal(proposal);

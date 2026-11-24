@@ -9,6 +9,8 @@ namespace HBP.Quest
         [SerializeField] private QuestConnectionPanel connection;
         [SerializeField] private QuestCutsPanel cuts;
         [SerializeField] private QuestROIPanel rois;
+        [SerializeField] private QuestTriangleErasingPanel triangles;
+        [SerializeField] private Button trianglesButton;
         [SerializeField] private Button roiButton;
         [SerializeField] private Button connectionButton, cutsButton, displayButton, siteButton, signalsButton;
         [SerializeField] private Button displaySettingsButton;
@@ -26,6 +28,11 @@ namespace HBP.Quest
                 roiButton.onClick.AddListener(() =>
                 {
                     if (rois != null && rois.Ready) ToggleWindow("ROI");
+                });
+            if (trianglesButton != null)
+                trianglesButton.onClick.AddListener(() =>
+                {
+                    if (triangles != null && triangles.Ready) ToggleWindow("TriangleErasing");
                 });
             cutsButton.onClick.AddListener(() =>
             {
@@ -47,6 +54,7 @@ namespace HBP.Quest
             if (displaySettingsButton != null) displaySettingsButton.interactable = ready;
             cutsButton.interactable = ready;
             if (roiButton != null) roiButton.interactable = rois != null && rois.Ready;
+            if (trianglesButton != null) trianglesButton.interactable = triangles != null && triangles.Ready;
             if (siteButton != null) siteButton.interactable = ready;
             if (signalsButton != null) signalsButton.interactable = ready;
         }

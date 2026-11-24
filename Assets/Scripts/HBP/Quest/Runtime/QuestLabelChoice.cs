@@ -11,6 +11,7 @@ namespace HBP.Quest
         private Action<string, bool> changed;
         private string value;
         private void Awake() => toggle.onValueChanged.AddListener(state => changed?.Invoke(value, state));
+        internal void SetInteractable(bool value) => toggle.interactable = value;
 
         public void Bind(string text, bool selected, Action<string, bool> callback)
         {

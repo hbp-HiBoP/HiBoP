@@ -130,6 +130,7 @@ namespace HBP.Quest
         public string ManifestHash { get; }
         public PersistentTransportState TransportState => m_Transport.State;
         public QuestMutationConnectionState ConnectionState => m_Driver.ConnectionState;
+        internal bool HasPendingTriangleMask => m_Driver.HasPendingTriangleMask;
         public bool CanResumeConnection => !m_Disposed && m_Transport.State == PersistentTransportState.DisconnectedGrace && m_Driver.ConnectionState != QuestMutationConnectionState.OfflineLocal;
         private bool m_SupportsTimelineScope, m_TimelineGlobal = true, m_TimelineScopePending, m_TimelineScopeRetrying;
 
