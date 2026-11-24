@@ -438,8 +438,7 @@ namespace HBP.Data.Module3D
             // must not associate masks from the previous topology with the new selection.
             if (m_ConfiguredGeometryPending) return;
             bool currentTopology = m_MeshManager.ReferenceSurface != null && ReferenceEquals(m_MeshManager.ReferenceSurface, m_MeshManager.SelectedMesh.GetSurface(SurfaceRepresentation.Anatomical, m_MeshManager.MeshPartToDisplay));
-            configuration.ErasedTriangles = currentTopology ? m_MeshManager.BrainSurface.VisibilityMask.ToArray() : null;
-            configuration.ErasedSimplifiedTriangles = currentTopology ? m_MeshManager.SimplifiedMeshToUse.VisibilityMask.ToArray() : null;
+            configuration.ErasedTriangles = currentTopology ? TriangleEraser.VisibilityMask : null;
         }
 
         private void ApplyConfiguredGeometry()
@@ -449,11 +448,11 @@ namespace HBP.Data.Module3D
             try
             {
                 var configuration = Visualization.Configuration;
-                if (configuration.ErasedTriangles != null && configuration.ErasedSimplifiedTriangles != null)
+                if (configuration.ErasedTriangles != null)
                 {
-                    if (configuration.ErasedTriangles.Length != m_MeshManager.BrainSurface.NumberOfTriangles || configuration.ErasedSimplifiedTriangles.Length != m_MeshManager.SimplifiedMeshToUse.NumberOfTriangles)
+                    if (configuration.ErasedTriangles.Length != m_MeshManager.BrainSurface.NumberOfTriangles)
                         throw new System.IO.InvalidDataException("Configured erasure does not match the selected topology.");
-                    TriangleEraser.CurrentMasks = new System.Collections.Generic.List<int[]> { configuration.ErasedTriangles.ToArray(), configuration.ErasedSimplifiedTriangles.ToArray() };
+                    TriangleEraser.ApplyExternalVisibility(configuration.ErasedTriangles);
                 }
 
                 m_FMRIManager.LoadConfiguration(configuration.AtlasConfiguration);

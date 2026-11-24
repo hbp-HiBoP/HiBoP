@@ -319,7 +319,6 @@ namespace HBP.Data.Module3D
             // Patient anatomy has its own topology; the source masks and MRI preview
             // describe the multi-patient reference surface and cannot be reused.
             visualizationToLoad.Configuration.ErasedTriangles = null;
-            visualizationToLoad.Configuration.ErasedSimplifiedTriangles = null;
             visualizationToLoad.Configuration.PreviewMRIName = null;
             if (scene.SelectedColumn.SelectedSite)
             {

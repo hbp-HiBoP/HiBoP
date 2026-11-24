@@ -6,7 +6,7 @@ namespace HBP.Sync
 {
     public static class MutationPayloadCodec
     {
-        public const ushort SchemaVersion = 2;
+        public const ushort SchemaVersion = 3;
         public const int MaximumPayloadBytes = 16 * 1024 * 1024;
         private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(false, true);
 

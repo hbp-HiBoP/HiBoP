@@ -1014,7 +1014,7 @@ namespace HBP.Transfer.Scene
                 throw new InvalidOperationException("Received archive contents are immutable.");
         }
 
-        public string AddSurface(HBP.Core.DLL.Surface surface)
+        public string AddSurface(HBP.Core.DLL.Surface surface, bool includeVisibility = true)
         {
             EnsureWritable();
             cancellationToken.ThrowIfCancellationRequested();
@@ -1030,7 +1030,7 @@ namespace HBP.Transfer.Scene
 
             SurfaceCapture snapshot;
             using (PairingTiming.Measure(captureSurfaceCopy))
-                snapshot = new SurfaceCapture(surface);
+                snapshot = new SurfaceCapture(surface, includeVisibility);
             if (!DetachCapture)
                 return WriteSurface(snapshot);
             if (detachedSurfaces.Count >= 100000)
@@ -1118,7 +1118,7 @@ namespace HBP.Transfer.Scene
 
             bool atlasAvailable = reader.ReadBoolean();
             int count = ReadCount(reader, 4);
-            if (count != geometry.Triangles.Length / 3)
+            if (count != 0 && count != geometry.Triangles.Length / 3)
                 throw new InvalidDataException("Invalid surface visibility mask.");
             var mask = ReadComponents<int>(reader, count);
             for (int i = 0; i < count; i++)
@@ -1135,7 +1135,7 @@ namespace HBP.Transfer.Scene
             {
                 surface.SetBuffers(geometry.Vertices, geometry.Triangles, geometry.Normals.Length == 0 ? null : geometry.Normals, geometry.UV.Length == 0 ? null : geometry.UV, geometry.Colors.Length == 0 ? null : geometry.Colors);
                 surface.SetPreparedAtlasAvailability(atlasAvailable);
-                surface.UpdateVisibilityMask(mask).Dispose();
+                if (mask.Length != 0) surface.UpdateVisibilityMask(mask).Dispose();
                 return surface;
             }
             catch

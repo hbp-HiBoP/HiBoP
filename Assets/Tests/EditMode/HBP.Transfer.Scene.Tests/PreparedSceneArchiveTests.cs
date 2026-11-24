@@ -595,7 +595,7 @@ namespace HBP.Tests.Transfer
             });
             payload.GlobalContextId = archive.Globals.Id;
             payload.Visualization.Configuration.ErasedTriangles = new[] { 1 };
-            payload.Visualization.Configuration.ErasedSimplifiedTriangles = new[] { 1 };
+
             foreach (var column in columns) payload.Columns.Add(new ColumnState { Id = column.ID });
             payload.Columns[4].Functional.Add(new FunctionalResource { Name = "fmri", File = buffer });
             payload.Columns[5].Functional.Add(new FunctionalResource { Name = "meg", Frequency = 100, Values = new() { ["patient_A1"] = new[] { 4f, 5f, 6f } }, Units = new() { ["patient_A1"] = "fT" } });

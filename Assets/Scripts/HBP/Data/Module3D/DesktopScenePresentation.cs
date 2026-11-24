@@ -131,23 +131,10 @@ namespace HBP.Data.Module3D
                 Module3DMain.OnDisplayAtlasInformation.Invoke(atlas.GetAtlasInformation(false, default, screenPosition));
                 return;
             }
-            m_Scene.RefreshColliders();
 
-            int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
-
-            RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
+            bool full = m_Scene.TriangleEraser.MeshHasInvisibleTriangles || atlas.UsesInflatedHoverGeometry;
+            RaycastHitResult raycastResult = m_Scene.RaycastDesktop(ray, column, full, out RaycastHit hit, out _, out Vector3 point);
             bool atlasHit = m_Scene.IsBrainRaycastGeometryCurrent && raycastResult is RaycastHitResult.Cut or RaycastHitResult.Mesh;
-            RaycastHit atlasImpact = hit;
-            if (atlas.UsesInflatedHoverGeometry)
-            {
-                float depth = hit.collider && raycastResult != RaycastHitResult.Mesh ? hit.distance : Mathf.Infinity;
-                atlasHit = atlas.TryRaycastInflatedSurface(column, ray, depth, out atlasImpact);
-            }
-
-            Vector3 point = default;
-            atlasHit = atlasHit && atlas.TryGetAnatomicalHoverPoint(column, atlasImpact, out point);
             Module3DMain.OnDisplayAtlasInformation.Invoke(atlas.GetAtlasInformation(atlasHit, point, screenPosition));
             Module3DMain.OnDisplaySiteInformation.Invoke(m_Scene.ImplantationManager.GetSiteInformation(raycastResult == RaycastHitResult.Site ? hit.collider.GetComponent<HBP.Core.Object3D.Site>() : null, column, screenPosition));
         }

@@ -344,28 +344,20 @@ namespace HBP.Transfer.Scene
                 resource.GenerationReport = preview.GenerationReport;
             }
 
-            if (standard != null)
-            {
-                var standardMesh = (LeftRightMesh3D)mesh;
-                resource.StandardBothMask = mesh.Both.VisibilityMask;
-                resource.StandardLeftMask = standardMesh.Left.VisibilityMask;
-                resource.StandardRightMask = standardMesh.Right.VisibilityMask;
-            }
-
-            resource.SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth);
+            resource.SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth, includeVisibility: false);
             if (mesh is LeftRightMesh3D simplifiedHemispheres)
             {
-                resource.SimplifiedLeft = archive.AddSurface(simplifiedHemispheres.SimplifiedLeft);
-                resource.SimplifiedRight = archive.AddSurface(simplifiedHemispheres.SimplifiedRight);
+                resource.SimplifiedLeft = archive.AddSurface(simplifiedHemispheres.SimplifiedLeft, includeVisibility: false);
+                resource.SimplifiedRight = archive.AddSurface(simplifiedHemispheres.SimplifiedRight, includeVisibility: false);
             }
 
             if (standard == null)
             {
-                resource.Both = archive.AddSurface(mesh.Both);
+                resource.Both = archive.AddSurface(mesh.Both, includeVisibility: false);
                 if (mesh is LeftRightMesh3D hemispheres)
                 {
-                    resource.Left = archive.AddSurface(hemispheres.Left);
-                    resource.Right = archive.AddSurface(hemispheres.Right);
+                    resource.Left = archive.AddSurface(hemispheres.Left, includeVisibility: false);
+                    resource.Right = archive.AddSurface(hemispheres.Right, includeVisibility: false);
                 }
             }
 
@@ -382,18 +374,18 @@ namespace HBP.Transfer.Scene
                     MaximumStepFraction = key.MaximumStepFraction, ConvergenceTolerance = key.ConvergenceTolerance,
                     MaximumBacktrackingSteps = key.MaximumBacktrackingSteps, FixBoundaryVertices = key.FixBoundaryVertices
                 };
-                resource.InflatedBoth = archive.AddSurface(inflated.Both);
-                resource.InflatedSimplifiedBoth = archive.AddSurface(inflated.SimplifiedBoth);
+                resource.InflatedBoth = archive.AddSurface(inflated.Both, includeVisibility: false);
+                resource.InflatedSimplifiedBoth = archive.AddSurface(inflated.SimplifiedBoth, includeVisibility: false);
                 if (inflated.Left != null)
                 {
-                    resource.InflatedSimplifiedLeft = archive.AddSurface(inflated.SimplifiedLeft);
-                    resource.InflatedSimplifiedRight = archive.AddSurface(inflated.SimplifiedRight);
+                    resource.InflatedSimplifiedLeft = archive.AddSurface(inflated.SimplifiedLeft, includeVisibility: false);
+                    resource.InflatedSimplifiedRight = archive.AddSurface(inflated.SimplifiedRight, includeVisibility: false);
                 }
 
                 if (inflated.Left != null)
                 {
-                    resource.InflatedLeft = archive.AddSurface(inflated.Left);
-                    resource.InflatedRight = archive.AddSurface(inflated.Right);
+                    resource.InflatedLeft = archive.AddSurface(inflated.Left, includeVisibility: false);
+                    resource.InflatedRight = archive.AddSurface(inflated.Right, includeVisibility: false);
                 }
             }
 

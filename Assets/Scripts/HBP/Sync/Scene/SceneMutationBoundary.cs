@@ -1406,13 +1406,10 @@ namespace HBP.Sync.Scene
                 {
                     Mesh3D mesh = m_ResourceCatalog.ResolveMesh(meshDisplay.MeshId.Value);
                     MeshPart part = meshDisplay.Part switch { MutationMeshPart.Left => MeshPart.Left, MutationMeshPart.Right => MeshPart.Right, _ => MeshPart.Both };
-                    Core.Object3D.SurfaceRepresentation representation = meshDisplay.Representation == MutationSurfaceRepresentation.Inflated ? Core.Object3D.SurfaceRepresentation.Inflated : Core.Object3D.SurfaceRepresentation.Anatomical;
                     string resource = m_ResourceCatalog.MeshReference(mesh);
                     TopologyId expectedComplete = new("surface:" + resource + ":" + part.ToString().ToLowerInvariant() + ":complete");
-                    TopologyId expectedSimplified = new("surface:" + resource + ":" + part.ToString().ToLowerInvariant() + ":simplified");
-                    int completeCount = mesh.GetSurface(representation, part, simplified: false).NumberOfTriangles;
-                    int simplifiedCount = mesh.GetSurface(representation, part, simplified: true).NumberOfTriangles;
-                    if (!masks.Masks[0].TopologyId.Equals(expectedComplete) || masks.Masks[0].TriangleCount != completeCount || !masks.Masks[1].TopologyId.Equals(expectedSimplified) || masks.Masks[1].TriangleCount != simplifiedCount)
+                    int completeCount = mesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, part).NumberOfTriangles;
+                    if (!masks.Mask.TopologyId.Equals(expectedComplete) || masks.Mask.TriangleCount != completeCount)
                         throw new InvalidDataException("Checkpoint triangle masks do not match the selected prepared original topology.");
                 }
             }
@@ -3274,7 +3271,7 @@ namespace HBP.Sync.Scene
                     return true;
                 case ApplyTriangleMask value:
                     m_Scene.RebuildPreparedGeometryForSynchronization();
-                    m_Scene.TriangleEraser.CurrentMasks = value.Masks.Select(mask => mask.ToVisibilityMask()).ToList();
+                    m_Scene.TriangleEraser.ApplyExternalVisibility(value.Mask.ToVisibilityMask());
                     return true;
                 default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
             }
@@ -3492,45 +3489,29 @@ namespace HBP.Sync.Scene
             m_ResourceCatalog.AssertPreparedRoster();
         }
 
-        private (TopologyId Complete, TopologyId Simplified) CurrentTopologyIds()
+        private TopologyId CurrentTriangleTopology()
         {
             RequireResourceCatalog();
-            Mesh3D mesh = m_Scene.MeshManager.SelectedMesh;
-            string resource = m_ResourceCatalog.MeshReference(mesh);
+            string resource = m_ResourceCatalog.MeshReference(m_Scene.MeshManager.SelectedMesh);
             string part = m_Scene.MeshManager.MeshPartToDisplay.ToString().ToLowerInvariant();
-            return (new TopologyId("surface:" + resource + ":" + part + ":complete"), new TopologyId("surface:" + resource + ":" + part + ":simplified"));
+            return new TopologyId("surface:" + resource + ":" + part + ":complete");
         }
 
         private ApplyTriangleMask CreateTriangleMaskMutation()
         {
             if (m_Scene.TriangleEraser == null) throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
-            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
-            List<int[]> masks = m_Scene.TriangleEraser.CurrentMasks;
-            if (masks.Count != 2) throw new InvalidOperationException("Both original topology masks are required.");
-            return new ApplyTriangleMask(new[]
-            {
-                TriangleMask.FromVisibilityMask(complete, masks[0]),
-                TriangleMask.FromVisibilityMask(simplified, masks[1])
-            });
+            return new ApplyTriangleMask(TriangleMask.FromVisibilityMask(CurrentTriangleTopology(), m_Scene.TriangleEraser.VisibilityMask));
         }
 
         private void ValidateTriangleMask(ApplyTriangleMask mutation)
         {
-            if (m_Scene.TriangleEraser == null || m_Scene.MeshManager?.SelectedMesh == null) throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
-            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
-            TopologyId[] expectedIds = { complete, simplified };
-            Mesh3D mesh = m_Scene.MeshManager.SelectedMesh;
-            MeshPart part = m_Scene.MeshManager.MeshPartToDisplay;
-            for (int i = 0; i < 2; i++)
-                if (!mutation.Masks[i].TopologyId.Equals(expectedIds[i]) || mutation.Masks[i].TriangleCount != mesh.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, part, i == 1).NumberOfTriangles)
-                    throw new InvalidOperationException("Triangle mask topology does not match the prepared original surface.");
+            if (m_Scene.TriangleEraser == null || m_Scene.MeshManager?.SelectedMesh == null)
+                throw new InvalidOperationException("Triangle visibility is unavailable in the prepared scene.");
+            if (!IsSelectedTriangleTopology(mutation) || mutation.Mask.TriangleCount != m_Scene.MeshManager.ReferenceSurface.NumberOfTriangles)
+                throw new InvalidOperationException("Triangle mask topology does not match the prepared original surface.");
         }
 
-        internal bool IsSelectedTriangleTopology(ApplyTriangleMask mutation)
-        {
-            (TopologyId complete, TopologyId simplified) = CurrentTopologyIds();
-            return mutation.Masks[0].TopologyId.Equals(complete) && mutation.Masks[1].TopologyId.Equals(simplified);
-        }
+        internal bool IsSelectedTriangleTopology(ApplyTriangleMask mutation) => mutation.Mask.TopologyId.Equals(CurrentTriangleTopology());
 
         internal void RebuildSynchronizedGeometry(OperationId operationId)
         {
@@ -3550,27 +3531,21 @@ namespace HBP.Sync.Scene
             {
                 if (part != MeshPart.Both && !mesh.SupportsHemispheres) continue;
                 string prefix = "surface:" + m_ResourceCatalog.MeshReference(mesh) + ":" + part.ToString().ToLowerInvariant();
-                if (mutation.Masks[0].TopologyId.Value != prefix + ":complete" || mutation.Masks[1].TopologyId.Value != prefix + ":simplified") continue;
+                if (mutation.Mask.TopologyId.Value != prefix + ":complete") continue;
                 target = mesh;
                 targetPart = part;
             }
 
             if (target == null || !target.IsLoaded) throw new InvalidOperationException("Triangle mask topology is not present in the prepared roster.");
-            for (int i = 0; i < 2; i++)
-                if (mutation.Masks[i].TriangleCount != target.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, targetPart, i == 1).NumberOfTriangles)
-                    throw new InvalidOperationException("Triangle mask size does not match the prepared original surface.");
+            if (mutation.Mask.TriangleCount != target.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, targetPart).NumberOfTriangles)
+                throw new InvalidOperationException("Triangle mask size does not match the prepared original surface.");
+            // The replica caches masks for topologies hidden by a later optimistic selection
+            // and reapplies them once that topology is selected again.
+            if (!IsSelectedTriangleTopology(mutation)) return;
             using (MutationApplicationContext.EnterRemote(operationId))
             {
-                if (IsSelectedTriangleTopology(mutation))
-                {
-                    m_Scene.RebuildPreparedGeometryForSynchronization();
-                    m_Scene.TriangleEraser.CurrentMasks = mutation.Masks.Select(mask => mask.ToVisibilityMask()).ToList();
-                }
-                else
-                {
-                    target.GetSurface(target.Representation, targetPart).UpdateVisibilityMask(mutation.Masks[0].ToVisibilityMask()).Dispose();
-                    target.GetSurface(Core.Object3D.SurfaceRepresentation.Anatomical, targetPart, true).UpdateVisibilityMask(mutation.Masks[1].ToVisibilityMask()).Dispose();
-                }
+                m_Scene.RebuildPreparedGeometryForSynchronization();
+                m_Scene.TriangleEraser.ApplyExternalVisibility(mutation.Mask.ToVisibilityMask());
             }
         }
 

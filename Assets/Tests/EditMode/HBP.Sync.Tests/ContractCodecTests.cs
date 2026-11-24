@@ -144,7 +144,7 @@ namespace HBP.Sync.Tests
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 8, 0));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, 8, 3));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => bytes[129] = 1);
-            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, MutationEnvelopeCodec.HeaderLength, 3));
+            AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, MutationEnvelopeCodec.HeaderLength, 2));
             AssertEnvelopeHeaderMutationRejected(valid, bytes => WriteUInt16(bytes, MutationEnvelopeCodec.HeaderLength + 2, 99));
         }
 
@@ -382,7 +382,8 @@ namespace HBP.Sync.Tests
                 new SetSelectedMri(new ResourceId("mri")),
                 new SetMriCalibration(0.2f, 0.8f),
                 new SetImplantation(new ResourceId("implantation"), new string('a', 64)),
-                new ApplyTriangleMask(new[] { sparse, bitset })
+                new ApplyTriangleMask(bitset),
+                new ApplyTriangleMask(sparse)
             };
 
             foreach (Mutation mutation in mutations)
@@ -398,8 +399,8 @@ namespace HBP.Sync.Tests
                 Assert.That(MutationPayloadCodec.Encode(decodedRecord.Value), Is.EqualTo(encoded), mutation.Type.ToString());
             }
 
-            CollectionAssert.AreEqual(sparse.ToVisibilityMask(), ((ApplyTriangleMask)MutationPayloadCodec.Decode(MutationPayloadCodec.Encode(mutations[^1]))).Masks[0].ToVisibilityMask());
-            CollectionAssert.AreEqual(bitset.ToVisibilityMask(), ((ApplyTriangleMask)MutationPayloadCodec.Decode(MutationPayloadCodec.Encode(mutations[^1]))).Masks[1].ToVisibilityMask());
+            CollectionAssert.AreEqual(sparse.ToVisibilityMask(), ((ApplyTriangleMask)MutationPayloadCodec.Decode(MutationPayloadCodec.Encode(mutations[^1]))).Mask.ToVisibilityMask());
+            CollectionAssert.AreEqual(bitset.ToVisibilityMask(), ((ApplyTriangleMask)MutationPayloadCodec.Decode(MutationPayloadCodec.Encode(mutations[^2]))).Mask.ToVisibilityMask());
         }
 
         [Test]

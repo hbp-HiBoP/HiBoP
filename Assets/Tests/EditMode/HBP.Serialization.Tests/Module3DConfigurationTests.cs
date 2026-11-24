@@ -12,6 +12,7 @@ using HBP.Tests.Serialization.Helpers;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 using DataSphere = HBP.Core.Data.Sphere;
 using SurfaceRepresentation = HBP.Core.Object3D.SurfaceRepresentation;
 
@@ -23,13 +24,11 @@ namespace HBP.Tests.Serialization
         public void AnatomicalAtlasHover_ValidatesLabelsAndExposesDesktopFields()
         {
             var describe = typeof(AtlasManager).GetMethod("DescribeRegion", BindingFlags.NonPublic | BindingFlags.Static);
-            AtlasInfo Describe(bool mars, int label, params string[] information) =>
-                (AtlasInfo)describe.Invoke(null, new object[] { mars, label, information });
+            AtlasInfo Describe(bool mars, int label, params string[] information) => (AtlasInfo)describe.Invoke(null, new object[] { mars, label, information });
 
             var mars = Describe(true, 12, "L_Test", "L", "Frontal", "Test", "Left test area");
             Assert.That(mars.Type, Is.EqualTo(AtlasInfo.AtlasType.MarsAtlas));
-            Assert.That(new[] { mars.Information1, mars.Information2, mars.Information3, mars.Information4, mars.Information5 },
-                Is.EqualTo(new[] { "L_Test - ID:12", "L", "Frontal", "Test", "Left test area" }));
+            Assert.That(new[] { mars.Information1, mars.Information2, mars.Information3, mars.Information4, mars.Information5 }, Is.EqualTo(new[] { "L_Test - ID:12", "L", "Frontal", "Test", "Left test area" }));
             var juBrain = Describe(false, 12, "Area 12");
             Assert.That(juBrain.Type, Is.EqualTo(AtlasInfo.AtlasType.JuBrainAtlas));
             Assert.That(juBrain.Information1, Is.EqualTo("Area 12 - ID:12"));
@@ -69,6 +68,7 @@ namespace HBP.Tests.Serialization
                 UnityEngine.Object.DestroyImmediate(mesh);
             }
         }
+
         [TestCase(false)]
         [TestCase(true)]
         public void LegacyCCEPConfiguration_LoadsWithOriginalIdentityAndCalibration(bool explicitType)
@@ -134,7 +134,7 @@ namespace HBP.Tests.Serialization
             }
 
             var masks = new[] { 1, 0, 1 };
-            var source = new VisualizationConfiguration(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh", "mri", "implantation", false, false, .2f, false, false, false, false, 1, 0, 1, CameraControl.Trackball, Array.Empty<Cut>(), Array.Empty<View>(), Array.Empty<RegionOfInterest>(), "visualization-config", SurfaceRepresentation.Inflated, atlas, "preview-mri", masks, new[] { 0, 1 });
+            var source = new VisualizationConfiguration(ColorType.Surface, ColorType.Default, ColorType.MatLab, MeshPart.Left, "mesh", "mri", "implantation", false, false, .2f, false, false, false, false, 1, 0, 1, CameraControl.Trackball, Array.Empty<Cut>(), Array.Empty<View>(), Array.Empty<RegionOfInterest>(), "visualization-config", SurfaceRepresentation.Inflated, atlas, "preview-mri", masks);
             masks[1] = 1;
             Assert.That(source.ErasedTriangles[1], Is.Zero, "Constructor snapshots its mask input.");
             var clone = (VisualizationConfiguration)source.Clone();
@@ -142,12 +142,86 @@ namespace HBP.Tests.Serialization
             Assert.That(clone.AtlasConfiguration.ID, Is.EqualTo(atlas.ID));
             Assert.That(clone.PreviewMRIName, Is.EqualTo("preview-mri"));
             Assert.That(clone.ErasedTriangles, Is.EqualTo(new[] { 1, 0, 1 }));
-            Assert.That(clone.ErasedSimplifiedTriangles, Is.EqualTo(new[] { 0, 1 }));
             Assert.That(clone.SurfaceRepresentation, Is.EqualTo(SurfaceRepresentation.Inflated));
             Assert.That(new FMRIConfiguration(.1f, .2f, .3f, .4f, true, false, true, "fmri-config", 2).SelectedResourceIndex, Is.EqualTo(2));
             Assert.That(new MEGConfiguration(.1f, .2f, .3f, .4f, true, false, true, "meg-config", 3).SelectedResourceIndex, Is.EqualTo(3));
             Assert.That(new StaticConfiguration(23, -7, 2, 19, null, null, null, 4, "static-config").SelectedResourceIndex, Is.EqualTo(4));
             Assert.That(new AnatomicConfiguration(27, 0.05f, 0.35f, 0.65f, "anatomy-config").MaximumInfluence, Is.EqualTo(27));
+        }
+
+        [Test]
+        public void LegacyTriangleErasureLoadsAndSavesOnlyTheCompleteTopology()
+        {
+            const string json = "{\"ID\":\"legacy-mask\",\"ErasedTriangles\":[1,0,1],\"ErasedSimplifiedTriangles\":[0,1]}";
+            var configuration = ClassLoaderSaver.LoadFromJsonString<VisualizationConfiguration>(json);
+            Assert.That(configuration.ErasedTriangles, Is.EqualTo(new[] { 1, 0, 1 }));
+
+            using TempDirectoryScope temp = new();
+            string path = temp.GetPath("complete-mask.json");
+            Assert.That(ClassLoaderSaver.SaveToJSon(configuration, path, true), Is.True);
+            Assert.That(System.IO.File.ReadAllText(path), Does.Not.Contain("ErasedSimplifiedTriangles"));
+        }
+
+        [Test]
+        public void DesktopTriangleToolbarUsesOrderedControlsAndThemedAtlasList()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/3D/UI/3D Menu.prefab");
+            var mode = prefab.GetComponentsInChildren<MonoBehaviour>(true).Single(component => component && component.GetType().Name == "TriangleErasingMode");
+            using var serialized = new SerializedObject(mode);
+
+            T Control<T>(string property) where T : Component
+            {
+                var control = (T)serialized.FindProperty(property).objectReferenceValue;
+                Assert.That(control, Is.Not.Null, property);
+                return control;
+            }
+
+            var selector = Control<Dropdown>("m_Dropdown");
+            Assert.That(selector.captionText, Is.Not.Null);
+            Assert.That(selector.itemText, Is.Not.Null);
+            Assert.That(selector.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Angle", "Activity", "Atlas" }));
+            var add = Control<Toggle>("m_Add");
+            var remove = Control<Toggle>("m_Remove");
+            Assert.That(add.group, Is.Not.Null);
+            Assert.That(remove.group, Is.SameAs(add.group));
+            Assert.That(add.isOn && !remove.isOn, Is.True);
+            Assert.That(add.GetComponentInChildren<Text>(true), Is.Null);
+            Assert.That(remove.GetComponentInChildren<Text>(true), Is.Null);
+            Assert.That(add.transform.Find("Background/Icon").GetComponent<Image>().sprite, Is.Not.Null);
+            Assert.That(remove.transform.Find("Background/Icon").GetComponent<Image>().sprite, Is.Not.Null);
+            Assert.That(mode.transform.Cast<Transform>().Select(child => child.name), Is.EqualTo(new[]
+            {
+                "Selection Mode", "Add Triangles", "Remove Triangles", "Triangle Angle",
+                "Activity Tolerance", "Selection Atlas", "Selection DiFuMo Version", "Atlas Regions"
+            }));
+
+            foreach (string property in new[] { "m_Angle", "m_Activity" })
+            {
+                InputField field = Control<InputField>(property);
+                Assert.That(field.transform.parent, Is.EqualTo(mode.transform));
+                Assert.That(field.GetComponent<LayoutElement>().minWidth, Is.Positive);
+                Assert.That(field.GetComponent<LayoutElement>().minHeight, Is.Positive);
+            }
+
+            Assert.That(mode.transform.parent.Cast<Transform>().Select(child => child.name), Is.EqualTo(new[]
+            {
+                "Triangle Erasing Mode", "ExpandErasing", "InvertErasing", "Erase Selection", "Keep Selection",
+                "Restore Selection", "Clear Selection", "CancelErasing", "ResetErasing", "Triangle Loader Saver"
+            }));
+            Assert.That(mode.transform.parent.Find("Triangle Loader Saver").Cast<Transform>().Select(child => child.name), Is.EqualTo(new[] { "Save", "Load" }));
+            Assert.That(Control<Button>("m_EraseSelection").name, Is.EqualTo("Erase Selection"));
+            Assert.That(Control<Button>("m_KeepSelection").name, Is.EqualTo("Keep Selection"));
+            Assert.That(Control<Button>("m_RestoreSelection").name, Is.EqualTo("Restore Selection"));
+            Assert.That(Control<Button>("m_ClearSelection").name, Is.EqualTo("Clear Selection"));
+
+            ScrollRect scroll = Control<ScrollRect>("m_Scroll");
+            Assert.That(scroll.vertical && !scroll.horizontal, Is.True);
+            Assert.That(scroll.verticalScrollbar, Is.Not.Null);
+            Assert.That(scroll.verticalScrollbar.GetComponents<MonoBehaviour>().Any(component => component.GetType().Name == "ThemeElement"), Is.True);
+            Assert.That(scroll.content.GetComponent<ContentSizeFitter>().verticalFit, Is.EqualTo(ContentSizeFitter.FitMode.PreferredSize));
+            Assert.That(Control<Toggle>("m_RegionTogglePrefab").GetComponentInChildren<Text>(), Is.Not.Null);
+            Assert.That(Control<InputField>("m_Search").transform.GetSiblingIndex(), Is.Zero);
+            Assert.That(scroll.transform.parent.parent.Find("Add Atlas Regions"), Is.Null);
         }
 
         [Test]
@@ -157,7 +231,7 @@ namespace HBP.Tests.Serialization
             var source = new VisualizationConfiguration
             {
                 PreviewMRIName = "MRI preview source",
-                ErasedTriangles = new[] { 1, 0, 1 }, ErasedSimplifiedTriangles = new[] { 0, 1 },
+                ErasedTriangles = new[] { 1, 0, 1 },
                 AtlasConfiguration = new AtlasConfiguration { IBC = false, IBCIndex = 7, DiFuMoAtlas = "128", DiFuMoArea = 11, AtlasAlpha = .4f, LocalizerProtocol = "AUDI", LocalizerData = "subject", LocalizerBloc = "bloc", LocalizerTime = 3 }
             };
             var copy = new VisualizationConfiguration();

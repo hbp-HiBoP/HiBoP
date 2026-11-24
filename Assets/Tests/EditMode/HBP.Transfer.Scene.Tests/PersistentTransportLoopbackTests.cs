@@ -1119,11 +1119,7 @@ namespace HBP.Sync.Tests
             ApplyTriangleMask CreateTriangleMask(byte value)
             {
                 byte[] visible = Enumerable.Repeat(value, (triangleCount + 7) / 8).ToArray();
-                return new ApplyTriangleMask(new[]
-                {
-                    new TriangleMask(new TopologyId("bulk-mask:complete"), triangleCount, visible),
-                    new TriangleMask(new TopologyId("bulk-mask:simplified"), triangleCount, visible)
-                });
+                return new ApplyTriangleMask(new TriangleMask(new TopologyId("bulk-mask:complete"), triangleCount, visible));
             }
         }
 
@@ -1134,11 +1130,7 @@ namespace HBP.Sync.Tests
         public void QuestProposalCorrection_ReassemblesLargeAuthoritativeMasks(int triangleCount)
         {
             byte[] bits = Enumerable.Repeat((byte)0xAA, (triangleCount + 7) / 8).ToArray();
-            var mask = new ApplyTriangleMask(new[]
-            {
-                new TriangleMask(new TopologyId("surface:mesh:both:complete"), triangleCount, bits),
-                new TriangleMask(new TopologyId("surface:mesh:both:simplified"), triangleCount, bits)
-            });
+            var mask = new ApplyTriangleMask(new TriangleMask(new TopologyId("surface:mesh:both:complete"), triangleCount, bits));
             var operation = new OperationId(Guid.NewGuid());
             var correction = (MutationCorrection)Activator.CreateInstance(typeof(MutationCorrection), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { Scene, Incarnation, operation, 7UL, mask, "activity_projection_busy" }, null);
             byte[] body = QuestProposalDecisionCodec.EncodeCorrection(correction);
@@ -3047,11 +3039,7 @@ namespace HBP.Sync.Tests
             boundary.OnMutationProposed.AddListener((_, mutation, _) => proposed.Add(mutation));
 
             Assert.Throws<InvalidDataException>(() => driver.ApplyOptimistic(new SetMeshDisplay(new ResourceId("missing-mesh"), MutationMeshPart.Both, MutationSurfaceRepresentation.Anatomical), new OperationId(GuidFor(55121))));
-            Assert.Throws<InvalidOperationException>(() => driver.ApplyOptimistic(new ApplyTriangleMask(new[]
-            {
-                new TriangleMask(new TopologyId("unavailable-topology:complete"), 1, new[] { 0 }),
-                new TriangleMask(new TopologyId("unavailable-topology:simplified"), 1, new[] { 0 })
-            }), new OperationId(GuidFor(55122))));
+            Assert.Throws<InvalidOperationException>(() => driver.ApplyOptimistic(new ApplyTriangleMask(new TriangleMask(new TopologyId("unavailable-topology:complete"), 1, new[] { 0 })), new OperationId(GuidFor(55122))));
 
             Assert.That(proposed, Is.Empty, "A resource or topology preflight failure must not publish or partially apply the operation.");
             Assert.That(driver.PendingProposalCount, Is.Zero);

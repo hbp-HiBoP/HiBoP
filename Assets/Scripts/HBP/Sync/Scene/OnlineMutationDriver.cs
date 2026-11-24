@@ -716,7 +716,7 @@ namespace HBP.Sync.Scene
             {
                 m_CanonicalMeshDisplay = initialDisplay;
                 m_CanonicalTopologySequence = lastObservedCanonicalSequence;
-                m_CanonicalTriangleMasks[initialMask.Masks[0].TopologyId.Value] = (initialMask, lastObservedCanonicalSequence);
+                m_CanonicalTriangleMasks[initialMask.Mask.TopologyId.Value] = (initialMask, lastObservedCanonicalSequence);
             }
 
             m_Boundary.OnMutationProposed.AddListener(OnLocalMutationProposed);
@@ -884,7 +884,7 @@ namespace HBP.Sync.Scene
             {
                 // Validate/apply the exact prepared resource even when an optimistic mesh hides it.
                 m_Boundary.ApplyPreparedTriangleMask(mask, operationId);
-                m_CanonicalTriangleMasks[mask.Masks[0].TopologyId.Value] = (mask, sequence);
+                m_CanonicalTriangleMasks[mask.Mask.TopologyId.Value] = (mask, sequence);
             }
             else
             {
@@ -1716,8 +1716,7 @@ namespace HBP.Sync.Scene
 
         private bool WasSelectionSuperseded(Mutation mutation, ulong sequence, bool includeEqual = true)
         {
-            return mutation is SetSelectedColumn or SetSelectedSite &&
-                (includeEqual ? m_SelectionCheckpointSequence >= sequence : m_SelectionCheckpointSequence > sequence);
+            return mutation is SetSelectedColumn or SetSelectedSite && (includeEqual ? m_SelectionCheckpointSequence >= sequence : m_SelectionCheckpointSequence > sequence);
         }
 
         private void MarkKeyApplied(TouchedKey key, ulong sequence)

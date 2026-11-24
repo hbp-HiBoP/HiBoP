@@ -31,7 +31,7 @@ namespace HBP.Tests.Transfer
             preparation.Start();
             try
             {
-                var open = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None);
+                var open = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None);
                 Assert.That(open.Applied, Is.True);
                 Assert.That(open.Message, Is.EqualTo(SessionControlCodec.AtlasInventoryCapability));
                 var reply = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.AtlasInventory), CancellationToken.None);
@@ -63,7 +63,7 @@ namespace HBP.Tests.Transfer
             var receiver = new SessionPreferencesReceiver(() => context, () => preferences, () => false, preparation.Snapshot);
             try
             {
-                Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None)).Applied, Is.True);
+                Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None)).Applied, Is.True);
                 Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Inspect), CancellationToken.None)).Applied, Is.True);
             }
             finally

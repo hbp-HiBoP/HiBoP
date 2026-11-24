@@ -214,7 +214,7 @@ namespace HBP.Transfer.Scene
             {
                 var surface = (Core.DLL.Surface)source.Clone();
                 owned.Add(surface);
-                surface.UpdateVisibilityMask(mask).Dispose();
+                if (mask != null) surface.UpdateVisibilityMask(mask).Dispose();
                 return surface;
             }
 

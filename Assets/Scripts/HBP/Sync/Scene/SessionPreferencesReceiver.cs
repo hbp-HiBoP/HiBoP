@@ -110,6 +110,8 @@ namespace HBP.Sync.Scene
                 string[] preloads = null;
                 if (request.Kind == SessionControlKind.Open)
                 {
+                    if (request.Fingerprint != SessionControlCodec.CompleteTriangleMaskCapability)
+                        return Reply(request, SessionControlStatus.Rejected, "Update HiBoP Desktop and Quest together: triangle visibility protocol is incompatible.");
                     if (request.ContextId == m_ContextId && request.Generation < m_Generation) return Reply(request, SessionControlStatus.Stale, "Old connection generation.");
                     byte[] body = request.GetBody();
                     if (body.Length != 0)
@@ -156,7 +158,7 @@ namespace HBP.Sync.Scene
                                 if (result.State == AtlasLoadState.Loaded) loaded.Add(definition.Id, "");
                             }
 
-                        response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, fingerprint: request.Fingerprint == SessionControlCodec.GroupedSceneCapability ? SessionControlCodec.GroupedSceneCapability : SessionControlCodec.CompactSceneCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
+                        response = Reply(request, SessionControlStatus.Applied, SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(loaded)));
                         break;
                     case SessionControlKind.AtlasInventory:
                         var inventory = m_Inventory?.Invoke() ?? new SessionAtlasInventory();

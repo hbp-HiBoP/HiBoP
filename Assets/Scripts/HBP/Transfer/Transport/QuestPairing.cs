@@ -365,11 +365,11 @@ namespace HBP.Transfer.Transport
                             pairingGate.Release();
                         }
                     }
-                    else if (command == 2 || command == 12 || command == 13 || command == 14 || command == 15 || command == 16)
+                    else if (command == CompleteMaskSceneCommand || command == 12 || command == 13 || command == CompleteMaskReplicaCommand || command == 15 || command == 16)
                     {
                         byte[] offered = new byte[32];
                         await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
-                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != 14 || receiveReplica != null) && (command != 15 || receiveSessionControl != null) && (command != 16 || receiveDefinitions != null);
+                        bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != CompleteMaskReplicaCommand || receiveReplica != null) && (command != 15 || receiveSessionControl != null) && (command != 16 || receiveDefinitions != null);
                         Array.Clear(offered, 0, offered.Length);
                         await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                         if (!allowed) return;
@@ -434,7 +434,7 @@ namespace HBP.Transfer.Transport
                             return;
                         }
 
-                        if (command == 14)
+                        if (command == CompleteMaskReplicaCommand)
                         {
                             deadline.CancelAfter(Timeout.InfiniteTimeSpan);
                             if (!await replicaSlots.WaitAsync(0, deadline.Token).ConfigureAwait(false)) throw new InvalidOperationException("The Quest replica capacity is reached.");
@@ -639,7 +639,7 @@ namespace HBP.Transfer.Transport
         public static async Task<DeliveryReceipt> SendAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send, string timingScope = null)
         {
             DeliveryReceipt receipt = null;
-            await AuthorizedAsync(host, pin, credential, 2, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false), timingScope: timingScope).ConfigureAwait(false);
+            await AuthorizedAsync(host, pin, credential, CompleteMaskSceneCommand, stop, async (tls, token) => receipt = await send(tls, token).ConfigureAwait(false), timingScope: timingScope).ConfigureAwait(false);
             return receipt;
         }
 
@@ -654,6 +654,10 @@ namespace HBP.Transfer.Transport
             }).ConfigureAwait(false);
             return receipt;
         }
+
+        // Scene and replica streams require the complete-triangle-mask protocol.
+        private const int CompleteMaskSceneCommand = 23;
+        private const int CompleteMaskReplicaCommand = 24;
 
         private static async Task ObserveSessionPeerAsync(Stream stream, CancellationTokenSource requestStop, CancellationToken monitorStop)
         {
@@ -681,7 +685,7 @@ namespace HBP.Transfer.Transport
             return response;
         }
 
-        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, 14, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);
+        public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task> exchange) => AuthorizedAsync(host, pin, credential, CompleteMaskReplicaCommand, stop, (stream, token) => exchange(stream, token), Timeout.InfiniteTimeSpan);
 
         public static Task OpenReplicaAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, PersistentTransport session)
         {

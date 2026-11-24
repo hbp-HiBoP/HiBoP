@@ -493,11 +493,11 @@ namespace HBP.Quest
                 var hand = hands[index];
                 if (hand.AtlasRayLimit <= 0 || hand.Capture.Owner != QuestInteractionOwner.None) continue;
                 var ray = hand.Data.Ray;
-                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var hit);
+                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var point, out var impact);
                 if (column == null) continue;
                 var scene = column.Scene;
                 var atlas = scene.AtlasManager;
-                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
+                if (atlas == null || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
 
                 if (hoveredAtlasScene != scene)
                 {
@@ -507,24 +507,28 @@ namespace HBP.Quest
                 }
 
                 atlas.HoveredArea = label;
-                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, hit.point, true);
-                atlasTooltip.Show(region, hit.point, head.transform);
+                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, impact, true);
+                atlasTooltip.Show(region, impact, head.transform);
                 return;
             }
 
             ClearAtlasHover();
         }
 
-        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out RaycastHit nearest)
+        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out Vector3 anatomicalPoint, out Vector3 impact)
         {
-            nearest = default;
+            anatomicalPoint = default;
+            impact = default;
             QuestColumnPresentation target = null;
             foreach (var presentation in anatomy.Scenes)
             foreach (var column in presentation.Columns)
             {
-                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) || !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) || hit.distance >= limit) continue;
-                limit = hit.distance;
-                nearest = hit;
+                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator)) continue;
+                float distance = limit;
+                if (!column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, ref distance, presentation.SurfaceHidden, out var point) || distance >= limit) continue;
+                limit = distance;
+                anatomicalPoint = point;
+                impact = ray.GetPoint(distance);
                 target = column;
             }
 

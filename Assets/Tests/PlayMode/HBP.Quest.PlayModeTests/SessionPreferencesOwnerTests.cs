@@ -709,7 +709,7 @@ namespace HBP.Tests.Quest
                     return pending.Task;
                 }
 
-                return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability));
+                return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability));
             });
             try
             {
@@ -746,7 +746,7 @@ namespace HBP.Tests.Quest
                     }
 
                     string inventory = "{\"Preparing\":false,\"Atlases\":{\"mars\":{\"State\":" + (int)AtlasLoadState.Loaded + ",\"Preload\":true,\"Fingerprint\":\"" + new string('0', 64) + "\"}}}";
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(inventory)));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes(inventory)));
                 });
                 owner.OnConnectionLost.AddListener(() => disconnections++);
                 await owner.StartAsync();
@@ -817,7 +817,7 @@ namespace HBP.Tests.Quest
                 using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
                 {
                     if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: new string('0', 64), body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
                 });
                 await owner.StartAsync();
                 await owner.SetAtlasLoadedAsync("mars", true);
@@ -1230,7 +1230,7 @@ namespace HBP.Tests.Quest
                 preferences.General.Project.DefaultName = "Second save";
                 preferences.Save();
                 Assert.That(sent.Count, Is.EqualTo(1));
-                opening.SetResult(new SessionControlResponse(sent[0].OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes("{}")));
+                opening.SetResult(new SessionControlResponse(sent[0].OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{}")));
                 await start;
                 await owner.FlushPreferencesAsync();
                 Assert.That(sent.Count, Is.EqualTo(3));
@@ -1245,7 +1245,7 @@ namespace HBP.Tests.Quest
                 using var next = new DesktopSessionPreferences(Guid.NewGuid(), 2, preferences, (request, token) =>
                 {
                     if (request.Kind != SessionControlKind.AtlasInventory) sent.Add(request);
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes("{}")));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{}")));
                 });
                 await next.StartAsync();
                 await next.FlushPreferencesAsync();

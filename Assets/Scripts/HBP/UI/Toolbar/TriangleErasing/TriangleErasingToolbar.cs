@@ -1,10 +1,26 @@
-﻿using HBP.Data.Module3D;
+using HBP.Data.Module3D;
 using UnityEngine;
 
 namespace HBP.UI.Toolbar
 {
     public class TriangleErasingToolbar : Toolbar
     {
+        private bool m_Open;
+
+        protected override void AddListeners()
+        {
+            base.AddListeners();
+            Module3DMain.OnSelectScene.AddListener(UpdateScene);
+        }
+
+        private void OnDestroy() => Module3DMain.OnSelectScene.RemoveListener(UpdateScene);
+
+        private void UpdateScene(Base3DScene selected)
+        {
+            foreach (Base3DScene scene in Module3DMain.Scenes)
+                scene.TriangleEraser.IsEnabled = m_Open && scene == selected;
+        }
+
         #region Properties
 
         /// <summary>
@@ -59,10 +75,8 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void ShowToolbarCallback()
         {
-            foreach (Base3DScene scene in Module3DMain.Scenes)
-            {
-                scene.TriangleEraser.IsEnabled = true;
-            }
+            m_Open = true;
+            UpdateScene(Module3DMain.SelectedScene);
         }
 
         /// <summary>
@@ -70,10 +84,8 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void HideToolbarCallback()
         {
-            foreach (Base3DScene scene in Module3DMain.Scenes)
-            {
-                scene.TriangleEraser.IsEnabled = false;
-            }
+            m_Open = false;
+            UpdateScene(null);
         }
 
         #endregion

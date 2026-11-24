@@ -192,7 +192,7 @@ namespace HBP.Tests.Transfer
             var payload = PreparedSceneArchiveTests.Fixture(source);
             payload.Version = version;
             payload.Visualization.Configuration.ErasedTriangles = null;
-            payload.Visualization.Configuration.ErasedSimplifiedTriangles = null;
+
             payload.Columns[5].Functional[0].Values["patient_A1"] = Array.Empty<float>();
             string path = Path.Combine(root, "scene.zip");
             source.Write(payload, path);

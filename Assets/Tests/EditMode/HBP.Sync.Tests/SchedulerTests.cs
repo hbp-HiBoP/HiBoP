@@ -405,11 +405,7 @@ namespace HBP.Sync.Tests
         {
             const int triangleCount = 40000;
             var visible = Enumerable.Repeat((byte)0xFF, (triangleCount + 7) / 8).ToArray();
-            var mask = new ApplyTriangleMask(new[]
-            {
-                new TriangleMask(new TopologyId("mesh:part:complete"), triangleCount, visible),
-                new TriangleMask(new TopologyId("mesh:part:simplified"), triangleCount, visible)
-            });
+            var mask = new ApplyTriangleMask(new TriangleMask(new TopologyId("mesh:part:complete"), triangleCount, visible));
             var limits = new SchedulerLimits(inlineThresholdBytes: 4096, bulkChunkBytes: 2048, maxBulkBodyBytesPerTransfer: 65536, maxBulkBodyBytesTotal: 131072);
             var scheduler = CreateScheduler(new FakeMonotonicClock(), limits);
             EnqueueResult maskQueued = scheduler.EnqueueMutation(mask, operationId: new OperationId(GuidFor(4150)), canonicalSequence: 41UL);
@@ -425,7 +421,7 @@ namespace HBP.Sync.Tests
             Assert.That(descriptor.BulkDescriptor, Is.Not.Null);
             Assert.That(descriptor.BulkDescriptor.TotalLength, Is.GreaterThan(limits.InlineThresholdBytes));
             Assert.That(descriptor.BulkDescriptor.Scheduling.BarrierScope, Is.EqualTo(BarrierScope.AllScene));
-            Assert.That(descriptor.BulkDescriptor.Scheduling.TouchedKeys, Has.Count.EqualTo(2));
+            Assert.That(descriptor.BulkDescriptor.Scheduling.TouchedKeys, Has.Count.EqualTo(1));
             CollectionAssert.AreEqual(new byte[] { (byte)'H', (byte)'B', (byte)'S', (byte)'O' }, descriptor.GetPayloadCopy().Take(4));
 
             ReliableFrame afterDescriptor = Next(scheduler).Frame;

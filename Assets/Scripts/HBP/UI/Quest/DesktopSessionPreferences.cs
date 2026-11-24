@@ -75,7 +75,7 @@ namespace HBP.UI.Quest
             m_Preferences.OnSavePreferences.AddListener(OnPreferencesSaved);
         }
 
-        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, fingerprint: kind == SessionControlKind.Open ? SessionControlCodec.GroupedSceneCapability : null, body: body);
+        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, fingerprint: kind == SessionControlKind.Open ? SessionControlCodec.CompleteTriangleMaskCapability : null, body: body);
 
         private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request, CancellationToken cancellationToken = default)
         {
@@ -143,7 +143,7 @@ namespace HBP.UI.Quest
             byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(preloads));
             var response = await SendAsync(Request(SessionControlKind.Open, body: body), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
-            if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
+            if (response.Message != SessionControlCodec.AtlasInventoryCapability || response.Fingerprint != SessionControlCodec.CompleteTriangleMaskCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
             RecordSceneCapabilities(response);
             m_CatalogGeneration = SessionAtlasCatalog.Begin();
             m_Started = true;
@@ -163,7 +163,7 @@ namespace HBP.UI.Quest
                 try
                 {
                     var response = await SendAsync(Request(SessionControlKind.Open), operation.Token);
-                    if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability)
+                    if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability || response.Fingerprint != SessionControlCodec.CompleteTriangleMaskCapability)
                         throw new InvalidOperationException("The Quest session could not resume: " + response.Message);
                     RecordSceneCapabilities(response);
                 }
@@ -180,7 +180,7 @@ namespace HBP.UI.Quest
 
         private void RecordSceneCapabilities(SessionControlResponse response)
         {
-            SupportsGroupedScenes = response.Fingerprint == SessionControlCodec.GroupedSceneCapability;
+            SupportsGroupedScenes = response.Fingerprint == SessionControlCodec.CompleteTriangleMaskCapability;
             SupportsCompactScenes = SupportsGroupedScenes || response.Fingerprint == SessionControlCodec.CompactSceneCapability;
         }
 

@@ -65,7 +65,7 @@ namespace HBP.Quest
             column.transform.localRotation = Quaternion.identity;
             column.transform.localScale = Vector3.one;
             if (label != null) label.text = $"{column.Name} ({scene.Visualization.Name})";
-            manipulator.Bind(column);
+            manipulator.Bind(column, source);
             manipulator.SetRaycastMesh(scene.BrainRaycastMesh);
             scene.OnBrainRaycastMeshUpdated.AddListener(OnBrainRaycastMeshUpdated);
             if (selectionRing != null) selectionRing.Bind(source, column);

@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.IO;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 using HBP.UI.Tools;
@@ -34,12 +33,14 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
+                var scene = SelectedScene;
+                var topology = scene.MeshManager.ReferenceSurface;
                 string file = await ToolbarExternalActions.GetSavedFileNameAsync(new string[] { "trimask" }, "Save brain state to");
-                if (!string.IsNullOrEmpty(file))
+                if (!string.IsNullOrEmpty(file) && scene && !scene.IsClosing && ReferenceEquals(topology, scene.MeshManager.ReferenceSurface))
                 {
                     try
                     {
-                        string fileContent = string.Join("\n", SelectedScene.TriangleEraser.CurrentMasks.Select(m => string.Join(" ", m)));
+                        string fileContent = string.Join(" ", scene.TriangleEraser.VisibilityMask);
                         File.WriteAllText(file, fileContent);
                     }
                     catch (Exception e)
@@ -53,13 +54,15 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
+                var scene = SelectedScene;
+                var topology = scene.MeshManager.ReferenceSurface;
                 string file = await ToolbarExternalActions.GetExistingFileNameAsync(new string[] { "trimask" }, "Load brain state from");
-                if (!string.IsNullOrEmpty(file))
+                if (!string.IsNullOrEmpty(file) && scene && !scene.IsClosing && ReferenceEquals(topology, scene.MeshManager.ReferenceSurface))
                 {
                     try
                     {
-                        string fileContent = File.ReadAllText(file);
-                        SelectedScene.TriangleEraser.CurrentMasks = fileContent.Split('\n').Select(s => s.Split(' ').Select(split => int.Parse(split)).ToArray()).ToList();
+                        using var input = File.OpenText(file);
+                        scene.TriangleEraser.ImportVisibility(input);
                     }
                     catch (Exception e)
                     {

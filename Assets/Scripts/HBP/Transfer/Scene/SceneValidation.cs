@@ -52,9 +52,9 @@ namespace HBP.Transfer.Scene
                 else
                 {
                     if (mesh.Type != MeshType.MNI) Fail("Standard mesh must use MNI coordinates.");
-                    Mask(mesh.StandardBothMask);
-                    Mask(mesh.StandardLeftMask);
-                    Mask(mesh.StandardRightMask);
+                    if (mesh.StandardBothMask != null) Mask(mesh.StandardBothMask);
+                    if (mesh.StandardLeftMask != null) Mask(mesh.StandardLeftMask);
+                    if (mesh.StandardRightMask != null) Mask(mesh.StandardRightMask);
                 }
 
                 if (mesh.SourceMRI != null && (mesh.Type != MeshType.Patient || mesh.Standard != null || mesh.Left != null || !payload.MRIs.Any(mri => mri.PatientId == mesh.PatientId && mri.Name == mesh.SourceMRI))) Fail("Invalid transient MRI surface origin.");
@@ -93,8 +93,6 @@ namespace HBP.Transfer.Scene
 
             var configuration = visualization.Configuration;
             if (configuration.ErasedTriangles != null) Mask(configuration.ErasedTriangles);
-            if (configuration.ErasedSimplifiedTriangles != null) Mask(configuration.ErasedSimplifiedTriangles);
-            if ((configuration.ErasedTriangles == null) != (configuration.ErasedSimplifiedTriangles == null)) Fail("Incomplete configured erasure.");
             if (!Enum.IsDefined(typeof(MeshPart), configuration.MeshPart) || !Enum.IsDefined(typeof(HBP.Core.Object3D.SurfaceRepresentation), configuration.SurfaceRepresentation)) Fail("Invalid selected mesh configuration.");
             bool selectedMeshAvailable = configuration.PreviewMRIName == null ? payload.Meshes.Any(m => m.PatientId == null && m.Name == configuration.MeshName) : payload.Meshes.Any(m => m.PatientId == null && m.SourceMRI == configuration.PreviewMRIName);
             if (!selectedMeshAvailable || !payload.MRIs.Any(m => m.PatientId == null && m.Name == configuration.MRIName)) Fail("Selected anatomy is unavailable.");

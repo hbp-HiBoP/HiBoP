@@ -123,7 +123,7 @@ namespace HBP.Transfer.Scene
                 await scene.PrepareRenderingAsync(token);
                 string originalMesh = scene.MeshManager.SelectedMesh.Name;
                 string originalMRI = scene.MRIManager.SelectedMRI.Name;
-                var originalMasks = scene.TriangleEraser.CurrentMasks.Select(mask => (int[])mask.Clone()).ToList();
+                var originalMask = scene.TriangleEraser.VisibilityMask;
                 var alternativeMesh = scene.MeshManager.Meshes.FirstOrDefault(mesh => mesh.IsLoaded && mesh.Name != originalMesh);
                 var alternativeMRI = scene.MRIManager.MRIs.FirstOrDefault(mri => mri.Name != originalMRI);
                 try
@@ -152,14 +152,14 @@ namespace HBP.Transfer.Scene
                         scene.MRIManager.Select(originalMRI);
                         // Resolve topology before restoring the user's erasure.
                         await scene.PrepareRenderingAsync(restoration.Token);
-                        scene.TriangleEraser.CurrentMasks = originalMasks;
+                        scene.TriangleEraser.ApplyExternalVisibility(originalMask);
                         for (int i = 0; i < timelines.Length; i++) timelines[i].CurrentIndex = saved[i].CurrentIndex;
                         scene.InvalidateActivityField();
                         await scene.PrepareRenderingAsync(restoration.Token);
                     }
                 }
 
-                if (scene.TriangleEraser.CurrentMasks.Count != originalMasks.Count || scene.TriangleEraser.CurrentMasks.Where((mask, i) => !mask.SequenceEqual(originalMasks[i])).Any())
+                if (!scene.TriangleEraser.VisibilityMask.SequenceEqual(originalMask))
                     throw new InvalidOperationException("Geometry restoration changed the user's erasure masks.");
                 states.Add(WriteState(scene, directory, "geometry-restored"));
                 report["success"] = true;

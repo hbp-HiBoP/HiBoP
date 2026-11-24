@@ -33,9 +33,9 @@ namespace HBP.Transfer.Scene
         internal readonly int[] Mask;
         internal readonly bool Atlas;
 
-        internal SurfaceCapture(Surface source)
+        internal SurfaceCapture(Surface source, bool includeVisibility = true)
         {
-            Mask = source.VisibilityMask;
+            Mask = includeVisibility ? source.VisibilityMask : Array.Empty<int>();
             Atlas = source.IsMarsAtlasLoaded;
             lock (Cache)
             {
