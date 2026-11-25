@@ -15,7 +15,6 @@ namespace HBP.Quest
         [SerializeField] private QuestWindow window;
         [SerializeField] private QuestCutRow rowPrefab;
         [SerializeField] private RectTransform rows;
-        [SerializeField] private QuestNumericKeypad keypad;
         [SerializeField] private Button add, suspend;
         [SerializeField] private Text suspendLabel;
         private readonly Dictionary<Cut, QuestCutRow> controls = new();
@@ -24,6 +23,7 @@ namespace HBP.Quest
         private Base3DScene scene;
         private bool suspended;
         public bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
+        internal bool IsOpen => window != null && window.IsOpen;
         public bool AidsActive => Ready && window != null && window.IsOpen && !suspended && !view.Scene.AutomaticCutAroundSelectedSite;
         public bool Suspended => suspended;
         public bool GuidesEnabled => window != null && window.IsOpen && !suspended;
@@ -44,12 +44,6 @@ namespace HBP.Quest
                 if (Ready && !view.Scene.AutomaticCutAroundSelectedSite) view.Scene.AddCutPlane();
             });
             suspend.onClick.AddListener(() => suspended = !suspended);
-            window.OnChanged.AddListener(OnWindowChanged);
-        }
-
-        private void OnWindowChanged(QuestWindow value)
-        {
-            if (!value.IsOpen) keypad.Cancel();
         }
 
         private void Update() => Refresh();
@@ -59,7 +53,6 @@ namespace HBP.Quest
             var current = Ready ? view.Scene : null;
             if (scene != current)
             {
-                keypad.Cancel();
                 foreach (var row in controls.Values)
                 {
                     row.gameObject.SetActive(false);
@@ -83,7 +76,7 @@ namespace HBP.Quest
                     if (!controls.TryGetValue(cut, out var row))
                     {
                         row = Instantiate(rowPrefab, rows, false);
-                        row.Bind(scene, cut, keypad, this);
+                        row.Bind(scene, cut, this);
                         controls.Add(cut, row);
                     }
 
@@ -93,11 +86,6 @@ namespace HBP.Quest
             add.interactable = Ready && !scene.AutomaticCutAroundSelectedSite;
             suspend.interactable = Ready;
             suspendLabel.text = suspended ? "Show guides" : "Hide guides";
-        }
-
-        private void OnDestroy()
-        {
-            if (window != null) window.OnChanged.RemoveListener(OnWindowChanged);
         }
     }
 }

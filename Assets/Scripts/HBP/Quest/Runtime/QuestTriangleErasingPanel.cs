@@ -84,7 +84,11 @@ namespace HBP.Quest
             activity.onEndEdit.AddListener(value => SetNumber(value, 100, number => Eraser.ActivityTolerance = number));
             threshold.onEndEdit.AddListener(value => SetNumber(value, 1, number => Eraser.DiFuMoThreshold = number));
             if (brushRadius != null)
+            {
                 brushRadius.onEndEdit.AddListener(value => SetNumber(value, float.MaxValue, number => Eraser.BrushRadiusMillimeters = number));
+                brushRadius.KeyboardError += message => feedback = message;
+            }
+
             atlas.onValueChanged.AddListener(_ => regionsDirty = true);
             diFuMoVersion.onValueChanged.AddListener(_ => regionsDirty = true);
             search.onValueChanged.AddListener(_ => regionsDirty = true);
@@ -179,10 +183,10 @@ namespace HBP.Quest
 
         private void SetNumber(string text, float maximum, Action<float> setter)
         {
-            if (CanEdit && float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float number) && float.IsFinite(number))
+            if (CanEdit && float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float number) && float.IsFinite(number))
                 setter(Mathf.Clamp(number, 0, maximum));
             if (!HasGrip && brushRadius != null && Eraser != null && Eraser.Mode == TriangleSelectionMode.Brush)
-                brushRadius.SetTextWithoutNotify(Eraser.BrushRadiusMillimeters.ToString("G", CultureInfo.InvariantCulture));
+                brushRadius.SetTextWithoutNotify(QuestTextInputField.FormatDecimal(Eraser.BrushRadiusMillimeters));
         }
 
         private void Refresh()
@@ -225,7 +229,7 @@ namespace HBP.Quest
             {
                 brushRadius.interactable = editable;
                 if (!brushRadius.IsEditing)
-                    brushRadius.SetTextWithoutNotify(Eraser.BrushRadiusMillimeters.ToString("G", CultureInfo.InvariantCulture));
+                    brushRadius.SetTextWithoutNotify(QuestTextInputField.FormatDecimal(Eraser.BrushRadiusMillimeters));
             }
 
             if (atlasMode) RefreshAtlas(editable);

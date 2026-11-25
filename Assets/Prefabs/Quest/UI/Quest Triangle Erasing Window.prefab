@@ -1991,14 +1991,14 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 3274481154094593599}
   m_TextComponent: {fileID: 3043558289811686024}
   m_Placeholder: {fileID: 6470076347332989928}
-  m_ContentType: 0
+  m_ContentType: 3
   m_InputType: 0
   m_AsteriskChar: 42
-  m_KeyboardType: 0
+  m_KeyboardType: 2
   m_LineType: 0
   m_HideMobileInput: 0
-  m_CharacterValidation: 0
-  m_CharacterLimit: 8
+  m_CharacterValidation: 2
+  m_CharacterLimit: 0
   m_OnSubmit:
     m_PersistentCalls:
       m_Calls: []
@@ -2017,6 +2017,7 @@ MonoBehaviour:
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!1 &4994121153131397118
 GameObject:
   m_ObjectHideFlags: 0
@@ -4853,6 +4854,7 @@ MonoBehaviour:
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!1001 &4326417535462344933
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6206,6 +6208,7 @@ MonoBehaviour:
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!224 &3643000376642789883 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7652909813468726145, guid: 18d786c52116e5c4fa76e30da729c62c,
@@ -6499,6 +6502,7 @@ MonoBehaviour:
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!224 &3922422677773229006 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7652909813468726145, guid: 18d786c52116e5c4fa76e30da729c62c,
@@ -6792,6 +6796,7 @@ MonoBehaviour:
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!224 &3935737635905170946 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7652909813468726145, guid: 18d786c52116e5c4fa76e30da729c62c,

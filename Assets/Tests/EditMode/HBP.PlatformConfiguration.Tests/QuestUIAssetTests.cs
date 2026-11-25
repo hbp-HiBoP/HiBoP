@@ -630,7 +630,16 @@ namespace HBP.Tests.PlatformConfiguration
             var row = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Cut Row.prefab").GetComponent<QuestCutRow>();
             foreach (string field in new[] { "title", "orientation", "position", "flip", "minus", "plus", "remove", "custom" })
                 Assert.That(new SerializedObject(row).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
-            Assert.That(new SerializedObject(row).FindProperty("normalFields").arraySize, Is.EqualTo(3));
+            var normalFields = new SerializedObject(row).FindProperty("normalFields");
+            Assert.That(normalFields.arraySize, Is.EqualTo(3));
+            for (int i = 0; i < normalFields.arraySize; i++)
+            {
+                var field = (QuestTextInputField)normalFields.GetArrayElementAtIndex(i).objectReferenceValue;
+                Assert.That(field.name, Is.EqualTo("XYZ"[i].ToString()));
+                Assert.That(field.contentType, Is.EqualTo(UnityEngine.UI.InputField.ContentType.DecimalNumber));
+                Assert.That(SystemKeyboardType(field), Is.EqualTo(TouchScreenKeyboardType.NumbersAndPunctuation));
+            }
+
             var gizmo = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/Quest Cut Gizmo.prefab").GetComponent<QuestCutGizmo>();
             foreach (string field in new[] { "outline", "rail" })
                 Assert.That(new SerializedObject(gizmo).FindProperty(field).objectReferenceValue, Is.Not.Null, field);
@@ -641,6 +650,26 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(settings.Normal && settings.Hovered && settings.Occupied, Is.True);
             Assert.That(AssetDatabase.GetAssetPath(settings), Does.StartWith("Assets/Resources/Themes/Quest/Settings/"));
         }
+
+        [Test]
+        public void QuestInputFields_RequestNumericOrTextSystemKeyboard()
+        {
+            var timeline = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Timeline.prefab").GetComponent<QuestTimeline>();
+            var step = (QuestTextInputField)new SerializedObject(timeline).FindProperty("step").objectReferenceValue;
+            Assert.That(SystemKeyboardType(step), Is.EqualTo(TouchScreenKeyboardType.NumberPad));
+
+            var erasing = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Triangle Erasing Window.prefab").GetComponent<QuestTriangleErasingPanel>();
+            var fields = new SerializedObject(erasing);
+            foreach (string name in new[] { "angle", "activity", "threshold", "brushRadius" })
+            {
+                var field = (QuestTextInputField)fields.FindProperty(name).objectReferenceValue;
+                Assert.That(SystemKeyboardType(field), Is.EqualTo(TouchScreenKeyboardType.DecimalPad), name);
+            }
+
+            Assert.That(SystemKeyboardType((QuestTextInputField)fields.FindProperty("search").objectReferenceValue), Is.EqualTo(TouchScreenKeyboardType.Default));
+        }
+
+        private static TouchScreenKeyboardType SystemKeyboardType(QuestTextInputField field) => (TouchScreenKeyboardType)typeof(QuestTextInputField).GetProperty("SystemKeyboardType", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).GetValue(field);
 
         [Test]
         public void BaseDropdown_HasItsSerializedTemplateAndTextReferences()

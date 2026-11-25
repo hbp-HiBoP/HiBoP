@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -13,9 +14,28 @@ namespace HBP.Quest
     {
         private string originalText;
         [SerializeField] private string unsupportedKeyboardMessage = "The system keyboard is unavailable. Create new labels on Desktop.";
+        [SerializeField] private bool signedNumber;
         public bool IsEditing => isFocused || m_Keyboard != null;
         public event Action<string> KeyboardError;
         private static bool UsesSystemKeyboard => Application.platform == RuntimePlatform.Android;
+
+        private TouchScreenKeyboardType SystemKeyboardType => characterValidation switch
+        {
+            CharacterValidation.Integer => TouchScreenKeyboardType.NumberPad,
+            CharacterValidation.Decimal => DecimalKeyboardType(signedNumber),
+            _ => keyboardType
+        };
+
+        // Android maps NumbersAndPunctuation to signed decimal input. DecimalPad omits the sign.
+        internal static TouchScreenKeyboardType DecimalKeyboardType(bool signed) => signed ? TouchScreenKeyboardType.NumbersAndPunctuation : TouchScreenKeyboardType.DecimalPad;
+
+        internal static string FormatDecimal(float value) => value.ToString("0.##############################################", CultureInfo.InvariantCulture);
+
+        internal static TouchScreenKeyboard OpenSystemKeyboard(string value, TouchScreenKeyboardType layout, bool multiLine = false, bool secure = false, int limit = 0)
+        {
+            TouchScreenKeyboard.hideInput = false;
+            return TouchScreenKeyboard.Open(value, layout, false, multiLine, secure, false, "", limit);
+        }
 
         public override void OnSelect(BaseEventData eventData)
         {
@@ -86,8 +106,7 @@ namespace HBP.Quest
             try
             {
                 // Do not depend on UGUI's in-place editing/device-name heuristics.
-                TouchScreenKeyboard.hideInput = false;
-                m_Keyboard = TouchScreenKeyboard.Open(text, keyboardType, false, multiLine, inputType == InputType.Password, false, "", characterLimit);
+                m_Keyboard = OpenSystemKeyboard(text, SystemKeyboardType, multiLine, inputType == InputType.Password, characterLimit);
                 Debug.Log("[QuestTextInputField] System keyboard requested on " + SystemInfo.deviceModel, this);
                 if (m_Keyboard == null) KeyboardError?.Invoke("Unable to open the system keyboard. Try again or use Desktop.");
             }
@@ -133,6 +152,17 @@ namespace HBP.Quest
             if (m_Keyboard == null) return;
             m_Keyboard.active = false;
             m_Keyboard = null;
+        }
+
+        internal void CancelEditing()
+        {
+            if (m_Keyboard != null)
+            {
+                CloseKeyboard();
+                SetTextWithoutNotify(originalText);
+            }
+
+            if (isFocused) DeactivateInputField();
         }
 
         protected override void OnDisable()
