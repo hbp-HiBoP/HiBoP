@@ -30,6 +30,7 @@ namespace HBP.Tests.PlatformConfiguration
             var blueCut = GameObject.CreatePrimitive(PrimitiveType.Quad);
             var brainMaterial = new Material(Shader.Find("HBP/Brain/Transparent"));
             var siteMaterial = new Material(Shader.Find("HBP/Site"));
+            var markerMaterial = new Material(Shader.Find("HiBoP/Triangle Contact Marker"));
             var redCutMaterial = new Material(Shader.Find("HBP/Cut/Transparent"));
             var blueCutMaterial = new Material(redCutMaterial);
             var windowMaterial = new Material(UnityEngine.UI.Graphic.defaultGraphicMaterial) { renderQueue = QuestCanvasRenderQueue.Window };
@@ -105,6 +106,18 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(siteWithoutBrain.r, Is.GreaterThan(.9f));
                 Assert.That(siteOverBrain.r, Is.InRange(.25f, siteWithoutBrain.r - .05f), "the 3D site remains visible through the nearer brain");
 
+                markerMaterial.SetColor("_Color", Color.red);
+                site.GetComponent<Renderer>().sharedMaterial = markerMaterial;
+                Color markerOnly = RenderCenterPixel();
+                brain.SetActive(true);
+                Color markerThroughBrain = RenderCenterPixel();
+                brainMaterial.SetColor("_Color", new Color(0, 0, 1, .2f));
+                Color markerThroughFainterBrain = RenderCenterPixel();
+                Assert.That(markerOnly.r, Is.GreaterThan(.9f));
+                Assert.That(markerThroughBrain.r, Is.InRange(.1f, markerOnly.r - .1f));
+                Assert.That(markerThroughFainterBrain.r, Is.GreaterThan(markerThroughBrain.r + .05f));
+                brainMaterial.SetColor("_Color", new Color(0, 0, 1, .5f));
+
                 brain.SetActive(true);
                 overlay.SetActive(true);
                 Assert.That(RenderCenterPixel(), Is.EqualTo(Color.white));
@@ -117,6 +130,7 @@ namespace HBP.Tests.PlatformConfiguration
                 Assert.That(opaqueBrain, Is.Not.EqualTo(panelOnly));
                 site.SetActive(true);
                 Assert.That(RenderCenterPixel(), Is.EqualTo(opaqueBrain));
+                site.GetComponent<Renderer>().sharedMaterial = siteMaterial;
 
                 site.SetActive(false);
                 brain.transform.localScale = Vector3.one * 8;
@@ -203,6 +217,7 @@ namespace HBP.Tests.PlatformConfiguration
                 Object.DestroyImmediate(redCut);
                 Object.DestroyImmediate(blueCut);
                 Object.DestroyImmediate(siteMaterial);
+                Object.DestroyImmediate(markerMaterial);
                 Object.DestroyImmediate(brainMaterial);
                 Object.DestroyImmediate(redCutMaterial);
                 Object.DestroyImmediate(blueCutMaterial);
@@ -512,8 +527,8 @@ namespace HBP.Tests.PlatformConfiguration
             var fields = new SerializedObject(panel);
             foreach (string name in new[]
                      {
-                         "view", "session", "window", "marker", "mode", "atlas", "diFuMoVersion", "add", "remove", "angle", "activity", "threshold",
-                         "search", "regionRows", "regionPrefab", "triangleOptions", "angleOptions", "activityOptions", "atlasOptions",
+                         "view", "session", "window", "marker", "secondMarker", "markerIdleColor", "mode", "atlas", "diFuMoVersion", "add", "remove", "angle", "activity", "threshold",
+                         "search", "regionRows", "regionPrefab", "triangleOptions", "angleOptions", "activityOptions", "atlasOptions", "brushOptions", "brushRadius",
                          "regionsButton", "regionsPanel", "diFuMoWeightOptions", "expand", "invert", "erase", "show", "keep", "clear", "undo", "reset", "status"
                      })
                 Assert.That(fields.FindProperty(name).objectReferenceValue, Is.Not.Null, name);
@@ -522,7 +537,8 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(add.group, Is.Not.Null);
             Assert.That(remove.group, Is.SameAs(add.group));
             var mode = (QuestDropdown)fields.FindProperty("mode").objectReferenceValue;
-            foreach (string option in new[] { "triangleOptions", "angleOptions", "activityOptions" })
+            Assert.That(mode.options.Exists(option => option.text == "Brush"), Is.True);
+            foreach (string option in new[] { "triangleOptions", "angleOptions", "activityOptions", "brushOptions" })
                 Assert.That(((GameObject)fields.FindProperty(option).objectReferenceValue).transform.parent, Is.SameAs(mode.transform.parent), option);
             var regionsPanel = (GameObject)fields.FindProperty("regionsPanel").objectReferenceValue;
             var regionsButton = (UnityEngine.UI.Button)fields.FindProperty("regionsButton").objectReferenceValue;
@@ -531,7 +547,17 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(regionsPanel.activeSelf, Is.False);
             Assert.That(((RectTransform)regionsPanel.transform).anchorMin.x, Is.EqualTo(1));
             Assert.That(((RectTransform)fields.FindProperty("regionRows").objectReferenceValue).IsChildOf(regionsPanel.transform), Is.True);
-            Assert.That(fields.FindProperty("marker").objectReferenceValue is Transform marker && marker.GetComponent<Collider>() == null, Is.True);
+            var marker = (Transform)fields.FindProperty("marker").objectReferenceValue;
+            var secondMarker = (Transform)fields.FindProperty("secondMarker").objectReferenceValue;
+            Assert.That(secondMarker, Is.Not.SameAs(marker));
+            foreach (Transform handMarker in new[] { marker, secondMarker })
+            {
+                Assert.That(handMarker.GetComponent<Collider>(), Is.Null);
+                var material = handMarker.GetComponent<Renderer>().sharedMaterial;
+                Assert.That(material.shader.name, Is.EqualTo("HiBoP/Triangle Contact Marker"));
+                Assert.That(material.renderQueue, Is.EqualTo((int)UnityEngine.Rendering.RenderQueue.Geometry));
+            }
+
             var pointer = new SerializedObject(root.GetComponentInChildren<QuestPointerInput>(true));
             var toolbar = new SerializedObject(root.GetComponentInChildren<QuestToolbar>(true));
             Assert.That(pointer.FindProperty("triangles").objectReferenceValue, Is.SameAs(panel));

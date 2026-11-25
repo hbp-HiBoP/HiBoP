@@ -77,5 +77,33 @@ namespace HBP.Tests.Transfer
             Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, false, ref radius, out face), Is.True);
             Assert.That(face, Is.Zero);
         }
+
+        [TestCase(.001f)]
+        [TestCase(.002f)]
+        public void BrushSweepsBothFoldsAndTestsOnlyTheirRetainedPortions(float scale)
+        {
+            var geometry = new TriangleSelectionGeometry(new[]
+            {
+                new Vector3(-8, -8, 0), new Vector3(8, -8, 0), new Vector3(0, 8, 0),
+                new Vector3(-8, -8, 2), new Vector3(8, -8, 2), new Vector3(0, 8, 2)
+            }, new[] { 0, 1, 2, 3, 4, 5 });
+            var frame = Matrix4x4.TRS(new Vector3(.2f, .3f, -.1f), Quaternion.Euler(18, 22, 34), Vector3.one * scale);
+            var start = frame.MultiplyPoint3x4(new Vector3(1, 0, -8));
+            var end = frame.MultiplyPoint3x4(new Vector3(1, 0, 10));
+            var faces = new List<int>();
+            const float radius = .003f;
+
+            Assert.That(geometry.BrushContacts(start, start, radius, frame, frame.inverse, null, false, null), Is.False);
+            Assert.That(geometry.BrushContacts(end, end, radius, frame, frame.inverse, null, false, null), Is.False);
+            Assert.That(geometry.BrushContacts(start, end, radius, frame, frame.inverse, null, false, faces), Is.True);
+            Assert.That(faces, Is.EquivalentTo(new[] { 0, 1 }));
+
+            using var horizontal = new Cut(new Vector3(0, 0, 1), Vector3.back);
+            using var vertical = new Cut(Vector3.zero, Vector3.right);
+            var cuts = new List<Cut> { horizontal, vertical };
+            faces.Clear();
+            Assert.That(geometry.BrushContacts(start, end, radius, frame, frame.inverse, cuts, true, faces), Is.True);
+            Assert.That(faces, Is.EqualTo(new[] { 1 }));
+        }
     }
 }

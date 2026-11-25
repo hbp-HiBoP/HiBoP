@@ -150,29 +150,45 @@ namespace HBP.Data.Module3D
         {
             face = -1;
             if (Count == 0) return false;
-            EnsureIndex();
-            // Each row gives the maximal extent of the world sphere along one local axis.
-            var extent = new Vector3(RowLength(0), RowLength(1), RowLength(2)) * distance;
-            var bounds = new Bounds(worldToLocal.MultiplyPoint3x4(center), extent * 2f);
             float best = distance * distance;
-            Visit(m_Root, bounds, center, localToWorld, worldToLocal, cuts, strongCuts, ref best, ref face);
+            VisitContacts(center, center, distance, localToWorld, worldToLocal, cuts, strongCuts, null, false, ref best, ref face);
             if (face < 0) return false;
             distance = Mathf.Sqrt(best);
             return true;
+        }
+
+        public bool BrushContacts(Vector3 start, Vector3 end, float radius, Matrix4x4 localToWorld, Matrix4x4 worldToLocal, List<Cut> cuts, bool strongCuts, List<int> faces)
+        {
+            if (Count == 0) return false;
+            float limit = radius * radius;
+            int closest = -1;
+            return VisitContacts(start, end, radius, localToWorld, worldToLocal, cuts, strongCuts, faces, faces == null, ref limit, ref closest);
+        }
+
+        private bool VisitContacts(Vector3 start, Vector3 end, float radius, Matrix4x4 localToWorld, Matrix4x4 worldToLocal, List<Cut> cuts, bool strongCuts, List<int> results, bool any, ref float best, ref int face)
+        {
+            EnsureIndex();
+            // The inverse transform may scale the sphere unevenly. Bound its extent along each local axis.
+            var extent = new Vector3(RowLength(0), RowLength(1), RowLength(2)) * radius;
+            Vector3 localStart = worldToLocal.MultiplyPoint3x4(start), localEnd = worldToLocal.MultiplyPoint3x4(end);
+            var bounds = new Bounds();
+            bounds.SetMinMax(Vector3.Min(localStart, localEnd) - extent, Vector3.Max(localStart, localEnd) + extent);
+            return Visit(m_Root, bounds, start, end, localToWorld, worldToLocal, cuts, strongCuts, results, any, ref best, ref face);
 
             float RowLength(int row) => new Vector3(worldToLocal[row, 0], worldToLocal[row, 1], worldToLocal[row, 2]).magnitude;
         }
 
-        private void Visit(Node node, Bounds bounds, Vector3 center, Matrix4x4 toWorld, Matrix4x4 toLocal, List<Cut> cuts, bool strongCuts, ref float best, ref int face)
+        private bool Visit(Node node, Bounds bounds, Vector3 start, Vector3 end, Matrix4x4 toWorld, Matrix4x4 toLocal, List<Cut> cuts, bool strongCuts, List<int> results, bool any, ref float best, ref int face)
         {
-            if (!node.Bounds.Intersects(bounds)) return;
+            if (!node.Bounds.Intersects(bounds)) return false;
             if (node.Left >= 0)
             {
-                Visit(m_Nodes[node.Left], bounds, center, toWorld, toLocal, cuts, strongCuts, ref best, ref face);
-                Visit(m_Nodes[node.Right], bounds, center, toWorld, toLocal, cuts, strongCuts, ref best, ref face);
-                return;
+                bool left = Visit(m_Nodes[node.Left], bounds, start, end, toWorld, toLocal, cuts, strongCuts, results, any, ref best, ref face);
+                if (left && any) return true;
+                return Visit(m_Nodes[node.Right], bounds, start, end, toWorld, toLocal, cuts, strongCuts, results, any, ref best, ref face) || left;
             }
 
+            bool found = false;
             for (int i = node.Start; i < node.Start + node.Count; i++)
             {
                 int candidate = m_Faces[i];
@@ -180,18 +196,33 @@ namespace HBP.Data.Module3D
                 var a = Vertices[Triangles[offset]];
                 var b = Vertices[Triangles[offset + 1]];
                 var c = Vertices[Triangles[offset + 2]];
-                var closest = ClosestPoint(center, toWorld.MultiplyPoint3x4(a), toWorld.MultiplyPoint3x4(b), toWorld.MultiplyPoint3x4(c));
-                float squared = (center - closest).sqrMagnitude;
+                var worldA = toWorld.MultiplyPoint3x4(a);
+                var worldB = toWorld.MultiplyPoint3x4(b);
+                var worldC = toWorld.MultiplyPoint3x4(c);
+                bool stationary = start.Equals(end);
+                var closest = stationary ? ClosestPoint(start, worldA, worldB, worldC) : default;
+                float squared = stationary ? (start - closest).sqrMagnitude : SegmentTriangleDistance(start, end, worldA, worldB, worldC);
                 if (squared > best) continue;
-                if (!InCuts(toLocal.MultiplyPoint3x4(closest), cuts, strongCuts))
-                    squared = ClippedDistance(center, toWorld, a, b, c, cuts, strongCuts);
-                if (squared > best || squared == best && face >= 0 && candidate >= face) continue;
+                if (stationary ? !InCuts(toLocal.MultiplyPoint3x4(closest), cuts, strongCuts) : cuts is { Count: > 0 })
+                    squared = ClippedDistance(start, end, toWorld, a, b, c, cuts, strongCuts);
+                if (!float.IsFinite(squared) || squared > best) continue;
+                if (any) return true;
+                found = true;
+                if (results != null)
+                {
+                    results.Add(candidate);
+                    continue;
+                }
+
+                if (squared == best && face >= 0 && candidate >= face) continue;
                 best = squared;
                 face = candidate;
             }
+
+            return found;
         }
 
-        private static float ClippedDistance(Vector3 center, Matrix4x4 toWorld, Vector3 a, Vector3 b, Vector3 c, List<Cut> cuts, bool strongCuts)
+        private static float ClippedDistance(Vector3 start, Vector3 end, Matrix4x4 toWorld, Vector3 a, Vector3 b, Vector3 c, List<Cut> cuts, bool strongCuts)
         {
             Span<Vector3> polygon = stackalloc Vector3[3 + MaxCutPlanes + 1];
             Span<Vector3> clipped = stackalloc Vector3[3 + MaxCutPlanes + 1];
@@ -205,7 +236,7 @@ namespace HBP.Data.Module3D
                 int size = ClipPolygon(polygon[..count], clipped, cuts[i]);
                 if (!strongCuts)
                 {
-                    best = Mathf.Min(best, PolygonDistance(center, toWorld, clipped[..size]));
+                    best = Mathf.Min(best, PolygonDistance(start, end, toWorld, clipped[..size]));
                     continue;
                 }
 
@@ -214,7 +245,7 @@ namespace HBP.Data.Module3D
                 count = size;
             }
 
-            return strongCuts ? PolygonDistance(center, toWorld, polygon[..count]) : best;
+            return strongCuts ? PolygonDistance(start, end, toWorld, polygon[..count]) : best;
         }
 
         private static int ClipPolygon(ReadOnlySpan<Vector3> polygon, Span<Vector3> clipped, Cut cut)
@@ -235,21 +266,61 @@ namespace HBP.Data.Module3D
             return count;
         }
 
-        private static float PolygonDistance(Vector3 center, Matrix4x4 toWorld, ReadOnlySpan<Vector3> polygon)
+        private static float PolygonDistance(Vector3 start, Vector3 end, Matrix4x4 toWorld, ReadOnlySpan<Vector3> polygon)
         {
             if (polygon.Length == 0) return float.PositiveInfinity;
             var a = toWorld.MultiplyPoint3x4(polygon[0]);
             var b = toWorld.MultiplyPoint3x4(polygon[Mathf.Min(1, polygon.Length - 1)]);
-            if (polygon.Length < 3) return (center - ClosestOnEdge(center, a, b)).sqrMagnitude;
+            if (polygon.Length < 3) return SegmentEdgeDistance(start, end, a, b);
             float best = float.PositiveInfinity;
             for (int i = 2; i < polygon.Length; i++)
             {
                 var c = toWorld.MultiplyPoint3x4(polygon[i]);
-                best = Mathf.Min(best, (center - ClosestPoint(center, a, b, c)).sqrMagnitude);
+                best = Mathf.Min(best, SegmentTriangleDistance(start, end, a, b, c));
                 b = c;
             }
 
             return best;
+        }
+
+        private static float SegmentTriangleDistance(Vector3 start, Vector3 end, Vector3 a, Vector3 b, Vector3 c)
+        {
+            float first = (start - ClosestPoint(start, a, b, c)).sqrMagnitude;
+            if (start.Equals(end)) return first;
+            var normal = Vector3.Cross(b - a, c - a);
+            float from = Vector3.Dot(normal, start - a), to = Vector3.Dot(normal, end - a);
+            if ((from < 0f) != (to < 0f))
+            {
+                var crossing = Vector3.LerpUnclamped(start, end, from / (from - to));
+                if (Vector3.Dot(normal, Vector3.Cross(b - a, crossing - a)) >= 0f && Vector3.Dot(normal, Vector3.Cross(c - b, crossing - b)) >= 0f && Vector3.Dot(normal, Vector3.Cross(a - c, crossing - c)) >= 0f)
+                    return 0f;
+            }
+
+            float last = (end - ClosestPoint(end, a, b, c)).sqrMagnitude;
+            return Mathf.Min(Mathf.Min(first, last), Mathf.Min(SegmentEdgeDistance(start, end, a, b), Mathf.Min(SegmentEdgeDistance(start, end, b, c), SegmentEdgeDistance(start, end, c, a))));
+        }
+
+        private static float SegmentEdgeDistance(Vector3 start, Vector3 end, Vector3 a, Vector3 b)
+        {
+            var travel = end - start;
+            var edge = b - a;
+            float travelSquared = travel.sqrMagnitude, edgeSquared = edge.sqrMagnitude;
+            if (travelSquared == 0f) return (start - ClosestOnEdge(start, a, b)).sqrMagnitude;
+            if (edgeSquared == 0f) return (a - ClosestOnEdge(a, start, end)).sqrMagnitude;
+
+            var separation = start - a;
+            float parallel = Vector3.Dot(travel, edge);
+            float alongTravel = Vector3.Dot(travel, separation), alongEdge = Vector3.Dot(edge, separation);
+            float denominator = Vector3.Cross(travel, edge).sqrMagnitude;
+            float time = denominator > 0f ? Mathf.Clamp01((parallel * alongEdge - alongTravel * edgeSquared) / denominator) : 0f;
+            float edgeTime = (parallel * time + alongEdge) / edgeSquared;
+            if (edgeTime < 0f || edgeTime > 1f)
+            {
+                edgeTime = Mathf.Clamp01(edgeTime);
+                time = Mathf.Clamp01((parallel * edgeTime - alongTravel) / travelSquared);
+            }
+
+            return (separation + time * travel - edgeTime * edge).sqrMagnitude;
         }
 
         private static Vector3 ClosestPoint(Vector3 point, Vector3 a, Vector3 b, Vector3 c)

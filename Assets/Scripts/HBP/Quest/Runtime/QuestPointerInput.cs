@@ -92,7 +92,12 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
-                if (hand.Capture.Owner == QuestInteractionOwner.Triangle && triangles != null && triangles.IsCapturedInScene(i, scene)) Cancel(hand);
+                if (triangles != null && triangles.IsCapturedInScene(i, scene))
+                {
+                    if (hand.Capture.Owner == QuestInteractionOwner.Triangle) Cancel(hand);
+                    else triangles.EndGrip(i, cancelled: true);
+                }
+
                 if (CapturedTimeline(hand.Data)?.Column?.Scene == scene || hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
             }
 
@@ -227,6 +232,8 @@ namespace HBP.Quest
             bool valid = hand.Valid;
             bool pressed = hand.Primary.IsPressed();
             bool secondaryPressed = hand.Secondary.IsPressed();
+            if (triangles != null)
+                triangles.UpdateMarker(index, valid && modalDialog == null && !HBP.UI.Tools.LoadingManager.IsPresenting, data.Ray.origin);
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
@@ -311,7 +318,7 @@ namespace HBP.Quest
                 }
             }
 
-            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null, triangleGrip && !triangles.HasGrip);
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null, triangleGrip && triangles.CanBeginGrip(index));
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
@@ -691,7 +698,13 @@ namespace HBP.Quest
         private void Cancel(Hand hand)
         {
             int index = hand == hands[0] ? 0 : 1;
-            if (triangles != null) triangles.EndGrip(index);
+            if (triangles != null)
+            {
+                triangles.EndGrip(index, cancelled: true);
+                if (!hand.Valid || !focused || paused || !isActiveAndEnabled || modalDialog != null)
+                    triangles.UpdateMarker(index, false, default);
+            }
+
             if (cuts != null)
             {
                 cuts.End(index);

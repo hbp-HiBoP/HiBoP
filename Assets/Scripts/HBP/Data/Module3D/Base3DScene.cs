@@ -2548,13 +2548,22 @@ namespace HBP.Data.Module3D
             if (IsSurfaceRepresentationTransitioning) return;
             bool selecting = m_TriangleEraser.IsClickAvailable && !m_ROIManager.ROICreationMode;
             bool full = selecting || m_TriangleEraser.MeshHasInvisibleTriangles || (m_ROIManager.ROICreationMode && !m_MeshManager.CanClipBrainSurface);
-            RaycastHitResult raycastResult = RaycastDesktop(ray, column, full, out RaycastHit hit, out int face, out Vector3 hitPoint, includeErased: selecting);
+            RaycastHitResult raycastResult = RaycastDesktop(ray, column, full, out RaycastHit hit, out int face, out Vector3 hitPoint, out float surfaceDistance, includeErased: selecting);
 
             if (raycastResult == RaycastHitResult.Site)
                 SelectSite(column, hit.collider.GetComponent<Core.Object3D.Site>());
 
             if (raycastResult == RaycastHitResult.Mesh && selecting && face >= 0)
-                m_TriangleEraser.SelectTriangle(column, face);
+            {
+                if (m_TriangleEraser.Mode != TriangleSelectionMode.Brush)
+                    m_TriangleEraser.SelectTriangle(column, face);
+                else if (m_TriangleEraser.BeginTriangleStroke())
+                {
+                    var center = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(surfaceDistance));
+                    m_TriangleEraser.RetouchBrushStroke(column, center, center, displayedUnits: true);
+                    m_TriangleEraser.EndTriangleStroke();
+                }
+            }
 
             if (m_ROIManager.ROICreationMode)
             {
@@ -2580,13 +2589,29 @@ namespace HBP.Data.Module3D
 
         public bool TryRaycastCompleteBrain(Column3D column, Ray ray, ref float distance, out Vector3 anatomicalPoint) => m_TriangleEraser.TryRaycast(column, ray, ref distance, out _, out anatomicalPoint);
 
-        internal RaycastHitResult RaycastDesktop(Ray ray, Column3D column, bool full, out RaycastHit hit, out int face, out Vector3 anatomicalPoint, bool includeErased = false)
+        public bool TryGetDesktopTriangleTarget(Ray ray, Column3D column, out int face, out Vector3 displayedPoint)
+        {
+            face = -1;
+            displayedPoint = default;
+            if (!m_TriangleEraser.IsClickAvailable || !m_TriangleEraser.IsSweepMode || m_ROIManager.ROICreationMode || IsClosing || IsSurfaceRepresentationTransitioning || SceneInformation.GeometryNeedsUpdate)
+                return false;
+
+            var kind = RaycastDesktop(ray, column, true, out _, out face, out _, out float distance, includeErased: true);
+            if (kind != RaycastHitResult.Mesh || face < 0) return false;
+            displayedPoint = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(distance));
+            return true;
+        }
+
+        internal RaycastHitResult RaycastDesktop(Ray ray, Column3D column, bool full, out RaycastHit hit, out int face, out Vector3 anatomicalPoint, bool includeErased = false) => RaycastDesktop(ray, column, full, out hit, out face, out anatomicalPoint, out _, includeErased);
+
+        private RaycastHitResult RaycastDesktop(Ray ray, Column3D column, bool full, out RaycastHit hit, out int face, out Vector3 anatomicalPoint, out float surfaceDistance, bool includeErased)
         {
             RefreshColliders();
             int layer = 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
             RaycastHitResult kind = column.Raycast(ray, layer, out hit, IsBrainTransparent, IsBrainRaycastGeometryCurrent);
             face = -1;
             anatomicalPoint = hit.collider ? column.transform.InverseTransformPoint(hit.point) : default;
+            surfaceDistance = float.PositiveInfinity;
             if (IsBrainTransparent && kind == RaycastHitResult.Site) return kind;
 
             float distance = hit.collider ? hit.distance : Mathf.Infinity;
@@ -2595,6 +2620,7 @@ namespace HBP.Data.Module3D
                 if (m_TriangleEraser.TryRaycast(column, ray, ref distance, out face, out Vector3 point, includeErased))
                 {
                     anatomicalPoint = point;
+                    surfaceDistance = distance;
                     return RaycastHitResult.Mesh;
                 }
             }

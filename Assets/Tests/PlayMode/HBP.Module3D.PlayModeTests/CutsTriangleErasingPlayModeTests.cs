@@ -483,9 +483,10 @@ namespace HBP.Tests.PlayMode.Module3D
             var eraser = baseScene.TriangleEraser;
             eraser.ApplyExternalVisibility(CreateMask(eraser.VisibilityMask.Length, 0));
 
-            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "Triangle", "Angle", "Activity", "Atlas");
+            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "Triangle", "Angle", "Activity", "Atlas", "Brush");
             InputField degrees = CreateInputField("Degrees Input", "30");
             InputField activity = CreateInputField("Activity Input", "20");
+            InputField brushRadius = CreateInputField("Brush Radius", "3");
             Toggle add = CreateToggle("Add");
             Toggle remove = CreateToggle("Remove");
             remove.isOn = false;
@@ -509,6 +510,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 SetPrivateField(tool, "m_Remove", remove);
                 SetPrivateField(tool, "m_Angle", degrees);
                 SetPrivateField(tool, "m_Activity", activity);
+                SetPrivateField(tool, "m_BrushRadius", brushRadius);
                 SetPrivateField(tool, "m_EraseSelection", CreateButton("Erase"));
                 SetPrivateField(tool, "m_KeepSelection", CreateButton("Keep"));
                 SetPrivateField(tool, "m_RestoreSelection", CreateButton("Restore"));
@@ -549,7 +551,19 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(version.gameObject.activeInHierarchy, Is.False);
             Assert.That(regionsButton.interactable, Is.False);
 
+            dropdown.value = (int)TriangleSelectionMode.Brush;
+            Assert.That(brushRadius.gameObject.activeInHierarchy, Is.True);
+            Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);
+            Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(3));
+            brushRadius.onEndEdit.Invoke("4.25");
+            brushRadius.onEndEdit.Invoke("0");
+            brushRadius.onEndEdit.Invoke("-2");
+            brushRadius.onEndEdit.Invoke("Infinity");
+            Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(4.25f));
+            Assert.That(brushRadius.text, Is.EqualTo("4.25"));
+
             dropdown.value = (int)TriangleSelectionMode.Triangle;
+            Assert.That(brushRadius.gameObject.activeInHierarchy, Is.False);
             Assert.That(eraser.RemoveFromSelection, Is.True);
             Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);
             Assert.That(add.isOn, Is.False);

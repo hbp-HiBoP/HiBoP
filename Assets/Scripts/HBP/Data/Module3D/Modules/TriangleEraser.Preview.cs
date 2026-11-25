@@ -111,6 +111,7 @@ namespace HBP.Data.Module3D
 
         private void LateUpdate()
         {
+            FlushTriangleStrokePreview();
             if (m_DisplayedObjects && m_DisplayedObjects.InvisibleBrain && m_DisplayedObjects.InvisibleBrain.activeSelf)
                 UpdateDesktopPreview();
         }

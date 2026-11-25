@@ -179,7 +179,7 @@ namespace HBP.Tests.Serialization
             var selector = Control<Dropdown>("m_Dropdown");
             Assert.That(selector.captionText, Is.Not.Null);
             Assert.That(selector.itemText, Is.Not.Null);
-            Assert.That(selector.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Angle", "Activity", "Atlas" }));
+            Assert.That(selector.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Angle", "Activity", "Atlas", "Brush" }));
             var add = Control<Toggle>("m_Add");
             var remove = Control<Toggle>("m_Remove");
             Assert.That(add.group, Is.Not.Null);
@@ -192,10 +192,10 @@ namespace HBP.Tests.Serialization
             Assert.That(mode.transform.Cast<Transform>().Select(child => child.name), Is.EqualTo(new[]
             {
                 "Selection Mode", "Add Triangles", "Remove Triangles", "Triangle Angle",
-                "Activity Tolerance", "Selection Atlas", "Selection DiFuMo Version", "Atlas Regions"
+                "Activity Tolerance", "Selection Atlas", "Selection DiFuMo Version", "Atlas Regions", "Brush Radius"
             }));
 
-            foreach (string property in new[] { "m_Angle", "m_Activity" })
+            foreach (string property in new[] { "m_Angle", "m_Activity", "m_BrushRadius" })
             {
                 InputField field = Control<InputField>(property);
                 Assert.That(field.transform.parent, Is.EqualTo(mode.transform));

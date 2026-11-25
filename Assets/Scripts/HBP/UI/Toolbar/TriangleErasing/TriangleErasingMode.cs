@@ -17,6 +17,7 @@ namespace HBP.UI.Toolbar
         [SerializeField] private Toggle m_Remove;
         [SerializeField] private InputField m_Angle;
         [SerializeField] private InputField m_Activity;
+        [SerializeField] private InputField m_BrushRadius;
         [SerializeField] private Button m_EraseSelection;
         [SerializeField] private Button m_KeepSelection;
         [SerializeField] private Button m_RestoreSelection;
@@ -60,6 +61,7 @@ namespace HBP.UI.Toolbar
             });
             m_Angle.onEndEdit.AddListener(value => SetNumber(value, (eraser, number) => eraser.Degrees = Mathf.Clamp(Mathf.RoundToInt(number), 0, 180)));
             m_Activity.onEndEdit.AddListener(value => SetNumber(value, (eraser, number) => eraser.ActivityTolerance = Mathf.Clamp(number, 0f, 100f)));
+            m_BrushRadius.onEndEdit.AddListener(value => SetNumber(value, (eraser, number) => eraser.BrushRadiusMillimeters = number));
             m_DiFuMoThreshold.onEndEdit.AddListener(value => SetNumber(value, (eraser, number) => eraser.DiFuMoThreshold = Mathf.Clamp01(number)));
             m_EraseSelection.onClick.AddListener(() => Apply(false));
             m_KeepSelection.onClick.AddListener(() => Apply(true));
@@ -119,12 +121,13 @@ namespace HBP.UI.Toolbar
         public override void UpdateInteractable()
         {
             TriangleEraser eraser = SelectedScene.TriangleEraser;
-            bool ready = !eraser.IsComputingSelection;
+            bool ready = !eraser.IsComputingSelection && !eraser.HasTriangleStroke;
             m_Dropdown.interactable = ready;
             m_Add.interactable = ready;
             m_Remove.interactable = ready;
             m_Angle.interactable = ready;
             m_Activity.interactable = ready;
+            m_BrushRadius.interactable = ready;
             SetSelectionButtons(eraser.SelectedCount, eraser.SelectedErasedCount, ready);
         }
 
@@ -140,7 +143,7 @@ namespace HBP.UI.Toolbar
         {
             TriangleEraser eraser = SelectedScene.TriangleEraser;
             m_Dropdown.SetValueWithoutNotify((int)eraser.Mode);
-            if (eraser.Mode == TriangleSelectionMode.Triangle)
+            if (eraser.IsSweepMode)
             {
                 Toggle enabled = eraser.RemoveFromSelection ? m_Remove : m_Add;
                 Toggle disabled = eraser.RemoveFromSelection ? m_Add : m_Remove;
@@ -151,15 +154,19 @@ namespace HBP.UI.Toolbar
             ShowOptions(eraser.Mode);
             SetNumberText(m_Angle, eraser.Degrees);
             SetNumberText(m_Activity, eraser.ActivityTolerance);
+            if (!m_BrushRadius.isFocused)
+                m_BrushRadius.SetTextWithoutNotify(eraser.BrushRadiusMillimeters.ToString("G", CultureInfo.InvariantCulture));
             if (eraser.Mode == TriangleSelectionMode.Atlas) UpdateAtlasOptions(eraser);
         }
 
         private void ShowOptions(TriangleSelectionMode? mode)
         {
-            m_Add.gameObject.SetActive(mode == TriangleSelectionMode.Triangle);
-            m_Remove.gameObject.SetActive(mode == TriangleSelectionMode.Triangle);
+            bool sweep = mode is TriangleSelectionMode.Triangle or TriangleSelectionMode.Brush;
+            m_Add.gameObject.SetActive(sweep);
+            m_Remove.gameObject.SetActive(sweep);
             m_Angle.gameObject.SetActive(mode == TriangleSelectionMode.Angle);
             m_Activity.gameObject.SetActive(mode == TriangleSelectionMode.Activity);
+            m_BrushRadius.gameObject.SetActive(mode == TriangleSelectionMode.Brush);
             bool atlas = mode == TriangleSelectionMode.Atlas;
             if (!atlas)
             {

@@ -17,7 +17,8 @@ namespace HBP.Data.Module3D
         Triangle,
         Angle,
         Activity,
-        Atlas
+        Atlas,
+        Brush
     }
 
     public sealed partial class TriangleEraser : MonoBehaviour
@@ -37,9 +38,10 @@ namespace HBP.Data.Module3D
         private long m_AnatomicalVersion;
         private bool m_IsEnabled;
         private int m_EditRevision;
-        private List<int> m_Stroke;
-        private bool m_StrokeSelect;
+        private SelectionStroke m_Stroke;
         private bool m_StrokePreviewDirty;
+        private int m_LastPreviewFrame = -1;
+        private float m_BrushRadiusMillimeters = 3f;
 
         public UnityEvent OnVisibilityMaskChanged { get; } = new();
         public bool MeshHasInvisibleTriangles { get; private set; }
@@ -50,12 +52,25 @@ namespace HBP.Data.Module3D
         public bool WillUndoVisibility => CanCancelLastAction && m_History[^1].Visibility != null;
         public bool HasEditableSurface => m_Visibility.Length != 0 && m_Scene.MeshManager.BrainSurface != null;
         public bool HasTriangleStroke => m_Stroke != null;
+        public bool CanJoinTriangleStroke => m_Stroke is { Ending: false };
+        public bool IsSweepMode => Mode is TriangleSelectionMode.Triangle or TriangleSelectionMode.Brush;
         public uint EditReferenceVersion { get; private set; }
         public TriangleSelectionMode Mode { get; set; }
         public bool RemoveFromSelection { get; set; }
         public int Degrees { get; set; } = 30;
         public float ActivityTolerance { get; set; } = 20;
         public float DiFuMoThreshold { get; set; } = 0.1f;
+
+        public float BrushRadiusMillimeters
+        {
+            get => m_BrushRadiusMillimeters;
+            set
+            {
+                if (value > 0f && float.IsFinite(value)) m_BrushRadiusMillimeters = value;
+            }
+        }
+
+        public float StrokeBrushRadiusMillimeters => m_Stroke?.BrushRadius ?? BrushRadiusMillimeters;
         public bool IsClickAvailable => IsEnabled && Mode != TriangleSelectionMode.Atlas;
         public int[] VisibilityMask => (int[])m_Visibility.Clone();
 
@@ -66,9 +81,29 @@ namespace HBP.Data.Module3D
             {
                 if (m_IsEnabled == value) return;
                 m_IsEnabled = value;
-                if (!value) EndTriangleStroke();
+                if (!value) EndTriangleStroke(discardPending: true);
                 m_EditRevision++;
                 UpdatePreview();
+            }
+        }
+
+        private sealed class SelectionStroke
+        {
+            public readonly List<int> Faces = new();
+            public readonly TriangleSelectionMode Mode;
+            public readonly bool Select;
+            public readonly float BrushRadius, AngleLimit, ActivityTolerance;
+            public bool Ending;
+            public bool ReadingActivity;
+            public Queue<Func<Cysharp.Threading.Tasks.UniTask>> Activity;
+
+            public SelectionStroke(TriangleEraser eraser)
+            {
+                Mode = eraser.Mode;
+                Select = !eraser.IsSweepMode || !eraser.RemoveFromSelection;
+                BrushRadius = eraser.BrushRadiusMillimeters;
+                AngleLimit = Mathf.Cos(Mathf.Clamp(eraser.Degrees, 0, 180) * Mathf.Deg2Rad);
+                ActivityTolerance = eraser.ActivityTolerance;
             }
         }
 
@@ -181,7 +216,7 @@ namespace HBP.Data.Module3D
 
         public void ResetForRepresentationChange()
         {
-            EndTriangleStroke();
+            EndTriangleStroke(discardPending: true);
             ++EditReferenceVersion;
             m_EditRevision++;
             m_Geometry = null;
@@ -223,9 +258,8 @@ namespace HBP.Data.Module3D
                     Retouch(new[] { face }, RemoveFromSelection);
                     break;
                 case TriangleSelectionMode.Angle:
-                    Vector3 normal = Geometry.Normal(face);
                     float limit = Mathf.Cos(Mathf.Clamp(Degrees, 0, 180) * Mathf.Deg2Rad);
-                    Retouch(Propagate(face, candidate => candidate == face || Vector3.Dot(normal, Geometry.Normal(candidate)) >= limit - 1e-6f));
+                    Retouch(AngleFaces(face, limit));
                     break;
                 case TriangleSelectionMode.Activity:
                     SelectActivity(column, face);
@@ -236,47 +270,91 @@ namespace HBP.Data.Module3D
         public bool TryContact(Column3D column, Vector3 center, ref float distance, out int face)
         {
             face = -1;
-            if (!IsEnabled || !HasEditableSurface || m_Scene.IsClosing || m_Scene.IsSurfaceRepresentationTransitioning || m_Scene.SceneInformation.GeometryNeedsUpdate || !column || !column.BrainMesh || !column.BrainMesh.activeInHierarchy || !column.BrainMesh.TryGetComponent(out Renderer renderer) || !renderer.enabled || renderer.forceRenderingOff)
-                return false;
-
+            if (!CanContact(column)) return false;
             var frame = column.BrainMesh.transform;
-            var geometry = Geometry;
-            return geometry.Count == m_Visibility.Length && geometry.Contact(center, frame.localToWorldMatrix, frame.worldToLocalMatrix, m_Scene.MeshManager.CanClipBrainSurface ? m_Scene.Cuts : null, m_Scene.StrongCuts, ref distance, out face);
+            return Geometry.Contact(center, frame.localToWorldMatrix, frame.worldToLocalMatrix, ContactCuts, m_Scene.StrongCuts, ref distance, out face);
+        }
+
+        private List<Cut> ContactCuts => m_Scene.MeshManager.CanClipBrainSurface ? m_Scene.Cuts : null;
+
+        private bool CanContact(Column3D column) => IsEnabled && HasEditableSurface && !m_Scene.IsClosing && !m_Scene.IsSurfaceRepresentationTransitioning && !m_Scene.SceneInformation.GeometryNeedsUpdate && column && column.BrainMesh && column.BrainMesh.activeInHierarchy && column.BrainMesh.TryGetComponent(out Renderer renderer) && renderer.enabled && !renderer.forceRenderingOff && Geometry.Count == m_Visibility.Length;
+
+        public bool HasBrushContact(Column3D column, Vector3 start, Vector3 end, float radius) => BrushContacts(column, start, end, radius, null, false);
+
+        private bool BrushContacts(Column3D column, Vector3 start, Vector3 end, float radius, List<int> faces, bool displayedUnits)
+        {
+            if (!CanContact(column)) return false;
+            var frame = column.BrainMesh.transform;
+            var localToWorld = displayedUnits ? Matrix4x4.identity : frame.localToWorldMatrix;
+            var worldToLocal = displayedUnits ? Matrix4x4.identity : frame.worldToLocalMatrix;
+            return Geometry.BrushContacts(start, end, radius, localToWorld, worldToLocal, ContactCuts, m_Scene.StrongCuts, faces);
+        }
+
+        private readonly List<int> m_BrushFaces = new();
+
+        public void RetouchBrushStroke(Column3D column, Vector3 start, Vector3 end, bool displayedUnits)
+        {
+            if (m_Stroke is not { Mode: TriangleSelectionMode.Brush, Ending: false } stroke) return;
+            m_BrushFaces.Clear();
+            float radius = displayedUnits ? stroke.BrushRadius : stroke.BrushRadius * .001f;
+            BrushContacts(column, start, end, radius, m_BrushFaces, displayedUnits);
+            foreach (int face in m_BrushFaces) RetouchTriangleStroke(face);
         }
 
         public bool BeginTriangleStroke()
         {
-            if (!IsEnabled || Mode != TriangleSelectionMode.Triangle || IsComputingSelection || HasTriangleStroke || !HasEditableSurface)
+            if (!IsEnabled || Mode == TriangleSelectionMode.Atlas || IsComputingSelection || HasTriangleStroke || !HasEditableSurface)
                 return false;
-            m_Stroke = new List<int>();
-            m_StrokeSelect = !RemoveFromSelection;
+            m_Stroke = new SelectionStroke(this);
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
             return true;
         }
 
         public bool RetouchTriangleStroke(int face)
         {
-            if (!HasTriangleStroke || (uint)face >= (uint)m_Selection.Length || m_Selection[face] == m_StrokeSelect)
+            if (m_Stroke == null || (uint)face >= (uint)m_Selection.Length || m_Selection[face] == m_Stroke.Select)
                 return false;
             ToggleSelection(face);
-            m_Stroke.Add(face);
+            m_Stroke.Faces.Add(face);
             m_StrokePreviewDirty = true;
             return true;
         }
 
+        public bool RetouchStrokeSeed(Column3D column, int face, Func<bool> isCurrent, Action finished)
+        {
+            if (m_Stroke is not { Ending: false } stroke || (uint)face >= (uint)m_Visibility.Length) return false;
+            if (stroke.Mode == TriangleSelectionMode.Activity) return QueueActivitySelection(stroke, column, face, isCurrent, finished);
+            if (stroke.Mode == TriangleSelectionMode.Angle)
+            {
+                foreach (int selected in AngleFaces(face, stroke.AngleLimit)) RetouchTriangleStroke(selected);
+            }
+
+            return true;
+        }
+
+        private IEnumerable<int> AngleFaces(int face, float limit)
+        {
+            Vector3 normal = Geometry.Normal(face);
+            return Propagate(face, candidate => candidate == face || Vector3.Dot(normal, Geometry.Normal(candidate)) >= limit - 1e-6f);
+        }
+
         public void FlushTriangleStrokePreview()
         {
-            if (!m_StrokePreviewDirty) return;
+            if (!m_StrokePreviewDirty || m_LastPreviewFrame == Time.frameCount) return;
             m_StrokePreviewDirty = false;
+            m_LastPreviewFrame = Time.frameCount;
             UpdatePreview();
         }
 
-        public void EndTriangleStroke()
+        public void EndTriangleStroke(bool discardPending = false)
         {
-            if (!HasTriangleStroke) return;
             var stroke = m_Stroke;
+            if (stroke == null) return;
+            stroke.Ending = true;
+            if (!discardPending && stroke.ReadingActivity) return;
             m_Stroke = null;
-            Record(stroke, null, updatePreview: m_StrokePreviewDirty);
-            m_StrokePreviewDirty = false;
+            Record(stroke.Faces, null, updatePreview: false);
+            Module3DMain.OnRequestUpdateInToolbar.Invoke();
         }
 
         private void ResetStrokeReference()

@@ -167,8 +167,58 @@ namespace HBP.Data.Module3D
 
         private void SelectActivity(Column3D column, int seed)
         {
+            if (TryCreateActivitySelection(column, seed, ActivityTolerance, null, faces => Retouch(faces), out var read))
+                StartSelection(read);
+        }
+
+        private bool QueueActivitySelection(SelectionStroke stroke, Column3D column, int seed, Func<bool> isCurrent, Action finished)
+        {
+            if (!TryCreateActivitySelection(column, seed, stroke.ActivityTolerance, () => ReferenceEquals(stroke, m_Stroke) && isCurrent(), faces =>
+                {
+                    foreach (int face in faces) RetouchTriangleStroke(face);
+                }, out var read))
+                return false;
+
+            stroke.Activity ??= new();
+            stroke.Activity.Enqueue(async () =>
+            {
+                try
+                {
+                    await read();
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                }
+                finally
+                {
+                    finished();
+                }
+            });
+            if (stroke.ReadingActivity) return true;
+            stroke.ReadingActivity = true;
+            StartSelection(ReadQueuedSeeds);
+            return true;
+
+            async UniTask ReadQueuedSeeds()
+            {
+                try
+                {
+                    while (stroke.Activity.Count > 0) await stroke.Activity.Dequeue()();
+                }
+                finally
+                {
+                    stroke.ReadingActivity = false;
+                    if (stroke.Ending && ReferenceEquals(stroke, m_Stroke)) EndTriangleStroke();
+                }
+            }
+        }
+
+        private bool TryCreateActivitySelection(Column3D column, int seed, float tolerancePercent, Func<bool> isCurrent, Action<IEnumerable<int>> publish, out Func<UniTask> selection)
+        {
+            selection = null;
             ActivityGenerator activity = column ? column.ActivityGenerator : null;
-            if (!CanSelectActivity || activity?.ProjectionGrid == null || !m_Scene.TryBeginSensitiveActivityOperation(out IDisposable lease)) return;
+            if (!CanSelectActivity || activity?.ProjectionGrid == null) return false;
             int sample = column switch
             {
                 Column3DDynamic dynamic => dynamic.CurrentProjectionSample.Index,
@@ -179,13 +229,15 @@ namespace HBP.Data.Module3D
             };
             Surface reference = m_Scene.MeshManager.ReferenceSurface;
             int[] triangles = Geometry.Triangles;
-            float tolerance = Mathf.Clamp(ActivityTolerance, 0f, 100f) / 100f;
+            float tolerance = Mathf.Clamp(tolerancePercent, 0f, 100f) / 100f;
             int revision = m_EditRevision;
             ulong activityGeneration = m_Scene.ActivityInputGeneration;
-            StartSelection(ReadActivity);
+            selection = ReadActivity;
+            return true;
 
             async UniTask ReadActivity()
             {
+                if (!CanRead() || !m_Scene.TryBeginSensitiveActivityOperation(out IDisposable lease)) return;
                 using (lease)
                 using (var reader = new SurfaceGenerator())
                 {
@@ -203,16 +255,17 @@ namespace HBP.Data.Module3D
                         await UniTask.SwitchToMainThread();
                     }
 
-                    if (!CanPublish(reference, revision) || !CanSelectActivity || !column || column.ActivityGenerator != activity || m_Scene.ActivityInputGeneration != activityGeneration) return;
-                    if (!IsValid(seed)) return;
+                    if (!CanRead() || !IsValid(seed)) return;
 
                     float initial = Mean(values, triangles, seed);
                     float range = Math.Abs(initial) * tolerance;
-                    Retouch(Propagate(seed, face => IsValid(face) && Math.Abs(Mean(values, triangles, face) - initial) <= range));
+                    publish(Propagate(seed, face => IsValid(face) && Math.Abs(Mean(values, triangles, face) - initial) <= range));
 
                     bool IsValid(int face) => valid[triangles[face * 3]] != 0 && valid[triangles[face * 3 + 1]] != 0 && valid[triangles[face * 3 + 2]] != 0;
                 }
             }
+
+            bool CanRead() => (isCurrent == null || isCurrent()) && CanPublish(reference, revision) && CanSelectActivity && column && column.ActivityGenerator == activity && m_Scene.ActivityInputGeneration == activityGeneration;
         }
 
         private bool CanPublish(Surface reference, int revision) => IsEnabled && revision == m_EditRevision && !m_Scene.IsClosing && !m_Scene.SceneInformation.GeometryNeedsUpdate && ReferenceEquals(reference, m_Scene.MeshManager.ReferenceSurface);
