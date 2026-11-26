@@ -99,12 +99,18 @@ joints. Strip Meta's `b_` bone prefix from button names when identifying the
 control. Reflect Z when converting OpenXR grip coordinates to Unity, matching
 the conversion of the tracked grip pose. Attach each native contour and its
 anchors directly to that controller's grip pose.
-Display labels with identified surfaces alongside the native contour. Load the
-runtime model into memory without bundling its assets or textures. The existing
+Display labels with identified surfaces and draw the outlines of those native
+controls. Draw the textured WebXR model on a solid background throughout
+controller help. The prefab's grip-space calibration aligns that model with
+the native Touch Plus v1 contour. The contour shell writes to an isolated
+stereo depth buffer in either mode and draws the selected outlines.
+Test the anchor and points distributed across the control surface in
+each eye. A visible point reveals the entire leader. When the control is
+occluded, clip only the fragments behind a shell and keep the label visible.
+Load the runtime model into memory without bundling its assets or textures. The existing
 WebXR model and its authored anchors supply the fallback. Apply any fallback
 visual placement to its mesh transform so the grip and aim coordinates used
-for interaction remain independent. The opaque model is visible in solid
-background outside native controller help. The help contour can appear in either mode. Both require full
+for interaction remain independent. Both renderers require full
 position and rotation tracking. Help opens after 1.5 seconds of steady inspection
 of either face and tolerates wrist rotation while the controller stays in view.
 

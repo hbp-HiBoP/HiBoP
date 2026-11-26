@@ -275,6 +275,8 @@ MonoBehaviour:
   poseTarget: {fileID: 1918527629077876378}
   diagnosticRenderer: {fileID: 0}
   solidBackgroundController: {fileID: 0}
+  solidControllerGripPosition: {x: 0, y: 0, z: 0}
+  solidControllerGripRotation: {x: 0, y: 0, z: 0, w: 1}
   controllerHelpMesh: {fileID: 0}
   primaryButton: {x: 0, y: 0, z: 0}
   secondaryButton: {x: 0, y: 0, z: 0}
@@ -344,6 +346,9 @@ MonoBehaviour:
   poseTarget: {fileID: 8020652164906145554}
   diagnosticRenderer: {fileID: 0}
   solidBackgroundController: {fileID: 1798046292008279324}
+  solidControllerGripPosition: {x: -0.0028411895, y: -0.014934659, z: 0.023445338}
+  solidControllerGripRotation: {x: 0.116697595, y: -0.0000040145, z: 0.0000587892,
+    w: 0.9931675}
   controllerHelpMesh: {fileID: 6678988829153527069}
   primaryButton: {x: -0.002105, y: 0.010497, z: 0.019787}
   secondaryButton: {x: -0.012746, y: 0.002902, z: 0.029848}
@@ -995,6 +1000,8 @@ MonoBehaviour:
   poseTarget: {fileID: 1911224455551995619}
   diagnosticRenderer: {fileID: 0}
   solidBackgroundController: {fileID: 5041938683986251236}
+  solidControllerGripPosition: {x: 0.0027459513, y: -0.014934247, z: 0.023440866}
+  solidControllerGripRotation: {x: 0.116701886, y: 0.0020787497, z: 0.000181598, w: 0.9931648}
   controllerHelpMesh: {fileID: 4248415013186957527}
   primaryButton: {x: 0.002129, y: 0.010497, z: 0.0198}
   secondaryButton: {x: 0.012727, y: 0.002902, z: 0.029906}

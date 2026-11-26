@@ -2,66 +2,102 @@ Shader "HBP/Quest/Controller Help Contour"
 {
     Properties
     {
-        _Tint("Contour", Color) = (0.64, 0.91, 1, 0.8)
+        _Tint("Shell", Color) = (1, 1, 1, 0.20)
+        [HideInInspector] _HighlightedControls("Highlighted controls", Float) = 0
+        [HideInInspector] _SolidBackground("Solid background", Float) = 0
     }
 
     SubShader
     {
         Tags { "RenderPipeline" = "UniversalPipeline" "RenderType" = "Transparent" "Queue" = "Overlay" }
-        Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Back
-        ZWrite Off
-        ZTest Always
+
+        HLSLINCLUDE
+        #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+        #include "../Includes/HBPQuestControllerHelpDepth.hlsl"
+        HBP_QUEST_TEXTURE(float, _HBPQuestControllerHelpControls);
+
+        CBUFFER_START(UnityPerMaterial)
+            half4 _Tint;
+            float _HighlightedControls;
+            float _SolidBackground;
+        CBUFFER_END
+
+        struct Attributes
+        {
+            float3 positionOS : POSITION;
+            float2 controlUV : TEXCOORD1;
+            UNITY_VERTEX_INPUT_INSTANCE_ID
+        };
+
+        struct Varyings
+        {
+            float4 positionCS : SV_POSITION;
+            half highlight : TEXCOORD0;
+            UNITY_VERTEX_OUTPUT_STEREO
+        };
+
+        Varyings Vert(Attributes input)
+        {
+            UNITY_SETUP_INSTANCE_ID(input);
+            Varyings output = (Varyings)0;
+            UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
+            output.positionCS = TransformObjectToHClip(input.positionOS);
+            output.highlight = ((uint)input.controlUV.x & (uint)_HighlightedControls) != 0 ? 1.0h : 0.0h;
+            return output;
+        }
+        ENDHLSL
 
         Pass
         {
-            Name "UniversalForward"
-            Tags { "LightMode" = "UniversalForward" }
+            Name "ControllerDepth"
+            Tags { "LightMode" = "HBPQuestControllerDepth" }
+            ZWrite On
+            ZTest LEqual
+            ColorMask R
 
             HLSLPROGRAM
             #pragma target 3.5
             #pragma vertex Vert
-            #pragma fragment Frag
+            #pragma fragment DepthFrag
             #pragma multi_compile_instancing
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
 
-            CBUFFER_START(UnityPerMaterial)
-                half4 _Tint;
-            CBUFFER_END
+            half DepthFrag(Varyings input) : SV_Target { return input.highlight; }
+            ENDHLSL
+        }
 
-            struct Attributes
-            {
-                float3 positionOS : POSITION;
-                float3 normalOS : NORMAL;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
+        Pass
+        {
+            Name "ControllerSurface"
+            Tags { "LightMode" = "HBPQuestControllerHelp" }
+            Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
+            ZWrite Off
+            ZTest Always
 
-            struct Varyings
-            {
-                float4 positionCS : SV_POSITION;
-                float3 positionWS : TEXCOORD0;
-                half3 normalWS : TEXCOORD1;
-                UNITY_VERTEX_OUTPUT_STEREO
-            };
+            HLSLPROGRAM
+            #pragma target 3.5
+            #pragma vertex Vert
+            #pragma fragment SurfaceFrag
+            #pragma multi_compile_instancing
 
-            Varyings Vert(Attributes input)
-            {
-                UNITY_SETUP_INSTANCE_ID(input);
-                Varyings output;
-                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output);
-                output.positionWS = TransformObjectToWorld(input.positionOS);
-                output.positionCS = TransformWorldToHClip(output.positionWS);
-                output.normalWS = TransformObjectToWorldNormal(input.normalOS);
-                return output;
-            }
-
-            half4 Frag(Varyings input) : SV_Target
+            half4 SurfaceFrag(Varyings input) : SV_Target
             {
                 UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
-                half3 view = GetWorldSpaceNormalizeViewDir(input.positionWS);
-                half facing = saturate(dot(normalize(input.normalWS), view));
-                half rim = 1 - smoothstep(0.06h, 0.36h, facing);
-                return half4(_Tint.rgb, _Tint.a * lerp(0.035h, 1.0h, rim));
+                int2 pixel = int2(input.positionCS.xy);
+                float nearestDepth = HBP_QuestDepthOrder(HBP_QuestHelpRawDepth(pixel));
+                float depth = HBP_QuestDepthOrder(input.positionCS.z);
+                // The mask samples the pixel center while the color target uses MSAA.
+                clip(nearestDepth - depth + max(0.000001, fwidth(depth)));
+                if (_HighlightedControls == 0) return _SolidBackground > 0.5 ? half4(_Tint.rgb, 0) : _Tint;
+
+                clip(input.highlight - 0.001h);
+                int2 last = int2(GetScaledScreenParams().xy) - 1;
+                half adjacent = min(
+                    min(HBP_QUEST_LOAD(_HBPQuestControllerHelpControls, clamp(pixel + int2(2, 0), 0, last)),
+                        HBP_QUEST_LOAD(_HBPQuestControllerHelpControls, clamp(pixel - int2(2, 0), 0, last))),
+                    min(HBP_QUEST_LOAD(_HBPQuestControllerHelpControls, clamp(pixel + int2(0, 2), 0, last)),
+                        HBP_QUEST_LOAD(_HBPQuestControllerHelpControls, clamp(pixel - int2(0, 2), 0, last))));
+                return half4(_Tint.rgb, input.highlight * (1.0h - adjacent));
             }
             ENDHLSL
         }

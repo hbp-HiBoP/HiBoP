@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using HBP.Rendering;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.XR.OpenXR;
@@ -18,6 +19,9 @@ namespace HBP.Quest
     // Adapted from P04DevicePoseTracker on feature/xr. Head movement is owned by TrackedPoseDriver.
     public sealed class QuestDevicePoseTracker : MonoBehaviour
     {
+        private static readonly int HighlightedControlsId = Shader.PropertyToID("_HighlightedControls");
+        private static readonly int SolidBackgroundId = Shader.PropertyToID("_SolidBackground");
+
         public enum DeviceRole
         {
             Head,
@@ -29,13 +33,20 @@ namespace HBP.Quest
         [SerializeField] private Transform poseTarget;
         [SerializeField] private Renderer diagnosticRenderer;
         [SerializeField] private MeshRenderer solidBackgroundController;
+        [SerializeField] private Vector3 solidControllerGripPosition;
+        [SerializeField] private Quaternion solidControllerGripRotation = Quaternion.identity;
         [SerializeField] private MeshFilter controllerHelpMesh;
 
         // Surface points on the named Touch Plus parts in the neutral WebXR model, in Unity mesh space.
         [SerializeField] private Vector3 primaryButton, secondaryButton, thumbstick, frontTrigger, sideGrip;
         private QuestPassthroughStatus passthrough;
         private MeshRenderer controllerHelpRenderer;
+        private MaterialPropertyBlock controllerHelpProperties;
+        private int highlightedControls;
+        private bool helpOnSolidBackground;
         private MeshFilter solidMesh;
+        private Vector3 fallbackSolidPosition;
+        private Quaternion fallbackSolidRotation;
         private QuestControllerModelGeometry nativeController;
         private int modelDeviceId;
         private bool modelReadFailed;
@@ -83,6 +94,12 @@ namespace HBP.Quest
             {
                 passthrough = GetComponentInParent<QuestPassthroughStatus>();
                 solidMesh = solidBackgroundController.GetComponent<MeshFilter>();
+                if (solidMesh != null)
+                {
+                    fallbackSolidPosition = solidMesh.transform.localPosition;
+                    fallbackSolidRotation = solidMesh.transform.localRotation;
+                }
+
                 if (controllerHelpMesh != null)
                 {
                     controllerHelpRenderer = controllerHelpMesh.GetComponent<MeshRenderer>();
@@ -102,8 +119,8 @@ namespace HBP.Quest
             trackingStateAction?.Dispose();
             positionAction = rotationAction = trackedAction = trackingStateAction = null;
             IsTracked = false;
-            controllerHelpVisible = false;
             if (diagnosticRenderer != null) diagnosticRenderer.enabled = false;
+            SetControllerHelpVisible(false);
             UpdateControllerAppearance();
             if (controllerHelpMesh != null) UseFallbackController();
             modelDeviceId = 0;
@@ -111,8 +128,17 @@ namespace HBP.Quest
             nextModelRequest = 0;
         }
 
-        internal void SetControllerHelpVisible(bool visible)
+        internal void SetControllerHelpVisible(bool visible, int controls = 0)
         {
+            int mask = visible && nativeController != null ? controls : 0;
+            if (controllerHelpRenderer != null && highlightedControls != mask)
+            {
+                highlightedControls = mask;
+                controllerHelpProperties ??= new MaterialPropertyBlock();
+                controllerHelpProperties.SetFloat(HighlightedControlsId, mask);
+                controllerHelpRenderer.SetPropertyBlock(controllerHelpProperties);
+            }
+
             if (controllerHelpVisible == visible) return;
             controllerHelpVisible = visible;
             UpdateControllerAppearance();
@@ -132,6 +158,15 @@ namespace HBP.Quest
         }
 
         internal bool HasControllerHelpAnchor(QuestControllerControl control) => nativeController == null || nativeController.HasAnchor(control);
+
+        internal int GetControllerHelpVisibilitySamples(QuestControllerControl control, Vector4[] samples)
+        {
+            var surface = nativeController?.VisibilitySamples(control);
+            if (surface == null) return 0;
+            var localToWorld = controllerHelpMesh.transform.localToWorldMatrix;
+            for (int i = 0; i < surface.Length; i++) samples[i] = localToWorld.MultiplyPoint3x4(surface[i]);
+            return surface.Length;
+        }
 
         private void Update()
         {
@@ -164,6 +199,8 @@ namespace HBP.Quest
                 controllerHelpMesh.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
                 controllerHelpMesh.transform.localScale = Vector3.one;
                 controllerHelpMesh.sharedMesh = nativeController.Mesh;
+                if (solidMesh != null && (identity is "Meta Quest Touch Plus Controller Left (10291, version 1)" or "Meta Quest Touch Plus Controller Right (10291, version 1)"))
+                    solidMesh.transform.SetLocalPositionAndRotation(solidControllerGripPosition, solidControllerGripRotation);
                 UpdateControllerAppearance();
                 Debug.Log($"[Quest controller models] Using native contour for {role}: {identity}, {nativeController.Mesh.vertexCount} vertices.");
             }
@@ -180,6 +217,7 @@ namespace HBP.Quest
             if (solidMesh != null)
             {
                 var fallbackPose = solidMesh.transform;
+                fallbackPose.SetLocalPositionAndRotation(fallbackSolidPosition, fallbackSolidRotation);
                 controllerHelpMesh.transform.SetLocalPositionAndRotation(fallbackPose.localPosition, fallbackPose.localRotation);
                 controllerHelpMesh.transform.localScale = fallbackPose.localScale;
             }
@@ -206,11 +244,22 @@ namespace HBP.Quest
         {
             if (solidBackgroundController == null) return;
             bool contour = IsTracked && controllerHelpVisible;
-            // The native mesh and the visual fallback have different registration.
             bool solidBackground = passthrough != null && passthrough.IsSolidBackgroundActive;
-            solidBackgroundController.enabled = IsTracked && solidBackground && !(contour && nativeController != null);
-            if (controllerHelpRenderer != null)
-                controllerHelpRenderer.enabled = contour;
+            solidBackgroundController.enabled = IsTracked && solidBackground;
+            if (controllerHelpRenderer == null) return;
+
+            bool showHelpOnSolidBackground = contour && solidBackground;
+            if (helpOnSolidBackground != showHelpOnSolidBackground)
+            {
+                helpOnSolidBackground = showHelpOnSolidBackground;
+                controllerHelpProperties ??= new MaterialPropertyBlock();
+                controllerHelpProperties.SetFloat(SolidBackgroundId, helpOnSolidBackground ? 1 : 0);
+                controllerHelpRenderer.SetPropertyBlock(controllerHelpProperties);
+            }
+
+            if (controllerHelpRenderer.enabled == contour) return;
+            controllerHelpRenderer.enabled = contour;
+            HBPEdgeRendererFeature.SetQuestControllerHelpVisible(controllerHelpRenderer, contour);
         }
     }
 }

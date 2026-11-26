@@ -11,19 +11,23 @@ namespace HBP.Quest
     /// <summary>Reads the triangle geometry of the Quest render-model GLB. The contour uses HiBoP's own material.</summary>
     internal sealed class QuestControllerModelGeometry
     {
+        internal const int MaxVisibilitySamples = 24;
         private const int ControlCount = (int)QuestControllerControl.SideGrip + 1;
         private readonly Vector3[] anchors;
+        private readonly Vector3[][] visibilitySamples;
         private readonly int anchoredControls;
         public Mesh Mesh { get; }
 
-        private QuestControllerModelGeometry(Mesh mesh, Vector3[] anchors, int anchoredControls)
+        private QuestControllerModelGeometry(Mesh mesh, Vector3[] anchors, Vector3[][] visibilitySamples, int anchoredControls)
         {
             Mesh = mesh;
             this.anchors = anchors;
+            this.visibilitySamples = visibilitySamples;
             this.anchoredControls = anchoredControls;
         }
 
         public Vector3 Anchor(QuestControllerControl control) => anchors[(int)control];
+        public Vector3[] VisibilitySamples(QuestControllerControl control) => visibilitySamples[(int)control];
         public bool HasAnchor(QuestControllerControl control) => (anchoredControls & (1 << (int)control)) != 0;
 
         public static QuestControllerModelGeometry Read(byte[] bytes, bool left)
@@ -90,18 +94,20 @@ namespace HBP.Quest
                 if (triangles.Count == 0) throw new FormatException("The render model has no triangles.");
 
                 var anchors = new Vector3[ControlCount];
+                var visibilitySamples = new Vector3[ControlCount][];
                 int available = 0;
                 var missing = new List<QuestControllerControl>();
                 for (int i = 0; i < anchors.Length; i++)
                 {
                     var control = (QuestControllerControl)i;
-                    if (controlTriangles[i] == null)
+                    if (controlTriangles[i] is not { } part)
                     {
                         if (!left || control != QuestControllerControl.SecondaryButton) missing.Add(control);
                         continue;
                     }
 
-                    anchors[i] = SurfaceAnchor(controlTriangles[i], control);
+                    anchors[i] = SurfaceAnchor(part, control);
+                    visibilitySamples[i] = SampleSurface(part, anchors[i]);
                     available |= 1 << i;
                 }
 
@@ -114,7 +120,15 @@ namespace HBP.Quest
                 mesh.SetTriangles(triangles, 0);
                 if (normals.Count == vertices.Count) mesh.SetNormals(normals);
                 else mesh.RecalculateNormals();
-                return new QuestControllerModelGeometry(mesh, anchors, available);
+                var controlMasks = new int[vertices.Count];
+                for (int i = 0; i < ControlCount; i++)
+                    if (controlTriangles[i] is { } part)
+                        foreach (int vertex in part)
+                            controlMasks[vertex] |= 1 << i;
+                var controlUv = new Vector2[vertices.Count];
+                for (int i = 0; i < controlUv.Length; i++) controlUv[i] = new Vector2(controlMasks[i], 0);
+                mesh.SetUVs(1, controlUv);
+                return new QuestControllerModelGeometry(mesh, anchors, visibilitySamples, available);
             }
 
             private void Visit(int index, Matrix4x4 parent, QuestControllerControl? parentControl, int depth)
@@ -385,6 +399,37 @@ namespace HBP.Quest
                     if ((vertices[index] - ray.origin).sqrMagnitude < (nearest - ray.origin).sqrMagnitude)
                         nearest = vertices[index];
                 return nearest;
+            }
+
+            private Vector3[] SampleSurface(List<int> part, Vector3 anchor)
+            {
+                int count = part.Count / 3;
+                var centers = new Vector3[count];
+                var distances = new float[count];
+                for (int i = 0; i < count; i++)
+                {
+                    int index = i * 3;
+                    centers[i] = (vertices[part[index]] + vertices[part[index + 1]] + vertices[part[index + 2]]) / 3;
+                    distances[i] = float.PositiveInfinity;
+                }
+
+                // Spread the points across the control while keeping them inside its triangles.
+                var samples = new Vector3[Mathf.Min(count, MaxVisibilitySamples)];
+                Vector3 previous = anchor;
+                for (int i = 0; i < samples.Length; i++)
+                {
+                    int farthest = 0;
+                    for (int j = 0; j < count; j++)
+                    {
+                        distances[j] = Mathf.Min(distances[j], (centers[j] - previous).sqrMagnitude);
+                        if (distances[j] > distances[farthest]) farthest = j;
+                    }
+
+                    samples[i] = previous = centers[farthest];
+                    distances[farthest] = -1;
+                }
+
+                return samples;
             }
         }
 

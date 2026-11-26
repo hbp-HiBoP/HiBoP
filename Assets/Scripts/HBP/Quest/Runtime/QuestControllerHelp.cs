@@ -44,10 +44,15 @@ namespace HBP.Quest
     {
         private const float AngularScale = .00085f;
         private const float RowGap = 5;
+        private static readonly int LeaderAnchorId = Shader.PropertyToID("_AnchorWS");
+        private static readonly int LeaderSamplesId = Shader.PropertyToID("_ControlSamplesWS");
+        private static readonly int LeaderSampleCountId = Shader.PropertyToID("_ControlSampleCount");
 
         private readonly GameObject prefab;
         private readonly Transform parent;
         private readonly Hand[] hands;
+        private readonly MaterialPropertyBlock leaderProperties = new();
+        private readonly Vector4[] leaderSamples = new Vector4[QuestControllerModelGeometry.MaxVisibilitySamples];
 
         private sealed class Hand
         {
@@ -125,6 +130,7 @@ namespace HBP.Quest
             var controller = hand.Tracker.transform;
             bool left = index == 0;
             int count = 0;
+            int highlightedControls = 0;
             float height = 0;
             if (left)
             {
@@ -169,7 +175,7 @@ namespace HBP.Quest
             {
                 var callout = hand.Callouts[i];
                 Vector3 anchor = hand.Tracker.ControllerHelpAnchor(callout.Control);
-                callout.Leader.SetPosition(0, anchor);
+                SetLeaderStart(callout, hand.Tracker, anchor);
                 Vector3 fromHead = anchor - head.position;
                 callout.ScreenHeight = Vector3.Dot(fromHead, head.up) / Mathf.Max(.1f, Vector3.Dot(fromHead, head.forward));
                 if (newLayout) hand.RowOrder[i] = i;
@@ -209,7 +215,7 @@ namespace HBP.Quest
             }
 
             HideFrom(hand, count);
-            hand.Tracker.SetControllerHelpVisible(true);
+            hand.Tracker.SetControllerHelpVisible(true, highlightedControls);
 
             void Add(string text, QuestControllerControl control)
             {
@@ -230,6 +236,7 @@ namespace HBP.Quest
                 }
 
                 callout.Control = control;
+                highlightedControls |= 1 << (int)control;
                 count++;
                 height += callout.Height + RowGap;
             }
@@ -252,9 +259,19 @@ namespace HBP.Quest
                 {
                     var callout = hand.Callouts[i];
                     if (hand.Tracker.HasControllerHelpAnchor(callout.Control))
-                        callout.Leader.SetPosition(0, hand.Tracker.ControllerHelpAnchor(callout.Control));
+                        SetLeaderStart(callout, hand.Tracker, hand.Tracker.ControllerHelpAnchor(callout.Control));
                 }
             }
+        }
+
+        private void SetLeaderStart(Callout callout, QuestDevicePoseTracker tracker, Vector3 anchor)
+        {
+            callout.Leader.SetPosition(0, anchor);
+            leaderProperties.SetVector(LeaderAnchorId, anchor);
+            int sampleCount = tracker.GetControllerHelpVisibilitySamples(callout.Control, leaderSamples);
+            leaderProperties.SetFloat(LeaderSampleCountId, sampleCount);
+            if (sampleCount > 0) leaderProperties.SetVectorArray(LeaderSamplesId, leaderSamples);
+            callout.Leader.SetPropertyBlock(leaderProperties);
         }
 
         public void Hide()

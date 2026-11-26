@@ -101,6 +101,7 @@ namespace HBP.Tests.Quest
             Assert.That(callout.GetComponentInChildren<GraphicRaycaster>(true), Is.Null);
             Assert.That(callout.GetComponentInChildren<Text>(true).supportRichText, Is.True);
             Assert.That(callout.GetComponent<LineRenderer>().useWorldSpace, Is.True);
+            Assert.That(callout.GetComponent<LineRenderer>().sharedMaterial.shader.name, Is.EqualTo("HBP/Quest/Controller Help Leader"));
             foreach (var graphic in callout.GetComponentsInChildren<Graphic>(true))
                 Assert.That(graphic.raycastTarget, Is.False);
         }
@@ -138,6 +139,60 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public void TexturedControllerStaysVisibleWithHelpOnASolidBackground()
+        {
+            var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/3D/QuestRig.prefab");
+            var scene = EditorSceneManager.NewPreviewScene();
+            try
+            {
+                var rig = (GameObject)PrefabUtility.InstantiatePrefab(asset, scene);
+                var tracker = rig.GetComponentsInChildren<QuestDevicePoseTracker>().Single(candidate => candidate.Role == QuestDevicePoseTracker.DeviceRole.RightController);
+                var status = tracker.GetComponentInParent<QuestPassthroughStatus>();
+                var serialized = new SerializedObject(tracker);
+                var contour = ((MeshFilter)serialized.FindProperty("controllerHelpMesh").objectReferenceValue).GetComponent<MeshRenderer>();
+                var solid = (MeshRenderer)serialized.FindProperty("solidBackgroundController").objectReferenceValue;
+                const System.Reflection.BindingFlags privateInstance = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+                typeof(QuestDevicePoseTracker).GetField("passthrough", privateInstance).SetValue(tracker, status);
+                typeof(QuestDevicePoseTracker).GetField("controllerHelpRenderer", privateInstance).SetValue(tracker, contour);
+                typeof(QuestDevicePoseTracker).GetProperty(nameof(QuestDevicePoseTracker.IsTracked)).SetValue(tracker, true);
+                var setHelp = typeof(QuestDevicePoseTracker).GetMethod("SetControllerHelpVisible", privateInstance);
+                var refresh = typeof(QuestDevicePoseTracker).GetMethod("UpdateControllerAppearance", privateInstance);
+                var mode = typeof(QuestPassthroughStatus).GetProperty(nameof(QuestPassthroughStatus.IsSolidBackgroundActive));
+                var properties = new MaterialPropertyBlock();
+
+                try
+                {
+                    setHelp.Invoke(tracker, new object[] { true, 0 });
+                    CheckShell(false);
+                    CheckShell(true);
+                    CheckShell(false);
+                    mode.SetValue(status, true);
+                    setHelp.Invoke(tracker, new object[] { false, 0 });
+                    Assert.That(contour.enabled, Is.False);
+                    Assert.That(solid.enabled, Is.True);
+                }
+                finally
+                {
+                    setHelp.Invoke(tracker, new object[] { false, 0 });
+                }
+
+                void CheckShell(bool solidBackground)
+                {
+                    mode.SetValue(status, solidBackground);
+                    refresh.Invoke(tracker, null);
+                    Assert.That(contour.enabled, Is.True);
+                    Assert.That(solid.enabled, Is.EqualTo(solidBackground));
+                    contour.GetPropertyBlock(properties);
+                    Assert.That(properties.GetFloat("_SolidBackground"), Is.EqualTo(solidBackground ? 1f : 0f));
+                }
+            }
+            finally
+            {
+                EditorSceneManager.ClosePreviewScene(scene);
+            }
+        }
+
+        [Test]
         public void NativeContourAndButtonAnchorShareTheGripSpaceConversion()
         {
             const string json = @"{
@@ -164,6 +219,7 @@ namespace HBP.Tests.Quest
             try
             {
                 Assert.That(mesh.vertexCount, Is.EqualTo(18));
+                Assert.That(mesh.uv2.Select(uv => uv.x), Is.EqualTo(new float[] { 1, 1, 1, 2, 2, 2, 4, 4, 4, 8, 8, 8, 16, 16, 16, 0, 0, 0 }));
                 Assert.That(mesh.vertices[0], Is.EqualTo(new Vector3(.02f, 0, -.03f)));
                 Assert.That(mesh.triangles.Take(3), Is.EqualTo(new[] { 0, 2, 1 }));
                 var anchor = type.GetMethod("Anchor");
@@ -174,6 +230,9 @@ namespace HBP.Tests.Quest
                 var secondary = Enum.Parse(anchor.GetParameters()[0].ParameterType, "SecondaryButton");
                 var buttonB = (Vector3)anchor.Invoke(geometry, new[] { secondary });
                 Assert.That(buttonB.y, Is.InRange(-.00001f, .00801f), "The B anchor must lie on B's surface.");
+                var samples = (Vector3[])type.GetMethod("VisibilitySamples").Invoke(geometry, new[] { secondary });
+                Vector3 buttonCenter = (mesh.vertices[3] + mesh.vertices[4] + mesh.vertices[5]) / 3;
+                Assert.That(samples, Is.EqualTo(new[] { buttonCenter }));
             }
             finally
             {
