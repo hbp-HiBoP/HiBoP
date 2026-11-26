@@ -43,6 +43,7 @@ namespace HBP.Quest.Editor
             RequireFeature<OpenXRCompositionLayersFeature>(settings);
             RequireFeature<OculusTouchControllerProfile>(settings);
             RequireFeature<MetaQuestTouchPlusControllerProfile>(settings);
+            RequireFeature<QuestControllerRenderModels>(settings);
             var pipeline = AssetDatabase.LoadAssetAtPath<UniversalRenderPipelineAsset>(PipelinePath);
             var renderer = AssetDatabase.LoadAssetAtPath<UniversalRendererData>(RendererPath);
             Require(pipeline != null && !pipeline.supportsHDR && pipeline.msaaSampleCount == 4, "Quest URP, no HDR, MSAA 4x");

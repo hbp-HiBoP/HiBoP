@@ -91,9 +91,22 @@ select an option or close the list. A stationary click still selects normally.
 Desktop `User Preferences > Quest > Environment` is a live session preference
 with `Passthrough` (default) and `Solid Background`. Present the opaque background only
 after the Quest runtime confirms the boundary is unsuppressed. Restore passthrough
-before allowing another suppression request. Each controller mesh follows the
-existing OpenXR grip pose and is visible only with full position and rotation
-tracking while the solid background is active.
+before allowing another suppression request. The optional Android feature
+`QuestControllerRenderModels` uses `XR_FB_render_model` in the existing OpenXR
+session. Controller help reads triangle geometry from the runtime's GLB, bakes
+the neutral shape with its skin and derives control surfaces from the named
+joints. Strip Meta's `b_` bone prefix from button names when identifying the
+control. Reflect Z when converting OpenXR grip coordinates to Unity, matching
+the conversion of the tracked grip pose. Attach each native contour and its
+anchors directly to that controller's grip pose.
+Display labels with identified surfaces alongside the native contour. Load the
+runtime model into memory without bundling its assets or textures. The existing
+WebXR model and its authored anchors supply the fallback. Apply any fallback
+visual placement to its mesh transform so the grip and aim coordinates used
+for interaction remain independent. The opaque model is visible in solid
+background outside native controller help. The help contour can appear in either mode. Both require full
+position and rotation tracking. Help opens after 1.5 seconds of steady inspection
+of either face and tolerates wrist rotation while the controller stays in view.
 
 Use [DesktopInput](../../Assets/Scripts/HBP/Input/DesktopInput.cs) for Desktop
 New Input System access and its neutral behavior when a device is absent.

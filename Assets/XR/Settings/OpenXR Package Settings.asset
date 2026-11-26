@@ -138,6 +138,7 @@ MonoBehaviour:
   - {fileID: -708843453074986447}
   - {fileID: -2329502912184955515}
   - {fileID: 7238583699808857167}
+  - {fileID: 1116236804298572074}
   customLoaderName: 
   m_renderMode: 1
   m_latencyOptimization: 0
@@ -1060,6 +1061,28 @@ MonoBehaviour:
   targetOpenXRApiVersion: 
   required: 0
   customRuntimeLoaderName: 
+--- !u!114 &1116236804298572074
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64683fb53b3dad74096eeac6ce0ce5f1, type: 3}
+  m_Name: QuestControllerRenderModels Android
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestControllerRenderModels
+  m_enabled: 1
+  nameUi: HiBoP Quest Controller Render Models
+  version: 1.0.0
+  featureIdInternal: fr.crnl.hibop.quest.controller-render-models
+  openxrExtensionStrings: XR_FB_render_model
+  company: HiBoP
+  priority: 0
+  targetOpenXRApiVersion:
+  required: 0
+  customRuntimeLoaderName:
 --- !u!114 &1428172085016464193
 MonoBehaviour:
   m_ObjectHideFlags: 0

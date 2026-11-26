@@ -340,6 +340,8 @@ MonoBehaviour:
   overlayFeedbackMaterial: {fileID: 2100000, guid: 841033f7ce651494ab41d4d71918b38f,
     type: 2}
   atlasTooltip: {fileID: 7995906318531852876}
+  controllerCalloutPrefab: {fileID: 5113618768815497040, guid: 832b204d836659844a4ccf2713131c95,
+    type: 3}
 --- !u!114 &570776363187926988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1419,7 +1421,7 @@ PrefabInstance:
     - target: {fileID: 6559065298823869791, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: displaySettings
-      value:
+      value: 
       objectReference: {fileID: 8284902471322442728}
     - target: {fileID: 6699661224953759980, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
@@ -6959,7 +6961,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 22d8929bdafbaa843896cfb7c8bec48e, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestDisplaySettingsPanel
 --- !u!1001 &7841808463395969730
 PrefabInstance:

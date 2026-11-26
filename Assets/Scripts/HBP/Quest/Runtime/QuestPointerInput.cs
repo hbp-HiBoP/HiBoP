@@ -36,7 +36,9 @@ namespace HBP.Quest
         [SerializeField] private Transform leftReticle, rightReticle;
         [SerializeField] private Material overlayFeedbackMaterial;
         [SerializeField] private QuestAtlasHoverTooltip atlasTooltip;
+        [SerializeField] private GameObject controllerCalloutPrefab;
         private Vector3 leftReticleScale, rightReticleScale;
+        private QuestControllerHelp controllerHelp;
         private readonly Hand[] hands = { new Hand(), new Hand() };
         private readonly List<RaycastResult> hits = new();
         private bool focused = true, paused;
@@ -70,6 +72,10 @@ namespace HBP.Quest
             public bool Valid, Distant, AimContact;
             public float GrabDistance;
             public float AtlasRayLimit;
+            public bool ControllerHelpNearTarget;
+            public Object ControllerHelpRayTarget;
+            public Vector3 ControllerHelpAimDirection;
+            public float ControllerHelpAimSince;
         }
 
         public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
@@ -153,6 +159,7 @@ namespace HBP.Quest
 
             Feedback(leftRay, leftReticle, false, default, default);
             Feedback(rightRay, rightReticle, false, default, default);
+            Application.onBeforeRender += RefreshControllerHelpBeforeRender;
         }
 
         public override void Process()
@@ -177,7 +184,9 @@ namespace HBP.Quest
                     if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
                         Cancel(hands[i]);
             UpdateThumbsticks();
-            if (atlasFeedback != null && atlasTooltip != null)
+            if (UpdateControllerHelp())
+                ClearAtlasHover();
+            else if (atlasFeedback != null && atlasTooltip != null)
                 atlasTooltip.ShowSelection(atlasFeedback, left.transform, head.transform);
             else if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
                 UpdateAtlasHover();
@@ -228,6 +237,7 @@ namespace HBP.Quest
         {
             Hand hand = hands[index];
             hand.AtlasRayLimit = 0;
+            hand.ControllerHelpNearTarget = false;
             var data = hand.Data;
             bool valid = hand.Valid;
             bool pressed = hand.Primary.IsPressed();
@@ -237,6 +247,7 @@ namespace HBP.Quest
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
+                hand.ControllerHelpRayTarget = null;
                 Cancel(hand);
                 Feedback(line, reticle, false, default, default);
                 return;
@@ -244,6 +255,7 @@ namespace HBP.Quest
 
             if (!valid)
             {
+                hand.ControllerHelpRayTarget = null;
                 Cancel(hand);
                 Feedback(line, reticle, false, default, default);
                 return;
@@ -315,6 +327,18 @@ namespace HBP.Quest
                 else if (target == null && rois != null)
                 {
                     roiCandidate = rois.JoiningCandidate(index);
+                }
+            }
+
+            if (controllerCalloutPrefab != null)
+            {
+                hand.ControllerHelpNearTarget = near || !secondaryRayDistance.HasValue && (cutCandidate != null || roiCandidate != null);
+                Object rayTarget = secondaryRayDistance.HasValue ? (Object)cutCandidate ?? roiCandidate : !uiFirst ? distantCandidate : null;
+                if (rayTarget != hand.ControllerHelpRayTarget || Vector3.Dot(data.Ray.direction, hand.ControllerHelpAimDirection) < .9994f)
+                {
+                    hand.ControllerHelpRayTarget = rayTarget;
+                    hand.ControllerHelpAimDirection = data.Ray.direction;
+                    hand.ControllerHelpAimSince = Time.unscaledTime;
                 }
             }
 
@@ -737,6 +761,7 @@ namespace HBP.Quest
             focused = value;
             if (!value)
             {
+                controllerHelp?.Hide();
                 CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
@@ -750,6 +775,7 @@ namespace HBP.Quest
             paused = value;
             if (value)
             {
+                controllerHelp?.Hide();
                 CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
@@ -760,6 +786,8 @@ namespace HBP.Quest
 
         protected override void OnDisable()
         {
+            Application.onBeforeRender -= RefreshControllerHelpBeforeRender;
+            controllerHelp?.Hide();
             CancelThumbsticks();
             ClearAtlasHover();
             if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);
