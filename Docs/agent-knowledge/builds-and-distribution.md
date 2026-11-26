@@ -6,9 +6,13 @@ or native plugin updates. Use the validation skill when executing Unity/builds.
 ## Product version and player builds
 
 [`codemeta.json`](../../codemeta.json) owns the product version.
-`Tools/Change version` edits that source and propagates it to global PlayerSettings
-and build profiles; `HBPBuilder` reapplies it before building and producing build
-metadata. Do not patch a profile or `BuildInfo` independently to fix a mismatch.
+`Tools/Change version` updates the version, the modification date, and the
+download link to the matching GitHub release tag. It saves the optional release
+notes text in `releaseNotes`, or uses the release link if the field is blank.
+Saving also synchronizes global PlayerSettings, both build profiles, and `BuildInfo`, even
+when the entered version is already current. `HBPBuilder` reapplies the version
+before building and producing build metadata. Do not patch a profile or
+`BuildInfo` independently to fix a mismatch.
 See [HBPBuildProfiles](../../Assets/Scripts/HBP/Dev/Editor/HBPBuildProfiles.cs).
 Quest derives its Android version code from the product version using
 `major * 10000 + minor * 100 + patch`. The minor and patch are limited to 0–99.

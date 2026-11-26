@@ -28,14 +28,14 @@
   "license": [
     "https://spdx.org/licenses/BSD-3-Clause"
   ],
-  "version": "6.2.0",
-  "dateModified": "2026-06-10",
+  "version": "6.3.0",
+  "dateModified": "2026-11-26",
   "codeRepository": "https://github.com/hbp-HiBoP/HiBoP",
-  "downloadUrl": "https://github.com/hbp-HiBoP/HiBoP/releases/tag/6.1.0",
+  "downloadUrl": "https://github.com/hbp-HiBoP/HiBoP/releases/tag/6.3.0",
   "relatedLink": [
     "https://github.com/hbp-HiBoP/HiBoP/blob/master/Docs/LaTeX/HiBoP_user_manual.pdf"
   ],
-  "releaseNotes": "- Updated to Unity 6.4\n- Cleaned project architecture\n- Fixed an issue regarding brainvision data on MacOS\n- Fixed an issue with BIDS file discovery\n- Fixed a bug with group file filter\n- Fixed lots of warnings",
+  "releaseNotes": "- Reworked triangle erasing on Desktop and added it to Meta Quest, with selection previews, brush controls, and undo.\n- Added contextual controller help on Quest and refreshed toolbar icons on both platforms.\n- Improved Desktop–Quest scene transfers and fixed timeline jumps during fast scrubbing.\n- Reduced atlas memory use, improved hover responsiveness, and fixed atlas loading and synchronization on Quest.\n- Fixed Quest numeric keypads and group filters that reference patients outside the current project. Database updates now report inaccessible folders and continue scanning accessible ones.",
   "referencePublication": "https://doi.org/10.1016/j.jneumeth.2024.110179",
   "programmingLanguage": [
     "C#",
