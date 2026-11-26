@@ -1897,6 +1897,7 @@ MonoBehaviour:
   m_ShouldActivateOnSelect: 1
   unsupportedKeyboardMessage: The system keyboard is unavailable. Create new labels
     on Desktop.
+  signedNumber: 0
 --- !u!114 &3544418128648722041
 MonoBehaviour:
   m_ObjectHideFlags: 0

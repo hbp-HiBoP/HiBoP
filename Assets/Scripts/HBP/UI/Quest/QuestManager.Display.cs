@@ -14,6 +14,8 @@ namespace HBP.Quest.Desktop
 {
     public sealed partial class QuestManager
     {
+        public UniTask<Base3DScene> OpenPatientFromDesktopAsync(Base3DScene source, Patient patient, CancellationToken token, bool showResults = true) => HBP.UI.Main.SceneDisplayOperation.OpenPatientAsync(source, patient, Guid.NewGuid(), token, explicitSharing: false, showResults: showResults);
+
         public async UniTask RetryDisplayScenesAsync(Base3DScene[] scenes, CancellationToken token, bool showResults = true)
         {
             var pending = scenes.Where(scene => scene != null && !scene.IsClosing && !IsSceneSynchronized(scene)).Distinct().ToArray();
@@ -104,6 +106,7 @@ namespace HBP.Quest.Desktop
             private readonly long generation;
             private readonly bool automaticSharing;
             private readonly string batch;
+            internal string TimingScope => batch;
             private bool disposed;
             private string activeVisualization;
             private long nextDisplayRevision, acceptedDisplayRevision;
@@ -160,6 +163,8 @@ namespace HBP.Quest.Desktop
                 if (!IsCurrent) throw new InvalidOperationException("The Quest connection or scene-sharing preference changed. Retry the incomplete visualizations explicitly.");
             }
 
+            internal bool PatientOpening { get; set; }
+
             public void RequireRetry(Base3DScene scene, string message) => owner.RequireSceneSynchronizationRetry(scene, message);
 
             public Task<bool> SendAsync(Base3DScene scene, Action<float, float, LoadingText> progress, CancellationToken token)
@@ -196,11 +201,11 @@ namespace HBP.Quest.Desktop
                 {
                     Validate();
                     if (entry.Binding != null) return true;
-                    await owner.PrepareSceneDependenciesAsync(entry.Scene, progress, entry.PreparationStop.Token, reportAtlasErrors: false);
+                    await owner.PrepareSceneDependenciesAsync(entry.Scene, progress, entry.PreparationStop.Token, reportAtlasErrors: false, timingScope: batch);
 
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
                     Validate();
-                    await owner.PrepareSceneOfferAsync(entry, true, entry.PreparationStop.Token, progress, maximumBytes, () => UpdateRemoteAsync(0, false, entry.PreparationStop.Token));
+                    await owner.PrepareSceneOfferAsync(entry, true, entry.PreparationStop.Token, progress, maximumBytes, () => UpdateRemoteAsync(0, false, entry.PreparationStop.Token), timingScope: batch);
                     await UniTask.SwitchToMainThread(entry.PreparationStop.Token);
                     Validate();
                     entry.PreparedForDisplay = true;
@@ -220,6 +225,7 @@ namespace HBP.Quest.Desktop
                         if (error is not OperationCanceledException) UnityEngine.Debug.LogException(error);
                         RequireRetry(entry.Scene, TransferError.Describe(error));
                     }
+
                     return false;
                 }
             }
@@ -390,7 +396,7 @@ namespace HBP.Quest.Desktop
                 var sourceStatus = SourceStatus;
                 if (sourceStatus?.Prefix == "Encoding scene data" && owned.FirstOrDefault(entry => entry.VisualizationId == sourceStatus.VisualizationId)?.Offer is { IsPreparingResources: false } && ReferenceEquals(sourceStatus, SourceStatus))
                     SourceStatus = SceneLoadingStatus.From(.20f, new LoadingText("Scene ready to send"), sourceStatus.VisualizationId);
-                var state = new SceneDisplayBatchState { Id = batch, Visualizations = visualizations.Select(value => value.ID).ToArray(), Names = visualizations.Select(value => value.Name).ToArray(), Progress = progress, Finished = finished, ActiveVisualizationId = activeVisualization ?? SourceStatus?.VisualizationId, IncompleteVisualizations = incomplete ?? Array.Empty<string>(), SourceStatus = SourceStatus, TransferStatus = TransferStatus };
+                var state = new SceneDisplayBatchState { Id = batch, Visualizations = visualizations.Select(value => value.ID).ToArray(), Names = visualizations.Select(value => value.Name).ToArray(), Progress = progress, Finished = finished, PatientOpening = PatientOpening, ActiveVisualizationId = activeVisualization ?? SourceStatus?.VisualizationId, IncompleteVisualizations = incomplete ?? Array.Empty<string>(), SourceStatus = SourceStatus, TransferStatus = TransferStatus };
                 state.Validate();
                 long revision = Interlocked.Increment(ref nextDisplayRevision);
                 var request = new SessionControlRequest(Guid.ParseExact(context, "N"), generation, Guid.NewGuid(), SessionControlKind.DisplayBatch, revision: revision, body: SceneSessionState.Encode(state));

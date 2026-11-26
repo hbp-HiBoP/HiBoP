@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using HBP.Transfer.Transport;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -18,7 +19,10 @@ namespace HBP.Transfer.Scene
     // Reusing the existing serializer contracts preserves aliases, references and callbacks.
     internal sealed class DetachedSceneMetadata : JTokenWriter
     {
-        private readonly List<(JValue token, byte[] bytes)> numeric = new();
+        // The wire reference uses 16 bits each for the offset and length in 32-bit samples.
+        private const int GroupBytes = (ushort.MaxValue + 1) * sizeof(int);
+        internal const int MaximumGroupedBufferBytes = 64 * 1024;
+        private readonly List<(JValue token, byte[] bytes, bool numericArray)> numeric = new();
         private bool encoded;
         private long bytes;
         private long metadataBytes;
@@ -208,12 +212,51 @@ namespace HBP.Transfer.Scene
             base.WriteValue(value == null ? null : (byte[])value.Clone());
         }
 
-        internal void WriteBuffer(byte[] owned)
+        internal void WriteBuffer(byte[] owned, bool numericArray = false)
         {
             CheckNumericBudget(owned.LongLength);
             bytes = checked(bytes + owned.LongLength);
             WriteValue(0);
-            numeric.Add(((JValue)CurrentToken, owned));
+            numeric.Add(((JValue)CurrentToken, owned, numericArray));
+        }
+
+        private void EncodeNumericBuffers(SceneArchive archive)
+        {
+            bool group = archive.SupportsNumericSlices && archive.GroupNumericBuffers;
+            var pending = group ? new List<(JValue token, int offset, int length)>() : null;
+            byte[] block = group && numeric.Count > 0 ? new byte[GroupBytes] : null;
+            int used = 0;
+            long grouped = 0;
+
+            void Flush()
+            {
+                if (used == 0) return;
+                int index = archive.RegisterCapturedNumericBuffer(block.AsSpan(0, used).ToArray());
+                foreach (var entry in pending)
+                    entry.token.Value = ~(((long)index << 32) | ((long)entry.offset << 16) | (long)entry.length);
+                pending.Clear();
+                used = 0;
+            }
+
+            for (int i = 0; i < numeric.Count; i++)
+            {
+                archive.CaptureCancellation.ThrowIfCancellationRequested();
+                var item = numeric[i];
+                if (group && item.numericArray && item.bytes.Length is > 0 and <= MaximumGroupedBufferBytes)
+                {
+                    if (item.bytes.Length > GroupBytes - used) Flush();
+                    item.bytes.AsSpan().CopyTo(block.AsSpan(used));
+                    pending.Add((item.token, used / sizeof(int), item.bytes.Length / sizeof(int)));
+                    used += item.bytes.Length;
+                    grouped++;
+                }
+                else item.token.Value = archive.RegisterCapturedNumericBuffer(item.bytes);
+
+                numeric[i] = default; // Release each owned source as soon as it is packed.
+            }
+
+            Flush();
+            PairingTiming.Count("source.grouped-numeric-buffer-count", grouped, archive.TimingScope);
         }
 
         internal byte[] Encode(SceneArchive archive)
@@ -223,11 +266,13 @@ namespace HBP.Transfer.Scene
             encoded = true;
             // This list counts references. The pack enforces its entry limit after
             // merging identical buffers and assigning indices.
-            foreach (var item in numeric)
-                item.token.Value = archive.RegisterCapturedNumericBuffer(item.bytes);
+            using (PairingTiming.Measure("source.pack-numeric-buffers", archive.TimingScope))
+                EncodeNumericBuffers(archive);
             numeric.Clear();
-            archive.ResolveCapturedSurfaces(Token);
+            using (PairingTiming.Measure("source.pack-surface-buffers", archive.TimingScope))
+                archive.ResolveCapturedSurfaces(Token);
             using var memory = new MemoryStream();
+            using (PairingTiming.Measure("source.write-metadata-json", archive.TimingScope))
             using (var writer = new JsonTextWriter(new StreamWriter(memory, new UTF8Encoding(false), 8192, true)))
                 Token.WriteTo(writer);
             if (memory.Length > SceneArchive.MaximumMetadataBytes)

@@ -394,6 +394,7 @@ namespace HBP.Data.Module3D
             else
             {
                 BrainSurface.UpdateMeshFromDLL(brainMesh);
+                m_Scene.TriangleEraser.ApplyVisibilityTo(brainMesh, BrainSurface);
                 ClearRepresentationTransitionStreams(brainMesh);
                 foreach (Column3D column in m_Scene.Columns)
                     column.UpdateColumnBrainMesh(m_DisplayedObjects.Brain);

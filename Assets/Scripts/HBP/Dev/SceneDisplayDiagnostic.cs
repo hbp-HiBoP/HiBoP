@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using HBP.Core.Data;
+using HBP.Core.Enums;
+using HBP.Core.Object3D;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
 using HBP.Data.Tools;
@@ -33,21 +35,25 @@ namespace HBP.Dev
             int selection = Array.IndexOf(args, "-displaySyncVisualizations");
             int endpoint = Array.IndexOf(args, "-displaySyncEndpoint");
             int hold = Array.IndexOf(args, "-displaySyncHoldSeconds");
+            int passes = Array.IndexOf(args, "-displaySyncPasses");
+            int passCount = passes >= 0 && passes + 1 < args.Length && int.TryParse(args[passes + 1], out int count) ? count : 2;
+            bool requirePatientMesh = args.Contains("-displaySyncPatientMesh");
+            bool openPatientFromSite = args.Contains("-displaySyncOpenPatient");
             int holdSeconds = hold >= 0 && hold + 1 < args.Length && int.TryParse(args[hold + 1], out int seconds) ? seconds : 0;
             string[] names = selection >= 0 && selection + 1 < args.Length ? args[selection + 1].Split(',') : null;
             string address = endpoint >= 0 && endpoint + 1 < args.Length ? args[endpoint + 1] : null;
-            StartupWork = RunFromCommandLineAsync(args[project + 1], args[output + 1], args.Contains("-displaySyncEvidenceOnce"), names, address, holdSeconds).AsTask();
+            StartupWork = RunFromCommandLineAsync(args[project + 1], args[output + 1], args.Contains("-displaySyncEvidenceOnce"), names, address, holdSeconds, requirePatientMesh, passCount, openPatientFromSite).AsTask();
         }
 
         // Retain startup work; the wrapper observes failure and closes only an explicitly requested run.
         public static System.Threading.Tasks.Task StartupWork { get; private set; }
 
-        private static async UniTask RunFromCommandLineAsync(string project, string directory, bool quit, string[] names, string endpoint, int holdSeconds)
+        private static async UniTask RunFromCommandLineAsync(string project, string directory, bool quit, string[] names, string endpoint, int holdSeconds, bool requirePatientMesh, int passes, bool openPatientFromSite)
         {
             int code = 0;
             try
             {
-                await RunAsync(project, directory, visualizationNames: names, preferredEndpoint: endpoint, holdSeconds: holdSeconds);
+                await RunAsync(project, directory, passes: passes, visualizationNames: names, preferredEndpoint: endpoint, holdSeconds: holdSeconds, requirePatientMesh: requirePatientMesh, openPatientFromSite: openPatientFromSite);
             }
             catch (Exception error)
             {
@@ -60,7 +66,7 @@ namespace HBP.Dev
             }
         }
 
-        public static async UniTask RunAsync(string projectPath, string directory, int passes = 2, bool requireQuest = true, string[] visualizationNames = null, string preferredEndpoint = null, int holdSeconds = 0)
+        public static async UniTask RunAsync(string projectPath, string directory, int passes = 2, bool requireQuest = true, string[] visualizationNames = null, string preferredEndpoint = null, int holdSeconds = 0, bool requirePatientMesh = false, bool openPatientFromSite = false)
         {
             if (passes < 1 || passes > 10) throw new ArgumentOutOfRangeException(nameof(passes));
             if (holdSeconds < 0 || holdSeconds > 60) throw new ArgumentOutOfRangeException(nameof(holdSeconds));
@@ -144,7 +150,7 @@ namespace HBP.Dev
                     Base3DScene[] scenes = Array.Empty<Base3DScene>();
                     try
                     {
-                        await window.DisplayAsync(timeout.Token);
+                        await window.DisplayAsync(timeout.Token, showResults: false);
                         double localReturnMs = clock.Elapsed.TotalMilliseconds;
                         scenes = visualizations.Select(visualization => Module3DMain.Scenes.Single(value => value.Visualization == visualization)).ToArray();
                         foreach (var scene in scenes) await scene.PrepareRenderingAsync(timeout.Token);
@@ -156,11 +162,57 @@ namespace HBP.Dev
                         }
 
                         double bothReadyMs = clock.Elapsed.TotalMilliseconds;
+                        JObject patientOpening = null;
+                        if (openPatientFromSite)
+                        {
+                            var source = scenes.Single();
+                            if (!requireQuest || source.Type != SceneType.MultiPatients)
+                                throw new InvalidOperationException("The patient benchmark needs a synchronized multipatient source.");
+
+                            var target = source.Columns.SelectMany(column => column.Sites.Select(site => (column, site))).FirstOrDefault(item => item.site.Information.Patient.ID == source.Visualization.Patients[0].ID && !item.site.State.IsMasked);
+                            if (target.site == null) throw new InvalidOperationException("The first patient has no visible site in the benchmark source.");
+                            Module3DMain.SelectSceneContext(source, target.column);
+                            source.SelectSite(target.column, target.site);
+                            var elapsed = Stopwatch.StartNew();
+                            var child = await manager.OpenPatientFromDesktopAsync(source, target.site.Information.Patient, timeout.Token, showResults: false);
+                            double first = elapsed.Elapsed.TotalMilliseconds;
+                            scenes = new[] { child, source };
+                            await UniTask.NextFrame(cancellationToken: timeout.Token);
+                            Module3DMain.SelectSceneContext(source, target.column);
+                            source.SelectSite(target.column, target.site);
+                            elapsed.Restart();
+                            var reopened = await manager.OpenPatientFromDesktopAsync(source, target.site.Information.Patient, timeout.Token, showResults: false);
+                            double repeated = elapsed.Elapsed.TotalMilliseconds;
+                            if (reopened != child || !manager.IsSceneSynchronized(child) || !manager.IsSceneSynchronized(source) || child.MeshManager.SelectedMesh.Type != MeshType.Patient || child.MeshManager.SelectedMesh is RuntimeSingleMesh3D)
+                                throw new InvalidOperationException("The benchmark requires the same synchronized opening and a persistent patient mesh.");
+
+                            patientOpening = new JObject
+                            {
+                                ["firstMs"] = first, ["reselectionMs"] = repeated,
+                                ["vertices"] = child.MeshManager.BrainSurface.NumberOfVertices,
+                                ["triangles"] = child.MeshManager.BrainSurface.NumberOfTriangles
+                            };
+                        }
+
+                        if (requirePatientMesh && scenes.Any(scene => scene.MeshManager.SelectedMesh.Type != MeshType.Patient || scene.MeshManager.SelectedMesh is RuntimeSingleMesh3D))
+                            throw new InvalidOperationException("The diagnostic requires a persistent patient mesh to be selected.");
+                        var selectedAnatomy = new JArray(scenes.Select(scene =>
+                        {
+                            var mesh = scene.MeshManager.SelectedMesh;
+                            var surface = scene.MeshManager.BrainSurface;
+                            return new JObject
+                            {
+                                ["meshType"] = mesh.Type.ToString(), ["representation"] = mesh.Representation.ToString(),
+                                ["hemispheres"] = mesh.SupportsHemispheres, ["inflated"] = mesh.HasInflatedRepresentation,
+                                ["vertices"] = surface.NumberOfVertices, ["triangles"] = surface.NumberOfTriangles
+                            };
+                        }));
                         double[] intervals = frameGaps.OrderBy(value => value).ToArray();
                         double Percentile(double fraction) => intervals.Length == 0 ? 0 : intervals[(int)((intervals.Length - 1) * fraction)];
                         results.Add(new JObject
                         {
                             ["pass"] = pass, ["sameSessionReopen"] = pass > 1,
+                            ["anatomy"] = selectedAnatomy, ["patientOpening"] = patientOpening,
                             ["localDisplayReturnMs"] = localReturnMs, ["desktopReadyMs"] = desktopReadyMs,
                             ["desktopAndPublicationMs"] = bothReadyMs, ["maximumFrameGapMs"] = maximumGap,
                             ["frameGapP50Ms"] = Percentile(.50), ["frameGapP95Ms"] = Percentile(.95), ["frameGapP99Ms"] = Percentile(.99),
@@ -173,7 +225,8 @@ namespace HBP.Dev
                     {
                         // This diagnostic owns the opening, but QuestManager owns its
                         // automatic send. Ask that owner to cancel and drain before returning.
-                        foreach (var scene in scenes) await manager.CancelSceneSynchronizationAsync(scene);
+                        foreach (var scene in Module3DMain.Scenes.Where(scene => visualizations.Contains(scene.Visualization)).ToArray())
+                            await manager.CancelSceneSynchronizationAsync(scene);
                         throw;
                     }
                     finally
@@ -196,6 +249,8 @@ namespace HBP.Dev
                     ["visualizations"] = new JArray(visualizations.Select(value => value.Name)), ["columns"] = visualizations.Sum(value => value.Columns.Count),
                     ["patients"] = visualizations.SelectMany(value => value.Patients).Distinct().Count(), ["runs"] = results,
                     ["preferredEndpoint"] = preferredEndpoint,
+                    ["requestedFormat"] = Environment.GetCommandLineArgs().Contains("-sceneTransferJson") ? "json" : Environment.GetCommandLineArgs().Contains("-sceneTransferRecording") ? "recording" : Environment.GetCommandLineArgs().Contains("-sceneTransferColumn") ? "column" : "automatic",
+                    ["overlapCapture"] = Environment.GetCommandLineArgs().Contains("-sceneTransferOverlap"),
                     ["memorySamplingFrames"] = 30,
                     ["desktopIdleThrottlingSuspended"] = true,
                     ["targetFrameRate"] = Application.targetFrameRate,

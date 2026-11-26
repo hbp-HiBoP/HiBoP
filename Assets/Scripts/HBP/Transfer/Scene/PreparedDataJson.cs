@@ -22,6 +22,7 @@ namespace HBP.Transfer.Scene
         private readonly SceneArchive archive;
         private JsonConverter[] operationConverters;
         private Action columnRestored;
+        private PairingContext.GlobalReferenceConverter globalReferences;
         internal bool InertPreferences { get; set; }
 
         private PreparedDataJson(SceneArchive archive)
@@ -41,7 +42,12 @@ namespace HBP.Transfer.Scene
         {
             var resolver = new PreparedDataJson(archive) { InertPreferences = inertPreferences, columnRestored = columnRestored };
             var converters = new List<JsonConverter>();
-            if (globals != null) converters.Add(globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null));
+            if (globals != null)
+            {
+                resolver.globalReferences = globals.ReferenceConverter(compactSceneReferences ? archive.GlobalReferences : null, archive?.DefinitionFingerprintTiming);
+                converters.Add(resolver.globalReferences);
+            }
+
             converters.Add(new ObjectKeyDictionaryConverter());
             if (numericConverter != null) converters.Add(numericConverter);
             resolver.operationConverters = converters.ToArray();
@@ -78,6 +84,22 @@ namespace HBP.Transfer.Scene
                         if (field.Name == "m_PinnedDataInfos" || typeof(UnityEventBase).IsAssignableFrom(field.FieldType) || typeof(Delegate).IsAssignableFrom(field.FieldType) || field.FieldType == typeof(IconicScenario)) continue;
                         var property = base.CreateProperty(field, MemberSerialization.Fields);
                         property.Readable = property.Writable = true;
+                        if (type == typeof(IEEGData) && archive?.CompactSignals == true)
+                        {
+                            switch (field.Name)
+                            {
+                                case "<DataByChannelID>k__BackingField":
+                                    property.Converter = new PackedIEEGData(archive, globalReferences, PackedIEEGData.Section.Trials);
+                                    break;
+                                case "<StatisticsByChannelID>k__BackingField":
+                                    property.Converter = new PackedIEEGData(archive, globalReferences, PackedIEEGData.Section.Statistics);
+                                    break;
+                                case "<ProcessedValuesByChannel>k__BackingField":
+                                    property.Converter = new PackedIEEGData(archive, globalReferences, PackedIEEGData.Section.Values);
+                                    break;
+                            }
+                        }
+
                         fields.Add(property);
                     }
 

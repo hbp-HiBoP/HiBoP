@@ -18,6 +18,10 @@ namespace HBP.Rendering
         private static readonly List<ShaderTagId> ForwardPasses = new() { new("SRPDefaultUnlit"), new("UniversalForward"), new("UniversalForwardOnly") };
         private static readonly List<ShaderTagId> PeelPasses = new() { new("HBPQuestTransparent") };
         private static readonly List<ShaderTagId> SilhouettePasses = new() { new("HBPEdgeMask") };
+        private static readonly List<ShaderTagId> ControllerHelpDepthPasses = new() { new("HBPQuestControllerDepth") };
+        private static readonly List<ShaderTagId> ControllerHelpColorPasses = new() { new("HBPQuestControllerHelp") };
+        private static readonly int ControllerHelpDepthId = Shader.PropertyToID("_HBPQuestControllerHelpDepth");
+        private static readonly int ControllerHelpControlsId = Shader.PropertyToID("_HBPQuestControllerHelpControls");
         private static readonly int OpaqueDepthId = Shader.PropertyToID("_HBPQuestOpaqueDepth");
         private static readonly int PreviousDepthId = Shader.PropertyToID("_HBPQuestPreviousDepth");
         private static readonly int PreviousColorId = Shader.PropertyToID("_HBPQuestPreviousColor");
@@ -173,6 +177,20 @@ namespace HBP.Rendering
             var panels = CreateList(renderGraph, frameData, ForwardPasses, windowQueue, cameraMask, SortingCriteria.CommonTransparent, shader: panelShader);
             RecordDraw(renderGraph, camera, "HBP Quest Window Stack", panels, resources.activeColorTexture, resources.activeDepthTexture, inputs);
 
+            if (HBPEdgeRendererFeature.HasQuestControllerHelp)
+            {
+                depthDesc.name = "HBP Quest Controller Help Depth";
+                var controllerDepth = renderGraph.CreateTexture(depthDesc);
+                colorDesc.name = "HBP Quest Controller Help Controls";
+                colorDesc.format = GraphicsFormat.R8_UNorm;
+                var controllerControls = renderGraph.CreateTexture(colorDesc);
+                var overlayQueue = new RenderQueueRange(4000, 5000);
+                var shells = CreateList(renderGraph, frameData, ControllerHelpDepthPasses, overlayQueue, cameraMask, SortingCriteria.CommonOpaque);
+                RecordDraw(renderGraph, camera, depthDesc.name, shells, controllerControls, controllerDepth);
+                var help = CreateList(renderGraph, frameData, ControllerHelpColorPasses, overlayQueue, cameraMask, SortingCriteria.CommonTransparent);
+                RecordDraw(renderGraph, camera, "HBP Quest Controller Help", help, resources.activeColorTexture, TextureHandle.nullHandle, controllerDepth: controllerDepth, controllerControls: controllerControls);
+            }
+
             var overlays = CreateList(renderGraph, frameData, ForwardPasses, new RenderQueueRange(4000, 5000), cameraMask, SortingCriteria.CommonTransparent);
             RecordDraw(renderGraph, camera, "HBP Quest Overlays", overlays, resources.activeColorTexture, resources.activeDepthTexture);
         }
@@ -269,19 +287,34 @@ namespace HBP.Rendering
             });
         }
 
-        private static void RecordDraw(RenderGraph graph, UniversalCameraData camera, string name, RendererListHandle renderers, TextureHandle color, TextureHandle depth, CompositionInputs inputs = null)
+        private static void RecordDraw(RenderGraph graph, UniversalCameraData camera, string name, RendererListHandle renderers, TextureHandle color, TextureHandle depth, CompositionInputs inputs = null, TextureHandle controllerDepth = default, TextureHandle controllerControls = default)
         {
             using var builder = graph.AddRasterRenderPass<DrawData>(name, out var data);
             data.Renderers = renderers;
             data.Inputs = inputs;
+            data.ControllerDepth = controllerDepth;
+            data.ControllerControls = controllerControls;
             builder.UseRendererList(renderers);
             if (color.IsValid()) builder.SetRenderAttachment(color, 0, AccessFlags.Write);
-            builder.SetRenderAttachmentDepth(depth, color.IsValid() ? AccessFlags.ReadWrite : AccessFlags.Write);
+            if (depth.IsValid()) builder.SetRenderAttachmentDepth(depth, color.IsValid() ? AccessFlags.ReadWrite : AccessFlags.Write);
             if (inputs != null) UseInputs(builder, inputs);
+            if (controllerDepth.IsValid())
+            {
+                builder.UseTexture(controllerDepth, AccessFlags.Read);
+                builder.UseTexture(controllerControls, AccessFlags.Read);
+                builder.AllowGlobalStateModification(true);
+            }
+
             SetStereoFlags(builder, camera);
             builder.SetRenderFunc(static (DrawData draw, RasterGraphContext context) =>
             {
                 if (draw.Inputs != null) BindInputs(context.cmd, draw.Inputs);
+                if (draw.ControllerDepth.IsValid())
+                {
+                    context.cmd.SetGlobalTexture(ControllerHelpDepthId, draw.ControllerDepth);
+                    context.cmd.SetGlobalTexture(ControllerHelpControlsId, draw.ControllerControls);
+                }
+
                 context.cmd.DrawRendererList(draw.Renderers);
             });
         }
@@ -352,6 +385,8 @@ namespace HBP.Rendering
         {
             public RendererListHandle Renderers;
             public CompositionInputs Inputs;
+            public TextureHandle ControllerDepth;
+            public TextureHandle ControllerControls;
         }
 
         private sealed class CompositeData

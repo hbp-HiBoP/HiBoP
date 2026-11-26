@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace HBP.UI.Toolbar
@@ -42,7 +42,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            bool haveTrianglesBeenErased = SelectedScene.TriangleEraser.MeshHasInvisibleTriangles;
+            bool haveTrianglesBeenErased = SelectedScene.TriangleEraser.MeshHasInvisibleTriangles || SelectedScene.TriangleEraser.SelectedCount > 0;
 
             m_Button.interactable = haveTrianglesBeenErased;
         }

@@ -1,4 +1,5 @@
 using System;
+using HBP.Transfer.Transport;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -46,7 +47,8 @@ namespace HBP.Transfer.Scene
             if (context == null || context.Id != Id || ReferenceEquals(context, this)) throw new ArgumentException("Definitions must belong to the same pairing.");
             if (previous != null) throw new InvalidOperationException("The previous definitions are already retained.");
             for (var ancestor = context; ancestor != null; ancestor = ancestor.previous)
-                if (ReferenceEquals(ancestor, this)) throw new ArgumentException("Definitions history cannot contain a cycle.");
+                if (ReferenceEquals(ancestor, this))
+                    throw new ArgumentException("Definitions history cannot contain a cycle.");
             previous = context;
         }
 
@@ -133,27 +135,30 @@ namespace HBP.Transfer.Scene
         internal BaseData ResolveReference(string key, string hash, Type type)
         {
             for (var context = this; context != null; context = context.previous)
-                if (key != null && context.objects.TryGetValue(key, out var value) && type.IsInstanceOfType(value) && hash == context.hashes[key]) return value;
+                if (key != null && context.objects.TryGetValue(key, out var value) && type.IsInstanceOfType(value) && hash == context.hashes[key])
+                    return value;
             throw new InvalidDataException("Unknown or incompatible global definition. Synchronize shared definitions before sending this visualization.");
         }
 
-        internal JsonConverter ReferenceConverter(SceneGlobalReferences references = null) => new GlobalReferenceConverter(this, references);
+        internal GlobalReferenceConverter ReferenceConverter(SceneGlobalReferences references = null, PairingTiming.Accumulator fingerprintTiming = null) => new GlobalReferenceConverter(this, references, fingerprintTiming);
 
-        private sealed class GlobalReferenceConverter : JsonConverter
+        internal sealed class GlobalReferenceConverter : JsonConverter
         {
             private readonly PairingContext context;
 
             private readonly SceneGlobalReferences references;
+            private readonly PairingTiming.Accumulator fingerprintTiming;
 
             // This converter belongs to one serializer/capture, never to the paired session.
             // BaseData equality is ID-based; separate objects sharing an ID must each be checked.
             private readonly Dictionary<BaseData, string> validated = new(ReferenceComparer.Instance);
             private readonly JsonSerializer fingerprintSerializer = CreateFingerprintSerializer();
 
-            public GlobalReferenceConverter(PairingContext context, SceneGlobalReferences references)
+            public GlobalReferenceConverter(PairingContext context, SceneGlobalReferences references, PairingTiming.Accumulator fingerprintTiming)
             {
                 this.context = context;
                 this.references = references;
+                this.fingerprintTiming = fingerprintTiming;
             }
 
             public override bool CanConvert(Type type) => IsGlobal(type);
@@ -180,13 +185,7 @@ namespace HBP.Transfer.Scene
                     return;
                 }
 
-                if (!validated.TryGetValue((BaseData)value, out string hash))
-                {
-                    hash = MeasuredFingerprint((BaseData)value);
-                    try { context.ResolveReference(key, hash, value.GetType()); }
-                    catch (InvalidDataException error) { throw new InvalidOperationException("A protocol or tag definition is absent or changed. Synchronize shared definitions before sending this visualization: " + key, error); }
-                    validated.Add((BaseData)value, hash);
-                }
+                string hash = Validate((BaseData)value, key);
                 if (references != null)
                 {
                     writer.WriteValue(references.Add(key, hash));
@@ -201,9 +200,32 @@ namespace HBP.Transfer.Scene
                 writer.WriteEndObject();
             }
 
-            private string MeasuredFingerprint(BaseData value)
+            internal int CaptureIndex(BaseData value)
             {
-                return Fingerprint(value, fingerprintSerializer);
+                if (references == null || context.Deferred != null) throw new InvalidOperationException("Packed scene references are unavailable.");
+                string key = Key(value);
+                return references.Add(key, Validate(value, key));
+            }
+
+            private string Validate(BaseData value, string key)
+            {
+                if (!validated.TryGetValue(value, out string hash))
+                {
+                    using (PairingTiming.Measure(fingerprintTiming))
+                        hash = Fingerprint(value, fingerprintSerializer);
+                    try
+                    {
+                        context.ResolveReference(key, hash, value.GetType());
+                    }
+                    catch (InvalidDataException error)
+                    {
+                        throw new InvalidOperationException("A protocol or tag definition is absent or changed. Synchronize shared definitions before sending this visualization: " + key, error);
+                    }
+
+                    validated.Add(value, hash);
+                }
+
+                return hash;
             }
 
             public override object ReadJson(JsonReader reader, Type type, object existing, JsonSerializer serializer)

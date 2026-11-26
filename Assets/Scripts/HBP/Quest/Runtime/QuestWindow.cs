@@ -27,6 +27,8 @@ namespace HBP.Quest
         internal bool WorkspaceReady => Manager == null || Manager.HasWorkspace;
         public string Key => key;
         public bool IsOpen { get; private set; }
+        internal bool HasDeferredOpen { get; private set; }
+        internal bool OpenRequested => IsOpen || HasDeferredOpen;
         public bool IsPinned { get; private set; }
         public bool IsManipulated { get; private set; }
         public bool IsBusy => hovered != 0 || IsManipulated;
@@ -53,14 +55,14 @@ namespace HBP.Quest
 
         internal void NotifySettingsChanged() => OnSettingsChanged.Invoke(this);
 
-        internal void RestoreState(QuestWindowLayoutStore.WindowState state)
+        internal void RestoreState(QuestWindowLayoutStore.WindowState state, bool canOpen)
         {
             SetLayoutPose(state.Pose);
             UserSize = state.Size;
             RestoreDimensions();
             if (state.ZoomPercent.HasValue) GetComponentInChildren<QuestWindowContentZoom>(true)?.RestoreZoomPercent(state.ZoomPercent.Value);
             if (state.Pinned.HasValue) SetPinned(state.Pinned.Value);
-            if (state.Open.HasValue) SetOpen(state.Open.Value);
+            if (state.Open.HasValue) SetOpen(state.Open.Value, defer: !canOpen);
         }
 
         internal void RestoreDimensions()
@@ -90,9 +92,16 @@ namespace HBP.Quest
 
         public void Open()
         {
+            if (Manager == null || Manager.CanOpen(Key)) OpenAvailable();
+        }
+
+        internal void OpenAvailable()
+        {
             SetOpen(true);
             Select();
         }
+
+        internal void RestoreDeferredOpen() => SetOpen(true);
 
         public void Close() => SetOpen(false);
 
@@ -119,12 +128,13 @@ namespace HBP.Quest
                 button.SetWindowSortingOrder(order);
         }
 
-        private void SetOpen(bool value)
+        private void SetOpen(bool value, bool defer = false)
         {
-            bool changed = IsOpen != value;
-            bool opened = value && !IsOpen;
-            IsOpen = value;
-            if (!value)
+            bool changed = OpenRequested != value;
+            bool opened = value && !defer && !IsOpen;
+            IsOpen = value && !defer;
+            HasDeferredOpen = value && defer;
+            if (!IsOpen)
             {
                 hovered = 0;
                 IsManipulated = false;

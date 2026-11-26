@@ -319,7 +319,6 @@ namespace HBP.Data.Module3D
             // Patient anatomy has its own topology; the source masks and MRI preview
             // describe the multi-patient reference surface and cannot be reused.
             visualizationToLoad.Configuration.ErasedTriangles = null;
-            visualizationToLoad.Configuration.ErasedSimplifiedTriangles = null;
             visualizationToLoad.Configuration.PreviewMRIName = null;
             if (scene.SelectedColumn.SelectedSite)
             {
@@ -329,8 +328,8 @@ namespace HBP.Data.Module3D
 
             if (PersistentDataManager.UserPreferences.Data.Anatomic.PreloadSinglePatientDataInMultiPatientVisualization)
             {
-                visualizationToLoad.Configuration.PreloadedMeshes = scene.MeshManager.PreloadedMeshes[patient];
-                visualizationToLoad.Configuration.PreloadedMRIs = scene.MRIManager.PreloadedMRIs[patient];
+                if (scene.MeshManager.PreloadedMeshes.TryGetValue(patient, out var meshes)) visualizationToLoad.Configuration.PreloadedMeshes = meshes;
+                if (scene.MRIManager.PreloadedMRIs.TryGetValue(patient, out var mris)) visualizationToLoad.Configuration.PreloadedMRIs = mris;
             }
 
             visualizationToLoad.GenerateID();

@@ -405,11 +405,7 @@ namespace HBP.Sync.Tests
         {
             const int triangleCount = 40000;
             var visible = Enumerable.Repeat((byte)0xFF, (triangleCount + 7) / 8).ToArray();
-            var mask = new ApplyTriangleMask(new[]
-            {
-                new TriangleMask(new TopologyId("mesh:part:complete"), triangleCount, visible),
-                new TriangleMask(new TopologyId("mesh:part:simplified"), triangleCount, visible)
-            });
+            var mask = new ApplyTriangleMask(new TriangleMask(new TopologyId("mesh:part:complete"), triangleCount, visible));
             var limits = new SchedulerLimits(inlineThresholdBytes: 4096, bulkChunkBytes: 2048, maxBulkBodyBytesPerTransfer: 65536, maxBulkBodyBytesTotal: 131072);
             var scheduler = CreateScheduler(new FakeMonotonicClock(), limits);
             EnqueueResult maskQueued = scheduler.EnqueueMutation(mask, operationId: new OperationId(GuidFor(4150)), canonicalSequence: 41UL);
@@ -425,7 +421,7 @@ namespace HBP.Sync.Tests
             Assert.That(descriptor.BulkDescriptor, Is.Not.Null);
             Assert.That(descriptor.BulkDescriptor.TotalLength, Is.GreaterThan(limits.InlineThresholdBytes));
             Assert.That(descriptor.BulkDescriptor.Scheduling.BarrierScope, Is.EqualTo(BarrierScope.AllScene));
-            Assert.That(descriptor.BulkDescriptor.Scheduling.TouchedKeys, Has.Count.EqualTo(2));
+            Assert.That(descriptor.BulkDescriptor.Scheduling.TouchedKeys, Has.Count.EqualTo(1));
             CollectionAssert.AreEqual(new byte[] { (byte)'H', (byte)'B', (byte)'S', (byte)'O' }, descriptor.GetPayloadCopy().Take(4));
 
             ReliableFrame afterDescriptor = Next(scheduler).Frame;
@@ -648,6 +644,32 @@ namespace HBP.Sync.Tests
             Assert.That(boundedLedger.Accept(new OperationId(GuidFor(406)), keyB, 1, 2, payload), Is.EqualTo(OperationAdmission.Overflow));
             Assert.That(boundedLedger.OperationCount, Is.EqualTo(1));
             Assert.That(boundedLedger.IndexedKeyCount, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void TimelineSeekConflict_StillTracksDesktopAndPlaybackEditsAfterNewerQuestSeeks()
+        {
+            var ledger = new OperationLedger();
+            var column = new ColumnId("column-A");
+            var seek = ScheduleDescriptor.ForMutation(Scene, Incarnation, new SetTimelineAnchor(column, 5, false, false, 1, 0, 1000, TimelineAnchorIntent.Seek));
+            var pause = ScheduleDescriptor.ForMutation(Scene, Incarnation, new SetTimelineAnchor(column, 5, false, false, 1, 0, 1000, TimelineAnchorIntent.Pause));
+            var payload = new byte[] { 0x10 };
+
+            Assert.That(ledger.Accept(new OperationId(GuidFor(410)), seek, 0, 1, payload), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(411)), seek, 1, 2, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(412)), seek, 0, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.TryGetLastAcceptedSequence(seek.CoalescingKey, out ulong latest), Is.True);
+            Assert.That(latest, Is.EqualTo(2UL));
+
+            Assert.That(ledger.Accept(new OperationId(GuidFor(413)), pause, 1, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(414)), pause, 2, 3, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(415)), seek, 3, 4, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(416)), seek, 2, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+
+            ledger.AdvanceConflictFloor(Scene, Incarnation, 4);
+            Assert.That(ledger.IndexedKeyCount, Is.Zero);
+            Assert.That(ledger.Accept(new OperationId(GuidFor(417)), seek, 3, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Conflicting));
+            Assert.That(ledger.Accept(new OperationId(GuidFor(418)), seek, 4, 5, payload, orderedQuestProposal: true), Is.EqualTo(OperationAdmission.Accepted));
         }
 
         [Test]

@@ -69,6 +69,29 @@ namespace HBP.Core.DLL
             }
         }
 
+        private static readonly Lazy<bool> s_RawSamplesAvailable = new(() =>
+        {
+            try
+            {
+                return hbp_surface_generator_read_activity(IntPtr.Zero, 0, null, null, 0) == HbpCoreStatus.InvalidHandle;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                return false;
+            }
+        });
+
+        public static bool SupportsReadActivity => s_RawSamplesAvailable.Value;
+
+        public (float[] Values, byte[] Valid) ReadActivity(int timelineIndex)
+        {
+            int count = Surface.NumberOfVertices;
+            float[] values = new float[count];
+            byte[] valid = new byte[count];
+            ThrowIfFailed(hbp_surface_generator_read_activity(_handle.Handle, timelineIndex, values, valid, count));
+            return (values, valid);
+        }
+
         public void ComputeNullUV()
         {
             int vertexCount = Surface.NumberOfVertices;
@@ -124,6 +147,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_get_projection_coverage", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_get_projection_coverage(IntPtr generator, out SurfaceProjectionCoverage coverage);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_read_activity", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_generator_read_activity(IntPtr generator, int timelineIndex, [Out] float[] values, [Out] byte[] valid, int capacity);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_generator_copy_activity_uvs", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_generator_copy_activity_uvs(IntPtr generator, [Out] Vec2[] uvs, int uvCapacity);

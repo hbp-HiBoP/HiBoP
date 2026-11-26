@@ -12,6 +12,8 @@ namespace HBP.Quest
         [SerializeField] private MeshRenderer roiPrefab;
         [SerializeField] private QuestSiteSelectionRing selectionRing;
         [SerializeField] private QuestTimeline timeline;
+        [SerializeField] private MeshFilter trianglePreview;
+        private MeshRenderer trianglePreviewRenderer;
         private QuestAnatomyView view;
         private QuestAnatomyView.Presentation presentation;
         private Base3DScene scene;
@@ -65,10 +67,16 @@ namespace HBP.Quest
             column.transform.localRotation = Quaternion.identity;
             column.transform.localScale = Vector3.one;
             if (label != null) label.text = $"{column.Name} ({scene.Visualization.Name})";
-            manipulator.Bind(column);
+            manipulator.Bind(column, source);
             manipulator.SetRaycastMesh(scene.BrainRaycastMesh);
             scene.OnBrainRaycastMeshUpdated.AddListener(OnBrainRaycastMeshUpdated);
             if (selectionRing != null) selectionRing.Bind(source, column);
+            if (trianglePreview != null)
+            {
+                trianglePreview.transform.SetParent(column.BrainMesh.transform, false);
+                trianglePreview.gameObject.layer = column.BrainMesh.layer;
+                trianglePreviewRenderer = trianglePreview.GetComponent<MeshRenderer>();
+            }
         }
 
         private void OnBrainRaycastMeshUpdated(Mesh mesh) => manipulator.SetRaycastMesh(mesh);
@@ -167,6 +175,8 @@ namespace HBP.Quest
             var camera = Camera.main;
             if (camera != null) RefreshTitle(camera.transform.position);
             RefreshTimeline(camera);
+            if (trianglePreviewRenderer != null && scene != null)
+                scene.TriangleEraser.PresentPreview(trianglePreview, trianglePreviewRenderer, view != null && !scene.IsClosing && !presentation.SurfaceHidden && !presentation.IsTransitioning && view.IsColumnPresented(this));
             if (scene == null || scene.IsClosing) return;
             var selected = scene.ROIManager.SelectedROI;
             int count = selected == null ? 0 : selected.Spheres.Count;

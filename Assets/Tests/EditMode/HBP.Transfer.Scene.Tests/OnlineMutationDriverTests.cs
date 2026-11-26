@@ -791,6 +791,79 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void ConcurrentDesktopTimelineSeek_TakesPrecedenceOverTheNextQuestSeek()
+        {
+            using var desktop = new Fixture(OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(OriginDevice.Quest, new TestClock());
+            using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            using var driver = CreateQuestDriver(quest, new TestClock());
+
+            quest.Timeline.CurrentIndex = 12;
+            Assert.That(driver.TryGetNextTransmission(out TransmissionAttempt first), Is.True);
+            quest.Timeline.CurrentIndex = 40;
+            Assert.That(driver.TryGetNextTransmission(out TransmissionAttempt latest), Is.True);
+
+            var accepted = AcceptTimelineFrame(authority, first.Frame);
+            Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+
+            desktop.Timeline.CurrentIndex = 22;
+            var rejected = AcceptTimelineFrame(authority, latest.Frame);
+            Assert.That(rejected.Outcome, Is.EqualTo(ProposalOutcome.Rejected));
+            Assert.That(rejected.RejectionCode, Is.EqualTo("stale_sequence"));
+            Assert.That(driver.ReceiveCorrection(rejected.Correction), Is.True);
+            Assert.That(quest.Timeline.CurrentIndex, Is.EqualTo(22));
+            Assert.That(desktop.Timeline.CurrentIndex, Is.EqualTo(22));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void QuestTimelineSeeksInFlight_KeepTheLatestValidPosition(bool includeRejectedSeek)
+        {
+            using var desktop = new Fixture(OriginDevice.Desktop, new TestClock());
+            using var quest = new Fixture(OriginDevice.Quest, new TestClock(), timelineLength: 101);
+            using var authority = new DesktopMutationAuthority(Scene, Incarnation, desktop.Boundary);
+            using var driver = CreateQuestDriver(quest, new TestClock());
+
+            quest.Timeline.CurrentIndex = 12;
+            Assert.That(driver.TryGetNextTransmission(out TransmissionAttempt first), Is.True);
+            TransmissionAttempt invalid = null;
+            if (includeRejectedSeek)
+            {
+                quest.Timeline.CurrentIndex = 100;
+                Assert.That(driver.TryGetNextTransmission(out invalid), Is.True);
+            }
+
+            quest.Timeline.CurrentIndex = 40;
+            Assert.That(driver.TryGetNextTransmission(out TransmissionAttempt latest), Is.True);
+            Assert.That(first.Frame.ObservedCanonicalSequence, Is.Zero);
+            Assert.That(latest.Frame.ObservedCanonicalSequence, Is.Zero);
+
+            var accepted = AcceptTimelineFrame(authority, first.Frame);
+            Assert.That(accepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(accepted.CanonicalMutation), Is.False);
+            Assert.That(quest.Timeline.CurrentIndex, Is.EqualTo(40));
+
+            if (invalid != null)
+            {
+                var rejected = AcceptTimelineFrame(authority, invalid.Frame);
+                Assert.That(rejected.RejectionCode, Is.EqualTo("timeline_index_out_of_range"));
+                Assert.That(driver.ReceiveCorrection(rejected.Correction), Is.False);
+                Assert.That(quest.Timeline.CurrentIndex, Is.EqualTo(40));
+            }
+
+            var latestAccepted = AcceptTimelineFrame(authority, latest.Frame);
+            Assert.That(latestAccepted.Outcome, Is.EqualTo(ProposalOutcome.Accepted));
+            Assert.That(driver.ReceiveCanonical(latestAccepted.CanonicalMutation), Is.False);
+            Assert.That(AcceptTimelineFrame(authority, first.Frame).Outcome, Is.EqualTo(ProposalOutcome.Duplicate));
+            Assert.That(authority.CanonicalSequence, Is.EqualTo(2UL));
+            Assert.That(quest.Timeline.CurrentIndex, Is.EqualTo(40));
+            Assert.That(desktop.Timeline.CurrentIndex, Is.EqualTo(40));
+            Assert.That(driver.PendingProposalCount, Is.Zero);
+        }
+
+        [Test]
         public void TimelinePause_ProtectsItsIndexFromAnOlderSeek()
         {
             using var fixture = new Fixture(OriginDevice.Quest, new TestClock());
@@ -849,6 +922,8 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         private static SetCutDefinition Cut(MutationCutOrientation orientation, bool flip, uint count, float position, float x, float y, float z) => new SetCutDefinition(new CutId("shared-cut"), orientation, flip, count, position, x, y, z);
+
+        private static DesktopProposalResult AcceptTimelineFrame(DesktopMutationAuthority authority, ReliableFrame frame) => authority.AcceptQuestProposal(frame.OperationId, MutationPayloadCodec.Decode(frame.GetPayloadCopy()), frame.ObservedCanonicalSequence.Value, frame.OriginSequence.Value);
 
         private static OperationId Operation(int value) => new OperationId(Guid.Parse($"40000000-0000-0000-0000-{value:X12}"));
 

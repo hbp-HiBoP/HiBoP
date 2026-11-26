@@ -15,6 +15,7 @@ namespace HBP.Transfer.Transport
         private readonly BlockingCollection<byte[]> queue = new(BlockContainer.QueueCapacity);
         private readonly CancellationTokenSource cancellation;
         private readonly Task producer;
+        private readonly string timingScope;
         private byte[] digest;
         private long bytes;
         private long rawBytes;
@@ -25,8 +26,9 @@ namespace HBP.Transfer.Transport
         public long EncodedBytes => IsPrepared ? bytes : 0;
         public string ContentHash => IsPrepared ? BitConverter.ToString(digest).Replace("-", "").ToLowerInvariant() : null;
 
-        public BlockDelivery(string file, Func<IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, Action<long> prepared = null)
+        public BlockDelivery(string file, Func<IReadOnlyList<BlockResource>> prepare, Action release, CancellationToken token, Action<long> prepared = null, string timingScope = null)
         {
+            this.timingScope = timingScope;
             spool = new FileStream(file, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.Read, 65536, true);
             cancellation = CancellationTokenSource.CreateLinkedTokenSource(token);
             producer = Task.Run(() =>
@@ -39,14 +41,19 @@ namespace HBP.Transfer.Transport
                     // detached JSON graph while the bounded producer waits for a sender.
                     prepare = null;
                     Interlocked.Exchange(ref rawBytes, resources.Sum(resource => resource.Length));
+                    using var spoolWrites = PairingTiming.Aggregate("desktop.blocks-spool-write", timingScope);
+                    using var enqueue = PairingTiming.Aggregate("desktop.blocks-producer-queue-wait", timingScope);
                     digest = BlockContainer.Produce(resources, packet =>
                     {
                         cancellation.Token.ThrowIfCancellationRequested();
-                        spool.Write(packet, 0, packet.Length);
+                        using (PairingTiming.Measure(spoolWrites, packet.Length))
+                            spool.Write(packet, 0, packet.Length);
                         bytes += packet.Length;
-                        queue.Add(packet, cancellation.Token);
-                    }, cancellation.Token);
-                    spool.Flush();
+                        using (PairingTiming.Measure(enqueue))
+                            queue.Add(packet, cancellation.Token);
+                    }, cancellation.Token, timingScope);
+                    using (PairingTiming.Measure(spoolWrites))
+                        spool.Flush();
                     prepared?.Invoke(bytes);
                 }
                 finally
@@ -63,8 +70,11 @@ namespace HBP.Transfer.Transport
             });
         }
 
-        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress, Action<long, long> logicalProgress = null, Action payloadWriteStarted = null, Action payloadSent = null)
+        public async Task<DeliveryReceipt> SendAsync(Stream stream, CancellationToken stop, Action<long> progress, Action<long, long> logicalProgress = null, Action payloadWriteStarted = null, Action payloadSent = null, long timingAttempt = 0, Action lastPayloadWrite = null)
         {
+            using var tls = PairingTiming.Aggregate("desktop.blocks-tls-write", timingScope, timingAttempt);
+            using var dequeue = PairingTiming.Aggregate("desktop.blocks-sender-queue-wait", timingScope, timingAttempt);
+            using var spoolReads = PairingTiming.Aggregate("desktop.blocks-retry-spool-read", timingScope, timingAttempt);
             try
             {
                 long sent = 0;
@@ -74,16 +84,21 @@ namespace HBP.Transfer.Transport
                 {
                     while (true)
                     {
-                        byte[] packet = await Task.Run(() => queue.TryTake(out var next, Timeout.Infinite, stop) ? next : null).ConfigureAwait(false);
+                        byte[] packet;
+                        using (PairingTiming.Measure(dequeue))
+                            packet = await Task.Run(() => queue.TryTake(out var next, Timeout.Infinite, stop) ? next : null).ConfigureAwait(false);
                         if (packet == null)
                             break;
-                        await stream.WriteAsync(packet, 0, packet.Length, stop).ConfigureAwait(false);
+                        using (PairingTiming.Measure(tls, packet.Length))
+                            await stream.WriteAsync(packet, 0, packet.Length, stop).ConfigureAwait(false);
                         if (!writeStarted)
                         {
                             writeStarted = true;
                             payloadWriteStarted?.Invoke();
                         }
 
+                        if (packet.Length == 64 && packet[0] == 2)
+                            lastPayloadWrite?.Invoke();
                         sent += packet.Length;
                         progress?.Invoke(sent);
                         if (packet.Length >= 64 && packet[0] == 1)
@@ -104,10 +119,14 @@ namespace HBP.Transfer.Transport
                     var buffer = new byte[262144];
                     while (sent < bytes)
                     {
-                        int read = await spool.ReadAsync(buffer, 0, (int)Math.Min(buffer.Length, bytes - sent), stop).ConfigureAwait(false);
+                        int available = (int)Math.Min(buffer.Length, bytes - sent);
+                        int read;
+                        using (PairingTiming.Measure(spoolReads, available))
+                            read = await spool.ReadAsync(buffer, 0, available, stop).ConfigureAwait(false);
                         if (read == 0)
                             throw new EndOfStreamException();
-                        await stream.WriteAsync(buffer, 0, read, stop).ConfigureAwait(false);
+                        using (PairingTiming.Measure(tls, read))
+                            await stream.WriteAsync(buffer, 0, read, stop).ConfigureAwait(false);
                         if (!writeStarted)
                         {
                             writeStarted = true;
@@ -115,6 +134,7 @@ namespace HBP.Transfer.Transport
                         }
 
                         sent += read;
+                        if (sent == bytes) lastPayloadWrite?.Invoke();
                         progress?.Invoke(sent);
                         logicalProgress?.Invoke(sent, bytes);
                     }
@@ -122,7 +142,8 @@ namespace HBP.Transfer.Transport
 
                 payloadSent?.Invoke();
                 var receipt = new byte[33];
-                await PinnedTlsTransfer.ReadExactAsync(stream, receipt, 0, 33, stop).ConfigureAwait(false);
+                using (PairingTiming.Measure("desktop.scene-publication-receipt-wait", timingScope, timingAttempt))
+                    await PinnedTlsTransfer.ReadExactAsync(stream, receipt, 0, 33, stop).ConfigureAwait(false);
                 int diff = 0;
                 for (int i = 0; i < 32; i++)
                     diff |= digest[i] ^ receipt[1 + i];

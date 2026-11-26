@@ -228,7 +228,14 @@ namespace HBP.Tests.SceneTransfer
                 {
                     var archive = new SceneArchive(Path.Combine(temp.Path, "received-" + cycle), true, source.Globals);
                     await view.ApplyAsync(archive.Read(file), archive, timeout.Token);
-                    view.CompletePlacement(view.Find(view.Scene));
+                    var presentation = view.Find(view.Scene);
+                    view.CompletePlacement(presentation);
+                    if (presentation.DisplayMode != QuestColumnDisplayMode.Split)
+                    {
+                        Assert.That(view.SetColumnDisplayMode(view.Scene, QuestColumnDisplayMode.Split), Is.True);
+                        await UniTask.WaitUntil(() => !presentation.IsTransitioning, cancellationToken: timeout.Token);
+                    }
+
                     for (int columnIndex = 0; columnIndex < view.Columns.Count; columnIndex++)
                         view.Columns[columnIndex].transform.localPosition = Vector3.right * columnIndex * .35f;
                     panel.Refresh();
@@ -355,7 +362,7 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(quest.Scene.MRIManager.MRIs.Select(mri => mri.Name), Is.EqualTo(scene.MRIManager.MRIs.Select(mri => mri.Name)));
                 Assert.That(quest.Scene.MeshManager.PreloadedMeshes, Is.Empty);
                 Assert.That(quest.Scene.MRIManager.PreloadedMRIs, Is.Empty);
-                Assert.That(quest.Scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                Assert.That(quest.Scene.TriangleEraser.VisibilityMask[0], Is.Zero);
                 Assert.That(((Column3DIEEG)quest.Scene.Columns[1]).ActivityValues, Is.EqualTo(((Column3DIEEG)scene.Columns[1]).ActivityValues));
             }
             finally
@@ -1723,7 +1730,7 @@ namespace HBP.Tests.SceneTransfer
                     Assert.That(((Column3DAnatomy)scene.Columns[0]).AnatomyParameters.InfluenceDistance, Is.EqualTo(23));
                     Assert.That(((Column3DStatic)scene.Columns[3]).SelectedLabelIndex, Is.EqualTo(1));
                     Assert.That(((Column3DMEG)scene.Columns[5]).SelectedMEGIndex, Is.EqualTo(1));
-                    Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero);
+                    Assert.That(scene.TriangleEraser.VisibilityMask[0], Is.Zero);
                     Assert.That(scene.FMRIManager.DisplayIBCContrasts, Is.False);
                     Assert.That(scene.FMRIManager.SelectedIBCContrastID, Is.EqualTo(4));
                     Assert.That(scene.AtlasManager.AtlasAlpha, Is.EqualTo(.37f));
@@ -1923,7 +1930,7 @@ namespace HBP.Tests.SceneTransfer
                 }
 
                 Assert.That(decodeStages.First().ToString(), Is.EqualTo("Reading scene metadata"));
-                Assert.That(decodeStages.Where(text => text.Prefix == "Restoring scene data").Select(text => text.Suffix), Is.EqualTo(Enumerable.Range(0, 7).Select(index => $" - {index}/6 columns")));
+                Assert.That(decodeStages.Where(text => text.Prefix == "Restoring scene data").Select(text => text.Suffix), Is.EqualTo(Enumerable.Range(0, 7).Select(index => index == 0 ? "" : $" - {index} columns")));
                 Assert.That(decodeStages.Last().ToString(), Is.EqualTo("Checking received scene"));
 
                 var stages = new List<LoadingText>();
@@ -1953,7 +1960,7 @@ namespace HBP.Tests.SceneTransfer
 
                 var ieeg = scene.Columns.OfType<Column3DIEEG>().Single();
                 var ccep = scene.Columns.OfType<Column3DCCEP>().Single();
-                Assert.That(scene.TriangleEraser.CurrentMasks[0][0], Is.Zero, "Restored erasure must survive geometry preparation.");
+                Assert.That(scene.TriangleEraser.VisibilityMask[0], Is.Zero, "Restored erasure must survive geometry preparation.");
                 Assert.That(ccep.SelectedSourceSite.Information.FullID, Is.EqualTo("patient_A1"));
                 Assert.That(ccep.ActivityValues, Does.Contain(8f));
                 await SceneQualification.RunAsync(scene, Path.Combine(root, "scene-evidence"), token);
@@ -2175,7 +2182,7 @@ namespace HBP.Tests.SceneTransfer
             payload.Meshes.Add(new MeshResource { Name = mesh.Name, Standard = "grey", Type = MeshType.MNI, StandardBothMask = mesh.Both.VisibilityMask, StandardLeftMask = mesh.Left.VisibilityMask, StandardRightMask = mesh.Right.VisibilityMask, SimplifiedBoth = archive.AddSurface(mesh.SimplifiedBoth), SimplifiedLeft = archive.AddSurface(mesh.SimplifiedLeft), SimplifiedRight = archive.AddSurface(mesh.SimplifiedRight) });
             payload.MRIs.Add(new VolumeResource { Name = Object3DManager.MNI.MRI.Name, Standard = "MNI" });
             payload.Visualization.Configuration.ErasedTriangles = Enumerable.Repeat(1, mesh.Both.NumberOfTriangles).ToArray();
-            payload.Visualization.Configuration.ErasedSimplifiedTriangles = Enumerable.Repeat(1, mesh.SimplifiedBoth.NumberOfTriangles).ToArray();
+
             payload.Visualization.Configuration.ErasedTriangles[0] = 0;
             foreach (var column in columns)
             {

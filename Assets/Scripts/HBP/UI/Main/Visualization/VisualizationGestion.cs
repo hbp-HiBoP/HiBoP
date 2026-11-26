@@ -47,7 +47,7 @@ namespace HBP.UI.Main
         public async void Display() => await DisplayAsync();
 
         /// <summary>The same Display operation can be awaited by diagnostics and UI callers.</summary>
-        public async UniTask DisplayAsync(CancellationToken cancellationToken = default)
+        public async UniTask DisplayAsync(CancellationToken cancellationToken = default, bool showResults = true)
         {
             Visualization[] visualizations = m_ListGestion.List.ObjectsSelected;
             var alreadyOpenedVisualizations = visualizations.Where(v => Module3DMain.Scenes.Any(s => s.Visualization == v));
@@ -58,8 +58,16 @@ namespace HBP.UI.Main
             }
 
             DataManager.ConfigureMemoryBudget(PersistentDataManager.UserPreferences.General.System.MemoryCacheLimit, SystemInfo.systemMemorySize);
-            UniTask loading = new SceneDisplayOperation(visualizations).RunAsync(cancellationToken);
+            var operation = new SceneDisplayOperation(visualizations);
+            UniTask loading = operation.RunAsync(cancellationToken, showResults);
             OK();
+            if (!showResults)
+            {
+                await loading;
+                if (operation.Error != null) throw new System.InvalidOperationException(operation.Error);
+                return;
+            }
+
             try
             {
                 await loading;

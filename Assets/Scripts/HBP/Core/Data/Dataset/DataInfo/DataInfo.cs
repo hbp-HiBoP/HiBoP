@@ -455,14 +455,48 @@ namespace HBP.Core.Data
 
         public static void LoadFromLocalizersDatabase(DatabaseReference databaseReference, List<Patient> patients, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)
         {
+            LoadFromLocalizersDatabase(databaseReference, patients, out dataInfos, updateProgress, token, null, out _);
+        }
+
+        internal static void LoadFromLocalizersDatabase(DatabaseReference databaseReference, List<Patient> patients, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token, DatabaseSourceAccess access, out HashSet<string> scannedPatients)
+        {
             updateProgress?.Invoke(0, 0, new LoadingText("Finding data to load"));
-            dataInfos = new DataInfo[0];
+            dataInfos = Array.Empty<DataInfo>();
+            scannedPatients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo directory = new(databaseReference.Path);
-            if (!directory.Exists) return;
             LocalizerDatabaseParameters parameters = databaseReference.Parameters as LocalizerDatabaseParameters;
             if (parameters == null) return;
 
+            List<DirectoryInfo> patientDirectories = new();
+            foreach (var group in DatabaseSourceAccess.ReadSourceDirectories(access, directory))
+            {
+                token.ThrowIfCancellationRequested();
+                var groupPatients = DatabaseSourceAccess.Read(access, group, null, () => group.GetDirectories());
+                if (groupPatients != null) patientDirectories.AddRange(groupPatients);
+            }
+
+            int progress = 0;
+            List<DataInfo> dataInfoList = new();
+            foreach (var dir in patientDirectories)
+            {
+                token.ThrowIfCancellationRequested();
+                updateProgress?.Invoke((float)progress++ / patientDirectories.Count, 0, new LoadingText("Loading localizer ", dir.Name, " [" + progress + "/" + patientDirectories.Count + "]"));
+                Patient patient = patients.FirstOrDefault(p => string.Equals(p.ID, dir.Name, StringComparison.OrdinalIgnoreCase));
+                if (patient == null) continue;
+
+                var patientData = DatabaseSourceAccess.Read(access, dir, patient.ID, () => LoadLocalizerPatientData(dir, patient, databaseReference.ID, parameters, token));
+                if (patientData == null) continue;
+                scannedPatients.Add(patient.ID);
+                dataInfoList.AddRange(patientData);
+            }
+
+            dataInfos = dataInfoList.ToArray();
+            updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
+        }
+
+        private static List<DataInfo> LoadLocalizerPatientData(DirectoryInfo directory, Patient patient, string referenceID, LocalizerDatabaseParameters parameters, CancellationToken token)
+        {
             static string GetDownsamplingString(DirectoryInfo dir)
             {
                 Regex posRegex = new(dir.Name + @"_(ds[0-9]+)?\.pos$");
@@ -480,68 +514,43 @@ namespace HBP.Core.Data
                 return ds;
             }
 
-            IEnumerable<DirectoryInfo> directories = directory.GetDirectories().SelectMany(d => d.GetDirectories());
-            int length = directories.Count();
-            int progress = 0;
-            token.ThrowIfCancellationRequested();
             List<DataInfo> dataInfoList = new();
-            foreach (var dir in directories)
+            foreach (var subdir in directory.GetDirectories())
             {
                 token.ThrowIfCancellationRequested();
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading localizer ", dir.Name, " [" + progress + "/" + length + "]"));
-                Patient patient = patients.FirstOrDefault(p => p.ID.ToUpper().CompareTo(dir.Name.ToUpper()) == 0);
-                if (patient != null)
-                {
-                    DirectoryInfo[] subDirectories = dir.GetDirectories();
-                    foreach (var subdir in subDirectories)
-                    {
-                        string[] splits = subdir.Name.Split('_');
-                        if (splits.Length == 4)
-                        {
-                            Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == splits[3]);
-                            if (protocol != null)
-                            {
-                                if (parameters.IncludeRaw)
-                                {
-                                    FileInfo rawEEG = new(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
-                                    FileInfo rawPos = new(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
-                                    if (rawEEG.Exists && rawPos.Exists)
-                                    {
-                                        var dataInfo = new IEEGDataInfo("raw", protocol, new Container.Elan(rawEEG.FullName, rawPos.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                                        dataInfo.MarkValidationStale(ValidationAspect.DataInfoAll);
-                                        dataInfoList.Add(dataInfo);
-                                    }
-                                }
+                string[] splits = subdir.Name.Split('_');
+                if (splits.Length != 4) continue;
+                Protocol protocol = DatabaseManager.Database.Protocols.FirstOrDefault(p => p.Name == splits[3]);
+                if (protocol == null) continue;
 
-                                string ds = GetDownsamplingString(subdir);
-                                if (!string.IsNullOrEmpty(ds))
-                                {
-                                    FileInfo posDS = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
-                                    if (posDS.Exists)
-                                    {
-                                        foreach (var freq in parameters.Frequencies)
-                                        {
-                                            foreach (var ts in parameters.TemporalSmoothings)
-                                            {
-                                                FileInfo eeg = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
-                                                if (eeg.Exists)
-                                                {
-                                                    var dataInfo = new IEEGDataInfo(string.Format("{0}{1}", freq, ts), protocol, new Container.Elan(eeg.FullName, posDS.FullName, "", new Error[0], new Warning[0]), new Error[0], new Warning[0], patient, NormalizationType.Auto, databaseReference.ID);
-                                                    dataInfo.MarkValidationStale(ValidationAspect.DataInfoAll);
-                                                    dataInfoList.Add(dataInfo);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                if (parameters.IncludeRaw)
+                {
+                    FileInfo rawEEG = new(Path.Combine(subdir.FullName, subdir.Name + ".eeg"));
+                    FileInfo rawPos = new(Path.Combine(subdir.FullName, subdir.Name + ".pos"));
+                    if (DatabaseSourceAccess.Exists(rawEEG) && DatabaseSourceAccess.Exists(rawPos))
+                        AddDataInfo("raw", protocol, rawEEG, rawPos);
                 }
+
+                string ds = GetDownsamplingString(subdir);
+                if (string.IsNullOrEmpty(ds)) continue;
+                FileInfo posDS = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}.pos", subdir.Name, ds)));
+                if (!DatabaseSourceAccess.Exists(posDS)) continue;
+                foreach (var freq in parameters.Frequencies)
+                    foreach (var ts in parameters.TemporalSmoothings)
+                    {
+                        FileInfo eeg = new(Path.Combine(subdir.FullName, string.Format("{0}_{1}", subdir.Name, freq), string.Format("{0}_{1}_{2}_{3}.eeg", subdir.Name, freq, ds, ts)));
+                        if (DatabaseSourceAccess.Exists(eeg)) AddDataInfo(string.Format("{0}{1}", freq, ts), protocol, eeg, posDS);
+                    }
             }
 
-            dataInfos = dataInfoList.ToArray();
-            updateProgress?.Invoke(1.0f, 0, new LoadingText("Data loaded successfully"));
+            return dataInfoList;
+
+            void AddDataInfo(string name, Protocol protocol, FileInfo eeg, FileInfo pos)
+            {
+                var dataInfo = new IEEGDataInfo(name, protocol, new Container.Elan(eeg.FullName, pos.FullName, "", Array.Empty<Error>(), Array.Empty<Warning>()), Array.Empty<Error>(), Array.Empty<Warning>(), patient, NormalizationType.Auto, referenceID);
+                dataInfo.MarkValidationStale(ValidationAspect.DataInfoAll);
+                dataInfoList.Add(dataInfo);
+            }
         }
 
         public static void LoadFromBIDSDatabase(DatabaseReference databaseReference, List<Patient> patients, out DataInfo[] dataInfos, Action<float, float, LoadingText> updateProgress, CancellationToken token)

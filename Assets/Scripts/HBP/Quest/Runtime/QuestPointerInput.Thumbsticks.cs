@@ -78,7 +78,7 @@ namespace HBP.Quest
         {
             if (modalDialog != null || LoadingManager.IsPresenting || QuestDropdown.IsAnyPopupOpen || TouchScreenKeyboard.visible || siteProbe != null && siteProbe.IsActive) return false;
             foreach (var hand in hands)
-                if (hand.Capture.Owner is QuestInteractionOwner.UI or QuestInteractionOwner.Anatomy or QuestInteractionOwner.Cut or QuestInteractionOwner.ROI)
+                if (hand.Capture.Owner is QuestInteractionOwner.UI or QuestInteractionOwner.Anatomy or QuestInteractionOwner.Cut or QuestInteractionOwner.ROI or QuestInteractionOwner.Triangle)
                     return false;
             var selected = eventSystem.currentSelectedGameObject;
             return selected == null || !selected.TryGetComponent<InputField>(out var field) || !(field is QuestTextInputField questField ? questField.IsEditing : field.isFocused);

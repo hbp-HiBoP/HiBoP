@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3302277ad6c2f614b824d956b858dbd1, type: 3}
   m_Name: Signals Icon
   m_EditorClassIdentifier: 
-  SourceImage: {fileID: 21300000, guid: 68a7152783cd86345bff5def47e8ff77, type: 3}
+  SourceImage: {fileID: 21300000, guid: 030ca0b861864764699e9f2a6f4fe32a, type: 3}
   Material: {fileID: 0}
   ImageType: 0
   FillMethod: 0

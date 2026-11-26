@@ -391,6 +391,50 @@ namespace HBP.Tests.Quest
             using (var f = new Fixture(definitions)) Assert.That(f.Manager.Find(prefab.Key), Is.Null);
         }
 
+        [Test]
+        public async Task SceneWindow_WaitsForAvailabilityAndRestoresItsSavedLayoutAndStacking()
+        {
+            const string sceneKey = "Scene tools";
+            const string closedKey = "Closed scene tools";
+            const string globalKey = "Connection";
+            var scenePose = new Pose(new Vector3(.3f, .1f, 1.1f), Quaternion.Euler(0, 12, 0));
+            var store = new QuestWindowLayoutStore(layoutScope.Path);
+            store.SetState(sceneKey, new QuestWindowLayoutStore.WindowState(scenePose, zoomPercent: 80, pinned: false, open: true, order: 0));
+            store.SetState(closedKey, new QuestWindowLayoutStore.WindowState(Pose.identity, open: false, order: 1));
+            store.SetState(globalKey, new QuestWindowLayoutStore.WindowState(Pose.identity, open: true, order: 2));
+            store.Save();
+
+            using var f = new Fixture();
+            bool available = false;
+            var setAvailability = typeof(QuestWindowsManager).GetMethod("SetOpenAvailability", BindingFlags.Instance | BindingFlags.NonPublic);
+            foreach (string key in new[] { sceneKey, closedKey }) setAvailability.Invoke(f.Manager, new object[] { key, (Func<bool>)(() => available) });
+            var global = f.Window(globalKey);
+            var scene = f.Window(sceneKey);
+            var closed = f.Window(closedKey);
+            f.Manager.RecenterOpen();
+            Assert.That(global.IsOpen, Is.True);
+            Assert.That(scene.GetComponent<Canvas>().enabled, Is.False);
+            Assert.That(f.Manager.Open(sceneKey), Is.Null);
+            scene.Open();
+            Assert.That(scene.IsOpen, Is.False);
+
+            global.TogglePin();
+            var resaved = new QuestWindowLayoutStore(layoutScope.Path);
+            Assert.That(resaved.TryGetState(sceneKey, out var state) && state.Open == true, Is.True, "Saving another window must retain the pending open state.");
+            string saved = File.ReadAllText(layoutScope.Path);
+
+            available = true;
+            await UniTask.NextFrame(PlayerLoopTiming.LastUpdate);
+            Assert.That(scene.IsOpen, Is.True);
+            Assert.That(scene.GetComponent<Canvas>().enabled, Is.True);
+            Assert.That(scene.IsPinned, Is.False);
+            Assert.That(scene.GetComponentInChildren<QuestWindowContentZoom>(true).ZoomPercent, Is.EqualTo(80));
+            AssertPose(scene.transform, scenePose);
+            Assert.That(scene.SortingOrder, Is.LessThan(global.SortingOrder));
+            Assert.That(closed.IsOpen, Is.False);
+            Assert.That(File.ReadAllText(layoutScope.Path), Is.EqualTo(saved));
+        }
+
         private static void AssertPose(Transform actual, Pose expected)
         {
             Assert.That(Vector3.Distance(actual.position, expected.position), Is.LessThan(.0001f));

@@ -70,6 +70,26 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
+        public void TriangleGrip_DoesNotStealAnExistingCutAndRequiresAReleaseAfterCancellation()
+        {
+            var capture = new QuestInteractionCapture();
+            capture.Sample(true, false, false, false, false, false, true);
+            Assert.That(capture.Sample(true, false, true, false, false, false, true), Is.True);
+            Assert.That(capture.Sample(true, false, true, false, false, false, false, triangle: true), Is.False);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Cut));
+
+            capture.Sample(true, false, false, false, false, false, false, triangle: true);
+            Assert.That(capture.Sample(true, false, true, false, false, false, true, roi: true, triangle: true), Is.True);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.Triangle));
+            Assert.That(capture.Interaction, Is.EqualTo(QuestInteraction.Secondary));
+            capture.Cancel();
+            Assert.That(capture.Sample(true, false, true, false, false, false, true, roi: true), Is.False);
+            capture.Sample(true, false, false, true, false, false, false, triangle: true);
+            Assert.That(capture.Sample(true, true, true, true, false, false, false, triangle: true), Is.True);
+            Assert.That(capture.Owner, Is.EqualTo(QuestInteractionOwner.UI));
+        }
+
+        [Test]
         public void TriggerCapture_TrackingLossAndCancellationRequireRelease()
         {
             var capture = new QuestInteractionCapture();

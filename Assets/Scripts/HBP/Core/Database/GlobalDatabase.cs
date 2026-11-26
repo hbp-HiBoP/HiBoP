@@ -18,19 +18,21 @@ namespace HBP.Core.Database
 {
     public class DatabaseUpdateReport
     {
-        public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics = null)
+        public DatabaseUpdateReport(IEnumerable<Patient> removedPatients, IEnumerable<Patient> addedPatients, IEnumerable<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics = null, IEnumerable<DatabaseAccessIssue> accessIssues = null)
         {
             RemovedPatients = new ReadOnlyCollection<Patient>(removedPatients.ToList());
             AddedPatients = new ReadOnlyCollection<Patient>(addedPatients.ToList());
             UpdatedPatients = new ReadOnlyCollection<Patient>(updatedPatients.ToList());
             TagDiagnostics = tagDiagnostics ?? new TagImportDiagnostics();
+            AccessIssues = new ReadOnlyCollection<DatabaseAccessIssue>(accessIssues?.ToList() ?? new());
         }
 
         public ReadOnlyCollection<Patient> RemovedPatients { get; }
         public ReadOnlyCollection<Patient> AddedPatients { get; }
         public ReadOnlyCollection<Patient> UpdatedPatients { get; }
         public TagImportDiagnostics TagDiagnostics { get; }
-        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0 || TagDiagnostics.HasChanges;
+        public ReadOnlyCollection<DatabaseAccessIssue> AccessIssues { get; }
+        public bool HasChanges => RemovedPatients.Count > 0 || AddedPatients.Count > 0 || UpdatedPatients.Count > 0 || TagDiagnostics.HasChanges || AccessIssues.Count > 0;
     }
 
     public sealed class DatabaseUpdateTransaction
@@ -1413,14 +1415,12 @@ namespace HBP.Core.Database
             List<DataInfo> dataInfosTemp;
             ValidationImpactAnalyzer.DatabaseSnapshot validationSnapshot;
             DatabaseReference[] referenceSnapshot;
-            DatabaseReference[] configuredReferenceSnapshot;
             TagParsingPolicy parsingPolicy;
             workspaceID = Settings.SelectedWorkspace?.ID;
             workspacePath = Path.GetFullPath(Settings.SelectedWorkspace?.Path ?? throw new InvalidOperationException("No database workspace is selected."));
             originalPatients = m_Patients.ToArray();
             originalDataInfos = m_DataInfos.ToArray();
             referenceSnapshot = databaseReferences.ToArray();
-            configuredReferenceSnapshot = m_DatabaseReferences.Concat(referenceSnapshot).Where(reference => reference != null).GroupBy(reference => string.IsNullOrEmpty(reference.ID) ? $"{reference.Type}:{reference.Path}" : reference.ID).Select(group => group.First()).ToArray();
             parsingPolicy = PersistentDataManager.UserPreferences?.Data?.TagImport?.CreatePolicy() ?? TagParsingPolicy.Default;
 
             await UniTask.SwitchToThreadPool();
@@ -1428,7 +1428,9 @@ namespace HBP.Core.Database
             patientsTemp = originalPatients.Select(patient => (Patient)patient.Clone()).ToList();
             dataInfosTemp = originalDataInfos.Select(CloneDataInfoForUpdate).ToList();
 
-            var observations = TagImportScanner.Scan(configuredReferenceSnapshot, token);
+            var sourceAccess = referenceSnapshot.Where(reference => reference.Type == DatabaseType.Brainvisa || reference.Type == DatabaseType.Localizer)
+                .Distinct().ToDictionary(reference => reference, reference => new DatabaseSourceAccess(reference));
+            var observations = TagImportScanner.Scan(referenceSnapshot, token, sourceAccess);
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
             if (workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database workspace changed while its references were being scanned.", token);
@@ -1448,8 +1450,9 @@ namespace HBP.Core.Database
             foreach (var brainvisaDatabaseReference in brainvisaDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out var patients, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext);
-                patientsTemp.RemoveAll(p => patients.Contains(p) || p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID);
+                var access = sourceAccess[brainvisaDatabaseReference];
+                Patient.LoadFromIntranatDatabase(brainvisaDatabaseReference, out var patients, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, parsingPolicy, false, importContext, access);
+                patientsTemp.RemoveAll(p => patients.Contains(p) || (p.CorrespondingDatabaseID == brainvisaDatabaseReference.ID && access.UnlistedFolders.Count == 0 && !access.PatientWasSkipped(p.ID)));
                 patientsTemp.AddRange(patients);
                 updatedPatients.AddRange(patients);
                 progress += 1f / numberOfDatabases;
@@ -1485,9 +1488,24 @@ namespace HBP.Core.Database
             foreach (var localizerDatabaseReference in localizerDatabaseReferences)
             {
                 token.ThrowIfCancellationRequested();
-                DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, patientsTemp, out var dataInfos, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token);
-                dataInfosTemp.RemoveAll(d => dataInfos.Contains(d) || d.CorrespondingDatabaseID == localizerDatabaseReference.ID);
-                dataInfosTemp.AddRange(dataInfos);
+                var access = sourceAccess[localizerDatabaseReference];
+                DataInfo.LoadFromLocalizersDatabase(localizerDatabaseReference, patientsTemp, out var dataInfos, (localProgress, duration, text) => updateProgress(progress + localProgress / numberOfDatabases, duration, text), token, access, out var scannedPatients);
+                if (access.UnlistedFolders.Count > 0)
+                {
+                    // Stored paths can identify patients hidden by an unreadable group.
+                    foreach (var previous in dataInfosTemp.OfType<PatientDataInfo>().Where(d => d.CorrespondingDatabaseID == localizerDatabaseReference.ID))
+                    {
+                        if (previous.DataContainer is not HBP.Core.Data.Container.Elan elan) continue;
+                        var folder = access.UnlistedFolders.FirstOrDefault(path => IsInsideFolder(elan.POS, path) || IsInsideFolder(elan.EEG, path));
+                        if (folder != null) access.SkipPatient(previous.Patient.ID, folder);
+                    }
+                }
+
+                dataInfosTemp.RemoveAll(d => d.CorrespondingDatabaseID == localizerDatabaseReference.ID &&
+                    (d is PatientDataInfo patientData
+                        ? !access.PatientWasSkipped(patientData.Patient.ID) && (access.UnlistedFolders.Count == 0 || scannedPatients.Contains(patientData.Patient.ID))
+                        : access.UnlistedFolders.Count == 0));
+                dataInfosTemp.AddRange(dataInfos.OfType<PatientDataInfo>().Where(d => !access.PatientWasSkipped(d.Patient.ID)));
                 progress += 1f / numberOfDatabases;
             }
 
@@ -1501,7 +1519,7 @@ namespace HBP.Core.Database
             }
 
             updateProgress(1, 0, new LoadingText("Finalizing"));
-            var report = FindChanges(originalPatients, patientsTemp, updatedPatients, tagDraft.Diagnostics);
+            var report = FindChanges(originalPatients, patientsTemp, updatedPatients, tagDraft.Diagnostics, sourceAccess.Values.SelectMany(access => access.Issues));
 
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
@@ -1522,7 +1540,8 @@ namespace HBP.Core.Database
                 if (workspaceID != Settings.SelectedWorkspace?.ID) throw new OperationCanceledException("The database workspace changed while its update was being finalized.", token);
 
                 var updatedAt = DateTime.Now;
-                foreach (var databaseReference in referenceSnapshot) databaseReference.LastUpdated = updatedAt;
+                foreach (var databaseReference in referenceSnapshot)
+                    if (!sourceAccess.TryGetValue(databaseReference, out var access) || access.Issues.Count == 0) databaseReference.LastUpdated = updatedAt;
 
                 m_Patients = patientsTemp;
                 m_DataInfos = dataInfosTemp;
@@ -1547,12 +1566,20 @@ namespace HBP.Core.Database
             return clone;
         }
 
-        private DatabaseUpdateReport FindChanges(IEnumerable<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics)
+        private static bool IsInsideFolder(string filePath, string folderPath)
+        {
+            if (string.IsNullOrEmpty(filePath)) return false;
+            var separator = Path.DirectorySeparatorChar;
+            var prefix = folderPath.TrimEnd(separator, Path.AltDirectorySeparatorChar) + separator;
+            return filePath.Replace(Path.AltDirectorySeparatorChar, separator).StartsWith(prefix, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private DatabaseUpdateReport FindChanges(IEnumerable<Patient> oldPatients, List<Patient> newPatients, List<Patient> updatedPatients, TagImportDiagnostics tagDiagnostics, IEnumerable<DatabaseAccessIssue> accessIssues)
         {
             var removedPatients = oldPatients.Except(newPatients).ToList();
             var addedPatients = newPatients.Except(oldPatients).ToList();
             updatedPatients = updatedPatients.Distinct().Except(addedPatients).Except(removedPatients).ToList();
-            return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients, tagDiagnostics);
+            return new DatabaseUpdateReport(removedPatients, addedPatients, updatedPatients, tagDiagnostics, accessIssues);
         }
 
         #endregion

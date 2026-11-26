@@ -22,11 +22,13 @@ namespace HBP.UI.Main
     internal sealed class SceneDisplayOperation
     {
         private const long MaximumAheadSnapshotBytes = 512L * 1024 * 1024;
+        private static readonly bool OverlapCaptureWithRendering = Array.IndexOf(Environment.GetCommandLineArgs(), "-sceneTransferOverlap") >= 0;
         private readonly Visualization[] requested;
         private readonly Base3DScene[] existingScenes;
         private readonly List<Base3DScene> loaded = new();
         private readonly Dictionary<Base3DScene, string> failures = new();
         private readonly float[] remoteProgress;
+        private bool patientOpening;
         private float localProgress, percentage;
         private string remoteError;
         private Action<float, float, LoadingText> update;
@@ -35,29 +37,37 @@ namespace HBP.UI.Main
         private QuestManager.DisplayReservation reservation;
         private Visualization loadingVisualization;
         private bool loadingLocally;
+        private string timingScope;
 
         internal Guid OperationId { get; set; }
         internal bool ExplicitSharing { get; set; }
         internal string Error { get; private set; }
         internal bool Succeeded => Error == null && percentage == 1;
 
-        internal static async UniTask<Base3DScene> OpenPatientAsync(Base3DScene source, Patient patient, Guid operationId, CancellationToken token)
+        internal static async UniTask<Base3DScene> OpenPatientAsync(Base3DScene source, Patient patient, Guid operationId, CancellationToken token, bool explicitSharing = true, bool showResults = false)
         {
+            using var timing = PairingTiming.Measure("desktop.patient-opening", operationId.ToString("N"));
             SceneDisplayOperation operation = null;
             var child = await Module3DMain.OpenSinglePatientVisualizationAsync(source, patient, (_, _, _) => { }, token, async (visualization, stop) =>
             {
-                operation = new SceneDisplayOperation(new[] { visualization }) { ExplicitSharing = true, OperationId = operationId };
-                await operation.RunAsync(stop, showResults: false);
+                operation = new SceneDisplayOperation(new[] { visualization }) { ExplicitSharing = explicitSharing, OperationId = operationId, patientOpening = true };
+                await operation.RunAsync(stop, showResults);
                 // Keep completed local openings registered even when their Quest delivery fails.
                 return operation.loaded.SingleOrDefault() ?? throw new InvalidOperationException(operation.Error ?? "The patient visualization could not be opened.");
             });
             if (operation == null)
             {
-                operation = new SceneDisplayOperation(new[] { child.Visualization }, new[] { child }) { ExplicitSharing = true, OperationId = operationId };
-                await operation.RunAsync(token, showResults: false);
+                if (QuestManager.IsInitialized && QuestManager.Instance.IsPaired && QuestManager.Instance.IsSceneSynchronized(child))
+                {
+                    PairingTiming.Count("desktop.patient-opening-reused", 1, operationId.ToString("N"));
+                    return child;
+                }
+
+                operation = new SceneDisplayOperation(new[] { child.Visualization }, new[] { child }) { ExplicitSharing = explicitSharing, OperationId = operationId, patientOpening = true };
+                await operation.RunAsync(token, showResults);
             }
 
-            if (!operation.Succeeded) throw new InvalidOperationException(operation.Error ?? "The patient visualization could not be delivered. Retry from Display.");
+            if (!operation.Succeeded && !showResults) throw new InvalidOperationException(operation.Error ?? "The patient visualization could not be delivered. Retry from Display.");
             return child;
         }
 
@@ -72,152 +82,166 @@ namespace HBP.UI.Main
         {
             using var awake = PerformanceManager.IsInitialized ? UnityEngine.Object.FindAnyObjectByType<PerformanceManager>().KeepAwake() : null;
             using var localAdmission = QuestManager.IsInitialized ? QuestManager.Instance.HoldAutomaticScenes(requested) : null;
+            Guid batch = OperationId;
+            if (PairingTiming.Enabled)
+            {
+                if (batch == Guid.Empty) batch = Guid.NewGuid();
+                timingScope = batch.ToString("N");
+            }
+
             LoadingManager.PresentationHandle presentation = null;
             Exception localError = null;
             bool cancelled = false;
-            try
-            {
-                await LoadingManager.PresentAsync(async (progress, stop) =>
+            using (PairingTiming.Measure("desktop.display-through-batch-release", timingScope))
+                try
                 {
-                    update = progress;
-                    using var remote = CancellationTokenSource.CreateLinkedTokenSource(stop);
-                    using var monitorStop = new CancellationTokenSource();
-                    remoteStop = remote;
-                    Task monitor = Task.CompletedTask;
-                    try
+                    await LoadingManager.PresentAsync(async (progress, stop) =>
                     {
-                        if (QuestManager.IsInitialized)
+                        update = progress;
+                        using var remote = CancellationTokenSource.CreateLinkedTokenSource(stop);
+                        using var monitorStop = new CancellationTokenSource();
+                        remoteStop = remote;
+                        Task monitor = Task.CompletedTask;
+                        try
                         {
-                            progress(0, 0, new LoadingText("Waiting for current Quest operations"));
-                            try
+                            if (QuestManager.IsInitialized)
                             {
-                                reservation = await QuestManager.Instance.ReserveDisplayAsync(requested, stop, ExplicitSharing || existingScenes != null, operationOwner: token, displayOperation: OperationId);
-                                if (ExplicitSharing && reservation == null) remoteError = "The Quest session is no longer connected.";
-                            }
-                            catch (OperationCanceledException)
-                            {
-                                throw;
-                            }
-                            catch (Exception error)
-                            {
-                                remoteError = TransferError.Describe(error);
-                                remote.Cancel();
+                                progress(0, 0, new LoadingText("Waiting for current Quest operations"));
+                                try
+                                {
+                                    using (PairingTiming.Measure("desktop.display-reserve-quest", timingScope))
+                                        reservation = await QuestManager.Instance.ReserveDisplayAsync(requested, stop, ExplicitSharing || existingScenes != null, operationOwner: token, displayOperation: batch);
+                                    if (ExplicitSharing && reservation == null) remoteError = "The Quest session is no longer connected.";
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    throw;
+                                }
+                                catch (Exception error)
+                                {
+                                    remoteError = TransferError.Describe(error);
+                                    remote.Cancel();
+                                }
+
+                                if (reservation != null)
+                                {
+                                    reservation.PatientOpening = patientOpening;
+                                    reservation.Presentation = presentation;
+                                    reservation.UserCancellation = stop;
+                                }
                             }
 
                             if (reservation != null)
                             {
-                                reservation.Presentation = presentation;
-                                reservation.UserCancellation = stop;
-                            }
-                        }
-
-                        if (reservation != null)
-                        {
-                            try
-                            {
-                                await reservation.UpdateRemoteAsync(0, false, stop, transportTimeout: TimeSpan.FromSeconds(10));
-                                monitor = Task.WhenAll(MonitorRemoteAsync(monitorStop.Token), reservation.KeepRemoteAliveAsync(monitorStop.Token));
-                            }
-                            catch (Exception error)
-                            {
-                                reservation.RecoverConnection(error);
-                                remoteError = TransferError.Describe(error);
-                                remote.Cancel();
-                            }
-                        }
-
-                        if (existingScenes != null)
-                        {
-                            localProgress = 1;
-                            foreach (var scene in existingScenes) await SceneReadyAsync(scene, stop);
-                        }
-                        else
-                        {
-                            loadingLocally = true;
-                            await Module3DMain.LoadWithResultsAsync(requested, (value, duration, text) =>
-                            {
-                                localProgress = Math.Max(localProgress, value);
-                                if (reservation != null) reservation.SourceStatus = SceneLoadingStatus.From(value, text, loadingVisualization?.ID);
-                                Report(text);
-                            }, stop, SceneReadyAsync, visualization => loadingVisualization = visualization);
-                            loadingLocally = false;
-                        }
-
-                        await remoteWork;
-                        stop.ThrowIfCancellationRequested();
-                        localProgress = 1;
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        cancelled = true;
-                    }
-                    catch (Exception error)
-                    {
-                        Debug.LogException(error);
-                        localError = error;
-                    }
-                    finally
-                    {
-                        loadingLocally = false;
-                        remote.Cancel();
-                        monitorStop.Cancel();
-                        await remoteWork;
-                        await monitor;
-                        if (reservation != null) await reservation.DrainPreparedAsync();
-                        await UniTask.SwitchToMainThread();
-                        if (reservation != null)
-                        {
-                            foreach (var scene in loaded.Where(scene => !QuestManager.Instance.IsSceneSynchronized(scene)))
-                            {
-                                if (!stop.IsCancellationRequested && reservation.DeferScene(scene))
-                                {
-                                    failures.Remove(scene);
-                                    continue;
-                                }
-
-                                string message = failures.TryGetValue(scene, out var failure) ? failure : remoteError ?? "Display interrupted. Retry to synchronize this visualization.";
-                                failures[scene] = message;
-                                reservation.RequireRetry(scene, message);
-                            }
-
-                            if (reservation.CanFinish)
-                            {
                                 try
                                 {
-                                    bool success = !cancelled && localError == null && failures.Count == 0 && remoteError == null;
-                                    await reservation.UpdateRemoteAsync(success ? 1 : percentage, true, CancellationToken.None, failures.Keys.Select(scene => scene.Visualization.ID).ToArray(), TimeSpan.FromSeconds(15));
+                                    using (PairingTiming.Measure("desktop.display-open-quest-batch", timingScope))
+                                        await reservation.UpdateRemoteAsync(0, false, stop, transportTimeout: TimeSpan.FromSeconds(10));
+                                    monitor = Task.WhenAll(MonitorRemoteAsync(monitorStop.Token), reservation.KeepRemoteAliveAsync(monitorStop.Token));
                                 }
                                 catch (Exception error)
                                 {
-                                    if (reservation.RecoverConnection(error))
-                                    {
-                                        foreach (var scene in loaded)
-                                            if (reservation.DeferScene(scene))
-                                                failures.Remove(scene);
-                                    }
-                                    else Debug.LogException(error);
+                                    reservation.RecoverConnection(error);
+                                    remoteError = TransferError.Describe(error);
+                                    remote.Cancel();
+                                }
+                            }
 
-                                    remoteError = "Quest completion could not be confirmed: " + TransferError.Describe(error);
-                                    foreach (var scene in loaded)
+                            if (existingScenes != null)
+                            {
+                                localProgress = 1;
+                                foreach (var scene in existingScenes) await SceneReadyAsync(scene, stop);
+                            }
+                            else
+                            {
+                                loadingLocally = true;
+                                using (PairingTiming.Measure("desktop.display-load-local-with-preparation", timingScope))
+                                    await Module3DMain.LoadWithResultsAsync(requested, (value, duration, text) =>
                                     {
-                                        if (!stop.IsCancellationRequested && reservation.DeferScene(scene)) continue;
-                                        failures[scene] = remoteError;
-                                        reservation.RequireRetry(scene, remoteError);
+                                        localProgress = Math.Max(localProgress, value);
+                                        if (reservation != null) reservation.SourceStatus = SceneLoadingStatus.From(value, text, loadingVisualization?.ID);
+                                        Report(text);
+                                    }, stop, SceneReadyAsync, visualization => loadingVisualization = visualization);
+                                loadingLocally = false;
+                            }
+
+                            using (PairingTiming.Measure("desktop.display-await-final-publication", timingScope))
+                                await remoteWork;
+                            stop.ThrowIfCancellationRequested();
+                            localProgress = 1;
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            cancelled = true;
+                        }
+                        catch (Exception error)
+                        {
+                            Debug.LogException(error);
+                            localError = error;
+                        }
+                        finally
+                        {
+                            loadingLocally = false;
+                            remote.Cancel();
+                            monitorStop.Cancel();
+                            await remoteWork;
+                            await monitor;
+                            if (reservation != null) await reservation.DrainPreparedAsync();
+                            await UniTask.SwitchToMainThread();
+                            if (reservation != null)
+                            {
+                                foreach (var scene in loaded.Where(scene => !QuestManager.Instance.IsSceneSynchronized(scene)))
+                                {
+                                    if (!stop.IsCancellationRequested && reservation.DeferScene(scene))
+                                    {
+                                        failures.Remove(scene);
+                                        continue;
+                                    }
+
+                                    string message = failures.TryGetValue(scene, out var failure) ? failure : remoteError ?? "Display interrupted. Retry to synchronize this visualization.";
+                                    failures[scene] = message;
+                                    reservation.RequireRetry(scene, message);
+                                }
+
+                                if (reservation.CanFinish)
+                                {
+                                    try
+                                    {
+                                        bool success = !cancelled && localError == null && failures.Count == 0 && remoteError == null;
+                                        using (PairingTiming.Measure("desktop.display-close-quest-batch", timingScope))
+                                            await reservation.UpdateRemoteAsync(success ? 1 : percentage, true, CancellationToken.None, failures.Keys.Select(scene => scene.Visualization.ID).ToArray(), TimeSpan.FromSeconds(15));
+                                    }
+                                    catch (Exception error)
+                                    {
+                                        if (reservation.RecoverConnection(error))
+                                        {
+                                            foreach (var scene in loaded)
+                                                if (reservation.DeferScene(scene))
+                                                    failures.Remove(scene);
+                                        }
+                                        else Debug.LogException(error);
+
+                                        remoteError = "Quest completion could not be confirmed: " + TransferError.Describe(error);
+                                        foreach (var scene in loaded)
+                                        {
+                                            if (!stop.IsCancellationRequested && reservation.DeferScene(scene)) continue;
+                                            failures[scene] = remoteError;
+                                            reservation.RequireRetry(scene, remoteError);
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        cancelled |= stop.IsCancellationRequested;
-                        if (!cancelled && localError == null && failures.Count == 0 && remoteError == null && reservation?.TransportInterrupted != true)
-                            Report(new LoadingText("Visualizations ready"), true);
-                    }
-                }, token, handle => { presentation = handle; });
-            }
-            finally
-            {
-                reservation?.Dispose();
-            }
+                            cancelled |= stop.IsCancellationRequested;
+                            if (!cancelled && localError == null && failures.Count == 0 && remoteError == null && reservation?.TransportInterrupted != true)
+                                Report(new LoadingText("Visualizations ready"), true);
+                        }
+                    }, token, handle => { presentation = handle; });
+                }
+                finally
+                {
+                    reservation?.Dispose();
+                }
 
             // Open the modal in the same main-thread continuation that releases the loading
             // blocker. Release admission before any explicit retry acquires a new reservation.
@@ -284,9 +308,16 @@ namespace HBP.UI.Main
         {
             loaded.Add(scene);
             if (reservation != null) reservation.SourceStatus = SceneLoadingStatus.From(localProgress, new LoadingText("Preparing scene display"), scene.Visualization.ID);
-            await scene.PrepareRenderingAsync(token);
+
+            async UniTask WaitForRenderingAsync()
+            {
+                using var timing = PairingTiming.Measure("desktop.display-local-render-ready", timingScope);
+                await scene.PrepareRenderingAsync(token);
+            }
+
             if (reservation == null)
             {
+                await WaitForRenderingAsync();
                 if (remoteError != null)
                 {
                     failures[scene] = remoteError;
@@ -305,8 +336,9 @@ namespace HBP.UI.Main
                 Report(text);
             }
 
-            if (remoteError == null && !remoteStop.IsCancellationRequested)
+            async UniTask PrepareRemoteAsync()
             {
+                if (remoteError != null || remoteStop.IsCancellationRequested) return;
                 bool prepared;
                 try
                 {
@@ -316,6 +348,7 @@ namespace HBP.UI.Main
                 }
                 catch (HBP.Transfer.Scene.ScenePreparationBudgetExceededException)
                 {
+                    PairingTiming.Count("desktop.display-preparation-budget-fallback", 1, timingScope);
                     await remoteWork;
                     await UniTask.SwitchToMainThread(token);
                     prepared = remoteError == null && await reservation.PrepareAsync(scene, Progress, remoteStop.Token, long.MaxValue);
@@ -326,6 +359,18 @@ namespace HBP.UI.Main
                     remoteError ??= QuestManager.Instance.GetSceneSynchronizationError(scene) ?? "Visualization preparation interrupted.";
                     failures[scene] = remoteError;
                 }
+            }
+
+            if (OverlapCaptureWithRendering || patientOpening && Array.IndexOf(Environment.GetCommandLineArgs(), "-sceneTransferSerialPatient") < 0)
+            {
+                var rendering = WaitForRenderingAsync().AsTask();
+                var preparing = PrepareRemoteAsync().AsTask();
+                await Task.WhenAll(rendering, preparing);
+            }
+            else
+            {
+                await WaitForRenderingAsync();
+                await PrepareRemoteAsync();
             }
 
             await remoteWork;
@@ -372,7 +417,18 @@ namespace HBP.UI.Main
                 while (true)
                 {
                     reservation.Validate();
-                    await reservation.UpdateRemoteAsync(percentage, false, token, transportTimeout: TimeSpan.FromSeconds(10));
+                    try
+                    {
+                        await reservation.UpdateRemoteAsync(percentage, false, token, transportTimeout: TimeSpan.FromSeconds(10));
+                    }
+                    catch (TimeoutException) when (!token.IsCancellationRequested && reservation.IsCurrent && !remoteWork.IsCompleted)
+                    {
+                        // A large render can delay the progress reply. The owned transfer and
+                        // the initial synchronization still have their own failure boundaries.
+                        PairingTiming.Count("desktop.display-progress-timeout-during-delivery", 1, timingScope);
+                        continue;
+                    }
+
                     int index = Array.FindIndex(requested, scene => scene.ID == reservation.ReceivingVisualization);
                     if (index >= 0)
                     {

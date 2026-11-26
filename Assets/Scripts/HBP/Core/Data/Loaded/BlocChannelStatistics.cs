@@ -17,6 +17,11 @@ namespace HBP.Core.Data
             Trial = new ChannelTrialStat(data.Trials, averaging);
         }
 
+        internal BlocChannelStatistics(ChannelTrialStat trial)
+        {
+            Trial = trial;
+        }
+
         internal long ManagedBytes
         {
             get

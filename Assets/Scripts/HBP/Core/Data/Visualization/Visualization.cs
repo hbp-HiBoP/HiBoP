@@ -507,7 +507,7 @@ namespace HBP.Core.Data
         {
             const float LOADING_DATA_PROGRESS = 0.95f;
             const float NORMALIZING_DATA_PROGRESS = 0.05f;
-            IEnumerable<DataInfo> dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct();
+            DataInfo[] dataInfoCollection = dataInfoByColumn.SelectMany(d => d.Value).Distinct().ToArray();
             var tasks = dataInfoCollection.Select(dataInfo => (Func<UniTask>)(async () =>
             {
                 await UniTask.SwitchToThreadPool();
@@ -539,7 +539,7 @@ namespace HBP.Core.Data
             }));
             await Tools.UniTaskExtensions.PerformMultipleTasksAsync(tasks, 0, LOADING_DATA_PROGRESS, "Loading data", updateProgress, 5, PersistentDataManager.UserPreferences.General.System.MultiThreading, token);
             updateProgress.Invoke(LOADING_DATA_PROGRESS + NORMALIZING_DATA_PROGRESS, 1.0f, new LoadingText("Normalizing data"));
-            DataManager.NormalizeiEEGData(PersistentDataManager.UserPreferences.General.System.MultiThreading);
+            DataManager.NormalizeiEEGData(dataInfoCollection.OfType<IEEGDataInfo>(), PersistentDataManager.UserPreferences.General.System.MultiThreading);
         }
 
         private async UniTask LoadColumnsAsync(Dictionary<Column, IEnumerable<DataInfo>> dataInfoByColumn, Action<float, float, LoadingText> onChangeProgress, CancellationToken token)

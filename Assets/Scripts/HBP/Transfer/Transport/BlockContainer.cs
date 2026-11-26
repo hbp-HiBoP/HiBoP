@@ -47,8 +47,12 @@ namespace HBP.Transfer.Transport
             4
         };
 
-        public static byte[] Produce(IReadOnlyList<BlockResource> resources, Action<byte[]> emit, CancellationToken token)
+        public static byte[] Produce(IReadOnlyList<BlockResource> resources, Action<byte[]> emit, CancellationToken token, string timingScope = null)
         {
+            using var totalTiming = timingScope == null ? null : PairingTiming.Measure("desktop.blocks-produce", timingScope);
+            using var compression = PairingTiming.Aggregate("desktop.blocks-compress", timingScope);
+            using var hashing = PairingTiming.Aggregate("desktop.blocks-sha256", timingScope);
+            int rawBlocks = 0;
             Validate(resources);
             using var transcript = TransferCodec.CreateHash();
             using var manifest = new MemoryStream();
@@ -83,10 +87,15 @@ namespace HBP.Transfer.Transport
                 {
                     token.ThrowIfCancellationRequested();
                     int size;
-                    size = TransferCodec.Encode(TransferCodec.Zstd, 3, buffer, count, compressed);
+                    using (PairingTiming.Measure(compression, count))
+                        size = TransferCodec.Encode(TransferCodec.Zstd, 3, buffer, count, compressed);
                     bool compress = size < count;
                     if (!compress)
+                    {
+                        rawBlocks++;
                         size = count;
+                    }
+
                     var packet = new byte[64 + size];
                     packet[0] = 1;
                     packet[1] = compress ? TransferCodec.Zstd : (byte)0;
@@ -96,8 +105,12 @@ namespace HBP.Transfer.Transport
                     Put32(packet, 20, count);
                     Put32(packet, 24, size);
                     Buffer.BlockCopy(compress ? compressed : buffer, 0, packet, 64, size);
-                    Buffer.BlockCopy(blockHash.ComputeHash(packet, 64, size), 0, packet, 28, 32);
-                    transcript.TransformBlock(packet, 0, 64, null, 0);
+                    using (PairingTiming.Measure(hashing, size + 64))
+                    {
+                        Buffer.BlockCopy(blockHash.ComputeHash(packet, 64, size), 0, packet, 28, 32);
+                        transcript.TransformBlock(packet, 0, 64, null, 0);
+                    }
+
                     offset += count;
                     total += count;
                     encoded += size;
@@ -117,22 +130,36 @@ namespace HBP.Transfer.Transport
             Put64(end, 20, encoded);
             Buffer.BlockCopy(digest, 0, end, 28, 32);
             emit(end);
+            if (timingScope != null)
+            {
+                PairingTiming.Count("desktop.blocks-uncompressed-bytes", total, timingScope);
+                PairingTiming.Count("desktop.blocks-payload-bytes", encoded, timingScope);
+                PairingTiming.Count("desktop.blocks-resource-count", resources.Count, timingScope);
+                PairingTiming.Count("desktop.blocks-raw-count", rawBlocks, timingScope);
+                PairingTiming.Count("desktop.blocks-count", sequence, timingScope);
+            }
+
             return digest;
         }
 
         // Caller has consumed and validated the four-byte magic. One worker owns sink/native decoding.
-        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null, Action<long, long> logicalProgress = null, Action<long> wireProgress = null)
+        public static async Task<byte[]> ReceiveAsync(Stream stream, IBlockSink sink, CancellationToken token, Action<long> progress = null, Action<long, long> logicalProgress = null, Action<long> wireProgress = null, string timingScope = null)
         {
+            using var totalTiming = timingScope == null ? null : PairingTiming.Measure("quest.blocks-receive-and-verify", timingScope);
+            using var read = PairingTiming.Aggregate("quest.blocks-tls-read", timingScope);
+            using var enqueue = PairingTiming.Aggregate("quest.blocks-receive-queue-wait", timingScope);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(token);
             using var queue = new System.Collections.Concurrent.BlockingCollection<byte[]>(QueueCapacity);
             var length = new byte[4];
-            await PinnedTlsTransfer.ReadExactAsync(stream, length, 0, 4, token).ConfigureAwait(false);
+            using (PairingTiming.Measure(read, 4))
+                await PinnedTlsTransfer.ReadExactAsync(stream, length, 0, 4, token).ConfigureAwait(false);
             wireProgress?.Invoke(4);
             int manifestLength = Get32(length, 0);
             if (manifestLength < 4 || manifestLength > MaxManifest)
                 throw new InvalidDataException("Invalid block manifest size.");
             var manifest = new byte[manifestLength];
-            await PinnedTlsTransfer.ReadExactAsync(stream, manifest, 0, manifest.Length, token).ConfigureAwait(false);
+            using (PairingTiming.Measure(read, manifest.Length))
+                await PinnedTlsTransfer.ReadExactAsync(stream, manifest, 0, manifest.Length, token).ConfigureAwait(false);
             wireProgress?.Invoke(8L + manifest.Length);
             var resources = new List<BlockResource>();
             using (var input = new MemoryStream(manifest, false))
@@ -158,11 +185,21 @@ namespace HBP.Transfer.Transport
 
             Validate(resources);
             long expectedRaw = resources.Sum(resource => resource.Length);
+            if (timingScope != null)
+            {
+                PairingTiming.Count("quest.blocks-declared-uncompressed-bytes", expectedRaw, timingScope);
+                PairingTiming.Count("quest.blocks-resource-count", resources.Count, timingScope);
+            }
+
             logicalProgress?.Invoke(0, expectedRaw);
             // Closing a failed connection unblocks pending TLS reads even on runtimes which ignore read cancellation.
             using var close = linked.Token.Register(stream.Dispose);
             Task<byte[]> consumer = Task.Run(() =>
             {
+                using var hashing = PairingTiming.Aggregate("quest.blocks-sha256", timingScope);
+                using var decoding = PairingTiming.Aggregate("quest.blocks-decode", timingScope);
+                using var sinkWrite = PairingTiming.Aggregate("quest.blocks-verify-and-stage", timingScope);
+                using var dequeue = PairingTiming.Aggregate("quest.blocks-consumer-wait", timingScope);
                 try
                 {
                     using var transcript = TransferCodec.CreateHash();
@@ -179,18 +216,26 @@ namespace HBP.Transfer.Transport
                         using Stream target = sink.Open(file);
                         for (long offset = 0; offset < resources[file].Length;)
                         {
-                            byte[] packet = queue.Take(linked.Token);
+                            byte[] packet;
+                            using (PairingTiming.Measure(dequeue))
+                                packet = queue.Take(linked.Token);
                             int raw = Get32(packet, 20), size = Get32(packet, 24);
                             if (packet[0] != 1 || Get32(packet, 4) != seq++ || Get32(packet, 8) != file || Get64(packet, 12) != offset || raw > resources[file].Length - offset)
                                 throw new InvalidDataException("Invalid block order or resource range.");
-                            if (!EqualHash(packet, sha.ComputeHash(packet, 64, size)))
-                                throw new InvalidDataException("Block checksum mismatch.");
-                            transcript.TransformBlock(packet, 0, 64, null, 0);
+                            using (PairingTiming.Measure(hashing, size + 64))
+                            {
+                                if (!EqualHash(packet, sha.ComputeHash(packet, 64, size)))
+                                    throw new InvalidDataException("Block checksum mismatch.");
+                                transcript.TransformBlock(packet, 0, 64, null, 0);
+                            }
+
                             // Native input starts at zero; bounded copy avoids unsafe array pointers across IL2CPP.
                             byte packetCodec = packet[1];
                             Buffer.BlockCopy(packet, 64, packet, 0, size);
-                            TransferCodec.Decode(packetCodec, packet, size, decoded, raw);
-                            target.Write(decoded, 0, raw);
+                            using (PairingTiming.Measure(decoding, raw))
+                                TransferCodec.Decode(packetCodec, packet, size, decoded, raw);
+                            using (PairingTiming.Measure(sinkWrite, raw))
+                                target.Write(decoded, 0, raw);
                             offset += raw;
                             total += raw;
                             encoded += size;
@@ -198,12 +243,17 @@ namespace HBP.Transfer.Transport
                         }
                     }
 
-                    byte[] end = queue.Take(linked.Token);
+                    byte[] end;
+                    using (PairingTiming.Measure(dequeue))
+                        end = queue.Take(linked.Token);
                     transcript.TransformFinalBlock(Array.Empty<byte>(), 0, 0);
                     if (end[0] != 2 || Get32(end, 4) != seq || Get64(end, 12) != total || Get64(end, 20) != encoded || !EqualHash(end, transcript.Hash))
                         throw new InvalidDataException("Invalid final block transcript.");
                     linked.Token.ThrowIfCancellationRequested();
-                    sink.Complete();
+                    using (timingScope == null ? null : PairingTiming.Measure("quest.blocks-finalize-staging", timingScope))
+                        sink.Complete();
+                    if (timingScope != null)
+                        PairingTiming.Count("quest.blocks-verified-count", seq, timingScope);
                     return transcript.Hash;
                 }
                 catch
@@ -218,21 +268,26 @@ namespace HBP.Transfer.Transport
                 while (true)
                 {
                     var header = new byte[64];
-                    await PinnedTlsTransfer.ReadExactAsync(stream, header, 0, 64, linked.Token).ConfigureAwait(false);
+                    using (PairingTiming.Measure(read, 64))
+                        await PinnedTlsTransfer.ReadExactAsync(stream, header, 0, 64, linked.Token).ConfigureAwait(false);
                     ValidateHeader(header);
                     int size = header[0] == 1 ? Get32(header, 24) : 0;
                     var packet = new byte[64 + size];
                     Buffer.BlockCopy(header, 0, packet, 0, 64);
-                    await PinnedTlsTransfer.ReadExactAsync(stream, packet, 64, size, linked.Token).ConfigureAwait(false);
+                    using (PairingTiming.Measure(read, size))
+                        await PinnedTlsTransfer.ReadExactAsync(stream, packet, 64, size, linked.Token).ConfigureAwait(false);
                     received += packet.Length;
                     wireProgress?.Invoke(received);
-                    await Task.Run(() => queue.Add(packet, linked.Token)).ConfigureAwait(false);
+                    using (PairingTiming.Measure(enqueue))
+                        await Task.Run(() => queue.Add(packet, linked.Token)).ConfigureAwait(false);
                     progress?.Invoke(received);
                     if (header[0] == 2)
                         break;
                 }
 
                 byte[] result = await consumer.ConfigureAwait(false);
+                if (timingScope != null)
+                    PairingTiming.Count("quest.blocks-wire-bytes", received, timingScope);
                 return result;
             }
             catch

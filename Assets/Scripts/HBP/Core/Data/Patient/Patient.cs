@@ -374,7 +374,7 @@ namespace HBP.Core.Data
         {
             if (string.IsNullOrEmpty(path)) return false;
             DirectoryInfo directory = new(path);
-            if (!directory.Exists) return false;
+            if (!DatabaseSourceAccess.Exists(directory)) return false;
             DirectoryInfo[] directories = directory.GetDirectories();
             if (directories.Any((dir) => dir.Name == "implantation") || directories.Any((dir) => dir.Name == "t1mri")) return true;
             return false;
@@ -505,22 +505,27 @@ namespace HBP.Core.Data
         /// <returns></returns>
         public static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token, TagParsingPolicy policy = null, bool createMissingTags = true, TagImportContext importContext = null)
         {
+            LoadFromIntranatDatabase(databaseReference, out patients, updateProgress, token, policy, createMissingTags, importContext, null);
+        }
+
+        internal static void LoadFromIntranatDatabase(DatabaseReference databaseReference, out Patient[] patients, Action<float, float, LoadingText> updateProgress, CancellationToken token, TagParsingPolicy policy, bool createMissingTags, TagImportContext importContext, DatabaseSourceAccess access)
+        {
             policy = importContext?.Policy ?? policy ?? TagParsingPolicy.Default;
             updateProgress?.Invoke(0, 0, new LoadingText("Finding patients to load"));
             patients = new Patient[0];
             if (string.IsNullOrEmpty(databaseReference.Path)) return;
             DirectoryInfo directory = new(databaseReference.Path);
-            if (!directory.Exists) return;
-
-            IEnumerable<DirectoryInfo> patientDirectories = directory.GetDirectories().Where(d => IsPatientDirectory(d.FullName));
-            int length = patientDirectories.Count();
+            var patientDirectories = DatabaseSourceAccess.ReadSourceDirectories(access, directory);
+            int length = patientDirectories.Length;
             int progress = 0;
             List<Patient> patientsList = new(length);
             foreach (var dir in patientDirectories)
             {
                 token.ThrowIfCancellationRequested();
-                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + (progress + 1) + "/" + length + "]"));
-                if (LoadFromDirectory(dir.FullName, out Patient patient, policy, createMissingTags, importContext))
+                updateProgress?.Invoke((float)progress++ / length, 0, new LoadingText("Loading patient ", dir.Name, " [" + progress + "/" + length + "]"));
+                var patient = DatabaseSourceAccess.Read(access, dir, dir.Name, () =>
+                    LoadFromDirectory(dir.FullName, out var loaded, policy, createMissingTags, importContext) ? loaded : null);
+                if (patient != null)
                 {
                     patient.CorrespondingDatabaseID = databaseReference.ID;
                     patientsList.Add(patient);

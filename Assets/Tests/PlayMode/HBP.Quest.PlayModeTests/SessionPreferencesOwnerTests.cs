@@ -709,7 +709,7 @@ namespace HBP.Tests.Quest
                     return pending.Task;
                 }
 
-                return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability));
+                return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability));
             });
             try
             {
@@ -746,7 +746,7 @@ namespace HBP.Tests.Quest
                     }
 
                     string inventory = "{\"Preparing\":false,\"Atlases\":{\"mars\":{\"State\":" + (int)AtlasLoadState.Loaded + ",\"Preload\":true,\"Fingerprint\":\"" + new string('0', 64) + "\"}}}";
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes(inventory)));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes(inventory)));
                 });
                 owner.OnConnectionLost.AddListener(() => disconnections++);
                 await owner.StartAsync();
@@ -761,6 +761,52 @@ namespace HBP.Tests.Quest
             }
         }
 
+        [TestCase(false, false, false)]
+        [TestCase(true, true, false)]
+        [TestCase(true, false, true)]
+        public async Task OpeningUsesCurrentDesktopAtlasPolicyAfterGlobalsInstallation(bool preloadEnabled, bool manuallyUnloaded, bool shouldLoad)
+        {
+            const string id = "difumo:64";
+            var archivedPreferences = new UserPreferences();
+            archivedPreferences.Data.Atlases.PreloadDiFuMo64 = true;
+            var desktopPreferences = new UserPreferences();
+            desktopPreferences.Data.Atlases.PreloadMarsAtlas = false;
+            desktopPreferences.Data.Atlases.PreloadJuBrain = false;
+            desktopPreferences.Data.Atlases.PreloadDiFuMo64 = preloadEnabled;
+            var intents = new Dictionary<string, bool>();
+            if (manuallyUnloaded) intents.Add(id, false);
+            Assert.That(AtlasResources.Status(id).State, Is.EqualTo(AtlasLoadState.Unloaded));
+
+            Guid context = Guid.NewGuid();
+            var loads = new List<string>();
+            SessionAtlasPreparation preparation = null;
+            var receiver = new SessionPreferencesReceiver(() => context, () => archivedPreferences, () => false, prepareAtlases: preloads =>
+            {
+                preparation = new SessionAtlasPreparation(preloads, () => UniTask.CompletedTask, (atlas, _) =>
+                {
+                    loads.Add(atlas);
+                    return UniTask.FromResult(new AtlasLoadResult(atlas, AtlasLoadState.Loaded));
+                });
+                preparation.Start();
+            });
+            using var owner = new DesktopSessionPreferences(context, 1, desktopPreferences, receiver.HandleAsync, archivedPreferences, intents);
+            try
+            {
+                await owner.StartAsync();
+                Assert.That(preparation, Is.Not.Null);
+                await preparation.Completion;
+                Assert.That(loads, Is.EqualTo(shouldLoad ? new[] { id } : Array.Empty<string>()));
+                Assert.That(archivedPreferences.Data.Atlases.PreloadDiFuMo64, Is.True);
+            }
+            finally
+            {
+                owner.Dispose();
+                await AtlasInventoryWork(owner);
+                if (preparation != null) await preparation.CloseAsync();
+                await receiver.CloseAsync();
+            }
+        }
+
         [Test]
         public async Task ManualLoadConfirmsBothDevicesWithoutComparingContentHashes()
         {
@@ -771,7 +817,7 @@ namespace HBP.Tests.Quest
                 using var owner = new DesktopSessionPreferences(Guid.NewGuid(), 1, new UserPreferences(), (request, token) =>
                 {
                     if (request.Kind == SessionControlKind.ConfirmAtlas) confirmations++;
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: new string('0', 64), body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{\"Preparing\":false,\"Atlases\":{}}")));
                 });
                 await owner.StartAsync();
                 await owner.SetAtlasLoadedAsync("mars", true);
@@ -1184,7 +1230,7 @@ namespace HBP.Tests.Quest
                 preferences.General.Project.DefaultName = "Second save";
                 preferences.Save();
                 Assert.That(sent.Count, Is.EqualTo(1));
-                opening.SetResult(new SessionControlResponse(sent[0].OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes("{}")));
+                opening.SetResult(new SessionControlResponse(sent[0].OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{}")));
                 await start;
                 await owner.FlushPreferencesAsync();
                 Assert.That(sent.Count, Is.EqualTo(3));
@@ -1199,7 +1245,7 @@ namespace HBP.Tests.Quest
                 using var next = new DesktopSessionPreferences(Guid.NewGuid(), 2, preferences, (request, token) =>
                 {
                     if (request.Kind != SessionControlKind.AtlasInventory) sent.Add(request);
-                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, body: Encoding.UTF8.GetBytes("{}")));
+                    return Task.FromResult(new SessionControlResponse(request.OperationId, SessionControlStatus.Applied, message: SessionControlCodec.AtlasInventoryCapability, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability, body: Encoding.UTF8.GetBytes("{}")));
                 });
                 await next.StartAsync();
                 await next.FlushPreferencesAsync();

@@ -26,6 +26,7 @@ namespace HBP.Quest
         [SerializeField] private QuestWindow[] initialWindows = Array.Empty<QuestWindow>();
         [SerializeField] private Definition[] catalogue = Array.Empty<Definition>();
         private readonly Dictionary<string, QuestWindow> windows = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, Func<bool>> openAvailability = new(StringComparer.Ordinal);
         private readonly List<QuestWindow> windowOrder = new();
         private readonly HashSet<QuestWindow> broughtIntoView = new();
         private bool trackingPlaced;
@@ -49,6 +50,12 @@ namespace HBP.Quest
 
         private void Update()
         {
+            for (int i = 0; i < windowOrder.Count; i++)
+            {
+                var window = windowOrder[i];
+                if (window.HasDeferredOpen && CanOpen(window.Key)) window.RestoreDeferredOpen();
+            }
+
             if (trackingPlaced || head == null) return;
             var tracker = head.GetComponent<QuestDevicePoseTracker>();
             bool worn = InputDevices.GetDeviceAtXRNode(XRNode.Head).TryGetFeatureValue(CommonUsages.userPresence, out bool present) && present;
@@ -83,7 +90,7 @@ namespace HBP.Quest
             int order = int.MaxValue;
             if (layout.TryGetState(window.Key, out var state))
             {
-                window.RestoreState(state);
+                window.RestoreState(state, CanOpen(window.Key));
                 order = state.Order ?? int.MaxValue;
             }
 
@@ -140,8 +147,14 @@ namespace HBP.Quest
 
         public QuestWindow Find(string key) => windows.TryGetValue(key, out var window) ? window : null;
 
+        // The toolbar binds availability in Awake before the manager restores windows.
+        internal void SetOpenAvailability(string key, Func<bool> canOpen) => openAvailability.Add(key, canOpen);
+
+        internal bool CanOpen(string key) => !openAvailability.TryGetValue(key, out var canOpen) || canOpen();
+
         public QuestWindow Open(string key)
         {
+            if (!CanOpen(key)) return null;
             var window = Find(key);
             if (window == null)
                 foreach (var item in catalogue)
@@ -153,7 +166,7 @@ namespace HBP.Quest
                     }
 
             if (window == null) return null;
-            window.Open();
+            window.OpenAvailable();
             return window;
         }
 
@@ -243,7 +256,7 @@ namespace HBP.Quest
         private void StoreSettings(QuestWindow window)
         {
             var zoom = window.GetComponentInChildren<QuestWindowContentZoom>(true);
-            layout.SetState(window.Key, new QuestWindowLayoutStore.WindowState(window.LayoutPose, window.UserSize, zoom != null ? zoom.ZoomPercent : null, window.IsPinned, window.IsOpen, windowOrder.IndexOf(window)));
+            layout.SetState(window.Key, new QuestWindowLayoutStore.WindowState(window.LayoutPose, window.UserSize, zoom != null ? zoom.ZoomPercent : null, window.IsPinned, window.OpenRequested, windowOrder.IndexOf(window)));
         }
 
         private void SaveSettings(QuestWindow window)

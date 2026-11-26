@@ -324,15 +324,8 @@ namespace HBP.Tests.Quest
                 Assert.That(lab.Settings.CursorStyle, Is.EqualTo(QuestCursorStyle.Halo), "Changing selection profiles must preserve cursor appearance and placement.");
                 Assert.That(lab.Settings.CursorOffset, Is.EqualTo(new Vector3(0, .03f, .02f)));
                 var cursorProbe = lab.GetComponentInChildren<QuestSiteProbe>();
-                lab.Execute("offset-x");
-                var keypad = lab.GetComponentInChildren<QuestNumericKeypad>(true);
-                Assert.That(keypad.IsOpen, Is.True);
-                keypad.Enter("1");
-                keypad.Enter("2");
-                keypad.Enter("+/-");
-                keypad.Apply();
-                Assert.That(keypad.IsOpen, Is.False);
-                Assert.That(lab.Settings.CursorOffset.x, Is.EqualTo(-.012f), "The real keypad must accept signed offsets in millimetres.");
+                typeof(QuestSelectionLab).GetMethod("ApplyNumber", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(lab, new object[] { "offset-x", "-12,5" });
+                Assert.That(lab.Settings.CursorOffset.x, Is.EqualTo(-.0125f), "Submission must accept signed offsets in millimetres.");
                 var feedback = lab.GetComponentInChildren<QuestSelectionFeedback>();
                 var feedbackFields = new SerializedObject(feedback);
                 var backs = Enumerable.Range(0, 4).Select(i => (LineRenderer)feedbackFields.FindProperty("cursorBack").GetArrayElementAtIndex(i).objectReferenceValue).ToArray();

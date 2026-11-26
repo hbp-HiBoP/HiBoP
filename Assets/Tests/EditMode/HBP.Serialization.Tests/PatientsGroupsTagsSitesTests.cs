@@ -123,6 +123,62 @@ namespace HBP.Tests.Serialization
             Assert.That(siteValue.Tag, Is.SameAs(siteTag));
         }
 
+        [TestCase(true)]
+        [TestCase(false)]
+        public void GroupFilter_UsesFileMembershipWhenPatientsAreOutsideTheProject(bool hasProject)
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+
+            Patient projectPatient = new() { ID = "project-patient", Name = "Project patient" };
+            Patient externalPatient = new() { ID = "external-patient", Name = "External patient" };
+            Patient otherPatient = new() { ID = "other-patient", Name = "Other patient" };
+            if (hasProject)
+            {
+                ApplicationState.LoadedProject = new Project("Current project", new ProjectPreferences(), new[] { projectPatient, otherPatient }, Array.Empty<Group>(), Array.Empty<Dataset>(), Array.Empty<Visualization>());
+            }
+
+            string path = temp.GetPath("patient-group.group");
+            Group group = new("Patient group", new[] { projectPatient, externalPatient });
+            Assert.That(ClassLoaderSaver.SaveToJSon(group, path, true), Is.True);
+
+            GroupFilterCondition filter = new(path, false);
+            Assert.That(filter.Description, Is.EqualTo("The patient is in group 'Patient group' (2 patients)"));
+            Assert.That(filter.Check(projectPatient), Is.True);
+            Assert.That(filter.Check(externalPatient), Is.True);
+            Assert.That(filter.Check(otherPatient), Is.False);
+            filter.IsNot = true;
+            Assert.That(filter.Check(projectPatient), Is.False);
+            Assert.That(filter.Check(otherPatient), Is.True);
+        }
+
+        [Test]
+        public void GroupFilter_ReportsAnUnreadableReplacementFileAndUsesTheNextSelection()
+        {
+            using TempDirectoryScope temp = new();
+            using ApplicationStateTestScope appState = new(temp.Path);
+
+            Patient patient = new() { ID = "first-patient" };
+            Patient otherPatient = new() { ID = "second-patient" };
+            string firstPath = temp.GetPath("first.group");
+            string unreadablePath = temp.GetPath("unreadable.group");
+            string secondPath = temp.GetPath("second.group");
+            Assert.That(ClassLoaderSaver.SaveToJSon(new Group("First group", new[] { patient }), firstPath, true), Is.True);
+            File.WriteAllText(unreadablePath, "invalid JSON");
+            Assert.That(ClassLoaderSaver.SaveToJSon(new Group("Second group", new[] { otherPatient }), secondPath, true), Is.True);
+
+            GroupFilterCondition filter = new(firstPath, false);
+            Assert.That(filter.Check(patient), Is.True);
+
+            filter.GroupFilePath = unreadablePath;
+            Assert.That(filter.Description, Is.EqualTo("Group file 'unreadable' not loaded"));
+            Assert.That(filter.Check(patient), Is.False);
+
+            filter.GroupFilePath = secondPath;
+            Assert.That(filter.Check(patient), Is.False);
+            Assert.That(filter.Check(otherPatient), Is.True);
+        }
+
         [Test]
         public void SiteConfigurationAndSelectionState_PreserveLabelsFlagsAndGain()
         {

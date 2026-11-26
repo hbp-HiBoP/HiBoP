@@ -149,6 +149,61 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
+        public void AtlasCuts_ShareRenderedTexturesUntilAtlasIsDisabled()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scope = new("AtlasCutTextureSharing");
+            Base3DScene scene = CreateIsolatedCutsTriangleErasingScene(scope, temp, includeSurface: false);
+            var brain = GetPrivateField<DisplayedObjects>(scene, "m_DisplayedObjects").Brain;
+            CreateSelectedColumn(scope, scene, "first", brain, includeView: false);
+            CreateSelectedColumn(scope, scene, "second", brain, includeView: false);
+
+            var volume = scene.MRIManager.SelectedMRI.Volume;
+            Assert.That(volume.LoadNIFTIFile(Path.Combine(Application.dataPath, "Tests", "Fixtures", "Native", "Nifti", "mri_t1.nii")), Is.True);
+            var cut = scene.AddCutPlane();
+            scene.CutGeometryGenerators.Single().InitializeDisplay(volume, cut, rawCuts: true);
+            foreach (var column in scene.Columns) column.CutTextures.ResetColorSchemes(scene.Colormap, scene.CutColor);
+
+            string folder = Path.Combine(Application.dataPath, "Data", "Atlases", "MarsAtlas");
+            using HBP.Core.DLL.MarsAtlas atlas = new();
+            Assert.That(atlas.Load(Path.Combine(folder, "mars_atlas_index.csv"), Path.Combine(folder, "brodmann_areas.txt"), Path.Combine(folder, "colin27_MNI_MarsAtlas.nii")), Is.True);
+            var previousAtlas = Object3DManager.MarsAtlas;
+            var baseTextures = typeof(Base3DScene).GetMethod("ComputeBaseCutTextures", BindingFlags.Instance | BindingFlags.NonPublic);
+            var functionalTextures = typeof(Base3DScene).GetMethod("ComputeFunctionalCutTextures", BindingFlags.Instance | BindingFlags.NonPublic);
+            var first = scene.Columns[0].CutTextures;
+            var second = scene.Columns[1].CutTextures;
+            var secondOwnedTexture = second.BrainCutTextures.Single();
+
+            try
+            {
+                Object3DManager.MarsAtlas = atlas;
+                SetPrivateField(scene.AtlasManager, "m_DisplayMarsAtlas", true);
+                baseTextures.Invoke(scene, null);
+                functionalTextures.Invoke(scene, null);
+                Assert.That(second.BrainCutTextures.Single(), Is.SameAs(first.BrainCutTextures.Single()));
+                var rendererProperties = new MaterialPropertyBlock();
+                var renderer = scene.Columns[1].BrainCutMeshes.Single().GetComponent<Renderer>();
+                renderer.GetPropertyBlock(rendererProperties);
+                Assert.That(rendererProperties.GetTexture("_MainTex"), Is.SameAs(first.BrainCutTextures.Single()));
+
+                SetPrivateField(scene.AtlasManager, "m_DisplayMarsAtlas", false);
+                baseTextures.Invoke(scene, null);
+                functionalTextures.Invoke(scene, null);
+                Assert.That(second.BrainCutTextures.Single(), Is.SameAs(secondOwnedTexture));
+                Assert.That(secondOwnedTexture.GetPixels32(), Is.EqualTo(second.BaseBrainCutTextures.Single().GetPixels32()));
+                renderer.GetPropertyBlock(rendererProperties);
+                Assert.That(rendererProperties.GetTexture("_MainTex"), Is.SameAs(secondOwnedTexture));
+            }
+            finally
+            {
+                Object3DManager.MarsAtlas = previousAtlas;
+            }
+        }
+
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
         public async Task SceneMeshAndCutResources_AreReleasedAcrossRepeatedUpdates()
         {
             using PlayModeTempDirectoryScope temp = new();
@@ -160,25 +215,26 @@ namespace HBP.Tests.PlayMode.Module3D
             CreateSelectedColumn(scope, scene, "resources", displayed.Brain, includeView: false);
             var column = scene.Columns.Single();
             var brainFilter = column.BrainMesh.GetComponent<MeshFilter>();
-            var sourceBrain = displayed.Brain.GetComponent<MeshFilter>().mesh;
+            var sourceBrain = displayed.Brain.GetComponent<MeshFilter>().sharedMesh;
             await UniTask.NextFrame();
             int warmedMeshCount = 0;
 
             for (int iteration = 0; iteration < 3; iteration++)
             {
-                Mesh oldBrain = brainFilter.mesh;
+                Mesh oldBrain = brainFilter.sharedMesh;
+                Assert.That(oldBrain, Is.SameAs(GetPrivateField<Mesh>(column, "m_OwnedBrainMesh")));
                 column.UpdateColumnBrainMesh(displayed.Brain);
                 Assert.That(oldBrain == null, Is.True, "The previous column mesh must be released.");
-                Assert.That(brainFilter.mesh, Is.SameAs(GetPrivateField<Mesh>(column, "m_OwnedBrainMesh")));
+                Assert.That(brainFilter.sharedMesh, Is.SameAs(GetPrivateField<Mesh>(column, "m_OwnedBrainMesh")));
                 Assert.That(brainFilter.sharedMesh, Is.Not.SameAs(sourceBrain));
 
                 var cut = scene.AddCutPlane();
-                Mesh sourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
+                Mesh sourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().sharedMesh;
                 var cutFilter = column.BrainCutMeshes.Single().GetComponent<MeshFilter>();
-                Mesh oldCut = cutFilter.mesh;
+                Mesh oldCut = cutFilter.sharedMesh;
                 column.UpdateColumnCutMeshes(displayed.BrainCutMeshes);
                 Assert.That(oldCut == null, Is.True);
-                Mesh columnCut = cutFilter.mesh;
+                Mesh columnCut = cutFilter.sharedMesh;
                 Assert.That(columnCut, Is.SameAs(GetPrivateField<List<Mesh>>(column, "m_OwnedCutMeshes").Single()));
                 Assert.That(columnCut, Is.Not.SameAs(sourceCut));
 
@@ -204,18 +260,18 @@ namespace HBP.Tests.PlayMode.Module3D
             }
 
             scene.AddCutPlane();
-            Mesh lastBrain = brainFilter.mesh;
-            Mesh lastCut = column.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
+            Mesh lastBrain = brainFilter.sharedMesh;
+            Mesh lastCut = column.BrainCutMeshes.Single().GetComponent<MeshFilter>().sharedMesh;
             var lastTextures = column.CutTextures.BaseBrainCutTextures.Concat(column.CutTextures.BrainCutTextures).Concat(column.CutTextures.GUIBrainCutTextures).ToArray();
             Object.Destroy(column.gameObject);
             await UniTask.NextFrame();
             await UniTask.NextFrame();
             Assert.That(lastBrain == null && lastCut == null, Is.True);
             Assert.That(lastTextures.All(texture => texture == null), Is.True, "Closing with an active cut must release its textures.");
-            Mesh lastSourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().mesh;
-            Mesh simplified = displayed.SimplifiedBrain.GetComponent<MeshFilter>().mesh;
+            Mesh lastSourceCut = displayed.BrainCutMeshes.Single().GetComponent<MeshFilter>().sharedMesh;
+            Mesh simplified = displayed.SimplifiedBrain.GetComponent<MeshFilter>().sharedMesh;
             displayed.InstantiateInvisibleMesh(false);
-            Mesh invisible = displayed.InvisibleBrain.GetComponent<MeshFilter>().mesh;
+            Mesh invisible = displayed.InvisibleBrain.GetComponent<MeshFilter>().sharedMesh;
             Object.Destroy(displayed.gameObject);
             await UniTask.NextFrame();
             await UniTask.NextFrame();
@@ -330,49 +386,86 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModeSceneScope scene = new("CutsTriangleErasingTriangleEraserMasks");
             Base3DScene firstScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "first", includeSurface: true);
             Base3DScene secondScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "second", includeSurface: true);
-            DisplayedObjects firstDisplayedObjects = GetPrivateField<DisplayedObjects>(firstScene, "m_DisplayedObjects");
-            firstDisplayedObjects.InstantiateInvisibleMesh(false);
+            var oldSurface = secondScene.MeshManager.BrainSurface;
+            SetAutoProperty(secondScene.MeshManager, "BrainSurface", firstScene.MeshManager.BrainSurface);
+            SetAutoProperty(secondScene.MeshManager, "ReferenceSurface", firstScene.MeshManager.ReferenceSurface);
+            oldSurface.Dispose();
 
-            int[] firstBrainMask = CreateMask(firstScene.MeshManager.BrainSurface.NumberOfTriangles, 0);
-            int[] firstSimplifiedMask = CreateMask(firstScene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 0);
-            int[] secondBrainBefore = secondScene.MeshManager.BrainSurface.VisibilityMask.ToArray();
-            int[] secondSimplifiedBefore = secondScene.MeshManager.SimplifiedMeshToUse.VisibilityMask.ToArray();
+            var first = firstScene.TriangleEraser;
+            var second = secondScene.TriangleEraser;
+            int[] hidden = CreateMask(first.VisibilityMask.Length, 0);
+            int version = 0;
+            first.OnVisibilityMaskChanged.AddListener(() => version++);
             firstScene.SceneInformation.GeneratorNeedsUpdate = false;
             firstScene.SceneInformation.SurfaceProjectionNeedsUpdate = false;
             firstScene.SceneInformation.FunctionalSurfaceNeedsUpdate = false;
 
-            AssertNoException("Apply first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = new List<int[]> { firstBrainMask, firstSimplifiedMask }; });
-
-            Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.True);
-            Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
+            first.ApplyExternalVisibility(hidden);
+            Assert.That(first.MeshHasInvisibleTriangles, Is.True);
+            Assert.That(first.CanCancelLastAction, Is.False);
             Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
             Assert.That(firstScene.SceneInformation.SurfaceProjectionNeedsUpdate, Is.False);
             Assert.That(firstScene.SceneInformation.FunctionalSurfaceNeedsUpdate, Is.True);
-            Assert.That(secondScene.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(secondBrainBefore));
-            Assert.That(secondScene.MeshManager.SimplifiedMeshToUse.VisibilityMask, Is.EqualTo(secondSimplifiedBefore));
+            Assert.That(second.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(firstScene.MeshManager.BrainSurface.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(firstScene.MeshManager.SimplifiedMeshToUse.VisibilityMask, Is.All.EqualTo(1));
+            var display = GetPrivateField<DisplayedObjects>(firstScene, "m_DisplayedObjects");
+            Assert.That(display.Brain.GetComponent<MeshFilter>().sharedMesh.triangles, Is.Empty);
 
-            List<int[]> savedMasks = firstScene.TriangleEraser.CurrentMasks.Select(mask => mask.ToArray()).ToList();
-            PushTriangleEraserUndoMasks(firstScene, savedMasks);
+            first.ResetEraser();
+            Assert.That(first.MeshHasInvisibleTriangles, Is.False);
+            Assert.That(first.CanCancelLastAction, Is.True);
+            first.CancelLastAction();
+            Assert.That(first.VisibilityMask, Is.EqualTo(hidden));
+            Assert.That(version, Is.EqualTo(3));
+            Assert.Throws<ArgumentException>(() => first.ImportVisibility(new[] { 1, 2 }));
+            Assert.That(first.VisibilityMask, Is.EqualTo(hidden));
+        }
 
-            AssertNoException("Cancel first scene triangle erasing action", firstScene.TriangleEraser.CancelLastAction);
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
+        public void TriangleEraser_StrokePublishesOnlyOnVisibilityCommitAndUndoesInOneStep()
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("TriangleStroke");
+            var eraser = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: true).TriangleEraser;
+            eraser.IsEnabled = true;
+            int mutations = 0;
+            eraser.OnVisibilityMaskChanged.AddListener(() => mutations++);
 
-            Assert.That(firstScene.TriangleEraser.CurrentMasks[0], Is.EqualTo(savedMasks[0]));
-            Assert.That(firstScene.TriangleEraser.CurrentMasks[1], Is.EqualTo(savedMasks[1]));
-            Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
-            Assert.That(secondScene.MeshManager.BrainSurface.VisibilityMask, Is.EqualTo(secondBrainBefore));
+            Assert.That(eraser.BeginTriangleStroke(), Is.True);
+            Assert.That(eraser.RetouchTriangleStroke(0), Is.True);
+            Assert.That(eraser.RetouchTriangleStroke(0), Is.False);
+            Assert.That(eraser.RetouchTriangleStroke(1), Is.True);
+            eraser.FlushTriangleStrokePreview();
+            eraser.EndTriangleStroke();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(2));
+            Assert.That(mutations, Is.Zero);
 
-            AssertNoException("Reset first scene triangle eraser", firstScene.TriangleEraser.ResetEraser);
+            eraser.ApplySelection(false);
+            Assert.That(eraser.VisibilityMask.Take(2), Is.All.EqualTo(0));
+            Assert.That(mutations, Is.EqualTo(1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(2));
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(mutations, Is.EqualTo(2));
 
-            Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.False);
-            Assert.That(firstScene.TriangleEraser.CanCancelLastAction, Is.False);
-            Assert.That(firstScene.SceneInformation.GeneratorNeedsUpdate, Is.False);
-            Assert.That(firstScene.TriangleEraser.CurrentMasks.SelectMany(mask => mask), Is.All.EqualTo(1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(eraser.CanCancelLastAction, Is.False);
+            Assert.That(mutations, Is.EqualTo(2));
 
-            AssertNoException("Reload first scene triangle masks", () => { firstScene.TriangleEraser.CurrentMasks = savedMasks.Select(mask => mask.ToArray()).ToList(); });
-
-            Assert.That(firstScene.TriangleEraser.CurrentMasks[0], Is.EqualTo(savedMasks[0]));
-            Assert.That(firstScene.TriangleEraser.CurrentMasks[1], Is.EqualTo(savedMasks[1]));
-            Assert.That(firstScene.TriangleEraser.MeshHasInvisibleTriangles, Is.True);
+            Assert.That(eraser.BeginTriangleStroke(), Is.True);
+            eraser.RetouchTriangleStroke(0);
+            var incoming = eraser.VisibilityMask;
+            incoming[1] = 0;
+            eraser.ApplyExternalVisibility(incoming);
+            eraser.EndTriangleStroke();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(eraser.CanCancelLastAction, Is.False);
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(incoming));
         }
 
         [Test]
@@ -387,34 +480,93 @@ namespace HBP.Tests.PlayMode.Module3D
             (Column3D selectedColumn, View3D selectedView) = CreateDetachedToolSelection(scene);
             DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
             displayedObjects.InstantiateInvisibleMesh(false);
-            AssertNoException("Apply toolbar triangle masks", () =>
-            {
-                baseScene.TriangleEraser.CurrentMasks = new List<int[]>
-                {
-                    CreateMask(baseScene.MeshManager.BrainSurface.NumberOfTriangles, 0),
-                    CreateMask(baseScene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 0)
-                };
-            });
+            var eraser = baseScene.TriangleEraser;
+            eraser.ApplyExternalVisibility(CreateMask(eraser.VisibilityMask.Length, 0));
 
-            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "OneTri", "Cylinder", "Zone", "Invert", "Expand");
+            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "Triangle", "Angle", "Activity", "Atlas", "Brush");
             InputField degrees = CreateInputField("Degrees Input", "30");
-            RectTransform degreesParent = CreateRectTransform("Degrees Parent");
+            InputField activity = CreateInputField("Activity Input", "20");
+            InputField brushRadius = CreateInputField("Brush Radius", "3");
+            Toggle add = CreateToggle("Add");
+            Toggle remove = CreateToggle("Remove");
+            remove.isOn = false;
+            Button regionsButton = CreateButton("Atlas Regions");
+            regionsButton.gameObject.SetActive(false);
+            DropWindow regions = regionsButton.gameObject.AddComponent<DropWindow>();
+            regions.Window = CreateRectTransform("Atlas Region Window").gameObject;
+            regions.Window.transform.SetParent(regionsButton.transform, false);
+            regions.Window.SetActive(false);
+            regions.OnChangeWindowState = new BoolEvent();
+            Dropdown atlas = CreateDropdown("Atlas Dropdown", "No atlas loaded");
+            Dropdown version = CreateDropdown("DiFuMo Version");
             TriangleErasingMode modeTool = CreateTool<TriangleErasingMode>("Triangle Erasing Mode", tool =>
             {
+                ToggleGroup group = tool.gameObject.AddComponent<ToggleGroup>();
+                add.transform.SetParent(tool.transform, false);
+                remove.transform.SetParent(tool.transform, false);
+                add.group = remove.group = group;
                 SetPrivateField(tool, "m_Dropdown", dropdown);
-                SetPrivateField(tool, "m_InputField", degrees);
-                SetPrivateField(tool, "m_InputFieldParent", degreesParent);
+                SetPrivateField(tool, "m_Add", add);
+                SetPrivateField(tool, "m_Remove", remove);
+                SetPrivateField(tool, "m_Angle", degrees);
+                SetPrivateField(tool, "m_Activity", activity);
+                SetPrivateField(tool, "m_BrushRadius", brushRadius);
+                SetPrivateField(tool, "m_EraseSelection", CreateButton("Erase"));
+                SetPrivateField(tool, "m_KeepSelection", CreateButton("Keep"));
+                SetPrivateField(tool, "m_RestoreSelection", CreateButton("Restore"));
+                SetPrivateField(tool, "m_ClearSelection", CreateButton("Clear"));
+                SetPrivateField(tool, "m_Atlas", atlas);
+                SetPrivateField(tool, "m_DiFuMoVersion", version);
+                SetPrivateField(tool, "m_Regions", regions);
+                SetPrivateField(tool, "m_RegionsButton", regionsButton);
+                SetPrivateField(tool, "m_Search", CreateInputField("Search", ""));
+                SetPrivateField(tool, "m_DiFuMoThreshold", CreateInputField("Threshold", "0.10"));
             }, baseScene, selectedColumn, selectedView);
             modeTool.Initialize();
 
-            dropdown.SetValueWithoutNotify((int)TriEraserMode.Zone);
-            AssertNoException("Triangle mode dropdown value change", () => dropdown.onValueChanged.Invoke((int)TriEraserMode.Zone));
+            modeTool.UpdateStatus();
+            Assert.That(degrees.gameObject.activeInHierarchy, Is.False);
+            Assert.That(activity.gameObject.activeInHierarchy, Is.False);
+            remove.isOn = true;
+            Assert.That(add.isOn, Is.False);
+            Assert.That(eraser.RemoveFromSelection, Is.True);
+            dropdown.value = (int)TriangleSelectionMode.Angle;
             degrees.text = "45";
             AssertNoException("Triangle erasing degrees edit", () => degrees.onEndEdit.Invoke("45"));
 
-            Assert.That(baseScene.TriangleEraser.CurrentMode, Is.EqualTo(TriEraserMode.Zone));
+            Assert.That(baseScene.TriangleEraser.Mode, Is.EqualTo(TriangleSelectionMode.Angle));
             Assert.That(baseScene.TriangleEraser.Degrees, Is.EqualTo(45));
-            Assert.That(degreesParent.gameObject.activeSelf, Is.True);
+            Assert.That(degrees.gameObject.activeInHierarchy, Is.True);
+            Assert.That(remove.gameObject.activeInHierarchy, Is.False);
+
+            dropdown.value = (int)TriangleSelectionMode.Activity;
+            Assert.That(degrees.gameObject.activeInHierarchy, Is.False);
+            Assert.That(activity.gameObject.activeInHierarchy, Is.True);
+            Assert.That(activity.interactable, Is.True);
+            activity.onEndEdit.Invoke("35");
+            Assert.That(eraser.ActivityTolerance, Is.EqualTo(35));
+
+            dropdown.value = (int)TriangleSelectionMode.Atlas;
+            Assert.That(atlas.gameObject.activeInHierarchy, Is.True);
+            Assert.That(version.gameObject.activeInHierarchy, Is.False);
+            Assert.That(regionsButton.interactable, Is.False);
+
+            dropdown.value = (int)TriangleSelectionMode.Brush;
+            Assert.That(brushRadius.gameObject.activeInHierarchy, Is.True);
+            Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);
+            Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(3));
+            brushRadius.onEndEdit.Invoke("4.25");
+            brushRadius.onEndEdit.Invoke("0");
+            brushRadius.onEndEdit.Invoke("-2");
+            brushRadius.onEndEdit.Invoke("Infinity");
+            Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(4.25f));
+            Assert.That(brushRadius.text, Is.EqualTo("4.25"));
+
+            dropdown.value = (int)TriangleSelectionMode.Triangle;
+            Assert.That(brushRadius.gameObject.activeInHierarchy, Is.False);
+            Assert.That(eraser.RemoveFromSelection, Is.True);
+            Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);
+            Assert.That(add.isOn, Is.False);
 
             Button invertButton = CreateButton("Invert Button");
             InvertErasing invertTool = CreateTool<InvertErasing>("Invert Erasing", tool => SetPrivateField(tool, "m_Button", invertButton), baseScene, selectedColumn, selectedView);
@@ -426,7 +578,9 @@ namespace HBP.Tests.PlayMode.Module3D
             Button cancelButton = CreateButton("Cancel Button");
             CancelErasing cancelTool = CreateTool<CancelErasing>("Cancel Erasing", tool => SetPrivateField(tool, "m_Button", cancelButton), baseScene, selectedColumn, selectedView);
             cancelTool.Initialize();
-            PushTriangleEraserUndoMasks(baseScene, baseScene.TriangleEraser.CurrentMasks.Select(mask => mask.ToArray()).ToList());
+            invertButton.onClick.Invoke();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(eraser.VisibilityMask.Length));
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(0));
             cancelTool.UpdateTool();
             Assert.That(cancelButton.interactable, Is.True);
             AssertNoException("Cancel erasing toolbar click", cancelButton.onClick.Invoke);
@@ -469,44 +623,156 @@ namespace HBP.Tests.PlayMode.Module3D
 
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
-        public void TriangleEraser_NativeMaskModesInvertAndExpandSurfaceMasks()
+        public void TriangleEraser_PreviewExpansionApplyAndUndoFollowChronology()
         {
             using PlayModeTempDirectoryScope temp = new();
             using PlayModeApplicationStateScope appState = new(temp.Path);
             using PlayModePersistentDataScope persistentData = new(temp.Path);
             using PlayModeSceneScope scene = new("CutsTriangleErasingNativeTriangleMaskModes");
             Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "native-mask-modes", includeSurface: true);
-            DisplayedObjects displayedObjects = GetPrivateField<DisplayedObjects>(baseScene, "m_DisplayedObjects");
-            displayedObjects.InstantiateInvisibleMesh(false);
+            var eraser = baseScene.TriangleEraser;
+            int publications = 0;
+            eraser.OnVisibilityMaskChanged.AddListener(() => publications++);
 
-            AssertNoException("Erase native triangle from ray hit", () =>
+            eraser.SelectTriangle(null, 0);
+            Assert.That(eraser.SelectedCount, Is.EqualTo(1));
+            eraser.ExpandSelection();
+            Assert.That(eraser.SelectedCount, Is.GreaterThan(1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(1));
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(publications, Is.Zero);
+
+            eraser.ApplySelection(true);
+            Assert.That(eraser.VisibilityMask.Count(value => value == 1), Is.EqualTo(1));
+            Assert.That(eraser.VisibilityMask[0], Is.EqualTo(1));
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            eraser.CancelLastAction();
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(eraser.SelectedCount, Is.EqualTo(1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(publications, Is.EqualTo(2));
+
+            eraser.InvertSelection();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(eraser.VisibilityMask.Length));
+            Assert.That(eraser.VisibilityMask, Is.All.EqualTo(1));
+            Assert.That(publications, Is.EqualTo(2));
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.Zero);
+
+            eraser.RemoveFromSelection = true;
+            eraser.Mode = TriangleSelectionMode.Angle;
+            eraser.SelectTriangle(null, 0);
+            int regionSize = eraser.SelectedCount;
+            Assert.That(regionSize, Is.Positive);
+            eraser.Mode = TriangleSelectionMode.Triangle;
+            eraser.SelectTriangle(null, 0);
+            Assert.That(eraser.SelectedCount, Is.EqualTo(regionSize - 1));
+
+            eraser.ApplyExternalVisibility(CreateMask(eraser.VisibilityMask.Length, 0));
+            eraser.RemoveFromSelection = false;
+            eraser.SelectTriangle(null, 0);
+            Assert.That(eraser.SelectedErasedCount, Is.EqualTo(1));
+            eraser.RestoreSelection();
+            Assert.That(eraser.VisibilityMask[0], Is.EqualTo(1));
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            eraser.CancelLastAction();
+            Assert.That(eraser.VisibilityMask[0], Is.Zero);
+            Assert.That(eraser.SelectedErasedCount, Is.EqualTo(1));
+
+            var previousVisibility = new[] { 0, 1, 1, 0 };
+            eraser.ApplyExternalVisibility(previousVisibility);
+            eraser.SelectTriangle(null, 0);
+            eraser.SelectTriangle(null, 1);
+            int publicationsBeforeKeep = publications;
+
+            eraser.ApplySelection(true);
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(new[] { 1, 1, 0, 0 }));
+            Assert.That(eraser.SelectedCount, Is.Zero);
+            Assert.That(publications, Is.EqualTo(publicationsBeforeKeep + 1));
+            eraser.CancelLastAction();
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(previousVisibility));
+            Assert.That(eraser.SelectedCount, Is.EqualTo(2));
+            Assert.That(eraser.SelectedErasedCount, Is.EqualTo(1));
+
+            eraser.RestoreSelection();
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(new[] { 1, 1, 1, 0 }));
+            eraser.CancelLastAction();
+            eraser.ApplySelection(false);
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(new[] { 0, 0, 1, 0 }));
+        }
+
+        [Test]
+        [Category("PlayMode.CutsTriangleErasing")]
+        public async Task DiFuMoSelectsErasedFacesAndUndoRestoresTheCheckedRegion()
+        {
+            if (!Application.isEditor) Assert.Ignore("This test uses the versioned MNI and DiFuMo assets.");
+
+            string data = Path.Combine(Application.dataPath, "Data");
+            string atlasPath = Path.Combine("Atlases", "DiFuMo", "64");
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("DiFuMoTriangleSelection");
+            string destination = Path.Combine(ApplicationState.DataPath, atlasPath);
+            Directory.CreateDirectory(Path.Combine(destination, "3mm"));
+            File.Copy(Path.Combine(data, atlasPath, "3mm", "maps.nii.gz"), Path.Combine(destination, "3mm", "maps.nii.gz"));
+            File.Copy(Path.Combine(data, atlasPath, "labels_64_dictionary.csv"), Path.Combine(destination, "labels_64_dictionary.csv"));
+
+            var previousDiFuMo = Object3DManager.DiFuMo;
+            var difumo = new DiFuMoObjects();
+            Object3DManager.DiFuMo = difumo;
+            try
             {
-                baseScene.TriangleEraser.CurrentMode = TriEraserMode.OneTri;
-                baseScene.TriangleEraser.EraseTriangles(Vector3.forward, new Vector3(0.1f, 0.1f, 0f));
-            });
-            Assert.That(baseScene.TriangleEraser.CanCancelLastAction, Is.True);
-            Assert.That(baseScene.TriangleEraser.CurrentMasks[0], Has.Length.EqualTo(baseScene.MeshManager.BrainSurface.NumberOfTriangles));
-            AssertNoException("Reset native triangle eraser after ray hit", baseScene.TriangleEraser.ResetEraser);
+                difumo.Load("64");
+                await difumo.Information["64"].LoadCompletion;
+                await difumo.FMRIs["64"].LoadAsync();
+                await UniTask.SwitchToMainThread();
+                Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, includeSurface: false);
+                var surface = new HBP.Core.DLL.Surface();
+                Assert.That(surface.LoadGIIFile(Path.Combine(data, "Meshes", "MNI_Lhemi.gii"), Path.Combine(data, "Meshes", "MNI.trm")), Is.True);
+                surface.FlipTriangles();
+                surface.ComputeNormals();
+                var mesh = new TestSingleMesh3D(surface, surface, MeshType.MNI);
+                baseScene.MeshManager.Meshes.Add(mesh);
+                SetAutoProperty(baseScene.MeshManager, "BrainSurface", surface);
+                SetAutoProperty(baseScene.MeshManager, "ReferenceSurface", surface);
+                SetAutoProperty(baseScene.MeshManager, "SimplifiedMeshToUse", surface);
+                baseScene.SceneInformation.GeometryNeedsUpdate = false;
 
-            int[] initialBrainMask = CreateMask(baseScene.MeshManager.BrainSurface.NumberOfTriangles, 1);
-            int[] initialSimplifiedMask = CreateMask(baseScene.MeshManager.SimplifiedMeshToUse.NumberOfTriangles, 1);
-            initialBrainMask[0] = 0;
-            initialSimplifiedMask[0] = 0;
+                var eraser = baseScene.TriangleEraser;
+                eraser.ResetForTopologyChange();
+                eraser.ApplyExternalVisibility(CreateMask(surface.NumberOfTriangles, 0));
+                eraser.IsEnabled = true;
+                const string version = "64";
+                const TriangleEraser.AtlasSource source = TriangleEraser.AtlasSource.DiFuMo;
+                int component = eraser.GetAtlasRegions(source, version).First(region => region.Name.Contains("Superior frontal sulcus", StringComparison.OrdinalIgnoreCase)).Id;
+                eraser.SetAtlasRegionSelected(source, version, component, true);
+                var work = (UniTask)typeof(TriangleEraser).GetProperty("SelectionWork", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(eraser);
+                await work;
 
-            AssertNoException("Apply initial native triangle masks", () => { baseScene.TriangleEraser.CurrentMasks = new List<int[]> { initialBrainMask, initialSimplifiedMask }; });
-
-            int hiddenBeforeExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
-            AssertNoException("Expand native triangle mask", () => { baseScene.TriangleEraser.CurrentMode = TriEraserMode.Expand; });
-            int hiddenAfterExpand = baseScene.TriangleEraser.CurrentMasks[0].Count(value => value == 0);
-
-            Assert.That(hiddenAfterExpand, Is.GreaterThanOrEqualTo(hiddenBeforeExpand));
-
-            int[] beforeInvert = baseScene.TriangleEraser.CurrentMasks[0].ToArray();
-            AssertNoException("Invert native triangle mask", () => { baseScene.TriangleEraser.CurrentMode = TriEraserMode.Invert; });
-            int[] afterInvert = baseScene.TriangleEraser.CurrentMasks[0];
-
-            Assert.That(afterInvert, Is.EqualTo(beforeInvert.Select(value => value == 0 ? 1 : 0).ToArray()));
-            Assert.That(baseScene.TriangleEraser.CanCancelLastAction, Is.True);
+                Assert.That(eraser.SelectedErasedCount, Is.Positive);
+                Assert.That(eraser.IsAtlasRegionSelected(source, version, component), Is.True);
+                eraser.RestoreSelection();
+                Assert.That(eraser.IsAtlasRegionSelected(source, version, component), Is.False);
+                Assert.That(eraser.VisibilityMask, Does.Contain(1));
+                eraser.CancelLastAction();
+                Assert.That(eraser.IsAtlasRegionSelected(source, version, component), Is.True);
+                Assert.That(eraser.VisibilityMask, Is.All.EqualTo(0));
+                eraser.SetAtlasRegionSelected(source, version, component, false);
+                Assert.That(eraser.SelectedCount, Is.Zero);
+                eraser.CancelLastAction();
+                Assert.That(eraser.IsAtlasRegionSelected(source, version, component), Is.True);
+                Assert.That(eraser.SelectedErasedCount, Is.Positive);
+                await baseScene.CleanAsync();
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                difumo.Clean();
+                Object3DManager.DiFuMo = previousDiFuMo;
+            }
         }
 
         [Test]
@@ -664,6 +930,7 @@ namespace HBP.Tests.PlayMode.Module3D
                 SetAutoProperty(baseScene.MeshManager, "BrainSurface", surface);
                 SetAutoProperty(baseScene.MeshManager, "ReferenceSurface", surface);
                 SetAutoProperty(baseScene.MeshManager, "SimplifiedMeshToUse", (HBP.Core.DLL.Surface)surface.Clone());
+                baseScene.TriangleEraser.ResetForTopologyChange();
             }
 
             if (includeColumn)
@@ -779,14 +1046,6 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(surface.LoadOBJFile(objPath), Is.True, objPath);
             surface.ComputeNormals();
             return surface;
-        }
-
-        private static void PushTriangleEraserUndoMasks(Base3DScene baseScene, List<int[]> masks)
-        {
-            object masksStack = GetPrivateField<object>(baseScene.TriangleEraser, "m_MasksStack");
-            object simplifiedMasksStack = GetPrivateField<object>(baseScene.TriangleEraser, "m_SimplifiedMasksStack");
-            masksStack.GetType().GetMethod("Push").Invoke(masksStack, new object[] { masks[0].ToArray() });
-            simplifiedMasksStack.GetType().GetMethod("Push").Invoke(simplifiedMasksStack, new object[] { masks[1].ToArray() });
         }
 
         private static Project CreateMinimalAnatomicProject(string suffix, int anatomyColumnCount = 1)
@@ -1262,9 +1521,10 @@ namespace HBP.Tests.PlayMode.Module3D
 
         private sealed class TestSingleMesh3D : SingleMesh3D
         {
-            public TestSingleMesh3D(HBP.Core.DLL.Surface surface, HBP.Core.DLL.Surface simplifiedSurface)
+            public TestSingleMesh3D(HBP.Core.DLL.Surface surface, HBP.Core.DLL.Surface simplifiedSurface, MeshType type = MeshType.Patient)
             {
                 Name = "Synthetic PlayMode inflation mesh";
+                Type = type;
                 m_Both = surface;
                 m_SimplifiedBoth = simplifiedSurface;
             }

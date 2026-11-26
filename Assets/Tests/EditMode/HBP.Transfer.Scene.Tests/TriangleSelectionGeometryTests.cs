@@ -1,0 +1,109 @@
+using System.Collections.Generic;
+using System.IO;
+using HBP.Core.Object3D;
+using HBP.Data.Module3D;
+using NUnit.Framework;
+using UnityEngine;
+
+namespace HBP.Tests.Transfer
+{
+    public sealed class TriangleSelectionGeometryTests
+    {
+        [Test]
+        public void RaycastUsesOriginalFaceIdsThroughHiddenAndClippedFaces()
+        {
+            var geometry = new TriangleSelectionGeometry(new[]
+            {
+                new Vector3(0, 0, 1), new Vector3(0, 1, 1), new Vector3(1, 0, 1),
+                new Vector3(0, 0, 3), new Vector3(0, 1, 3), new Vector3(1, 0, 3)
+            }, new[] { 0, 1, 2, 3, 4, 5 });
+            var origin = new Vector3(.25f, .25f, 0);
+            var direction = new Vector3(0, 0, 2);
+            float distance = 10;
+            Assert.That(geometry.Raycast(origin, direction, new[] { 0, 1 }, null, false, ref distance, out int face, out Vector3 weights), Is.True);
+            Assert.That(face, Is.EqualTo(1));
+            Assert.That(distance, Is.EqualTo(1.5f));
+            Assert.That(weights, Is.EqualTo(new Vector3(.5f, .25f, .25f)));
+
+            using var cut = new Cut(new Vector3(0, 0, 2), Vector3.back);
+            var cuts = new List<Cut> { cut };
+            distance = 10;
+            Assert.That(geometry.Raycast(origin, direction, new[] { 1, 1 }, cuts, true, ref distance, out face, out _), Is.True);
+            Assert.That(face, Is.EqualTo(1));
+            distance = 10;
+            Assert.That(geometry.Raycast(origin, direction, new[] { 0, 0 }, cuts, true, ref distance, out _, out _), Is.False);
+        }
+
+        [TestCase("1 0 1")]
+        [TestCase("1 0 1\r\n0 1")]
+        public void TrimaskReadsOnlyOriginalTopology(string file)
+        {
+            using var reader = new StringReader(file);
+            Assert.That(TriangleEraser.ReadTrimask(reader), Is.EqualTo(new[] { 1, 0, 1 }));
+        }
+
+        [Test]
+        public void AdjacencyRequiresASharedEdge()
+        {
+            var geometry = new TriangleSelectionGeometry(new Vector3[6], new[] { 0, 1, 2, 1, 0, 3, 2, 4, 5 });
+            Assert.That(geometry.Neighbors(0), Is.EqualTo(new[] { 1 }));
+            Assert.That(geometry.Neighbors(2), Is.Empty);
+        }
+
+        [TestCase(.001f)]
+        [TestCase(.002f)]
+        public void GripContactUsesWorldRadiusAndTheNearestRetainedPartOfTheFace(float scale)
+        {
+            var geometry = new TriangleSelectionGeometry(new[]
+            {
+                new Vector3(-10, -10, 0), new Vector3(10, -10, 0), new Vector3(0, 10, 0)
+            }, new[] { 0, 1, 2 });
+            Matrix4x4 frame = Matrix4x4.TRS(new Vector3(.32f, .04f, -.27f), Quaternion.Euler(21, 35, 12), new Vector3(scale, .002f, .004f));
+            using var plane = new Cut(Vector3.zero, Vector3.right);
+            var cuts = new List<Cut> { plane };
+            Vector3 center = frame.MultiplyPoint3x4(new Vector3(.002f / scale, 0, .001f / .004f));
+            float radius = .003f;
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out int face), Is.True);
+            Assert.That(face, Is.Zero);
+            Assert.That(radius, Is.EqualTo(Mathf.Sqrt(.002f * .002f + .001f * .001f)).Within(1e-6f));
+
+            center = frame.MultiplyPoint3x4(new Vector3(.004f / scale, 0, 0));
+            radius = .003f;
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out _), Is.False);
+
+            using var other = new Cut(Vector3.zero, Vector3.left);
+            cuts.Add(other);
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, true, ref radius, out _), Is.False);
+            Assert.That(geometry.Contact(center, frame, frame.inverse, cuts, false, ref radius, out face), Is.True);
+            Assert.That(face, Is.Zero);
+        }
+
+        [TestCase(.001f)]
+        [TestCase(.002f)]
+        public void BrushSweepsBothFoldsAndTestsOnlyTheirRetainedPortions(float scale)
+        {
+            var geometry = new TriangleSelectionGeometry(new[]
+            {
+                new Vector3(-8, -8, 0), new Vector3(8, -8, 0), new Vector3(0, 8, 0),
+                new Vector3(-8, -8, 2), new Vector3(8, -8, 2), new Vector3(0, 8, 2)
+            }, new[] { 0, 1, 2, 3, 4, 5 });
+            var frame = Matrix4x4.TRS(new Vector3(.2f, .3f, -.1f), Quaternion.Euler(18, 22, 34), Vector3.one * scale);
+            var start = frame.MultiplyPoint3x4(new Vector3(1, 0, -8));
+            var end = frame.MultiplyPoint3x4(new Vector3(1, 0, 10));
+            var faces = new List<int>();
+            const float radius = .003f;
+
+            Assert.That(geometry.BrushContacts(start, start, radius, frame, frame.inverse, null, false, null), Is.False);
+            Assert.That(geometry.BrushContacts(end, end, radius, frame, frame.inverse, null, false, null), Is.False);
+            Assert.That(geometry.BrushContacts(start, end, radius, frame, frame.inverse, null, false, faces), Is.True);
+            Assert.That(faces, Is.EquivalentTo(new[] { 0, 1 }));
+
+            using var horizontal = new Cut(new Vector3(0, 0, 1), Vector3.back);
+            using var vertical = new Cut(Vector3.zero, Vector3.right);
+            var cuts = new List<Cut> { horizontal, vertical };
+            faces.Clear();
+            Assert.That(geometry.BrushContacts(start, end, radius, frame, frame.inverse, cuts, true, faces), Is.True);
+            Assert.That(faces, Is.EqualTo(new[] { 1 }));
+        }
+    }
+}

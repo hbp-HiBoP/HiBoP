@@ -9,6 +9,8 @@ Shader "HBP/Brain/Transparent"
         _Glossiness("Surface Smoothness", Range(0, 1)) = 0.45
         _Metallic("Legacy Metallic", Range(0, 1)) = 0
         [Toggle] _Atlas("Atlas", Float) = 0
+        [HideInInspector] _AtlasHoverLabel("Hovered Atlas Label", Float) = -1
+        [HideInInspector] _AtlasHoverColor("Hovered Atlas Color", Vector) = (0, 0, 0, 0)
         [Toggle] _Activity("Activity", Float) = 0
         [Toggle] _FMRI("fMRI", Float) = 0
         _Amount("Extrusion Amount", Range(0, 1)) = 0

@@ -331,6 +331,7 @@ MonoBehaviour:
   siteProbe: {fileID: 570776363187926988}
   cuts: {fileID: 2205506101449227706}
   rois: {fileID: 761861929082798370}
+  triangles: {fileID: 3686515059433297984}
   trackingOrigin: {fileID: 5796243678245087569}
   leftRay: {fileID: 328702519540307367}
   rightRay: {fileID: 5854954177881587648}
@@ -339,6 +340,8 @@ MonoBehaviour:
   overlayFeedbackMaterial: {fileID: 2100000, guid: 841033f7ce651494ab41d4d71918b38f,
     type: 2}
   atlasTooltip: {fileID: 7995906318531852876}
+  controllerCalloutPrefab: {fileID: 5113618768815497040, guid: 832b204d836659844a4ccf2713131c95,
+    type: 3}
 --- !u!114 &570776363187926988
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -689,6 +692,7 @@ Transform:
   - {fileID: 462878858171004928}
   - {fileID: 1847793275429331475}
   - {fileID: 9181558550509558344}
+  - {fileID: 2666652478723189541}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3915953594993188795
@@ -731,6 +735,7 @@ MonoBehaviour:
   - {fileID: 9024539094824799831}
   - {fileID: 4399077787916149919}
   - {fileID: 2505265964519374476}
+  - {fileID: 2189042316997195706}
   catalogue: []
 --- !u!114 &2205506101449227706
 MonoBehaviour:
@@ -1132,12 +1137,6 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 608069958512092122, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 10bddc2d4c3ea384c96017cb44484507,
-        type: 3}
-    - target: {fileID: 608069958512092122, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
       propertyPath: m_Color.b
       value: 0.8627451
       objectReference: {fileID: 0}
@@ -1171,12 +1170,6 @@ PrefabInstance:
       propertyPath: m_FillClockwise
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 779376373651228099, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: d20e8f1e984640f46a93ab27e2a706ae,
-        type: 3}
     - target: {fileID: 1463058794926616634, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: ActualState
@@ -1305,12 +1298,6 @@ PrefabInstance:
       propertyPath: m_FillClockwise
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3289565796680964385, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: a51562bb245c164499365b91001beb4d,
-        type: 3}
     - target: {fileID: 3521381223675402543, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: m_Pivot.x
@@ -1406,12 +1393,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5070828887615048520, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 12b3f86799f0a694e86024db2aae0536,
-        type: 3}
     - target: {fileID: 6559065298823869791, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: cuts
@@ -1429,9 +1410,19 @@ PrefabInstance:
       objectReference: {fileID: 2137823618631154655}
     - target: {fileID: 6559065298823869791, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
+      propertyPath: triangles
+      value: 
+      objectReference: {fileID: 3686515059433297984}
+    - target: {fileID: 6559065298823869791, guid: 556925b40c68f4d46b1192199c5d35a3,
+        type: 3}
       propertyPath: connection
       value: 
       objectReference: {fileID: 5426489679580449341}
+    - target: {fileID: 6559065298823869791, guid: 556925b40c68f4d46b1192199c5d35a3,
+        type: 3}
+      propertyPath: displaySettings
+      value: 
+      objectReference: {fileID: 8284902471322442728}
     - target: {fileID: 6699661224953759980, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: ActualState
@@ -1469,12 +1460,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Quest Toolbar
       objectReference: {fileID: 0}
-    - target: {fileID: 7906271260156443313, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 68a7152783cd86345bff5def47e8ff77,
-        type: 3}
     - target: {fileID: 8124679497006902148, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: m_Color.b
@@ -6966,6 +6951,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 58574187f367bf546a4ffb0c65ae0084, type: 3}
   m_Name: 
   m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestWindow
+--- !u!114 &8284902471322442728 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2445909407556122069, guid: 38dabfd1e8e0b9441b87fe2c52a9ceb1,
+    type: 3}
+  m_PrefabInstance: {fileID: 5983172029355208253}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22d8929bdafbaa843896cfb7c8bec48e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestDisplaySettingsPanel
 --- !u!1001 &7841808463395969730
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7357,6 +7354,64 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 7841808463395969730}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &8047100470132664075
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5638403999760232180}
+    m_Modifications:
+    - target: {fileID: 1240739962289998647, guid: 46329cf6f865eb54f8ced60d5d283eca,
+        type: 3}
+      propertyPath: m_Name
+      value: Quest Triangle Erasing Window
+      objectReference: {fileID: 0}
+    - target: {fileID: 6666500439015735115, guid: 46329cf6f865eb54f8ced60d5d283eca,
+        type: 3}
+      propertyPath: view
+      value: 
+      objectReference: {fileID: 2346278702263725147}
+    - target: {fileID: 6666500439015735115, guid: 46329cf6f865eb54f8ced60d5d283eca,
+        type: 3}
+      propertyPath: session
+      value: 
+      objectReference: {fileID: 3281140389832051285}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 46329cf6f865eb54f8ced60d5d283eca, type: 3}
+--- !u!114 &2189042316997195706 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8199930523243024561, guid: 46329cf6f865eb54f8ced60d5d283eca,
+    type: 3}
+  m_PrefabInstance: {fileID: 8047100470132664075}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 58574187f367bf546a4ffb0c65ae0084, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestWindow
+--- !u!224 &2666652478723189541 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 5380905946779683886, guid: 46329cf6f865eb54f8ced60d5d283eca,
+    type: 3}
+  m_PrefabInstance: {fileID: 8047100470132664075}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &3686515059433297984 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6666500439015735115, guid: 46329cf6f865eb54f8ced60d5d283eca,
+    type: 3}
+  m_PrefabInstance: {fileID: 8047100470132664075}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 052862a39e70b144abde6c5e6cabb17c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestTriangleErasingPanel
 --- !u!1001 &8771265528607958834
 PrefabInstance:
   m_ObjectHideFlags: 0

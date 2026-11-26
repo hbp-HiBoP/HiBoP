@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
+using HBP.Transfer.Transport;
 
 namespace HBP.Transfer.Scene
 {
@@ -43,7 +44,7 @@ namespace HBP.Transfer.Scene
 
         // Caller has already verified the ENTIRE incoming archive and this buffer's SHA.
         // An open range is supplied even on hits, so a missing/disposed source cannot be hidden.
-        internal Stream Open(string name, Stream verified, CancellationToken token, long expectedGeneration)
+        internal Stream Open(string name, Stream verified, CancellationToken token, long expectedGeneration, string timingScope = null)
         {
             string key = "surface-v1:" + name;
             long startedGeneration;
@@ -56,11 +57,13 @@ namespace HBP.Transfer.Scene
                 {
                     lru.Remove(entry);
                     lru.AddFirst(entry);
+                    PairingTiming.Count("quest.surface-cache-hit-bytes", entry.Value.bytes.Length, timingScope);
                     verified.Dispose();
                     return new MemoryStream(entry.Value.bytes, false);
                 }
             }
 
+            PairingTiming.Count("quest.surface-cache-miss-bytes", verified.Length, timingScope);
             if (verified.Length > budget || verified.Length > int.MaxValue)
             {
                 return verified;

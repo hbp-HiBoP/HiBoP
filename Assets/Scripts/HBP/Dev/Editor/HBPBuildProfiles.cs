@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -37,7 +38,9 @@ namespace HBP.Dev
             return profile;
         }
 
-        public static string ReadProductVersion()
+        public static string ReadProductVersion() => ReadProductVersion(out _);
+
+        internal static string ReadProductVersion(out string releaseNotes)
         {
             JObject metadata = ReadCodeMeta();
             JToken versionToken = metadata["version"];
@@ -46,19 +49,29 @@ namespace HBP.Dev
                 throw new BuildFailedException($"{GetCodeMetaPath()} must contain a non-empty string property named 'version'.");
             }
 
+            JToken notesToken = metadata["releaseNotes"];
+            releaseNotes = notesToken?.Type == JTokenType.String && !JToken.DeepEquals(notesToken, metadata["downloadUrl"]) ? notesToken.Value<string>() : string.Empty;
             return versionToken.Value<string>();
         }
 
-        public static void WriteProductVersion(string version)
+        public static void WriteProductVersion(string version, string releaseNotes = null)
         {
             if (string.IsNullOrWhiteSpace(version)) throw new System.ArgumentException("The product version cannot be empty.", nameof(version));
             version = version.Trim();
             int questVersionCode = GetQuestVersionCode(version);
             JObject metadata = ReadCodeMeta();
+            string repositoryUrl = (string)metadata["codeRepository"];
+            if (string.IsNullOrWhiteSpace(repositoryUrl))
+                throw new BuildFailedException($"{GetCodeMetaPath()} must contain a repository URL in 'codeRepository'.");
+
+            string releaseUrl = $"{repositoryUrl.Trim().TrimEnd('/')}/releases/tag/{version}";
             metadata["version"] = version;
-            File.WriteAllText(GetCodeMetaPath(), metadata.ToString(Formatting.Indented) + System.Environment.NewLine);
+            metadata["dateModified"] = System.DateTime.Today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            metadata["downloadUrl"] = releaseUrl;
+            metadata["releaseNotes"] = string.IsNullOrWhiteSpace(releaseNotes) ? releaseUrl : releaseNotes;
 
             SynchronizeStoredProductVersion(version, questVersionCode);
+            File.WriteAllText(GetCodeMetaPath(), metadata.ToString(Formatting.Indented) + System.Environment.NewLine);
         }
 
         public static int GetQuestVersionCode(string version)
@@ -158,9 +171,12 @@ namespace HBP.Dev
         private static void UpdateProfilePlayerSettings(BuildProfile profile, string version, int? androidVersionCode = null)
         {
             PropertyInfo property = typeof(BuildProfile).GetProperty("playerSettings", BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo serialize = typeof(BuildProfile).GetMethod("SerializePlayerSettings", BindingFlags.Instance | BindingFlags.NonPublic);
             PlayerSettings settings = property?.GetValue(profile) as PlayerSettings;
-            if (settings == null) throw new System.InvalidOperationException($"Could not access Player Settings for build profile '{profile.name}'.");
+            if (settings == null || serialize == null) throw new System.InvalidOperationException($"Could not access or serialize Player Settings for build profile '{profile.name}'.");
             UpdatePlayerSettingsVersion(settings, version, androidVersionCode);
+            // Saving the profile alone does not serialize its in-memory Player Settings when it is inactive.
+            serialize.Invoke(profile, null);
             EditorUtility.SetDirty(profile);
         }
 
@@ -290,6 +306,12 @@ namespace HBP.Dev
     {
         private string m_Version;
         private string m_OriginalVersion;
+        private string m_OriginalReleaseNotes;
+        private string m_EditedReleaseNotes;
+        private Vector2 m_ReleaseNotesScroll;
+        private GUIStyle m_ReleaseNotesStyle;
+
+        private string ReleaseNotes => m_EditedReleaseNotes ?? (m_Version?.Trim() == m_OriginalVersion ? m_OriginalReleaseNotes : string.Empty);
 
         [MenuItem("Tools/Change version")]
         private static void Open()
@@ -297,9 +319,11 @@ namespace HBP.Dev
             try
             {
                 HBPVersionEditorWindow window = GetWindow<HBPVersionEditorWindow>("Change version");
-                window.m_Version = HBPBuildProfiles.ReadProductVersion();
-                window.m_OriginalVersion = window.m_Version;
-                window.minSize = new Vector2(340, 145);
+                window.m_OriginalVersion = HBPBuildProfiles.ReadProductVersion(out window.m_OriginalReleaseNotes);
+                window.m_Version = window.m_OriginalVersion;
+                window.m_EditedReleaseNotes = null;
+                window.m_ReleaseNotesScroll = Vector2.zero;
+                window.minSize = new Vector2(420, 270);
                 window.Show();
             }
             catch (System.Exception exception)
@@ -312,14 +336,22 @@ namespace HBP.Dev
         {
             EditorGUILayout.LabelField("Version in codemeta.json");
             m_Version = EditorGUILayout.TextField("Version", m_Version);
-            EditorGUILayout.HelpBox("Saving updates Player Settings, both build profiles, and the Quest Bundle Version Code. HBPBuilder reapplies the version before each build.", MessageType.Info);
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Release notes (optional)");
+            m_ReleaseNotesStyle ??= new GUIStyle(EditorStyles.textArea) { wordWrap = true };
+            m_ReleaseNotesScroll = EditorGUILayout.BeginScrollView(m_ReleaseNotesScroll);
+            EditorGUI.BeginChangeCheck();
+            string releaseNotes = EditorGUILayout.TextArea(ReleaseNotes ?? string.Empty, m_ReleaseNotesStyle, GUILayout.ExpandHeight(true));
+            if (EditorGUI.EndChangeCheck()) m_EditedReleaseNotes = releaseNotes;
+            EditorGUILayout.EndScrollView();
+            EditorGUILayout.HelpBox("Leave release notes blank to link to the GitHub release.", MessageType.Info);
 
             EditorGUILayout.BeginHorizontal();
             GUILayout.FlexibleSpace();
             if (GUILayout.Button("Cancel", GUILayout.Width(80))) Close();
 
-            bool changed = !string.IsNullOrWhiteSpace(m_Version) && m_Version.Trim() != m_OriginalVersion;
-            EditorGUI.BeginDisabledGroup(!changed);
+            EditorGUI.BeginDisabledGroup(string.IsNullOrWhiteSpace(m_Version));
             if (GUILayout.Button("Save", GUILayout.Width(80))) Save();
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndHorizontal();
@@ -329,7 +361,7 @@ namespace HBP.Dev
         {
             try
             {
-                HBPBuildProfiles.WriteProductVersion(m_Version);
+                HBPBuildProfiles.WriteProductVersion(m_Version, ReleaseNotes);
                 Close();
             }
             catch (System.Exception exception)

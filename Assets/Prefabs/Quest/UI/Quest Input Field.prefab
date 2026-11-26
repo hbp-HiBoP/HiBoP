@@ -276,9 +276,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6593814121582616595}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d199490a83bb2b844b9695cbf13b01ef, type: 3}
+  m_Script: {fileID: 11500000, guid: 5feaf6cebde9cb543a85ecc697b86af4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.InputField
+  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestTextInputField
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0
@@ -335,6 +335,8 @@ MonoBehaviour:
   m_CaretWidth: 1
   m_ReadOnly: 0
   m_ShouldActivateOnSelect: 1
+  unsupportedKeyboardMessage: The Quest system keyboard is unavailable.
+  signedNumber: 0
 --- !u!114 &318619327860777241
 MonoBehaviour:
   m_ObjectHideFlags: 0

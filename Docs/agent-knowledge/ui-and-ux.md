@@ -34,7 +34,10 @@ tracking and settling; holding X establishes a new frame while retaining the
 layout, including closed windows when they reopen. `QuestWindowLayoutStore` also
 persists completed user resize dimensions, content zoom, pin state, open/closed
 state and stacking order through the common window lifecycle, without saving
-panel-specific content/layout. The version 2 format reads version 1 placements
+panel-specific content/layout. The toolbar and window manager use the same
+availability checks for scene tools. A saved open request waits for the tool to
+become available, then restores the window in its saved stacking order. The
+version 2 format reads version 1 placements
 with prefab defaults for the added properties. Restoring a closed window defers
 zoom application until its layout can measure the unzoomed constraints. Settings
 changes save independently of headset tracking and retain the last validated
@@ -88,9 +91,28 @@ select an option or close the list. A stationary click still selects normally.
 Desktop `User Preferences > Quest > Environment` is a live session preference
 with `Passthrough` (default) and `Solid Background`. Present the opaque background only
 after the Quest runtime confirms the boundary is unsuppressed. Restore passthrough
-before allowing another suppression request. Each controller mesh follows the
-existing OpenXR grip pose and is visible only with full position and rotation
-tracking while the solid background is active.
+before allowing another suppression request. The optional Android feature
+`QuestControllerRenderModels` uses `XR_FB_render_model` in the existing OpenXR
+session. Controller help reads triangle geometry from the runtime's GLB, bakes
+the neutral shape with its skin and derives control surfaces from the named
+joints. Strip Meta's `b_` bone prefix from button names when identifying the
+control. Reflect Z when converting OpenXR grip coordinates to Unity, matching
+the conversion of the tracked grip pose. Attach each native contour and its
+anchors directly to that controller's grip pose.
+Display labels with identified surfaces and draw the outlines of those native
+controls. Draw the textured WebXR model on a solid background throughout
+controller help. The prefab's grip-space calibration aligns that model with
+the native Touch Plus v1 contour. The contour shell writes to an isolated
+stereo depth buffer in either mode and draws the selected outlines.
+Test the anchor and points distributed across the control surface in
+each eye. A visible point reveals the entire leader. When the control is
+occluded, clip only the fragments behind a shell and keep the label visible.
+Load the runtime model into memory without bundling its assets or textures. The existing
+WebXR model and its authored anchors supply the fallback. Apply any fallback
+visual placement to its mesh transform so the grip and aim coordinates used
+for interaction remain independent. Both renderers require full
+position and rotation tracking. Help opens after 1.5 seconds of steady inspection
+of either face and tolerates wrist rotation while the controller stays in view.
 
 Use [DesktopInput](../../Assets/Scripts/HBP/Input/DesktopInput.cs) for Desktop
 New Input System access and its neutral behavior when a device is absent.
@@ -136,6 +158,17 @@ sphere in the shared model for Desktop editing.
 ROI sphere rows show their index, plain position/radius text and remove action;
 Add sphere is the final list item. Quest input and placeholder text is vertically
 centered while preserving its horizontal alignment.
+
+The Quest Triangle Erasing window activates the local selection preview when
+opened. Closing it hides the preview and keeps the selection for that scene.
+Atlas region controls open beside the main window and preserve the scene's
+checked regions when the side panel closes. A fresh side grip in Triangle, Angle or Activity owns the contact
+marker until release. Existing captures finish normally, and Atlas uses the
+window's region list. Contact uses a 3 mm sphere in tracking space against the
+complete displayed surface, including the erased-face overlay and cut
+boundaries. The first contact locks the column. A Triangle sweep is one local
+undo step. Angle and Activity take one seed per grip. Only applied visibility
+changes enter scene synchronization.
 
 Each visualization has one selected recording contact, independent of column
 focus. Per-column site objects mirror the selection and obey their own visibility

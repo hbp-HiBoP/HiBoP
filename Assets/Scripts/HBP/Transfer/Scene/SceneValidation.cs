@@ -52,9 +52,9 @@ namespace HBP.Transfer.Scene
                 else
                 {
                     if (mesh.Type != MeshType.MNI) Fail("Standard mesh must use MNI coordinates.");
-                    Mask(mesh.StandardBothMask);
-                    Mask(mesh.StandardLeftMask);
-                    Mask(mesh.StandardRightMask);
+                    if (mesh.StandardBothMask != null) Mask(mesh.StandardBothMask);
+                    if (mesh.StandardLeftMask != null) Mask(mesh.StandardLeftMask);
+                    if (mesh.StandardRightMask != null) Mask(mesh.StandardRightMask);
                 }
 
                 if (mesh.SourceMRI != null && (mesh.Type != MeshType.Patient || mesh.Standard != null || mesh.Left != null || !payload.MRIs.Any(mri => mri.PatientId == mesh.PatientId && mri.Name == mesh.SourceMRI))) Fail("Invalid transient MRI surface origin.");
@@ -93,8 +93,6 @@ namespace HBP.Transfer.Scene
 
             var configuration = visualization.Configuration;
             if (configuration.ErasedTriangles != null) Mask(configuration.ErasedTriangles);
-            if (configuration.ErasedSimplifiedTriangles != null) Mask(configuration.ErasedSimplifiedTriangles);
-            if ((configuration.ErasedTriangles == null) != (configuration.ErasedSimplifiedTriangles == null)) Fail("Incomplete configured erasure.");
             if (!Enum.IsDefined(typeof(MeshPart), configuration.MeshPart) || !Enum.IsDefined(typeof(HBP.Core.Object3D.SurfaceRepresentation), configuration.SurfaceRepresentation)) Fail("Invalid selected mesh configuration.");
             bool selectedMeshAvailable = configuration.PreviewMRIName == null ? payload.Meshes.Any(m => m.PatientId == null && m.Name == configuration.MeshName) : payload.Meshes.Any(m => m.PatientId == null && m.SourceMRI == configuration.PreviewMRIName);
             if (!selectedMeshAvailable || !payload.MRIs.Any(m => m.PatientId == null && m.Name == configuration.MRIName)) Fail("Selected anatomy is unavailable.");
@@ -108,6 +106,14 @@ namespace HBP.Transfer.Scene
                     if (ieeg.Data?.ProcessedValuesByChannel == null || ieeg.DynamicConfiguration == null) Fail("Missing iEEG data.");
                     ValidateDynamic(ieeg.Data, ieeg.Bloc, ieeg.Data.ProcessedValuesByChannel.Values);
                     ValidateTrials(ieeg.Data.DataByChannelID.Values, ieeg.Bloc);
+                    if (archive.CompactSignals)
+                    {
+                        if (ieeg.Data.StatisticsByChannelID == null) Fail("Missing iEEG statistics.");
+                        var subBlocs = new HashSet<SubBloc>(ieeg.Bloc.SubBlocs, ReferenceEqualityComparer.Instance);
+                        foreach (var channel in ieeg.Data.StatisticsByChannelID.Values)
+                            if (channel?.Trial.ChannelSubTrialBySubBloc == null || !channel.Trial.ChannelSubTrialBySubBloc.Keys.All(subBlocs.Contains))
+                                Fail("iEEG statistics protocol identities do not match the column.");
+                    }
                 }
                 else if (column is CCEPColumn ccep)
                 {

@@ -128,6 +128,7 @@ namespace HBP.Sync
     /// <summary>One reliable, atomic assignment batch for up to the prepared 30,000-site roster.</summary>
     public sealed class SetSiteConfigurationBatch : Mutation
     {
+        public const int MaximumAssignments = 30000;
         private readonly SiteConfigurationAssignment[] m_Assignments;
 
         public IReadOnlyList<SiteConfigurationAssignment> Assignments => Array.AsReadOnly(m_Assignments);
@@ -137,7 +138,7 @@ namespace HBP.Sync
         {
             if (assignments == null) throw new ArgumentNullException(nameof(assignments));
             m_Assignments = assignments.ToArray();
-            if (m_Assignments.Length == 0 || m_Assignments.Length > 30000)
+            if (m_Assignments.Length == 0 || m_Assignments.Length > MaximumAssignments)
                 throw new ArgumentOutOfRangeException(nameof(assignments), "A site configuration batch must contain 1 to 30,000 assignments.");
             if (m_Assignments.Any(value => value == null)) throw new ArgumentException("Site configuration assignments cannot be null.", nameof(assignments));
             if (m_Assignments.Select(value => (value.ColumnId.Value, value.SiteId.Value)).Distinct().Count() != m_Assignments.Length)
@@ -289,7 +290,7 @@ namespace HBP.Sync
         private static SetSiteConfigurationBatch ReadSiteConfigurationBatch(BinaryReader reader)
         {
             ushort count = reader.ReadUInt16();
-            if (count == 0 || count > 30000) throw new InvalidDataException("Invalid site configuration batch count.");
+            if (count == 0 || count > SetSiteConfigurationBatch.MaximumAssignments) throw new InvalidDataException("Invalid site configuration batch count.");
             var assignments = new SiteConfigurationAssignment[count];
             for (int i = 0; i < count; i++)
             {

@@ -31,7 +31,7 @@ namespace HBP.Tests.Transfer
             preparation.Start();
             try
             {
-                var open = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None);
+                var open = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None);
                 Assert.That(open.Applied, Is.True);
                 Assert.That(open.Message, Is.EqualTo(SessionControlCodec.AtlasInventoryCapability));
                 var reply = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.AtlasInventory), CancellationToken.None);
@@ -63,7 +63,7 @@ namespace HBP.Tests.Transfer
             var receiver = new SessionPreferencesReceiver(() => context, () => preferences, () => false, preparation.Snapshot);
             try
             {
-                Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None)).Applied, Is.True);
+                Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None)).Applied, Is.True);
                 Assert.That((await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Inspect), CancellationToken.None)).Applied, Is.True);
             }
             finally
@@ -117,6 +117,33 @@ namespace HBP.Tests.Transfer
                 await closing;
                 Assert.That(installed.Task.IsCompleted, Is.False);
                 Assert.That(preparation.Snapshot().Preparing, Is.False);
+            }
+            finally
+            {
+                installed.TrySetResult(true);
+                await preparation.CloseAsync();
+            }
+        }
+
+        [Test]
+        public async Task ReopeningWithFewerPreloadsSkipsAtlasStillWaitingForInstallation()
+        {
+            var installed = new TaskCompletionSource<bool>();
+            var loads = new System.Collections.Generic.List<string>();
+            var preparation = new SessionAtlasPreparation(new[] { "difumo:64", "ibc" }, () => installed.Task.AsUniTask(), (id, _) =>
+            {
+                loads.Add(id);
+                return UniTask.FromResult(new AtlasLoadResult(id, AtlasLoadState.Loaded));
+            }, id => new AtlasLoadResult(id, AtlasLoadState.Unloaded));
+            preparation.Start();
+            try
+            {
+                Assert.That(preparation.Snapshot().Atlases["difumo:64"].State, Is.EqualTo(AtlasLoadState.Loading));
+                preparation.RestrictTo(new[] { "ibc", "mars" });
+                Assert.That(preparation.Snapshot().Atlases["difumo:64"].State, Is.EqualTo(AtlasLoadState.Unloaded));
+                installed.SetResult(true);
+                await preparation.Completion;
+                Assert.That(loads, Is.EqualTo(new[] { "ibc" }));
             }
             finally
             {

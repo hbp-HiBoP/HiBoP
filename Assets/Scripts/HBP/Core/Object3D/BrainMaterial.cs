@@ -196,6 +196,15 @@ namespace HBP.Core.Object3D
             m_TransparentBrain.SetInt("_FMRI", displayFMRI ? 1 : 0);
         }
 
+        public void SetAtlasHighlight(int label, Color color)
+        {
+            Vector4 rgba = new(color.r, color.g, color.b, color.a);
+            m_Brain.SetFloat("_AtlasHoverLabel", label);
+            m_TransparentBrain.SetFloat("_AtlasHoverLabel", label);
+            m_Brain.SetVector("_AtlasHoverColor", rgba);
+            m_TransparentBrain.SetVector("_AtlasHoverColor", rgba);
+        }
+
         /// <summary>
         /// Set the alpha value of the transparent materials
         /// </summary>

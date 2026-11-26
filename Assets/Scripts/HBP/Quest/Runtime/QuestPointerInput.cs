@@ -30,12 +30,15 @@ namespace HBP.Quest
         [SerializeField] private QuestSiteProbe siteProbe;
         [SerializeField] private QuestCutHandles cuts;
         [SerializeField] private QuestROIHandles rois;
+        [SerializeField] private QuestTriangleErasingPanel triangles;
         [SerializeField] private Transform trackingOrigin;
         [SerializeField] private LineRenderer leftRay, rightRay;
         [SerializeField] private Transform leftReticle, rightReticle;
         [SerializeField] private Material overlayFeedbackMaterial;
         [SerializeField] private QuestAtlasHoverTooltip atlasTooltip;
+        [SerializeField] private GameObject controllerCalloutPrefab;
         private Vector3 leftReticleScale, rightReticleScale;
+        private QuestControllerHelp controllerHelp;
         private readonly Hand[] hands = { new Hand(), new Hand() };
         private readonly List<RaycastResult> hits = new();
         private bool focused = true, paused;
@@ -69,6 +72,10 @@ namespace HBP.Quest
             public bool Valid, Distant, AimContact;
             public float GrabDistance;
             public float AtlasRayLimit;
+            public bool ControllerHelpNearTarget;
+            public Object ControllerHelpRayTarget;
+            public Vector3 ControllerHelpAimDirection;
+            public float ControllerHelpAimSince;
         }
 
         public bool AllowsAnatomy(bool leftHand) => hands[leftHand ? 0 : 1].Capture.Owner == QuestInteractionOwner.Anatomy;
@@ -91,6 +98,12 @@ namespace HBP.Quest
             for (int i = 0; i < hands.Length; i++)
             {
                 var hand = hands[i];
+                if (triangles != null && triangles.IsCapturedInScene(i, scene))
+                {
+                    if (hand.Capture.Owner == QuestInteractionOwner.Triangle) Cancel(hand);
+                    else triangles.EndGrip(i, cancelled: true);
+                }
+
                 if (CapturedTimeline(hand.Data)?.Column?.Scene == scene || hand.Capture.Owner == QuestInteractionOwner.Cut && cuts != null && cuts.IsCapturedInScene(i, scene) || hand.Capture.Owner == QuestInteractionOwner.ROI && rois != null && rois.IsCapturedInScene(i, scene) || hand.AnatomyTarget != null && System.Linq.Enumerable.Any(anatomy.AllColumns, column => column.Scene == scene && column.Manipulator == hand.AnatomyTarget)) Cancel(hand);
             }
 
@@ -146,6 +159,7 @@ namespace HBP.Quest
 
             Feedback(leftRay, leftReticle, false, default, default);
             Feedback(rightRay, rightReticle, false, default, default);
+            Application.onBeforeRender += RefreshControllerHelpBeforeRender;
         }
 
         public override void Process()
@@ -170,7 +184,9 @@ namespace HBP.Quest
                     if (hands[i].Capture.Owner == QuestInteractionOwner.ROI && (i == 0 || !rois.ShareCapture(0, 1)) && !rois.Move(i))
                         Cancel(hands[i]);
             UpdateThumbsticks();
-            if (atlasFeedback != null && atlasTooltip != null)
+            if (UpdateControllerHelp())
+                ClearAtlasHover();
+            else if (atlasFeedback != null && atlasTooltip != null)
                 atlasTooltip.ShowSelection(atlasFeedback, left.transform, head.transform);
             else if (canHoverAtlas && QuestDialogBox.Current == null && !HBP.UI.Tools.LoadingManager.IsPresenting)
                 UpdateAtlasHover();
@@ -221,13 +237,17 @@ namespace HBP.Quest
         {
             Hand hand = hands[index];
             hand.AtlasRayLimit = 0;
+            hand.ControllerHelpNearTarget = false;
             var data = hand.Data;
             bool valid = hand.Valid;
             bool pressed = hand.Primary.IsPressed();
             bool secondaryPressed = hand.Secondary.IsPressed();
+            if (triangles != null)
+                triangles.UpdateMarker(index, valid && modalDialog == null && !HBP.UI.Tools.LoadingManager.IsPresenting, data.Ray.origin);
 
             if (modalDialog == null && index == 1 && siteProbe != null && siteProbe.Process(valid, hand.Capture.Owner != QuestInteractionOwner.None, data.Ray))
             {
+                hand.ControllerHelpRayTarget = null;
                 Cancel(hand);
                 Feedback(line, reticle, false, default, default);
                 return;
@@ -235,6 +255,7 @@ namespace HBP.Quest
 
             if (!valid)
             {
+                hand.ControllerHelpRayTarget = null;
                 Cancel(hand);
                 Feedback(line, reticle, false, default, default);
                 return;
@@ -273,13 +294,15 @@ namespace HBP.Quest
             data.delta = data.position - hand.LastPosition;
             hand.LastPosition = data.position;
             bool loadingOverlay = modalDialog != null || IsLoadingOverlay(data.pointerCurrentRaycast);
+            bool triangleGrip = !loadingOverlay && !HBP.UI.Tools.LoadingManager.IsPresenting && triangles != null && triangles.CapturesGrip;
+            if (hand.Capture.Owner == QuestInteractionOwner.Triangle && (!triangleGrip || !triangles.IsCaptured(index))) Cancel(hand);
             var candidate = loadingOverlay ? null : AnatomyCandidate(tracker.transform.position, target == null, data.Ray.origin);
             bool near = candidate != null;
             float distantDistance = policy.RayDistance;
             var distantCandidate = !loadingOverlay && !near && policy.EnableDistantAnatomy ? DistantAnatomyCandidate(data.Ray, out distantDistance) : null;
             bool uiFirst = target != null && (near || distantCandidate == null || data.pointerCurrentRaycast.distance <= distantDistance);
-            var cutCandidate = !loadingOverlay && cuts != null ? cuts.Candidate(index) : null;
-            var roiCandidate = !loadingOverlay && rois != null ? rois.Candidate(index, false) : null;
+            var cutCandidate = !loadingOverlay && !triangleGrip && cuts != null ? cuts.Candidate(index) : null;
+            var roiCandidate = !loadingOverlay && !triangleGrip && rois != null ? rois.Candidate(index, false) : null;
             if (roiCandidate != null && cutCandidate != null)
             {
                 float cutDistance = Mathf.Min(cutCandidate.ContactDistance(tracker.transform.position), cutCandidate.ContactDistance(data.Ray.origin));
@@ -289,7 +312,7 @@ namespace HBP.Quest
 
             var oldOwner = hand.Capture.Owner;
             float? secondaryRayDistance = null;
-            if (!loadingOverlay && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
+            if (!loadingOverlay && !triangleGrip && oldOwner == QuestInteractionOwner.None && cutCandidate == null && roiCandidate == null)
             {
                 float limit = secondaryRayLimit;
                 if (rois != null) roiCandidate = rois.RayCandidate(index, ref limit);
@@ -307,12 +330,27 @@ namespace HBP.Quest
                 }
             }
 
-            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null);
+            if (controllerCalloutPrefab != null)
+            {
+                hand.ControllerHelpNearTarget = near || !secondaryRayDistance.HasValue && (cutCandidate != null || roiCandidate != null);
+                Object rayTarget = secondaryRayDistance.HasValue ? (Object)cutCandidate ?? roiCandidate : !uiFirst ? distantCandidate : null;
+                if (rayTarget != hand.ControllerHelpRayTarget || Vector3.Dot(data.Ray.direction, hand.ControllerHelpAimDirection) < .9994f)
+                {
+                    hand.ControllerHelpRayTarget = rayTarget;
+                    hand.ControllerHelpAimDirection = data.Ray.direction;
+                    hand.ControllerHelpAimSince = Time.unscaledTime;
+                }
+            }
+
+            bool began = hand.Capture.Sample(true, pressed, secondaryPressed, uiFirst, near || distantCandidate != null, near ? policy.PreferNearbyAnatomy : !uiFirst, cutCandidate != null, roiCandidate != null, triangleGrip && triangles.CanBeginGrip(index));
             if (began && hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Begin(index, cutCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.Cut && !secondaryPressed) cuts.End(index);
             if (hand.Capture.Owner == QuestInteractionOwner.Cut && !cuts.Move(index)) Cancel(hand);
             if (began && hand.Capture.Owner == QuestInteractionOwner.ROI && !rois.Begin(index, roiCandidate, secondaryRayDistance)) hand.Capture.Cancel();
             if (oldOwner == QuestInteractionOwner.ROI && !secondaryPressed) rois.End(index);
+            if (began && hand.Capture.Owner == QuestInteractionOwner.Triangle && !triangles.BeginGrip(index)) hand.Capture.Cancel();
+            if (oldOwner == QuestInteractionOwner.Triangle && !secondaryPressed) triangles.EndGrip(index);
+            if (hand.Capture.Owner == QuestInteractionOwner.Triangle && !triangles.MoveGrip(index, data.Ray.origin)) Cancel(hand);
 
             if (began && hand.Capture.Owner == QuestInteractionOwner.Anatomy)
             {
@@ -342,7 +380,7 @@ namespace HBP.Quest
                 data.pointerDrag = ExecuteEvents.GetEventHandler<IDragHandler>(target);
                 // Tag checkboxes and dropdown options share their list's drag gesture after the scroll threshold.
                 // Other click controls retain their gesture against an ancestor ScrollRect.
-                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll);
+                bool tagChoiceScroll = data.pointerPress != null && data.pointerPress.GetComponent<QuestLabelChoice>() != null && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out var choiceScroll) && (data.pointerDrag.GetComponentInParent<QuestSitePanel>() is { } sitePanel && sitePanel.IsTagSettingsScroll(choiceScroll) || triangles != null && triangles.IsRegionScroll(choiceScroll));
                 bool dropdownScroll = data.pointerPress != null && data.pointerPress.TryGetComponent<Toggle>(out _) && data.pointerDrag != null && data.pointerDrag.TryGetComponent<ScrollRect>(out _) && data.pointerDrag.GetComponentInParent<QuestDropdown>() is { } dropdown && data.pointerDrag.transform != dropdown.template;
                 if (!tagChoiceScroll && !dropdownScroll && data.pointerPress != null && data.pointerDrag != null && data.pointerDrag != data.pointerPress && !data.pointerDrag.transform.IsChildOf(data.pointerPress.transform))
                     data.pointerDrag = null;
@@ -384,7 +422,7 @@ namespace HBP.Quest
                 _ => null
             };
             // Direct grabbing needs no ray; an existing UI capture keeps its feedback until release.
-            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
+            bool useful = secondaryFeedback.HasValue || hand.Capture.Owner == QuestInteractionOwner.UI || (hand.Capture.Owner is not (QuestInteractionOwner.Cut or QuestInteractionOwner.ROI or QuestInteractionOwner.Triangle) && !near && (distantFeedback || (hand.Capture.Owner == QuestInteractionOwner.None && actionable && uiFirst)));
             Vector3 end = data.pointerCurrentRaycast.isValid ? data.pointerCurrentRaycast.worldPosition : data.Ray.GetPoint(policy.RayDistance);
             if (secondaryFeedback is float depth) end = data.Ray.GetPoint(depth);
             else if (distantFeedback) end = data.Ray.GetPoint(hand.Capture.Owner == QuestInteractionOwner.Anatomy ? hand.GrabDistance : distantDistance);
@@ -493,11 +531,11 @@ namespace HBP.Quest
                 var hand = hands[index];
                 if (hand.AtlasRayLimit <= 0 || hand.Capture.Owner != QuestInteractionOwner.None) continue;
                 var ray = hand.Data.Ray;
-                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var hit);
+                var column = FindAtlasTarget(ray, hand.AtlasRayLimit, out var point, out var impact);
                 if (column == null) continue;
                 var scene = column.Scene;
                 var atlas = scene.AtlasManager;
-                if (atlas == null || !atlas.TryGetAnatomicalHoverPoint(column.Column, hit, out var point) || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
+                if (atlas == null || !atlas.TryGetHoverRegion(point, out int label, out var region)) continue;
 
                 if (hoveredAtlasScene != scene)
                 {
@@ -507,24 +545,28 @@ namespace HBP.Quest
                 }
 
                 atlas.HoveredArea = label;
-                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, hit.point, true);
-                atlasTooltip.Show(region, hit.point, head.transform);
+                Feedback(index == 0 ? leftRay : rightRay, index == 0 ? leftReticle : rightReticle, true, ray.origin, impact, true);
+                atlasTooltip.Show(region, impact, head.transform);
                 return;
             }
 
             ClearAtlasHover();
         }
 
-        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out RaycastHit nearest)
+        private QuestColumnPresentation FindAtlasTarget(Ray ray, float limit, out Vector3 anatomicalPoint, out Vector3 impact)
         {
-            nearest = default;
+            anatomicalPoint = default;
+            impact = default;
             QuestColumnPresentation target = null;
             foreach (var presentation in anatomy.Scenes)
             foreach (var column in presentation.Columns)
             {
-                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator) || !column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, limit, presentation.SurfaceHidden, out var hit) || hit.distance >= limit) continue;
-                limit = hit.distance;
-                nearest = hit;
+                if (!anatomy.CanInteractWithColumn(column) || IsAnatomyCaptured(column.Manipulator) || IsROIColumnCaptured(column.Manipulator) || cuts != null && cuts.IsColumnLocked(column.Manipulator)) continue;
+                float distance = limit;
+                if (!column.Manipulator.TryRaycastAtlasTarget(presentation.Scene, ray, ref distance, presentation.SurfaceHidden, out var point) || distance >= limit) continue;
+                limit = distance;
+                anatomicalPoint = point;
+                impact = ray.GetPoint(distance);
                 target = column;
             }
 
@@ -680,6 +722,13 @@ namespace HBP.Quest
         private void Cancel(Hand hand)
         {
             int index = hand == hands[0] ? 0 : 1;
+            if (triangles != null)
+            {
+                triangles.EndGrip(index, cancelled: true);
+                if (!hand.Valid || !focused || paused || !isActiveAndEnabled || modalDialog != null)
+                    triangles.UpdateMarker(index, false, default);
+            }
+
             if (cuts != null)
             {
                 cuts.End(index);
@@ -712,6 +761,7 @@ namespace HBP.Quest
             focused = value;
             if (!value)
             {
+                controllerHelp?.Hide();
                 CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
@@ -725,6 +775,7 @@ namespace HBP.Quest
             paused = value;
             if (value)
             {
+                controllerHelp?.Hide();
                 CancelThumbsticks();
                 ClearAtlasHover();
                 if (siteProbe != null) siteProbe.Cancel();
@@ -735,6 +786,8 @@ namespace HBP.Quest
 
         protected override void OnDisable()
         {
+            Application.onBeforeRender -= RefreshControllerHelpBeforeRender;
+            controllerHelp?.Hide();
             CancelThumbsticks();
             ClearAtlasHover();
             if (anatomy != null) anatomy.OnPresentationChanging.RemoveListener(OnPresentationChanging);

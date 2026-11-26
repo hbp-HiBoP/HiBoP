@@ -171,7 +171,11 @@ namespace HBP.Tests.Transfer
             m_Preferences.OnSavePreferences.AddListener(() => applied++);
             try
             {
-                Assert.That((await receiver.HandleAsync(Request(SessionControlKind.Open), CancellationToken.None)).Applied, Is.True);
+                var legacyOpen = await receiver.HandleAsync(Request(SessionControlKind.Open), CancellationToken.None);
+                Assert.That(legacyOpen.Applied, Is.False);
+                var groupedOpen = await receiver.HandleAsync(new(context, 2, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None);
+                Assert.That(groupedOpen.Applied, Is.True);
+                Assert.That(groupedOpen.Fingerprint, Is.EqualTo(SessionControlCodec.CompleteTriangleMaskCapability));
                 var current = Request(SessionControlKind.Preferences, 2);
                 Assert.That((await receiver.HandleAsync(current, CancellationToken.None)).Applied, Is.True);
                 Assert.That((await receiver.HandleAsync(current, CancellationToken.None)).Applied, Is.True);
@@ -241,7 +245,7 @@ namespace HBP.Tests.Transfer
             var receiver = new SessionPreferencesReceiver(() => context, () => m_Preferences, () => false);
             try
             {
-                await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open), CancellationToken.None);
+                await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.Open, fingerprint: SessionControlCodec.CompleteTriangleMaskCapability), CancellationToken.None);
                 Assert.That(SessionAtlasCatalog.CanUse("mars"), Is.False);
                 var reply = await receiver.HandleAsync(new(context, 1, Guid.NewGuid(), SessionControlKind.ConfirmAtlas, atlasId: "mars", fingerprint: new string('0', 64)), CancellationToken.None);
                 Assert.That(reply.Applied, Is.True, reply.Message);

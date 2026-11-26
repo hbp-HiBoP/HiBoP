@@ -541,7 +541,7 @@ namespace HBP.Sync
             else if (mutation is SetImplantation)
                 key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.Implantation, null, null, null);
             else if (mutation is ApplyTriangleMask masks)
-                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TriangleMask, null, null, null, masks.Masks[0].TopologyId.Value);
+                key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TriangleMask, null, null, null, masks.Mask.TopologyId.Value);
             else if (mutation is SetSiteBlacklist siteBlacklist)
                 key = new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SiteBlacklist, siteBlacklist.ColumnId, siteBlacklist.SiteId, null);
             else if (mutation is SetInfluenceDistance influenceDistance)
@@ -564,9 +564,6 @@ namespace HBP.Sync
                 BarrierScope = BarrierScope.TouchedKeys;
             CoalescingKey = key;
             var keys = new List<TouchedKey> { key };
-            if (mutation is ApplyTriangleMask triangleMasks)
-                foreach (TriangleMask mask in triangleMasks.Masks.Skip(1))
-                    keys.Add(new TouchedKey(sceneId, incarnationId, TouchedKeyKind.TriangleMask, null, null, null, mask.TopologyId.Value));
             TouchedKeys = new ReadOnlyCollection<TouchedKey>(keys.Distinct().ToArray());
         }
     }

@@ -29,7 +29,8 @@ namespace HBP.Quest
         Anatomy,
         Cut,
         Empty,
-        ROI
+        ROI,
+        Triangle
     }
 
     /// <summary>A deflection chooses one axis and must return to neutral before choosing again.</summary>
@@ -81,10 +82,10 @@ namespace HBP.Quest
     public sealed class QuestInteractionCapture
     {
         public QuestInteractionOwner Owner { get; private set; }
-        public QuestInteraction Interaction => Owner is QuestInteractionOwner.Cut or QuestInteractionOwner.ROI ? QuestInteraction.Secondary : QuestInteraction.Primary;
+        public QuestInteraction Interaction => Owner is QuestInteractionOwner.Cut or QuestInteractionOwner.ROI or QuestInteractionOwner.Triangle ? QuestInteraction.Secondary : QuestInteraction.Primary;
         private bool primaryArmed, secondaryArmed;
 
-        public bool Sample(bool valid, bool primaryPressed, bool secondaryPressed, bool ui, bool anatomy, bool preferAnatomy, bool cut, bool roi = false)
+        public bool Sample(bool valid, bool primaryPressed, bool secondaryPressed, bool ui, bool anatomy, bool preferAnatomy, bool cut, bool roi = false, bool triangle = false)
         {
             if (!valid)
             {
@@ -105,7 +106,8 @@ namespace HBP.Quest
                 return false;
             }
 
-            if (secondaryBegan && roi) Owner = QuestInteractionOwner.ROI;
+            if (secondaryBegan && triangle && !(primaryBegan && ui)) Owner = QuestInteractionOwner.Triangle;
+            else if (secondaryBegan && roi) Owner = QuestInteractionOwner.ROI;
             else if (secondaryBegan && cut) Owner = QuestInteractionOwner.Cut;
             else if (primaryBegan) Owner = anatomy && (preferAnatomy || !ui) ? QuestInteractionOwner.Anatomy : ui ? QuestInteractionOwner.UI : QuestInteractionOwner.Empty;
             else return false;

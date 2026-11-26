@@ -306,6 +306,11 @@ namespace HBP.Core.DLL
             return true;
         }
 
+        public override Color GetHighlightedColor(int label)
+        {
+            return TryGetMetadata(label, out MarsAtlasMetadata metadata) ? metadata.HighlightedColor : Color.clear;
+        }
+
         private bool TryGetMetadata(int label, out MarsAtlasMetadata metadata)
         {
             EnsureMetadataCache();

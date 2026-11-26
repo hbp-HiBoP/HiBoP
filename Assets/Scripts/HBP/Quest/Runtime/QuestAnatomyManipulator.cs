@@ -6,12 +6,14 @@ namespace HBP.Quest
     public sealed class QuestAnatomyManipulator : MonoBehaviour
     {
         private HBP.Data.Module3D.Column3D column;
+        private HBP.Data.Module3D.Base3DScene scene;
         [SerializeField] private MeshCollider rayTarget;
         public Mesh SharedMesh => column != null && column.BrainMesh != null ? column.BrainMesh.GetComponent<MeshFilter>().sharedMesh : null;
 
-        public void Bind(HBP.Data.Module3D.Column3D value)
+        public void Bind(HBP.Data.Module3D.Column3D value, HBP.Data.Module3D.Base3DScene owner = null)
         {
             column = value;
+            scene = owner;
             if (rayTarget != null && column != null && column.BrainMesh != null)
             {
                 rayTarget.transform.SetParent(column.BrainMesh.transform, false);
@@ -139,7 +141,7 @@ namespace HBP.Quest
             var renderer = column.BrainMesh.GetComponent<Renderer>();
             if (renderer != null && (!renderer.enabled || renderer.forceRenderingOff)) return false;
 
-            bool found = TryRaycast(rayTarget, ray, ref distance);
+            bool found = scene != null && scene.TriangleEraser.MeshHasInvisibleTriangles ? scene.TryRaycastCompleteBrain(column, ray, ref distance, out _) : TryRaycast(rayTarget, ray, ref distance);
             foreach (var cut in column.BrainCutMeshes)
             {
                 if (!cut.activeInHierarchy || !cut.TryGetComponent<Renderer>(out var cutRenderer) || !cutRenderer.enabled || cutRenderer.forceRenderingOff) continue;
@@ -156,34 +158,34 @@ namespace HBP.Quest
             return true;
         }
 
-        internal bool TryRaycastAtlasTarget(HBP.Data.Module3D.Base3DScene scene, Ray ray, float distance, bool surfaceHidden, out RaycastHit hit)
+        internal bool TryRaycastAtlasTarget(HBP.Data.Module3D.Base3DScene scene, Ray ray, ref float distance, bool surfaceHidden, out Vector3 anatomicalPoint)
         {
-            hit = default;
+            anatomicalPoint = default;
             if (column == null || !scene.IsBrainRaycastGeometryCurrent) return false;
             bool found = false;
             if (!surfaceHidden && IsVisible(column.BrainMesh))
             {
-                var atlas = scene.AtlasManager;
-                found = atlas != null && atlas.UsesInflatedHoverGeometry
-                    ? atlas.TryRaycastInflatedSurface(column, ray, distance, out hit)
-                    : rayTarget != null && rayTarget.enabled && rayTarget.Raycast(ray, out hit, distance);
-                if (found) distance = hit.distance;
+                if (scene.TriangleEraser.MeshHasInvisibleTriangles || scene.AtlasManager.UsesInflatedHoverGeometry)
+                    found = scene.TryRaycastCompleteBrain(column, ray, ref distance, out anatomicalPoint);
+                else if (TryRaycast(rayTarget, ray, ref distance))
+                {
+                    anatomicalPoint = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(distance));
+                    found = true;
+                }
             }
 
             foreach (var cut in column.BrainCutMeshes)
             {
-                if (!IsVisible(cut) || !cut.TryGetComponent<MeshCollider>(out var collider) || !collider.enabled ||
-                    !collider.Raycast(ray, out var impact, distance)) continue;
-                hit = impact;
-                distance = hit.distance;
+                if (!IsVisible(cut) || !cut.TryGetComponent<MeshCollider>(out var collider) || !TryRaycast(collider, ray, ref distance))
+                    continue;
+                anatomicalPoint = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(distance));
                 found = true;
             }
 
             return found;
         }
 
-        private static bool IsVisible(GameObject target) => target != null && target.activeInHierarchy &&
-            target.TryGetComponent<Renderer>(out var renderer) && renderer.enabled && !renderer.forceRenderingOff;
+        private static bool IsVisible(GameObject target) => target != null && target.activeInHierarchy && target.TryGetComponent<Renderer>(out var renderer) && renderer.enabled && !renderer.forceRenderingOff;
 
         private bool IsNear(Vector3 position)
         {

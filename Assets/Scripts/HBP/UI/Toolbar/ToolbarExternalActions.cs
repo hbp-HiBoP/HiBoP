@@ -8,6 +8,7 @@ using HBP.Core.Object3D;
 using HBP.Core.Preferences;
 using HBP.Core.Tools;
 using HBP.Data.Module3D;
+using HBP.Quest.Desktop;
 using HBP.UI.Module3D;
 using HBP.UI.Tools;
 using UnityEngine;
@@ -89,7 +90,10 @@ namespace HBP.UI.Toolbar
 
         private static void DefaultLoadSinglePatientVisualization(Base3DScene scene, Patient patient)
         {
-            LoadingManager.Load(async (update, token) => { await Module3DMain.OpenSinglePatientVisualizationAsync(scene, patient, update, token); });
+            if (QuestManager.IsInitialized && QuestManager.Instance.IsPaired && QuestManager.Instance.AutomaticallySynchronizeScenes)
+                QuestManager.Instance.OpenPatientFromDesktopAsync(scene, patient, Application.exitCancellationToken).Forget();
+            else
+                LoadingManager.Load(async (update, token) => { await Module3DMain.OpenSinglePatientVisualizationAsync(scene, patient, update, token); });
         }
 
         private static void DefaultOpenSiteFilters(Base3DScene scene)

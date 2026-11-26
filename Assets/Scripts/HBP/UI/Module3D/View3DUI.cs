@@ -15,7 +15,7 @@ namespace HBP.UI.Module3D
     /// <summary>
     /// This class is used to properly display a view 3D in the UI
     /// </summary>
-    public class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
+    public partial class View3DUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IEndDragHandler, IScrollHandler, IPointerEnterHandler, IPointerExitHandler
     {
         #region Properties
 
@@ -199,16 +199,22 @@ namespace HBP.UI.Module3D
                 m_RectTransform.hasChanged = false;
             }
 
+            UpdateTriangleEditing();
             SendRayToScene();
         }
 
         private void OnDestroy()
         {
+            Destroy(m_BrushGuideMesh);
+            Destroy(m_BrushGuideMaterial);
             ReleaseRenderTexture();
         }
 
         private void OnDisable()
         {
+            UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering -= RenderBrushGuide;
+            EndDesktopTriangleStroke();
+            m_BrushGuideVisible = false;
             ReleaseRenderTexture();
             if (m_View != null)
                 m_View.Camera.enabled = false;
@@ -216,6 +222,7 @@ namespace HBP.UI.Module3D
 
         private void OnEnable()
         {
+            UnityEngine.Rendering.RenderPipelineManager.beginCameraRendering += RenderBrushGuide;
             if (m_View == null)
                 return;
 
@@ -333,9 +340,10 @@ namespace HBP.UI.Module3D
             }
             else
             {
-                if (CursorToRay(out Ray ray))
+                if (CursorToRay(data.position, out Ray ray))
                 {
-                    m_Scene.ClickOnScene(ray, m_Column);
+                    if (!BeginDesktopTriangleStroke(ray, data.position))
+                        m_Scene.ClickOnScene(ray, m_Column);
                 }
             }
         }
@@ -368,6 +376,7 @@ namespace HBP.UI.Module3D
 
         public void OnEndDrag(PointerEventData data)
         {
+            if (data.button == PointerEventData.InputButton.Left) EndDesktopTriangleStroke();
             if (IsMinimized) return;
 
             m_View.DisplayRotationCircles = false;
@@ -376,6 +385,12 @@ namespace HBP.UI.Module3D
 
         public void OnPointerUp(PointerEventData data)
         {
+            if (data.button == PointerEventData.InputButton.Left)
+            {
+                SampleDesktopTriangleStroke(data.position);
+                EndDesktopTriangleStroke();
+            }
+
             if (IsMinimized) return;
 
             m_View.DisplayRotationCircles = false;
@@ -412,6 +427,8 @@ namespace HBP.UI.Module3D
         public void OnPointerExit(PointerEventData eventData)
         {
             m_PointerIsInView = false;
+            m_PreviousStrokePointer = null;
+            m_BrushGuideVisible = false;
             if (m_Scene && m_Scene.AtlasManager)
                 Module3DMain.OnDisplayAtlasInformation.Invoke(m_Scene.AtlasManager.GetAtlasInformation(false, default, eventData.position));
             Module3DMain.OnDisplaySiteInformation.Invoke(new Core.Object3D.SiteInfo(null, false, eventData.position));
@@ -459,7 +476,9 @@ namespace HBP.UI.Module3D
         /// </summary>
         /// <param name="ray">Ray to be created</param>
         /// <returns>True if the cursor is in the view</returns>
-        public bool CursorToRay(out Ray ray)
+        public bool CursorToRay(out Ray ray) => CursorToRay(DesktopInput.MousePosition, out ray);
+
+        private bool CursorToRay(Vector2 position, out Ray ray)
         {
             if (!m_PointerIsInView)
             {
@@ -468,7 +487,6 @@ namespace HBP.UI.Module3D
             }
 
             Vector2 localPosition = new();
-            Vector2 position = DesktopInput.MousePosition;
             RectTransformUtility.ScreenPointToLocalPointInRectangle(m_RectTransform, position, null, out localPosition);
             localPosition = new Vector2((localPosition.x / m_RectTransform.rect.width) + 0.5f, (localPosition.y / m_RectTransform.rect.height) + 0.5f);
             ray = m_View.Camera.ViewportPointToRay(localPosition);

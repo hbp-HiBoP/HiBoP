@@ -1,6 +1,5 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
-using HBP.Core.Enums;
 
 namespace HBP.UI.Toolbar
 {
@@ -9,7 +8,7 @@ namespace HBP.UI.Toolbar
         #region Properties
 
         /// <summary>
-        /// Invert the erased area
+        /// Invert the current triangle selection
         /// </summary>
         [SerializeField] private Button m_Button;
 
@@ -26,7 +25,7 @@ namespace HBP.UI.Toolbar
             {
                 if (ListenerLock) return;
 
-                SelectedScene.TriangleEraser.CurrentMode = TriEraserMode.Invert;
+                SelectedScene.TriangleEraser.InvertSelection();
             });
         }
 
@@ -43,7 +42,7 @@ namespace HBP.UI.Toolbar
         /// </summary>
         public override void UpdateInteractable()
         {
-            m_Button.interactable = true;
+            m_Button.interactable = SelectedScene.TriangleEraser.CanInvertSelection;
         }
 
         #endregion

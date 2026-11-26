@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using HBP.Sync;
@@ -21,6 +22,27 @@ namespace HBP.Tests.Transfer.Scene
             var state = Empty();
             state.ApplyCanonical(new SetSiteConfigurationBatch(new[] { new SiteConfigurationAssignment(Column, Site, false, false, 1, 1, 1, 1, Array.Empty<string>()) }));
             return state;
+        }
+
+        [Test]
+        public void CheckpointCombinesDisjointBatchesBeyondTheLiveMutationLimit()
+        {
+            const int limit = SetSiteConfigurationBatch.MaximumAssignments;
+            var state = Empty();
+            var assignments = Enumerable.Range(0, limit).Select(index => new SiteConfigurationAssignment(Column, new SiteId("contact_" + index), false, false, 1, 1, 1, 1, Array.Empty<string>()));
+            state.ApplyCanonical(new SetSiteConfigurationBatch(assignments));
+            state.ApplyCanonical(new SetSiteConfigurationBatch(new[] { new SiteConfigurationAssignment(Column, Site, true, true, 1, 0, 0, 1, new[] { "last contact" }) }));
+
+            var checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(0, state.ToCheckpoint())).Checkpoint;
+            var batches = checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().ToArray();
+            Assert.That(batches.Select(batch => batch.Assignments.Count), Is.EquivalentTo(new[] { limit, 1 }));
+            Assert.That(SceneCheckpointState.FromCheckpoint(checkpoint).Hash(), Is.EqualTo(state.Hash()));
+
+            foreach (T11CheckpointRecord overlap in new[] { checkpoint.T11Records[0], new T11CheckpointRecord(new SetSiteBlacklist(Column, Site, false)) })
+            {
+                var duplicate = (SceneMutationCheckpoint)Activator.CreateInstance(typeof(SceneMutationCheckpoint), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, checkpoint.T11Records.Append(overlap), null, null }, null);
+                Assert.Throws<InvalidDataException>(() => SceneMutationCheckpointCodec.Encode(0, duplicate));
+            }
         }
 
         [Test]

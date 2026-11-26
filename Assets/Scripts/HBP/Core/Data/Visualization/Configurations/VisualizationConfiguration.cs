@@ -23,7 +23,6 @@ namespace HBP.Core.Data
         [JsonProperty] public AtlasConfiguration AtlasConfiguration { get; set; }
         [JsonProperty] public string PreviewMRIName { get; set; }
         [JsonProperty] public int[] ErasedTriangles { get; set; }
-        [JsonProperty] public int[] ErasedSimplifiedTriangles { get; set; }
         [JsonProperty] public SitePlacementMode SitePlacement { get; set; }
 
         /// <summary>
@@ -145,7 +144,7 @@ namespace HBP.Core.Data
 
         #region Constructors
 
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical, AtlasConfiguration atlasConfiguration = null, string previewMRIName = null, IEnumerable<int> erasedTriangles = null, IEnumerable<int> erasedSimplifiedTriangles = null) : base()
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical, AtlasConfiguration atlasConfiguration = null, string previewMRIName = null, IEnumerable<int> erasedTriangles = null) : base()
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -172,10 +171,9 @@ namespace HBP.Core.Data
             AtlasConfiguration = atlasConfiguration;
             PreviewMRIName = previewMRIName;
             ErasedTriangles = erasedTriangles?.ToArray();
-            ErasedSimplifiedTriangles = erasedSimplifiedTriangles?.ToArray();
         }
 
-        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical, AtlasConfiguration atlasConfiguration = null, string previewMRIName = null, IEnumerable<int> erasedTriangles = null, IEnumerable<int> erasedSimplifiedTriangles = null) : base(ID)
+        public VisualizationConfiguration(ColorType brainColor, ColorType brainCutColor, ColorType eEGColormap, MeshPart meshPart, string meshName, string mRIName, string implantationName, bool showEdges, bool transparent, float alpha, bool strongCuts, bool hideBlacklistedSites, bool showAllSites, bool automaticCutAroundSelectedSite, float siteGain, float mRICalMinFactor, float mRICalMaxFactor, CameraControl cameraType, IEnumerable<Cut> cuts, IEnumerable<View> views, IEnumerable<RegionOfInterest> rois, string ID, SurfaceRepresentation surfaceRepresentation = SurfaceRepresentation.Anatomical, AtlasConfiguration atlasConfiguration = null, string previewMRIName = null, IEnumerable<int> erasedTriangles = null) : base(ID)
         {
             BrainColor = brainColor;
             BrainCutColor = brainCutColor;
@@ -202,7 +200,6 @@ namespace HBP.Core.Data
             AtlasConfiguration = atlasConfiguration;
             PreviewMRIName = previewMRIName;
             ErasedTriangles = erasedTriangles?.ToArray();
-            ErasedSimplifiedTriangles = erasedSimplifiedTriangles?.ToArray();
         }
 
         public VisualizationConfiguration() : base()
@@ -215,7 +212,7 @@ namespace HBP.Core.Data
 
         public override object Clone()
         {
-            return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap, MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts, HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor, MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList(), RegionsOfInterest.DeepClone().ToList(), ID, SurfaceRepresentation, AtlasConfiguration?.Clone() as AtlasConfiguration, PreviewMRIName, ErasedTriangles, ErasedSimplifiedTriangles) { SitePlacement = SitePlacement };
+            return new VisualizationConfiguration(BrainColor, BrainCutColor, Colormap, MeshPart, MeshName, MRIName, ImplantationName, ShowEdges, TransparentBrain, BrainAlpha, StrongCuts, HideBlacklistedSites, ShowAllSites, AutomaticCutAroundSelectedSite, SiteGain, MRICalMinFactor, MRICalMaxFactor, CameraType, Cuts.ToList(), Views.ToList(), RegionsOfInterest.DeepClone().ToList(), ID, SurfaceRepresentation, AtlasConfiguration?.Clone() as AtlasConfiguration, PreviewMRIName, ErasedTriangles) { SitePlacement = SitePlacement };
         }
 
         public override void Copy(object copy)
@@ -227,7 +224,6 @@ namespace HBP.Core.Data
                 PreviewMRIName = visualizationConfiguration.PreviewMRIName;
                 SitePlacement = visualizationConfiguration.SitePlacement;
                 ErasedTriangles = visualizationConfiguration.ErasedTriangles?.ToArray();
-                ErasedSimplifiedTriangles = visualizationConfiguration.ErasedSimplifiedTriangles?.ToArray();
                 BrainColor = visualizationConfiguration.BrainColor;
                 BrainCutColor = visualizationConfiguration.BrainCutColor;
                 Colormap = visualizationConfiguration.Colormap;

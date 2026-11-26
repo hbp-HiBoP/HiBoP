@@ -21,7 +21,8 @@ namespace HBP.Quest
         [SerializeField] private QuestSiteProbe probe;
         [SerializeField] private Transform head;
         [SerializeField] private Text status;
-        [SerializeField] private QuestNumericKeypad keypad;
+        private TouchScreenKeyboard numberKeyboard;
+        private string numberCommand;
         [SerializeField] private Transform targetMarker;
         private QuestAnatomyView.Presentation presentation;
         private QuestSelectionSettings settings = QuestSelectionSettings.Default(), a, b;
@@ -202,6 +203,13 @@ namespace HBP.Quest
 
         private void Update()
         {
+            if (numberKeyboard != null && numberKeyboard.status != TouchScreenKeyboard.Status.Visible)
+            {
+                var keyboard = numberKeyboard;
+                numberKeyboard = null;
+                if (Ready && keyboard.status == TouchScreenKeyboard.Status.Done) ApplyNumber(numberCommand, keyboard.text);
+            }
+
             if (testing)
             {
                 frameSum += Time.unscaledDeltaTime;
@@ -422,20 +430,52 @@ namespace HBP.Quest
                     Change(QuestSelectionSettings.Default(), 5);
                     return;
                 default:
-                    if (keypad != null)
-                        keypad.OpenValidated(this, ControlLabel(command), Number(command).ToString("0.###", CultureInfo.InvariantCulture), text =>
-                        {
-                            if (!float.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out float value) || !float.IsFinite(value) || value < 0 && !command.StartsWith("offset-", StringComparison.Ordinal)) return false;
-                            Change(settings.Copy(), command.StartsWith("cursor-", StringComparison.Ordinal) || command.StartsWith("offset-", StringComparison.Ordinal) ? profile : -1);
-                            SetNumber(command, value);
-                            settings.Validate();
-                            SaveSettings();
-                            return true;
-                        });
+                    EditNumber(command);
                     return;
             }
 
             SaveSettings();
+        }
+
+        private void EditNumber(string command)
+        {
+            if (numberKeyboard != null) return;
+            if (TouchScreenKeyboard.isSupported)
+            {
+                try
+                {
+                    numberCommand = command;
+                    numberKeyboard = QuestTextInputField.OpenSystemKeyboard(QuestTextInputField.FormatDecimal(Number(command)), QuestTextInputField.DecimalKeyboardType(command.StartsWith("offset-", StringComparison.Ordinal)));
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogWarning("[QuestSelectionLab] System keyboard failed: " + exception.GetType().Name, this);
+                }
+            }
+
+            if (numberKeyboard == null) message = "The Quest system keyboard is unavailable.";
+        }
+
+        private void ApplyNumber(string command, string text)
+        {
+            bool signed = command.StartsWith("offset-", StringComparison.Ordinal);
+            if (!float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out float value) || !float.IsFinite(value) || value < 0 && !signed)
+            {
+                message = "Enter a valid number.";
+                return;
+            }
+
+            Change(settings.Copy(), command.StartsWith("cursor-", StringComparison.Ordinal) || signed ? profile : -1);
+            SetNumber(command, value);
+            settings.Validate();
+            SaveSettings();
+        }
+
+        private void OnDisable()
+        {
+            if (numberKeyboard == null) return;
+            numberKeyboard.active = false;
+            numberKeyboard = null;
         }
 
         private void Change(QuestSelectionSettings value, int preset = -1)

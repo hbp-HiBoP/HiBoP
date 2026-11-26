@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using HBP.Core.Tools;
+using HBP.Core.DLL;
 
 namespace HBP.Core.Object3D
 {
@@ -36,7 +37,8 @@ namespace HBP.Core.Object3D
         {
             string csvFile = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "map_labels.csv");
             string file = Path.Combine(ApplicationState.DataPath, "Atlases", "IBC", "all_maps.nii.gz");
-            FMRI = new FMRI("IBC", file, loadInBackground: loadInBackground, excludeZeroFromHistogram: true);
+            FMRI = new FMRI("IBC", file, loadInBackground: loadInBackground, excludeZeroFromHistogram: true,
+                atlasStorage: NIFTI.AtlasStorage.SharedSupport);
             Information = new IBCInformation(csvFile);
         }
 

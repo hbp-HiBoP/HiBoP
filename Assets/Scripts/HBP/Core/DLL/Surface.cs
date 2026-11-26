@@ -465,6 +465,14 @@ namespace HBP.Core.DLL
             UpdateMesh(mesh, all, vertices, normals, uv, triangles, colors);
         }
 
+        public int[] CopyTriangleIndices()
+        {
+            int[] triangles = new int[checked(NumberOfTriangles * 3)];
+            if (triangles.Length != 0)
+                ThrowIfFailed(hbp_surface_copy_triangles(_handle.Handle, triangles, triangles.Length));
+            return ReferenceSystemConversion.ConvertTriangleWinding(triangles);
+        }
+
         public Vector3[] CopyVertexPositions()
         {
             CopyMeshBuffers();
@@ -731,6 +739,9 @@ namespace HBP.Core.DLL
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_colors", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_set_colors(IntPtr surface, [In] Color4[] colors, int colorCount);
+
+        [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_copy_triangles", CallingConvention = CallingConvention.Cdecl)]
+        private static extern HbpCoreStatus hbp_surface_copy_triangles(IntPtr surface, [Out] int[] triangleIndices, int capacity);
 
         [DllImport(HbpCoreLibrary.Name, EntryPoint = "hbp_surface_set_triangles", CallingConvention = CallingConvention.Cdecl)]
         private static extern HbpCoreStatus hbp_surface_set_triangles(IntPtr surface, [In] int[] triangles, int triangleIndexCount);

@@ -44,6 +44,8 @@ namespace HBP.UI.Quest
         private long m_AtlasChanges;
         private readonly HashSet<string> m_ConfirmedAtlases = new(StringComparer.Ordinal);
         private readonly HashSet<string> m_InventoryRecoveryAttempted = new(StringComparer.Ordinal);
+        public bool SupportsGroupedScenes { get; private set; }
+        public bool SupportsCompactScenes { get; private set; }
         public bool QuestHasSharedScene { get; private set; }
         public string Status { get; private set; } = "Quest session is connecting.";
         private readonly Dictionary<string, string> m_AtlasStates = new(StringComparer.Ordinal);
@@ -73,7 +75,7 @@ namespace HBP.UI.Quest
             m_Preferences.OnSavePreferences.AddListener(OnPreferencesSaved);
         }
 
-        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, body: body);
+        private SessionControlRequest Request(SessionControlKind kind, string atlas = "", byte[] body = null, long revision = 0) => new(m_Context, m_Generation, Guid.NewGuid(), kind, revision, atlas, fingerprint: kind == SessionControlKind.Open ? SessionControlCodec.CompleteTriangleMaskCapability : null, body: body);
 
         private async UniTask<SessionControlResponse> SendAsync(SessionControlRequest request, CancellationToken cancellationToken = default)
         {
@@ -137,9 +139,12 @@ namespace HBP.UI.Quest
         public async UniTask StartAsync(CancellationToken cancellationToken = default)
         {
             using var timing = PairingTiming.Measure("desktop.session-open");
-            var response = await SendAsync(Request(SessionControlKind.Open), cancellationToken);
+            var preloads = AtlasResources.Definitions.Where(definition => definition.Preload(m_Preferences.Data.Atlases) && !ShouldUnloadAtlas(definition.Id, AtlasResources.Status(definition.Id).State)).Select(definition => definition.Id).ToArray();
+            byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(preloads));
+            var response = await SendAsync(Request(SessionControlKind.Open, body: body), cancellationToken);
             if (!response.Applied) throw new InvalidOperationException(response.Message);
-            if (response.Message != SessionControlCodec.AtlasInventoryCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
+            if (response.Message != SessionControlCodec.AtlasInventoryCapability || response.Fingerprint != SessionControlCodec.CompleteTriangleMaskCapability) throw new InvalidOperationException("Update HiBoP Desktop and Quest together: the Quest session protocol is incompatible.");
+            RecordSceneCapabilities(response);
             m_CatalogGeneration = SessionAtlasCatalog.Begin();
             m_Started = true;
             m_Opened.TrySetResult(true);
@@ -158,8 +163,9 @@ namespace HBP.UI.Quest
                 try
                 {
                     var response = await SendAsync(Request(SessionControlKind.Open), operation.Token);
-                    if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability)
+                    if (!response.Applied || response.Message != SessionControlCodec.AtlasInventoryCapability || response.Fingerprint != SessionControlCodec.CompleteTriangleMaskCapability)
                         throw new InvalidOperationException("The Quest session could not resume: " + response.Message);
+                    RecordSceneCapabilities(response);
                 }
                 finally
                 {
@@ -170,6 +176,12 @@ namespace HBP.UI.Quest
             {
                 throw new IOException("Quest became unavailable while resuming its atlas session.");
             }
+        }
+
+        private void RecordSceneCapabilities(SessionControlResponse response)
+        {
+            SupportsGroupedScenes = response.Fingerprint == SessionControlCodec.CompleteTriangleMaskCapability;
+            SupportsCompactScenes = SupportsGroupedScenes || response.Fingerprint == SessionControlCodec.CompactSceneCapability;
         }
 
         private void AtlasChanged(AtlasLoadResult result)
@@ -192,6 +204,8 @@ namespace HBP.UI.Quest
             m_InventoryRecoveryAttempted.Remove(id);
             AtlasChanged(AtlasResources.Status(id));
         }
+
+        private bool ShouldUnloadAtlas(string id, AtlasLoadState localState) => localState == AtlasLoadState.Unloaded && m_AtlasIntents != null && m_AtlasIntents.TryGetValue(id, out bool desired) && !desired;
 
         private async Task RefreshInventoryAsync()
         {
@@ -224,10 +238,12 @@ namespace HBP.UI.Quest
 
                             if (remoteState != AtlasLoadState.Unloaded || local.State != AtlasLoadState.Unloaded)
                                 SetAtlasState(id, local.State.ToString(), remote?.Error ?? remoteState.ToString());
-                            bool unload = m_AtlasIntents != null && m_AtlasIntents.TryGetValue(id, out bool desired) && !desired && local.State == AtlasLoadState.Unloaded;
-                            if (unload && remoteState != AtlasLoadState.Unloaded) m_PendingRemoteUnloads.Add(id);
+                            bool unload = ShouldUnloadAtlas(id, local.State) && remoteState != AtlasLoadState.Unloaded;
+                            if (unload) m_PendingRemoteUnloads.Add(id);
                             else m_PendingRemoteUnloads.Remove(id);
-                            if ((local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(id) || unload && remoteState != AtlasLoadState.Unloaded) && m_InventoryRecoveryAttempted.Add(id))
+                            // A queued or running preload can publish after an early unload attempt.
+                            bool canUnload = unload && (!preparing || remoteState != AtlasLoadState.Loading);
+                            if ((local.State == AtlasLoadState.Loaded && !m_ConfirmedAtlases.Contains(id) || canUnload) && m_InventoryRecoveryAttempted.Add(id))
                             {
                                 using var attempt = CancellationTokenSource.CreateLinkedTokenSource(m_Stop.Token);
                                 m_AtlasAttempt = attempt;

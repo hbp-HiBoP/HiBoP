@@ -27,7 +27,7 @@ namespace HBP.Sync
         private readonly int m_MaximumKeys;
         private readonly int m_MaximumSceneWatermarks;
         private readonly Dictionary<Guid, OperationEntry> m_Operations = new Dictionary<Guid, OperationEntry>();
-        private readonly Dictionary<TouchedKey, ulong> m_LastAccepted = new Dictionary<TouchedKey, ulong>();
+        private readonly Dictionary<TouchedKey, (ulong Latest, ulong QuestSeekConflict)> m_LastAccepted = new();
         private readonly Dictionary<SceneIncarnationScope, SceneWatermark> m_SceneWatermarks = new Dictionary<SceneIncarnationScope, SceneWatermark>();
 
         public int OperationCount => m_Operations.Count;
@@ -54,8 +54,8 @@ namespace HBP.Sync
                 throw new InvalidDataException("Invalid conflict retention floor.");
             watermark.MinimumObservedSequence = minimumObservedSequence;
             var retired = new List<TouchedKey>();
-            foreach (KeyValuePair<TouchedKey, ulong> entry in m_LastAccepted)
-                if (entry.Key.SceneId.Equals(sceneId) && entry.Key.IncarnationId.Equals(incarnationId) && entry.Value <= minimumObservedSequence)
+            foreach (var entry in m_LastAccepted)
+                if (entry.Key.SceneId.Equals(sceneId) && entry.Key.IncarnationId.Equals(incarnationId) && entry.Value.Latest <= minimumObservedSequence)
                     retired.Add(entry.Key);
             foreach (TouchedKey key in retired) m_LastAccepted.Remove(key);
         }
@@ -73,7 +73,7 @@ namespace HBP.Sync
             m_MaximumSceneWatermarks = maximumSceneWatermarks;
         }
 
-        public OperationAdmission Accept(OperationId operationId, ScheduleDescriptor descriptor, ulong observedCanonicalSequence, ulong acceptedCanonicalSequence, byte[] canonicalPayload)
+        public OperationAdmission Accept(OperationId operationId, ScheduleDescriptor descriptor, ulong observedCanonicalSequence, ulong acceptedCanonicalSequence, byte[] canonicalPayload, bool orderedQuestProposal = false)
         {
             if (operationId == null || descriptor == null || canonicalPayload == null || acceptedCanonicalSequence == 0 || observedCanonicalSequence >= acceptedCanonicalSequence || descriptor.TouchedKeys.Count == 0 && descriptor.BarrierScope != BarrierScope.AllScene)
                 return OperationAdmission.Invalid;
@@ -95,13 +95,18 @@ namespace HBP.Sync
             if (hasSceneWatermark && (isAllSceneBarrier ? sceneWatermark.LatestAcceptedSequence > observedCanonicalSequence : sceneWatermark.LatestAllSceneBarrierSequence > observedCanonicalSequence))
                 return OperationAdmission.Conflicting;
 
+            // A standalone, ordered Quest seek can follow earlier Quest seeks without waiting for their echoes.
+            // Keep the last conflicting write too, so a seek cannot hide a Desktop edit or a playback boundary.
+            bool isQuestSeek = orderedQuestProposal && descriptor.TouchedKeys.Count == 1 && descriptor.CoalescingKey?.Kind == TouchedKeyKind.TimelineAnchor;
+            ulong questSeekConflict = 0;
             int newKeyCount = 0;
             for (int i = 0; i < descriptor.TouchedKeys.Count; i++)
             {
                 TouchedKey key = descriptor.TouchedKeys[i];
-                if (m_LastAccepted.TryGetValue(key, out ulong lastAccepted))
+                if (m_LastAccepted.TryGetValue(key, out var lastAccepted))
                 {
-                    if (lastAccepted > observedCanonicalSequence)
+                    if (isQuestSeek) questSeekConflict = lastAccepted.QuestSeekConflict;
+                    if ((isQuestSeek ? questSeekConflict : lastAccepted.Latest) > observedCanonicalSequence)
                         return OperationAdmission.Conflicting;
                 }
                 else
@@ -125,7 +130,7 @@ namespace HBP.Sync
                 return OperationAdmission.Overflow;
 
             for (int i = 0; i < descriptor.TouchedKeys.Count; i++)
-                m_LastAccepted[descriptor.TouchedKeys[i]] = acceptedCanonicalSequence;
+                m_LastAccepted[descriptor.TouchedKeys[i]] = (acceptedCanonicalSequence, isQuestSeek ? questSeekConflict : acceptedCanonicalSequence);
             m_Operations.Add(operationId.Value, new OperationEntry(descriptor.SceneId, descriptor.IncarnationId, digest));
             if (!hasSceneWatermark)
             {
@@ -143,7 +148,9 @@ namespace HBP.Sync
         {
             if (key == null)
                 throw new ArgumentNullException(nameof(key));
-            return m_LastAccepted.TryGetValue(key, out sequence);
+            bool found = m_LastAccepted.TryGetValue(key, out var lastAccepted);
+            sequence = lastAccepted.Latest;
+            return found;
         }
 
         public void CloseIncarnation(SceneId sceneId, IncarnationId incarnationId)
@@ -154,10 +161,10 @@ namespace HBP.Sync
                 throw new ArgumentNullException(nameof(incarnationId));
 
             var keysToRemove = new List<TouchedKey>();
-            foreach (KeyValuePair<TouchedKey, ulong> entry in m_LastAccepted)
+            foreach (TouchedKey key in m_LastAccepted.Keys)
             {
-                if (entry.Key.SceneId.Equals(sceneId) && entry.Key.IncarnationId.Equals(incarnationId))
-                    keysToRemove.Add(entry.Key);
+                if (key.SceneId.Equals(sceneId) && key.IncarnationId.Equals(incarnationId))
+                    keysToRemove.Add(key);
             }
 
             for (int i = 0; i < keysToRemove.Count; i++)

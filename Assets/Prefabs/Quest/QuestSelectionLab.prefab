@@ -8729,7 +8729,6 @@ MonoBehaviour:
   probe: {fileID: 570776363187926988}
   head: {fileID: 388113340466462365}
   status: {fileID: 7850456100492047538}
-  keypad: {fileID: 4655307242825765161}
   targetMarker: {fileID: 583828260940855266}
 --- !u!1 &7910535448578164051
 GameObject:
@@ -12625,18 +12624,6 @@ RectTransform:
     type: 3}
   m_PrefabInstance: {fileID: 3693284631563885353}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &4655307242825765161 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8348503314285496832, guid: d83cccb4ce2d06242a986432664d6e40,
-    type: 3}
-  m_PrefabInstance: {fileID: 3693284631563885353}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9cca45672d189d24996fa07102e46efb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: HBP.Quest.Runtime::HBP.Quest.QuestNumericKeypad
 --- !u!114 &4795541475117943704 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8199930523243024561, guid: d83cccb4ce2d06242a986432664d6e40,

@@ -21,8 +21,8 @@ silently retypes an existing tag or substitutes `0`, `false` or enum option zero
 for an incompatible value. Keep the external source intact and report rejected
 cells so corrected data can be imported again.
 
-Pre-scan all configured metadata references of the workspace before creating tags,
-including references not selected for that update. Aggregate by scope
+Pre-scan only the metadata references selected for the database update before
+creating tags. Aggregate by scope
 (`Patient`/`Site`) plus normalized name: homonymous patient/site tags stay distinct;
 an existing `GeneralTag` is resolved explicitly. Input order must not change inference.
 BIDS, tags CSV/Excel and other tag-producing importers share the same policy.

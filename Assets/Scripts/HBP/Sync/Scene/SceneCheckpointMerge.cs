@@ -278,7 +278,7 @@ namespace HBP.Sync.Scene
                 foreach (var entry in group) packedSites.Add(entry.Key);
             }
 
-            if (assignments.Count > 0) t11.Add(new T11CheckpointRecord(new SetSiteConfigurationBatch(assignments)));
+            t11.AddRange(SceneMutationCheckpointCodec.CreateSiteConfigurationRecords(assignments));
             var orderedCuts = Cells.Values.Select(cell => cell.Mutation).OfType<SetCutOrder>().SingleOrDefault()?.CutIds.Select(id => id.Value).ToList() ?? new List<string>();
             bool automaticCuts = Cells.Values.Any(cell => cell.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
             string[] cutIds = automaticCuts ? Array.Empty<string>() : Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();

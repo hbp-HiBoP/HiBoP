@@ -61,6 +61,35 @@ namespace HBP.Tests.Serialization
 
         [Test]
         [Category("NativeMigration")]
+        public void SurfaceSelectionReadsTheSignedActivityOfTheRequestedSample()
+        {
+            if (!SurfaceGenerator.SupportsReadActivity)
+                Assert.Ignore("The installed native library does not expose signed surface activity.");
+
+            using Surface surface = LoadSurface();
+            using Volume volume = LoadVolume("fmri_3d.nii");
+            using ActivityProjectionGrid grid = InitializeProjectionGrid(volume);
+            using RawSiteList sites = new();
+            (Vector3 vertex, _, int index, _) = FindTwoPositiveSurfaceVertices(surface, volume);
+            sites.AddSite("S1", ToNative(vertex), 0, 0);
+            sites.UpdateMask(0, false);
+
+            using IEEGGenerator activity = new();
+            activity.Initialize(grid);
+            activity.ComputeActivity(sites, 1000f, new[] { -0.75f, 0.25f }, 2, 1, SiteInfluenceByDistanceType.Constant);
+            activity.AdjustValues(0.5f, -1f, 1f);
+            using SurfaceGenerator reader = InitializeSurfaceGenerator(activity, surface);
+
+            (float[] values, byte[] valid) = reader.ReadActivity(0);
+            (float[] nextValues, byte[] nextValid) = reader.ReadActivity(1);
+            Assert.That(valid[index], Is.EqualTo(1));
+            Assert.That(nextValid[index], Is.EqualTo(1));
+            Assert.That(values[index], Is.EqualTo(-0.75f).Within(1e-5f));
+            Assert.That(nextValues[index], Is.EqualTo(0.25f).Within(1e-5f));
+        }
+
+        [Test]
+        [Category("NativeMigration")]
         public void DensityGenerator_CoversNoSitesSingleSiteAllMaskedAndRepeatedCalls()
         {
             using Surface surface = LoadSurface();

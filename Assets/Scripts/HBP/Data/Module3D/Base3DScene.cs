@@ -411,7 +411,6 @@ namespace HBP.Data.Module3D
                 foreach (var column in Columns)
                 foreach (var cut in column.BrainCutMeshes)
                     cut.GetComponent<Renderer>().sharedMaterial = BrainMaterials.CutMaterial;
-                m_DisplayedObjects.SimplifiedBrain.SetActive(!value);
                 BrainMaterials.SetAlpha(BrainMaterials.Alpha);
                 SceneInformation.CutsNeedUpdate = true;
                 Module3DMain.OnRequestUpdateInToolbar.Invoke();
@@ -608,9 +607,7 @@ namespace HBP.Data.Module3D
         private Func<UniTask> m_BeforeColliderPublish;
 
         public Mesh BrainRaycastMesh { get; private set; }
-        public bool IsBrainRaycastGeometryCurrent => !IsClosing && !IsSurfaceRepresentationTransitioning &&
-            !SceneInformation.GeometryNeedsUpdate && !SceneInformation.CutsNeedUpdate &&
-            !SceneInformation.CollidersNeedUpdate && !m_UpdatingColliders;
+        public bool IsBrainRaycastGeometryCurrent => !IsClosing && !IsSurfaceRepresentationTransitioning && !SceneInformation.GeometryNeedsUpdate && !SceneInformation.CutsNeedUpdate && !SceneInformation.CollidersNeedUpdate && !m_UpdatingColliders;
         public GenericEvent<Mesh> OnBrainRaycastMeshUpdated { get; } = new();
 
         /// <summary>
@@ -1192,7 +1189,7 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            if (!m_UpdatingGenerators && !IsSurfaceRepresentationTransitioning)
+            if (!m_UpdatingGenerators && !IsSurfaceRepresentationTransitioning && (m_TriangleEraser == null || !m_TriangleEraser.IsComputingSelection))
             {
                 if (SceneInformation.GeometryNeedsUpdate) UpdateGeometry();
                 else if (SceneInformation.ProjectionGridNeedsUpdate || SceneInformation.SurfaceProjectionNeedsUpdate) UpdateProjectionResources();
@@ -1240,16 +1237,31 @@ namespace HBP.Data.Module3D
         {
             UnityEngine.Profiling.Profiler.BeginSample("ComputeFunctionalCutTextures");
             m_CutTextureProperties ??= new MaterialPropertyBlock();
+            CutTexturesUtility sharedAtlasCuts = null;
+            if (m_AtlasManager.DisplayAtlas && Columns.Count > 0)
+            {
+                // The MRI, cut geometry, atlas and highlight are common to every column.
+                Column3D atlasColumn = Columns[0];
+                m_AtlasManager.ColorCuts(atlasColumn);
+                sharedAtlasCuts = atlasColumn.CutTextures;
+            }
+
             foreach (Column3D column in Columns)
             {
-                if (m_AtlasManager.DisplayAtlas) m_AtlasManager.ColorCuts(column);
-                else if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
-                else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                column.CutTextures.SetSharedAtlasCuts(sharedAtlasCuts);
+                if (sharedAtlasCuts == null)
+                {
+                    if (m_FMRIManager.DisplayFMRI) m_FMRIManager.ColorCuts(column);
+                    else if (m_IsGeneratorUpToDate) column.CutTextures.ColorCutsTexturesWithActivity();
+                }
+
                 for (int i = 0; i < Cuts.Count; ++i)
                 {
                     var renderer = column.BrainCutMeshes[i].GetComponent<Renderer>();
                     renderer.GetPropertyBlock(m_CutTextureProperties);
-                    m_CutTextureProperties.SetTexture("_MainTex", column.CutTextures.BrainCutTextures[i]);
+                    Texture2D texture = column.CutTextures.BrainCutTextures[i];
+                    if (m_CutTextureProperties.GetTexture("_MainTex") == texture) continue;
+                    m_CutTextureProperties.SetTexture("_MainTex", texture);
                     renderer.SetPropertyBlock(m_CutTextureProperties);
                 }
             }
@@ -1476,14 +1488,14 @@ namespace HBP.Data.Module3D
         {
             Core.DLL.Surface previousBrainSurface = m_MeshManager.BrainSurface;
             Core.DLL.Surface previousReferenceSurface = m_MeshManager.ReferenceSurface;
-            int[] previousVisibilityMask = previousBrainSurface?.VisibilityMask;
 
             m_MeshManager.UpdateMeshesInformation();
             UpdateProjectionResources();
             bool representationChanged = previousBrainSurface != null && !ReferenceEquals(previousBrainSurface, m_MeshManager.BrainSurface) && ReferenceEquals(previousReferenceSurface, m_MeshManager.ReferenceSurface);
             if (representationChanged)
             {
-                m_TriangleEraser.ResetForRepresentationChange(previousVisibilityMask);
+                m_TriangleEraser.ResetForRepresentationChange();
+                SceneInformation.CollidersNeedUpdate = true;
                 m_MeshManager.UpdateMeshesFromDLL(preserveScientificData: true);
                 InvalidateSurfaceMesh();
                 m_AtlasManager.UpdateAtlasColors();
@@ -1497,8 +1509,10 @@ namespace HBP.Data.Module3D
             }
             else
             {
-                m_MeshManager.UpdateMeshesFromDLL();
-                m_TriangleEraser.ResetEraser();
+                if (previousReferenceSurface != null && ReferenceEquals(previousReferenceSurface, m_MeshManager.ReferenceSurface))
+                    m_MeshManager.UpdateMeshesFromDLL();
+                else
+                    m_TriangleEraser.ResetForTopologyChange();
                 m_AtlasManager.UpdateAtlasIndices();
                 m_FMRIManager.UpdateSurfaceFMRIValues();
             }
@@ -1552,6 +1566,9 @@ namespace HBP.Data.Module3D
         /// </summary>
         private void UpdateProjectionResources()
         {
+            // Synchronized geometry can be rebuilt outside Update. Keep the
+            // projection field and grid alive until the selection reader returns.
+            if (m_TriangleEraser != null && m_TriangleEraser.IsComputingSelection) return;
             if (SceneInformation.ProjectionGridNeedsUpdate)
             {
                 Core.DLL.ActivityProjectionGrid previousGrid = m_ActivityProjectionGrid;
@@ -2529,23 +2546,22 @@ namespace HBP.Data.Module3D
         {
             RequireColumn(column);
             if (IsSurfaceRepresentationTransitioning) return;
-            int layerMask = 0;
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.HIDDEN_MESHES_LAYER);
-            layerMask |= 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
-
-            RaycastHitResult raycastResult = column.Raycast(ray, layerMask, out RaycastHit hit);
-            Vector3 hitPoint = raycastResult != RaycastHitResult.None ? column.transform.InverseTransformPoint(hit.point) : Vector3.zero;
+            bool selecting = m_TriangleEraser.IsClickAvailable && !m_ROIManager.ROICreationMode;
+            bool full = selecting || m_TriangleEraser.MeshHasInvisibleTriangles || (m_ROIManager.ROICreationMode && !m_MeshManager.CanClipBrainSurface);
+            RaycastHitResult raycastResult = RaycastDesktop(ray, column, full, out RaycastHit hit, out int face, out Vector3 hitPoint, out float surfaceDistance, includeErased: selecting);
 
             if (raycastResult == RaycastHitResult.Site)
-            {
                 SelectSite(column, hit.collider.GetComponent<Core.Object3D.Site>());
-            }
 
-            if (raycastResult == RaycastHitResult.Mesh)
+            if (raycastResult == RaycastHitResult.Mesh && selecting && face >= 0)
             {
-                if (m_TriangleEraser.IsEnabled && m_TriangleEraser.IsClickAvailable)
+                if (m_TriangleEraser.Mode != TriangleSelectionMode.Brush)
+                    m_TriangleEraser.SelectTriangle(column, face);
+                else if (m_TriangleEraser.BeginTriangleStroke())
                 {
-                    m_TriangleEraser.EraseTriangles(column.transform.InverseTransformDirection(ray.direction), hitPoint);
+                    var center = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(surfaceDistance));
+                    m_TriangleEraser.RetouchBrushStroke(column, center, center, displayedUnits: true);
+                    m_TriangleEraser.EndTriangleStroke();
                 }
             }
 
@@ -2569,6 +2585,53 @@ namespace HBP.Data.Module3D
                     }
                 }
             }
+        }
+
+        public bool TryRaycastCompleteBrain(Column3D column, Ray ray, ref float distance, out Vector3 anatomicalPoint) => m_TriangleEraser.TryRaycast(column, ray, ref distance, out _, out anatomicalPoint);
+
+        public bool TryGetDesktopTriangleTarget(Ray ray, Column3D column, out int face, out Vector3 displayedPoint)
+        {
+            face = -1;
+            displayedPoint = default;
+            if (!m_TriangleEraser.IsClickAvailable || !m_TriangleEraser.IsSweepMode || m_ROIManager.ROICreationMode || IsClosing || IsSurfaceRepresentationTransitioning || SceneInformation.GeometryNeedsUpdate)
+                return false;
+
+            var kind = RaycastDesktop(ray, column, true, out _, out face, out _, out float distance, includeErased: true);
+            if (kind != RaycastHitResult.Mesh || face < 0) return false;
+            displayedPoint = column.BrainMesh.transform.InverseTransformPoint(ray.GetPoint(distance));
+            return true;
+        }
+
+        internal RaycastHitResult RaycastDesktop(Ray ray, Column3D column, bool full, out RaycastHit hit, out int face, out Vector3 anatomicalPoint, bool includeErased = false) => RaycastDesktop(ray, column, full, out hit, out face, out anatomicalPoint, out _, includeErased);
+
+        private RaycastHitResult RaycastDesktop(Ray ray, Column3D column, bool full, out RaycastHit hit, out int face, out Vector3 anatomicalPoint, out float surfaceDistance, bool includeErased)
+        {
+            RefreshColliders();
+            int layer = 1 << LayerMask.NameToLayer(Module3DMain.DEFAULT_MESHES_LAYER);
+            RaycastHitResult kind = column.Raycast(ray, layer, out hit, IsBrainTransparent, IsBrainRaycastGeometryCurrent);
+            face = -1;
+            anatomicalPoint = hit.collider ? column.transform.InverseTransformPoint(hit.point) : default;
+            surfaceDistance = float.PositiveInfinity;
+            if (IsBrainTransparent && kind == RaycastHitResult.Site) return kind;
+
+            float distance = hit.collider ? hit.distance : Mathf.Infinity;
+            if (full)
+            {
+                if (m_TriangleEraser.TryRaycast(column, ray, ref distance, out face, out Vector3 point, includeErased))
+                {
+                    anatomicalPoint = point;
+                    surfaceDistance = distance;
+                    return RaycastHitResult.Mesh;
+                }
+            }
+            else if (IsBrainRaycastGeometryCurrent && m_DisplayedObjects.SimplifiedBrain != null && m_DisplayedObjects.SimplifiedBrain.TryGetComponent(out MeshCollider collider) && collider.Raycast(ray, out RaycastHit brain, distance))
+            {
+                hit = brain;
+                anatomicalPoint = column.BrainMesh.transform.InverseTransformPoint(brain.point);
+                return RaycastHitResult.Mesh;
+            }
+
+            return kind;
         }
 
         #endregion
@@ -2644,7 +2707,7 @@ namespace HBP.Data.Module3D
             return m_InitializationWork;
         }
 
-        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken, Func<CancellationToken, UniTask> loadPreparedResources = null)
+        private async UniTask InitializeContentAsync(Visualization visualization, Action<float, float, LoadingText> onChangeProgress, CancellationToken cancellationToken, Func<CancellationToken, UniTask> loadPreparedResources = null, Func<string, IDisposable> measure = null)
         {
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, m_SurfaceRepresentationLifetime.Token);
             CancellationToken token = lifetime.Token;
@@ -2822,16 +2885,21 @@ namespace HBP.Data.Module3D
             }
 
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.92f, 0, new LoadingText("Preparing column data"));
-            await Visualization.CompletePreparedDataAsync(token);
-            await LoadConfiguredResourcesAsync(token);
+            using (measure?.Invoke("quest.restore-prepare-column-data"))
+                await Visualization.CompletePreparedDataAsync(token);
+            using (measure?.Invoke("quest.restore-load-configured-resources"))
+                await LoadConfiguredResourcesAsync(token);
             token.ThrowIfCancellationRequested();
             await UniTask.SwitchToMainThread();
-            m_MeshManager.InitializeMeshes();
+            using (measure?.Invoke("quest.restore-initialize-meshes"))
+                m_MeshManager.InitializeMeshes();
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.93f, 0, new LoadingText("Loading sites"));
-            await LoadSitesAsync(visualization.Patients);
+            using (measure?.Invoke("quest.restore-load-sites"))
+                await LoadSitesAsync(visualization.Patients);
             token.ThrowIfCancellationRequested();
             if (loadPreparedResources != null) onChangeProgress?.Invoke(.94f, 0, new LoadingText("Setting up columns"));
-            await LoadColumnsAsync();
+            using (measure?.Invoke("quest.restore-load-columns"))
+                await LoadColumnsAsync();
 
             // Finalization
             token.ThrowIfCancellationRequested();
@@ -3025,8 +3093,9 @@ namespace HBP.Data.Module3D
             await UniTask.SwitchToMainThread();
             // Prepare only resources used by the current scene. Patient preload caches
             // belong to future single-patient scenes and must not be expanded for a send.
-            var existingMeshes = m_MeshManager.Meshes.Distinct().ToArray();
-            var existingMRIs = m_MRIManager.MRIs.Distinct().ToArray();
+            var existingMeshes = m_MeshManager.Meshes.Where(mesh => !mesh.IsLoaded).Distinct().ToArray();
+            var existingMRIs = m_MRIManager.MRIs.Where(mri => !mri.IsLoaded).Distinct().ToArray();
+            if (existingMeshes.Length == 0 && existingMRIs.Length == 0) return;
             // One sequential worker: the native GIFTI parser is not reentrant.
             // m_AnatomyWork retains the scene until this call actually returns.
             await UniTask.RunOnThreadPool(() =>
@@ -3252,11 +3321,11 @@ namespace HBP.Data.Module3D
                     var mesh = cut.GetComponent<MeshFilter>().sharedMesh;
                     cutCollider.sharedMesh = null;
                     if (mesh.triangles.Length > 0) cutCollider.sharedMesh = mesh;
-                    if (!m_DesktopPresentation)
+                    foreach (var column in Columns)
                     {
-                        foreach (var column in Columns)
+                        var columnCut = column.BrainCutMeshes[i];
+                        if (columnCut.TryGetComponent(out MeshCollider columnCutCollider))
                         {
-                            var columnCutCollider = column.BrainCutMeshes[i].GetComponent<MeshCollider>();
                             columnCutCollider.sharedMesh = null;
                             columnCutCollider.sharedMesh = cutCollider.sharedMesh;
                         }

@@ -333,16 +333,10 @@ namespace HBP.Sync
 
     public sealed class ApplyTriangleMask : Mutation
     {
-        private readonly TriangleMask[] m_Masks;
-        public IReadOnlyList<TriangleMask> Masks => Array.AsReadOnly(m_Masks);
+        public TriangleMask Mask { get; }
         public override OperationType Type => OperationType.ApplyTriangleMask;
 
-        public ApplyTriangleMask(IEnumerable<TriangleMask> masks)
-        {
-            m_Masks = (masks ?? throw new ArgumentNullException(nameof(masks))).ToArray();
-            if (m_Masks.Length != 2 || m_Masks.Any(mask => mask == null) || m_Masks.Select(mask => mask.TopologyId).Distinct().Count() != m_Masks.Length)
-                throw new ArgumentException("A mask operation requires unique complete and simplified topology masks.", nameof(masks));
-        }
+        public ApplyTriangleMask(TriangleMask mask) => Mask = mask ?? throw new ArgumentNullException(nameof(mask));
 
         public static string HashMembership(IEnumerable<string> siteIds)
         {
@@ -566,55 +560,41 @@ namespace HBP.Sync
 
         private static ApplyTriangleMask ReadMasks(BinaryReader reader)
         {
-            int count = reader.ReadByte();
-            if (count < 1 || count > 2) throw new InvalidDataException("Invalid topology mask count.");
-            var masks = new TriangleMask[count];
-            for (int i = 0; i < count; i++)
+            var topology = new TopologyId(ReadText(reader, false));
+            int triangleCount = reader.ReadInt32();
+            TriangleMaskEncoding encoding = ReadEnum<TriangleMaskEncoding>(reader);
+            if (triangleCount <= 0 || triangleCount > 128 * 1024 * 1024) throw new InvalidDataException("Triangle count exceeds its bound.");
+            int count = reader.ReadInt32();
+            if (encoding == TriangleMaskEncoding.SparseInvisibleIndices)
             {
-                var topology = new TopologyId(ReadText(reader, false));
-                int triangleCount = reader.ReadInt32();
-                TriangleMaskEncoding encoding = ReadEnum<TriangleMaskEncoding>(reader);
-                if (triangleCount <= 0 || triangleCount > 128 * 1024 * 1024) throw new InvalidDataException("Triangle count exceeds its bound.");
-                if (encoding == TriangleMaskEncoding.SparseInvisibleIndices)
-                {
-                    int invisibleCount = reader.ReadInt32();
-                    if (invisibleCount < 0 || invisibleCount > triangleCount || invisibleCount > (reader.BaseStream.Length - reader.BaseStream.Position) / sizeof(int)) throw new InvalidDataException("Sparse triangle mask length is invalid.");
-                    var invisible = new int[invisibleCount];
-                    for (int j = 0; j < invisibleCount; j++) invisible[j] = reader.ReadInt32();
-                    masks[i] = new TriangleMask(topology, triangleCount, invisible);
-                }
-                else
-                {
-                    int byteCount = reader.ReadInt32();
-                    if (byteCount != (triangleCount + 7) / 8 || byteCount > reader.BaseStream.Length - reader.BaseStream.Position) throw new InvalidDataException("Visibility bitset length is invalid.");
-                    byte[] bits = reader.ReadBytes(byteCount);
-                    if (bits.Length != byteCount) throw new EndOfStreamException();
-                    masks[i] = new TriangleMask(topology, triangleCount, bits);
-                }
+                if (count < 0 || count > triangleCount || count > (reader.BaseStream.Length - reader.BaseStream.Position) / sizeof(int))
+                    throw new InvalidDataException("Sparse triangle mask length is invalid.");
+                var invisible = new int[count];
+                for (int i = 0; i < count; i++) invisible[i] = reader.ReadInt32();
+                return new ApplyTriangleMask(new TriangleMask(topology, triangleCount, invisible));
             }
 
-            return new ApplyTriangleMask(masks);
+            if (count != (triangleCount + 7) / 8 || count > reader.BaseStream.Length - reader.BaseStream.Position)
+                throw new InvalidDataException("Visibility bitset length is invalid.");
+            return new ApplyTriangleMask(new TriangleMask(topology, triangleCount, reader.ReadBytes(count)));
         }
 
         private static void WriteMasks(BinaryWriter writer, ApplyTriangleMask value)
         {
-            writer.Write(checked((byte)value.Masks.Count));
-            foreach (TriangleMask mask in value.Masks)
+            TriangleMask mask = value.Mask;
+            WriteText(writer, mask.TopologyId.Value);
+            writer.Write(mask.TriangleCount);
+            writer.Write((byte)mask.Encoding);
+            if (mask.Encoding == TriangleMaskEncoding.SparseInvisibleIndices)
             {
-                WriteText(writer, mask.TopologyId.Value);
-                writer.Write(mask.TriangleCount);
-                writer.Write((byte)mask.Encoding);
-                if (mask.Encoding == TriangleMaskEncoding.SparseInvisibleIndices)
-                {
-                    writer.Write(mask.InvisibleTriangleIds.Count);
-                    foreach (int id in mask.InvisibleTriangleIds) writer.Write(id);
-                }
-                else
-                {
-                    byte[] bits = mask.GetVisibilityBitsCopy();
-                    writer.Write(bits.Length);
-                    writer.Write(bits);
-                }
+                writer.Write(mask.InvisibleTriangleIds.Count);
+                foreach (int id in mask.InvisibleTriangleIds) writer.Write(id);
+            }
+            else
+            {
+                byte[] bits = mask.GetVisibilityBitsCopy();
+                writer.Write(bits.Length);
+                writer.Write(bits);
             }
         }
 

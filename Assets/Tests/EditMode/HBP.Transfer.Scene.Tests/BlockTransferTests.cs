@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -81,6 +82,9 @@ namespace HBP.Tests.Transfer
             Exception error = null;
             byte[] hash = null;
             long receivedRaw = 0, expectedRaw = 0;
+            var timings = new ConcurrentQueue<string>();
+            string reception = Guid.NewGuid().ToString("N");
+            PairingTiming.OnMeasured += timings.Enqueue;
             try
             {
                 hash = await BlockContainer.ReceiveAsync(input, sink, CancellationToken.None, null, (received, total) =>
@@ -88,13 +92,20 @@ namespace HBP.Tests.Transfer
                     Assert.That(received, Is.GreaterThanOrEqualTo(receivedRaw));
                     receivedRaw = received;
                     expectedRaw = total;
-                });
+                }, timingScope: reception);
             }
             catch (Exception exception)
             {
                 error = exception;
             }
+            finally
+            {
+                PairingTiming.OnMeasured -= timings.Enqueue;
+            }
 
+            var stages = timings.Where(line => line.Contains(" scope=" + reception)).ToArray();
+            Assert.That(stages.Count(line => line.Contains("stage=quest.blocks-receive-and-verify")), Is.EqualTo(1));
+            Assert.That(stages.Count(line => line.Contains("counter=quest.blocks-wire-bytes")), Is.EqualTo(corruption == "none" ? 1 : 0));
             if (corruption == "none")
             {
                 Assert.That(error, Is.Null);
@@ -103,6 +114,8 @@ namespace HBP.Tests.Transfer
                 Assert.That(sink.Completed, Is.True);
                 Assert.That(receivedRaw, Is.EqualTo(data.Length));
                 Assert.That(expectedRaw, Is.EqualTo(data.Length));
+                string decode = stages.Single(line => line.Contains("stage=quest.blocks-decode "));
+                Assert.That(decode, Does.EndWith(" samples=2 bytes=" + data.Length));
             }
             else
             {
@@ -287,7 +300,7 @@ namespace HBP.Tests.Transfer
             Directory.CreateDirectory(root);
             bool freed = false;
             var bytes = new byte[TransferCodec.BlockBytes * 8];
-            var delivery = new SceneDelivery(Path.Combine(root, "spool"), "id", "session", "fixture", () => new[] { new BlockResource("large.bin", bytes.Length, (s, t) => s.Write(bytes, 0, bytes.Length)) }, () => freed = true, CancellationToken.None);
+            var delivery = new SceneDelivery(Path.Combine(root, "spool"), "id", "session", "fixture", _ => new[] { new BlockResource("large.bin", bytes.Length, (s, t) => s.Write(bytes, 0, bytes.Length)) }, () => freed = true, CancellationToken.None);
             await delivery.DisposeAsync(); // Outer connection/auth failed, so SendAsync was never called.
             Assert.That(freed, Is.True);
             Assert.That(Directory.Exists(root), Is.False);
@@ -405,9 +418,11 @@ namespace HBP.Tests.Transfer
             var sink = new TelemetrySink();
             var identity = new SyncTelemetryIdentity("transfer", 1, 7);
             var bytes = new byte[TransferCodec.BlockBytes + 9];
+            var timings = new ConcurrentQueue<string>();
             using (SyncTelemetry.BeginCapture(sink, new IncrementingClock()))
             {
-                var delivery = new SceneDelivery(Path.Combine(root, "spool"), "transfer", "session", "fixture", () => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None, identity);
+                var delivery = new SceneDelivery(Path.Combine(root, "spool"), "transfer", "session", "fixture", _ => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None, identity);
+                PairingTiming.OnMeasured += timings.Enqueue;
                 try
                 {
                     using (var first = new ReceiptStream { LoseAck = true })
@@ -426,9 +441,17 @@ namespace HBP.Tests.Transfer
                 }
                 finally
                 {
+                    PairingTiming.OnMeasured -= timings.Enqueue;
                     await delivery.DisposeAsync();
                 }
             }
+
+            var receiptWaits = timings.Where(line => line.Contains("stage=desktop.scene-publication-receipt-wait ")).ToArray();
+            Assert.That(receiptWaits.Length, Is.EqualTo(2));
+            Assert.That(receiptWaits[0], Does.Contain(" scope=transfer attempt=1 "));
+            Assert.That(receiptWaits[1], Does.Contain(" scope=transfer attempt=2 "));
+            Assert.That(timings.Single(line => line.Contains("counter=desktop.scene-publication-status ")), Does.EndWith("value=2 scope=transfer attempt=2"));
+            Assert.That(timings.Single(line => line.Contains("stage=desktop.blocks-retry-spool-read ")), Does.Contain(" scope=transfer attempt=2 "));
 
             SyncTelemetrySample receipt = sink.Samples.Single(sample => sample.Milestone == SyncMilestone.PublicationReceipt);
             Assert.That(receipt.Identity.AttemptId, Is.EqualTo(2));
@@ -446,7 +469,7 @@ namespace HBP.Tests.Transfer
             var bytes = new byte[128];
             SceneDelivery delivery;
             if (streaming)
-                delivery = new SceneDelivery(path, "transfer", "session", "fixture", () => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None);
+                delivery = new SceneDelivery(path, "transfer", "session", "fixture", _ => new[] { new BlockResource("data.bin", bytes.Length, (stream, token) => stream.Write(bytes, 0, bytes.Length)) }, () => { }, CancellationToken.None);
             else
             {
                 File.WriteAllBytes(path, bytes);

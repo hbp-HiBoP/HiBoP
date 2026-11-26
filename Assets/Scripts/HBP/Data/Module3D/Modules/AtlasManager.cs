@@ -1,5 +1,6 @@
 using UnityEngine;
 using HBP.Core.Object3D;
+using System.Collections.Generic;
 
 namespace HBP.Data.Module3D
 {
@@ -11,6 +12,8 @@ namespace HBP.Data.Module3D
     /// </remarks>
     public class AtlasManager : MonoBehaviour
     {
+        private const int AtlasLabelUVChannel = 5;
+
         #region Properties
 
         /// <summary>
@@ -26,9 +29,6 @@ namespace HBP.Data.Module3D
         private Core.DLL.BrainAtlas m_CachedAtlas;
         private int m_CachedLabel = -1;
         private AtlasInfo m_CachedRegion;
-        private Mesh m_InflatedHoverMesh;
-        private int[] m_InflatedHoverTriangles;
-        private Vector3[] m_AnatomicalHoverVertices;
 
         private bool m_DisplayMarsAtlas;
 
@@ -128,12 +128,9 @@ namespace HBP.Data.Module3D
 
         private int m_HoveredArea = -1;
 
-        public bool CanHover => !m_Scene.IsClosing && m_Scene.MeshManager.Meshes.Count > 0 &&
-            m_Scene.MeshManager.SelectedMesh.Type == HBP.Core.Enums.MeshType.MNI &&
-            SelectedAtlas is { Loaded: true } && !m_Scene.FMRIManager.DisplayFMRI;
+        public bool CanHover => !m_Scene.IsClosing && m_Scene.MeshManager.Meshes.Count > 0 && m_Scene.MeshManager.SelectedMesh.Type == HBP.Core.Enums.MeshType.MNI && SelectedAtlas is { Loaded: true } && !m_Scene.FMRIManager.DisplayFMRI;
 
-        public bool UsesInflatedHoverGeometry => CanHover &&
-            m_Scene.MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated;
+        public bool UsesInflatedHoverGeometry => CanHover && m_Scene.MeshManager.SelectedMesh.Representation == SurfaceRepresentation.Inflated;
 
         /// <summary>
         /// Area of the atlas hovered locally.
@@ -147,7 +144,7 @@ namespace HBP.Data.Module3D
                 {
                     m_HoveredArea = value;
                     if (m_Scene.IsClosing) return;
-                    ApplySurfaceColors();
+                    ApplySurfaceHighlight();
                     m_Scene.SceneInformation.InvalidateAtlasHoverCutTextures(m_Scene.DesktopPresentation != null);
                 }
             }
@@ -183,6 +180,7 @@ namespace HBP.Data.Module3D
         public void UpdateAtlasColors()
         {
             ApplySurfaceColors();
+            ApplySurfaceHighlight();
             m_Scene.SceneInformation.BaseCutTexturesNeedUpdate = true;
         }
 
@@ -193,12 +191,29 @@ namespace HBP.Data.Module3D
                 int[] indices = atlas is Core.DLL.MarsAtlas ? m_MarsAtlasIndices : m_JuBrainAtlasIndices;
                 if (indices != null)
                 {
-                    Color[] colors = atlas.ConvertIndicesToColors(indices, HoveredArea);
-                    m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                    Color[] colors = atlas.ConvertIndicesToColors(indices, -1);
+                    var labels = new List<Vector2>(indices.Length);
+                    foreach (int index in indices)
+                        labels.Add(new Vector2(index, 0));
+                    ApplySurfaceAtlas(m_DisplayedObjects.Brain, colors, labels);
                     foreach (Column3D column in m_Scene.Columns)
-                        column.BrainMesh.GetComponent<MeshFilter>().sharedMesh.colors = colors;
+                        ApplySurfaceAtlas(column.BrainMesh, colors, labels);
                 }
             }
+        }
+
+        private static void ApplySurfaceAtlas(GameObject brain, Color[] colors, List<Vector2> labels)
+        {
+            Mesh mesh = brain.GetComponent<MeshFilter>().sharedMesh;
+            mesh.colors = colors;
+            mesh.SetUVs(AtlasLabelUVChannel, labels);
+        }
+
+        private void ApplySurfaceHighlight()
+        {
+            if (m_Scene.BrainMaterials == null) return;
+            Color color = HoveredArea > 0 && SelectedAtlas is { Loaded: true } atlas ? atlas.GetHighlightedColor(HoveredArea) : Color.clear;
+            m_Scene.BrainMaterials.SetAtlasHighlight(HoveredArea, color);
         }
 
         /// <summary>
@@ -247,45 +262,7 @@ namespace HBP.Data.Module3D
                 return null;
 
             string name = information[0] + " - ID:" + label;
-            return isMarsAtlas
-                ? new AtlasInfo(true, default, AtlasInfo.AtlasType.MarsAtlas, name, information[1], information[2], information[3], information[4])
-                : new AtlasInfo(true, default, AtlasInfo.AtlasType.JuBrainAtlas, name);
-        }
-
-        public bool TryRaycastInflatedSurface(Column3D column, Ray ray, float distance, out RaycastHit hit)
-        {
-            hit = default;
-            var collider = column.AtlasHoverCollider;
-            if (!collider || !UsesInflatedHoverGeometry || !m_Scene.IsBrainRaycastGeometryCurrent) return false;
-            if (!m_InflatedHoverMesh)
-            {
-                var displayed = m_DisplayedObjects.Brain.GetComponent<MeshFilter>().sharedMesh;
-                m_InflatedHoverTriangles = displayed.triangles;
-                m_AnatomicalHoverVertices = m_Scene.MeshManager.ReferenceSurface.CopyVertexPositions();
-                // Keep hover color uploads off the mesh used by physics.
-                m_InflatedHoverMesh = new Mesh
-                {
-                    name = "Inflated atlas hover",
-                    indexFormat = displayed.indexFormat,
-                    vertices = displayed.vertices,
-                    triangles = m_InflatedHoverTriangles
-                };
-            }
-
-            if (m_InflatedHoverTriangles.Length == 0) return false;
-            if (collider.sharedMesh != m_InflatedHoverMesh) collider.sharedMesh = m_InflatedHoverMesh;
-            return collider.Raycast(ray, out hit, distance);
-        }
-
-        public bool TryGetAnatomicalHoverPoint(Column3D column, RaycastHit hit, out Vector3 point)
-        {
-            point = default;
-            if (!hit.collider) return false;
-            if (hit.collider == column.AtlasHoverCollider)
-                return TryInterpolateAnatomicalPoint(m_AnatomicalHoverVertices, m_InflatedHoverTriangles, hit.triangleIndex, hit.barycentricCoordinate, out point);
-
-            point = column.BrainMesh.transform.InverseTransformPoint(hit.point);
-            return true;
+            return isMarsAtlas ? new AtlasInfo(true, default, AtlasInfo.AtlasType.MarsAtlas, name, information[1], information[2], information[3], information[4]) : new AtlasInfo(true, default, AtlasInfo.AtlasType.JuBrainAtlas, name);
         }
 
         internal static bool TryInterpolateAnatomicalPoint(Vector3[] vertices, int[] triangles, int triangle, Vector3 weights, out Vector3 point)
@@ -309,20 +286,11 @@ namespace HBP.Data.Module3D
 
         internal void InvalidateHoverGeometry()
         {
-            m_HoveredArea = -1;
-            if (!m_InflatedHoverMesh) return;
-            foreach (var column in m_Scene.Columns)
-                if (column && column.AtlasHoverCollider && column.AtlasHoverCollider.sharedMesh == m_InflatedHoverMesh)
-                    column.AtlasHoverCollider.sharedMesh = null;
-            Destroy(m_InflatedHoverMesh);
-            m_InflatedHoverMesh = null;
-            m_InflatedHoverTriangles = null;
-            m_AnatomicalHoverVertices = null;
-        }
-
-        private void OnDestroy()
-        {
-            if (m_InflatedHoverMesh) Destroy(m_InflatedHoverMesh);
+            if (m_HoveredArea != -1)
+            {
+                m_HoveredArea = -1;
+                ApplySurfaceHighlight();
+            }
         }
 
         public void ColorCuts(Column3D column)

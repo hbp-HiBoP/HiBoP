@@ -92,7 +92,10 @@ namespace HBP.Transfer.Transport
     /// <summary>Bounded request/response framing, carried only by the authenticated pairing endpoint.</summary>
     public static class SessionControlCodec
     {
-        public const string AtlasInventoryCapability = "HiBoP-session-v2";
+        public const string AtlasInventoryCapability = "HiBoP-session-v3";
+        public const string CompleteTriangleMaskCapability = "scene-format-6-complete-triangle-mask";
+        public const string CompactSceneCapability = "scene-format-5";
+        public const string GroupedSceneCapability = "scene-format-6";
         public const int MaximumBodyBytes = 1024 * 1024;
         private const int Version = 1;
 

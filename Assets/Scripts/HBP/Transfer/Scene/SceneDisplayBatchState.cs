@@ -11,6 +11,7 @@ namespace HBP.Transfer.Scene
         public string[] Visualizations;
         public float Progress;
         public bool Finished;
+        public bool PatientOpening;
         public string ActiveVisualizationId;
         public float ReceivingProgress;
         public string[] IncompleteVisualizations = Array.Empty<string>();
@@ -29,6 +30,7 @@ namespace HBP.Transfer.Scene
                 throw new InvalidDataException("Invalid incomplete Display scenes.");
             if (Names != null && (Names.Length != Visualizations.Length || Names.Any(value => value == null || value.Length > 1024)))
                 throw new InvalidDataException("Invalid Display presentation.");
+            if (PatientOpening && Visualizations.Length != 1) throw new InvalidDataException("A patient opening requires a single child visualization.");
             SourceStatus?.Validate(Visualizations);
             TransferStatus?.Validate(Visualizations);
             ReceivingStatus?.Validate(Visualizations);

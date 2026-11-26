@@ -20,6 +20,7 @@ namespace HBP.Core.Object3D
         private AsyncLazy m_LoadWork;
         private readonly string m_MaskFile = "";
         private readonly bool m_ExcludeZeroFromHistogram;
+        private readonly NIFTI.AtlasStorage m_AtlasStorage;
         public string SourceFile => m_File;
         public string MaskFile => m_MaskFile;
         public string SourceHash { get; private set; }
@@ -52,12 +53,14 @@ namespace HBP.Core.Object3D
         {
         }
 
-        public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true, bool excludeZeroFromHistogram = false)
+        public FMRI(string name, string file, string maskFile = "", bool loadInBackground = true, bool excludeZeroFromHistogram = false,
+            NIFTI.AtlasStorage atlasStorage = NIFTI.AtlasStorage.Dense)
         {
             Name = name;
             m_File = file;
             m_MaskFile = maskFile;
             m_ExcludeZeroFromHistogram = excludeZeroFromHistogram;
+            m_AtlasStorage = atlasStorage;
             if (loadInBackground)
                 LoadAsync().Forget();
         }
@@ -81,24 +84,22 @@ namespace HBP.Core.Object3D
                 if (!string.IsNullOrEmpty(maskFile) && StandardData.CompanionFile(maskFile) is string maskCompanion) MaskCompanionHash = StandardData.HashFile(maskCompanion);
                 // FILE
                 using var nifti = new NIFTI();
-                if (!nifti.Load(file))
+                bool compactAtlas = m_AtlasStorage != NIFTI.AtlasStorage.Dense;
+                if (!(compactAtlas ? nifti.LoadAtlas(file, m_AtlasStorage) : nifti.Load(file)))
                 {
                     throw new HBPException("fMRI loading error", $"The fMRI {Name} could not be loaded.");
                 }
 
-                if (nifti.NumberOfVolumes < 1) throw new HBPException("fMRI loading error", "The fMRI contains no volumes.");
-                for (int i = 0; i < nifti.NumberOfVolumes; i++)
-                {
-                    Volumes.Add(nifti.ExtractVolume(i));
-                }
-
+                int volumeCount = nifti.NumberOfVolumes;
+                if (volumeCount < 1) throw new HBPException("fMRI loading error", "The fMRI contains no volumes.");
                 ExtremeValues = nifti.ExtremeValues;
                 HistogramBins = nifti.GetHistogramBins(UnityTextureFactory.HistogramBinCount, excludeMinimum: true, excludeZero: m_ExcludeZeroFromHistogram);
-                if (nifti.NumberOfVolumes > 0)
+                StartTime = nifti.StartTime;
+                TimeStep = nifti.TimeStep;
+                TimeUnit = nifti.TimeUnit;
+                for (int i = 0; i < volumeCount; i++)
                 {
-                    StartTime = nifti.StartTime;
-                    TimeStep = nifti.TimeStep;
-                    TimeUnit = nifti.TimeUnit;
+                    Volumes.Add(compactAtlas ? nifti.TakeAtlasVolume(i) : nifti.ExtractVolume(i));
                 }
 
                 // MASK

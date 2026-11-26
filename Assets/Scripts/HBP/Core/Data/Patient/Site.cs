@@ -1,3 +1,4 @@
+using HBP.Core.Database;
 using HBP.Core.Interfaces;
 using HBP.Core.Object3D;
 using HBP.Core.Tools;
@@ -126,7 +127,7 @@ namespace HBP.Core.Data
             var sites = new List<Site>();
             var parent = new DirectoryInfo(path);
             var implantationDirection = new DirectoryInfo(Path.Combine(path, "implantation"));
-            if (implantationDirection.Exists)
+            if (DatabaseSourceAccess.Exists(implantationDirection))
             {
                 var ptsFiles = implantationDirection.GetFiles("*.pts", SearchOption.TopDirectoryOnly);
                 var csvFiles = implantationDirection.GetFiles("*.csv", SearchOption.TopDirectoryOnly);

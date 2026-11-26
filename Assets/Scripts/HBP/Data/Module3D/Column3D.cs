@@ -411,14 +411,11 @@ namespace HBP.Data.Module3D
         public void InitializeColumnMeshes(GameObject brainMesh)
         {
             BrainMesh = Instantiate(brainMesh, m_BrainSurfaceMeshesParent);
-            AtlasHoverCollider = BrainMesh.GetComponentInChildren<MeshCollider>(true);
             BrainMesh.layer = LayerMask.NameToLayer(Layer);
             m_OwnedBrainMesh = Instantiate(brainMesh.GetComponent<MeshFilter>().sharedMesh);
             BrainMesh.GetComponent<MeshFilter>().mesh = m_OwnedBrainMesh;
             BrainMesh.SetActive(true);
         }
-
-        internal MeshCollider AtlasHoverCollider { get; private set; }
 
         /// <summary>
         /// Update the meshes of this column (when updating the base meshes in the scene)
@@ -601,20 +598,43 @@ namespace HBP.Data.Module3D
         /// <param name="layerMask">Layer on which to perform the raycast</param>
         /// <param name="hit">Result of the raycast</param>
         /// <returns></returns>
-        public RaycastHitResult Raycast(Ray ray, int layerMask, out RaycastHit hit)
+        public RaycastHitResult Raycast(Ray ray, int layerMask, out RaycastHit hit, bool prioritizeSites = false, bool includeCuts = true)
         {
             layerMask |= 1 << LayerMask.NameToLayer(Layer);
+            int count;
+            while ((count = Physics.RaycastNonAlloc(ray, m_RaycastHits, Mathf.Infinity, layerMask)) == m_RaycastHits.Length)
+                Array.Resize(ref m_RaycastHits, m_RaycastHits.Length * 2);
+
+            hit = default;
             RaycastHitResult result = RaycastHitResult.None;
-            if (Physics.Raycast(ray.origin, ray.direction, out hit, Mathf.Infinity, layerMask))
+            bool sitePriority = false;
+            for (int index = 0; index < count; index++)
             {
-                if (hit.transform.parent.gameObject.name == "Cuts") result = RaycastHitResult.Cut;
-                if (hit.transform.parent.gameObject.name == "Brains" || hit.transform.parent.gameObject.name == "Erased Brains") result = RaycastHitResult.Mesh;
-                if (hit.collider.GetComponent<Core.Object3D.Site>() != null) result = RaycastHitResult.Site;
-                if (hit.collider.GetComponent<Sphere>() != null) result = RaycastHitResult.ROI;
+                var candidate = m_RaycastHits[index];
+                var collider = candidate.collider;
+                RaycastHitResult type = RaycastHitResult.None;
+                if (collider.TryGetComponent(out Core.Object3D.Site site) && site.IsActive)
+                    type = RaycastHitResult.Site;
+                else if (collider.TryGetComponent(out Sphere _))
+                    type = RaycastHitResult.ROI;
+                else if (collider.transform.parent?.name == "Cuts" && includeCuts && collider.TryGetComponent(out Renderer cut) && cut.enabled && !cut.forceRenderingOff)
+                    type = RaycastHitResult.Cut;
+                else if (collider.transform.parent?.name == "Brains")
+                    type = RaycastHitResult.Mesh;
+
+                if (type == RaycastHitResult.None) continue;
+                bool preferred = prioritizeSites && type == RaycastHitResult.Site;
+                if (result != RaycastHitResult.None && (sitePriority && !preferred || sitePriority == preferred && candidate.distance >= hit.distance))
+                    continue;
+                hit = candidate;
+                result = type;
+                sitePriority = preferred;
             }
 
             return result;
         }
+
+        private RaycastHit[] m_RaycastHits = new RaycastHit[16];
 
         public virtual void ComputeActivityData()
         {

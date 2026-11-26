@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -11,6 +12,15 @@ namespace HBP.Rendering
         public const int QuestTimelineRenderQueue = 3998;
         public const int QuestWindowRenderQueue = 3999;
         public const uint QuestEdgeRenderingLayerMask = 1u << 1; // Quest Edges in TagManager.asset.
+        private static readonly HashSet<Renderer> VisibleQuestControllerHelp = new();
+
+        internal static bool HasQuestControllerHelp => VisibleQuestControllerHelp.Count > 0;
+
+        public static void SetQuestControllerHelpVisible(Renderer renderer, bool visible)
+        {
+            if (visible) VisibleQuestControllerHelp.Add(renderer);
+            else VisibleQuestControllerHelp.Remove(renderer);
+        }
 
         [System.Serializable]
         public sealed class Settings

@@ -12,17 +12,17 @@ Native preparation remains private until full archive validation. The current pi
 
 ## Scene archive
 
-[ScenePayload](../../../Assets/Scripts/HBP/Transfer/Scene/ScenePayload.cs) uses format **4**, retaining reading of format **3**. [SceneArchive](../../../Assets/Scripts/HBP/Transfer/Scene/SceneArchive.cs) and [BufferPack](../../../Assets/Scripts/HBP/Transfer/Scene/BufferPack.cs) are the validation references.
+Windows Desktop chooses format **6** for iEEG scenes when both peers offer it at authenticated session opening. It uses the per-column iEEG representation and packs the remaining small numeric arrays into groups. Compatible older peers use format **5** or **4**. The sender pins the format to the captured offer. Archive readers accept **3**, **4**, **5** and **6**. The project format is independent. See [SceneArchive](../../../Assets/Scripts/HBP/Transfer/Scene/SceneArchive.cs) and [BufferPack](../../../Assets/Scripts/HBP/Transfer/Scene/BufferPack.cs).
 
 | Element | Contract |
 | --- | --- |
 | Metadata | Visualization and prepared data; allowed types/references, duplicate JSON properties rejected. |
 | Global references | Compact table against the owned context; two objects with the same ID must not conceal incompatible definitions. |
 | `buffers.index` | Magic `HBPI`, version 1, little-endian: 12-byte header, then 48-byte entries: SHA-256 (32), offset (uint64), length (uint64). |
-| `buffers.pack` | Bounded ranges with exact contiguous coverage; no overlap, gaps or extra bytes. Coordinated reads, no unlocked shared cursor. |
+| `buffers.pack` | Bounded ranges with exact contiguous coverage. Format 6 references small arrays by a bounded slice within a verified block. Each consumer receives its own array. |
 | Native files | Resources needed by path-based APIs, with verified identities and companions; no arbitrary path accepted from the network. |
 
-Current caps are 4 GiB decompressed, 128 MiB metadata and 100,000 resources/entries depending on the container. Wire names are ASCII bounded to 80 characters; native resource names are validated by the archive contract. These input caps are not RAM budgets: old scene, candidate, converted volumes, caches and GPU resources may coexist.
+Current caps are 4 GiB decompressed and 128 MiB for the scene metadata plus the global reference table. The format 6 index is streamed and fits within the same expanded-content budget. Formats 4 and 5 retain their original 524,288 logical-resource limit for compatibility. Other resource limits depend on the container. Wire names are ASCII bounded to 80 characters; native resource names are validated by the archive contract. These input caps are not RAM budgets: old scene, candidate, converted volumes, caches and GPU resources may coexist.
 
 Standard MNI/atlas references are installed locally and resolved through logical identity and availability. Do not replace this contract with an assumed global comparison of hashes between the two installations. Unity packaging of compressed resources uses, among other extensions, `.gz.bytes`.
 
@@ -42,11 +42,43 @@ Production uses **Zstd level 3 in independent 256 KiB blocks**, with a raw block
 
 Success waits for local data/rendering readiness, publication of the correct incarnation on Quest, initial synchronization and confirmed batch release. Scenes are processed in requested order, with a single remote publication at a time. One capture can be prepared ahead, under a **512 MiB estimate**; a larger scene falls back to sequential preparation. This bound does not limit all process memory.
 
+A current Display batch monitors the connection through its progress and delivery requests. The ordinary Desktop heartbeat resumes outside the batch. The initial checkpoint can hold several disjoint site configuration records, each with up to 30,000 assignments. Peers that only support one such record still support checkpoints within that record's limit.
+
 Progress is monotonic, currently weighted 15% local loading and 85% publications, capped at 99% before actual completion. It indicates estimated progress, not remaining time. A request started without Quest remains local; a headset connected afterwards does not reopen that lifecycle. Target, context and connection generation are fixed for the batch.
 
-On remote failure, completed Desktop scenes remain usable. Explicit retries target incomplete scenes and validate their current state, without systematically reloading data. **User cancellation and network interruption are distinct**: cancellation can present `Transfer` / `Close` to resolve incomplete copies while automatic sharing remains active; an eligible transport interruption retains automatic connection recovery. A data error requires action. Closing and recapture await acknowledgments for the relevant incarnations; an old callback must neither publish success nor close a new scene.
+A patient opening from a selected site uses this path when requested from Quest or when Desktop is automatically sharing. It reuses a child already synchronized and keeps a first opening independent of the parent. The first opening scopes recording normalization to its own inputs, overlaps capture with Desktop rendering, and prepares the Quest graph privately before the trailing native files finish arriving. Final verification and readiness still precede interaction release. Patient anatomy loads on demand.
+
+On remote failure, completed Desktop scenes remain usable. Explicit retries target incomplete scenes and validate their current state, without systematically reloading data. **User cancellation and network interruption are distinct**: cancellation can present `Transfer` / `Close` to resolve incomplete copies while automatic sharing remains active; an eligible transport interruption retains automatic connection recovery. A status poll may time out while Quest is preparing a large scene. The ongoing delivery and readiness exchange retain responsibility for deciding its outcome. A data error requires action. Closing and recapture await acknowledgments for the relevant incarnations; an old callback must neither publish success nor close a new scene.
 
 Earlier plans imposing manual recovery after every interruption are therefore outdated. Source tests [SceneDisplayOwnershipTests](../../../Assets/Tests/PlayMode/HBP.Quest.PlayModeTests/SceneDisplayOwnershipTests.cs), [QuestNetworkTests](../../../Assets/Tests/EditMode/HBP.Transfer.Scene.Tests/QuestNetworkTests.cs) and [BufferPackTests](../../../Assets/Tests/EditMode/HBP.Transfer.Scene.Tests/BufferPackTests.cs) describe, among other things, cancellation, admission, generation, recovery and buffer independence. They were not run for this documentation consolidation.
+
+## Measuring Display and scene delivery
+
+The normal Desktop and Quest players write `QUEST-PAIRING` records during Display and scene publication. Desktop identifies the Display batch, the transfer and each payload send attempt. Quest measures each reception from the start and links its local reception ID to the transfer ID after successful scene decoding. A reception interrupted before identification is retained in the summary with its local ID.
+
+| Phase | Measurements |
+| --- | --- |
+| Desktop preparation | Local loading, dependency waits, snapshot capture, numeric and surface packing, global definition and buffer fingerprints, manifest fingerprints, and managed memory snapshots. |
+| Transfer | Raw and encoded sizes, resource and block counts, Zstd, SHA-256, queue waits, spool I/O, TCP/TLS setup, stream reads and writes, and publication receipt latency. HBT3 also measures ZIP creation/extraction and file checksums. |
+| Quest publication | Staging and logical pack verification, manifest and object graph decoding, numeric buffer reads, native anatomy and volume preparation, rendering readiness and presentation. |
+| Initial synchronization | Desktop checkpoint capture and encoding, wire bytes, Quest decoding and application, scientific rendering on both devices and batch release. |
+
+The [automated Display runner](../../../Tools/Run-DisplaySyncBaseline.ps1) captures Desktop and Quest logs for selected visualizations. Each Desktop process runs two passes by default. Restart the Quest process before independent cold cohorts and alternate the variant order across cohorts. `-RequirePatientMesh` verifies that the persistent patient mesh is active and records its topology size and available representations.
+
+- `-Variants json,column,recording` cycles the trial layouts across Desktop processes. Confirm the chosen format and patient grouping through `source.scene-format` and `source.scene-recording-blocks`. The binary layouts keep statistics and processed values per column. The recording layout uses patient boundaries in the trials stream so the pack can deduplicate exact chunks across columns. Restored arrays and native masks belong to each consumer.
+- `-Variants v5,unbatched,automatic` compares the old entry budget, format 6 with individual buffers, and automatic grouped buffers on compatible peers.
+- `-OpenPatientFromSite` opens the child from the first patient's visible site in one synchronized multipatient visualization and times its immediate reselection. The selected anatomy must be a persistent patient mesh. `-SerialPatient` disables Desktop overlap. For the serial comparison, pass `-sceneTransferSerialPatient` to Quest as well.
+- `-OverlapCapture` allows capture preparation to start while Desktop completes rendering. Snapshot prerequisites and publication barriers apply to both paths.
+- On Quest, `-sceneTransferTwoPass` restores the two-pass JSON reader, `-sceneTransferStageGraph` starts private graph reconstruction after the pack is verified while trailing resources arrive, and `-sceneTransferNoSurfaceCache` bypasses the cache during block transfers. Verify activation from the corresponding Quest timings. Final transcript and resource validation still precede publication. V5 surface descriptors reference verified geometry separately from each surface's mask.
+- For a manual run, capture Desktop output with `-logFile desktop.log` and Quest output with ADB logcat while using Display, then summarize both logs together.
+
+```powershell
+python .\Tools\Summarize-DisplaySyncBaseline.py <run-directory> --desktop-log <desktop.log> --quest-log <quest.log>
+```
+
+The [summarizer](../../../Tools/Summarize-DisplaySyncBaseline.py) writes `summary.json` for successful and interrupted runs. Each aggregated stage reports elapsed milliseconds, sample count and bytes where applicable. Its start and end timestamps delimit the first and last samples and include the gaps between them. Byte totals on interrupted I/O describe attempted work. Keep both logs from the same run. Compare sizes with the same transport and builds, and record first openings and reopenings separately.
+
+Async durations include scheduling and I/O waits. Producer and consumer work overlaps, and several measures are nested, so use the whole-operation durations for comparisons and the detailed spans to localize the cost. Each clock is local to its process. The publication receipt precedes the final scientific readiness acknowledgment. Managed memory counters are process-wide snapshots without native or GPU memory.
 
 ## HBNA: prototype harness contract
 
