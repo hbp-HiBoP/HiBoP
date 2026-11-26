@@ -516,6 +516,26 @@ namespace HBP.Tests.PlatformConfiguration
         }
 
         [Test]
+        public void Bootstrap_ToolbarInheritsOrderedIconsAndDisablesSceneButtonsAtStartup()
+        {
+            var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");
+            var toolbar = root.GetComponentInChildren<QuestToolbar>(true);
+            Assert.That(new SerializedObject(toolbar).FindProperty("displaySettings").objectReferenceValue, Is.SameAs(root.GetComponentInChildren<QuestDisplaySettingsPanel>(true)));
+            var buttons = toolbar.transform.Find("Background").Cast<Transform>().ToArray();
+            Assert.That(buttons.Select(button => button.name), Is.EqualTo(new[] { "Connection", "Display", "Display Settings", "Site", "Signals", "Cuts", "ROI", "Triangle Erasing" }));
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                var button = buttons[i];
+                Assert.That(button.GetComponent<UnityEngine.UI.Button>().interactable, Is.EqualTo(i < 2), button.name);
+                var icon = button.Find("Icon");
+                var sprite = icon.GetComponent<Image>().sprite;
+                Assert.That(sprite, Is.Not.Null, button.name);
+                foreach (var image in icon.GetComponent<ThemeElement>().Element.SettingsByState.SelectMany(state => state.Settings).OfType<HBP.Theme.Image>())
+                    Assert.That(image.SourceImage, Is.SameAs(sprite), button.name);
+            }
+        }
+
+        [Test]
         public void TriangleErasingWindow_WiresGripPreviewAndAuthoredControls()
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/QuestBootstrap.prefab");

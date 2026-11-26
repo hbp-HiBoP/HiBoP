@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3302277ad6c2f614b824d956b858dbd1, type: 3}
   m_Name: Triangle Erasing Icon
   m_EditorClassIdentifier: 
-  SourceImage: {fileID: 21300000, guid: 5a3c7701be543154b8a756caa6a80571, type: 3}
+  SourceImage: {fileID: 21300000, guid: 77d0563076ce43f4be3959b0a5ff0b12, type: 3}
   Material: {fileID: 0}
   ImageType: 0
   FillMethod: 0

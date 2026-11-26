@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3302277ad6c2f614b824d956b858dbd1, type: 3}
   m_Name: Display Settings Configuration
   m_EditorClassIdentifier: 
-  SourceImage: {fileID: 21300000, guid: d20e8f1e984640f46a93ab27e2a706ae, type: 3}
+  SourceImage: {fileID: 21300000, guid: d25dee6bc33c03444b13e5c798d1e884, type: 3}
   Material: {fileID: 0}
   ImageType: 0
   FillMethod: 0

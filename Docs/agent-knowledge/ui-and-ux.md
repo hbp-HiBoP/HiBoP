@@ -34,7 +34,10 @@ tracking and settling; holding X establishes a new frame while retaining the
 layout, including closed windows when they reopen. `QuestWindowLayoutStore` also
 persists completed user resize dimensions, content zoom, pin state, open/closed
 state and stacking order through the common window lifecycle, without saving
-panel-specific content/layout. The version 2 format reads version 1 placements
+panel-specific content/layout. The toolbar and window manager use the same
+availability checks for scene tools. A saved open request waits for the tool to
+become available, then restores the window in its saved stacking order. The
+version 2 format reads version 1 placements
 with prefab defaults for the added properties. Restoring a closed window defers
 zoom application until its layout can measure the unzoomed constraints. Settings
 changes save independently of headset tracking and retain the last validated

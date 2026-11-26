@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3302277ad6c2f614b824d956b858dbd1, type: 3}
   m_Name: Site Icon
   m_EditorClassIdentifier: 
-  SourceImage: {fileID: 21300000, guid: 12b3f86799f0a694e86024db2aae0536, type: 3}
+  SourceImage: {fileID: 21300000, guid: 71270c02a413bde4baed33c866a7988c, type: 3}
   Material: {fileID: 0}
   ImageType: 0
   FillMethod: 0

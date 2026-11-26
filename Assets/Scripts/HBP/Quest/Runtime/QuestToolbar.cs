@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,6 +10,7 @@ namespace HBP.Quest
         [SerializeField] private QuestWindowsManager windows;
         [SerializeField] private QuestConnectionPanel connection;
         [SerializeField] private QuestCutsPanel cuts;
+        [SerializeField] private QuestDisplaySettingsPanel displaySettings;
         [SerializeField] private QuestROIPanel rois;
         [SerializeField] private QuestTriangleErasingPanel triangles;
         [SerializeField] private Button trianglesButton;
@@ -15,29 +18,30 @@ namespace HBP.Quest
         [SerializeField] private Button connectionButton, cutsButton, displayButton, siteButton, signalsButton;
         [SerializeField] private Button displaySettingsButton;
         [SerializeField] private Text connectionStatus;
+        private readonly List<(Button Button, string Key)> sceneButtons = new();
 
         private void Awake()
         {
             foreach (var button in GetComponentsInChildren<QuestToolbarButton>(true)) button.Configure(windows);
-            connectionButton.onClick.AddListener(() => ToggleWindow("Connection"));
-            if (siteButton != null) siteButton.onClick.AddListener(() => ToggleWindow("Site"));
-            if (signalsButton != null) signalsButton.onClick.AddListener(() => ToggleWindow("Signals"));
-            displayButton.onClick.AddListener(() => ToggleWindow("Display"));
-            if (displaySettingsButton != null) displaySettingsButton.onClick.AddListener(() => ToggleWindow("DisplaySettings"));
-            if (roiButton != null)
-                roiButton.onClick.AddListener(() =>
-                {
-                    if (rois != null && rois.Ready) ToggleWindow("ROI");
-                });
-            if (trianglesButton != null)
-                trianglesButton.onClick.AddListener(() =>
-                {
-                    if (triangles != null && triangles.Ready) ToggleWindow("TriangleErasing");
-                });
-            cutsButton.onClick.AddListener(() =>
-            {
-                if (cuts != null && cuts.Ready) ToggleWindow("Cuts");
-            });
+            Bind(connectionButton, "Connection");
+            Bind(displayButton, "Display");
+            Bind(displaySettingsButton, "DisplaySettings", () => displaySettings != null && displaySettings.Ready);
+            Bind(siteButton, "Site", HasInteractiveScene);
+            Bind(signalsButton, "Signals", HasInteractiveScene);
+            Bind(cutsButton, "Cuts", HasInteractiveScene);
+            Bind(roiButton, "ROI", () => rois != null && rois.Ready);
+            Bind(trianglesButton, "TriangleErasing", () => triangles != null && triangles.Ready);
+        }
+
+        private bool HasInteractiveScene() => cuts != null && cuts.Ready;
+
+        private void Bind(Button button, string key, Func<bool> canOpen = null)
+        {
+            if (button == null) return;
+            button.onClick.AddListener(() => ToggleWindow(key));
+            if (canOpen == null || windows == null) return;
+            windows.SetOpenAvailability(key, canOpen);
+            sceneButtons.Add((button, key));
         }
 
         private void ToggleWindow(string key)
@@ -50,13 +54,7 @@ namespace HBP.Quest
         private void Update()
         {
             if (connectionStatus != null && connection != null) connectionStatus.text = connection.Summary;
-            bool ready = cuts != null && cuts.Ready;
-            if (displaySettingsButton != null) displaySettingsButton.interactable = ready;
-            cutsButton.interactable = ready;
-            if (roiButton != null) roiButton.interactable = rois != null && rois.Ready;
-            if (trianglesButton != null) trianglesButton.interactable = triangles != null && triangles.Ready;
-            if (siteButton != null) siteButton.interactable = ready;
-            if (signalsButton != null) signalsButton.interactable = ready;
+            foreach (var (button, key) in sceneButtons) button.interactable = windows.CanOpen(key);
         }
     }
 }
