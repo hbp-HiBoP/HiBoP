@@ -1598,6 +1598,7 @@ GameObject:
   - component: {fileID: 5727927297647366355}
   - component: {fileID: 6224419235715854080}
   - component: {fileID: 2868856385915550671}
+  - component: {fileID: 9097925761315019679}
   m_Layer: 5
   m_Name: Action Icon
   m_TagString: Untagged
@@ -1652,7 +1653,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: da234ba4988432a4b923280798633f90, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 573c45def1de4f7d98ff95a368192c92, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -1662,6 +1663,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &9097925761315019679
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3763936284973107453}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 85e7fd341f074c4fa5611c8740e75bf9, type: 2}
 --- !u!1 &4320244432300907081
 GameObject:
   m_ObjectHideFlags: 0
@@ -2904,6 +2919,7 @@ GameObject:
   - component: {fileID: 6428927532757693456}
   - component: {fileID: 5429158139502257108}
   - component: {fileID: 454827855941602283}
+  - component: {fileID: 5492925687210484949}
   m_Layer: 5
   m_Name: Action Icon
   m_TagString: Untagged
@@ -2958,7 +2974,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: b442d53c1b64455cb002b0c3b509edcb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a486cc1cce8f4278bb05612b862ae393, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -2968,6 +2984,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5492925687210484949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7816696146367775365}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 4f71f49699dc467c978434d7d10a88f1, type: 2}
 --- !u!1 &7851549808460940499
 GameObject:
   m_ObjectHideFlags: 0
@@ -2979,6 +3009,7 @@ GameObject:
   - component: {fileID: 4545005931381647065}
   - component: {fileID: 3806875106835192232}
   - component: {fileID: 5247268629759267305}
+  - component: {fileID: 312505046515734792}
   m_Layer: 5
   m_Name: Action Icon
   m_TagString: Untagged
@@ -3033,7 +3064,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 1a3d915cb48e433ab8a705a9f52118cf, type: 3}
+  m_Sprite: {fileID: 21300000, guid: d113c926f69843d8adb45d6b7aa6dde0, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 1
@@ -3043,6 +3074,20 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &312505046515734792
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7851549808460940499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1c682cc87092d3849862a388abf1ddbf, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
+  ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
+  Element: {fileID: 11400000, guid: 8785a400e82d47fab2ef1a51f76215bd, type: 2}
 --- !u!1 &8001284839395405673
 GameObject:
   m_ObjectHideFlags: 0

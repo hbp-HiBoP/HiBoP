@@ -4202,7 +4202,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: a51562bb245c164499365b91001beb4d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: b01178c845a748b69b5beff44fa392d2, type: 3}
   m_Type: 0
   m_PreserveAspect: 1
   m_FillCenter: 0
@@ -4225,7 +4225,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: HBP.Theme.Runtime::HBP.Theme.ThemeElement
   ActualState: {fileID: 11400000, guid: e46db9101cfa0404b8ddf2e6d6ba9beb, type: 2}
-  Element: {fileID: 11400000, guid: cfda3f974c48716419213d19fba69ec3, type: 2}
+  Element: {fileID: 11400000, guid: e73b39e7459549a6b59af31b568c3689, type: 2}
 --- !u!1 &6968748197609912172
 GameObject:
   m_ObjectHideFlags: 0

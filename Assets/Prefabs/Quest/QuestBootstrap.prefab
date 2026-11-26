@@ -1296,12 +1296,6 @@ PrefabInstance:
       propertyPath: m_FillClockwise
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 3289565796680964385, guid: 556925b40c68f4d46b1192199c5d35a3,
-        type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: a51562bb245c164499365b91001beb4d,
-        type: 3}
     - target: {fileID: 3521381223675402543, guid: 556925b40c68f4d46b1192199c5d35a3,
         type: 3}
       propertyPath: m_Pivot.x
