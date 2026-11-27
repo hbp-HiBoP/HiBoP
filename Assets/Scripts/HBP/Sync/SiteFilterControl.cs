@@ -50,7 +50,7 @@ namespace HBP.Sync
         }
     }
 
-    /// <summary>Bounded session-control messages for starting, cancelling and acknowledging a T12 job.</summary>
+    /// <summary>Bounded session-control messages for starting, cancelling and acknowledging a site-filter job.</summary>
     public static class SiteFilterControlCodec
     {
         public const int MaximumPayloadBytes = 48 * 1024;
@@ -76,7 +76,7 @@ namespace HBP.Sync
             writer.Write(payload);
             writer.Write(failure);
             writer.Flush();
-            if (stream.Length > MaximumPayloadBytes) throw new InvalidDataException("T12 filter control exceeds its session-control bound.");
+            if (stream.Length > MaximumPayloadBytes) throw new InvalidDataException("Site-filter control exceeds its session-control bound.");
             return stream.ToArray();
         }
 

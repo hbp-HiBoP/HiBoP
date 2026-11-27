@@ -313,7 +313,7 @@ namespace HBP.Sync
         public bool Add(CutDefinitionCheckpointRecord record) => AddRecord(record?.Value, TouchedKeyKind.CutDefinition, record?.Encode());
         public bool Add(TimelineAnchorCheckpointRecord record) => AddRecord(record?.Value, TouchedKeyKind.TimelineAnchor, record?.Encode());
 
-        public bool Add(T09CheckpointRecord record)
+        public bool Add(ScenePresentationCheckpointRecord record)
         {
             if (record == null) throw new ArgumentNullException(nameof(record));
             TouchedKeyKind kind = new MutationDescriptor(m_SceneId, m_IncarnationId, record.Value).CoalescingKey.Kind;

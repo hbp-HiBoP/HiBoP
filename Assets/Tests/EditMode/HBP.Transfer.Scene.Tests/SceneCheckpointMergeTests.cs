@@ -34,13 +34,13 @@ namespace HBP.Tests.Transfer.Scene
             state.ApplyCanonical(new SetSiteConfigurationBatch(new[] { new SiteConfigurationAssignment(Column, Site, true, true, 1, 0, 0, 1, new[] { "last contact" }) }));
 
             var checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(0, state.ToCheckpoint())).Checkpoint;
-            var batches = checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().ToArray();
+            var batches = checkpoint.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().ToArray();
             Assert.That(batches.Select(batch => batch.Assignments.Count), Is.EquivalentTo(new[] { limit, 1 }));
             Assert.That(SceneCheckpointState.FromCheckpoint(checkpoint).Hash(), Is.EqualTo(state.Hash()));
 
-            foreach (T11CheckpointRecord overlap in new[] { checkpoint.T11Records[0], new T11CheckpointRecord(new SetSiteBlacklist(Column, Site, false)) })
+            foreach (SceneConfigurationCheckpointRecord overlap in new[] { checkpoint.ConfigurationRecords[0], new SceneConfigurationCheckpointRecord(new SetSiteBlacklist(Column, Site, false)) })
             {
-                var duplicate = (SceneMutationCheckpoint)Activator.CreateInstance(typeof(SceneMutationCheckpoint), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, checkpoint.T11Records.Append(overlap), null, null }, null);
+                var duplicate = (SceneMutationCheckpoint)Activator.CreateInstance(typeof(SceneMutationCheckpoint), BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.PresentationRecords, checkpoint.StructureRecords, checkpoint.ConfigurationRecords.Append(overlap), null, null }, null);
                 Assert.Throws<InvalidDataException>(() => SceneMutationCheckpointCodec.Encode(0, duplicate));
             }
         }
@@ -57,7 +57,7 @@ namespace HBP.Tests.Transfer.Scene
             quest.ApplyCanonical(new SetSiteHighlight(Column, Site, true));
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts, Is.Empty);
-            var assignment = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint().T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single();
+            var assignment = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint().ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single();
             Assert.That(assignment.Green, Is.Zero);
             Assert.That(assignment.Highlighted, Is.True);
             Assert.That(assignment.Labels, Is.EqualTo(new[] { "new label" }));
@@ -75,7 +75,7 @@ namespace HBP.Tests.Transfer.Scene
             quest.ApplyCanonical(new SetSiteLabels(Column, Site, new[] { "quest" }));
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
-            var assignment = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint().T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single();
+            var assignment = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint().ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single();
             Assert.That(assignment.Red, Is.Zero);
             Assert.That(assignment.Highlighted, Is.True);
             Assert.That(assignment.Labels, Is.EqualTo(new[] { "quest" }));
@@ -95,7 +95,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var result = merge.Resolve(new[] { choice }).ToCheckpoint();
             Assert.That(result.CutDefinitions, Has.Count.EqualTo(count));
-            Assert.That(result.T10Records.Select(record => record.Value).OfType<SetCutOrder>().Single().CutIds, Has.Count.EqualTo(count));
+            Assert.That(result.StructureRecords.Select(record => record.Value).OfType<SetCutOrder>().Single().CutIds, Has.Count.EqualTo(count));
         }
 
         [Test]
@@ -111,7 +111,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(merge.Conflicts, Is.Empty);
             var result = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint();
             Assert.That(result.CutDefinitions.Select(record => record.Value.CutId.Value), Is.EquivalentTo(new[] { "original", "desktop", "quest" }));
-            Assert.That(result.T10Records.Select(record => record.Value).OfType<SetCutOrder>().Single().CutIds, Has.Count.EqualTo(3));
+            Assert.That(result.StructureRecords.Select(record => record.Value).OfType<SetCutOrder>().Single().CutIds, Has.Count.EqualTo(3));
         }
 
         [Test]
@@ -133,10 +133,10 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var desktopChoice = merge.Resolve(new[] { ConflictChoice.Desktop }).ToCheckpoint();
-            Assert.That(desktopChoice.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(nextSite));
+            Assert.That(desktopChoice.PresentationRecords.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(nextSite));
             Assert.That(desktopChoice.CutDefinitions.Single().Value.Position, Is.EqualTo(0.65f));
             var questChoice = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint();
-            Assert.That(questChoice.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
+            Assert.That(questChoice.PresentationRecords.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
             Assert.That(questChoice.CutDefinitions.Select(record => record.Value.CutId.Value), Is.EquivalentTo(new[] { "axial", "extra" }));
             Assert.That(SceneCheckpointState.FromCheckpoint(questChoice).Hash(), Is.EqualTo(quest.Hash()));
         }
@@ -149,7 +149,7 @@ namespace HBP.Tests.Transfer.Scene
             state.ApplyCanonical(new CreateRoi(new RoiId("a-second"), "second", Array.Empty<RoiSphereDefinition>(), 1));
             var restored = SceneCheckpointState.FromCheckpoint(SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(0, state.ToCheckpoint())).Checkpoint);
             Assert.That(restored.Hash(), Is.EqualTo(state.Hash()));
-            var rois = restored.ToCheckpoint().T10Records.Select(record => record.Value).OfType<CreateRoi>().OrderBy(roi => roi.Order).ToArray();
+            var rois = restored.ToCheckpoint().StructureRecords.Select(record => record.Value).OfType<CreateRoi>().OrderBy(roi => roi.Order).ToArray();
             Assert.That(rois.Select(roi => roi.Name), Is.EqualTo(new[] { "first", "second" }));
             Assert.That(rois[0].Spheres.Select(sphere => sphere.SphereId.Value), Is.EqualTo(new[] { "z", "a" }));
         }
@@ -170,8 +170,8 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var result = merge.Resolve(new[] { ConflictChoice.Desktop }).ToCheckpoint();
-            Assert.That(result.T10Records.Select(record => record.Value).OfType<CreateRoi>(), Is.Empty);
-            Assert.That(result.T10Records.Select(record => record.Value).OfType<SetActiveRoi>().Single().RoiId, Is.Null);
+            Assert.That(result.StructureRecords.Select(record => record.Value).OfType<CreateRoi>(), Is.Empty);
+            Assert.That(result.StructureRecords.Select(record => record.Value).OfType<SetActiveRoi>().Single().RoiId, Is.Null);
         }
 
         [TestCase(ConflictChoice.Desktop, 0)]
@@ -190,8 +190,8 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var result = merge.Resolve(new[] { choice }).ToCheckpoint();
-            Assert.That(result.T10Records.Select(record => record.Value).OfType<CreateRoi>().Single().Spheres, Has.Count.EqualTo(count));
-            Assert.That(result.T09Records.Select(record => record.Value).OfType<SetSelectedRoiSphere>().Single().SphereId, Is.EqualTo(count == 0 ? "" : sphere.Value));
+            Assert.That(result.StructureRecords.Select(record => record.Value).OfType<CreateRoi>().Single().Spheres, Has.Count.EqualTo(count));
+            Assert.That(result.PresentationRecords.Select(record => record.Value).OfType<SetSelectedRoiSphere>().Single().SphereId, Is.EqualTo(count == 0 ? "" : sphere.Value));
         }
 
         [Test]
@@ -207,8 +207,8 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts, Is.Empty);
             var result = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint();
-            Assert.That(result.T11Records.Select(record => record.Value).OfType<SetColumnResource>().Single().ResourceReference, Is.EqualTo("new"));
-            Assert.That(result.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single().Red, Is.Zero);
+            Assert.That(result.ConfigurationRecords.Select(record => record.Value).OfType<SetColumnResource>().Single().ResourceReference, Is.EqualTo("new"));
+            Assert.That(result.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments.Single().Red, Is.Zero);
         }
 
         [Test]
@@ -258,8 +258,8 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts, Is.Empty);
             var checkpoint = merge.Resolve(Array.Empty<ConflictChoice>()).ToCheckpoint();
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedColumn>().Single().ColumnId, Is.EqualTo(other));
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value).OfType<SetSelectedColumn>().Single().ColumnId, Is.EqualTo(other));
         }
 
         [Test]
@@ -280,7 +280,7 @@ namespace HBP.Tests.Transfer.Scene
             var merge = new SceneCheckpointMerge(baseline, desktop, quest);
             Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
             var checkpoint = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint();
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(otherSite));
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(otherSite));
         }
     }
 }

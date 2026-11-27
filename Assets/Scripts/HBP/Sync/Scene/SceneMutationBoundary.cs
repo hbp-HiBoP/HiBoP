@@ -111,22 +111,22 @@ namespace HBP.Sync.Scene
         public IReadOnlyList<SiteColorCheckpointRecord> SiteColors { get; }
         public IReadOnlyList<CutDefinitionCheckpointRecord> CutDefinitions { get; }
         public IReadOnlyList<TimelineAnchorCheckpointRecord> TimelineAnchors { get; }
-        public IReadOnlyList<T09CheckpointRecord> T09Records { get; }
-        public IReadOnlyList<T10CheckpointRecord> T10Records { get; }
-        public IReadOnlyList<T11CheckpointRecord> T11Records { get; }
-        public IReadOnlyList<SiteFilterCheckpointRecord> T12Records { get; }
-        public IReadOnlyList<CorrelationCheckpointRecord> T13Records { get; }
+        public IReadOnlyList<ScenePresentationCheckpointRecord> PresentationRecords { get; }
+        public IReadOnlyList<SceneStructureCheckpointRecord> StructureRecords { get; }
+        public IReadOnlyList<SceneConfigurationCheckpointRecord> ConfigurationRecords { get; }
+        public IReadOnlyList<SiteFilterCheckpointRecord> SiteFilterRecords { get; }
+        public IReadOnlyList<CorrelationCheckpointRecord> CorrelationRecords { get; }
 
-        internal SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<T09CheckpointRecord> t09Records = null, IEnumerable<T10CheckpointRecord> t10Records = null, IEnumerable<T11CheckpointRecord> t11Records = null, IEnumerable<SiteFilterCheckpointRecord> t12Records = null, IEnumerable<CorrelationCheckpointRecord> t13Records = null)
+        internal SceneMutationCheckpoint(IEnumerable<SiteColorCheckpointRecord> siteColors, IEnumerable<CutDefinitionCheckpointRecord> cutDefinitions, IEnumerable<TimelineAnchorCheckpointRecord> timelineAnchors, IEnumerable<ScenePresentationCheckpointRecord> presentationRecords = null, IEnumerable<SceneStructureCheckpointRecord> structureRecords = null, IEnumerable<SceneConfigurationCheckpointRecord> configurationRecords = null, IEnumerable<SiteFilterCheckpointRecord> siteFilterRecords = null, IEnumerable<CorrelationCheckpointRecord> correlationRecords = null)
         {
             SiteColors = Array.AsReadOnly(siteColors.ToArray());
             CutDefinitions = Array.AsReadOnly(cutDefinitions.ToArray());
             TimelineAnchors = Array.AsReadOnly(timelineAnchors.ToArray());
-            T09Records = Array.AsReadOnly((t09Records ?? Enumerable.Empty<T09CheckpointRecord>()).ToArray());
-            T10Records = Array.AsReadOnly((t10Records ?? Enumerable.Empty<T10CheckpointRecord>()).ToArray());
-            T11Records = Array.AsReadOnly((t11Records ?? Enumerable.Empty<T11CheckpointRecord>()).ToArray());
-            T12Records = Array.AsReadOnly((t12Records ?? Enumerable.Empty<SiteFilterCheckpointRecord>()).ToArray());
-            T13Records = Array.AsReadOnly((t13Records ?? Enumerable.Empty<CorrelationCheckpointRecord>()).ToArray());
+            PresentationRecords = Array.AsReadOnly((presentationRecords ?? Enumerable.Empty<ScenePresentationCheckpointRecord>()).ToArray());
+            StructureRecords = Array.AsReadOnly((structureRecords ?? Enumerable.Empty<SceneStructureCheckpointRecord>()).ToArray());
+            ConfigurationRecords = Array.AsReadOnly((configurationRecords ?? Enumerable.Empty<SceneConfigurationCheckpointRecord>()).ToArray());
+            SiteFilterRecords = Array.AsReadOnly((siteFilterRecords ?? Enumerable.Empty<SiteFilterCheckpointRecord>()).ToArray());
+            CorrelationRecords = Array.AsReadOnly((correlationRecords ?? Enumerable.Empty<CorrelationCheckpointRecord>()).ToArray());
         }
     }
 
@@ -178,30 +178,30 @@ namespace HBP.Sync.Scene
         public static CorrelationCheckpointRecord Decode(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 6 || bytes.Length > CorrelationResultResource.MaximumBytes + 10)
-                throw new InvalidDataException("Invalid T13 correlation checkpoint record length.");
+                throw new InvalidDataException("Invalid correlation checkpoint record length.");
             using var stream = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(stream);
             if (reader.ReadUInt16() != RecordMagic)
-                throw new InvalidDataException("Unsupported T13 correlation checkpoint record signature or schema.");
+                throw new InvalidDataException("Unsupported correlation checkpoint record signature or schema.");
             ushort schema = reader.ReadUInt16();
             if (schema != RecordSchema)
-                throw new InvalidDataException("Unsupported T13 correlation checkpoint record signature or schema.");
+                throw new InvalidDataException("Unsupported correlation checkpoint record signature or schema.");
             byte hasResult = reader.ReadByte();
-            if (hasResult > 1) throw new InvalidDataException("Invalid T13 correlation checkpoint result flag.");
+            if (hasResult > 1) throw new InvalidDataException("Invalid correlation checkpoint result flag.");
             byte displayCorrelations = reader.ReadByte();
             if (displayCorrelations > 1)
-                throw new InvalidDataException("Invalid T13 correlation checkpoint display flag.");
+                throw new InvalidDataException("Invalid correlation checkpoint display flag.");
             byte[] result = null;
             if (hasResult == 1)
             {
                 int length = reader.ReadInt32();
                 if (length <= 0 || length > CorrelationResultResource.MaximumBytes || length != stream.Length - stream.Position)
-                    throw new InvalidDataException("Invalid T13 correlation checkpoint result length.");
+                    throw new InvalidDataException("Invalid correlation checkpoint result length.");
                 result = reader.ReadBytes(length);
                 if (result.Length != length) throw new EndOfStreamException();
             }
 
-            if (stream.Position != stream.Length) throw new InvalidDataException("Trailing T13 correlation checkpoint record bytes.");
+            if (stream.Position != stream.Length) throw new InvalidDataException("Trailing correlation checkpoint record bytes.");
             return new CorrelationCheckpointRecord(result, displayCorrelations == 1);
         }
     }
@@ -423,9 +423,7 @@ namespace HBP.Sync.Scene
             SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
             Mutation rollback = origin == MutationApplicationOrigin.LocalQuest && mutation is not MoveSites && mutation is not SetConfigurationTransaction ? ReadCurrentMutation(mutation) : null;
             SiteConfigurationProvenanceSnapshot provenanceRollback = rollback == null ? null : CaptureSiteConfigurationProvenanceSnapshot(mutation);
-            bool generateCuts = origin != MutationApplicationOrigin.Remote && mutation.ReplacementCuts == null && m_Scene != null &&
-                (mutation is SetSelectedSite { SiteId: not null } && m_Scene.AutomaticCutAroundSelectedSite ||
-                 mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
+            bool generateCuts = origin != MutationApplicationOrigin.Remote && mutation.ReplacementCuts == null && m_Scene != null && (mutation is SetSelectedSite { SiteId: not null } && m_Scene.AutomaticCutAroundSelectedSite || mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
             SetCutDefinition[] previousCuts = generateCuts && rollback != null ? CaptureCutRoster() : null;
             bool applied;
             using (origin == MutationApplicationOrigin.Remote ? MutationApplicationContext.EnterRemote(operationId) : MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
@@ -645,18 +643,18 @@ namespace HBP.Sync.Scene
         {
             rebased = checkpoint;
             rebasedProvenance = checkpointProvenance;
-            T11CheckpointRecord[] records = null;
-            for (int i = 0; i < checkpoint.T11Records.Count; i++)
+            SceneConfigurationCheckpointRecord[] records = null;
+            for (int i = 0; i < checkpoint.ConfigurationRecords.Count; i++)
             {
-                if (checkpoint.T11Records[i].Value is not SetSiteConfigurationBatch batch) continue;
+                if (checkpoint.ConfigurationRecords[i].Value is not SetSiteConfigurationBatch batch) continue;
                 if (!TryRebaseTargetedSiteConfigurationRollback(batch, rejectedForward, restoration, rejectedOperationId, rejectedProvenance, rebasedProvenance, out Mutation rebasedMutation, out var updatedProvenance)) continue;
-                records ??= checkpoint.T11Records.ToArray();
-                records[i] = new T11CheckpointRecord(rebasedMutation);
+                records ??= checkpoint.ConfigurationRecords.ToArray();
+                records[i] = new SceneConfigurationCheckpointRecord(rebasedMutation);
                 rebasedProvenance = updatedProvenance;
             }
 
             if (records == null) return false;
-            rebased = new SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.T09Records, checkpoint.T10Records, records, checkpoint.T12Records, checkpoint.T13Records);
+            rebased = new SceneMutationCheckpoint(checkpoint.SiteColors, checkpoint.CutDefinitions, checkpoint.TimelineAnchors, checkpoint.PresentationRecords, checkpoint.StructureRecords, records, checkpoint.SiteFilterRecords, checkpoint.CorrelationRecords);
             return true;
         }
 
@@ -886,13 +884,13 @@ namespace HBP.Sync.Scene
 
         private void ClearCheckpointSiteConfigurationProvenance(SceneMutationCheckpoint checkpoint)
         {
-            foreach (SiteConfigurationAssignment assignment in checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
+            foreach (SiteConfigurationAssignment assignment in checkpoint.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
                 SetSiteConfigurationFieldOwners((assignment.ColumnId.Value, assignment.SiteId.Value), default, SiteConfigurationFields.All);
         }
 
         private void MarkCheckpointSiteConfigurationWriters(SceneMutationCheckpoint checkpoint, Guid writer)
         {
-            foreach (SiteConfigurationAssignment assignment in checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
+            foreach (SiteConfigurationAssignment assignment in checkpoint.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().SelectMany(batch => batch.Assignments))
                 SetSiteConfigurationFieldOwners((assignment.ColumnId.Value, assignment.SiteId.Value), SiteConfigurationFieldOwners.ForWriter(writer), SiteConfigurationFields.All);
         }
 
@@ -999,13 +997,13 @@ namespace HBP.Sync.Scene
             }
 
             if ((ushort)key.Type >= (ushort)OperationType.SetSiteBlacklist)
-                return ReadCurrentT11Mutation(key);
+                return ReadCurrentConfigurationMutation(key);
 
             if ((ushort)key.Type >= (ushort)OperationType.CreateCut)
-                return ReadCurrentT10Mutation(key);
+                return ReadCurrentStructureMutation(key);
 
             if ((ushort)key.Type >= (ushort)OperationType.SetSelectedColumn)
-                return ReadCurrentT09Mutation(key);
+                return ReadCurrentPresentationMutation(key);
 
             throw new ArgumentException("Unsupported sync scene mutation.", nameof(key));
         }
@@ -1046,19 +1044,19 @@ namespace HBP.Sync.Scene
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSiteBlacklist)
             {
-                ValidateT11Mutation(mutation);
+                ValidateConfigurationMutation(mutation);
                 return;
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.CreateCut)
             {
-                ValidateT10Mutation(mutation);
+                ValidateStructureMutation(mutation);
                 return;
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSelectedColumn)
             {
-                ValidateT09Mutation(mutation, allowRetainedSiteSelection);
+                ValidatePresentationMutation(mutation, allowRetainedSiteSelection);
                 return;
             }
 
@@ -1078,14 +1076,14 @@ namespace HBP.Sync.Scene
             foreach (TimelineTarget target in entry.Value)
                 timelineRecords.Add(new TimelineAnchorCheckpointRecord(CreateTimelineAnchor(entry.Key, target.ColumnId)));
 
-            var t09Records = m_Scene == null ? new List<T09CheckpointRecord>() : CaptureT09Records();
-            var t10Records = m_Scene == null ? new List<T10CheckpointRecord>() : CaptureT10Records();
-            var t11Records = CaptureT11Records();
-            var t12Records = new List<SiteFilterCheckpointRecord>();
-            if (CaptureSiteFilterCheckpoint() is SiteFilterCheckpointRecord filterRecord) t12Records.Add(filterRecord);
+            var presentationRecords = m_Scene == null ? new List<ScenePresentationCheckpointRecord>() : CapturePresentationRecords();
+            var structureRecords = m_Scene == null ? new List<SceneStructureCheckpointRecord>() : CaptureStructureRecords();
+            var configurationRecords = CaptureConfigurationRecords();
+            var siteFilterRecords = new List<SiteFilterCheckpointRecord>();
+            if (CaptureSiteFilterCheckpoint() is SiteFilterCheckpointRecord filterRecord) siteFilterRecords.Add(filterRecord);
             CorrelationResultResource correlationResource = m_Scene == null ? null : CorrelationResultResource.Capture(m_Scene);
-            var t13Records = new[] { new CorrelationCheckpointRecord(correlationResource?.Encode(), m_Scene != null && m_Scene.DisplayCorrelations) };
-            return new SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, t09Records, t10Records, t11Records, t12Records, t13Records);
+            var correlationRecords = new[] { new CorrelationCheckpointRecord(correlationResource?.Encode(), m_Scene != null && m_Scene.DisplayCorrelations) };
+            return new SceneMutationCheckpoint(siteRecords, cutRecords, timelineRecords, presentationRecords, structureRecords, configurationRecords, siteFilterRecords, correlationRecords);
         }
 
         public SetSiteFilterResult CreateSiteFilterResult(OperationId jobId, ulong generation, bool[] included)
@@ -1140,7 +1138,7 @@ namespace HBP.Sync.Scene
         private void ValidateSiteFilterCheckpoint(IReadOnlyList<SiteFilterCheckpointRecord> records)
         {
             if (records == null) throw new ArgumentNullException(nameof(records));
-            if (records.Count > 1) throw new InvalidDataException("A checkpoint can contain at most one T12 site-filter result.");
+            if (records.Count > 1) throw new InvalidDataException("A checkpoint can contain at most one site-filter result.");
             if (records.Count == 0) return;
             ValidateSiteFilterMask(records[0].RosterHash, records[0].SiteCount);
         }
@@ -1148,7 +1146,7 @@ namespace HBP.Sync.Scene
         private void ValidateCorrelationCheckpoint(IReadOnlyList<CorrelationCheckpointRecord> records)
         {
             if (records == null) throw new ArgumentNullException(nameof(records));
-            if (records.Count > 1 || records.Any(record => record == null)) throw new InvalidDataException("A checkpoint can contain at most one T13 correlation result.");
+            if (records.Count > 1 || records.Any(record => record == null)) throw new InvalidDataException("A checkpoint can contain at most one correlation result.");
             if (records.Count == 0 || !records[0].HasResult) return;
             CorrelationResultResource.Decode(records[0].ResultBytes).ValidateFor(m_Scene, m_Scene.Columns.SelectMany(column => column.Sites).Select(site => site.Information.FullID).ToArray());
         }
@@ -1269,10 +1267,10 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private List<T10CheckpointRecord> CaptureT10Records()
+        private List<SceneStructureCheckpointRecord> CaptureStructureRecords()
         {
-            var records = new List<T10CheckpointRecord>();
-            void Add(Mutation mutation) => records.Add(new T10CheckpointRecord(mutation));
+            var records = new List<SceneStructureCheckpointRecord>();
+            void Add(Mutation mutation) => records.Add(new SceneStructureCheckpointRecord(mutation));
 
             Add(new MoveSites(m_Scene.SitePlacement switch { SitePlacementMode.Left => SiteMoveCommand.Left, SitePlacementMode.Right => SiteMoveCommand.Right, _ => SiteMoveCommand.Reset }));
 
@@ -1304,7 +1302,7 @@ namespace HBP.Sync.Scene
             return records;
         }
 
-        private void ValidateCheckpointT10Records(IReadOnlyList<T10CheckpointRecord> records)
+        private void ValidateCheckpointStructureRecords(IReadOnlyList<SceneStructureCheckpointRecord> records)
         {
             if (records == null) throw new ArgumentNullException(nameof(records));
             if (records.Count == 0) return;
@@ -1319,14 +1317,14 @@ namespace HBP.Sync.Scene
 
             var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
             var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
-            foreach (T10CheckpointRecord record in records)
+            foreach (SceneStructureCheckpointRecord record in records)
             {
-                if (record?.Value == null || !IsCheckpointT10Mutation(record.Value))
-                    throw new ArgumentException("Checkpoint contains an unsupported T10 record.", nameof(records));
+                if (record?.Value == null || !IsCheckpointStructureMutation(record.Value))
+                    throw new ArgumentException("Checkpoint contains an unsupported scene structure record.", nameof(records));
                 MutationDescriptor descriptor = MutationDescriptor.Create(validationScene, validationIncarnation, record.Value);
                 foreach (TouchedKey key in descriptor.TouchedKeys)
                     if (!touched.Add(key))
-                        throw new ArgumentException("Checkpoint contains a duplicate T10 record key.", nameof(records));
+                        throw new ArgumentException("Checkpoint contains a duplicate scene structure record key.", nameof(records));
 
                 switch (record.Value)
                 {
@@ -1347,14 +1345,14 @@ namespace HBP.Sync.Scene
                         activeRoiRoster = value;
                         break;
                     case SetMeshDisplay value:
-                        ValidateT10Mutation(value);
+                        ValidateStructureMutation(value);
                         meshDisplay = value;
                         break;
                     case ApplyTriangleMask value:
                         masks = value;
                         break;
                     default:
-                        ValidateT10Mutation(record.Value);
+                        ValidateStructureMutation(record.Value);
                         break;
                 }
             }
@@ -1416,12 +1414,12 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private static bool IsCheckpointT10Mutation(Mutation mutation) => mutation.Type is OperationType.CreateCut or OperationType.SetCutOrder or OperationType.CreateRoi or OperationType.SetActiveRoi or OperationType.SetMeshDisplay or OperationType.SetSelectedMri or OperationType.SetMriCalibration or OperationType.SetImplantation or OperationType.ApplyTriangleMask or OperationType.MoveSites;
+        private static bool IsCheckpointStructureMutation(Mutation mutation) => mutation.Type is OperationType.CreateCut or OperationType.SetCutOrder or OperationType.CreateRoi or OperationType.SetActiveRoi or OperationType.SetMeshDisplay or OperationType.SetSelectedMri or OperationType.SetMriCalibration or OperationType.SetImplantation or OperationType.ApplyTriangleMask or OperationType.MoveSites;
 
-        private void ApplyCheckpointT10Records(IReadOnlyList<T10CheckpointRecord> records)
+        private void ApplyCheckpointStructureRecords(IReadOnlyList<SceneStructureCheckpointRecord> records)
         {
-            foreach (T10CheckpointRecord record in records.OrderBy(record => GetCheckpointApplyOrder(record.Value)).ThenBy(record => record.Value is CreateCut cut ? cut.Order : record.Value is CreateRoi roi ? roi.Order : 0))
-                ApplyCheckpointT10Mutation(record.Value);
+            foreach (SceneStructureCheckpointRecord record in records.OrderBy(record => GetCheckpointApplyOrder(record.Value)).ThenBy(record => record.Value is CreateCut cut ? cut.Order : record.Value is CreateRoi roi ? roi.Order : 0))
+                ApplyCheckpointStructureMutation(record.Value);
         }
 
         private static int GetCheckpointApplyOrder(Mutation mutation) =>
@@ -1437,10 +1435,10 @@ namespace HBP.Sync.Scene
                 OperationType.SetImplantation => 7,
                 OperationType.ApplyTriangleMask => 8,
                 OperationType.MoveSites => 9,
-                _ => throw new ArgumentException("Unsupported T10 checkpoint mutation.", nameof(mutation))
+                _ => throw new ArgumentException("Unsupported scene structure checkpoint mutation.", nameof(mutation))
             };
 
-        private void ApplyCheckpointT10Mutation(Mutation mutation)
+        private void ApplyCheckpointStructureMutation(Mutation mutation)
         {
             switch (mutation)
             {
@@ -1464,35 +1462,35 @@ namespace HBP.Sync.Scene
                     ApplyCore(value);
                     break;
                 default:
-                    ApplyT10Mutation(mutation);
+                    ApplyStructureMutation(mutation);
                     break;
             }
         }
 
-        private void ValidateCheckpointT11Records(IReadOnlyList<T11CheckpointRecord> records)
+        private void ValidateCheckpointConfigurationRecords(IReadOnlyList<SceneConfigurationCheckpointRecord> records)
         {
             if (records == null) throw new ArgumentNullException(nameof(records));
             var touched = new HashSet<TouchedKey>();
             var sites = new HashSet<(string ColumnId, string SiteId)>();
             var validationScene = new SceneId(Guid.Parse("70000000-0000-0000-0000-000000000001"));
             var validationIncarnation = new IncarnationId(Guid.Parse("70000000-0000-0000-0000-000000000002"));
-            foreach (T11CheckpointRecord record in records)
+            foreach (SceneConfigurationCheckpointRecord record in records)
             {
                 if (record?.Value == null || record.Value is SetConfigurationTransaction)
-                    throw new ArgumentException("Checkpoint contains an unsupported T11 record.", nameof(records));
-                if (!SceneMutationCheckpointCodec.TryAddT11Keys(record.Value, validationScene, validationIncarnation, touched, sites))
-                    throw new ArgumentException("Checkpoint contains a duplicate T11 record key.", nameof(records));
+                    throw new ArgumentException("Checkpoint contains an unsupported scene configuration record.", nameof(records));
+                if (!SceneMutationCheckpointCodec.TryAddConfigurationKeys(record.Value, validationScene, validationIncarnation, touched, sites))
+                    throw new ArgumentException("Checkpoint contains a duplicate scene configuration record key.", nameof(records));
                 ValidateMutation(record.Value);
             }
         }
 
-        private void ApplyCheckpointT11Records(IReadOnlyList<T11CheckpointRecord> records)
+        private void ApplyCheckpointConfigurationRecords(IReadOnlyList<SceneConfigurationCheckpointRecord> records)
         {
-            foreach (T11CheckpointRecord record in records.OrderBy(record => GetCheckpointT11ApplyOrder(record.Value)))
+            foreach (SceneConfigurationCheckpointRecord record in records.OrderBy(record => GetCheckpointConfigurationApplyOrder(record.Value)))
                 ApplyCore(record.Value);
         }
 
-        private static int GetCheckpointT11ApplyOrder(Mutation mutation) =>
+        private static int GetCheckpointConfigurationApplyOrder(Mutation mutation) =>
             mutation.Type switch
             {
                 OperationType.SetInfluenceDistance => 0,
@@ -1500,7 +1498,7 @@ namespace HBP.Sync.Scene
                 OperationType.SetCcepSource => 2,
                 OperationType.SetSiteBlacklist => 3,
                 OperationType.SetSiteConfigurationBatch => 4,
-                _ => throw new ArgumentException("Unsupported T11 checkpoint mutation.", nameof(mutation))
+                _ => throw new ArgumentException("Unsupported scene configuration checkpoint mutation.", nameof(mutation))
             };
 
         private void ApplyCheckpointRoi(CreateRoi value)
@@ -1549,7 +1547,7 @@ namespace HBP.Sync.Scene
             m_RoiStateSnapshots[roi] = RoiStateSnapshot.Capture(roi, value.Order);
         }
 
-        private void ReconcileCheckpointRosters(IReadOnlyList<T10CheckpointRecord> records)
+        private void ReconcileCheckpointRosters(IReadOnlyList<SceneStructureCheckpointRecord> records)
         {
             SetCutOrder cutOrder = records.Select(record => record.Value).OfType<SetCutOrder>().SingleOrDefault();
             if (cutOrder != null)
@@ -1566,13 +1564,13 @@ namespace HBP.Sync.Scene
                 m_Scene.ROIManager.RemoveROI(roi);
         }
 
-        private static void ValidateCheckpointT09Records(IReadOnlyList<T09CheckpointRecord> records, IReadOnlyList<T10CheckpointRecord> t10Records)
+        private static void ValidateCheckpointPresentationRecords(IReadOnlyList<ScenePresentationCheckpointRecord> records, IReadOnlyList<SceneStructureCheckpointRecord> structureRecords)
         {
             if (records.Count(record => record?.Value is SetSelectedSite) > 1)
                 throw new ArgumentException("A checkpoint can contain only one selected site for the scene.", nameof(records));
-            var stagedRois = t10Records.Select(record => record.Value).OfType<CreateRoi>().ToDictionary(roi => roi.RoiId.Value, StringComparer.Ordinal);
-            bool hasRoiRoster = t10Records.Any(record => record.Value is SetActiveRoi);
-            foreach (T09CheckpointRecord record in records)
+            var stagedRois = structureRecords.Select(record => record.Value).OfType<CreateRoi>().ToDictionary(roi => roi.RoiId.Value, StringComparer.Ordinal);
+            bool hasRoiRoster = structureRecords.Any(record => record.Value is SetActiveRoi);
+            foreach (ScenePresentationCheckpointRecord record in records)
             {
                 if (record?.Value?.ReplacementCuts != null)
                     throw new ArgumentException("A checkpoint must carry cut definitions in its cut roster.", nameof(records));
@@ -1585,8 +1583,8 @@ namespace HBP.Sync.Scene
                     continue;
                 }
 
-                // T09 validation is completed by the bound boundary after it has checked staged T10 identities.
-                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty T09 record.", nameof(records));
+                // Validate presentation records against the staged scene structure.
+                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty scene presentation record.", nameof(records));
             }
         }
 
@@ -1610,7 +1608,7 @@ namespace HBP.Sync.Scene
             try
             {
                 await UniTask.SwitchToMainThread(stop);
-                foreach (var display in checkpoint.T10Records.Select(record => record.Value).OfType<SetMeshDisplay>())
+                foreach (var display in checkpoint.StructureRecords.Select(record => record.Value).OfType<SetMeshDisplay>())
                 {
                     Mesh3D mesh = m_ResourceCatalog.ResolveMesh(display.MeshId.Value);
                     if (display.Representation == MutationSurfaceRepresentation.Inflated && !mesh.HasInflatedRepresentation)
@@ -1638,8 +1636,8 @@ namespace HBP.Sync.Scene
             }
 
             var cutKeys = new HashSet<CutId>();
-            var stagedCuts = new HashSet<CutId>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateCut>().Select(cut => cut.CutId));
-            bool hasCutRoster = checkpoint.T10Records.Any(record => record.Value is SetCutOrder);
+            var stagedCuts = new HashSet<CutId>(checkpoint.StructureRecords.Select(record => record.Value).OfType<CreateCut>().Select(cut => cut.CutId));
+            bool hasCutRoster = checkpoint.StructureRecords.Any(record => record.Value is SetCutOrder);
             foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions)
             {
                 if (hasCutRoster && !stagedCuts.Contains(record.Value.CutId))
@@ -1656,16 +1654,16 @@ namespace HBP.Sync.Scene
                 if (!timelineKeys.Add(record.Value.ColumnId)) throw new ArgumentException("Checkpoint contains a duplicate timeline key.", nameof(checkpoint));
             }
 
-            ValidateCheckpointT10Records(checkpoint.T10Records);
-            ValidateCheckpointT11Records(checkpoint.T11Records);
-            ValidateSiteFilterCheckpoint(checkpoint.T12Records);
-            ValidateCorrelationCheckpoint(checkpoint.T13Records);
-            ValidateCheckpointT09Records(checkpoint.T09Records, checkpoint.T10Records);
-            var stagedRoiIds = new HashSet<string>(checkpoint.T10Records.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
-            bool hasRoiRoster = checkpoint.T10Records.Any(record => record.Value is SetActiveRoi);
-            foreach (T09CheckpointRecord record in checkpoint.T09Records)
+            ValidateCheckpointStructureRecords(checkpoint.StructureRecords);
+            ValidateCheckpointConfigurationRecords(checkpoint.ConfigurationRecords);
+            ValidateSiteFilterCheckpoint(checkpoint.SiteFilterRecords);
+            ValidateCorrelationCheckpoint(checkpoint.CorrelationRecords);
+            ValidateCheckpointPresentationRecords(checkpoint.PresentationRecords, checkpoint.StructureRecords);
+            var stagedRoiIds = new HashSet<string>(checkpoint.StructureRecords.Select(record => record.Value).OfType<CreateRoi>().Select(roi => roi.RoiId.Value), StringComparer.Ordinal);
+            bool hasRoiRoster = checkpoint.StructureRecords.Any(record => record.Value is SetActiveRoi);
+            foreach (ScenePresentationCheckpointRecord record in checkpoint.PresentationRecords)
             {
-                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty T09 record.", nameof(checkpoint));
+                if (record?.Value == null) throw new ArgumentException("Checkpoint contains an empty scene presentation record.", nameof(checkpoint));
                 if (record.Value is SetSelectedRoiSphere selectedSphere && (hasRoiRoster || stagedRoiIds.Contains(selectedSphere.RoiId)))
                     continue;
                 ValidateMutation(record.Value, allowRetainedSiteSelection: true);
@@ -1769,18 +1767,18 @@ namespace HBP.Sync.Scene
 
             using (MutationApplicationContext.EnterRemote(operationId))
             {
-                ReconcileCheckpointRosters(checkpoint.T10Records);
-                ApplyCheckpointT10Records(checkpoint.T10Records);
+                ReconcileCheckpointRosters(checkpoint.StructureRecords);
+                ApplyCheckpointStructureRecords(checkpoint.StructureRecords);
                 foreach (SiteColorCheckpointRecord record in checkpoint.SiteColors) ApplyCore(record.Value);
                 foreach (CutDefinitionCheckpointRecord record in checkpoint.CutDefinitions) ApplyCore(record.Value);
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
-                ApplyCheckpointT11Records(checkpoint.T11Records);
-                foreach (T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value, allowRetainedSiteSelection: true);
-                if (checkpoint.T10Records.Any(record => record.Value is SetCutOrder)) m_Scene.CancelPendingAutomaticCuts();
-                if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
-                if (checkpoint.T13Records.Count == 1)
+                ApplyCheckpointConfigurationRecords(checkpoint.ConfigurationRecords);
+                foreach (ScenePresentationCheckpointRecord record in checkpoint.PresentationRecords) ApplyCore(record.Value, allowRetainedSiteSelection: true);
+                if (checkpoint.StructureRecords.Any(record => record.Value is SetCutOrder)) m_Scene.CancelPendingAutomaticCuts();
+                if (checkpoint.SiteFilterRecords.Count == 1) ApplySiteFilterCheckpoint(checkpoint.SiteFilterRecords[0]);
+                if (checkpoint.CorrelationRecords.Count == 1)
                 {
-                    CorrelationCheckpointRecord correlationRecord = checkpoint.T13Records[0];
+                    CorrelationCheckpointRecord correlationRecord = checkpoint.CorrelationRecords[0];
                     if (correlationRecord.HasResult)
                         CorrelationResultResource.Decode(correlationRecord.ResultBytes).Apply(m_Scene);
                     else if (m_Scene != null)
@@ -1846,13 +1844,13 @@ namespace HBP.Sync.Scene
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSiteBlacklist)
-                return ApplyT11Mutation(mutation);
+                return ApplyConfigurationMutation(mutation);
 
             if ((ushort)mutation.Type >= (ushort)OperationType.CreateCut)
-                return ApplyT10Mutation(mutation);
+                return ApplyStructureMutation(mutation);
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSelectedColumn)
-                return ApplyT09Mutation(mutation, allowRetainedSiteSelection);
+                return ApplyPresentationMutation(mutation, allowRetainedSiteSelection);
 
             throw new ArgumentException("Unsupported sync scene mutation.", nameof(mutation));
         }
@@ -2253,10 +2251,10 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private List<T09CheckpointRecord> CaptureT09Records()
+        private List<ScenePresentationCheckpointRecord> CapturePresentationRecords()
         {
-            var records = new List<T09CheckpointRecord>();
-            void Add(Mutation mutation) => records.Add(T09CheckpointRecord.FromMutation(mutation));
+            var records = new List<ScenePresentationCheckpointRecord>();
+            void Add(Mutation mutation) => records.Add(ScenePresentationCheckpointRecord.FromMutation(mutation));
             Add(new SetSelectedColumn(m_Scene.SelectedColumn ? new ColumnId(m_Scene.SelectedColumn.ColumnData.ID) : null));
             if (CurrentSelectedSite() is SetSelectedSite selectedSite) Add(selectedSite);
             Add(new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
@@ -2306,10 +2304,10 @@ namespace HBP.Sync.Scene
             return records;
         }
 
-        private List<T11CheckpointRecord> CaptureT11Records()
+        private List<SceneConfigurationCheckpointRecord> CaptureConfigurationRecords()
         {
-            var records = new List<T11CheckpointRecord>();
-            void Add(Mutation mutation) => records.Add(new T11CheckpointRecord(mutation));
+            var records = new List<SceneConfigurationCheckpointRecord>();
+            void Add(Mutation mutation) => records.Add(new SceneConfigurationCheckpointRecord(mutation));
 
             if (m_Scene != null)
             {
@@ -2328,12 +2326,12 @@ namespace HBP.Sync.Scene
         private void OnModuleColumnSelected(Column3D column)
         {
             if (column?.ColumnData?.ID is not string id || !m_ColumnsById.TryGetValue(id, out Column3D ownedColumn) || !ReferenceEquals(column, ownedColumn)) return;
-            ObserveT09(ref m_LastSelectedColumn, new SetSelectedColumn(new ColumnId(column.ColumnData.ID)));
+            ObservePresentation(ref m_LastSelectedColumn, new SetSelectedColumn(new ColumnId(column.ColumnData.ID)));
         }
 
         private void OnSceneSiteSelectionChanged(Core.Object3D.Site site)
         {
-            if (!m_Disposed && CurrentSelectedSite() is SetSelectedSite selected) ObserveT09(ref m_LastSelectedSite, selected);
+            if (!m_Disposed && CurrentSelectedSite() is SetSelectedSite selected) ObservePresentation(ref m_LastSelectedSite, selected);
         }
 
         private void OnBoundSiteStateChanged(SiteState state)
@@ -2366,77 +2364,77 @@ namespace HBP.Sync.Scene
 
         private void OnBrainAlphaChanged(float alpha)
         {
-            ObserveT09(ref m_LastSceneBrainAlpha, new SetSceneFloat(SceneFloatProperty.BrainAlpha, alpha));
+            ObservePresentation(ref m_LastSceneBrainAlpha, new SetSceneFloat(SceneFloatProperty.BrainAlpha, alpha));
         }
 
-        private void OnSceneVisibilityChanged(bool visible) => ObserveT09(ref m_LastSceneVisible, new SetSceneBoolean(SceneBooleanProperty.Visible, visible));
+        private void OnSceneVisibilityChanged(bool visible) => ObservePresentation(ref m_LastSceneVisible, new SetSceneBoolean(SceneBooleanProperty.Visible, visible));
 
         private void ObserveScenePresentation()
         {
             if (m_Scene == null || m_Disposed) return;
-            ObserveT09(ref m_LastSceneStrongCuts, new SetSceneBoolean(SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
-            ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
-            ObserveT09(ref m_LastSceneHideBlacklisted, new SetSceneBoolean(SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
-            ObserveT09(ref m_LastSceneShowAllSites, new SetSceneBoolean(SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
-            ObserveT09(ref m_LastSceneVisible, new SetSceneBoolean(SceneBooleanProperty.Visible, m_Scene.IsVisible));
-            ObserveT09(ref m_LastSceneSiteGain, new SetSceneFloat(SceneFloatProperty.SiteGain, m_Scene.SiteGain));
+            ObservePresentation(ref m_LastSceneStrongCuts, new SetSceneBoolean(SceneBooleanProperty.StrongCuts, m_Scene.StrongCuts));
+            ObservePresentation(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
+            ObservePresentation(ref m_LastSceneHideBlacklisted, new SetSceneBoolean(SceneBooleanProperty.HideBlacklistedSites, m_Scene.HideBlacklistedSites));
+            ObservePresentation(ref m_LastSceneShowAllSites, new SetSceneBoolean(SceneBooleanProperty.ShowAllSites, m_Scene.ShowAllSites));
+            ObservePresentation(ref m_LastSceneVisible, new SetSceneBoolean(SceneBooleanProperty.Visible, m_Scene.IsVisible));
+            ObservePresentation(ref m_LastSceneSiteGain, new SetSceneFloat(SceneFloatProperty.SiteGain, m_Scene.SiteGain));
             ObserveMriCalibration();
-            ObserveT09(ref m_LastSceneEdgeMode, new SetSceneBoolean(SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
+            ObservePresentation(ref m_LastSceneEdgeMode, new SetSceneBoolean(SceneBooleanProperty.EdgeMode, m_Scene.EdgeMode));
             if (m_Scene.BrainMaterials != null)
             {
-                ObserveT09(ref m_LastSceneBrainTransparent, new SetSceneBoolean(SceneBooleanProperty.BrainTransparent, m_Scene.IsBrainTransparent));
-                ObserveT09(ref m_LastSceneBrainAlpha, new SetSceneFloat(SceneFloatProperty.BrainAlpha, m_Scene.BrainMaterials.Alpha));
-                ObserveT09(ref m_LastSceneBrainColor, new SetSceneColor(SceneColorProperty.Brain, (int)m_Scene.BrainColor));
-                ObserveT09(ref m_LastSceneCutColor, new SetSceneColor(SceneColorProperty.Cut, (int)m_Scene.CutColor));
-                ObserveT09(ref m_LastSceneColormap, new SetSceneColor(SceneColorProperty.Colormap, (int)m_Scene.Colormap));
+                ObservePresentation(ref m_LastSceneBrainTransparent, new SetSceneBoolean(SceneBooleanProperty.BrainTransparent, m_Scene.IsBrainTransparent));
+                ObservePresentation(ref m_LastSceneBrainAlpha, new SetSceneFloat(SceneFloatProperty.BrainAlpha, m_Scene.BrainMaterials.Alpha));
+                ObservePresentation(ref m_LastSceneBrainColor, new SetSceneColor(SceneColorProperty.Brain, (int)m_Scene.BrainColor));
+                ObservePresentation(ref m_LastSceneCutColor, new SetSceneColor(SceneColorProperty.Cut, (int)m_Scene.CutColor));
+                ObservePresentation(ref m_LastSceneColormap, new SetSceneColor(SceneColorProperty.Colormap, (int)m_Scene.Colormap));
             }
 
             if (m_Scene.AtlasManager != null)
             {
-                ObserveT09(ref m_LastSceneAtlasAlpha, new SetSceneFloat(SceneFloatProperty.AtlasAlpha, m_Scene.AtlasManager.AtlasAlpha));
-                ObserveT09(ref m_LastSceneMarsAtlas, new SetSceneBoolean(SceneBooleanProperty.DisplayMarsAtlas, m_Scene.AtlasManager.DisplayMarsAtlas));
-                ObserveT09(ref m_LastSceneJuBrainAtlas, new SetSceneBoolean(SceneBooleanProperty.DisplayJuBrainAtlas, m_Scene.AtlasManager.DisplayJuBrainAtlas));
+                ObservePresentation(ref m_LastSceneAtlasAlpha, new SetSceneFloat(SceneFloatProperty.AtlasAlpha, m_Scene.AtlasManager.AtlasAlpha));
+                ObservePresentation(ref m_LastSceneMarsAtlas, new SetSceneBoolean(SceneBooleanProperty.DisplayMarsAtlas, m_Scene.AtlasManager.DisplayMarsAtlas));
+                ObservePresentation(ref m_LastSceneJuBrainAtlas, new SetSceneBoolean(SceneBooleanProperty.DisplayJuBrainAtlas, m_Scene.AtlasManager.DisplayJuBrainAtlas));
             }
         }
 
         private void ObserveFmriPresentation()
         {
             if (m_Scene == null || m_Scene.FMRIManager == null || m_ResourceCatalog == null || m_Disposed) return;
-            ObserveT09(ref m_LastSceneIbcDifumo, CreateIbcDifumoDisplay());
-            ObserveT09(ref m_LastSceneLocalizer, CreateLocalizerDisplay());
-            ObserveT09(ref m_LastSceneFmriCalibration, CreateFmriAtlasCalibration());
+            ObservePresentation(ref m_LastSceneIbcDifumo, CreateIbcDifumoDisplay());
+            ObservePresentation(ref m_LastSceneLocalizer, CreateLocalizerDisplay());
+            ObservePresentation(ref m_LastSceneFmriCalibration, CreateFmriAtlasCalibration());
         }
 
         private void ObserveColumnActivityAlpha(Column3D column)
         {
-            ObserveT09(m_LastActivityAlphas, column, new SetActivityAlpha(new ColumnId(column.ColumnData.ID), column.ActivityAlpha));
+            ObservePresentation(m_LastActivityAlphas, column, new SetActivityAlpha(new ColumnId(column.ColumnData.ID), column.ActivityAlpha));
         }
 
         private void ObserveColumnSpan(Column3D column)
         {
-            ObserveT09(m_LastColumnSpans, column, column is Column3DAnatomy anatomyColumn ? CreateAnatomySpan(anatomyColumn) : column is Column3DStatic staticColumn ? CreateStaticSpan(staticColumn) : CreateDynamicSpan((Column3DDynamic)column));
+            ObservePresentation(m_LastColumnSpans, column, column is Column3DAnatomy anatomyColumn ? CreateAnatomySpan(anatomyColumn) : column is Column3DStatic staticColumn ? CreateStaticSpan(staticColumn) : CreateDynamicSpan((Column3DDynamic)column));
         }
 
         private void ObserveFunctionalDisplay(Column3D column)
         {
-            ObserveT09(m_LastFunctionalDisplays, column, column is Column3DFMRI fmriColumn ? CreateFunctionalDisplay(fmriColumn) : CreateFunctionalDisplay((Column3DMEG)column));
+            ObservePresentation(m_LastFunctionalDisplays, column, column is Column3DFMRI fmriColumn ? CreateFunctionalDisplay(fmriColumn) : CreateFunctionalDisplay((Column3DMEG)column));
         }
 
-        private void ObserveInfluenceDistance(Column3D column) => ObserveT11(m_LastInfluenceDistances, column, CreateInfluenceDistance(column));
+        private void ObserveInfluenceDistance(Column3D column) => ObserveConfiguration(m_LastInfluenceDistances, column, CreateInfluenceDistance(column));
 
-        private void ObserveColumnResource(Column3D column, ColumnResourceKind kind) => ObserveT11(m_LastColumnResources, column, CreateColumnResource(column, kind));
+        private void ObserveColumnResource(Column3D column, ColumnResourceKind kind) => ObserveConfiguration(m_LastColumnResources, column, CreateColumnResource(column, kind));
 
-        private void ObserveCcepSource(Column3DCCEP column) => ObserveT11(m_LastCcepSources, column, CreateCcepSource(column));
+        private void ObserveCcepSource(Column3DCCEP column) => ObserveConfiguration(m_LastCcepSources, column, CreateCcepSource(column));
 
         private void OnRoiSphereSelectionChanged(ROI roi)
         {
             if (!m_RoisById.TryGetValue(roi.ID, out ROI ownedRoi) || !ReferenceEquals(ownedRoi, roi)) return;
-            ObserveT09(m_LastRoiSpheres, roi, new SetSelectedRoiSphere(roi.ID, roi.SelectedSphere ? roi.SelectedSphere.ID : string.Empty));
+            ObservePresentation(m_LastRoiSpheres, roi, new SetSelectedRoiSphere(roi.ID, roi.SelectedSphere ? roi.SelectedSphere.ID : string.Empty));
         }
 
         private readonly Dictionary<ROI, Mutation> m_LastRoiSpheres = new();
 
-        private void ObserveT09(ref Mutation previous, Mutation current)
+        private void ObservePresentation(ref Mutation previous, Mutation current)
         {
             if (previous == null)
             {
@@ -2450,7 +2448,7 @@ namespace HBP.Sync.Scene
             if (!ShouldSuppressPublication()) Publish(current, rollback);
         }
 
-        private void ObserveT09<TKey>(Dictionary<TKey, Mutation> previousByKey, TKey key, Mutation current)
+        private void ObservePresentation<TKey>(Dictionary<TKey, Mutation> previousByKey, TKey key, Mutation current)
         {
             if (!previousByKey.TryGetValue(key, out Mutation previous) || previous == null)
             {
@@ -2464,7 +2462,7 @@ namespace HBP.Sync.Scene
             if (!ShouldSuppressPublication()) Publish(current, rollback);
         }
 
-        private void ObserveT10(ref Mutation previous, Mutation current)
+        private void ObserveStructure(ref Mutation previous, Mutation current)
         {
             if (previous == null)
             {
@@ -2478,7 +2476,7 @@ namespace HBP.Sync.Scene
             if (!ShouldSuppressPublication()) Publish(current, rollback);
         }
 
-        private void ObserveT11<TKey>(Dictionary<TKey, Mutation> previousByKey, TKey key, Mutation current)
+        private void ObserveConfiguration<TKey>(Dictionary<TKey, Mutation> previousByKey, TKey key, Mutation current)
         {
             if (!previousByKey.TryGetValue(key, out Mutation previous) || previous == null)
             {
@@ -2500,7 +2498,7 @@ namespace HBP.Sync.Scene
             if (manager == null || manager.Meshes == null || manager.SelectedMeshID < 0 || manager.SelectedMeshID >= manager.Meshes.Count) return;
             try
             {
-                ObserveT10(ref m_LastMeshDisplay, CreateMeshDisplayMutation());
+                ObserveStructure(ref m_LastMeshDisplay, CreateMeshDisplayMutation());
             }
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
             {
@@ -2512,7 +2510,7 @@ namespace HBP.Sync.Scene
             if (m_Disposed || m_ResourceCatalog == null || m_Scene.MRIManager == null) return;
             try
             {
-                ObserveT10(ref m_LastSelectedMri, CreateSelectedMriMutation());
+                ObserveStructure(ref m_LastSelectedMri, CreateSelectedMriMutation());
             }
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
             {
@@ -2522,7 +2520,7 @@ namespace HBP.Sync.Scene
         private void ObserveMriCalibration()
         {
             if (m_Disposed || m_Scene.MRIManager == null) return;
-            ObserveT10(ref m_LastMriCalibration, new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor));
+            ObserveStructure(ref m_LastMriCalibration, new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor));
         }
 
         private void ObserveImplantationSelection()
@@ -2530,7 +2528,7 @@ namespace HBP.Sync.Scene
             if (m_Disposed || m_ResourceCatalog == null || m_Scene.ImplantationManager?.SelectedImplantation == null) return;
             try
             {
-                ObserveT10(ref m_LastImplantation, CreateImplantationMutation());
+                ObserveStructure(ref m_LastImplantation, CreateImplantationMutation());
             }
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
             {
@@ -2542,7 +2540,7 @@ namespace HBP.Sync.Scene
             if (m_Disposed || m_ResourceCatalog == null || m_Scene.TriangleEraser == null) return;
             try
             {
-                ObserveT10(ref m_LastTriangleMask, CreateTriangleMaskMutation());
+                ObserveStructure(ref m_LastTriangleMask, CreateTriangleMaskMutation());
             }
             catch (Exception exception) when (exception is ArgumentException || exception is InvalidOperationException || exception is System.IO.InvalidDataException)
             {
@@ -2717,25 +2715,24 @@ namespace HBP.Sync.Scene
                 }
             }
 
-            ObserveT09(ref m_LastSceneAutomaticCuts, current);
+            ObservePresentation(ref m_LastSceneAutomaticCuts, current);
         }
 
-        private SetCutDefinition[] CaptureCutRoster() =>
-            m_Scene.Cuts.Select(cut => CreateCutDefinition(cut, m_CutIds[cut])).ToArray();
+        private SetCutDefinition[] CaptureCutRoster() => m_Scene.Cuts.Select(cut => CreateCutDefinition(cut, m_CutIds[cut])).ToArray();
 
-        private static Mutation WithCutRoster(Mutation mutation, IReadOnlyList<SetCutDefinition> cuts) => mutation switch
-        {
-            SetSelectedSite value => new SetSelectedSite(value.ColumnId, value.SiteId, cuts),
-            SetSceneBoolean value => new SetSceneBoolean(value.Property, value.Value, cuts),
-            _ => throw new ArgumentException("This scene mutation cannot replace cuts.", nameof(mutation))
-        };
+        private static Mutation WithCutRoster(Mutation mutation, IReadOnlyList<SetCutDefinition> cuts) =>
+            mutation switch
+            {
+                SetSelectedSite value => new SetSelectedSite(value.ColumnId, value.SiteId, cuts),
+                SetSceneBoolean value => new SetSceneBoolean(value.Property, value.Value, cuts),
+                _ => throw new ArgumentException("This scene mutation cannot replace cuts.", nameof(mutation))
+            };
 
         private bool ApplyCutRoster(IReadOnlyList<SetCutDefinition> cuts, bool replace)
         {
             if (cuts == null) return false;
             m_Scene.CancelPendingAutomaticCuts();
-            static (CutId, MutationCutOrientation, bool, uint, float, float, float, float) Fields(SetCutDefinition cut) =>
-                (cut.CutId, cut.Orientation, cut.Flip, cut.NumberOfCuts, cut.Position, cut.NormalX, cut.NormalY, cut.NormalZ);
+            static (CutId, MutationCutOrientation, bool, uint, float, float, float, float) Fields(SetCutDefinition cut) => (cut.CutId, cut.Orientation, cut.Flip, cut.NumberOfCuts, cut.Position, cut.NormalX, cut.NormalY, cut.NormalZ);
             if (!replace && CaptureCutRoster().Select(Fields).SequenceEqual(cuts.Select(Fields)))
                 return false;
 
@@ -2750,12 +2747,13 @@ namespace HBP.Sync.Scene
             return true;
         }
 
-        internal bool CutResetTargetChanged(Mutation mutation) => mutation switch
-        {
-            SetSelectedSite site => m_Scene.SelectedSite?.Information.FullID != site.SiteId?.Value,
-            SetSceneBoolean policy => ReadSceneBoolean(policy.Property) != policy.Value,
-            _ => false
-        };
+        internal bool CutResetTargetChanged(Mutation mutation) =>
+            mutation switch
+            {
+                SetSelectedSite site => m_Scene.SelectedSite?.Information.FullID != site.SiteId?.Value,
+                SetSceneBoolean policy => ReadSceneBoolean(policy.Property) != policy.Value,
+                _ => false
+            };
 
         private void OnSitePositionCommandExecuted(SitePositionCommand command)
         {
@@ -2766,7 +2764,7 @@ namespace HBP.Sync.Scene
                 SitePositionCommand.Reset => SiteMoveCommand.Reset,
                 _ => throw new ArgumentOutOfRangeException(nameof(command))
             };
-            ObserveT10(ref m_LastSitePlacement, new MoveSites(mapped));
+            ObserveStructure(ref m_LastSitePlacement, new MoveSites(mapped));
         }
 
         private static SetColumnSpan CreateStaticSpan(Column3DStatic column) => new SetColumnSpan(new ColumnId(column.ColumnData.ID), ColumnSpanKind.Static, column.StaticParameters.SpanMin, column.StaticParameters.Middle, column.StaticParameters.SpanMax);
@@ -2793,7 +2791,7 @@ namespace HBP.Sync.Scene
             public static SitePresentationSnapshot Capture(SiteState state) => new SitePresentationSnapshot(state.IsBlackListed, state.IsHighlighted, state.Color, state.Labels.ToArray());
         }
 
-        private Mutation ReadCurrentT09Mutation(Mutation key)
+        private Mutation ReadCurrentPresentationMutation(Mutation key)
         {
             RequireScene();
             Mutation current = key switch
@@ -2812,12 +2810,12 @@ namespace HBP.Sync.Scene
                 SetLocalizerDisplay => CreateLocalizerDisplay(),
                 SetFmriAtlasCalibration => CreateFmriAtlasCalibration(),
                 SetSelectedRoiSphere value => CurrentSelectedRoiSphere(ResolveRoi(value.RoiId)),
-                _ => throw new ArgumentException("Unsupported T09 scene mutation.", nameof(key))
+                _ => throw new ArgumentException("Unsupported scene presentation scene mutation.", nameof(key))
             };
             return key.ReplacementCuts == null ? current : WithCutRoster(current, CaptureCutRoster());
         }
 
-        private Mutation ReadCurrentT11Mutation(Mutation key)
+        private Mutation ReadCurrentConfigurationMutation(Mutation key)
         {
             return key switch
             {
@@ -2827,7 +2825,7 @@ namespace HBP.Sync.Scene
                 SetCcepSource value => CreateCcepSource(RequireSceneAndResolveCcepColumn(value.ColumnId)),
                 SetSiteConfigurationBatch value => CreateSiteConfigurationBatch(value.Assignments.Select(assignment => (assignment.ColumnId, assignment.SiteId))),
                 SetConfigurationTransaction value => new SetConfigurationTransaction(RequireSceneAndReadCurrentMutations(value.Mutations)),
-                _ => throw new ArgumentException("Unsupported T11 scene mutation.", nameof(key))
+                _ => throw new ArgumentException("Unsupported scene configuration scene mutation.", nameof(key))
             };
         }
 
@@ -2849,7 +2847,7 @@ namespace HBP.Sync.Scene
             return mutations.Select(ReadCurrentMutation);
         }
 
-        private Mutation ReadCurrentT10Mutation(Mutation key)
+        private Mutation ReadCurrentStructureMutation(Mutation key)
         {
             RequireScene();
             return key switch
@@ -2870,11 +2868,11 @@ namespace HBP.Sync.Scene
                 SetMriCalibration => new SetMriCalibration(m_Scene.MRIManager.MRICalMinFactor, m_Scene.MRIManager.MRICalMaxFactor),
                 SetImplantation => CreateImplantationMutation(),
                 ApplyTriangleMask => CreateTriangleMaskMutation(),
-                _ => throw new ArgumentException("Unsupported T10 scene mutation.", nameof(key))
+                _ => throw new ArgumentException("Unsupported scene structure scene mutation.", nameof(key))
             };
         }
 
-        private void ValidateT11Mutation(Mutation mutation)
+        private void ValidateConfigurationMutation(Mutation mutation)
         {
             switch (mutation)
             {
@@ -2902,7 +2900,7 @@ namespace HBP.Sync.Scene
                     ValidateConfigurationTransaction(value, CaptureConfigurationRoster());
                     break;
                 default:
-                    throw new ArgumentException("Unsupported T11 scene mutation.", nameof(mutation));
+                    throw new ArgumentException("Unsupported scene configuration scene mutation.", nameof(mutation));
             }
         }
 
@@ -3042,9 +3040,9 @@ namespace HBP.Sync.Scene
                 throw new InvalidOperationException("CCEP Mars atlas source is not prepared for the selected mesh and implantation.");
         }
 
-        private bool ApplyT11Mutation(Mutation mutation)
+        private bool ApplyConfigurationMutation(Mutation mutation)
         {
-            ValidateT11Mutation(mutation);
+            ValidateConfigurationMutation(mutation);
             switch (mutation)
             {
                 case SetSiteBlacklist value:
@@ -3142,7 +3140,7 @@ namespace HBP.Sync.Scene
                         return changed;
                     }
                 default:
-                    throw new ArgumentException("Unsupported T11 scene mutation.", nameof(mutation));
+                    throw new ArgumentException("Unsupported scene configuration scene mutation.", nameof(mutation));
             }
         }
 
@@ -3177,7 +3175,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private void ValidateT10Mutation(Mutation mutation)
+        private void ValidateStructureMutation(Mutation mutation)
         {
             RequireScene();
             switch (mutation)
@@ -3234,13 +3232,13 @@ namespace HBP.Sync.Scene
                     if (!StringComparer.Ordinal.Equals(ComputeMembershipHash(implantation), value.MembershipHash)) throw new InvalidOperationException("Implantation membership does not match the prepared resource.");
                     break;
                 case ApplyTriangleMask value: ValidateTriangleMask(value); break;
-                default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene structure scene mutation.", nameof(mutation));
             }
         }
 
-        private bool ApplyT10Mutation(Mutation mutation)
+        private bool ApplyStructureMutation(Mutation mutation)
         {
-            ValidateT10Mutation(mutation);
+            ValidateStructureMutation(mutation);
             switch (mutation)
             {
                 case CreateCut value:
@@ -3332,7 +3330,7 @@ namespace HBP.Sync.Scene
                     m_Scene.RebuildPreparedGeometryForSynchronization();
                     m_Scene.TriangleEraser.ApplyExternalVisibility(value.Mask.ToVisibilityMask());
                     return true;
-                default: throw new ArgumentException("Unsupported T10 scene mutation.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene structure scene mutation.", nameof(mutation));
             }
         }
 
@@ -3386,8 +3384,8 @@ namespace HBP.Sync.Scene
 
         private void ApplyRoiSelectionSnapshot(ROI roi, RoiSelectionSnapshot selectionSnapshot)
         {
-            ApplyT09Mutation(new SetSelectedRoiSphere(roi.ID, selectionSnapshot.SelectedSphereId?.Value ?? string.Empty));
-            ApplyT10Mutation(new SetActiveRoi(selectionSnapshot.ActiveRoiId));
+            ApplyPresentationMutation(new SetSelectedRoiSphere(roi.ID, selectionSnapshot.SelectedSphereId?.Value ?? string.Empty));
+            ApplyStructureMutation(new SetActiveRoi(selectionSnapshot.ActiveRoiId));
         }
 
         private void RequireRoiManager()
@@ -3608,7 +3606,7 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private void ValidateT09Mutation(Mutation mutation, bool allowRetainedSiteSelection = false)
+        private void ValidatePresentationMutation(Mutation mutation, bool allowRetainedSiteSelection = false)
         {
             RequireScene();
             switch (mutation)
@@ -3662,13 +3660,13 @@ namespace HBP.Sync.Scene
                         if (value.SphereId.Length > 0 && !roi.Spheres.Any(sphere => sphere.ID == value.SphereId)) throw new KeyNotFoundException("Selected ROI sphere is absent from the prepared ROI.");
                         break;
                     }
-                default: throw new ArgumentException("Unsupported T09 scene mutation.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene presentation scene mutation.", nameof(mutation));
             }
         }
 
-        private bool ApplyT09Mutation(Mutation mutation, bool allowRetainedSiteSelection = false)
+        private bool ApplyPresentationMutation(Mutation mutation, bool allowRetainedSiteSelection = false)
         {
-            ValidateT09Mutation(mutation, allowRetainedSiteSelection);
+            ValidatePresentationMutation(mutation, allowRetainedSiteSelection);
             if (mutation is SetSelectedSite selection)
             {
                 bool changed = !StringComparer.Ordinal.Equals(m_Scene.SelectedSite?.Information.FullID, selection.SiteId?.Value);
@@ -3685,7 +3683,7 @@ namespace HBP.Sync.Scene
                 return ApplyCutRoster(policy.ReplacementCuts, changed) || changed;
             }
 
-            if (mutation is not SetSelectedColumn && MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(MutationPayloadCodec.Encode(mutation))) return false;
+            if (mutation is not SetSelectedColumn && MutationPayloadCodec.Encode(ReadCurrentPresentationMutation(mutation)).SequenceEqual(MutationPayloadCodec.Encode(mutation))) return false;
             switch (mutation)
             {
                 case SetSelectedColumn selected:
@@ -3702,8 +3700,7 @@ namespace HBP.Sync.Scene
                     return true;
                 case SetSceneBoolean value:
                     WriteSceneBoolean(value);
-                    if (value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite &&
-                        MutationApplicationContext.TryGetCurrent(out var origin, out _, out _, out _) && origin == MutationApplicationOrigin.Remote)
+                    if (value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite && MutationApplicationContext.TryGetCurrent(out var origin, out _, out _, out _) && origin == MutationApplicationOrigin.Remote)
                         m_Scene.CancelPendingAutomaticCuts();
                     return true;
                 case SetSceneFloat value:
@@ -3758,7 +3755,7 @@ namespace HBP.Sync.Scene
                         roi.SelectSphere(targetIndex);
                         return true;
                     }
-                default: throw new ArgumentException("Unsupported T09 scene mutation.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene presentation scene mutation.", nameof(mutation));
             }
         }
 
@@ -4002,7 +3999,7 @@ namespace HBP.Sync.Scene
 
         private void RequireScene()
         {
-            if (m_Scene == null) throw new InvalidOperationException("This T09 mutation requires a bound prepared scene.");
+            if (m_Scene == null) throw new InvalidOperationException("This scene presentation mutation requires a bound prepared scene.");
         }
 
         private void OnSiteColorChanged(SiteState state)

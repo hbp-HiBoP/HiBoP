@@ -99,39 +99,39 @@ namespace HBP.Sync
         public static SiteFilterCheckpointRecord Decode(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 45 || bytes.Length > MutationPayloadCodec.MaximumPayloadBytes + 8)
-                throw new InvalidDataException("Invalid T12 checkpoint record length.");
+                throw new InvalidDataException("Invalid site-filter checkpoint record length.");
             using var stream = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(stream, Encoding.UTF8, true);
             try
             {
                 if (reader.ReadUInt16() != RecordMagic || reader.ReadUInt16() != RecordSchema)
-                    throw new InvalidDataException("Unsupported T12 checkpoint record signature or schema.");
+                    throw new InvalidDataException("Unsupported site-filter checkpoint record signature or schema.");
                 int siteCount = reader.ReadInt32();
                 byte[] rosterHash = reader.ReadBytes(32);
                 if (rosterHash.Length != 32) throw new EndOfStreamException();
                 int bitLength = reader.ReadInt32();
                 if (bitLength != checked((siteCount + 7) / 8) || bitLength != stream.Length - stream.Position)
-                    throw new InvalidDataException("Invalid T12 checkpoint bitset length.");
+                    throw new InvalidDataException("Invalid site-filter checkpoint bitset length.");
                 byte[] bits = reader.ReadBytes(bitLength);
                 if (bits.Length != bitLength || stream.Position != stream.Length) throw new EndOfStreamException();
                 return new SiteFilterCheckpointRecord(rosterHash, siteCount, bits);
             }
             catch (EndOfStreamException exception)
             {
-                throw new InvalidDataException("Truncated T12 checkpoint record.", exception);
+                throw new InvalidDataException("Truncated site-filter checkpoint record.", exception);
             }
             catch (ArgumentException exception)
             {
-                throw new InvalidDataException("Invalid T12 checkpoint value.", exception);
+                throw new InvalidDataException("Invalid site-filter checkpoint value.", exception);
             }
             catch (OverflowException exception)
             {
-                throw new InvalidDataException("Invalid T12 checkpoint length.", exception);
+                throw new InvalidDataException("Invalid site-filter checkpoint length.", exception);
             }
         }
     }
 
-    internal static class T12MutationCodec
+    internal static class SiteFilterMutationCodec
     {
         internal static Mutation ReadBody(BinaryReader reader)
         {
@@ -142,7 +142,7 @@ namespace HBP.Sync
             int siteCount = reader.ReadInt32();
             int bitLength = reader.ReadInt32();
             if (siteCount <= 0 || siteCount > SetSiteFilterResult.MaximumSiteCount || bitLength != checked((siteCount + 7) / 8))
-                throw new InvalidDataException("Invalid T12 site-filter result bounds.");
+                throw new InvalidDataException("Invalid site-filter result bounds.");
             byte[] bits = reader.ReadBytes(bitLength);
             if (bits.Length != bitLength) throw new EndOfStreamException();
             return new SetSiteFilterResult(new OperationId(new Guid(jobBytes)), generation, rosterHash, siteCount, bits);
@@ -150,7 +150,7 @@ namespace HBP.Sync
 
         internal static void WriteBody(BinaryWriter writer, Mutation mutation)
         {
-            if (mutation is not SetSiteFilterResult result) throw new ArgumentException("Unsupported T12 mutation type.", nameof(mutation));
+            if (mutation is not SetSiteFilterResult result) throw new ArgumentException("Unsupported site-filter mutation type.", nameof(mutation));
             writer.Write(result.JobId.ToByteArray());
             writer.Write(result.RosterHash);
             writer.Write(result.Generation);

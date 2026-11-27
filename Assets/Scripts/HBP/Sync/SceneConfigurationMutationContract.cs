@@ -63,7 +63,7 @@ namespace HBP.Sync
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             if (kind < ColumnResourceKind.StaticLabel || kind > ColumnResourceKind.MegResource) throw new ArgumentOutOfRangeException(nameof(kind));
-            ResourceReference = T09ValueValidation.ValidateOptionalText(resourceReference, nameof(resourceReference));
+            ResourceReference = MutationValueValidation.ValidateOptionalText(resourceReference, nameof(resourceReference));
             Kind = kind;
         }
     }
@@ -165,17 +165,17 @@ namespace HBP.Sync
         }
     }
 
-    /// <summary>A typed checkpoint record for one T11 operation.</summary>
-    public sealed class T11CheckpointRecord
+    /// <summary>A typed checkpoint record for one scene configuration operation.</summary>
+    public sealed class SceneConfigurationCheckpointRecord
     {
         private const ushort RecordMagic = 0x5431;
         private const ushort RecordSchema = 1;
         public Mutation Value { get; }
 
-        public T11CheckpointRecord(Mutation value)
+        public SceneConfigurationCheckpointRecord(Mutation value)
         {
             if (value == null || (ushort)value.Type < (ushort)OperationType.SetSiteBlacklist || value is SetConfigurationTransaction)
-                throw new ArgumentException("A T11 checkpoint record requires a checkpointable T11 mutation.", nameof(value));
+                throw new ArgumentException("A scene configuration checkpoint record requires a checkpointable scene configuration mutation.", nameof(value));
             Value = value;
         }
 
@@ -192,31 +192,31 @@ namespace HBP.Sync
             return stream.ToArray();
         }
 
-        public static T11CheckpointRecord Decode(byte[] bytes)
+        public static SceneConfigurationCheckpointRecord Decode(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 12 || bytes.Length > MutationPayloadCodec.MaximumPayloadBytes + 8)
-                throw new InvalidDataException("Invalid T11 checkpoint record length.");
+                throw new InvalidDataException("Invalid scene configuration checkpoint record length.");
             using var stream = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(stream, Encoding.UTF8, true);
             try
             {
                 if (reader.ReadUInt16() != RecordMagic || reader.ReadUInt16() != RecordSchema)
-                    throw new InvalidDataException("Unsupported T11 checkpoint record signature or schema.");
+                    throw new InvalidDataException("Unsupported scene configuration checkpoint record signature or schema.");
                 uint length = reader.ReadUInt32();
                 if (length > MutationPayloadCodec.MaximumPayloadBytes || length != stream.Length - stream.Position)
-                    throw new InvalidDataException("Invalid T11 checkpoint mutation length.");
-                var record = new T11CheckpointRecord(MutationPayloadCodec.Decode(reader.ReadBytes(checked((int)length))));
-                if (stream.Position != stream.Length) throw new InvalidDataException("Trailing T11 checkpoint record bytes.");
+                    throw new InvalidDataException("Invalid scene configuration checkpoint mutation length.");
+                var record = new SceneConfigurationCheckpointRecord(MutationPayloadCodec.Decode(reader.ReadBytes(checked((int)length))));
+                if (stream.Position != stream.Length) throw new InvalidDataException("Trailing scene configuration checkpoint record bytes.");
                 return record;
             }
             catch (EndOfStreamException exception)
             {
-                throw new InvalidDataException("Truncated T11 checkpoint record.", exception);
+                throw new InvalidDataException("Truncated scene configuration checkpoint record.", exception);
             }
         }
     }
 
-    internal static class T11MutationCodec
+    internal static class SceneConfigurationMutationCodec
     {
         private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
@@ -248,7 +248,7 @@ namespace HBP.Sync
                 case OperationType.SetConfigurationTransaction:
                     return ReadConfigurationTransaction(reader);
                 default:
-                    throw new InvalidDataException("Unsupported T11 mutation type.");
+                    throw new InvalidDataException("Unsupported scene configuration mutation type.");
             }
         }
 
@@ -283,7 +283,7 @@ namespace HBP.Sync
                     WriteConfigurationTransaction(writer, value);
                     break;
                 default:
-                    throw new ArgumentException("Unsupported T11 mutation type.", nameof(mutation));
+                    throw new ArgumentException("Unsupported scene configuration mutation type.", nameof(mutation));
             }
         }
 
@@ -365,12 +365,12 @@ namespace HBP.Sync
         {
             ushort length = reader.ReadUInt16();
             if ((!allowEmpty && length == 0) || length > 256 || length > reader.BaseStream.Length - reader.BaseStream.Position)
-                throw new InvalidDataException("Invalid T11 text length.");
+                throw new InvalidDataException("Invalid scene configuration text length.");
             string value = StrictUtf8.GetString(reader.ReadBytes(length));
-            if (!StringComparer.Ordinal.Equals(value, value.Normalize(NormalizationForm.FormC))) throw new InvalidDataException("T11 text is not NFC-normalized.");
+            if (!StringComparer.Ordinal.Equals(value, value.Normalize(NormalizationForm.FormC))) throw new InvalidDataException("Scene configuration text is not NFC-normalized.");
             foreach (char character in value)
                 if (char.IsControl(character))
-                    throw new InvalidDataException("T11 text contains a control character.");
+                    throw new InvalidDataException("Scene configuration text contains a control character.");
             return value;
         }
 
@@ -380,7 +380,7 @@ namespace HBP.Sync
         private static void WriteText(BinaryWriter writer, string value, bool allowEmpty)
         {
             byte[] bytes = StrictUtf8.GetBytes(value);
-            if ((!allowEmpty && bytes.Length == 0) || bytes.Length > 256) throw new InvalidDataException("T11 text exceeds its bounds.");
+            if ((!allowEmpty && bytes.Length == 0) || bytes.Length > 256) throw new InvalidDataException("Scene configuration text exceeds its bounds.");
             writer.Write(checked((ushort)bytes.Length));
             writer.Write(bytes);
         }
@@ -388,7 +388,7 @@ namespace HBP.Sync
         private static bool ReadBoolean(BinaryReader reader)
         {
             byte value = reader.ReadByte();
-            if (value > 1) throw new InvalidDataException("Invalid T11 boolean value.");
+            if (value > 1) throw new InvalidDataException("Invalid scene configuration boolean value.");
             return value == 1;
         }
 

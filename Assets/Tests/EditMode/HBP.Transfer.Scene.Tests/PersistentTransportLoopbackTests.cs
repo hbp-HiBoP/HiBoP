@@ -1759,10 +1759,10 @@ namespace HBP.Sync.Tests
             }
 
             Assert.That(captured.SiteColors, Is.Empty, "Persisted site state is represented once by the T11 assignment batch.");
-            Assert.That(captured.T09Records.Any(record => record.Value is SetSiteHighlight or SetSiteLabels), Is.False, "New checkpoints omit duplicate persisted presentation records while older records remain decodable.");
-            SetSiteConfigurationBatch assignments = captured.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single();
+            Assert.That(captured.PresentationRecords.Any(record => record.Value is SetSiteHighlight or SetSiteLabels), Is.False, "New checkpoints omit duplicate persisted presentation records while older records remain decodable.");
+            SetSiteConfigurationBatch assignments = captured.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single();
             Assert.That(assignments.Assignments, Has.Count.EqualTo(siteCount));
-            int checkpointRecordCount = captured.SiteColors.Count + captured.CutDefinitions.Count + captured.TimelineAnchors.Count + captured.T09Records.Count + captured.T10Records.Count + captured.T11Records.Count;
+            int checkpointRecordCount = captured.SiteColors.Count + captured.CutDefinitions.Count + captured.TimelineAnchors.Count + captured.PresentationRecords.Count + captured.StructureRecords.Count + captured.ConfigurationRecords.Count;
             Assert.That(checkpointRecordCount, Is.LessThan(65536));
             Assert.That(checkpoint.Length, Is.GreaterThan(limits.InlineThresholdBytes));
             Assert.That(desktopPeer.EnqueueSceneOperation(checkpoint, allScene, structural: true, bodySchema: PublicationCheckpointBulkReceiver.BodySchema, operationId: checkpointOperation).Accepted, Is.True);

@@ -71,7 +71,7 @@ namespace HBP.Sync
             writer.Write(command);
             writer.Write(failure);
             writer.Flush();
-            if (stream.Length > MaximumPayloadBytes) throw new InvalidDataException("T13 correlation control exceeds its session-control bound.");
+            if (stream.Length > MaximumPayloadBytes) throw new InvalidDataException("Correlation control exceeds its session-control bound.");
             return stream.ToArray();
         }
 

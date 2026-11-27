@@ -456,7 +456,7 @@ namespace HBP.Sync.Scene
                     throw new InvalidOperationException("A site in the prepared roster is no longer present in the local scene.");
                 return new SiteTarget(target.ColumnId, target.SiteId, site);
             }).ToArray();
-            if (roster.Length == 0 || roster.Length > SetSiteFilterResult.MaximumSiteCount) throw new InvalidOperationException("The prepared site roster is empty or exceeds the T12 limit.");
+            if (roster.Length == 0 || roster.Length > SetSiteFilterResult.MaximumSiteCount) throw new InvalidOperationException("The prepared site roster is empty or exceeds the site-filter size limit.");
             byte[] rosterHash = capturedRoster.RosterHash;
             var included = roster.Select(target => target.Site.State.IsFiltered).ToArray();
             bool[] wasMasked = roster.Select(target => target.Site.State.IsMasked).ToArray();

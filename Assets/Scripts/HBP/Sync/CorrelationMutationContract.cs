@@ -24,7 +24,7 @@ namespace HBP.Sync
         }
     }
 
-    internal static class T13MutationCodec
+    internal static class CorrelationMutationCodec
     {
         internal static Mutation ReadBody(BinaryReader reader)
         {
@@ -33,7 +33,7 @@ namespace HBP.Sync
             ulong generation = reader.ReadUInt64();
             int length = reader.ReadInt32();
             if (length <= 0 || length > SetCorrelationResult.MaximumBytes || length != reader.BaseStream.Length - reader.BaseStream.Position)
-                throw new InvalidDataException("Invalid T13 correlation result length.");
+                throw new InvalidDataException("Invalid correlation result length.");
             byte[] result = reader.ReadBytes(length);
             if (result.Length != length) throw new EndOfStreamException();
             return new SetCorrelationResult(new OperationId(new Guid(jobBytes)), generation, result);
@@ -41,7 +41,7 @@ namespace HBP.Sync
 
         internal static void WriteBody(BinaryWriter writer, Mutation mutation)
         {
-            if (mutation is not SetCorrelationResult result) throw new ArgumentException("Unsupported T13 mutation type.", nameof(mutation));
+            if (mutation is not SetCorrelationResult result) throw new ArgumentException("Unsupported correlation mutation type.", nameof(mutation));
             byte[] bytes = result.ResultBytes;
             writer.Write(result.JobId.ToByteArray());
             writer.Write(result.Generation);

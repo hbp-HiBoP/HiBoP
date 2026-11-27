@@ -70,11 +70,11 @@ namespace HBP.Sync.Scene
             foreach (var record in checkpoint.SiteColors) state.Put(record.Value, 0);
             foreach (var record in checkpoint.CutDefinitions) state.Put(record.Value, 1);
             foreach (var record in checkpoint.TimelineAnchors) state.Put(record.Value, 2);
-            foreach (var record in checkpoint.T09Records) state.Put(record.Value, 3);
-            foreach (var record in checkpoint.T10Records.OrderBy(record => record.Value is CreateRoi roi ? roi.Order : record.Value is CreateCut cut ? cut.Order : 0)) state.Put(record.Value, 4);
-            foreach (var record in checkpoint.T11Records) state.Put(record.Value, 5);
-            foreach (var record in checkpoint.T12Records) state.SetCell("filters", new Cell(6, record.Encode()));
-            foreach (var record in checkpoint.T13Records) state.SetCell("correlations", new Cell(7, record.Encode()));
+            foreach (var record in checkpoint.PresentationRecords) state.Put(record.Value, 3);
+            foreach (var record in checkpoint.StructureRecords.OrderBy(record => record.Value is CreateRoi roi ? roi.Order : record.Value is CreateCut cut ? cut.Order : 0)) state.Put(record.Value, 4);
+            foreach (var record in checkpoint.ConfigurationRecords) state.Put(record.Value, 5);
+            foreach (var record in checkpoint.SiteFilterRecords) state.SetCell("filters", new Cell(6, record.Encode()));
+            foreach (var record in checkpoint.CorrelationRecords) state.SetCell("correlations", new Cell(7, record.Encode()));
             return state;
         }
 
@@ -115,8 +115,7 @@ namespace HBP.Sync.Scene
                 Put(new SetCutOrder(Array.Empty<CutId>()), 4);
                 for (int i = 0; i < cuts.Count; i++)
                     Put(new CreateCut(cuts[i].CutId, cuts[i], i), 4);
-                mutation = mutation is SetSelectedSite site ? new SetSelectedSite(site.ColumnId, site.SiteId) :
-                    new SetSceneBoolean(((SetSceneBoolean)mutation).Property, ((SetSceneBoolean)mutation).Value);
+                mutation = mutation is SetSelectedSite site ? new SetSelectedSite(site.ColumnId, site.SiteId) : new SetSceneBoolean(((SetSceneBoolean)mutation).Property, ((SetSceneBoolean)mutation).Value);
             }
 
             switch (mutation)
@@ -264,11 +263,11 @@ namespace HBP.Sync.Scene
             var colors = new List<SiteColorCheckpointRecord>();
             var cuts = new List<CutDefinitionCheckpointRecord>();
             var timelines = new List<TimelineAnchorCheckpointRecord>();
-            var t09 = new List<T09CheckpointRecord>();
-            var t10 = new List<T10CheckpointRecord>();
-            var t11 = new List<T11CheckpointRecord>();
-            var t12 = new List<SiteFilterCheckpointRecord>();
-            var t13 = new List<CorrelationCheckpointRecord>();
+            var presentationRecords = new List<ScenePresentationCheckpointRecord>();
+            var structureRecords = new List<SceneStructureCheckpointRecord>();
+            var configurationRecords = new List<SceneConfigurationCheckpointRecord>();
+            var siteFilterRecords = new List<SiteFilterCheckpointRecord>();
+            var correlationRecords = new List<CorrelationCheckpointRecord>();
             var packedSites = new HashSet<string>(StringComparer.Ordinal);
             var assignments = new List<SiteConfigurationAssignment>();
             foreach (var group in Cells.Where(entry => entry.Key.StartsWith("site/", StringComparison.Ordinal)).GroupBy(entry => entry.Key.Substring(0, entry.Key.LastIndexOf('/') + 1)))
@@ -283,7 +282,7 @@ namespace HBP.Sync.Scene
                 foreach (var entry in group) packedSites.Add(entry.Key);
             }
 
-            t11.AddRange(SceneMutationCheckpointCodec.CreateSiteConfigurationRecords(assignments));
+            configurationRecords.AddRange(SceneMutationCheckpointCodec.CreateSiteConfigurationRecords(assignments));
             var orderedCuts = Cells.Values.Select(cell => cell.Mutation).OfType<SetCutOrder>().SingleOrDefault()?.CutIds.Select(id => id.Value).ToList() ?? new List<string>();
             string[] cutIds = Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();
             for (int i = 0; i < cutIds.Length; i++)
@@ -293,11 +292,11 @@ namespace HBP.Sync.Scene
                 var count = (SetCutDefinition)Cells[prefix + "count"].Mutation;
                 var orientation = (SetCutDefinition)Cells[prefix + "orientation"].Mutation;
                 var definition = new SetCutDefinition(position.CutId, orientation.Orientation, orientation.Flip, count.NumberOfCuts, position.Position, orientation.NormalX, orientation.NormalY, orientation.NormalZ);
-                t10.Add(new T10CheckpointRecord(new CreateCut(definition.CutId, definition, i)));
+                structureRecords.Add(new SceneStructureCheckpointRecord(new CreateCut(definition.CutId, definition, i)));
                 cuts.Add(new CutDefinitionCheckpointRecord(definition));
             }
 
-            if (Cells.ContainsKey("cut-order")) t10.Add(new T10CheckpointRecord(new SetCutOrder(cutIds.Select(id => new CutId(id)))));
+            if (Cells.ContainsKey("cut-order")) structureRecords.Add(new SceneStructureCheckpointRecord(new SetCutOrder(cutIds.Select(id => new CutId(id)))));
             int roiOrder = 0;
             var roiIds = ReadOrder("roi-order");
             foreach (var roi in Cells.Values.Select(cell => cell.Mutation).OfType<CreateRoi>().OrderBy(value => roiIds.Contains(value.RoiId.Value) ? roiIds.IndexOf(value.RoiId.Value) : int.MaxValue).ThenBy(value => value.RoiId.Value, StringComparer.Ordinal))
@@ -306,7 +305,7 @@ namespace HBP.Sync.Scene
                 var name = (RenameRoi)Cells[prefix + "name"].Mutation;
                 var sphereIds = ReadOrder(prefix + "sphere-order");
                 var spheres = Cells.Where(entry => entry.Key.StartsWith(prefix + "sphere/", StringComparison.Ordinal)).Select(entry => ((SetRoiSphereDefinition)entry.Value.Mutation).Definition).OrderBy(value => sphereIds.Contains(value.SphereId.Value) ? sphereIds.IndexOf(value.SphereId.Value) : int.MaxValue).ThenBy(value => value.SphereId.Value, StringComparer.Ordinal);
-                t10.Add(new T10CheckpointRecord(new CreateRoi(roi.RoiId, name.Name, spheres, roiOrder++)));
+                structureRecords.Add(new SceneStructureCheckpointRecord(new CreateRoi(roi.RoiId, name.Name, spheres, roiOrder++)));
             }
 
             foreach (var entry in Cells)
@@ -318,15 +317,15 @@ namespace HBP.Sync.Scene
                 {
                     case 0: colors.Add(new SiteColorCheckpointRecord((SetSiteColor)cell.Mutation)); break;
                     case 2: timelines.Add(new TimelineAnchorCheckpointRecord((SetTimelineAnchor)cell.Mutation)); break;
-                    case 3: t09.Add(T09CheckpointRecord.FromMutation(cell.Mutation)); break;
-                    case 4: t10.Add(new T10CheckpointRecord(cell.Mutation)); break;
-                    case 5: t11.Add(new T11CheckpointRecord(cell.Mutation)); break;
-                    case 6: t12.Add(SiteFilterCheckpointRecord.Decode(cell.Bytes)); break;
-                    case 7: t13.Add(CorrelationCheckpointRecord.Decode(cell.Bytes)); break;
+                    case 3: presentationRecords.Add(ScenePresentationCheckpointRecord.FromMutation(cell.Mutation)); break;
+                    case 4: structureRecords.Add(new SceneStructureCheckpointRecord(cell.Mutation)); break;
+                    case 5: configurationRecords.Add(new SceneConfigurationCheckpointRecord(cell.Mutation)); break;
+                    case 6: siteFilterRecords.Add(SiteFilterCheckpointRecord.Decode(cell.Bytes)); break;
+                    case 7: correlationRecords.Add(CorrelationCheckpointRecord.Decode(cell.Bytes)); break;
                 }
             }
 
-            return new SceneMutationCheckpoint(colors, cuts, timelines, t09, t10, t11, t12, t13);
+            return new SceneMutationCheckpoint(colors, cuts, timelines, presentationRecords, structureRecords, configurationRecords, siteFilterRecords, correlationRecords);
         }
     }
 
@@ -376,20 +375,12 @@ namespace HBP.Sync.Scene
 
             bool Changed(SceneCheckpointState side, string key) => baseline == null || !Equal(baseline, side, key);
             string selectionKey = keys.FirstOrDefault(key => Cell(desktop, key)?.Mutation is SetSelectedSite || Cell(quest, key)?.Mutation is SetSelectedSite);
-            string automaticKey = keys.FirstOrDefault(key => Cell(desktop, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite } ||
-                Cell(quest, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite });
+            string automaticKey = keys.FirstOrDefault(key => Cell(desktop, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite } || Cell(quest, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite });
             if (baseline != null && selectionKey != null && automaticKey != null)
             {
                 var cutKeys = keys.Where(key => key == "cut-order" || key.StartsWith("cut/", StringComparison.Ordinal)).ToArray();
-                bool ResetOn(SceneCheckpointState side) =>
-                    Cell(side, automaticKey)?.Mutation is SetSceneBoolean { Value: true } &&
-                    Cell(side, selectionKey)?.Mutation is SetSelectedSite { SiteId: not null } &&
-                    (Changed(side, selectionKey) || Changed(side, automaticKey));
-                bool CompetesWithReset(SceneCheckpointState side, SceneCheckpointState other) =>
-                    ResetOn(side) && (!ResetOn(other) || !Equal(side, other, selectionKey)) &&
-                    (cutKeys.Any(key => Changed(other, key) && !Equal(side, other, key)) ||
-                     Changed(other, selectionKey) && !Equal(side, other, selectionKey) ||
-                     Changed(other, automaticKey) && !Equal(side, other, automaticKey));
+                bool ResetOn(SceneCheckpointState side) => Cell(side, automaticKey)?.Mutation is SetSceneBoolean { Value: true } && Cell(side, selectionKey)?.Mutation is SetSelectedSite { SiteId: not null } && (Changed(side, selectionKey) || Changed(side, automaticKey));
+                bool CompetesWithReset(SceneCheckpointState side, SceneCheckpointState other) => ResetOn(side) && (!ResetOn(other) || !Equal(side, other, selectionKey)) && (cutKeys.Any(key => Changed(other, key) && !Equal(side, other, key)) || Changed(other, selectionKey) && !Equal(side, other, selectionKey) || Changed(other, automaticKey) && !Equal(side, other, automaticKey));
                 if (CompetesWithReset(desktop, quest) || CompetesWithReset(quest, desktop))
                 {
                     var related = cutKeys.Append(selectionKey).Append(automaticKey);

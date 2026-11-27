@@ -107,12 +107,12 @@ namespace HBP.Sync
                         return new SetTimelineAnchor(columnId, index, playing, looping, step, monotonicAnchorTicks, tickFrequency, intent);
                     }
                 case OperationType.SetSiteFilterResult:
-                    return T12MutationCodec.ReadBody(reader);
+                    return SiteFilterMutationCodec.ReadBody(reader);
                 case OperationType.SetCorrelationResult:
-                    return T13MutationCodec.ReadBody(reader);
+                    return CorrelationMutationCodec.ReadBody(reader);
                 default:
-                    if ((ushort)operationType >= (ushort)OperationType.SetSiteBlacklist) return T11MutationCodec.ReadBody(reader, operationType);
-                    return (ushort)operationType >= (ushort)OperationType.CreateCut ? T10MutationCodec.ReadBody(reader, operationType) : T09MutationCodec.ReadBody(reader, operationType);
+                    if ((ushort)operationType >= (ushort)OperationType.SetSiteBlacklist) return SceneConfigurationMutationCodec.ReadBody(reader, operationType);
+                    return (ushort)operationType >= (ushort)OperationType.CreateCut ? SceneStructureMutationCodec.ReadBody(reader, operationType) : ScenePresentationMutationCodec.ReadBody(reader, operationType);
             }
         }
 
@@ -157,31 +157,31 @@ namespace HBP.Sync
 
             if (mutation is SetSiteFilterResult)
             {
-                T12MutationCodec.WriteBody(writer, mutation);
+                SiteFilterMutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
             if (mutation is SetCorrelationResult)
             {
-                T13MutationCodec.WriteBody(writer, mutation);
+                CorrelationMutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSiteBlacklist)
             {
-                T11MutationCodec.WriteBody(writer, mutation);
+                SceneConfigurationMutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.CreateCut)
             {
-                T10MutationCodec.WriteBody(writer, mutation);
+                SceneStructureMutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
             if ((ushort)mutation.Type >= (ushort)OperationType.SetSelectedColumn)
             {
-                T09MutationCodec.WriteBody(writer, mutation);
+                ScenePresentationMutationCodec.WriteBody(writer, mutation);
                 return;
             }
 
@@ -493,7 +493,7 @@ namespace HBP.Sync
                 throw new InvalidDataException("Invalid checkpoint record length.");
             ushort type = (ushort)(bytes[0] | bytes[1] << 8);
             if (type < (ushort)OperationType.SetSelectedColumn || type > (ushort)OperationType.SetSelectedRoiSphere)
-                throw new InvalidDataException("Unsupported T09 checkpoint record type.");
+                throw new InvalidDataException("Unsupported scene presentation checkpoint record type.");
             return Decode(bytes, (OperationType)type);
         }
     }

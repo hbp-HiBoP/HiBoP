@@ -119,7 +119,7 @@ namespace HBP.Sync
         public CreateRoi(RoiId roiId, string name, IEnumerable<RoiSphereDefinition> spheres, int order, RoiSelectionSnapshot selectionSnapshot = null)
         {
             RoiId = roiId ?? throw new ArgumentNullException(nameof(roiId));
-            Name = T09ValueValidation.ValidateRequiredText(name, nameof(name));
+            Name = MutationValueValidation.ValidateRequiredText(name, nameof(name));
             m_Spheres = (spheres ?? throw new ArgumentNullException(nameof(spheres))).ToArray();
             if (m_Spheres.Length > 64 || m_Spheres.Select(sphere => sphere.SphereId).Distinct().Count() != m_Spheres.Length)
                 throw new ArgumentException("ROI sphere identities must be unique and bounded.", nameof(spheres));
@@ -138,7 +138,7 @@ namespace HBP.Sync
         public RenameRoi(RoiId roiId, string name)
         {
             RoiId = roiId ?? throw new ArgumentNullException(nameof(roiId));
-            Name = T09ValueValidation.ValidateRequiredText(name, nameof(name));
+            Name = MutationValueValidation.ValidateRequiredText(name, nameof(name));
         }
     }
 
@@ -246,8 +246,8 @@ namespace HBP.Sync
 
         public SetMriCalibration(float minimum, float maximum)
         {
-            T09ValueValidation.ValidateRange(minimum, 0f, 1f, nameof(minimum));
-            T09ValueValidation.ValidateRange(maximum, minimum, 1f, nameof(maximum));
+            MutationValueValidation.ValidateRange(minimum, 0f, 1f, nameof(minimum));
+            MutationValueValidation.ValidateRange(maximum, minimum, 1f, nameof(maximum));
             Minimum = minimum;
             Maximum = maximum;
         }
@@ -347,17 +347,17 @@ namespace HBP.Sync
         }
     }
 
-    /// <summary>A T10-family checkpoint record that retains the concrete operation type.</summary>
-    public sealed class T10CheckpointRecord
+    /// <summary>A scene structure checkpoint record that retains the concrete operation type.</summary>
+    public sealed class SceneStructureCheckpointRecord
     {
         private const ushort RecordMagic = 0x5431;
         private const ushort RecordSchema = 1;
         public Mutation Value { get; }
 
-        public T10CheckpointRecord(Mutation value)
+        public SceneStructureCheckpointRecord(Mutation value)
         {
             if (value == null || (ushort)value.Type < (ushort)OperationType.CreateCut)
-                throw new ArgumentException("A T10 checkpoint record requires a T10 mutation.", nameof(value));
+                throw new ArgumentException("A scene structure checkpoint record requires a scene structure mutation.", nameof(value));
             Value = value;
         }
 
@@ -374,32 +374,32 @@ namespace HBP.Sync
             return stream.ToArray();
         }
 
-        public static T10CheckpointRecord Decode(byte[] bytes)
+        public static SceneStructureCheckpointRecord Decode(byte[] bytes)
         {
             if (bytes == null || bytes.Length < 12 || bytes.Length > MutationPayloadCodec.MaximumPayloadBytes + 8)
-                throw new InvalidDataException("Invalid T10 checkpoint record length.");
+                throw new InvalidDataException("Invalid scene structure checkpoint record length.");
             using var stream = new MemoryStream(bytes, false);
             using var reader = new BinaryReader(stream, Encoding.UTF8, true);
             try
             {
                 if (reader.ReadUInt16() != RecordMagic || reader.ReadUInt16() != RecordSchema)
-                    throw new InvalidDataException("Unsupported T10 checkpoint record signature or schema.");
+                    throw new InvalidDataException("Unsupported scene structure checkpoint record signature or schema.");
                 uint length = reader.ReadUInt32();
                 if (length > MutationPayloadCodec.MaximumPayloadBytes || length != stream.Length - stream.Position)
-                    throw new InvalidDataException("Invalid T10 checkpoint mutation length.");
-                var record = new T10CheckpointRecord(MutationPayloadCodec.Decode(reader.ReadBytes(checked((int)length))));
+                    throw new InvalidDataException("Invalid scene structure checkpoint mutation length.");
+                var record = new SceneStructureCheckpointRecord(MutationPayloadCodec.Decode(reader.ReadBytes(checked((int)length))));
                 if (stream.Position != stream.Length)
-                    throw new InvalidDataException("Trailing T10 checkpoint record bytes.");
+                    throw new InvalidDataException("Trailing scene structure checkpoint record bytes.");
                 return record;
             }
             catch (EndOfStreamException exception)
             {
-                throw new InvalidDataException("Truncated T10 checkpoint record.", exception);
+                throw new InvalidDataException("Truncated scene structure checkpoint record.", exception);
             }
         }
     }
 
-    internal static class T10MutationCodec
+    internal static class SceneStructureMutationCodec
     {
         private static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
@@ -452,7 +452,7 @@ namespace HBP.Sync
                 case OperationType.SetMriCalibration: return new SetMriCalibration(reader.ReadSingle(), reader.ReadSingle());
                 case OperationType.SetImplantation: return new SetImplantation(new ResourceId(ReadText(reader, false)), ReadText(reader, false));
                 case OperationType.ApplyTriangleMask: return ReadMasks(reader);
-                default: throw new InvalidDataException("Unsupported T10 mutation type.");
+                default: throw new InvalidDataException("Unsupported scene structure mutation type.");
             }
         }
 
@@ -513,12 +513,11 @@ namespace HBP.Sync
                     WriteText(writer, value.MembershipHash);
                     break;
                 case ApplyTriangleMask value: WriteMasks(writer, value); break;
-                default: throw new ArgumentException("Unsupported T10 mutation type.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene structure mutation type.", nameof(mutation));
             }
         }
 
-        internal static SetCutDefinition ReadCutDefinition(BinaryReader reader) =>
-            new(new CutId(ReadText(reader, false)), ReadEnum<MutationCutOrientation>(reader), ReadBoolean(reader), reader.ReadUInt32(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+        internal static SetCutDefinition ReadCutDefinition(BinaryReader reader) => new(new CutId(ReadText(reader, false)), ReadEnum<MutationCutOrientation>(reader), ReadBoolean(reader), reader.ReadUInt32(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
 
         internal static void WriteCompleteCutDefinition(BinaryWriter writer, SetCutDefinition value)
         {
@@ -603,38 +602,38 @@ namespace HBP.Sync
         private static T ReadEnum<T>(BinaryReader reader) where T : struct, Enum
         {
             byte value = reader.ReadByte();
-            if (!Enum.IsDefined(typeof(T), value)) throw new InvalidDataException("Invalid T10 enum value.");
+            if (!Enum.IsDefined(typeof(T), value)) throw new InvalidDataException("Invalid scene structure enum value.");
             return (T)Enum.ToObject(typeof(T), value);
         }
 
         private static bool ReadBoolean(BinaryReader reader)
         {
             byte value = reader.ReadByte();
-            if (value > 1) throw new InvalidDataException("Invalid T10 boolean value.");
+            if (value > 1) throw new InvalidDataException("Invalid scene structure boolean value.");
             return value == 1;
         }
 
         private static string ReadText(BinaryReader reader, bool allowEmpty = true)
         {
             int length = reader.ReadUInt16();
-            if (length > 256 || (!allowEmpty && length == 0) || length > reader.BaseStream.Length - reader.BaseStream.Position) throw new InvalidDataException("Invalid T10 text length.");
+            if (length > 256 || (!allowEmpty && length == 0) || length > reader.BaseStream.Length - reader.BaseStream.Position) throw new InvalidDataException("Invalid scene structure text length.");
             byte[] bytes = reader.ReadBytes(length);
             try
             {
                 string value = StrictUtf8.GetString(bytes);
-                if (!StringComparer.Ordinal.Equals(value, value.Normalize(NormalizationForm.FormC))) throw new InvalidDataException("T10 text must be NFC-normalized.");
+                if (!StringComparer.Ordinal.Equals(value, value.Normalize(NormalizationForm.FormC))) throw new InvalidDataException("Scene structure text must be NFC-normalized.");
                 return value;
             }
             catch (DecoderFallbackException exception)
             {
-                throw new InvalidDataException("Malformed T10 UTF-8 text.", exception);
+                throw new InvalidDataException("Malformed scene structure UTF-8 text.", exception);
             }
         }
 
         private static void WriteText(BinaryWriter writer, string value)
         {
             byte[] bytes = StrictUtf8.GetBytes(value.Normalize(NormalizationForm.FormC));
-            if (bytes.Length > 256) throw new InvalidDataException("T10 text exceeds its identity bound.");
+            if (bytes.Length > 256) throw new InvalidDataException("Scene structure text exceeds its identity bound.");
             writer.Write(checked((ushort)bytes.Length));
             writer.Write(bytes);
         }

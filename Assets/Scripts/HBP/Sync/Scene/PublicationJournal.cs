@@ -151,7 +151,7 @@ namespace HBP.Sync.Scene
         public const int MaximumCheckpointBytes = 16 * 1024 * 1024;
         public const int MaximumRecords = 65536;
 
-        internal static IEnumerable<T11CheckpointRecord> CreateSiteConfigurationRecords(IEnumerable<SiteConfigurationAssignment> assignments)
+        internal static IEnumerable<SceneConfigurationCheckpointRecord> CreateSiteConfigurationRecords(IEnumerable<SiteConfigurationAssignment> assignments)
         {
             var batch = new List<SiteConfigurationAssignment>();
             foreach (SiteConfigurationAssignment assignment in assignments)
@@ -159,15 +159,15 @@ namespace HBP.Sync.Scene
                 batch.Add(assignment);
                 if (batch.Count == SetSiteConfigurationBatch.MaximumAssignments)
                 {
-                    yield return new T11CheckpointRecord(new SetSiteConfigurationBatch(batch));
+                    yield return new SceneConfigurationCheckpointRecord(new SetSiteConfigurationBatch(batch));
                     batch.Clear();
                 }
             }
 
-            if (batch.Count > 0) yield return new T11CheckpointRecord(new SetSiteConfigurationBatch(batch));
+            if (batch.Count > 0) yield return new SceneConfigurationCheckpointRecord(new SetSiteConfigurationBatch(batch));
         }
 
-        internal static bool TryAddT11Keys(Mutation mutation, SceneId scene, IncarnationId incarnation, HashSet<TouchedKey> touched, HashSet<(string ColumnId, string SiteId)> sites)
+        internal static bool TryAddConfigurationKeys(Mutation mutation, SceneId scene, IncarnationId incarnation, HashSet<TouchedKey> touched, HashSet<(string ColumnId, string SiteId)> sites)
         {
             // The checkpoint is atomic across records. Site assignments must not overlap.
             if (mutation is SetSiteConfigurationBatch batch)
@@ -180,17 +180,17 @@ namespace HBP.Sync.Scene
         public static byte[] Encode(ulong canonicalSequence, SceneMutationCheckpoint checkpoint)
         {
             if (checkpoint == null) throw new ArgumentNullException(nameof(checkpoint));
-            ValidateCounts(checkpoint.SiteColors.Count, checkpoint.CutDefinitions.Count, checkpoint.TimelineAnchors.Count, checkpoint.T09Records.Count, checkpoint.T10Records.Count, checkpoint.T11Records.Count, checkpoint.T12Records.Count, checkpoint.T13Records.Count);
+            ValidateCounts(checkpoint.SiteColors.Count, checkpoint.CutDefinitions.Count, checkpoint.TimelineAnchors.Count, checkpoint.PresentationRecords.Count, checkpoint.StructureRecords.Count, checkpoint.ConfigurationRecords.Count, checkpoint.SiteFilterRecords.Count, checkpoint.CorrelationRecords.Count);
 
             SiteColorCheckpointRecord[] sites = checkpoint.SiteColors.OrderBy(record => record.Value.ColumnId.Value, StringComparer.Ordinal).ThenBy(record => record.Value.FullSiteId.Value, StringComparer.Ordinal).ToArray();
             CutDefinitionCheckpointRecord[] cuts = checkpoint.CutDefinitions.OrderBy(record => record.Value.CutId.Value, StringComparer.Ordinal).ToArray();
             TimelineAnchorCheckpointRecord[] timelines = checkpoint.TimelineAnchors.OrderBy(record => record.Value.ColumnId.Value, StringComparer.Ordinal).ToArray();
-            T09CheckpointRecord[] t09Records = checkpoint.T09Records.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
-            T10CheckpointRecord[] t10Records = checkpoint.T10Records.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
-            T11CheckpointRecord[] t11Records = checkpoint.T11Records.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
-            SiteFilterCheckpointRecord[] t12Records = checkpoint.T12Records.ToArray();
-            CorrelationCheckpointRecord[] t13Records = checkpoint.T13Records.ToArray();
-            ValidateUniqueKeys(sites, cuts, timelines, t09Records, t10Records, t11Records, t12Records, t13Records);
+            ScenePresentationCheckpointRecord[] presentationRecords = checkpoint.PresentationRecords.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
+            SceneStructureCheckpointRecord[] structureRecords = checkpoint.StructureRecords.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
+            SceneConfigurationCheckpointRecord[] configurationRecords = checkpoint.ConfigurationRecords.OrderBy(record => Convert.ToBase64String(MutationPayloadCodec.Encode(record.Value)), StringComparer.Ordinal).ToArray();
+            SiteFilterCheckpointRecord[] siteFilterRecords = checkpoint.SiteFilterRecords.ToArray();
+            CorrelationCheckpointRecord[] correlationRecords = checkpoint.CorrelationRecords.ToArray();
+            ValidateUniqueKeys(sites, cuts, timelines, presentationRecords, structureRecords, configurationRecords, siteFilterRecords, correlationRecords);
 
             using var stream = new MemoryStream(Math.Min(MaximumCheckpointBytes, HeaderLength + sites.Length * 64));
             using var writer = new BinaryWriter(stream, Encoding.UTF8, true);
@@ -200,19 +200,19 @@ namespace HBP.Sync.Scene
             writer.Write(sites.Length);
             writer.Write(cuts.Length);
             writer.Write(timelines.Length);
-            writer.Write(t09Records.Length);
-            writer.Write(t10Records.Length);
-            writer.Write(t11Records.Length);
-            writer.Write(t12Records.Length);
-            writer.Write(t13Records.Length);
+            writer.Write(presentationRecords.Length);
+            writer.Write(structureRecords.Length);
+            writer.Write(configurationRecords.Length);
+            writer.Write(siteFilterRecords.Length);
+            writer.Write(correlationRecords.Length);
             WriteRecords(writer, sites.Select(record => record.Encode()));
             WriteRecords(writer, cuts.Select(record => record.Encode()));
             WriteRecords(writer, timelines.Select(record => record.Encode()));
-            WriteRecords(writer, t09Records.Select(record => record.Encode()));
-            WriteRecords(writer, t10Records.Select(record => record.Encode()));
-            WriteRecords(writer, t11Records.Select(record => record.Encode()));
-            WriteRecords(writer, t12Records.Select(record => record.Encode()));
-            WriteRecords(writer, t13Records.Select(record => record.Encode()));
+            WriteRecords(writer, presentationRecords.Select(record => record.Encode()));
+            WriteRecords(writer, structureRecords.Select(record => record.Encode()));
+            WriteRecords(writer, configurationRecords.Select(record => record.Encode()));
+            WriteRecords(writer, siteFilterRecords.Select(record => record.Encode()));
+            WriteRecords(writer, correlationRecords.Select(record => record.Encode()));
             writer.Flush();
             return stream.ToArray();
         }
@@ -235,34 +235,34 @@ namespace HBP.Sync.Scene
                 int siteCount = reader.ReadInt32();
                 int cutCount = reader.ReadInt32();
                 int timelineCount = reader.ReadInt32();
-                int t09Count = reader.ReadInt32();
-                int t10Count = reader.ReadInt32();
-                int t11Count = reader.ReadInt32();
-                int t12Count = reader.ReadInt32();
-                int t13Count = reader.ReadInt32();
-                ValidateCounts(siteCount, cutCount, timelineCount, t09Count, t10Count, t11Count, t12Count, t13Count);
+                int presentationCount = reader.ReadInt32();
+                int structureCount = reader.ReadInt32();
+                int configurationCount = reader.ReadInt32();
+                int siteFilterCount = reader.ReadInt32();
+                int correlationCount = reader.ReadInt32();
+                ValidateCounts(siteCount, cutCount, timelineCount, presentationCount, structureCount, configurationCount, siteFilterCount, correlationCount);
 
                 var sites = new List<SiteColorCheckpointRecord>(siteCount);
                 var cuts = new List<CutDefinitionCheckpointRecord>(cutCount);
                 var timelines = new List<TimelineAnchorCheckpointRecord>(timelineCount);
-                var t09Records = new List<T09CheckpointRecord>(t09Count);
-                var t10Records = new List<T10CheckpointRecord>(t10Count);
-                var t11Records = new List<T11CheckpointRecord>(t11Count);
-                var t12Records = new List<SiteFilterCheckpointRecord>(t12Count);
-                var t13Records = new List<CorrelationCheckpointRecord>(t13Count);
+                var presentationRecords = new List<ScenePresentationCheckpointRecord>(presentationCount);
+                var structureRecords = new List<SceneStructureCheckpointRecord>(structureCount);
+                var configurationRecords = new List<SceneConfigurationCheckpointRecord>(configurationCount);
+                var siteFilterRecords = new List<SiteFilterCheckpointRecord>(siteFilterCount);
+                var correlationRecords = new List<CorrelationCheckpointRecord>(correlationCount);
                 ReadRecords(reader, siteCount, SiteColorCheckpointRecord.Decode, sites);
                 ReadRecords(reader, cutCount, CutDefinitionCheckpointRecord.Decode, cuts);
                 ReadRecords(reader, timelineCount, TimelineAnchorCheckpointRecord.Decode, timelines);
-                ReadRecords(reader, t09Count, T09CheckpointRecord.Decode, t09Records);
-                ReadRecords(reader, t10Count, T10CheckpointRecord.Decode, t10Records);
-                ReadRecords(reader, t11Count, T11CheckpointRecord.Decode, t11Records);
-                ReadRecords(reader, t12Count, SiteFilterCheckpointRecord.Decode, t12Records);
-                ReadRecords(reader, t13Count, CorrelationCheckpointRecord.Decode, t13Records);
+                ReadRecords(reader, presentationCount, ScenePresentationCheckpointRecord.Decode, presentationRecords);
+                ReadRecords(reader, structureCount, SceneStructureCheckpointRecord.Decode, structureRecords);
+                ReadRecords(reader, configurationCount, SceneConfigurationCheckpointRecord.Decode, configurationRecords);
+                ReadRecords(reader, siteFilterCount, SiteFilterCheckpointRecord.Decode, siteFilterRecords);
+                ReadRecords(reader, correlationCount, CorrelationCheckpointRecord.Decode, correlationRecords);
                 if (stream.Position != stream.Length)
                     throw new InvalidDataException("Trailing typed scene checkpoint bytes.");
 
-                ValidateUniqueKeys(sites, cuts, timelines, t09Records, t10Records, t11Records, t12Records, t13Records);
-                return new PublishedSceneCheckpoint(canonicalSequence, new SceneMutationCheckpoint(sites, cuts, timelines, t09Records, t10Records, t11Records, t12Records, t13Records));
+                ValidateUniqueKeys(sites, cuts, timelines, presentationRecords, structureRecords, configurationRecords, siteFilterRecords, correlationRecords);
+                return new PublishedSceneCheckpoint(canonicalSequence, new SceneMutationCheckpoint(sites, cuts, timelines, presentationRecords, structureRecords, configurationRecords, siteFilterRecords, correlationRecords));
             }
             catch (EndOfStreamException exception)
             {
@@ -300,18 +300,18 @@ namespace HBP.Sync.Scene
             }
         }
 
-        private static void ValidateCounts(int siteCount, int cutCount, int timelineCount, int t09Count, int t10Count, int t11Count, int t12Count, int t13Count)
+        private static void ValidateCounts(int siteCount, int cutCount, int timelineCount, int presentationCount, int structureCount, int configurationCount, int siteFilterCount, int correlationCount)
         {
-            if (siteCount < 0 || cutCount < 0 || timelineCount < 0 || t09Count < 0 || t10Count < 0 || t11Count < 0 || t12Count < 0 || t13Count < 0 || (long)siteCount + cutCount + timelineCount + t09Count + t10Count + t11Count + t12Count + t13Count > MaximumRecords)
+            if (siteCount < 0 || cutCount < 0 || timelineCount < 0 || presentationCount < 0 || structureCount < 0 || configurationCount < 0 || siteFilterCount < 0 || correlationCount < 0 || (long)siteCount + cutCount + timelineCount + presentationCount + structureCount + configurationCount + siteFilterCount + correlationCount > MaximumRecords)
                 throw new InvalidDataException("Typed scene checkpoint record count exceeds its bound.");
         }
 
-        private static void ValidateUniqueKeys(IReadOnlyList<SiteColorCheckpointRecord> sites, IReadOnlyList<CutDefinitionCheckpointRecord> cuts, IReadOnlyList<TimelineAnchorCheckpointRecord> timelines, IReadOnlyList<T09CheckpointRecord> t09Records, IReadOnlyList<T10CheckpointRecord> t10Records, IReadOnlyList<T11CheckpointRecord> t11Records, IReadOnlyList<SiteFilterCheckpointRecord> t12Records, IReadOnlyList<CorrelationCheckpointRecord> t13Records)
+        private static void ValidateUniqueKeys(IReadOnlyList<SiteColorCheckpointRecord> sites, IReadOnlyList<CutDefinitionCheckpointRecord> cuts, IReadOnlyList<TimelineAnchorCheckpointRecord> timelines, IReadOnlyList<ScenePresentationCheckpointRecord> presentationRecords, IReadOnlyList<SceneStructureCheckpointRecord> structureRecords, IReadOnlyList<SceneConfigurationCheckpointRecord> configurationRecords, IReadOnlyList<SiteFilterCheckpointRecord> siteFilterRecords, IReadOnlyList<CorrelationCheckpointRecord> correlationRecords)
         {
-            if (t12Records.Count > 1 || t12Records.Any(record => record == null))
-                throw new InvalidDataException("Typed scene checkpoint contains more than one or a null T12 site-filter result.");
-            if (t13Records.Count > 1 || t13Records.Any(record => record == null))
-                throw new InvalidDataException("Typed scene checkpoint contains more than one or a null T13 correlation result.");
+            if (siteFilterRecords.Count > 1 || siteFilterRecords.Any(record => record == null))
+                throw new InvalidDataException("Typed scene checkpoint contains more than one or a null site-filter result.");
+            if (correlationRecords.Count > 1 || correlationRecords.Any(record => record == null))
+                throw new InvalidDataException("Typed scene checkpoint contains more than one or a null correlation result.");
             var siteKeys = new HashSet<(string Column, string Site)>();
             foreach (SiteColorCheckpointRecord record in sites)
                 if (record?.Value == null || !siteKeys.Add((record.Value.ColumnId.Value, record.Value.FullSiteId.Value)))
@@ -327,33 +327,33 @@ namespace HBP.Sync.Scene
                 if (record?.Value == null || !timelineKeys.Add(record.Value.ColumnId.Value))
                     throw new InvalidDataException("Typed scene checkpoint contains a duplicate or null timeline key.");
 
-            var t09Keys = new HashSet<TouchedKey>();
-            foreach (T09CheckpointRecord record in t09Records)
-                if (record?.Value == null || !t09Keys.Add(MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).CoalescingKey))
-                    throw new InvalidDataException("Typed scene checkpoint contains a duplicate or null T09 key.");
+            var presentationKeys = new HashSet<TouchedKey>();
+            foreach (ScenePresentationCheckpointRecord record in presentationRecords)
+                if (record?.Value == null || !presentationKeys.Add(MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).CoalescingKey))
+                    throw new InvalidDataException("Typed scene checkpoint contains a duplicate or null scene presentation key.");
 
-            var t10Keys = new HashSet<TouchedKey>();
-            foreach (T10CheckpointRecord record in t10Records)
+            var structureKeys = new HashSet<TouchedKey>();
+            foreach (SceneStructureCheckpointRecord record in structureRecords)
             {
-                if (record?.Value == null || !IsCheckpointT10Type(record.Value.Type))
-                    throw new InvalidDataException("Typed scene checkpoint contains an unsupported T10 record.");
+                if (record?.Value == null || !IsCheckpointStructureType(record.Value.Type))
+                    throw new InvalidDataException("Typed scene checkpoint contains an unsupported scene structure record.");
                 foreach (TouchedKey key in MutationDescriptor.Create(ValidationSceneId, ValidationIncarnationId, record.Value).TouchedKeys)
-                    if (!t10Keys.Add(key))
-                        throw new InvalidDataException("Typed scene checkpoint contains a duplicate T10 key.");
+                    if (!structureKeys.Add(key))
+                        throw new InvalidDataException("Typed scene checkpoint contains a duplicate scene structure key.");
             }
 
-            var t11Keys = new HashSet<TouchedKey>();
-            var t11Sites = new HashSet<(string ColumnId, string SiteId)>();
-            foreach (T11CheckpointRecord record in t11Records)
+            var configurationKeys = new HashSet<TouchedKey>();
+            var configurationSites = new HashSet<(string ColumnId, string SiteId)>();
+            foreach (SceneConfigurationCheckpointRecord record in configurationRecords)
             {
                 if (record?.Value == null || record.Value is SetConfigurationTransaction)
-                    throw new InvalidDataException("Typed scene checkpoint contains an unsupported T11 record.");
-                if (!TryAddT11Keys(record.Value, ValidationSceneId, ValidationIncarnationId, t11Keys, t11Sites))
-                    throw new InvalidDataException("Typed scene checkpoint contains a duplicate T11 key.");
+                    throw new InvalidDataException("Typed scene checkpoint contains an unsupported scene configuration record.");
+                if (!TryAddConfigurationKeys(record.Value, ValidationSceneId, ValidationIncarnationId, configurationKeys, configurationSites))
+                    throw new InvalidDataException("Typed scene checkpoint contains a duplicate scene configuration key.");
             }
         }
 
-        private static bool IsCheckpointT10Type(OperationType type) => type is OperationType.CreateCut or OperationType.SetCutOrder or OperationType.CreateRoi or OperationType.SetActiveRoi or OperationType.SetMeshDisplay or OperationType.SetSelectedMri or OperationType.SetMriCalibration or OperationType.SetImplantation or OperationType.ApplyTriangleMask or OperationType.MoveSites;
+        private static bool IsCheckpointStructureType(OperationType type) => type is OperationType.CreateCut or OperationType.SetCutOrder or OperationType.CreateRoi or OperationType.SetActiveRoi or OperationType.SetMeshDisplay or OperationType.SetSelectedMri or OperationType.SetMriCalibration or OperationType.SetImplantation or OperationType.ApplyTriangleMask or OperationType.MoveSites;
     }
 
     public static class PublicationControlCodec

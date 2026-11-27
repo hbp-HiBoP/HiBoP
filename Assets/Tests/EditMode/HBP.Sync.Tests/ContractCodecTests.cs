@@ -345,8 +345,8 @@ namespace HBP.Sync.Tests
                 Assert.That(decoded.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
                 Assert.That(MutationPayloadCodec.Encode(decoded), Is.EqualTo(encoded), mutation.Type.ToString());
 
-                T09CheckpointRecord record = T09CheckpointRecord.FromMutation(mutation);
-                T09CheckpointRecord decodedRecord = T09CheckpointRecord.Decode(record.Encode());
+                ScenePresentationCheckpointRecord record = ScenePresentationCheckpointRecord.FromMutation(mutation);
+                ScenePresentationCheckpointRecord decodedRecord = ScenePresentationCheckpointRecord.Decode(record.Encode());
                 Assert.That(decodedRecord.GetType(), Is.EqualTo(record.GetType()), mutation.Type.ToString());
                 Assert.That(MutationPayloadCodec.Encode(decodedRecord.Value), Is.EqualTo(encoded), mutation.Type.ToString());
             }
@@ -393,8 +393,8 @@ namespace HBP.Sync.Tests
                 Assert.That(decoded.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
                 Assert.That(MutationPayloadCodec.Encode(decoded), Is.EqualTo(encoded), mutation.Type.ToString());
 
-                var record = new T10CheckpointRecord(mutation);
-                T10CheckpointRecord decodedRecord = T10CheckpointRecord.Decode(record.Encode());
+                var record = new SceneStructureCheckpointRecord(mutation);
+                SceneStructureCheckpointRecord decodedRecord = SceneStructureCheckpointRecord.Decode(record.Encode());
                 Assert.That(decodedRecord.Value.GetType(), Is.EqualTo(mutation.GetType()), mutation.Type.ToString());
                 Assert.That(MutationPayloadCodec.Encode(decodedRecord.Value), Is.EqualTo(encoded), mutation.Type.ToString());
             }

@@ -1292,7 +1292,7 @@ namespace HBP.Tests.Transfer.Scene
 
             byte[] encodedCheckpoint = SceneMutationCheckpointCodec.Encode(1, source.CaptureCheckpoint());
             PublishedSceneCheckpoint publishedCheckpoint = SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
-            Assert.That(publishedCheckpoint.Checkpoint.T12Records, Has.Count.EqualTo(1));
+            Assert.That(publishedCheckpoint.Checkpoint.SiteFilterRecords, Has.Count.EqualTo(1));
 
             var firstReplica = new SiteState { IsFiltered = true };
             var secondReplica = new SiteState { IsFiltered = true };
@@ -1419,9 +1419,9 @@ namespace HBP.Tests.Transfer.Scene
 
                     byte[] encodedCheckpoint = SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint());
                     PublishedSceneCheckpoint published = SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
-                    Assert.That(published.Checkpoint.T13Records, Has.Count.EqualTo(1));
-                    Assert.That(published.Checkpoint.T13Records[0].HasResult, Is.True);
-                    Assert.That(published.Checkpoint.T13Records[0].DisplayCorrelations, Is.EqualTo(displayed));
+                    Assert.That(published.Checkpoint.CorrelationRecords, Has.Count.EqualTo(1));
+                    Assert.That(published.Checkpoint.CorrelationRecords[0].HasResult, Is.True);
+                    Assert.That(published.Checkpoint.CorrelationRecords[0].DisplayCorrelations, Is.EqualTo(displayed));
 
                     column.CorrelationBySitePair.Clear();
                     column.CorrelationMeanBySitePair.Clear();
@@ -1481,9 +1481,9 @@ namespace HBP.Tests.Transfer.Scene
 
                     byte[] encodedCheckpoint = SceneMutationCheckpointCodec.Encode(9, boundary.CaptureCheckpoint());
                     PublishedSceneCheckpoint published = SceneMutationCheckpointCodec.Decode(encodedCheckpoint);
-                    Assert.That(published.Checkpoint.T13Records, Has.Count.EqualTo(1));
-                    Assert.That(published.Checkpoint.T13Records[0].HasResult, Is.False);
-                    Assert.That(published.Checkpoint.T13Records[0].DisplayCorrelations, Is.EqualTo(displayed));
+                    Assert.That(published.Checkpoint.CorrelationRecords, Has.Count.EqualTo(1));
+                    Assert.That(published.Checkpoint.CorrelationRecords[0].HasResult, Is.False);
+                    Assert.That(published.Checkpoint.CorrelationRecords[0].DisplayCorrelations, Is.EqualTo(displayed));
 
                     column.CorrelationBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.5f };
                     column.CorrelationMeanBySitePair[site] = new Dictionary<HBP.Core.Object3D.Site, float> { [site] = 0.6f };
@@ -1820,6 +1820,9 @@ namespace HBP.Tests.Transfer.Scene
             try
             {
                 brainMaterials = InitializeTestBrainMaterials(scene);
+                var atlasManager = root.AddComponent<AtlasManager>();
+                SetPrivateField(scene, "m_AtlasManager", atlasManager);
+                SetPrivateField(atlasManager, "m_Scene", scene);
                 scene.SceneInformation.Initialized = true;
                 scene.SceneInformation.CompletelyLoaded = true;
                 scene.SceneInformation.GeometryNeedsUpdate = false;
@@ -2161,11 +2164,11 @@ namespace HBP.Tests.Transfer.Scene
             }
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(encoded).Checkpoint;
-            Assert.That(checkpoint.T09Records, Has.Count.EqualTo(31));
-            Assert.That(checkpoint.T09Records.Count(record => record.Value is SetSelectedSite), Is.EqualTo(1));
-            Assert.That(checkpoint.T09Records.Select(record => record.Value.Type), Does.Contain(OperationType.SetSceneBoolean));
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
-            Assert.That(checkpoint.T09Records.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.ShowAllSites), Is.True);
+            Assert.That(checkpoint.PresentationRecords, Has.Count.EqualTo(31));
+            Assert.That(checkpoint.PresentationRecords.Count(record => record.Value is SetSelectedSite), Is.EqualTo(1));
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value.Type), Does.Contain(OperationType.SetSceneBoolean));
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite), Is.True);
+            Assert.That(checkpoint.PresentationRecords.Select(record => record.Value).OfType<SetSceneBoolean>().Any(value => value.Property == SceneBooleanProperty.ShowAllSites), Is.True);
 
             var targetMutations = new List<Mutation>();
             target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => targetMutations.Add(mutation));
@@ -2255,7 +2258,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(echoes, Is.Empty);
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(22, source.Boundary.CaptureCheckpoint())).Checkpoint;
-            Assert.That(checkpoint.T11Records.Any(record => record.Value is SetSiteConfigurationBatch), Is.True);
+            Assert.That(checkpoint.ConfigurationRecords.Any(record => record.Value is SetSiteConfigurationBatch), Is.True);
             target.Site.State.IsFiltered = true;
             stateChanges = 0;
             target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(355));
@@ -3092,8 +3095,8 @@ namespace HBP.Tests.Transfer.Scene
         [Test]
         public void T11PreparedColumnResources_ObserveStableSelectionsAndRestoreCheckpoint()
         {
-            using var source = new T11PreparedResourceFixture();
-            using var target = new T11PreparedResourceFixture();
+            using var source = new PreparedColumnResourceFixture();
+            using var target = new PreparedColumnResourceFixture();
             source.Boundary.BindPreparedResources(CreateT11PreparedBinding(source.Scene));
             target.Boundary.BindPreparedResources(CreateT11PreparedBinding(target.Scene));
             var proposed = new List<Mutation>();
@@ -3129,8 +3132,8 @@ namespace HBP.Tests.Transfer.Scene
         [Test]
         public void T11CcepSource_CheckpointRestoresTheCompleteSiteSelectionWithoutEcho()
         {
-            using var source = new T11CcepFixture();
-            using var target = new T11CcepFixture();
+            using var source = new CcepSourceFixture();
+            using var target = new CcepSourceFixture();
             var proposed = new List<Mutation>();
             source.Boundary.OnMutationProposed.AddListener((_, mutation, _) => proposed.Add(mutation));
 
@@ -3144,7 +3147,7 @@ namespace HBP.Tests.Transfer.Scene
             Assert.That(proposal.MarsAtlasLabel, Is.EqualTo(-1));
 
             SceneMutationCheckpoint checkpoint = SceneMutationCheckpointCodec.Decode(SceneMutationCheckpointCodec.Encode(24, source.Boundary.CaptureCheckpoint())).Checkpoint;
-            Assert.That(checkpoint.T11Records.Any(record => record.Value is SetCcepSource), Is.True);
+            Assert.That(checkpoint.ConfigurationRecords.Any(record => record.Value is SetCcepSource), Is.True);
             var echoes = new List<Mutation>();
             target.Boundary.OnMutationProposed.AddListener((_, mutation, _) => echoes.Add(mutation));
             target.Boundary.ApplyCheckpoint(checkpoint, T09Operation(359));
@@ -3396,7 +3399,7 @@ namespace HBP.Tests.Transfer.Scene
 
             SceneMutationCheckpoint checkpoint = source.Boundary.CaptureCheckpoint();
             Assert.That(checkpoint.SiteColors, Is.Empty);
-            Assert.That(checkpoint.T11Records.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments, Has.Count.EqualTo(1));
+            Assert.That(checkpoint.ConfigurationRecords.Select(record => record.Value).OfType<SetSiteConfigurationBatch>().Single().Assignments, Has.Count.EqualTo(1));
             Assert.That(checkpoint.CutDefinitions, Has.Count.EqualTo(1));
             Assert.That(checkpoint.TimelineAnchors, Has.Count.EqualTo(1));
             var targetProposals = new List<Mutation>();
@@ -3833,7 +3836,7 @@ namespace HBP.Tests.Transfer.Scene
             }
         }
 
-        private sealed class T11PreparedResourceFixture : IDisposable
+        private sealed class PreparedColumnResourceFixture : IDisposable
         {
             public GameObject Root { get; }
             public Base3DScene Scene { get; }
@@ -3842,7 +3845,7 @@ namespace HBP.Tests.Transfer.Scene
             public Column3DMEG MegColumn { get; }
             public SceneMutationBoundary Boundary { get; }
 
-            public T11PreparedResourceFixture()
+            public PreparedColumnResourceFixture()
             {
                 Root = new GameObject("T11 prepared resources");
                 Root.SetActive(false);
@@ -3890,7 +3893,7 @@ namespace HBP.Tests.Transfer.Scene
             }
         }
 
-        private sealed class T11CcepFixture : IDisposable
+        private sealed class CcepSourceFixture : IDisposable
         {
             public GameObject Root { get; }
             public Base3DScene Scene { get; }
@@ -3898,7 +3901,7 @@ namespace HBP.Tests.Transfer.Scene
             public HBP.Core.Object3D.Site Site { get; }
             public SceneMutationBoundary Boundary { get; }
 
-            public T11CcepFixture()
+            public CcepSourceFixture()
             {
                 Root = new GameObject("T11 CCEP source");
                 Root.SetActive(false);

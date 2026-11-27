@@ -66,7 +66,7 @@ namespace HBP.Sync
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             SiteId = siteId;
-            ReplacementCuts = T09MutationCodec.ValidateReplacementCuts(replacementCuts);
+            ReplacementCuts = ScenePresentationMutationCodec.ValidateReplacementCuts(replacementCuts);
         }
     }
 
@@ -84,7 +84,7 @@ namespace HBP.Sync
             Value = value;
             if (replacementCuts != null && property != SceneBooleanProperty.AutomaticCutAroundSelectedSite)
                 throw new ArgumentException("Only the automatic cut policy can replace cuts.", nameof(replacementCuts));
-            ReplacementCuts = T09MutationCodec.ValidateReplacementCuts(replacementCuts);
+            ReplacementCuts = ScenePresentationMutationCodec.ValidateReplacementCuts(replacementCuts);
         }
     }
 
@@ -152,8 +152,8 @@ namespace HBP.Sync
             int bytes = 0;
             for (int i = 0; i < m_Labels.Length; i++)
             {
-                m_Labels[i] = T09ValueValidation.ValidateRequiredText(m_Labels[i], nameof(labels));
-                int length = T09ValueValidation.StrictUtf8.GetByteCount(m_Labels[i]);
+                m_Labels[i] = MutationValueValidation.ValidateRequiredText(m_Labels[i], nameof(labels));
+                int length = MutationValueValidation.StrictUtf8.GetByteCount(m_Labels[i]);
                 bytes = checked(bytes + 2 + length);
             }
 
@@ -170,7 +170,7 @@ namespace HBP.Sync
         public SetActivityAlpha(ColumnId columnId, float alpha)
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
-            T09ValueValidation.ValidateRange(alpha, 0f, 1f, nameof(alpha));
+            MutationValueValidation.ValidateRange(alpha, 0f, 1f, nameof(alpha));
             Alpha = alpha;
         }
     }
@@ -217,10 +217,10 @@ namespace HBP.Sync
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             if (modality != FunctionalModality.Fmri && modality != FunctionalModality.Meg) throw new ArgumentOutOfRangeException(nameof(modality));
-            T09ValueValidation.ValidateRange(negativeMinimum, 0f, 1f, nameof(negativeMinimum));
-            T09ValueValidation.ValidateRange(negativeMaximum, negativeMinimum, 1f, nameof(negativeMaximum));
-            T09ValueValidation.ValidateRange(positiveMinimum, 0f, 1f, nameof(positiveMinimum));
-            T09ValueValidation.ValidateRange(positiveMaximum, positiveMinimum, 1f, nameof(positiveMaximum));
+            MutationValueValidation.ValidateRange(negativeMinimum, 0f, 1f, nameof(negativeMinimum));
+            MutationValueValidation.ValidateRange(negativeMaximum, negativeMinimum, 1f, nameof(negativeMaximum));
+            MutationValueValidation.ValidateRange(positiveMinimum, 0f, 1f, nameof(positiveMinimum));
+            MutationValueValidation.ValidateRange(positiveMaximum, positiveMinimum, 1f, nameof(positiveMaximum));
             Modality = modality;
             NegativeMinimum = negativeMinimum;
             NegativeMaximum = negativeMaximum;
@@ -243,8 +243,8 @@ namespace HBP.Sync
 
         public SetIbcDifumoDisplay(bool ibcEnabled, string ibcContrastReference, bool difumoEnabled, string difumoAtlasReference, int difumoArea)
         {
-            IbcContrastReference = T09ValueValidation.ValidateOptionalText(ibcContrastReference, nameof(ibcContrastReference));
-            DifumoAtlasReference = T09ValueValidation.ValidateOptionalText(difumoAtlasReference, nameof(difumoAtlasReference));
+            IbcContrastReference = MutationValueValidation.ValidateOptionalText(ibcContrastReference, nameof(ibcContrastReference));
+            DifumoAtlasReference = MutationValueValidation.ValidateOptionalText(difumoAtlasReference, nameof(difumoAtlasReference));
             if (difumoArea < 0) throw new ArgumentOutOfRangeException(nameof(difumoArea));
             if (ibcEnabled && IbcContrastReference.Length == 0 || difumoEnabled && DifumoAtlasReference.Length == 0) throw new ArgumentException("An enabled atlas source requires a prepared-resource reference.");
             IbcEnabled = ibcEnabled;
@@ -267,9 +267,9 @@ namespace HBP.Sync
 
         public SetLocalizerDisplay(bool enabled, string protocolReference, string dataReference, string blocReference, int timelineIndex, float minimum, float middle, float maximum)
         {
-            ProtocolReference = T09ValueValidation.ValidateOptionalText(protocolReference, nameof(protocolReference));
-            DataReference = T09ValueValidation.ValidateOptionalText(dataReference, nameof(dataReference));
-            BlocReference = T09ValueValidation.ValidateOptionalText(blocReference, nameof(blocReference));
+            ProtocolReference = MutationValueValidation.ValidateOptionalText(protocolReference, nameof(protocolReference));
+            DataReference = MutationValueValidation.ValidateOptionalText(dataReference, nameof(dataReference));
+            BlocReference = MutationValueValidation.ValidateOptionalText(blocReference, nameof(blocReference));
             if (timelineIndex < 0) throw new ArgumentOutOfRangeException(nameof(timelineIndex));
             ValueValidation.ValidateFloat(minimum, nameof(minimum));
             ValueValidation.ValidateFloat(middle, nameof(middle));
@@ -295,11 +295,11 @@ namespace HBP.Sync
 
         public SetFmriAtlasCalibration(float alpha, float negativeMinimum, float negativeMaximum, float positiveMinimum, float positiveMaximum)
         {
-            T09ValueValidation.ValidateRange(alpha, 0f, 1f, nameof(alpha));
-            T09ValueValidation.ValidateRange(negativeMinimum, 0f, 1f, nameof(negativeMinimum));
-            T09ValueValidation.ValidateRange(negativeMaximum, negativeMinimum, 1f, nameof(negativeMaximum));
-            T09ValueValidation.ValidateRange(positiveMinimum, 0f, 1f, nameof(positiveMinimum));
-            T09ValueValidation.ValidateRange(positiveMaximum, positiveMinimum, 1f, nameof(positiveMaximum));
+            MutationValueValidation.ValidateRange(alpha, 0f, 1f, nameof(alpha));
+            MutationValueValidation.ValidateRange(negativeMinimum, 0f, 1f, nameof(negativeMinimum));
+            MutationValueValidation.ValidateRange(negativeMaximum, negativeMinimum, 1f, nameof(negativeMaximum));
+            MutationValueValidation.ValidateRange(positiveMinimum, 0f, 1f, nameof(positiveMinimum));
+            MutationValueValidation.ValidateRange(positiveMaximum, positiveMinimum, 1f, nameof(positiveMaximum));
             Alpha = alpha;
             NegativeMinimum = negativeMinimum;
             NegativeMaximum = negativeMaximum;
@@ -316,19 +316,19 @@ namespace HBP.Sync
 
         public SetSelectedRoiSphere(string roiId, string sphereId)
         {
-            RoiId = T09ValueValidation.ValidateRequiredText(roiId, nameof(roiId));
-            SphereId = T09ValueValidation.ValidateOptionalText(sphereId, nameof(sphereId));
+            RoiId = MutationValueValidation.ValidateRequiredText(roiId, nameof(roiId));
+            SphereId = MutationValueValidation.ValidateOptionalText(sphereId, nameof(sphereId));
         }
     }
 
-    public abstract class T09CheckpointRecord
+    public abstract class ScenePresentationCheckpointRecord
     {
         public abstract Mutation Value { get; }
         public ushort RecordType => (ushort)Value.Type;
         public ushort SchemaVersion => 1;
         public byte[] Encode() => CheckpointRecordCodec.Encode(RecordType, Value);
 
-        public static T09CheckpointRecord FromMutation(Mutation mutation) =>
+        public static ScenePresentationCheckpointRecord FromMutation(Mutation mutation) =>
             mutation switch
             {
                 SetSelectedColumn value => new SelectedColumnCheckpointRecord(value),
@@ -345,122 +345,122 @@ namespace HBP.Sync
                 SetLocalizerDisplay value => new LocalizerDisplayCheckpointRecord(value),
                 SetFmriAtlasCalibration value => new FmriAtlasCalibrationCheckpointRecord(value),
                 SetSelectedRoiSphere value => new SelectedRoiSphereCheckpointRecord(value),
-                _ => throw new ArgumentException("Mutation is not part of T09.", nameof(mutation))
+                _ => throw new ArgumentException("Mutation is not part of the scene presentation contract.", nameof(mutation))
             };
 
-        public static T09CheckpointRecord Decode(byte[] bytes)
+        public static ScenePresentationCheckpointRecord Decode(byte[] bytes)
         {
             Mutation value = CheckpointRecordCodec.DecodeAny(bytes);
             return FromMutation(value);
         }
     }
 
-    public abstract class T09CheckpointRecord<T> : T09CheckpointRecord where T : Mutation
+    public abstract class ScenePresentationCheckpointRecord<T> : ScenePresentationCheckpointRecord where T : Mutation
     {
         public T TypedValue { get; }
         public sealed override Mutation Value => TypedValue;
-        protected T09CheckpointRecord(T value) => TypedValue = value ?? throw new ArgumentNullException(nameof(value));
+        protected ScenePresentationCheckpointRecord(T value) => TypedValue = value ?? throw new ArgumentNullException(nameof(value));
     }
 
-    public sealed class SelectedColumnCheckpointRecord : T09CheckpointRecord<SetSelectedColumn>
+    public sealed class SelectedColumnCheckpointRecord : ScenePresentationCheckpointRecord<SetSelectedColumn>
     {
         public SelectedColumnCheckpointRecord(SetSelectedColumn value) : base(value)
         {
         }
     }
 
-    public sealed class SelectedSiteCheckpointRecord : T09CheckpointRecord<SetSelectedSite>
+    public sealed class SelectedSiteCheckpointRecord : ScenePresentationCheckpointRecord<SetSelectedSite>
     {
         public SelectedSiteCheckpointRecord(SetSelectedSite value) : base(value)
         {
         }
     }
 
-    public sealed class SceneBooleanCheckpointRecord : T09CheckpointRecord<SetSceneBoolean>
+    public sealed class SceneBooleanCheckpointRecord : ScenePresentationCheckpointRecord<SetSceneBoolean>
     {
         public SceneBooleanCheckpointRecord(SetSceneBoolean value) : base(value)
         {
         }
     }
 
-    public sealed class SceneFloatCheckpointRecord : T09CheckpointRecord<SetSceneFloat>
+    public sealed class SceneFloatCheckpointRecord : ScenePresentationCheckpointRecord<SetSceneFloat>
     {
         public SceneFloatCheckpointRecord(SetSceneFloat value) : base(value)
         {
         }
     }
 
-    public sealed class SceneColorCheckpointRecord : T09CheckpointRecord<SetSceneColor>
+    public sealed class SceneColorCheckpointRecord : ScenePresentationCheckpointRecord<SetSceneColor>
     {
         public SceneColorCheckpointRecord(SetSceneColor value) : base(value)
         {
         }
     }
 
-    public sealed class SiteHighlightCheckpointRecord : T09CheckpointRecord<SetSiteHighlight>
+    public sealed class SiteHighlightCheckpointRecord : ScenePresentationCheckpointRecord<SetSiteHighlight>
     {
         public SiteHighlightCheckpointRecord(SetSiteHighlight value) : base(value)
         {
         }
     }
 
-    public sealed class SiteLabelsCheckpointRecord : T09CheckpointRecord<SetSiteLabels>
+    public sealed class SiteLabelsCheckpointRecord : ScenePresentationCheckpointRecord<SetSiteLabels>
     {
         public SiteLabelsCheckpointRecord(SetSiteLabels value) : base(value)
         {
         }
     }
 
-    public sealed class ActivityAlphaCheckpointRecord : T09CheckpointRecord<SetActivityAlpha>
+    public sealed class ActivityAlphaCheckpointRecord : ScenePresentationCheckpointRecord<SetActivityAlpha>
     {
         public ActivityAlphaCheckpointRecord(SetActivityAlpha value) : base(value)
         {
         }
     }
 
-    public sealed class ColumnSpanCheckpointRecord : T09CheckpointRecord<SetColumnSpan>
+    public sealed class ColumnSpanCheckpointRecord : ScenePresentationCheckpointRecord<SetColumnSpan>
     {
         public ColumnSpanCheckpointRecord(SetColumnSpan value) : base(value)
         {
         }
     }
 
-    public sealed class FunctionalDisplayCheckpointRecord : T09CheckpointRecord<SetFunctionalDisplay>
+    public sealed class FunctionalDisplayCheckpointRecord : ScenePresentationCheckpointRecord<SetFunctionalDisplay>
     {
         public FunctionalDisplayCheckpointRecord(SetFunctionalDisplay value) : base(value)
         {
         }
     }
 
-    public sealed class IbcDifumoDisplayCheckpointRecord : T09CheckpointRecord<SetIbcDifumoDisplay>
+    public sealed class IbcDifumoDisplayCheckpointRecord : ScenePresentationCheckpointRecord<SetIbcDifumoDisplay>
     {
         public IbcDifumoDisplayCheckpointRecord(SetIbcDifumoDisplay value) : base(value)
         {
         }
     }
 
-    public sealed class LocalizerDisplayCheckpointRecord : T09CheckpointRecord<SetLocalizerDisplay>
+    public sealed class LocalizerDisplayCheckpointRecord : ScenePresentationCheckpointRecord<SetLocalizerDisplay>
     {
         public LocalizerDisplayCheckpointRecord(SetLocalizerDisplay value) : base(value)
         {
         }
     }
 
-    public sealed class FmriAtlasCalibrationCheckpointRecord : T09CheckpointRecord<SetFmriAtlasCalibration>
+    public sealed class FmriAtlasCalibrationCheckpointRecord : ScenePresentationCheckpointRecord<SetFmriAtlasCalibration>
     {
         public FmriAtlasCalibrationCheckpointRecord(SetFmriAtlasCalibration value) : base(value)
         {
         }
     }
 
-    public sealed class SelectedRoiSphereCheckpointRecord : T09CheckpointRecord<SetSelectedRoiSphere>
+    public sealed class SelectedRoiSphereCheckpointRecord : ScenePresentationCheckpointRecord<SetSelectedRoiSphere>
     {
         public SelectedRoiSphereCheckpointRecord(SetSelectedRoiSphere value) : base(value)
         {
         }
     }
 
-    internal static class T09ValueValidation
+    internal static class MutationValueValidation
     {
         internal static readonly UTF8Encoding StrictUtf8 = new(false, true);
 
@@ -497,7 +497,7 @@ namespace HBP.Sync
         }
     }
 
-    internal static class T09MutationCodec
+    internal static class ScenePresentationMutationCodec
     {
         internal static IReadOnlyList<SetCutDefinition> ValidateReplacementCuts(IEnumerable<SetCutDefinition> cuts)
         {
@@ -513,14 +513,14 @@ namespace HBP.Sync
             if (reader.BaseStream.Position == reader.BaseStream.Length) return null;
             int count = reader.ReadUInt16();
             if (count > 256) throw new InvalidDataException("Replacement cuts exceed their bound.");
-            return Enumerable.Range(0, count).Select(_ => T10MutationCodec.ReadCutDefinition(reader)).ToArray();
+            return Enumerable.Range(0, count).Select(_ => SceneStructureMutationCodec.ReadCutDefinition(reader)).ToArray();
         }
 
         private static void WriteReplacementCuts(BinaryWriter writer, IReadOnlyList<SetCutDefinition> cuts)
         {
             if (cuts == null) return;
             writer.Write((ushort)cuts.Count);
-            foreach (var cut in cuts) T10MutationCodec.WriteCompleteCutDefinition(writer, cut);
+            foreach (var cut in cuts) SceneStructureMutationCodec.WriteCompleteCutDefinition(writer, cut);
         }
 
         internal static Mutation ReadBody(BinaryReader reader, OperationType type)
@@ -572,7 +572,7 @@ namespace HBP.Sync
                 case OperationType.SetSelectedRoiSphere:
                     return new SetSelectedRoiSphere(ReadText(reader, allowEmpty: false), ReadText(reader));
                 default:
-                    throw new InvalidDataException("Unsupported T09 mutation type.");
+                    throw new InvalidDataException("Unsupported scene presentation mutation type.");
             }
         }
 
@@ -660,21 +660,21 @@ namespace HBP.Sync
                     WriteText(writer, value.RoiId);
                     WriteText(writer, value.SphereId);
                     break;
-                default: throw new ArgumentException("Unsupported T09 mutation type.", nameof(mutation));
+                default: throw new ArgumentException("Unsupported scene presentation mutation type.", nameof(mutation));
             }
         }
 
         private static T ReadEnum<T>(BinaryReader reader) where T : struct, Enum
         {
             byte value = reader.ReadByte();
-            if (!Enum.IsDefined(typeof(T), value)) throw new InvalidDataException("Invalid T09 enum value.");
+            if (!Enum.IsDefined(typeof(T), value)) throw new InvalidDataException("Invalid scene presentation enum value.");
             return (T)Enum.ToObject(typeof(T), value);
         }
 
         private static bool ReadBoolean(BinaryReader reader)
         {
             byte value = reader.ReadByte();
-            if (value > 1) throw new InvalidDataException("Invalid T09 boolean value.");
+            if (value > 1) throw new InvalidDataException("Invalid scene presentation boolean value.");
             return value == 1;
         }
 
@@ -697,15 +697,15 @@ namespace HBP.Sync
         private static string ReadText(BinaryReader reader, bool allowEmpty = true)
         {
             ushort length = reader.ReadUInt16();
-            if (length > 256 || (!allowEmpty && length == 0) || length > reader.BaseStream.Length - reader.BaseStream.Position) throw new InvalidDataException("Invalid T09 text length.");
+            if (length > 256 || (!allowEmpty && length == 0) || length > reader.BaseStream.Length - reader.BaseStream.Position) throw new InvalidDataException("Invalid scene presentation text length.");
             byte[] bytes = reader.ReadBytes(length);
             try
             {
-                return T09ValueValidation.StrictUtf8.GetString(bytes);
+                return MutationValueValidation.StrictUtf8.GetString(bytes);
             }
             catch (DecoderFallbackException exception)
             {
-                throw new InvalidDataException("Malformed T09 UTF-8 text.", exception);
+                throw new InvalidDataException("Malformed scene presentation UTF-8 text.", exception);
             }
         }
 
@@ -714,14 +714,14 @@ namespace HBP.Sync
             byte[] bytes;
             try
             {
-                bytes = T09ValueValidation.StrictUtf8.GetBytes(value);
+                bytes = MutationValueValidation.StrictUtf8.GetBytes(value);
             }
             catch (EncoderFallbackException exception)
             {
-                throw new InvalidDataException("Malformed T09 UTF-8 text.", exception);
+                throw new InvalidDataException("Malformed scene presentation UTF-8 text.", exception);
             }
 
-            if (bytes.Length > 256) throw new InvalidDataException("T09 text exceeds its bound.");
+            if (bytes.Length > 256) throw new InvalidDataException("Scene presentation text exceeds its bound.");
             writer.Write(checked((ushort)bytes.Length));
             writer.Write(bytes);
         }
