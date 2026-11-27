@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using HBP.Data.Module3D;
 using HBP.Sync;
 using HBP.Sync.Scene;
 using HBP.UI.Toolbar;
+using HBP.UI.Tools;
 using UnityEngine;
 using UnityEngine.UI;
 using AtlasSource = HBP.Data.Module3D.TriangleEraser.AtlasSource;
@@ -16,7 +18,6 @@ namespace HBP.Quest
         internal const float ContactRadius = .003f;
         private const float TriangleMarkerRadius = .00075f;
         private static readonly Color SelectingColor = new(.13f, .91f, .99f);
-        private const string ProjectionUnavailable = "Activity projection is unavailable on this column.";
 
         [SerializeField] private QuestWindow window;
         [SerializeField] private QuestAnatomyView view;
@@ -34,10 +35,17 @@ namespace HBP.Quest
         [SerializeField] private QuestLabelChoice regionPrefab;
 
         private readonly List<AtlasSource> atlases = new();
+        private readonly List<AtlasSource> availableAtlases = new();
         private readonly List<string> versions = new();
         private readonly List<QuestLabelChoice> rows = new();
         private TriangleEraser.AtlasRegion[] regions = Array.Empty<TriangleEraser.AtlasRegion>();
         private Base3DScene scene;
+        private Column3D selectedColumn;
+        private uint editReference;
+        private bool activityAvailable, atlasAvailable, updatingContext;
+        private DropdownPopupOptions modePopup, atlasPopup, versionPopup;
+        private AtlasSource? selectedAtlas;
+        private string selectedVersion;
         private uint regionReference;
         private AtlasSource? listedAtlas;
         private string listedVersion;
@@ -62,37 +70,67 @@ namespace HBP.Quest
         private TriangleEraser Eraser => scene != null ? scene.TriangleEraser : null;
         public bool Ready => view != null && IsReady(view.Scene);
         public bool HasGrip => grips[0] != null || grips[1] != null;
-        public bool CapturesGrip => isActiveAndEnabled && window.IsOpen && scene == view.Scene && IsReady(scene) && Eraser.IsEnabled && Eraser.Mode != TriangleSelectionMode.Atlas;
+        public bool CapturesGrip => isActiveAndEnabled && window.IsOpen && scene == view.Scene && IsReady(scene) &&
+            Eraser.IsEnabled && Eraser.Mode != TriangleSelectionMode.Atlas &&
+            (Eraser.Mode != TriangleSelectionMode.Activity || HasActivityTarget());
 
         private bool IsReady(Base3DScene candidate) => QuestAnatomySession.CanInteractWith(candidate) && candidate.IsVisible && !candidate.SceneInformation.GeometryNeedsUpdate && !candidate.IsSurfaceRepresentationTransitioning && candidate.TriangleEraser.HasEditableSurface && view.Find(candidate) is { IsPlaced: true, IsTransitioning: false, SurfaceHidden: false } && SceneReconciliationRecord.Get(candidate)?.Status is not (ReconciliationStatus.Reconciling or ReconciliationStatus.OutOfSync);
 
         private void Awake()
         {
+            modePopup = DropdownPopupOptions.Attach(mode, ModeUnavailableReason);
+            atlasPopup = DropdownPopupOptions.Attach(atlas);
+            versionPopup = DropdownPopupOptions.Attach(diFuMoVersion);
             mode.onValueChanged.AddListener(value =>
             {
-                if (CanEdit)
+                if (!CanEdit || (uint)value >= (uint)TriangleErasingMode.DropdownModes.Count || ModeUnavailableReason(value) != null)
                 {
-                    Eraser.Mode = TriangleErasingMode.DropdownModes[value];
-                    feedback = null;
-                    Refresh();
+                    if (Eraser != null) mode.SetValueWithoutNotify(TriangleErasingMode.DropdownModes.IndexOf(Eraser.Mode));
+                    return;
                 }
+
+                Eraser.Mode = TriangleErasingMode.DropdownModes[value];
+                feedback = null;
+                Refresh();
             });
             add.onValueChanged.AddListener(value => SetRemove(value, false));
             remove.onValueChanged.AddListener(value => SetRemove(value, true));
             angle.onEndEdit.AddListener(value => SetNumber(value, 180, number => Eraser.Degrees = Mathf.RoundToInt(number)));
-            activity.onEndEdit.AddListener(value => SetNumber(value, 100, number => Eraser.ActivityTolerance = number));
-            threshold.onEndEdit.AddListener(value => SetNumber(value, 1, number => Eraser.DiFuMoThreshold = number));
+            activity.onEndEdit.AddListener(value =>
+            {
+                if (Eraser?.Mode == TriangleSelectionMode.Activity && HasActivityTarget())
+                    SetNumber(value, 100, number => Eraser.ActivityTolerance = number);
+            });
+            threshold.onEndEdit.AddListener(value =>
+            {
+                if (regionsPanel.activeInHierarchy && selectedAtlas == AtlasSource.DiFuMo)
+                    SetNumber(value, 1, number => Eraser.DiFuMoThreshold = number);
+            });
             if (brushRadius != null)
             {
                 brushRadius.onEndEdit.AddListener(value => SetNumber(value, float.MaxValue, number => Eraser.BrushRadiusMillimeters = number));
                 brushRadius.KeyboardError += message => feedback = message;
             }
 
-            atlas.onValueChanged.AddListener(_ => regionsDirty = true);
-            diFuMoVersion.onValueChanged.AddListener(_ => regionsDirty = true);
+            atlas.onValueChanged.AddListener(index =>
+            {
+                if (!CanEdit || !atlas.interactable || (uint)index >= (uint)atlases.Count ||
+                    !Eraser.IsAtlasAvailable(atlases[index])) return;
+                selectedAtlas = atlases[index];
+                Refresh();
+            });
+            diFuMoVersion.onValueChanged.AddListener(index =>
+            {
+                if (!CanEdit || !diFuMoVersion.interactable || selectedAtlas != AtlasSource.DiFuMo ||
+                    (uint)index >= (uint)versions.Count || !Eraser.IsAtlasAvailable(AtlasSource.DiFuMo) ||
+                    !Eraser.GetLoadedDiFuMoVersions().Contains(versions[index])) return;
+                selectedVersion = versions[index];
+                Refresh();
+            });
             search.onValueChanged.AddListener(_ => regionsDirty = true);
             regionsButton.onClick.AddListener(() =>
             {
+                if (!HasCurrentContext || !regionsButton.interactable) return;
                 regionsPanel.SetActive(!regionsPanel.activeSelf);
                 Refresh();
             });
@@ -145,20 +183,24 @@ namespace HBP.Quest
 
         private void StopEditing()
         {
+            CloseAtlasPopups();
+            modePopup?.Close();
             for (int hand = 0; hand < grips.Length; hand++)
             {
                 EndGrip(hand, cancelled: true);
+                activityRequests[hand] = null;
                 if (markers?[hand] != null) markers[hand].gameObject.SetActive(false);
             }
 
             if (Eraser != null) Eraser.EndTriangleStroke(discardPending: true);
-            regionsPanel.SetActive(false);
             if (Eraser != null) Eraser.IsEnabled = false;
         }
 
         private void Update() => Refresh();
 
-        private bool CanEdit => !HasGrip && window.IsOpen && scene == view.Scene && IsReady(scene) && Eraser.IsEnabled && !Eraser.IsComputingSelection;
+        private bool HasCurrentContext => !updatingContext && scene != null && scene == view.Scene &&
+            selectedColumn == scene.SelectedColumn && editReference == Eraser.EditReferenceVersion;
+        private bool CanEdit => !HasGrip && window.IsOpen && HasCurrentContext && IsReady(scene) && Eraser.IsEnabled && !Eraser.IsComputingSelection;
         private bool CanCommit => session == null || !session.HasPendingTriangleMask(scene);
 
         private void Edit(Action<TriangleEraser> command, bool visibility = false)
@@ -191,15 +233,32 @@ namespace HBP.Quest
         private void Refresh()
         {
             if (view == null || window == null) return;
-            if (scene != view.Scene)
+            var nextScene = view.Scene;
+            var nextColumn = nextScene != null ? nextScene.SelectedColumn : null;
+            uint nextReference = nextScene != null ? nextScene.TriangleEraser.EditReferenceVersion : 0;
+            bool sceneChanged = scene != nextScene;
+            bool surfaceChanged = sceneChanged || editReference != nextReference;
+            if (surfaceChanged || selectedColumn != nextColumn)
             {
-                StopEditing();
-                scene = view.Scene;
-                listedAtlas = null;
-                listedVersion = null;
-                regions = Array.Empty<TriangleEraser.AtlasRegion>();
-                regionsDirty = true;
+                updatingContext = true;
+                modePopup?.Close();
+                activity.CancelEditing();
+                if (surfaceChanged)
+                {
+                    if (sceneChanged) StopEditing();
+                    else CloseAtlasPopups();
+                    angle.CancelEditing();
+                    brushRadius?.CancelEditing();
+                    listedAtlas = null;
+                    listedVersion = null;
+                    regionsDirty = true;
+                }
+
+                scene = nextScene;
+                selectedColumn = nextColumn;
+                editReference = nextReference;
                 feedback = null;
+                updatingContext = false;
             }
 
             if (!window.IsOpen || Eraser == null) return;
@@ -212,6 +271,12 @@ namespace HBP.Quest
             bool selected = Eraser.SelectedCount != 0;
             bool brushMode = Eraser.Mode == TriangleSelectionMode.Brush;
             bool atlasMode = Eraser.Mode == TriangleSelectionMode.Atlas;
+            bool canSelectActivity = ready && HasActivityTarget();
+            RefreshAtlasChoices(ready);
+            bool canSelectAtlas = atlases.Count != 0;
+            if (canSelectActivity != activityAvailable || canSelectAtlas != atlasAvailable) modePopup?.Close();
+            activityAvailable = canSelectActivity;
+            atlasAvailable = canSelectAtlas;
             mode.SetValueWithoutNotify(TriangleErasingMode.DropdownModes.IndexOf(Eraser.Mode));
             mode.interactable = editable;
             triangleOptions.SetActive(Eraser.IsSweepMode);
@@ -223,7 +288,7 @@ namespace HBP.Quest
             remove.SetIsOnWithoutNotify(Eraser.RemoveFromSelection);
             add.interactable = remove.interactable = editable;
             RefreshNumber(angle, Eraser.Degrees, editable);
-            RefreshNumber(activity, Eraser.ActivityTolerance, editable);
+            RefreshNumber(activity, Eraser.ActivityTolerance, editable && activityAvailable);
             if (brushRadius != null)
             {
                 brushRadius.interactable = editable;
@@ -240,8 +305,42 @@ namespace HBP.Quest
             keep.interactable = visibility && selected;
             undo.interactable = editable && Eraser.CanCancelLastAction && (!Eraser.WillUndoVisibility || visibility);
             reset.interactable = editable && (Eraser.MeshHasInvisibleTriangles ? visibility : selected);
-            status.text = !ready ? "Triangle editing is unavailable in the current view." : Eraser.IsComputingSelection ? "Selecting…" : feedback ?? (Eraser.Mode == TriangleSelectionMode.Activity && !Eraser.CanSelectActivity ? ProjectionUnavailable : atlasMode && atlases.Count == 0 ? "No compatible atlas is loaded." : "");
+            status.text = !ready ? "Triangle editing is unavailable in the current view." : Eraser.IsComputingSelection ? "Selecting…" :
+                Eraser.Mode == TriangleSelectionMode.Activity && !activityAvailable ? ActivityUnavailableReason :
+                atlasMode && !atlasAvailable ? TriangleErasingMode.NoCompatibleAtlas : feedback ?? "";
             status.gameObject.SetActive(status.text.Length > 0);
+        }
+
+        private bool HasActivityTarget()
+        {
+            foreach (var column in view.Columns)
+                if (view.CanInteractWithColumn(column) && Eraser.CanSelectActivity(column.Column))
+                    return true;
+            return false;
+        }
+
+        private string ActivityUnavailableReason => scene.IsActivityProjectionBusy
+            ? TriangleErasingMode.ComputingActivityProjection
+            : TriangleErasingMode.NoActivityProjection;
+
+        private string ModeUnavailableReason(int index)
+        {
+            if (!HasCurrentContext || (uint)index >= (uint)TriangleErasingMode.DropdownModes.Count) return TriangleErasingMode.NotAvailable;
+            return TriangleErasingMode.DropdownModes[index] switch
+            {
+                TriangleSelectionMode.Activity when !HasActivityTarget() => ActivityUnavailableReason,
+                TriangleSelectionMode.Atlas when !atlases.Any(Eraser.IsAtlasAvailable) => TriangleErasingMode.NoCompatibleAtlas,
+                _ => null
+            };
+        }
+
+        private void CloseAtlasPopups()
+        {
+            atlasPopup?.Close();
+            versionPopup?.Close();
+            regionsPanel.SetActive(false);
+            threshold.CancelEditing();
+            search.CancelEditing();
         }
 
         private static void RefreshNumber(QuestTextInputField field, float value, bool editable)
@@ -258,37 +357,36 @@ namespace HBP.Quest
                 regionsDirty = true;
             }
 
-            AtlasSource? previous = atlas.value < atlases.Count ? atlases[atlas.value] : null;
-            if (RefreshAtlases())
-            {
-                atlas.ClearOptions();
-                atlas.AddOptions(atlases.ConvertAll(value => value.ToString()));
-                atlas.SetValueWithoutNotify(previous.HasValue ? Mathf.Max(0, atlases.IndexOf(previous.Value)) : 0);
-            }
-
-            AtlasSource? source = atlases.Count == 0 ? null : atlases[atlas.value];
+            AtlasSource? source = atlases.Count == 0 ? null : selectedAtlas;
+            atlas.SetValueWithoutNotify(source.HasValue ? atlases.IndexOf(source.Value) : 0);
             bool difumo = source == AtlasSource.DiFuMo;
             string version = null;
             if (difumo)
             {
                 var loaded = Eraser.GetLoadedDiFuMoVersions();
-                if (!System.Linq.Enumerable.SequenceEqual(versions, loaded))
+                if (!versions.SequenceEqual(loaded))
                 {
-                    string prior = diFuMoVersion.value < versions.Count ? versions[diFuMoVersion.value] : null;
+                    versionPopup?.Close();
+                    if (selectedVersion != null && !loaded.Contains(selectedVersion)) CloseAtlasPopups();
                     versions.Clear();
                     versions.AddRange(loaded);
                     diFuMoVersion.ClearOptions();
                     diFuMoVersion.AddOptions(versions);
-                    diFuMoVersion.SetValueWithoutNotify(Mathf.Max(0, versions.IndexOf(prior)));
                 }
 
-                if (versions.Count != 0) version = versions[diFuMoVersion.value];
+                if (versions.Count != 0)
+                {
+                    if (!versions.Contains(selectedVersion)) selectedVersion = versions[0];
+                    version = selectedVersion;
+                    diFuMoVersion.SetValueWithoutNotify(versions.IndexOf(version));
+                }
             }
 
             atlas.interactable = editable && atlases.Count != 0;
             diFuMoVersion.gameObject.SetActive(difumo);
-            diFuMoVersion.interactable = editable && versions.Count != 0;
+            diFuMoVersion.interactable = editable && difumo && versions.Count != 0;
             if (!source.HasValue) regionsPanel.SetActive(false);
+            regionsButton.gameObject.SetActive(source.HasValue);
             regionsButton.interactable = regionsPanel.activeSelf || editable && source.HasValue;
             if (!regionsPanel.activeSelf) return;
             diFuMoWeightOptions.SetActive(difumo);
@@ -308,6 +406,8 @@ namespace HBP.Quest
             if (regionsDirty)
             {
                 regionsDirty = false;
+                var regionScene = scene;
+                uint reference = editReference;
                 int index = 0;
                 foreach (var region in regions)
                 {
@@ -316,7 +416,12 @@ namespace HBP.Quest
                     var row = rows[index++];
                     row.gameObject.SetActive(true);
                     int id = region.Id;
-                    row.Bind(region.Name, Eraser.IsAtlasRegionSelected(source.Value, version, id), (_, check) => { Edit(value => value.SetAtlasRegionSelected(source.Value, version, id, check)); });
+                    row.Bind(region.Name, Eraser.IsAtlasRegionSelected(source.Value, version, id), (_, check) =>
+                    {
+                        if (regionsPanel.activeInHierarchy && scene == regionScene && editReference == reference &&
+                            selectedAtlas == source && (source != AtlasSource.DiFuMo || selectedVersion == version))
+                            Edit(value => value.SetAtlasRegionSelected(source.Value, version, id, check));
+                    });
                 }
 
                 for (int i = index; i < rows.Count; i++) rows[i].gameObject.SetActive(false);
@@ -331,30 +436,22 @@ namespace HBP.Quest
             }
         }
 
-        private bool RefreshAtlases()
+        private void RefreshAtlasChoices(bool ready)
         {
-            int index = 0;
-            bool changed = false;
-            for (var source = AtlasSource.MarsAtlas; source <= AtlasSource.DiFuMo; source++)
-            {
-                if (!Eraser.IsAtlasAvailable(source)) continue;
-                if (index == atlases.Count)
-                {
-                    atlases.Add(source);
-                    changed = true;
-                }
-                else if (atlases[index] != source)
-                {
-                    atlases[index] = source;
-                    changed = true;
-                }
+            if (ready) Eraser.GetAvailableAtlases(availableAtlases);
+            else availableAtlases.Clear();
+            if (atlas.options.Count > 0 && atlases.SequenceEqual(availableAtlases) &&
+                (atlases.Count > 0 || atlas.options[0].text == TriangleErasingMode.NotAvailable)) return;
 
-                index++;
-            }
-
-            if (index == atlases.Count) return changed;
-            atlases.RemoveRange(index, atlases.Count - index);
-            return true;
+            atlasPopup?.Close();
+            if (selectedAtlas.HasValue && !availableAtlases.Contains(selectedAtlas.Value)) CloseAtlasPopups();
+            atlases.Clear();
+            atlases.AddRange(availableAtlases);
+            atlas.ClearOptions();
+            atlas.AddOptions(atlases.Count == 0 ? new List<string> { TriangleErasingMode.NotAvailable } : atlases.ConvertAll(value => value.ToString()));
+            if (atlases.Count > 0 && (!selectedAtlas.HasValue || !atlases.Contains(selectedAtlas.Value)))
+                selectedAtlas = atlases[0];
+            atlas.interactable = atlases.Count > 0;
         }
 
         internal bool IsCaptured(int owner) => grips[owner] is { } grip && Eraser != null && Eraser.EditReferenceVersion == grip.Reference;
@@ -488,6 +585,13 @@ namespace HBP.Quest
             if (grip.Column == null) grip.Column = FindColumn(position, distance, out face);
             else Eraser.TryContact(grip.Column.Column, position, ref distance, out face);
             if (face < 0) return;
+            if (grip.Mode == TriangleSelectionMode.Activity && !Eraser.CanSelectActivity(grip.Column.Column))
+            {
+                feedback = TriangleErasingMode.NoActivityProjection;
+                grip.Column = null;
+                return;
+            }
+
             if (grip.Mode == TriangleSelectionMode.Triangle)
             {
                 Eraser.RetouchTriangleStroke(face);
@@ -496,11 +600,15 @@ namespace HBP.Quest
 
             grip.Seeded = true;
             bool activity = grip.Mode == TriangleSelectionMode.Activity;
+            feedback = null;
             if (activity) activityRequests[owner] = grip;
-            if (!Eraser.RetouchStrokeSeed(grip.Column.Column, face, () => !grip.Cancelled, () => activityRequests[owner] = null) && activity)
+            if (!Eraser.RetouchStrokeSeed(grip.Column.Column, face, () => !grip.Cancelled, () =>
+                {
+                    if (activityRequests[owner] == grip) activityRequests[owner] = null;
+                }) && activity)
             {
                 activityRequests[owner] = null;
-                feedback = ProjectionUnavailable;
+                feedback = TriangleErasingMode.NoActivityProjection;
             }
         }
 

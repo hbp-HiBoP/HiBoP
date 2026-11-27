@@ -2546,7 +2546,8 @@ namespace HBP.Data.Module3D
         {
             RequireColumn(column);
             if (IsSurfaceRepresentationTransitioning) return;
-            bool selecting = m_TriangleEraser.IsClickAvailable && !m_ROIManager.ROICreationMode;
+            bool selecting = m_TriangleEraser.IsClickAvailable && !m_ROIManager.ROICreationMode &&
+                (m_TriangleEraser.Mode != TriangleSelectionMode.Activity || m_TriangleEraser.CanSelectActivity(column));
             bool full = selecting || m_TriangleEraser.MeshHasInvisibleTriangles || (m_ROIManager.ROICreationMode && !m_MeshManager.CanClipBrainSurface);
             RaycastHitResult raycastResult = RaycastDesktop(ray, column, full, out RaycastHit hit, out int face, out Vector3 hitPoint, out float surfaceDistance, includeErased: selecting);
 

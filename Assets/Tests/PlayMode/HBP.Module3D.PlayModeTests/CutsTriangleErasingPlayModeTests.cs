@@ -497,7 +497,7 @@ namespace HBP.Tests.PlayMode.Module3D
             regions.Window.transform.SetParent(regionsButton.transform, false);
             regions.Window.SetActive(false);
             regions.OnChangeWindowState = new BoolEvent();
-            Dropdown atlas = CreateDropdown("Atlas Dropdown", "No atlas loaded");
+            Dropdown atlas = CreateDropdown("Atlas Dropdown", "Option 1");
             Dropdown version = CreateDropdown("DiFuMo Version");
             TriangleErasingMode modeTool = CreateTool<TriangleErasingMode>("Triangle Erasing Mode", tool =>
             {
@@ -544,16 +544,37 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(remove.gameObject.activeInHierarchy, Is.False);
 
             dropdown.value = 3;
+            Assert.That(eraser.Mode, Is.EqualTo(TriangleSelectionMode.Angle));
+            Assert.That(dropdown.value, Is.EqualTo(2));
+
+            eraser.Mode = TriangleSelectionMode.Activity;
+            modeTool.UpdateStatus();
             Assert.That(degrees.gameObject.activeInHierarchy, Is.False);
             Assert.That(activity.gameObject.activeInHierarchy, Is.True);
-            Assert.That(activity.interactable, Is.True);
+            Assert.That(activity.interactable, Is.False);
             activity.onEndEdit.Invoke("35");
-            Assert.That(eraser.ActivityTolerance, Is.EqualTo(35));
+            Assert.That(eraser.ActivityTolerance, Is.EqualTo(20));
 
             dropdown.value = 4;
+            Assert.That(eraser.Mode, Is.EqualTo(TriangleSelectionMode.Activity));
+            eraser.Mode = TriangleSelectionMode.Atlas;
+            modeTool.UpdateStatus();
             Assert.That(atlas.gameObject.activeInHierarchy, Is.True);
+            Assert.That(atlas.options.Select(option => option.text), Is.EqualTo(new[] { "Not available" }));
+            Assert.That(atlas.interactable, Is.False);
             Assert.That(version.gameObject.activeInHierarchy, Is.False);
             Assert.That(regionsButton.interactable, Is.False);
+
+            Base3DScene otherScene = CreateIsolatedCutsTriangleErasingScene(scene, temp, "other");
+            modeTool.SelectedScene = otherScene;
+            modeTool.UpdateStatus();
+            Assert.That(dropdown.value, Is.EqualTo(0));
+            Assert.That(atlas.gameObject.activeSelf, Is.False);
+            modeTool.SelectedScene = baseScene;
+            modeTool.UpdateStatus();
+            Assert.That(dropdown.value, Is.EqualTo(4));
+            Assert.That(eraser.Mode, Is.EqualTo(TriangleSelectionMode.Atlas));
+            Assert.That(atlas.options[0].text, Is.EqualTo("Not available"));
 
             dropdown.value = 1;
             Assert.That(brushRadius.gameObject.activeInHierarchy, Is.True);

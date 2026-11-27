@@ -32,6 +32,8 @@ namespace HBP.Data.Module3D
             DiFuMo
         }
 
+        private static readonly AtlasSource[] s_AtlasSources = (AtlasSource[])Enum.GetValues(typeof(AtlasSource));
+
         public readonly struct AtlasRegion
         {
             public int Id { get; }
@@ -46,11 +48,25 @@ namespace HBP.Data.Module3D
 
         internal UniTask SelectionWork { get; private set; } = UniTask.CompletedTask;
         public bool IsComputingSelection { get; private set; }
-        public bool CanSelectActivity => m_Scene.HasSurfaceActivityProjection && !m_Scene.IsActivityProjectionBusy && SurfaceGenerator.SupportsReadActivity;
+        public bool CanSelectActivity(Column3D column) =>
+            column && column is not Column3DAnatomy && column.ActivityGenerator?.ProjectionGrid != null &&
+            m_Scene.Columns.Contains(column) && HasEditableSurface && !m_Scene.IsClosing &&
+            !m_Scene.IsSurfaceRepresentationTransitioning && !m_Scene.SceneInformation.GeometryNeedsUpdate &&
+            !m_Scene.IsActivityProjectionBusy && m_Scene.HasSurfaceActivityProjection && SurfaceGenerator.SupportsReadActivity;
+
+        public void GetAvailableAtlases(List<AtlasSource> available)
+        {
+            available.Clear();
+            foreach (var source in s_AtlasSources)
+                if (IsAtlasAvailable(source))
+                    available.Add(source);
+        }
 
         public bool IsAtlasAvailable(AtlasSource source)
         {
-            if (m_Scene.MeshManager.ReferenceSurface == null || m_Scene.MeshManager.Meshes.Count == 0) return false;
+            if (!HasEditableSurface || m_Scene.IsClosing || m_Scene.SceneInformation.GeometryNeedsUpdate ||
+                m_Scene.IsSurfaceRepresentationTransitioning || m_Scene.MeshManager.ReferenceSurface == null ||
+                m_Scene.MeshManager.Meshes.Count == 0) return false;
             var mesh = m_Scene.MeshManager.SelectedMesh;
             return source switch
             {
@@ -217,8 +233,8 @@ namespace HBP.Data.Module3D
         private bool TryCreateActivitySelection(Column3D column, int seed, float tolerancePercent, Func<bool> isCurrent, Action<IEnumerable<int>> publish, out Func<UniTask> selection)
         {
             selection = null;
-            ActivityGenerator activity = column ? column.ActivityGenerator : null;
-            if (!CanSelectActivity || activity?.ProjectionGrid == null) return false;
+            if (!CanSelectActivity(column)) return false;
+            ActivityGenerator activity = column.ActivityGenerator;
             int sample = column switch
             {
                 Column3DDynamic dynamic => dynamic.CurrentProjectionSample.Index,
@@ -265,7 +281,7 @@ namespace HBP.Data.Module3D
                 }
             }
 
-            bool CanRead() => (isCurrent == null || isCurrent()) && CanPublish(reference, revision) && CanSelectActivity && column && column.ActivityGenerator == activity && m_Scene.ActivityInputGeneration == activityGeneration;
+            bool CanRead() => (isCurrent == null || isCurrent()) && CanPublish(reference, revision) && CanSelectActivity(column) && column.ActivityGenerator == activity && m_Scene.ActivityInputGeneration == activityGeneration;
         }
 
         private bool CanPublish(Surface reference, int revision) => IsEnabled && revision == m_EditRevision && !m_Scene.IsClosing && !m_Scene.SceneInformation.GeometryNeedsUpdate && ReferenceEquals(reference, m_Scene.MeshManager.ReferenceSurface);

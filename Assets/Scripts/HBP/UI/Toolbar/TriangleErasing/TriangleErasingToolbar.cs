@@ -17,6 +17,7 @@ namespace HBP.UI.Toolbar
 
         private void UpdateScene(Base3DScene selected)
         {
+            m_TriangleErasingMode.InvalidateScene(selected);
             foreach (Base3DScene scene in Module3DMain.Scenes)
                 scene.TriangleEraser.IsEnabled = m_Open && scene == selected;
         }

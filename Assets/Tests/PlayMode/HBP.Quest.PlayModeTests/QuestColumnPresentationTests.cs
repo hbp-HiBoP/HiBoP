@@ -490,6 +490,109 @@ namespace HBP.Tests.Quest
 
         private static void RefreshRow(QuestSceneRow row) => typeof(QuestSceneRow).GetMethod("Refresh", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(row, null);
 
+        [Test]
+        public async Task TriangleErasingSuspendsActivityAndClosesPopupsAcrossContexts()
+        {
+            using var first = new Fixture(dynamicFirst: true);
+            using var second = new Fixture();
+            using var surface = new HBP.Core.DLL.Surface();
+            using var grid = new HBP.Core.DLL.ActivityProjectionGrid();
+            using var generator = new HBP.Core.DLL.IEEGGenerator();
+            using var density = new HBP.Core.DLL.DensityGenerator();
+            typeof(HBP.Core.DLL.ActivityGenerator).GetProperty("ProjectionGrid").SetValue(generator, grid);
+            typeof(HBP.Core.DLL.ActivityGenerator).GetProperty("ProjectionGrid").SetValue(density, grid);
+            typeof(Column3D).GetProperty("ActivityGenerator").SetValue(first.Columns[0].Column, generator);
+            typeof(Column3D).GetProperty("ActivityGenerator").SetValue(first.Columns[1].Column, density);
+            first.SetProjection(ActivityProjectionState.Ready);
+            var firstEraser = PrepareEraser(first.Scene);
+            var secondEraser = PrepareEraser(second.Scene);
+            secondEraser.Mode = TriangleSelectionMode.Atlas;
+            QuestSceneTestBinding.Attach(first.View, second.Scene).AddRange(second.Columns);
+            first.View.SelectContext(first.Scene, first.Columns[0].Column);
+
+            var root = Object.Instantiate(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Quest/UI/Quest Triangle Erasing Window.prefab"));
+            try
+            {
+                root.GetComponent<QuestWindowFollower>().enabled = false;
+                var panel = root.GetComponent<QuestTriangleErasingPanel>();
+                QuestWindowInteractionTests.Set(panel, "view", first.View);
+                root.GetComponent<QuestWindow>().Open();
+                var fields = new SerializedObject(panel);
+                var mode = (QuestDropdown)fields.FindProperty("mode").objectReferenceValue;
+                var atlas = (QuestDropdown)fields.FindProperty("atlas").objectReferenceValue;
+                var activity = (QuestTextInputField)fields.FindProperty("activity").objectReferenceValue;
+                var refresh = typeof(QuestTriangleErasingPanel).GetMethod("Refresh", BindingFlags.NonPublic | BindingFlags.Instance);
+                await UniTask.NextFrame();
+
+                mode.value = 3;
+                Assert.That(firstEraser.Mode, Is.EqualTo(TriangleSelectionMode.Activity));
+                Assert.That(panel.CapturesGrip, Is.True);
+                mode.Show();
+                await UniTask.NextFrame();
+                var popup = mode.transform.Find("Dropdown List");
+                Assert.That(popup, Is.Not.Null);
+                var options = popup.GetComponentsInChildren<Toggle>();
+                Assert.That(options[3].interactable, Is.True);
+                Assert.That(options[4].interactable, Is.False);
+
+                first.View.SelectContext(first.Scene, first.Columns[1].Column);
+                refresh.Invoke(panel, null);
+                Assert.That(popup.gameObject.activeSelf, Is.False);
+                Assert.That(firstEraser.Mode, Is.EqualTo(TriangleSelectionMode.Activity));
+                Assert.That(activity.interactable, Is.False);
+                Assert.That(panel.CapturesGrip, Is.False);
+
+                Assert.That(first.View.SetColumnDisplayMode(first.Scene, QuestColumnDisplayMode.Split), Is.True);
+                first.Advance(1);
+                refresh.Invoke(panel, null);
+                Assert.That(panel.CapturesGrip, Is.True, "Split can still target the visible functional column.");
+                Assert.That(first.View.SetColumnDisplayMode(first.Scene, QuestColumnDisplayMode.Single), Is.True);
+                first.Advance(1);
+                refresh.Invoke(panel, null);
+                Assert.That(panel.CapturesGrip, Is.False);
+
+                mode.Show();
+                await UniTask.NextFrame();
+                popup = mode.transform.Find("Dropdown List");
+                Assert.That(popup.GetComponentsInChildren<Toggle>()[3].interactable, Is.False);
+                first.View.SelectContext(second.Scene, second.Columns[0].Column);
+                mode.onValueChanged.Invoke(0);
+                Assert.That(secondEraser.Mode, Is.EqualTo(TriangleSelectionMode.Atlas));
+                refresh.Invoke(panel, null);
+                Assert.That(popup.gameObject.activeSelf, Is.False);
+                Assert.That(mode.value, Is.EqualTo(4));
+                Assert.That(atlas.captionText.text, Is.EqualTo("Not available"));
+                Assert.That(atlas.interactable, Is.False);
+                Assert.That(firstEraser.IsEnabled, Is.False);
+
+                first.View.SelectContext(first.Scene, first.Columns[0].Column);
+                refresh.Invoke(panel, null);
+                Assert.That(mode.value, Is.EqualTo(3));
+                Assert.That(activity.interactable, Is.True);
+                Assert.That(panel.CapturesGrip, Is.True);
+                Assert.That(firstEraser.VisibilityMask, Is.All.EqualTo(1));
+                Assert.That(secondEraser.VisibilityMask, Is.All.EqualTo(1));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                typeof(Column3D).GetProperty("ActivityGenerator").SetValue(first.Columns[0].Column, null);
+                typeof(Column3D).GetProperty("ActivityGenerator").SetValue(first.Columns[1].Column, null);
+            }
+
+            TriangleEraser PrepareEraser(Base3DScene scene)
+            {
+                var meshManager = scene.gameObject.AddComponent<MeshManager>();
+                typeof(MeshManager).GetProperty("BrainSurface").SetValue(meshManager, surface);
+                QuestWindowInteractionTests.Set(scene, "m_MeshManager", meshManager);
+                var eraser = scene.gameObject.AddComponent<TriangleEraser>();
+                QuestWindowInteractionTests.Set(scene, "m_TriangleEraser", eraser);
+                QuestWindowInteractionTests.Set(eraser, "m_Scene", scene);
+                QuestWindowInteractionTests.Set(eraser, "m_Visibility", new[] { 1, 1 });
+                return eraser;
+            }
+        }
+
         private sealed class Fixture : IDisposable
         {
             private readonly GameObject data = new("Inactive scientific fixture"), root = new("Column presentations");
