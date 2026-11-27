@@ -189,7 +189,7 @@ namespace HBP.Quest.Desktop
                     selectedEndpoint = candidate.Endpoint.AddressText;
                     return;
                 }
-                catch (Exception error) when (error is not System.Security.Authentication.AuthenticationException && error is not QuestContextException && !token.IsCancellationRequested)
+                catch (Exception error) when (error is not (System.Security.Authentication.AuthenticationException or QuestContextException or QuestVersionMismatchException) && !token.IsCancellationRequested)
                 {
                     failure = error;
                     if (BlockingError != null) break;

@@ -61,7 +61,7 @@ namespace HBP.Quest.Desktop
         public bool HasRetryableDelivery => publications.Values.Any(value => value.Error != null && value.Offer?.CanRetry == true);
 
         private byte[] pin, credential;
-        private string endpoint, store;
+        private string endpoint, store, applicationVersion;
         private bool reconciliationNeedsRetry;
         private PairingSnapshot globals;
         private DesktopSessionPreferences sessionPreferences;
@@ -164,6 +164,7 @@ namespace HBP.Quest.Desktop
         protected override void Initialization()
         {
             base.Initialization();
+            applicationVersion = Application.version;
             store = Path.Combine(Application.persistentDataPath, "QuestPairings");
             PairingTiming.OnMeasured += LogPairingTiming;
             InitializeSceneLifecycle();
@@ -193,7 +194,7 @@ namespace HBP.Quest.Desktop
                 nextHeartbeat = Time.unscaledTime + 5;
                 _ = RunAsync(async token =>
                 {
-                    bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token);
+                    bool ready = await QuestPairing.PingAsync(endpoint, pin, credential, token, applicationVersion);
                     if (!ready || !IsPaired || sessionPreferences == null) await RestoreAsync(token);
                     // A live app may still be loading a large atlas. Keep that owner and its
                     // in-flight native request while scenes wait for its confirmation.
@@ -212,9 +213,9 @@ namespace HBP.Quest.Desktop
             bool active = false;
             try
             {
-                active = await QuestPairing.IsHeadsetActiveAsync(endpoint, pin, credential, lifetime.Token);
+                active = await QuestPairing.IsHeadsetActiveAsync(endpoint, pin, credential, lifetime.Token, applicationVersion);
             }
-            catch (Exception error) when (IsQuestConnectionInterruption(error) || error is IOException or AuthenticationException)
+            catch (Exception error) when (IsQuestConnectionInterruption(error) || error is IOException or AuthenticationException or QuestVersionMismatchException)
             {
                 // A failed presence probe releases the sleep hold. The session owns reconnects.
             }
@@ -348,6 +349,7 @@ namespace HBP.Quest.Desktop
         {
             if (candidate == null && IsSelectedConnected)
             {
+                await QuestPairing.CheckVersionAsync(endpoint, pin, applicationVersion, token);
                 await PrepareDatabaseAsync(token);
                 {
                     var stop = token;
@@ -393,6 +395,8 @@ namespace HBP.Quest.Desktop
             pin = (byte[])nextPin.Clone();
             endpoint = route.ConnectionAddress;
             activeEndpoint = route;
+            SetStatus("Checking Quest compatibility");
+            await QuestPairing.CheckVersionAsync(endpoint, pin, applicationVersion, token);
             if (credential == null) credential = await Task.Run(() => ReadCredential(pin), token);
             await UniTask.SwitchToMainThread(token);
             if (automatic && credential == null) throw new AuthenticationException("Pair this Quest manually before connecting automatically.");
@@ -456,7 +460,7 @@ namespace HBP.Quest.Desktop
         private async Task AuthenticateWithCodeAsync(Func<CancellationToken, UniTask<InputDialogResult>> requestCode, CancellationToken token)
         {
             if (requestCode == null) throw new AuthenticationException("Connect manually to enter the Quest code.");
-            Guid codeRequest = await QuestPairing.RequestCodeAsync(endpoint, pin, token);
+            Guid codeRequest = await QuestPairing.RequestCodeAsync(endpoint, pin, token, applicationVersion: applicationVersion);
             try
             {
                 InputDialogResult answer;
@@ -479,7 +483,7 @@ namespace HBP.Quest.Desktop
                     SetStatus("Checking the Quest code");
                     pairingTiming?.Dispose();
                     pairingTiming = PairingTiming.Measure("desktop.pairing-total");
-                    credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, stop);
+                    credential = await QuestPairing.AuthenticateAsync(endpoint, pin, answer.Value, true, stop, applicationVersion);
                     // Once received, persist even if cancellation arrives: the receiver already owns this secret.
                     await Task.Run(() => PairingStorage.Write(CredentialPath(pin), credential));
                     stop.ThrowIfCancellationRequested();
@@ -490,7 +494,7 @@ namespace HBP.Quest.Desktop
                 try
                 {
                     using var close = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-                    await QuestPairing.RequestCodeAsync(endpoint, pin, close.Token, codeRequest);
+                    await QuestPairing.RequestCodeAsync(endpoint, pin, close.Token, codeRequest, applicationVersion);
                 }
                 catch (Exception)
                 {
@@ -506,7 +510,7 @@ namespace HBP.Quest.Desktop
             globals ??= await PairingSnapshot.CaptureAsync(token, definitionsRevision: definitionsRevision);
             foreach (var entry in publications.Values) entry.Owner?.SuspendForAtlasSynchronization();
             sessionPreferences?.Dispose();
-            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences, atlasIntents, stop => QuestPairing.PingAsync(endpoint, pin, credential, stop));
+            var controls = new DesktopSessionPreferences(Guid.ParseExact(globals.Context.Id, "N"), ++sessionGeneration, PersistentDataManager.UserPreferences, (request, stop) => QuestPairing.SendSessionControlAsync(endpoint, pin, credential, request, stop), globals.Context.Data.Preferences, atlasIntents, stop => QuestPairing.PingAsync(endpoint, pin, credential, stop, applicationVersion));
             sessionPreferences = controls;
             controls.OnAtlasError.AddListener(message =>
             {
@@ -525,14 +529,14 @@ namespace HBP.Quest.Desktop
             {
                 SetStatus("Applying shared preferences and definitions on Quest");
                 // TCP/USB can remain reachable while Unity is asleep. Probe the app before a long globals transfer.
-                await QuestPairing.PingAsync(endpoint, pin, credential, token);
+                await QuestPairing.PingAsync(endpoint, pin, credential, token, applicationVersion);
                 bool installedGlobals = false;
                 using (PairingTiming.Measure("desktop.globals-resume"))
                     await QuestPairing.ResumeAsync(endpoint, pin, credential, globals.Context.Id, token, async (stream, stop) =>
                     {
                         installedGlobals = true;
                         return await SendGlobalsAsync(stream, stop);
-                    });
+                    }, applicationVersion);
                 SetStatus("Opening the Quest session");
                 await controls.StartAsync(token);
                 token.ThrowIfCancellationRequested();
@@ -711,6 +715,16 @@ namespace HBP.Quest.Desktop
                         using var cancel = stop.Register(attempt.Cancel);
                         await InvokeAsync(attempt.Token);
                     }, attempt.Token);
+            }
+            catch (QuestVersionMismatchException exception)
+            {
+                await UniTask.SwitchToMainThread();
+                DisconnectTransport();
+                if (ConnectedId != null) automaticExcluded.Add(ConnectedId);
+                BlockingError = exception;
+                SetStatus(exception.Message);
+                if (automaticOperation && !attempt.IsCancellationRequested && DialogBoxManager.IsInitialized)
+                    DialogBoxManager.Open(DialogBoxType.Error, "Quest pairing failed", exception.Message, "OK");
             }
             catch (Exception exception)
             {

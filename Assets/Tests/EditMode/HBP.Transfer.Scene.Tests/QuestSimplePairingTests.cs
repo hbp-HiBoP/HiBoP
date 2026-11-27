@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HBP.Transfer.Transport;
@@ -13,6 +14,8 @@ namespace HBP.Tests.Transfer
 {
     public sealed class QuestSimplePairingTests
     {
+        private const string QuestVersion = "6.3.0";
+        private const string OlderDesktopVersion = "6.2.0";
         private CancellationTokenSource stop;
         private QuestPairing receiver;
         private Task serving;
@@ -37,7 +40,7 @@ namespace HBP.Tests.Transfer
 
         private void Start()
         {
-            receiver = new QuestPairing(statePath, "Test Quest", false, () => TimeSpan.FromSeconds(Volatile.Read(ref clockSeconds)));
+            receiver = new QuestPairing(statePath, "Test Quest", false, () => TimeSpan.FromSeconds(Volatile.Read(ref clockSeconds)), QuestVersion);
             Listen();
         }
 
@@ -86,8 +89,127 @@ namespace HBP.Tests.Transfer
             return null;
         }
 
-        private Task<byte[]> Pair(string code = null) => QuestPairing.AuthenticateAsync("127.0.0.1", receiver.Pin, code ?? receiver.Code, true, stop.Token);
-        private Task Resume(byte[] secret, string id) => QuestPairing.ResumeAsync("127.0.0.1", receiver.Pin, secret, id, stop.Token, Globals);
+        private Task<byte[]> Pair(string code = null) => QuestPairing.AuthenticateAsync("127.0.0.1", receiver.Pin, code ?? receiver.Code, true, stop.Token, QuestVersion);
+        private Task Resume(byte[] secret, string id) => QuestPairing.ResumeAsync("127.0.0.1", receiver.Pin, secret, id, stop.Token, Globals, QuestVersion);
+        private Task<bool> Ping(byte[] pin, byte[] credential) => QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token, QuestVersion);
+
+        private async Task SendAuthenticationCommandAsync(SslStream tls)
+        {
+            await tls.WriteAsync(new byte[] { 25 }, 0, 1, stop.Token);
+            var greeting = new byte[QuestVersion.Length + 1];
+            await PinnedTlsTransfer.ReadExactAsync(tls, greeting, 0, greeting.Length, stop.Token);
+            Assert.That(greeting[0], Is.EqualTo(QuestVersion.Length));
+            Assert.That(Encoding.ASCII.GetString(greeting, 1, QuestVersion.Length), Is.EqualTo(QuestVersion));
+            var offer = new byte[QuestVersion.Length + 2];
+            offer[0] = (byte)QuestVersion.Length;
+            Encoding.ASCII.GetBytes(QuestVersion, 0, QuestVersion.Length, offer, 1);
+            offer[offer.Length - 1] = 11;
+            await tls.WriteAsync(offer, 0, offer.Length, stop.Token);
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        public async Task IncompatibleVersionIsReportedBeforeRequestingOrCheckingCode()
+        {
+            var warnings = new System.Collections.Concurrent.ConcurrentQueue<QuestVersionMismatchException>();
+            receiver.OnVersionMismatch += warnings.Enqueue;
+            var error = await Capture(() => QuestPairing.CheckVersionAsync("127.0.0.1", receiver.Pin, OlderDesktopVersion, stop.Token));
+            Assert.That(error, Is.TypeOf<QuestVersionMismatchException>());
+            Assert.That(TransferError.Describe(error), Does.Contain(OlderDesktopVersion).And.Contain(QuestVersion));
+            Assert.That(warnings.TryDequeue(out var warning), Is.True);
+            Assert.That(warning.Message, Is.EqualTo(error.Message));
+
+            Assert.That(await Capture(() => QuestPairing.RequestCodeAsync("127.0.0.1", receiver.Pin, stop.Token, applicationVersion: OlderDesktopVersion)), Is.TypeOf<QuestVersionMismatchException>());
+            Assert.That(await Capture(() => QuestPairing.AuthenticateAsync("127.0.0.1", receiver.Pin, receiver.Code, true, stop.Token, OlderDesktopVersion)), Is.TypeOf<QuestVersionMismatchException>());
+            Assert.That(warnings, Is.Empty);
+            Assert.That(receiver.IsCodeRequested, Is.False);
+            Assert.That(receiver.GetStatus().AttemptsRemaining, Is.EqualTo(5));
+            Assert.That(receiver.IsPaired, Is.False);
+            Assert.That(installations, Is.Zero);
+            await QuestPairing.CheckVersionAsync("127.0.0.1", receiver.Pin, QuestVersion, stop.Token);
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        public async Task IncompatibleReconnectLeavesSavedAssociationAvailableForMatchingVersion()
+        {
+            byte[] credential = await Pair();
+            await CloseAsync();
+            Start();
+            string id = Guid.NewGuid().ToString("N");
+            var error = await Capture(() => QuestPairing.ResumeAsync("127.0.0.1", receiver.Pin, credential, id, stop.Token, Globals, OlderDesktopVersion));
+            Assert.That(error, Is.TypeOf<QuestVersionMismatchException>());
+            Assert.That(await Capture(() => QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token, OlderDesktopVersion)), Is.TypeOf<QuestVersionMismatchException>());
+            Assert.That(receiver.IsPaired, Is.False);
+            Assert.That(receiver.IsConnected, Is.False);
+            Assert.That(receiver.DesktopAddress, Is.Null);
+            Assert.That(installations, Is.Zero);
+
+            await Resume(credential, id);
+            Assert.That(receiver.IsPaired, Is.True);
+            Assert.That(installations, Is.EqualTo(1));
+        }
+
+        [TestCase(12)]
+        [TestCase(13)]
+        [Category("Sync.Loopback")]
+        public async Task LegacyDesktopCannotUseSavedAssociation(int command)
+        {
+            byte[] credential = await Pair();
+            await CloseAsync();
+            Start();
+            var warning = new TaskCompletionSource<QuestVersionMismatchException>(TaskCreationOptions.RunContinuationsAsynchronously);
+            receiver.OnVersionMismatch += error => warning.TrySetResult(error);
+            using var client = new TcpClient();
+            await client.ConnectAsync(IPAddress.Loopback, QuestPairing.Port);
+            using var tls = new SslStream(client.GetStream(), false, (_, certificate, __, ___) => TransportIdentity.Matches(certificate, receiver.Pin));
+            await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false);
+            var request = new byte[credential.Length + 1];
+            request[0] = (byte)command;
+            Array.Copy(credential, 0, request, 1, credential.Length);
+            await tls.WriteAsync(request, 0, request.Length, stop.Token);
+            var reply = new byte[1];
+            await PinnedTlsTransfer.ReadExactAsync(tls, reply, 0, reply.Length, stop.Token);
+            Assert.That(reply[0], Is.Zero);
+            Assert.That(warning.Task.IsCompleted, Is.True);
+            Assert.That((await warning.Task).Message, Does.Contain(QuestVersion).And.Contain("older pairing protocol"));
+            Assert.That(receiver.IsPaired, Is.False);
+            Assert.That(receiver.DesktopAddress, Is.Null);
+            Assert.That(installations, Is.Zero);
+        }
+
+        [Test]
+        [Category("Sync.Loopback")]
+        public async Task LegacyQuestIsReportedBeforeDesktopAttemptsAuthentication()
+        {
+            using var identity = TransportIdentity.Create();
+            var listener = new TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            using var cancelAccept = stop.Token.Register(listener.Stop);
+            try
+            {
+                string host = listener.LocalEndpoint.ToString();
+                var checking = QuestPairing.CheckVersionAsync(host, TransportIdentity.Hash(identity.RawData), QuestVersion, stop.Token);
+                using (var peer = await listener.AcceptTcpClientAsync())
+                using (var cancelPeer = stop.Token.Register(peer.Close))
+                using (var tls = new SslStream(peer.GetStream(), false))
+                {
+                    await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false);
+                    var command = new byte[1];
+                    await PinnedTlsTransfer.ReadExactAsync(tls, command, 0, command.Length, stop.Token);
+                    Assert.That(command[0], Is.EqualTo(25));
+                    // Legacy Quest closes when it receives an unknown command.
+                }
+
+                var error = await Capture(() => checking);
+                Assert.That(error, Is.TypeOf<QuestVersionMismatchException>());
+                Assert.That(error.Message, Does.Contain(QuestVersion).And.Contain("older pairing protocol"));
+            }
+            finally
+            {
+                listener.Stop();
+            }
+        }
 
         [Test]
         public async Task ExpirationRotatesOnlyCodeAndRejectsThePreviousCode()
@@ -102,7 +224,7 @@ namespace HBP.Tests.Transfer
             byte[] credential = await Pair();
             await Resume(credential, Guid.NewGuid().ToString("N"));
             clockSeconds = 1200;
-            Assert.That(await QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token), Is.True);
+            Assert.That(await Ping(pin, credential), Is.True);
             Assert.That(receiver.RearmCode(), Is.False);
         }
 
@@ -116,7 +238,7 @@ namespace HBP.Tests.Transfer
             await peer.ConnectAsync(IPAddress.Loopback, QuestPairing.Port);
             using var tls = new SslStream(peer.GetStream(), false, (_, certificate, __, ___) => TransportIdentity.Matches(certificate, receiver.Pin));
             await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false);
-            await tls.WriteAsync(new byte[] { 11 }, 0, 1, stop.Token);
+            await SendAuthenticationCommandAsync(tls);
             var accepted = new byte[1];
             await PinnedTlsTransfer.ReadExactAsync(tls, accepted, 0, 1, stop.Token);
             Assert.That(accepted[0], Is.EqualTo(1));
@@ -160,7 +282,7 @@ namespace HBP.Tests.Transfer
             string id = Guid.NewGuid().ToString("N");
             await Resume(credential, id);
             await Resume(credential, id);
-            Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
+            Assert.That(await Ping(receiver.Pin, credential), Is.True);
             Assert.That(installations, Is.EqualTo(1));
             Assert.That(receiver.IsConnected, Is.True);
         }
@@ -172,7 +294,7 @@ namespace HBP.Tests.Transfer
             await Resume(credential, Guid.NewGuid().ToString("N"));
             Task control = QuestPairing.OpenReplicaAsync("127.0.0.1", receiver.Pin, credential, stop.Token, (_, __) => releaseReplica.Task);
             await replicaEntered.Task;
-            Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
+            Assert.That(await Ping(receiver.Pin, credential), Is.True);
             releaseReplica.TrySetResult(true);
             await control;
         }
@@ -203,7 +325,7 @@ namespace HBP.Tests.Transfer
             await serving;
             stop.Dispose();
             Listen();
-            Assert.That(await QuestPairing.PingAsync("127.0.0.1", receiver.Pin, credential, stop.Token), Is.True);
+            Assert.That(await Ping(receiver.Pin, credential), Is.True);
             await Resume(credential, id);
             Assert.That(installations, Is.EqualTo(1));
         }
@@ -217,7 +339,7 @@ namespace HBP.Tests.Transfer
             await CloseAsync();
             Start();
             Assert.That(receiver.Pin, Is.EqualTo(pin));
-            Assert.That(await QuestPairing.PingAsync("127.0.0.1", pin, credential, stop.Token), Is.False);
+            Assert.That(await Ping(pin, credential), Is.False);
             await Resume(credential, id);
             await Resume(credential, id);
             Assert.That(installations, Is.EqualTo(2));
@@ -254,7 +376,7 @@ namespace HBP.Tests.Transfer
                 await client.ConnectAsync(IPAddress.Loopback, QuestPairing.Port);
                 using var tls = new SslStream(client.GetStream(), false, (_, __, ___, ____) => true);
                 await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false);
-                await tls.WriteAsync(new byte[] { 11 }, 0, 1, stop.Token);
+                await SendAuthenticationCommandAsync(tls);
                 var accepted = new byte[1];
                 await PinnedTlsTransfer.ReadExactAsync(tls, accepted, 0, 1, stop.Token);
                 Assert.That(accepted[0], Is.EqualTo(1));
@@ -272,7 +394,7 @@ namespace HBP.Tests.Transfer
                 await client.ConnectAsync(IPAddress.Loopback, QuestPairing.Port);
                 using var tls = new SslStream(client.GetStream(), false, (_, __, ___, ____) => true);
                 await tls.AuthenticateAsClientAsync("HiBoP-Quest", null, SslProtocols.Tls12, false);
-                await tls.WriteAsync(new byte[] { 11 }, 0, 1, stop.Token);
+                await SendAuthenticationCommandAsync(tls);
                 await PinnedTlsTransfer.ReadExactAsync(tls, new byte[1], 0, 1, stop.Token);
                 byte[] malformed = { 5, 0, 0, 0, 255, 255, 255, 255, 255 };
                 await tls.WriteAsync(malformed, 0, malformed.Length, stop.Token);
@@ -288,7 +410,7 @@ namespace HBP.Tests.Transfer
         {
             byte[] credential = await Pair();
             Assert.That(await Capture(() => Resume(new byte[32], Guid.NewGuid().ToString("N"))), Is.TypeOf<AuthenticationException>());
-            Assert.That(await Capture(() => QuestPairing.PingAsync("127.0.0.1", new byte[32], credential, stop.Token)), Is.Not.Null);
+            Assert.That(await Capture(() => Ping(new byte[32], credential)), Is.Not.Null);
             Assert.That(installations, Is.Zero);
         }
 
@@ -302,7 +424,7 @@ namespace HBP.Tests.Transfer
                 await stream.WriteAsync(new byte[] { 0 }, 0, 1, token);
                 await PinnedTlsTransfer.ReadExactAsync(stream, new byte[1], 0, 1, token);
                 return null;
-            })), Is.Not.Null);
+            }, QuestVersion)), Is.Not.Null);
             await Resume(credential, id);
             Assert.That(installations, Is.EqualTo(1));
         }

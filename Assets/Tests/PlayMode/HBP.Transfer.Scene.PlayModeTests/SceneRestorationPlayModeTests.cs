@@ -1277,7 +1277,7 @@ namespace HBP.Tests.SceneTransfer
             {
                 string codeFile = Path.GetFullPath(".test-results/m2-fixes/pair-code.txt");
                 Assert.That(File.Exists(codeFile), Is.True, "Enter the code displayed on Quest in the ignored pair-code.txt file.");
-                credential = await QuestPairing.AuthenticateAsync(device.Endpoint.AddressText, device.Pin, File.ReadAllText(codeFile).Trim(), true, token);
+                credential = await QuestPairing.AuthenticateAsync(device.Endpoint.AddressText, device.Pin, File.ReadAllText(codeFile).Trim(), true, token, Application.version);
                 PairingStorage.Write(pairingFile, credential);
             }
 
@@ -1294,7 +1294,7 @@ namespace HBP.Tests.SceneTransfer
             globals.CaptureFilterPresets(PersistentDataManager.FilterConditionsPresets, archive);
             archive.WriteGlobalData(globals.Data, globalFile);
             using var globalDelivery = new SceneDelivery(globalFile, globals.Id, globals.Id, null);
-            await QuestPairing.ResumeAsync(device.Endpoint.AddressText, device.Pin, credential, globals.Id, token, (stream, stop) => globalDelivery.SendAsync(stream, stop));
+            await QuestPairing.ResumeAsync(device.Endpoint.AddressText, device.Pin, credential, globals.Id, token, (stream, stop) => globalDelivery.SendAsync(stream, stop), Application.version);
             await UniTask.SwitchToMainThread();
             scene.RequestActivityProjection();
             await scene.PrepareRenderingAsync(token);
@@ -1354,7 +1354,7 @@ namespace HBP.Tests.SceneTransfer
             }
 
             Assert.That((bool)desktopType.GetProperty("IsLive").GetValue(session), Is.True);
-            Assert.That(await QuestPairing.PingAsync(device.Endpoint.AddressText, device.Pin, credential, token), Is.True);
+            Assert.That(await QuestPairing.PingAsync(device.Endpoint.AddressText, device.Pin, credential, token, Application.version), Is.True);
             string evidence = Path.GetFullPath(".test-results/m2-fixes/physical-desktop.json");
             File.WriteAllText(evidence, Newtonsoft.Json.JsonConvert.SerializeObject(new { scene = scene.Visualization.Name, columns = scene.Columns.Count, changedSites = changes.Length, receipt = receipt.Status.ToString(), live = true, utc = DateTime.UtcNow, inflationOnly, note = "Transport/publishing and coordinated representation ACK; visible parity needs headset observation." }, Newtonsoft.Json.Formatting.Indented));
             TestContext.WriteLine("M2 Quest USB published; batch, later color, alpha/seek bursts, selection and anatomical/inflated sent; session remains live. Visible parity requires observation.");

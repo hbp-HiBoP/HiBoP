@@ -25,7 +25,7 @@ namespace HBP.Quest
         private QuestPairing pairing;
         private string address, status = "Starting connection...";
         private bool restarting;
-        private string identityPath, deviceName;
+        private string identityPath, deviceName, applicationVersion;
         private float nextRefresh;
 
         [Serializable]
@@ -60,7 +60,7 @@ namespace HBP.Quest
         private AndroidJavaObject networkMonitor;
         private NetworkListener networkListener;
         private int networkChanged = 1;
-        private bool showingPairingProgress;
+        private bool showingPairingProgress, showingVersionMismatch;
 
         private void WakeAdvertisement() => Interlocked.Exchange(ref networkChanged, 1);
 
@@ -88,6 +88,7 @@ namespace HBP.Quest
 #endif
             identityPath = System.IO.Path.Combine(root, "QuestPairing", "identity.pair");
             deviceName = SystemInfo.deviceName;
+            applicationVersion = Application.version;
         }
 
         private void OnEnable()
@@ -164,12 +165,14 @@ namespace HBP.Quest
             try
             {
                 status = "Preparing secure pairing...";
+                var context = SynchronizationContext.Current;
                 using var nextPairing = await UniTask.RunOnThreadPool(() =>
                 {
                     stop.ThrowIfCancellationRequested();
-                    return new QuestPairing(identityPath, deviceName, renew);
+                    return new QuestPairing(identityPath, deviceName, renew, applicationVersion: applicationVersion);
                 });
                 stop.ThrowIfCancellationRequested();
+                nextPairing.OnVersionMismatch += error => context.Post(_ => ShowVersionMismatchAsync(error, stop).Forget(Debug.LogException), null);
                 pairing = nextPairing;
                 status = "Select this Quest on Desktop, then click Pair.";
                 try
@@ -197,6 +200,23 @@ namespace HBP.Quest
             finally
             {
                 pairing = null;
+            }
+        }
+
+        private async UniTask ShowVersionMismatchAsync(QuestVersionMismatchException error, CancellationToken stop)
+        {
+            if (stop.IsCancellationRequested || showingVersionMismatch || !DialogBoxManager.IsInitialized) return;
+            showingVersionMismatch = true;
+            try
+            {
+                await DialogBoxManager.OpenAsync(DialogBoxType.Error, "Quest pairing failed", error.Message, stop, "OK");
+            }
+            catch (OperationCanceledException) when (stop.IsCancellationRequested)
+            {
+            }
+            finally
+            {
+                showingVersionMismatch = false;
             }
         }
 

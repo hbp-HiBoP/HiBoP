@@ -46,14 +46,30 @@ namespace HBP.Transfer.Transport
         }
     }
 
+    public sealed class QuestVersionMismatchException : InvalidOperationException
+    {
+        public QuestVersionMismatchException(string desktopVersion, string questVersion) : base(
+            "Pairing failed because the HiBoP versions are incompatible. " +
+            (questVersion == null ? $"Desktop uses {desktopVersion} and Quest uses an older pairing protocol. " :
+                desktopVersion == null ? $"Quest uses {questVersion} and Desktop uses an older pairing protocol. " :
+                $"Desktop uses {desktopVersion} and Quest uses {questVersion}. ") +
+            "Install the same HiBoP version on both devices, then try again.")
+        {
+        }
+    }
+
     /// <summary>Serialized authenticated receiver. Discovery is never an authentication decision.</summary>
     public sealed class QuestPairing : IDisposable
     {
         public const int Port = 45871;
+        private const byte PairingVersionCommand = 25;
+        private const int MaximumVersionLength = 32;
+        private const string StandaloneVersion = "0.0.0";
         private readonly X509Certificate2 identity;
         private byte[] secret;
         private readonly string storagePath;
         private readonly string deviceName;
+        private readonly string applicationVersion;
         private readonly Stopwatch age = Stopwatch.StartNew();
         private readonly object codeGate = new();
         private readonly Func<TimeSpan> clock;
@@ -69,7 +85,9 @@ namespace HBP.Transfer.Transport
         private string globalsId;
         private string desktopAddress;
         private Guid codeRequest;
-        private TimeSpan displayExpires, nextDisplayRequest;
+        private TimeSpan displayExpires, nextDisplayRequest, nextVersionWarning;
+
+        public event Action<QuestVersionMismatchException> OnVersionMismatch;
 
         public bool IsCodeRequested
         {
@@ -89,15 +107,13 @@ namespace HBP.Transfer.Transport
         public bool IsPreparing => Volatile.Read(ref preparing) != 0;
         public bool IsLocked => GetStatus().Phase is PairingPhase.AttemptsExhausted or PairingPhase.InstallingGlobals or PairingPhase.Paired;
 
-        public QuestPairing(string storagePath = null, string deviceName = "Quest", bool renew = false) : this(storagePath, deviceName, renew, null)
+        public QuestPairing(string storagePath = null, string deviceName = "Quest", bool renew = false, Func<TimeSpan> clock = null, string applicationVersion = StandaloneVersion)
         {
-        }
-
-        public QuestPairing(string storagePath, string deviceName, bool renew, Func<TimeSpan> clock)
-        {
+            if (!IsVersionValid(applicationVersion)) throw new ArgumentException("Invalid HiBoP version.", nameof(applicationVersion));
             this.clock = clock ?? (() => age.Elapsed);
             this.storagePath = storagePath;
             this.deviceName = deviceName;
+            this.applicationVersion = applicationVersion;
             byte[] stored = storagePath == null ? null : PairingStorage.Read(storagePath);
             if (stored == null)
             {
@@ -271,6 +287,33 @@ namespace HBP.Transfer.Transport
                     using (PairingTiming.Measure("quest.tls"))
                         await tls.AuthenticateAsServerAsync(identity, false, SslProtocols.Tls12, false).ConfigureAwait(false);
                     int command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
+                    bool versionChecked = command == PairingVersionCommand;
+                    if (versionChecked)
+                    {
+                        await WriteVersionAsync(tls, applicationVersion, deadline.Token).ConfigureAwait(false);
+                        string desktopVersion = await ReadVersionAsync(tls, deadline.Token).ConfigureAwait(false);
+                        if (desktopVersion == null) return;
+                        if (desktopVersion != applicationVersion)
+                        {
+                            ReportVersionMismatch(desktopVersion);
+                            await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
+                        command = await ReadByteAsync(tls, deadline.Token).ConfigureAwait(false);
+                        if (command == 0)
+                        {
+                            await ReplyAsync(tls, true, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+                    }
+                    else if (command is 10 or 11)
+                    {
+                        ReportVersionMismatch(null);
+                        await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                        return;
+                    }
+
                     if (command == 0) return;
                     if (command == 20)
                     {
@@ -283,6 +326,13 @@ namespace HBP.Transfer.Transport
                     {
                         byte[] bytes = new byte[16];
                         await PinnedTlsTransfer.ReadExactAsync(tls, bytes, 0, bytes.Length, deadline.Token).ConfigureAwait(false);
+                        if (!versionChecked)
+                        {
+                            if (command == 21) ReportVersionMismatch(null);
+                            await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
                         Guid request = new Guid(bytes);
                         bool accepted;
                         lock (codeGate)
@@ -371,6 +421,14 @@ namespace HBP.Transfer.Transport
                         await PinnedTlsTransfer.ReadExactAsync(tls, offered, 0, offered.Length, deadline.Token).ConfigureAwait(false);
                         bool allowed = TransportIdentity.Equal(offered, secret) && (command == 12 || command == 13 || IsPaired) && (command != CompleteMaskReplicaCommand || receiveReplica != null) && (command != 15 || receiveSessionControl != null) && (command != 16 || receiveDefinitions != null);
                         Array.Clear(offered, 0, offered.Length);
+                        if (!versionChecked && command is (12 or 13))
+                        {
+                            // Legacy reconnects must stop before touching the session or its global snapshot.
+                            if (allowed) ReportVersionMismatch(null);
+                            await ReplyAsync(tls, false, deadline.Token).ConfigureAwait(false);
+                            return;
+                        }
+
                         await ReplyAsync(tls, allowed, deadline.Token).ConfigureAwait(false);
                         if (!allowed) return;
                         Volatile.Write(ref desktopAddress, ((IPEndPoint)peer.Client.RemoteEndPoint).Address.ToString());
@@ -521,6 +579,28 @@ namespace HBP.Transfer.Transport
 
         private void Touch() => Interlocked.Exchange(ref lastContact, DateTime.UtcNow.Ticks);
 
+        private void ReportVersionMismatch(string desktopVersion)
+        {
+            lock (codeGate)
+            {
+                var now = clock();
+                if (now < nextVersionWarning) return;
+                nextVersionWarning = now + TimeSpan.FromSeconds(5);
+            }
+
+            OnVersionMismatch?.Invoke(new QuestVersionMismatchException(desktopVersion, applicationVersion));
+        }
+
+        public static Task CheckVersionAsync(string host, byte[] pin, string applicationVersion, CancellationToken stop)
+        {
+            RequirePin(pin);
+            return ConnectAsync(host, pin, stop, async (tls, token) =>
+            {
+                await tls.WriteAsync(new byte[] { 0 }, 0, 1, token).ConfigureAwait(false);
+                await AcceptedAsync(tls, token).ConfigureAwait(false);
+            }, applicationVersion: applicationVersion);
+        }
+
         public static async Task<byte[]> InspectAsync(string host, CancellationToken stop)
         {
             byte[] observed = null;
@@ -553,7 +633,7 @@ namespace HBP.Transfer.Transport
             return result;
         }
 
-        public static async Task<Guid> RequestCodeAsync(string host, byte[] pin, CancellationToken stop, Guid request = default)
+        public static async Task<Guid> RequestCodeAsync(string host, byte[] pin, CancellationToken stop, Guid request = default, string applicationVersion = StandaloneVersion)
         {
             bool show = request == Guid.Empty;
             if (show) request = Guid.NewGuid();
@@ -563,19 +643,19 @@ namespace HBP.Transfer.Transport
                 byte[] bytes = request.ToByteArray();
                 await tls.WriteAsync(bytes, 0, bytes.Length, token).ConfigureAwait(false);
                 await AcceptedAsync(tls, token).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }, applicationVersion: applicationVersion).ConfigureAwait(false);
             return request;
         }
 
         // Kept for transport clients; new UI persists the credential before starting global installation.
-        public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals = null)
+        public static async Task<byte[]> PairAsync(string host, byte[] confirmedPin, string code, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals = null, string applicationVersion = StandaloneVersion)
         {
-            byte[] credential = await AuthenticateAsync(host, confirmedPin, code, sendGlobals != null, stop).ConfigureAwait(false);
-            if (sendGlobals != null) await ResumeAsync(host, confirmedPin, credential, Guid.NewGuid().ToString("N"), stop, sendGlobals).ConfigureAwait(false);
+            byte[] credential = await AuthenticateAsync(host, confirmedPin, code, sendGlobals != null, stop, applicationVersion).ConfigureAwait(false);
+            if (sendGlobals != null) await ResumeAsync(host, confirmedPin, credential, Guid.NewGuid().ToString("N"), stop, sendGlobals, applicationVersion).ConfigureAwait(false);
             return credential;
         }
 
-        public static async Task<byte[]> AuthenticateAsync(string host, byte[] pin, string code, bool globals, CancellationToken stop)
+        public static async Task<byte[]> AuthenticateAsync(string host, byte[] pin, string code, bool globals, CancellationToken stop, string applicationVersion = StandaloneVersion)
         {
             RequirePin(pin); // Observed pin is bound by PAKE, not trusted from discovery.
             byte[] credential = new byte[32];
@@ -589,7 +669,7 @@ namespace HBP.Transfer.Transport
                         await Task.Run(() => PairingPake.AuthenticateAsync(tls, code, TransportIdentity.Hash(tls.RemoteCertificate.GetRawCertData()), false, token), token).ConfigureAwait(false);
                     await PinnedTlsTransfer.ReadExactAsync(tls, credential, 0, credential.Length, token).ConfigureAwait(false);
                     await tls.WriteAsync(new byte[] { 1 }, 0, 1, token).ConfigureAwait(false);
-                }).ConfigureAwait(false);
+                }, applicationVersion: applicationVersion).ConfigureAwait(false);
                 return credential;
             }
             catch
@@ -599,14 +679,14 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        public static async Task<bool> PingAsync(string host, byte[] pin, byte[] credential, CancellationToken stop)
+        public static async Task<bool> PingAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, string applicationVersion = StandaloneVersion)
         {
             bool ready = false;
-            await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) => ready = await ReadByteAsync(tls, token).ConfigureAwait(false) == 1, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) => ready = await ReadByteAsync(tls, token).ConfigureAwait(false) == 1, TimeSpan.FromSeconds(5), applicationVersion: applicationVersion).ConfigureAwait(false);
             return ready;
         }
 
-        public static async Task<bool> IsHeadsetActiveAsync(string host, byte[] pin, byte[] credential, CancellationToken stop)
+        public static async Task<bool> IsHeadsetActiveAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, string applicationVersion = StandaloneVersion)
         {
             bool active = false;
             await AuthorizedAsync(host, pin, credential, 12, stop, async (tls, token) =>
@@ -615,11 +695,11 @@ namespace HBP.Transfer.Transport
                 // Older receivers close after the readiness byte.
                 var presence = new byte[1];
                 active = await tls.ReadAsync(presence, 0, presence.Length, token).ConfigureAwait(false) == 1 && presence[0] == 1;
-            }, TimeSpan.FromSeconds(5)).ConfigureAwait(false);
+            }, TimeSpan.FromSeconds(5), applicationVersion: applicationVersion).ConfigureAwait(false);
             return active;
         }
 
-        public static Task ResumeAsync(string host, byte[] pin, byte[] credential, string contextId, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals)
+        public static Task ResumeAsync(string host, byte[] pin, byte[] credential, string contextId, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> sendGlobals, string applicationVersion = StandaloneVersion)
         {
             if (!Guid.TryParseExact(contextId, "N", out _)) throw new ArgumentException("Invalid global snapshot identity.");
             return AuthorizedAsync(host, pin, credential, 13, stop, async (tls, token) =>
@@ -633,7 +713,7 @@ namespace HBP.Transfer.Transport
                     using (PairingTiming.Measure("desktop.globals-transfer-and-apply"))
                         await sendGlobals(tls, token).ConfigureAwait(false);
                 await AcceptedAsync(tls, token).ConfigureAwait(false);
-            });
+            }, applicationVersion: applicationVersion);
         }
 
         public static async Task<DeliveryReceipt> SendAsync(string host, byte[] pin, byte[] credential, CancellationToken stop, Func<Stream, CancellationToken, Task<DeliveryReceipt>> send, string timingScope = null)
@@ -694,7 +774,7 @@ namespace HBP.Transfer.Transport
             return OpenReplicaAsync(host, pin, credential, stop, session.RunConnectionAsync);
         }
 
-        private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null, string timingScope = null)
+        private static async Task AuthorizedAsync(string host, byte[] pin, byte[] credential, byte command, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? timeout = null, string timingScope = null, string applicationVersion = null)
         {
             RequirePin(pin);
             if (credential == null || credential.Length != 32)
@@ -712,7 +792,7 @@ namespace HBP.Transfer.Transport
                     }
 
                     await action(tls, token).ConfigureAwait(false);
-                }, timeout ?? TimeSpan.FromMinutes(30), timingScope).ConfigureAwait(false);
+                }, timeout ?? TimeSpan.FromMinutes(30), timingScope, applicationVersion).ConfigureAwait(false);
             }
             finally
             {
@@ -720,7 +800,7 @@ namespace HBP.Transfer.Transport
             }
         }
 
-        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null, string timingScope = null)
+        private static async Task ConnectAsync(string host, byte[] pin, CancellationToken stop, Func<SslStream, CancellationToken, Task> action, TimeSpan? operationTimeout = null, string timingScope = null, string applicationVersion = null)
         {
             var route = QuestEndpoint.Parse(host);
             IPAddress address = route.Address;
@@ -760,6 +840,7 @@ namespace HBP.Transfer.Transport
 
                 var operationDeadline = operationTimeout ?? TimeSpan.FromSeconds(15);
                 if (timingScope != null) PairingTiming.Count("desktop.scene-deadline-ms", (long)operationDeadline.TotalMilliseconds, timingScope);
+                if (applicationVersion != null) await NegotiateVersionAsync(tls, applicationVersion, deadline.Token).ConfigureAwait(false);
                 deadline.CancelAfter(operationDeadline);
                 await action(tls, deadline.Token).ConfigureAwait(false);
             }
@@ -770,6 +851,45 @@ namespace HBP.Transfer.Transport
                 if (timingScope != null) PairingTiming.Count("desktop.scene-deadline-expired", 1, timingScope);
                 throw new TimeoutException("The Quest operation timed out. Check the connection and try again.", error);
             }
+        }
+
+        private static async Task NegotiateVersionAsync(Stream stream, string desktopVersion, CancellationToken stop)
+        {
+            if (!IsVersionValid(desktopVersion)) throw new ArgumentException("Invalid HiBoP version.", nameof(desktopVersion));
+            // Wait for the greeting before writing the version so an older receiver can close cleanly.
+            await stream.WriteAsync(new[] { PairingVersionCommand }, 0, 1, stop).ConfigureAwait(false);
+            string questVersion = await ReadVersionAsync(stream, stop).ConfigureAwait(false);
+            stop.ThrowIfCancellationRequested();
+            if (questVersion == null) throw new QuestVersionMismatchException(desktopVersion, null);
+            await WriteVersionAsync(stream, desktopVersion, stop).ConfigureAwait(false);
+            if (questVersion == desktopVersion) return;
+
+            // Let Quest report the failure before closing the connection on Desktop.
+            await ReadByteAsync(stream, stop).ConfigureAwait(false);
+            stop.ThrowIfCancellationRequested();
+            throw new QuestVersionMismatchException(desktopVersion, questVersion);
+        }
+
+        private static bool IsVersionValid(string version) => version != null && version.Length <= MaximumVersionLength && Version.TryParse(version, out var parsed) && parsed.Build >= 0 && parsed.Revision < 0 && parsed.ToString(3) == version;
+
+        private static Task WriteVersionAsync(Stream stream, string version, CancellationToken stop)
+        {
+            var frame = new byte[version.Length + 1];
+            frame[0] = (byte)version.Length;
+            Encoding.ASCII.GetBytes(version, 0, version.Length, frame, 1);
+            return stream.WriteAsync(frame, 0, frame.Length, stop);
+        }
+
+        private static async Task<string> ReadVersionAsync(Stream stream, CancellationToken stop)
+        {
+            var frame = new byte[MaximumVersionLength];
+            if (await stream.ReadAsync(frame, 0, 1, stop).ConfigureAwait(false) == 0) return null;
+            int length = frame[0];
+            if (length == 0 || length > MaximumVersionLength) throw new InvalidDataException("Invalid HiBoP version length.");
+            await PinnedTlsTransfer.ReadExactAsync(stream, frame, 0, length, stop).ConfigureAwait(false);
+            string version = Encoding.ASCII.GetString(frame, 0, length);
+            if (!IsVersionValid(version)) throw new InvalidDataException("Invalid HiBoP version.");
+            return version;
         }
 
         private static async Task<int> ReadByteAsync(Stream stream, CancellationToken stop)

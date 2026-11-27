@@ -52,6 +52,11 @@ from these local scene/presentation values; see the settings section.
   at most five attempts, including malformed/aborted attempts. Do not put codes
   or secrets in discovery, logs or PlayerPrefs, or silently fall back to an
   unauthenticated mode. Normal restart preserves association.
+- Desktop and Quest require the same HiBoP product version and exchange it over
+  TLS before pairing or resuming an association. Reject incompatible releases
+  before requesting a code, installing shared data or opening a scene connection.
+  Keep the saved association for a retry after updating. Legacy peers report no
+  version and must be rejected before they can restore a session.
 - Product USB is NCM networking and discovery is mDNS/DNS-SD on USB and LAN.
   ADB is development tooling, never a runtime dependency or distributed binary.
   Keep the same application protocol, TLS identity and stored association across
