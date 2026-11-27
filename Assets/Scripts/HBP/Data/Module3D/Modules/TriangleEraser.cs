@@ -404,7 +404,7 @@ namespace HBP.Data.Module3D
             var changes = new List<int>();
             foreach (int face in SelectedFaces())
             foreach (int neighbor in Geometry.Neighbors(face))
-                if (m_Visibility[neighbor] == m_Visibility[face] && !m_Selection[neighbor])
+                if (!m_Selection[neighbor])
                     changes.Add(neighbor);
 
             var changed = new List<int>();

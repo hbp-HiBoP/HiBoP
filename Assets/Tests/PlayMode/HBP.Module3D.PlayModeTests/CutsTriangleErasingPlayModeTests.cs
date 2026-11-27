@@ -728,6 +728,34 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(eraser.VisibilityMask, Is.EqualTo(new[] { 0, 0, 1, 0 }));
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [Category("PlayMode.CutsTriangleErasing")]
+        public void TriangleEraser_ExpandSelectionCrossesVisibilityBoundary(int seed)
+        {
+            using PlayModeTempDirectoryScope temp = new();
+            using PlayModeApplicationStateScope appState = new(temp.Path);
+            using PlayModePersistentDataScope persistentData = new(temp.Path);
+            using PlayModeSceneScope scene = new("CutsTriangleErasingMixedVisibilityExpansion");
+            Base3DScene baseScene = CreateIsolatedCutsTriangleErasingScene(scene, temp);
+            var eraser = baseScene.TriangleEraser;
+            var visibility = new[] { 0, 1, 1, 0 };
+            eraser.ApplyExternalVisibility(visibility);
+            int publications = 0;
+            eraser.OnVisibilityMaskChanged.AddListener(() => publications++);
+
+            eraser.SelectTriangle(null, seed);
+            eraser.ExpandSelection();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(4));
+            Assert.That(eraser.SelectedErasedCount, Is.EqualTo(2));
+
+            eraser.CancelLastAction();
+            Assert.That(eraser.SelectedCount, Is.EqualTo(1));
+            Assert.That(eraser.SelectedErasedCount, Is.EqualTo(1 - visibility[seed]));
+            Assert.That(eraser.VisibilityMask, Is.EqualTo(visibility));
+            Assert.That(publications, Is.Zero);
+        }
+
         [Test]
         [Category("PlayMode.CutsTriangleErasing")]
         public async Task DiFuMoSelectsErasedFacesAndUndoRestoresTheCheckedRegion()
