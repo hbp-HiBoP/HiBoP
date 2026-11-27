@@ -205,7 +205,6 @@ namespace HBP.UI.Module3D
 
         private void OnDestroy()
         {
-            Destroy(m_BrushGuideMesh);
             Destroy(m_BrushGuideMaterial);
             ReleaseRenderTexture();
         }

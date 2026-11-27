@@ -7,6 +7,8 @@ namespace HBP.UI.Module3D
 {
     public partial class View3DUI
     {
+        private static readonly Color BrushGuideSelectingColor = new(.13f, .91f, .99f);
+        private static readonly Color BrushGuideFallbackColor = new(.22f, .44f, .69f);
         private uint m_StrokeReference;
         private TriangleSelectionMode m_StrokeMode;
         private Vector2? m_PreviousStrokePointer;
@@ -14,6 +16,7 @@ namespace HBP.UI.Module3D
         private Vector3 m_BrushGuidePoint;
         private Mesh m_BrushGuideMesh;
         private Material m_BrushGuideMaterial;
+        private Theme.Color m_BrushGuideIdleColor;
 
         private bool CanSweepTriangles => m_Scene != null && m_View != null && !IsMinimized && m_Scene.TriangleEraser is { IsClickAvailable: true, IsSweepMode: true } && !m_Scene.ROIManager.ROICreationMode && !m_Scene.IsClosing && !m_Scene.IsSurfaceRepresentationTransitioning && !m_Scene.SceneInformation.GeometryNeedsUpdate;
 
@@ -97,13 +100,16 @@ namespace HBP.UI.Module3D
             {
                 var shader = Resources.Load<Shader>("Shaders/TriangleContactMarker");
                 if (!shader) return;
+                m_BrushGuideMesh = Resources.GetBuiltinResource<Mesh>("New-Sphere.fbx");
+                m_BrushGuideIdleColor = Resources.Load<Theme.Color>("Themes/Main/Settings/Colors/Activated Color");
                 m_BrushGuideMaterial = new Material(shader);
-                m_BrushGuideMaterial.SetColor("_Color", new Color(.13f, .91f, .99f));
-                m_BrushGuideMesh = CreateBrushGuideMesh();
             }
 
-            float radius = m_Scene.TriangleEraser.StrokeBrushRadiusMillimeters;
-            var matrix = m_Column.BrainMesh.transform.localToWorldMatrix * Matrix4x4.TRS(m_BrushGuidePoint, Quaternion.identity, Vector3.one * radius);
+            Color idleColor = m_BrushGuideIdleColor != null ? m_BrushGuideIdleColor.Value : BrushGuideFallbackColor;
+            m_BrushGuideMaterial.SetColor("_Color", IsCurrentStroke ? BrushGuideSelectingColor : idleColor);
+
+            float diameter = 2f * m_Scene.TriangleEraser.StrokeBrushRadiusMillimeters;
+            var matrix = m_Column.BrainMesh.transform.localToWorldMatrix * Matrix4x4.TRS(m_BrushGuidePoint, Quaternion.identity, Vector3.one * diameter);
             var parameters = new RenderParams(m_BrushGuideMaterial)
             {
                 camera = camera,
@@ -112,29 +118,6 @@ namespace HBP.UI.Module3D
                 receiveShadows = false
             };
             Graphics.RenderMesh(parameters, m_BrushGuideMesh, 0, matrix);
-        }
-
-        private static Mesh CreateBrushGuideMesh()
-        {
-            const int segments = 48;
-            var vertices = new Vector3[3 * segments];
-            var indices = new int[vertices.Length * 2];
-            for (int axis = 0; axis < 3; axis++)
-            for (int segment = 0; segment < segments; segment++)
-            {
-                float angle = 2f * Mathf.PI * segment / segments;
-                Vector3 point = default;
-                point[(axis + 1) % 3] = Mathf.Cos(angle);
-                point[(axis + 2) % 3] = Mathf.Sin(angle);
-                int index = axis * segments + segment;
-                vertices[index] = point;
-                indices[index * 2] = index;
-                indices[index * 2 + 1] = axis * segments + (segment + 1) % segments;
-            }
-
-            var mesh = new Mesh { name = "Triangle brush radius", vertices = vertices };
-            mesh.SetIndices(indices, MeshTopology.Lines, 0);
-            return mesh;
         }
     }
 }

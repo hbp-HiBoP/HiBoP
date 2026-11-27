@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using HBP.Core.DLL;
@@ -12,6 +13,15 @@ namespace HBP.UI.Toolbar
 {
     public class TriangleErasingMode : Tool
     {
+        public static ReadOnlyCollection<TriangleSelectionMode> DropdownModes { get; } = Array.AsReadOnly(new[]
+        {
+            TriangleSelectionMode.Triangle,
+            TriangleSelectionMode.Brush,
+            TriangleSelectionMode.Angle,
+            TriangleSelectionMode.Activity,
+            TriangleSelectionMode.Atlas
+        });
+
         [SerializeField] private Dropdown m_Dropdown;
         [SerializeField] private Toggle m_Add;
         [SerializeField] private Toggle m_Remove;
@@ -47,7 +57,7 @@ namespace HBP.UI.Toolbar
             m_Dropdown.onValueChanged.AddListener(value =>
             {
                 if (ListenerLock || !SelectedScene) return;
-                SelectedScene.TriangleEraser.Mode = (TriangleSelectionMode)value;
+                SelectedScene.TriangleEraser.Mode = DropdownModes[value];
                 UpdateStatus();
                 UpdateInteractable();
             });
@@ -142,7 +152,7 @@ namespace HBP.UI.Toolbar
         public override void UpdateStatus()
         {
             TriangleEraser eraser = SelectedScene.TriangleEraser;
-            m_Dropdown.SetValueWithoutNotify((int)eraser.Mode);
+            m_Dropdown.SetValueWithoutNotify(DropdownModes.IndexOf(eraser.Mode));
             if (eraser.IsSweepMode)
             {
                 Toggle enabled = eraser.RemoveFromSelection ? m_Remove : m_Add;

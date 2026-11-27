@@ -179,7 +179,7 @@ namespace HBP.Tests.Serialization
             var selector = Control<Dropdown>("m_Dropdown");
             Assert.That(selector.captionText, Is.Not.Null);
             Assert.That(selector.itemText, Is.Not.Null);
-            Assert.That(selector.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Angle", "Activity", "Atlas", "Brush" }));
+            Assert.That(selector.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Brush", "Angle", "Activity", "Atlas" }));
             var add = Control<Toggle>("m_Add");
             var remove = Control<Toggle>("m_Remove");
             Assert.That(add.group, Is.Not.Null);

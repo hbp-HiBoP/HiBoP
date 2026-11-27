@@ -4,6 +4,7 @@ using System.Globalization;
 using HBP.Data.Module3D;
 using HBP.Sync;
 using HBP.Sync.Scene;
+using HBP.UI.Toolbar;
 using UnityEngine;
 using UnityEngine.UI;
 using AtlasSource = HBP.Data.Module3D.TriangleEraser.AtlasSource;
@@ -67,13 +68,11 @@ namespace HBP.Quest
 
         private void Awake()
         {
-            mode.ClearOptions();
-            mode.AddOptions(new List<string> { "Triangle", "Angle", "Activity", "Atlas", "Brush" });
             mode.onValueChanged.AddListener(value =>
             {
                 if (CanEdit)
                 {
-                    Eraser.Mode = (TriangleSelectionMode)value;
+                    Eraser.Mode = TriangleErasingMode.DropdownModes[value];
                     feedback = null;
                     Refresh();
                 }
@@ -213,7 +212,7 @@ namespace HBP.Quest
             bool selected = Eraser.SelectedCount != 0;
             bool brushMode = Eraser.Mode == TriangleSelectionMode.Brush;
             bool atlasMode = Eraser.Mode == TriangleSelectionMode.Atlas;
-            mode.SetValueWithoutNotify((int)Eraser.Mode);
+            mode.SetValueWithoutNotify(TriangleErasingMode.DropdownModes.IndexOf(Eraser.Mode));
             mode.interactable = editable;
             triangleOptions.SetActive(Eraser.IsSweepMode);
             if (brushOptions != null) brushOptions.SetActive(brushMode);

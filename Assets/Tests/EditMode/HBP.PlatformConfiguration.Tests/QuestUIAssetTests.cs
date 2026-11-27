@@ -557,7 +557,7 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(add.group, Is.Not.Null);
             Assert.That(remove.group, Is.SameAs(add.group));
             var mode = (QuestDropdown)fields.FindProperty("mode").objectReferenceValue;
-            Assert.That(mode.options.Exists(option => option.text == "Brush"), Is.True);
+            Assert.That(mode.options.Select(option => option.text), Is.EqualTo(new[] { "Triangle", "Brush", "Angle", "Activity", "Atlas" }));
             foreach (string option in new[] { "triangleOptions", "angleOptions", "activityOptions", "brushOptions" })
                 Assert.That(((GameObject)fields.FindProperty(option).objectReferenceValue).transform.parent, Is.SameAs(mode.transform.parent), option);
             var regionsPanel = (GameObject)fields.FindProperty("regionsPanel").objectReferenceValue;

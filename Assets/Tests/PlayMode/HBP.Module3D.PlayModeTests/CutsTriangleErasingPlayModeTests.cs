@@ -483,7 +483,7 @@ namespace HBP.Tests.PlayMode.Module3D
             var eraser = baseScene.TriangleEraser;
             eraser.ApplyExternalVisibility(CreateMask(eraser.VisibilityMask.Length, 0));
 
-            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "Triangle", "Angle", "Activity", "Atlas", "Brush");
+            Dropdown dropdown = CreateDropdown("Triangle Mode Dropdown", "Triangle", "Brush", "Angle", "Activity", "Atlas");
             InputField degrees = CreateInputField("Degrees Input", "30");
             InputField activity = CreateInputField("Activity Input", "20");
             InputField brushRadius = CreateInputField("Brush Radius", "3");
@@ -524,13 +524,17 @@ namespace HBP.Tests.PlayMode.Module3D
             }, baseScene, selectedColumn, selectedView);
             modeTool.Initialize();
 
+            eraser.Mode = TriangleSelectionMode.Brush;
             modeTool.UpdateStatus();
+            Assert.That(dropdown.value, Is.EqualTo(1));
+            dropdown.value = 0;
+            Assert.That(eraser.Mode, Is.EqualTo(TriangleSelectionMode.Triangle));
             Assert.That(degrees.gameObject.activeInHierarchy, Is.False);
             Assert.That(activity.gameObject.activeInHierarchy, Is.False);
             remove.isOn = true;
             Assert.That(add.isOn, Is.False);
             Assert.That(eraser.RemoveFromSelection, Is.True);
-            dropdown.value = (int)TriangleSelectionMode.Angle;
+            dropdown.value = 2;
             degrees.text = "45";
             AssertNoException("Triangle erasing degrees edit", () => degrees.onEndEdit.Invoke("45"));
 
@@ -539,19 +543,19 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(degrees.gameObject.activeInHierarchy, Is.True);
             Assert.That(remove.gameObject.activeInHierarchy, Is.False);
 
-            dropdown.value = (int)TriangleSelectionMode.Activity;
+            dropdown.value = 3;
             Assert.That(degrees.gameObject.activeInHierarchy, Is.False);
             Assert.That(activity.gameObject.activeInHierarchy, Is.True);
             Assert.That(activity.interactable, Is.True);
             activity.onEndEdit.Invoke("35");
             Assert.That(eraser.ActivityTolerance, Is.EqualTo(35));
 
-            dropdown.value = (int)TriangleSelectionMode.Atlas;
+            dropdown.value = 4;
             Assert.That(atlas.gameObject.activeInHierarchy, Is.True);
             Assert.That(version.gameObject.activeInHierarchy, Is.False);
             Assert.That(regionsButton.interactable, Is.False);
 
-            dropdown.value = (int)TriangleSelectionMode.Brush;
+            dropdown.value = 1;
             Assert.That(brushRadius.gameObject.activeInHierarchy, Is.True);
             Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);
             Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(3));
@@ -562,7 +566,7 @@ namespace HBP.Tests.PlayMode.Module3D
             Assert.That(eraser.BrushRadiusMillimeters, Is.EqualTo(4.25f));
             Assert.That(brushRadius.text, Is.EqualTo("4.25"));
 
-            dropdown.value = (int)TriangleSelectionMode.Triangle;
+            dropdown.value = 0;
             Assert.That(brushRadius.gameObject.activeInHierarchy, Is.False);
             Assert.That(eraser.RemoveFromSelection, Is.True);
             Assert.That(remove.gameObject.activeInHierarchy && remove.isOn, Is.True);

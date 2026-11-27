@@ -106612,22 +106612,22 @@ PrefabInstance:
     - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[1].m_Text
-      value: Angle
+      value: Brush
       objectReference: {fileID: 0}
     - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[2].m_Text
-      value: Activity
+      value: Angle
       objectReference: {fileID: 0}
     - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[3].m_Text
-      value: Atlas
+      value: Activity
       objectReference: {fileID: 0}
     - target: {fileID: 2500017484503924534, guid: e71eedee5e5cef24fa4cc7845d2d514b,
         type: 3}
       propertyPath: m_Options.m_Options.Array.data[4].m_Text
-      value: Brush
+      value: Atlas
       objectReference: {fileID: 0}
     - target: {fileID: 4479101511522785326, guid: e71eedee5e5cef24fa4cc7845d2d514b,
         type: 3}
