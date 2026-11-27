@@ -24,7 +24,7 @@ namespace HBP.Quest
         private bool suspended;
         public bool Ready => view != null && QuestAnatomySession.CanInteractWith(view.Scene) && view.Scene.IsVisible;
         internal bool IsOpen => window != null && window.IsOpen;
-        public bool AidsActive => Ready && window != null && window.IsOpen && !suspended && !view.Scene.AutomaticCutAroundSelectedSite;
+        public bool AidsActive => Ready && window != null && window.IsOpen && !suspended;
         public bool Suspended => suspended;
         public bool GuidesEnabled => window != null && window.IsOpen && !suspended;
         public IReadOnlyCollection<QuestCutRow> Rows => controls.Values;
@@ -41,7 +41,7 @@ namespace HBP.Quest
         {
             add.onClick.AddListener(() =>
             {
-                if (Ready && !view.Scene.AutomaticCutAroundSelectedSite) view.Scene.AddCutPlane();
+                if (Ready) view.Scene.AddCutPlane();
             });
             suspend.onClick.AddListener(() => suspended = !suspended);
         }
@@ -83,7 +83,7 @@ namespace HBP.Quest
                     row.transform.SetSiblingIndex(cut.Index);
                 }
 
-            add.interactable = Ready && !scene.AutomaticCutAroundSelectedSite;
+            add.interactable = Ready;
             suspend.interactable = Ready;
             suspendLabel.text = suspended ? "Show guides" : "Hide guides";
         }

@@ -163,9 +163,15 @@ namespace HBP.Data.Module3D
 
         private void ApplySiteSelection(Column3D source, Core.Object3D.Site site, bool refreshInformation = true)
         {
+            string id = site?.Information.FullID;
+            if (SelectedSite?.Information.FullID != id)
+            {
+                m_AutomaticCutsPending = AutomaticCutAroundSelectedSite && site;
+                if (m_AutomaticCutsPending) SceneInformation.CutsNeedUpdate = true;
+            }
+
             SelectedSite = site;
             SelectedSiteColumn = site ? source : null;
-            string id = site?.Information.FullID;
             var changed = new List<Column3D>(Columns.Count);
             foreach (var column in Columns)
             {
@@ -174,7 +180,6 @@ namespace HBP.Data.Module3D
             }
 
             foreach (var column in changed) column.OnSelectSite.Invoke(column.SelectedSite);
-            if (AutomaticCutAroundSelectedSite) SceneInformation.CutsNeedUpdate = true;
             SceneInformation.GUICutTexturesNeedUpdate = true;
             SceneInformation.SitesNeedUpdate = true;
             if (refreshInformation) RequestSelectedSiteInformation();
@@ -230,7 +235,6 @@ namespace HBP.Data.Module3D
             Vector3 center = MeshManager.MeshCenter;
             foreach (var column in Columns) column.MoveAllSitesToTheSameSideOfAPlane(center, normal);
             SitePlacement = right ? SitePlacementMode.Right : SitePlacementMode.Left;
-            if (AutomaticCutAroundSelectedSite && SelectedSite) SceneInformation.CutsNeedUpdate = true;
             OnSharedStateChanged.Invoke();
             OnSitePositionCommandExecuted.Invoke(right ? SitePositionCommand.MoveRight : SitePositionCommand.MoveLeft);
         }
@@ -239,7 +243,6 @@ namespace HBP.Data.Module3D
         {
             foreach (var column in Columns) column.ResetSitesPositions();
             SitePlacement = SitePlacementMode.Original;
-            if (AutomaticCutAroundSelectedSite && SelectedSite) SceneInformation.CutsNeedUpdate = true;
             OnSharedStateChanged.Invoke();
             OnSitePositionCommandExecuted.Invoke(SitePositionCommand.Reset);
         }

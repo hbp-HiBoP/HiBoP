@@ -181,6 +181,7 @@ namespace HBP.Data.Module3D
                 newCut.Position = cut.Position;
                 UpdateCutPlane(newCut);
             }
+            CancelPendingAutomaticCuts();
 
             if (m_DesktopPresentation) m_DesktopPresentation.LoadConfiguration();
 

@@ -109,6 +109,16 @@ namespace HBP.Sync.Scene
 
         private void Put(Mutation mutation, byte section)
         {
+            if (mutation.ReplacementCuts is { } cuts)
+            {
+                RemovePrefix("cut/");
+                Put(new SetCutOrder(Array.Empty<CutId>()), 4);
+                for (int i = 0; i < cuts.Count; i++)
+                    Put(new CreateCut(cuts[i].CutId, cuts[i], i), 4);
+                mutation = mutation is SetSelectedSite site ? new SetSelectedSite(site.ColumnId, site.SiteId) :
+                    new SetSceneBoolean(((SetSceneBoolean)mutation).Property, ((SetSceneBoolean)mutation).Value);
+            }
+
             switch (mutation)
             {
                 case SetConfigurationTransaction transaction:
@@ -188,11 +198,6 @@ namespace HBP.Sync.Scene
                     return;
                 case SetSelectedSite value:
                     SetCell(MutationKey(value), new Cell(3, Encoding.UTF8.GetBytes(value.SiteId?.Value ?? string.Empty), value));
-                    return;
-                case SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true } value:
-                    RemovePrefix("cut/");
-                    Put(new SetCutOrder(Array.Empty<CutId>()), 4);
-                    Store(MutationKey(value), value, 3);
                     return;
                 case SetSiteFilterResult value:
                     SetCell("filters", new Cell(6, new SiteFilterCheckpointRecord(value.RosterHash, value.SiteCount, value.InclusionBits).Encode()));
@@ -280,8 +285,7 @@ namespace HBP.Sync.Scene
 
             t11.AddRange(SceneMutationCheckpointCodec.CreateSiteConfigurationRecords(assignments));
             var orderedCuts = Cells.Values.Select(cell => cell.Mutation).OfType<SetCutOrder>().SingleOrDefault()?.CutIds.Select(id => id.Value).ToList() ?? new List<string>();
-            bool automaticCuts = Cells.Values.Any(cell => cell.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
-            string[] cutIds = automaticCuts ? Array.Empty<string>() : Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();
+            string[] cutIds = Cells.Values.Select(cell => cell.Mutation).OfType<CreateCut>().Select(value => value.CutId.Value).OrderBy(id => orderedCuts.Contains(id) ? orderedCuts.IndexOf(id) : int.MaxValue).ThenBy(id => id, StringComparer.Ordinal).ToArray();
             for (int i = 0; i < cutIds.Length; i++)
             {
                 string prefix = Cut(cutIds[i]);
@@ -371,6 +375,29 @@ namespace HBP.Sync.Scene
             }
 
             bool Changed(SceneCheckpointState side, string key) => baseline == null || !Equal(baseline, side, key);
+            string selectionKey = keys.FirstOrDefault(key => Cell(desktop, key)?.Mutation is SetSelectedSite || Cell(quest, key)?.Mutation is SetSelectedSite);
+            string automaticKey = keys.FirstOrDefault(key => Cell(desktop, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite } ||
+                Cell(quest, key)?.Mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite });
+            if (baseline != null && selectionKey != null && automaticKey != null)
+            {
+                var cutKeys = keys.Where(key => key == "cut-order" || key.StartsWith("cut/", StringComparison.Ordinal)).ToArray();
+                bool ResetOn(SceneCheckpointState side) =>
+                    Cell(side, automaticKey)?.Mutation is SetSceneBoolean { Value: true } &&
+                    Cell(side, selectionKey)?.Mutation is SetSelectedSite { SiteId: not null } &&
+                    (Changed(side, selectionKey) || Changed(side, automaticKey));
+                bool CompetesWithReset(SceneCheckpointState side, SceneCheckpointState other) =>
+                    ResetOn(side) && (!ResetOn(other) || !Equal(side, other, selectionKey)) &&
+                    (cutKeys.Any(key => Changed(other, key) && !Equal(side, other, key)) ||
+                     Changed(other, selectionKey) && !Equal(side, other, selectionKey) ||
+                     Changed(other, automaticKey) && !Equal(side, other, automaticKey));
+                if (CompetesWithReset(desktop, quest) || CompetesWithReset(quest, desktop))
+                {
+                    var related = cutKeys.Append(selectionKey).Append(automaticKey);
+                    Join(related);
+                    conflicts.UnionWith(related);
+                }
+            }
+
             // Existence conflicts include every dependent edit, including selections.
             foreach (string exists in keys.Where(key => key.EndsWith("/exists", StringComparison.Ordinal)))
             {

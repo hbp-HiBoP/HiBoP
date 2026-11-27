@@ -239,6 +239,7 @@ namespace HBP.Sync
     public abstract class Mutation
     {
         public abstract OperationType Type { get; }
+        public virtual IReadOnlyList<SetCutDefinition> ReplacementCuts => null;
 
         internal Mutation()
         {
@@ -564,6 +565,17 @@ namespace HBP.Sync
                 BarrierScope = BarrierScope.TouchedKeys;
             CoalescingKey = key;
             var keys = new List<TouchedKey> { key };
+            if (mutation.ReplacementCuts is { } cuts)
+            {
+                BarrierScope = BarrierScope.TouchedKeys;
+                keys.Add(new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutOrder, null, null, null));
+                keys.Add(mutation is SetSelectedSite ?
+                    new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SceneBoolean, null, null, null, propertyId: (int)SceneBooleanProperty.AutomaticCutAroundSelectedSite) :
+                    new TouchedKey(sceneId, incarnationId, TouchedKeyKind.SelectedSite, null, null, null));
+                foreach (SetCutDefinition cut in cuts)
+                    keys.Add(new TouchedKey(sceneId, incarnationId, TouchedKeyKind.CutDefinition, null, null, cut.CutId));
+            }
+
             TouchedKeys = new ReadOnlyCollection<TouchedKey>(keys.Distinct().ToArray());
         }
     }

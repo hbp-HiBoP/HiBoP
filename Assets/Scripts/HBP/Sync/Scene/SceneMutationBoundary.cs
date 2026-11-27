@@ -423,10 +423,19 @@ namespace HBP.Sync.Scene
             SiteConfigurationProvenanceSnapshot checkpointProvenanceRollback = checkpointRollback == null ? null : CapturePendingSiteConfigurationProvenanceSnapshot();
             Mutation rollback = origin == MutationApplicationOrigin.LocalQuest && mutation is not MoveSites && mutation is not SetConfigurationTransaction ? ReadCurrentMutation(mutation) : null;
             SiteConfigurationProvenanceSnapshot provenanceRollback = rollback == null ? null : CaptureSiteConfigurationProvenanceSnapshot(mutation);
+            bool generateCuts = origin != MutationApplicationOrigin.Remote && mutation.ReplacementCuts == null && m_Scene != null &&
+                (mutation is SetSelectedSite { SiteId: not null } && m_Scene.AutomaticCutAroundSelectedSite ||
+                 mutation is SetSceneBoolean { Property: SceneBooleanProperty.AutomaticCutAroundSelectedSite, Value: true });
+            SetCutDefinition[] previousCuts = generateCuts && rollback != null ? CaptureCutRoster() : null;
             bool applied;
             using (origin == MutationApplicationOrigin.Remote ? MutationApplicationContext.EnterRemote(operationId) : MutationApplicationContext.EnterLocalApply(ToOriginDevice(origin), operationId))
             {
                 applied = ApplyCore(mutation, allowRetainedSiteSelection);
+                if (applied && generateCuts && m_Scene.CutAroundSelectedSite())
+                {
+                    mutation = WithCutRoster(mutation, CaptureCutRoster());
+                    if (rollback != null) rollback = WithCutRoster(rollback, previousCuts);
+                }
             }
 
             if (origin == MutationApplicationOrigin.Remote || applied)
@@ -1061,9 +1070,8 @@ namespace HBP.Sync.Scene
             var siteRecords = new List<SiteColorCheckpointRecord>();
 
             var cutRecords = new List<CutDefinitionCheckpointRecord>();
-            if (m_Scene?.AutomaticCutAroundSelectedSite != true)
-                foreach (KeyValuePair<SceneCut, CutId> entry in m_CutIds)
-                    cutRecords.Add(new CutDefinitionCheckpointRecord(CreateCutDefinition(entry.Key, entry.Value)));
+            foreach (KeyValuePair<SceneCut, CutId> entry in m_CutIds)
+                cutRecords.Add(new CutDefinitionCheckpointRecord(CreateCutDefinition(entry.Key, entry.Value)));
 
             var timelineRecords = new List<TimelineAnchorCheckpointRecord>();
             foreach (KeyValuePair<BasicTimeline, List<TimelineTarget>> entry in m_Timelines)
@@ -1268,20 +1276,13 @@ namespace HBP.Sync.Scene
 
             Add(new MoveSites(m_Scene.SitePlacement switch { SitePlacementMode.Left => SiteMoveCommand.Left, SitePlacementMode.Right => SiteMoveCommand.Right, _ => SiteMoveCommand.Reset }));
 
-            if (m_Scene.AutomaticCutAroundSelectedSite)
+            foreach (SceneCut cut in m_Scene.Cuts)
             {
-                Add(new SetCutOrder(Array.Empty<CutId>()));
+                CutId id = m_CutIds[cut];
+                Add(new CreateCut(id, CreateCutDefinition(cut, id), cut.Index));
             }
-            else
-            {
-                foreach (SceneCut cut in m_Scene.Cuts)
-                {
-                    CutId id = m_CutIds[cut];
-                    Add(new CreateCut(id, CreateCutDefinition(cut, id), cut.Index));
-                }
 
-                Add(new SetCutOrder(m_Scene.Cuts.Select(cut => m_CutIds[cut])));
-            }
+            Add(new SetCutOrder(m_Scene.Cuts.Select(cut => m_CutIds[cut])));
 
             if (m_Scene.ROIManager != null)
             {
@@ -1573,6 +1574,8 @@ namespace HBP.Sync.Scene
             bool hasRoiRoster = t10Records.Any(record => record.Value is SetActiveRoi);
             foreach (T09CheckpointRecord record in records)
             {
+                if (record?.Value?.ReplacementCuts != null)
+                    throw new ArgumentException("A checkpoint must carry cut definitions in its cut roster.", nameof(records));
                 if (record.Value is SetSelectedRoiSphere selection && (hasRoiRoster || stagedRois.ContainsKey(selection.RoiId)))
                 {
                     if (!stagedRois.TryGetValue(selection.RoiId, out CreateRoi roi))
@@ -1773,7 +1776,7 @@ namespace HBP.Sync.Scene
                 foreach (TimelineAnchorCheckpointRecord record in checkpoint.TimelineAnchors) ApplyCore(record.Value);
                 ApplyCheckpointT11Records(checkpoint.T11Records);
                 foreach (T09CheckpointRecord record in checkpoint.T09Records) ApplyCore(record.Value, allowRetainedSiteSelection: true);
-                if (m_Scene?.AutomaticCutAroundSelectedSite == true) m_Scene.SceneInformation.CutsNeedUpdate = true;
+                if (checkpoint.T10Records.Any(record => record.Value is SetCutOrder)) m_Scene.CancelPendingAutomaticCuts();
                 if (checkpoint.T12Records.Count == 1) ApplySiteFilterCheckpoint(checkpoint.T12Records[0]);
                 if (checkpoint.T13Records.Count == 1)
                 {
@@ -2650,7 +2653,7 @@ namespace HBP.Sync.Scene
             if (m_Disposed || cut == null) return;
             RegisterCut(cut);
             m_CutDefinitionSnapshots[cut] = CreateCutDefinition(cut, m_CutIds[cut]);
-            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite)
+            if (!ShouldSuppressPublication())
                 Publish(new CreateCut(m_CutIds[cut], m_CutDefinitionSnapshots[cut], cut.Index), new DeleteCut(m_CutIds[cut]));
             m_LastCutOrder = m_Scene.Cuts.Select(item => new CutId(item.ID)).ToArray();
         }
@@ -2660,7 +2663,7 @@ namespace HBP.Sync.Scene
             if (m_Disposed || cut == null || !m_CutIds.TryGetValue(cut, out CutId id)) return;
             int previousIndex = Array.FindIndex(m_LastCutOrder, candidate => candidate.Equals(id));
             Mutation rollback = m_CutDefinitionSnapshots.TryGetValue(cut, out SetCutDefinition definition) && previousIndex >= 0 ? new CreateCut(id, definition, previousIndex) : null;
-            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite) Publish(new DeleteCut(id), rollback);
+            if (!ShouldSuppressPublication()) Publish(new DeleteCut(id), rollback);
             cut.OnDefinitionChanged.RemoveListener(OnCutDefinitionChanged);
             m_CutIds.Remove(cut);
             m_Cuts.Remove(id);
@@ -2693,11 +2696,66 @@ namespace HBP.Sync.Scene
             if (current.SequenceEqual(m_LastCutOrder)) return;
             CutId[] previous = m_LastCutOrder;
             m_LastCutOrder = current;
-            if (!ShouldSuppressPublication() && !m_Scene.AutomaticCutAroundSelectedSite)
+            if (!ShouldSuppressPublication())
                 Publish(new SetCutOrder(current), new SetCutOrder(previous));
         }
 
-        private void OnAutomaticCutPolicyChanged(bool _) => ObserveT09(ref m_LastSceneAutomaticCuts, new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, m_Scene.AutomaticCutAroundSelectedSite));
+        private void OnAutomaticCutPolicyChanged(bool enabled)
+        {
+            var current = new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, enabled);
+            if (enabled && m_LastSceneAutomaticCuts is SetSceneBoolean { Value: false } previous && !ShouldSuppressPublication() && m_ConfigurationMutationCapture == null && m_ReconciliationLock == null)
+            {
+                var before = m_LocalOrigin == OriginDevice.Quest ? CaptureCutRoster() : null;
+                bool generated;
+                using (MutationApplicationContext.EnterRemote(new OperationId(Guid.NewGuid())))
+                    generated = m_Scene.CutAroundSelectedSite();
+                if (generated)
+                {
+                    m_LastSceneAutomaticCuts = current;
+                    Publish(WithCutRoster(current, CaptureCutRoster()), WithCutRoster(previous, before));
+                    return;
+                }
+            }
+
+            ObserveT09(ref m_LastSceneAutomaticCuts, current);
+        }
+
+        private SetCutDefinition[] CaptureCutRoster() =>
+            m_Scene.Cuts.Select(cut => CreateCutDefinition(cut, m_CutIds[cut])).ToArray();
+
+        private static Mutation WithCutRoster(Mutation mutation, IReadOnlyList<SetCutDefinition> cuts) => mutation switch
+        {
+            SetSelectedSite value => new SetSelectedSite(value.ColumnId, value.SiteId, cuts),
+            SetSceneBoolean value => new SetSceneBoolean(value.Property, value.Value, cuts),
+            _ => throw new ArgumentException("This scene mutation cannot replace cuts.", nameof(mutation))
+        };
+
+        private bool ApplyCutRoster(IReadOnlyList<SetCutDefinition> cuts, bool replace)
+        {
+            if (cuts == null) return false;
+            m_Scene.CancelPendingAutomaticCuts();
+            static (CutId, MutationCutOrientation, bool, uint, float, float, float, float) Fields(SetCutDefinition cut) =>
+                (cut.CutId, cut.Orientation, cut.Flip, cut.NumberOfCuts, cut.Position, cut.NormalX, cut.NormalY, cut.NormalZ);
+            if (!replace && CaptureCutRoster().Select(Fields).SequenceEqual(cuts.Select(Fields)))
+                return false;
+
+            foreach (SceneCut cut in m_Scene.Cuts.ToArray()) m_Scene.RemoveCutPlane(cut);
+            foreach (SetCutDefinition definition in cuts)
+            {
+                SceneCut cut = m_Scene.AddCutPlane(definition.CutId.Value);
+                RegisterCut(cut);
+                ApplyCore(definition);
+            }
+
+            return true;
+        }
+
+        internal bool CutResetTargetChanged(Mutation mutation) => mutation switch
+        {
+            SetSelectedSite site => m_Scene.SelectedSite?.Information.FullID != site.SiteId?.Value,
+            SetSceneBoolean policy => ReadSceneBoolean(policy.Property) != policy.Value,
+            _ => false
+        };
 
         private void OnSitePositionCommandExecuted(SitePositionCommand command)
         {
@@ -2738,7 +2796,7 @@ namespace HBP.Sync.Scene
         private Mutation ReadCurrentT09Mutation(Mutation key)
         {
             RequireScene();
-            return key switch
+            Mutation current = key switch
             {
                 SetSelectedColumn => new SetSelectedColumn(m_Scene.SelectedColumn ? new ColumnId(m_Scene.SelectedColumn.ColumnData.ID) : null),
                 SetSelectedSite => CurrentSelectedSite(),
@@ -2756,6 +2814,7 @@ namespace HBP.Sync.Scene
                 SetSelectedRoiSphere value => CurrentSelectedRoiSphere(ResolveRoi(value.RoiId)),
                 _ => throw new ArgumentException("Unsupported T09 scene mutation.", nameof(key))
             };
+            return key.ReplacementCuts == null ? current : WithCutRoster(current, CaptureCutRoster());
         }
 
         private Mutation ReadCurrentT11Mutation(Mutation key)
@@ -3612,9 +3671,18 @@ namespace HBP.Sync.Scene
             ValidateT09Mutation(mutation, allowRetainedSiteSelection);
             if (mutation is SetSelectedSite selection)
             {
-                if (StringComparer.Ordinal.Equals(m_Scene.SelectedSite?.Information.FullID, selection.SiteId?.Value)) return false;
-                m_Scene.SelectSiteForSynchronization(ResolveColumn(selection.ColumnId), selection.SiteId?.Value);
-                return true;
+                bool changed = !StringComparer.Ordinal.Equals(m_Scene.SelectedSite?.Information.FullID, selection.SiteId?.Value);
+                if (changed) m_Scene.SelectSiteForSynchronization(ResolveColumn(selection.ColumnId), selection.SiteId?.Value);
+                if (changed && MutationApplicationContext.TryGetCurrent(out var origin, out _, out _, out _) && origin == MutationApplicationOrigin.Remote)
+                    m_Scene.CancelPendingAutomaticCuts();
+                return ApplyCutRoster(selection.ReplacementCuts, changed) || changed;
+            }
+
+            if (mutation is SetSceneBoolean { ReplacementCuts: not null } policy)
+            {
+                bool changed = ReadSceneBoolean(policy.Property) != policy.Value;
+                if (changed) WriteSceneBoolean(policy);
+                return ApplyCutRoster(policy.ReplacementCuts, changed) || changed;
             }
 
             if (mutation is not SetSelectedColumn && MutationPayloadCodec.Encode(ReadCurrentT09Mutation(mutation)).SequenceEqual(MutationPayloadCodec.Encode(mutation))) return false;
@@ -3634,6 +3702,9 @@ namespace HBP.Sync.Scene
                     return true;
                 case SetSceneBoolean value:
                     WriteSceneBoolean(value);
+                    if (value.Property == SceneBooleanProperty.AutomaticCutAroundSelectedSite &&
+                        MutationApplicationContext.TryGetCurrent(out var origin, out _, out _, out _) && origin == MutationApplicationOrigin.Remote)
+                        m_Scene.CancelPendingAutomaticCuts();
                     return true;
                 case SetSceneFloat value:
                     WriteSceneFloat(value);
@@ -3962,7 +4033,7 @@ namespace HBP.Sync.Scene
 
         private bool ApplyCutDefinition(SceneCut cut, CutOrientation orientation, bool flip, float position, Vector3 normal)
         {
-            if (ShouldSuppressPublication() || m_Scene.AutomaticCutAroundSelectedSite) return false;
+            if (ShouldSuppressPublication()) return false;
             Apply(new SetCutDefinition(m_CutIds[cut], (MutationCutOrientation)orientation, flip, checked((uint)cut.NumberOfCuts), CanonicalZero(position), CanonicalZero(normal.x), CanonicalZero(normal.y), CanonicalZero(normal.z)), m_LocalOrigin == OriginDevice.Quest ? MutationApplicationOrigin.LocalQuest : MutationApplicationOrigin.LocalDesktop, new OperationId(Guid.NewGuid()));
             return true;
         }
@@ -3984,7 +4055,7 @@ namespace HBP.Sync.Scene
 
             m_CutDefinitionSnapshots.TryGetValue(cut, out SetCutDefinition previous);
             m_CutDefinitionSnapshots[cut] = mutation;
-            if (m_Scene?.AutomaticCutAroundSelectedSite == true || ShouldSuppressPublication()) return;
+            if (ShouldSuppressPublication()) return;
             Publish(mutation, previous);
         }
 

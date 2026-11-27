@@ -409,9 +409,8 @@ namespace HBP.Sync
             {
                 case OperationType.CreateCut:
                     {
-                        CutId id = new(ReadText(reader, false));
-                        var definition = new SetCutDefinition(id, ReadEnum<MutationCutOrientation>(reader), ReadBoolean(reader), reader.ReadUInt32(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
-                        return new CreateCut(id, definition, reader.ReadInt32());
+                        var definition = ReadCutDefinition(reader);
+                        return new CreateCut(definition.CutId, definition, reader.ReadInt32());
                     }
                 case OperationType.DeleteCut: return new DeleteCut(new CutId(ReadText(reader, false)));
                 case OperationType.SetCutOrder:
@@ -462,8 +461,7 @@ namespace HBP.Sync
             switch (mutation)
             {
                 case CreateCut value:
-                    WriteText(writer, value.CutId.Value);
-                    WriteCutDefinition(writer, value.Definition);
+                    WriteCompleteCutDefinition(writer, value.Definition);
                     writer.Write(value.Order);
                     break;
                 case DeleteCut value: WriteText(writer, value.CutId.Value); break;
@@ -519,8 +517,12 @@ namespace HBP.Sync
             }
         }
 
-        private static void WriteCutDefinition(BinaryWriter writer, SetCutDefinition value)
+        internal static SetCutDefinition ReadCutDefinition(BinaryReader reader) =>
+            new(new CutId(ReadText(reader, false)), ReadEnum<MutationCutOrientation>(reader), ReadBoolean(reader), reader.ReadUInt32(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle(), reader.ReadSingle());
+
+        internal static void WriteCompleteCutDefinition(BinaryWriter writer, SetCutDefinition value)
         {
+            WriteText(writer, value.CutId.Value);
             writer.Write((byte)value.Orientation);
             writer.Write((byte)(value.Flip ? 1 : 0));
             writer.Write(value.NumberOfCuts);

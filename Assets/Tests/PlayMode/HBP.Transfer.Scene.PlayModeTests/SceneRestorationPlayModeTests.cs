@@ -700,9 +700,41 @@ namespace HBP.Tests.SceneTransfer
                 Assert.That(view.Scene.Cuts.Select(cut => cut.Point), Is.EqualTo(beforeFocus));
                 AssertM2AutomaticCuts(desktopScene, view.Scene, firstSites[0].transform.localPosition);
 
+                var questDriver = (QuestMutationDriver)questType.GetField("m_Driver", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(questSession);
+                using var cutEditTimeout = CancellationTokenSource.CreateLinkedTokenSource(token);
+                cutEditTimeout.CancelAfter(TimeSpan.FromSeconds(20));
+                CancellationToken cutEditToken = cutEditTimeout.Token;
+                var questCut = view.Scene.Cuts[0];
+                string editedId = questCut.ID;
+                Assert.That(QuestCutCommands.Position(view.Scene, questCut, 0.25f), Is.True);
+                var removedId = view.Scene.Cuts[1].ID;
+                view.Scene.RemoveCutPlane(view.Scene.Cuts[1]);
+                var added = view.Scene.AddCutPlane();
+                await UniTask.WaitUntil(() => desktopScene.Cuts.Any(cut => cut.ID == added.ID) &&
+                    desktopScene.Cuts.All(cut => cut.ID != removedId) &&
+                    desktopScene.Cuts.Any(cut => cut.ID == editedId && cut.Position == 0.25f) &&
+                    questDriver.PendingProposalCount == 0, cancellationToken: cutEditToken);
+                await desktopScene.PrepareRenderingAsync(token);
+                await view.Scene.PrepareRenderingAsync(token);
+                Assert.That(view.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(desktopScene.Cuts.Select(cut => cut.ID)));
+                Assert.That(view.Scene.Cuts[0].Position, Is.EqualTo(0.25f));
+
+                var questColumn = view.Scene.Columns.Single(column => column.ColumnData.ID == last.ColumnData.ID);
+                var nextQuestSite = questColumn.Sites.Single(site => site.Information.FullID == lastSites[1].Information.FullID);
+                view.Scene.SelectColumn(view.Scene.Columns[0]);
+                await UniTask.WaitUntil(() => desktopScene.SelectedColumn == desktopScene.Columns[0] && questDriver.PendingProposalCount == 0, cancellationToken: cutEditToken);
+                view.Scene.SelectSite(questColumn, nextQuestSite);
+                Assert.That(view.Scene.Cuts.Count, Is.EqualTo(3));
+                Assert.That(QuestCutCommands.Position(view.Scene, view.Scene.Cuts[0], 0.35f), Is.True);
+                await UniTask.WaitUntil(() => desktopScene.SelectedSite?.Information.FullID == nextQuestSite.Information.FullID &&
+                    desktopScene.Cuts.Count == 3 && desktopScene.Cuts[0].Position == 0.35f, cancellationToken: cutEditToken);
+                Assert.That(view.Scene.Cuts.Select(cut => cut.ID), Is.EqualTo(desktopScene.Cuts.Select(cut => cut.ID)));
+                var editedQuestCut = view.Scene.Cuts[0];
+
                 desktopScene.SelectSite(last, lastSites[0]);
                 desktopScene.SelectSite(last, lastSites[1]);
-                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[1].Information.FullID && view.Scene.SelectedColumn.ColumnData.ID == last.ColumnData.ID, cancellationToken: token);
+                await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite?.Information.FullID == lastSites[1].Information.FullID &&
+                    view.Scene.SelectedColumn.ColumnData.ID == last.ColumnData.ID && !view.Scene.Cuts.Contains(editedQuestCut), cancellationToken: cutEditToken);
                 await desktopScene.PrepareRenderingAsync(token);
                 await view.Scene.PrepareRenderingAsync(token);
                 AssertM2AutomaticCuts(desktopScene, view.Scene, lastSites[1].transform.localPosition);
@@ -710,7 +742,7 @@ namespace HBP.Tests.SceneTransfer
                 await UniTask.WaitUntil(() => view.Scene.SelectedColumn?.SelectedSite == null, cancellationToken: token);
                 await desktopScene.PrepareRenderingAsync(token);
                 await view.Scene.PrepareRenderingAsync(token);
-                Assert.That(view.Scene.Cuts, Is.Empty);
+                AssertM2AutomaticCuts(desktopScene, view.Scene, lastSites[1].transform.localPosition);
                 desktopScene.AutomaticCutAroundSelectedSite = false;
                 desktopScene.AutomaticCutAroundSelectedSite = true;
                 desktopScene.SelectSite(last, lastSites[0]);
@@ -1021,7 +1053,7 @@ namespace HBP.Tests.SceneTransfer
             desktop.SelectSite(anchorColumn, selectedContact);
             var questFocus = quest.Columns.First(column => column.ColumnData.ID != anchorColumn.ColumnData.ID);
             quest.SelectColumn(questFocus);
-            desktop.AutomaticCutAroundSelectedSite = quest.AutomaticCutAroundSelectedSite = true;
+            desktop.AutomaticCutAroundSelectedSite = true;
             await desktop.PrepareRenderingAsync(stop);
             await quest.PrepareRenderingAsync(stop);
             dSite.State.Color = Color.red;

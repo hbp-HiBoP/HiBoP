@@ -172,7 +172,10 @@ changes enter scene synchronization.
 
 Each visualization has one selected recording contact, independent of column
 focus. Per-column site objects mirror the selection and obey their own visibility
-and scientific masks. Automatic cuts follow the contact's scientific position.
+and scientific masks. With automatic cuts enabled, selecting a different contact
+replaces the current cuts with three anatomical planes through that contact.
+Cut controls and spatial guides remain available. Edits survive column focus
+changes, reselecting the same contact and clearing the selection.
 Trial matrices resolve recorded trials by patient, channel, dataset and bloc.
 Keep the presentation and trial selection when only column focus changes.
 Missing trials produce empty cells, including for anatomically selectable contacts.

@@ -1734,7 +1734,7 @@ namespace HBP.Tests.PlayMode.Module3D
         [Test]
         [Category("PlayMode.Module3DScene")]
         [Category("NativeDll")]
-        public async Task Base3DScene_AutomaticCutsSurviveAClickThatMissesTheSite()
+        public async Task Base3DScene_AutomaticCutsKeepManualEditsUntilADifferentSiteIsSelected()
         {
             RequireHbpCore();
             using PlayModeTempDirectoryScope temp = new();
@@ -1744,7 +1744,7 @@ namespace HBP.Tests.PlayMode.Module3D
             using PlayModeSceneScope scene = new("Module3DSceneAutomaticCutIdentity");
             MRI patientMRI = new("Anatomical MRI", NativeFixturePath("Nifti", "mri_t1.nii"), "runtime-automatic-cut-mri");
             SingleMesh patientMesh = new("Grey matter", string.Empty, NativeFixturePath("Meshes", "single_surface.gii"), string.Empty, "runtime-automatic-cut-mesh");
-            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, anatomyColumnCount: 2, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name);
+            var initialized = await InitializeSyntheticAnatomicSceneAsync(temp, scene, anatomyColumnCount: 2, patientMRIs: new[] { patientMRI }, patientMeshes: new BaseMesh[] { patientMesh }, configuredMeshName: patientMesh.Name, includeSecondSite: true);
             Base3DScene baseScene = initialized.BaseScene;
             try
             {
@@ -1755,10 +1755,14 @@ namespace HBP.Tests.PlayMode.Module3D
                 var site = column.Sites[0];
                 baseScene.SelectSite(column, site);
                 baseScene.AutomaticCutAroundSelectedSite = true;
-                baseScene.CutAroundSelectedSite();
+                Assert.That(baseScene.CutAroundSelectedSite(), Is.True);
                 string[] automaticIds = baseScene.Cuts.Select(cut => cut.ID).ToArray();
                 Assert.That(automaticIds, Has.Length.EqualTo(3));
-                Vector3[] positions = baseScene.Cuts.Select(cut => cut.Point).ToArray();
+                var edited = baseScene.Cuts[0];
+                baseScene.SetCutDefinition(edited, CutOrientation.Coronal, true, 0.25f, edited.Normal);
+                baseScene.RemoveCutPlane(baseScene.Cuts[1]);
+                baseScene.RemoveCutPlane(baseScene.Cuts[1]);
+                var added = baseScene.AddCutPlane();
 
                 Column3D second = baseScene.Columns[1];
                 var replica = second.Sites.Single(candidate => candidate.Information.FullID == site.Information.FullID);
@@ -1770,10 +1774,21 @@ namespace HBP.Tests.PlayMode.Module3D
 
                 Ray miss = new(column.transform.position + Vector3.right * 10000, Vector3.right);
                 baseScene.ClickOnScene(miss, second);
+                replica.State.IsMasked = false;
+                baseScene.SelectSite(second, replica);
                 Assert.That(column.SelectedSite, Is.SameAs(site));
-                baseScene.CutAroundSelectedSite();
+                Assert.That(baseScene.CutAroundSelectedSite(), Is.False);
+                Assert.That(baseScene.Cuts, Is.EqualTo(new[] { edited, added }));
+                Assert.That(edited.Position, Is.EqualTo(0.25f));
+                Assert.That(edited.Orientation, Is.EqualTo(CutOrientation.Coronal));
+                Assert.That(edited.Flip, Is.True);
+
+                var nextSite = column.Sites.First(candidate => candidate != site && !candidate.State.IsMasked);
+                baseScene.SelectSite(column, nextSite);
+                Assert.That(baseScene.CutAroundSelectedSite(), Is.True);
                 Assert.That(baseScene.Cuts.Select(cut => cut.ID), Is.EqualTo(automaticIds));
-                Assert.That(baseScene.Cuts.Select(cut => cut.Point), Is.EqualTo(positions));
+                Assert.That(baseScene.Cuts.Select(cut => cut.Orientation), Is.EqualTo(new[] { CutOrientation.Axial, CutOrientation.Coronal, CutOrientation.Sagittal }));
+                Assert.That(baseScene.Cuts.All(cut => Mathf.Abs(Vector3.Dot(nextSite.transform.localPosition - cut.Point, cut.Normal)) < 0.001f), Is.True);
             }
             finally
             {
@@ -2448,9 +2463,9 @@ namespace HBP.Tests.PlayMode.Module3D
             return baseScene;
         }
 
-        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization, List<string> LoadingMessages)> InitializeSyntheticAnatomicSceneAsync(PlayModeTempDirectoryScope temp, PlayModeSceneScope scene, int anatomyColumnCount = 1, string patientSuffix = "alpha", IEnumerable<MRI> patientMRIs = null, IEnumerable<BaseMesh> patientMeshes = null, string configuredMeshName = null, string configuredMRIName = null, int patientCount = 1)
+        private static async Task<(Project Project, Base3DScene BaseScene, Visualization Visualization, List<string> LoadingMessages)> InitializeSyntheticAnatomicSceneAsync(PlayModeTempDirectoryScope temp, PlayModeSceneScope scene, int anatomyColumnCount = 1, string patientSuffix = "alpha", IEnumerable<MRI> patientMRIs = null, IEnumerable<BaseMesh> patientMeshes = null, string configuredMeshName = null, string configuredMRIName = null, int patientCount = 1, bool includeSecondSite = false)
         {
-            Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix, patientMRIs, patientMeshes, patientCount);
+            Project project = CreateMinimalAnatomicProject(anatomyColumnCount, patientSuffix, patientMRIs, patientMeshes, patientCount, includeSecondSite);
             Base3DScene baseScene = CreateRuntimeBase3DScene(scene);
             Visualization visualization = project.Visualizations.Single();
             visualization.Configuration.MeshName = configuredMeshName;
@@ -2703,10 +2718,13 @@ namespace HBP.Tests.PlayMode.Module3D
             return material;
         }
 
-        private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1, string patientSuffix = "alpha", IEnumerable<MRI> patientMRIs = null, IEnumerable<BaseMesh> patientMeshes = null, int patientCount = 1)
+        private static Project CreateMinimalAnatomicProject(int anatomyColumnCount = 1, string patientSuffix = "alpha", IEnumerable<MRI> patientMRIs = null, IEnumerable<BaseMesh> patientMeshes = null, int patientCount = 1, bool includeSecondSite = false)
         {
             HBP.Core.Data.Site site = new($"module3d-scene-site-{patientSuffix}", new[] { new Coordinate("MNI", new Vector3(1, 2, 3), $"module3d-scene-coordinate-{patientSuffix}") }, Array.Empty<BaseTagValue>(), $"module3d-scene-site-{patientSuffix}");
-            Patient patient = new($"module3d-scene-patient-{patientSuffix}", patientMeshes ?? Array.Empty<BaseMesh>(), patientMRIs ?? Array.Empty<MRI>(), new[] { site }, Array.Empty<BaseTagValue>(), string.Empty, $"module3d-scene-patient-{patientSuffix}");
+            List<HBP.Core.Data.Site> sites = new() { site };
+            if (includeSecondSite)
+                sites.Add(new HBP.Core.Data.Site($"module3d-scene-site-{patientSuffix}-2", new[] { new Coordinate("MNI", new Vector3(1.25f, 2.25f, 3.25f), $"module3d-scene-coordinate-{patientSuffix}-2") }, Array.Empty<BaseTagValue>(), $"module3d-scene-site-{patientSuffix}-2"));
+            Patient patient = new($"module3d-scene-patient-{patientSuffix}", patientMeshes ?? Array.Empty<BaseMesh>(), patientMRIs ?? Array.Empty<MRI>(), sites, Array.Empty<BaseTagValue>(), string.Empty, $"module3d-scene-patient-{patientSuffix}");
             List<Patient> patients = patientCount > 0 ? new() { patient } : new();
             for (int index = 1; index < patientCount; ++index)
             {

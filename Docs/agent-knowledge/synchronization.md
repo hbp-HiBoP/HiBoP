@@ -155,8 +155,8 @@ terminate an otherwise healthy socket merely for a domain rejection.
 
 | Operation family | Required behavior |
 | --- | --- |
-| Selections | Share scene/column/site/ROI/sphere identity. Column focus and the visualization's selected contact have independent keys and one retained unsent intent each. The site offer's column supplies visibility context; the checkpoint records one contact per visualization. Derive automatic cuts from the accepted contact and policy, and ROI masks from their accepted causes. Hover never selects a new context. |
-| Cuts and ROI spheres | Send complete small definitions atomically. Create/delete are reliable structural operations; definitions coalesce by object. Never renumber identities after deletion. |
+| Selections | Share scene/column/site/ROI/sphere identity. Column focus and the visualization's selected contact have independent keys. The site offer's column supplies visibility context; the checkpoint records one contact per visualization. A site selection or policy change that generates automatic cuts carries the replacement cut definitions in the same mutation. Derive ROI masks from their accepted causes. Hover never selects a new context. |
+| Cuts and ROI spheres | Send complete small definitions atomically. Create/delete and automatic cut replacement are reliable structural operations; definitions coalesce by object. Never renumber identities after deletion. Checkpoints retain the current cut roster even in automatic mode. |
 | Site state | A multi-site gesture/import is one final-value batch, preserving targeting/masking rules and skipping unchanged assignments. Blacklist affects scientific masks; highlight/color/ordered labels do not invalidate activity. |
 | ROI/filtering | Share ROI definitions and derive its mask locally. Filtering uses command plus canonical result as described under jobs. |
 | Scientific site placement | Send the Left/Right/Reset domain command. Do not silently substitute raw position arrays if cross-platform geometry parity fails. |

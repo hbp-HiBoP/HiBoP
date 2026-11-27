@@ -74,7 +74,7 @@ namespace HBP.Quest
                 return;
             }
 
-            foreach (var column in view.AllColumns.Where(value => view.CanInteractWithColumn(value) && !value.Scene.AutomaticCutAroundSelectedSite))
+            foreach (var column in view.AllColumns.Where(view.CanInteractWithColumn))
             foreach (var cut in column.Scene.Cuts)
                 if (!gizmos.Any(g => g.Column == column && g.Cut == cut))
                 {

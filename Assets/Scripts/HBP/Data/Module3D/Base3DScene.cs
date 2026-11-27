@@ -565,17 +565,18 @@ namespace HBP.Data.Module3D
         }
 
         private bool m_AutomaticCutAroundSelectedSite = false;
-        private bool m_AutomaticCutsInitialized;
+        private bool m_AutomaticCutsPending;
 
         /// <summary>
-        /// Automatically cuts around the currently selected site
+        /// Replaces the cuts when a new site is selected.
         /// </summary>
         public bool AutomaticCutAroundSelectedSite
         {
             get { return m_AutomaticCutAroundSelectedSite; }
             set
             {
-                if (m_AutomaticCutAroundSelectedSite && !value) m_AutomaticCutsInitialized = false;
+                if (m_AutomaticCutAroundSelectedSite != value)
+                    m_AutomaticCutsPending = value && SelectedSite;
                 m_AutomaticCutAroundSelectedSite = value;
                 SceneInformation.CutsNeedUpdate = true;
                 OnChangeAutomaticCutAroundSelectedSite.Invoke(value);
@@ -2103,26 +2104,15 @@ namespace HBP.Data.Module3D
         /// <summary>
         /// Create 3 cuts surrounding the selected site
         /// </summary>
-        public void CutAroundSelectedSite()
+        public bool CutAroundSelectedSite()
         {
-            if (!m_AutomaticCutAroundSelectedSite) return;
-            Core.Object3D.Site site = SelectedSite;
-            if (!site)
-            {
-                foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
-                m_AutomaticCutsInitialized = false;
-                return;
-            }
+            if (!m_AutomaticCutsPending || !SelectedSite || m_MRIManager?.SelectedMRI?.Volume == null || m_MeshManager?.ReferenceSurface == null) return false;
+            m_AutomaticCutsPending = false;
+            foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
 
-            bool reuse = m_AutomaticCutsInitialized && Cuts.Count == 3;
-            if (!reuse)
-            {
-                foreach (var cut in Cuts.ToList()) RemoveCutPlane(cut);
-            }
+            Vector3 sitePosition = SelectedSite.transform.localPosition;
 
-            Vector3 sitePosition = site.transform.localPosition;
-
-            Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
+            using Core.DLL.BBox bbox = Core.DLL.BBox.Merge(m_MRIManager.SelectedMRI.Volume.BoundingBox, m_MeshManager.ReferenceSurface.BoundingBox);
             Vector3 center = bbox.Center;
 
             void SetUnflippedOrientation(Core.Object3D.Cut cut, CutOrientation orientation)
@@ -2134,7 +2124,7 @@ namespace HBP.Data.Module3D
                 cut.Normal = plane.Normal;
             }
 
-            Core.Object3D.Cut axialCut = reuse ? Cuts[0] : AddCutPlane("hbp:auto-cut:axial");
+            Core.Object3D.Cut axialCut = AddCutPlane("hbp:auto-cut:axial");
             SetUnflippedOrientation(axialCut, CutOrientation.Axial);
             Vector3 axialPoint = center + (Vector3.Dot(sitePosition - center, axialCut.Normal) / Vector3.Dot(axialCut.Normal, axialCut.Normal)) * axialCut.Normal;
             float axialOffset = bbox.SizeOffsetCutPlane(axialCut, axialCut.NumberOfCuts);
@@ -2147,7 +2137,7 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(axialCut);
 
-            Core.Object3D.Cut coronalCut = reuse ? Cuts[1] : AddCutPlane("hbp:auto-cut:coronal");
+            Core.Object3D.Cut coronalCut = AddCutPlane("hbp:auto-cut:coronal");
             SetUnflippedOrientation(coronalCut, CutOrientation.Coronal);
             Vector3 coronalPoint = center + (Vector3.Dot(sitePosition - center, coronalCut.Normal) / Vector3.Dot(coronalCut.Normal, coronalCut.Normal)) * coronalCut.Normal;
             float coronalOffset = bbox.SizeOffsetCutPlane(coronalCut, coronalCut.NumberOfCuts);
@@ -2160,7 +2150,7 @@ namespace HBP.Data.Module3D
 
             UpdateCutPlane(coronalCut);
 
-            Core.Object3D.Cut sagittalCut = reuse ? Cuts[2] : AddCutPlane("hbp:auto-cut:sagittal");
+            Core.Object3D.Cut sagittalCut = AddCutPlane("hbp:auto-cut:sagittal");
             SetUnflippedOrientation(sagittalCut, CutOrientation.Sagittal);
             Vector3 sagittalPoint = center + (Vector3.Dot(sitePosition - center, sagittalCut.Normal) / Vector3.Dot(sagittalCut.Normal, sagittalCut.Normal)) * sagittalCut.Normal;
             float sagittalOffset = bbox.SizeOffsetCutPlane(sagittalCut, sagittalCut.NumberOfCuts);
@@ -2172,8 +2162,11 @@ namespace HBP.Data.Module3D
             }
 
             UpdateCutPlane(sagittalCut);
-            m_AutomaticCutsInitialized = true;
+            return true;
         }
+
+        /// <summary>A restored cut roster already accounts for the selected site and policy.</summary>
+        public void CancelPendingAutomaticCuts() => m_AutomaticCutsPending = false;
 
         #endregion
 

@@ -59,12 +59,14 @@ namespace HBP.Sync
     {
         public ColumnId ColumnId { get; }
         public SiteId SiteId { get; }
+        public override IReadOnlyList<SetCutDefinition> ReplacementCuts { get; }
         public override OperationType Type => OperationType.SetSelectedSite;
 
-        public SetSelectedSite(ColumnId columnId, SiteId siteId)
+        public SetSelectedSite(ColumnId columnId, SiteId siteId, IEnumerable<SetCutDefinition> replacementCuts = null)
         {
             ColumnId = columnId ?? throw new ArgumentNullException(nameof(columnId));
             SiteId = siteId;
+            ReplacementCuts = T09MutationCodec.ValidateReplacementCuts(replacementCuts);
         }
     }
 
@@ -72,13 +74,17 @@ namespace HBP.Sync
     {
         public SceneBooleanProperty Property { get; }
         public bool Value { get; }
+        public override IReadOnlyList<SetCutDefinition> ReplacementCuts { get; }
         public override OperationType Type => OperationType.SetSceneBoolean;
 
-        public SetSceneBoolean(SceneBooleanProperty property, bool value)
+        public SetSceneBoolean(SceneBooleanProperty property, bool value, IEnumerable<SetCutDefinition> replacementCuts = null)
         {
             if ((byte)property < (byte)SceneBooleanProperty.StrongCuts || (byte)property > (byte)SceneBooleanProperty.Visible) throw new ArgumentOutOfRangeException(nameof(property));
             Property = property;
             Value = value;
+            if (replacementCuts != null && property != SceneBooleanProperty.AutomaticCutAroundSelectedSite)
+                throw new ArgumentException("Only the automatic cut policy can replace cuts.", nameof(replacementCuts));
+            ReplacementCuts = T09MutationCodec.ValidateReplacementCuts(replacementCuts);
         }
     }
 
@@ -493,6 +499,30 @@ namespace HBP.Sync
 
     internal static class T09MutationCodec
     {
+        internal static IReadOnlyList<SetCutDefinition> ValidateReplacementCuts(IEnumerable<SetCutDefinition> cuts)
+        {
+            if (cuts == null) return null;
+            var definitions = cuts.ToArray();
+            if (definitions.Length > 256 || definitions.Any(cut => cut == null) || definitions.Select(cut => cut.CutId).Distinct().Count() != definitions.Length)
+                throw new ArgumentException("Replacement cuts must contain at most 256 unique, supported definitions.", nameof(cuts));
+            return Array.AsReadOnly(definitions);
+        }
+
+        private static IEnumerable<SetCutDefinition> ReadReplacementCuts(BinaryReader reader)
+        {
+            if (reader.BaseStream.Position == reader.BaseStream.Length) return null;
+            int count = reader.ReadUInt16();
+            if (count > 256) throw new InvalidDataException("Replacement cuts exceed their bound.");
+            return Enumerable.Range(0, count).Select(_ => T10MutationCodec.ReadCutDefinition(reader)).ToArray();
+        }
+
+        private static void WriteReplacementCuts(BinaryWriter writer, IReadOnlyList<SetCutDefinition> cuts)
+        {
+            if (cuts == null) return;
+            writer.Write((ushort)cuts.Count);
+            foreach (var cut in cuts) T10MutationCodec.WriteCompleteCutDefinition(writer, cut);
+        }
+
         internal static Mutation ReadBody(BinaryReader reader, OperationType type)
         {
             switch (type)
@@ -500,9 +530,9 @@ namespace HBP.Sync
                 case OperationType.SetSelectedColumn:
                     return new SetSelectedColumn(ReadOptionalColumn(reader));
                 case OperationType.SetSelectedSite:
-                    return new SetSelectedSite(ReadColumn(reader), ReadOptionalSite(reader));
+                    return new SetSelectedSite(ReadColumn(reader), ReadOptionalSite(reader), ReadReplacementCuts(reader));
                 case OperationType.SetSceneBoolean:
-                    return new SetSceneBoolean(ReadEnum<SceneBooleanProperty>(reader), ReadBoolean(reader));
+                    return new SetSceneBoolean(ReadEnum<SceneBooleanProperty>(reader), ReadBoolean(reader), ReadReplacementCuts(reader));
                 case OperationType.SetSceneFloat:
                     return new SetSceneFloat(ReadEnum<SceneFloatProperty>(reader), reader.ReadSingle());
                 case OperationType.SetSceneColor:
@@ -554,10 +584,12 @@ namespace HBP.Sync
                 case SetSelectedSite value:
                     WriteText(writer, value.ColumnId.Value);
                     WriteOptionalText(writer, value.SiteId?.Value);
+                    WriteReplacementCuts(writer, value.ReplacementCuts);
                     break;
                 case SetSceneBoolean value:
                     writer.Write((byte)value.Property);
                     writer.Write((byte)(value.Value ? 1 : 0));
+                    WriteReplacementCuts(writer, value.ReplacementCuts);
                     break;
                 case SetSceneFloat value:
                     writer.Write((byte)value.Property);

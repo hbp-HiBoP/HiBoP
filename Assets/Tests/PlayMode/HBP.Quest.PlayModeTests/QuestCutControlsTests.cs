@@ -58,8 +58,10 @@ namespace HBP.Tests.Quest
         public async Task ProductionPointer_RayHitsRowControlsAndTriggerChangesTheirCut()
         {
             using var f = new Fixture();
+            f.Scene.AutomaticCutAroundSelectedSite = true;
             f.Panel.Refresh();
             f.Window.Open(); // Production creates rows while this window is still closed.
+            Assert.That(f.Panel.AidsActive, Is.True);
             using var input = new PointerFixture(f);
             await UniTask.NextFrame();
             Canvas.ForceUpdateCanvases();

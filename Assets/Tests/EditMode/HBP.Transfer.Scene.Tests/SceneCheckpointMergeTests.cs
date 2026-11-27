@@ -115,6 +115,33 @@ namespace HBP.Tests.Transfer.Scene
         }
 
         [Test]
+        public void AutomaticCutReplacement_MergesAsOneChoiceWithEditsOfThePreviousRoster()
+        {
+            var cut = new CutId("axial");
+            var nextSite = new SiteId("next_contact");
+            var baseline = Empty();
+            baseline.ApplyCanonical(new SetSelectedSite(Column, Site));
+            baseline.ApplyCanonical(new SetSceneBoolean(SceneBooleanProperty.AutomaticCutAroundSelectedSite, true, new[] { Definition(cut, 0.4f) }));
+            var desktop = baseline.Clone();
+            var quest = baseline.Clone();
+
+            var selection = new SetSelectedSite(Column, nextSite, new[] { Definition(cut, 0.65f) });
+            desktop.ApplyCanonical(MutationPayloadCodec.Decode(MutationPayloadCodec.Encode(selection)));
+            quest.ApplyCanonical(Definition(cut, 0.3f));
+            AddCut(quest, "extra", 1);
+
+            var merge = new SceneCheckpointMerge(baseline, desktop, quest);
+            Assert.That(merge.Conflicts.Count, Is.EqualTo(1));
+            var desktopChoice = merge.Resolve(new[] { ConflictChoice.Desktop }).ToCheckpoint();
+            Assert.That(desktopChoice.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(nextSite));
+            Assert.That(desktopChoice.CutDefinitions.Single().Value.Position, Is.EqualTo(0.65f));
+            var questChoice = merge.Resolve(new[] { ConflictChoice.Quest }).ToCheckpoint();
+            Assert.That(questChoice.T09Records.Select(record => record.Value).OfType<SetSelectedSite>().Single().SiteId, Is.EqualTo(Site));
+            Assert.That(questChoice.CutDefinitions.Select(record => record.Value.CutId.Value), Is.EquivalentTo(new[] { "axial", "extra" }));
+            Assert.That(SceneCheckpointState.FromCheckpoint(questChoice).Hash(), Is.EqualTo(quest.Hash()));
+        }
+
+        [Test]
         public void RoiAndSphereOrder_SurviveCheckpointRoundTrip()
         {
             var state = Empty();
