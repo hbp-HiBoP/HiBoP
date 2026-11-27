@@ -150,21 +150,30 @@ namespace HBP.Quest
             CloseTagSettings();
             labelPicker.SetActive(true);
             labelPicker.transform.SetAsLastSibling();
+            BindLabels();
+            RefreshAddButton();
+        }
+
+        private void BindLabels()
+        {
             labelList.Bind(index.Snapshot(), value => site != null && site.State.Labels.Contains(value), SetLabel);
             catalogRevision = index.Revision;
-            RefreshAddButton();
         }
 
         private void CloseLabels()
         {
+            ClearLabelDraft();
+            if (labelPicker != null) labelPicker.SetActive(false);
+        }
+
+        private void ClearLabelDraft()
+        {
             if (labelName != null)
             {
-                if (labelName.touchScreenKeyboard != null) labelName.touchScreenKeyboard.active = false;
-                labelName.DeactivateInputField();
+                if (labelName is QuestTextInputField questInput) questInput.CancelEditing();
+                else labelName.DeactivateInputField();
                 labelName.SetTextWithoutNotify("");
             }
-
-            if (labelPicker != null) labelPicker.SetActive(false);
         }
 
         private void OnWindowChanged(QuestWindow value)
@@ -172,12 +181,13 @@ namespace HBP.Quest
             if (!value.IsOpen) CancelDrafts();
         }
 
-        private void CancelDrafts(bool closePreset = true)
+        private void CancelDrafts(bool closePreset = true, bool keepLabelsOpen = false)
         {
             if (closePreset && preset != null) preset.Close();
             if (colorPicker != null) colorPicker.Cancel();
             CloseTagSettings();
-            CloseLabels();
+            if (keepLabelsOpen) ClearLabelDraft();
+            else CloseLabels();
         }
 
         private void CloseTagSettings()
@@ -239,13 +249,14 @@ namespace HBP.Quest
             var nextScene = view != null ? view.Scene : null;
             var nextColumn = nextScene != null ? nextScene.SelectedColumn : null;
             var nextSite = nextColumn != null ? nextColumn.SelectedSite : null;
-            if (nextScene != scene || nextColumn != column || nextSite != site)
+            bool sceneChanged = nextScene != scene;
+            if (sceneChanged || nextColumn != column || nextSite != site)
             {
-                CancelDrafts(false);
-                preset.SelectionChanged(nextScene != scene);
+                CancelDrafts(closePreset: false, keepLabelsOpen: true);
+                preset.SelectionChanged(sceneChanged);
                 if (column != null) column.OnSelectSite.RemoveListener(OnSelectedSite);
                 if (site != null) site.State.OnChangeState.RemoveListener(OnStateChanged);
-                if (nextScene != scene)
+                if (sceneChanged)
                 {
                     index?.Dispose();
                     index = nextScene != null ? new QuestSceneLabelIndex(nextScene) : null;
@@ -256,6 +267,14 @@ namespace HBP.Quest
                 site = nextSite;
                 if (column != null) column.OnSelectSite.AddListener(OnSelectedSite);
                 if (site != null) site.State.OnChangeState.AddListener(OnStateChanged);
+                if (labelPicker.activeSelf)
+                {
+                    if (!Ready) labelPicker.SetActive(false);
+                    else if (sceneChanged) BindLabels();
+                    else labelList.Refresh();
+                    RefreshAddButton();
+                }
+
                 SetError("");
                 dirty = true;
             }

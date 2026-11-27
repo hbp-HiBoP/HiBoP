@@ -89,7 +89,7 @@ namespace HBP.Tests.Quest
         }
 
         [Test]
-        public void Panel_InspectsInitiallySelectedHiddenSiteAndUpdatesAfterSelectionAndVisibilityChanges()
+        public void Panel_UpdatesSiteDetailsAndKeepsLabelEditingOpenAcrossSelections()
         {
             var data = new GameObject("Site panel scientific fixture");
             data.SetActive(false);
@@ -106,6 +106,7 @@ namespace HBP.Tests.Quest
             var patient = new Patient { Name = "Patient", Tags = new List<BaseTagValue> { new StringTagValue(new StringTag("Patient tag"), "Patient value") } };
             var a = CreateSite("A1", patient);
             var b = CreateSite("B2", patient);
+            a.State.AddLabel("First label");
             column.Sites.Add(a);
             column.Sites.Add(b);
             typeof(Column3D).GetProperty("SelectedSite").SetValue(column, a);
@@ -126,7 +127,30 @@ namespace HBP.Tests.Quest
                 Assert.That(a.gameObject.activeSelf, Is.False, "Inspecting a hidden selection must not reveal it.");
                 var table = (QuestTagTable)fields.FindProperty("siteTags").objectReferenceValue;
                 Assert.That(table.GetComponentInChildren<QuestTagRow>().GetComponentsInChildren<Text>()[1].text, Is.EqualTo("A1 value"));
+
+                var labelPicker = (GameObject)fields.FindProperty("labelPicker").objectReferenceValue;
+                var chooseLabels = (Button)fields.FindProperty("chooseLabels").objectReferenceValue;
+                var labelName = (InputField)fields.FindProperty("labelName").objectReferenceValue;
+                var newLabel = (Button)fields.FindProperty("newLabel").objectReferenceValue;
+                chooseLabels.onClick.Invoke();
+                Assert.That(labelPicker.activeInHierarchy, Is.True, "The Edit Labels button opens the picker.");
+                var labelToggle = labelPicker.GetComponentInChildren<QuestLabelChoice>().GetComponentInChildren<Toggle>();
+                Assert.That(labelToggle.isOn, Is.True);
+                labelName.text = "Unfinished label";
+                Assert.That(newLabel.interactable, Is.True);
+
                 typeof(Column3D).GetProperty("SelectedSite").SetValue(column, b);
+                column.OnSelectSite.Invoke(b);
+                Assert.That(labelPicker.activeInHierarchy, Is.True, "Selecting the next site keeps the picker open.");
+                Assert.That(labelToggle.isOn, Is.False);
+                Assert.That(labelName.text, Is.Empty);
+                Assert.That(newLabel.interactable, Is.False);
+                labelToggle.isOn = true;
+                Assert.That(b.State.Labels, Is.EqualTo(new[] { "First label" }));
+                labelToggle.isOn = false;
+                Assert.That(a.State.Labels, Is.EqualTo(new[] { "First label" }));
+                Assert.That(b.State.Labels, Is.Empty);
+
                 Refresh(panel);
                 Assert.That(identity.text, Does.Contain("B2"));
                 Assert.That(table.GetComponentInChildren<QuestTagRow>().GetComponentsInChildren<Text>()[1].text, Is.EqualTo("B2 value"));
@@ -137,6 +161,7 @@ namespace HBP.Tests.Quest
                 Refresh(panel);
                 Assert.That(identity.text, Does.Contain("Select a site"));
                 Assert.That(table.gameObject.activeSelf, Is.False);
+                Assert.That(labelPicker.activeSelf, Is.False);
             }
             finally
             {
