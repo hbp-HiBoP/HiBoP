@@ -9,6 +9,8 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Linq;
+using System.Net;
+using System.Reflection;
 
 namespace HBP.Tests.PlatformConfiguration
 {
@@ -26,6 +28,18 @@ namespace HBP.Tests.PlatformConfiguration
             Assert.That(retry, Is.Not.Null);
             Assert.That(status.transform.parent, Is.EqualTo(root.transform.Find("Background/Content Viewport/Content")));
             Assert.That(PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(retry), Does.EndWith("Quest Button.prefab"));
+        }
+
+        [TestCase("Wi-Fi: 192.168.1.18\nUSB: fe80::5", new[] { "fe80::18%4", "2001:db8::18", "192.168.1.18" }, new[] { "fe80::5%9" })]
+        [TestCase("Wi-Fi: 2001:db8::18", new[] { "fe80::18%4", "2001:db8::18" }, new string[] { })]
+        [TestCase("Wi-Fi: fe80::18", new[] { "fe80::18%4" }, new string[] { })]
+        [TestCase("USB: 192.168.7.5", new[] { "0.0.0.0", "::" }, new[] { "fe80::5%9", "192.168.7.5" })]
+        [TestCase("", new[] { "0.0.0.0", "::" }, new string[] { })]
+        public void PairingShowsOneManualAddressPerAvailableTransport(string expected, string[] wifi, string[] usb)
+        {
+            var candidates = usb.Select(ip => (true, IPAddress.Parse(ip))).Concat(wifi.Select(ip => (false, IPAddress.Parse(ip))));
+            var format = typeof(QuestConnectionPanel).GetMethod("FormatPairingAddresses", BindingFlags.NonPublic | BindingFlags.Static);
+            Assert.That(format.Invoke(null, new object[] { candidates }), Is.EqualTo(expected));
         }
 
         [Test]

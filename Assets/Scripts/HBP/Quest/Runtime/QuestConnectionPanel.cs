@@ -3,7 +3,6 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -23,7 +22,7 @@ namespace HBP.Quest
         private CancellationTokenSource lifetime;
         private UniTask running = UniTask.CompletedTask;
         private QuestPairing pairing;
-        private string address, status = "Starting connection...";
+        private string pairingAddresses, status = "Starting connection...";
         private bool restarting;
         private string identityPath, deviceName, applicationVersion;
         private float nextRefresh;
@@ -32,6 +31,7 @@ namespace HBP.Quest
         private sealed class NetworkSnapshot
         {
             public string usbStatus;
+            public bool cableConnected;
             public bool canRetry;
             public NetworkLink[] networks;
         }
@@ -95,6 +95,7 @@ namespace HBP.Quest
         {
             statusPanel.OnNewAssociationRequested.AddListener(NewAssociation);
             statusPanel.OnRetryUsbRequested.AddListener(RetryUsb);
+            statusPanel.ShowUsb(null, false);
 #if UNITY_ANDROID && !UNITY_EDITOR
             using var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer");
             using var activity = player.GetStatic<AndroidJavaObject>("currentActivity");
@@ -247,11 +248,10 @@ namespace HBP.Quest
 #if UNITY_ANDROID && !UNITY_EDITOR
             snapshot = JsonUtility.FromJson<NetworkSnapshot>(networkMonitor.Call<string>("snapshot"));
 #else
-            snapshot = new NetworkSnapshot { usbStatus = "USB networking is available in the Quest player", networks = new[] { new NetworkLink { addresses = new[] { "0.0.0.0" } } } };
+            snapshot = new NetworkSnapshot { networks = new[] { new NetworkLink { addresses = new[] { "0.0.0.0" } } } };
 #endif
             snapshot.networks ??= Array.Empty<NetworkLink>();
-            statusPanel.ShowUsb(snapshot.usbStatus, snapshot.canRetry);
-            address = string.Join(" / ", snapshot.networks.SelectMany(n => n.addresses ?? Array.Empty<string>()));
+            statusPanel.ShowUsb(snapshot.cableConnected ? snapshot.usbStatus : null, snapshot.cableConnected && snapshot.canRetry);
             foreach (long key in receivers.Keys.ToArray())
                 if (!snapshot.networks.Any(n => n.handle == key && n.generation == receivers[key].Generation) || receivers[key].Tasks.Any(t => t.IsCompleted))
                     await StopReceiverAsync(key);
@@ -299,6 +299,20 @@ namespace HBP.Quest
                 receivers.Add(network.handle, receiver);
                 networkMonitor?.Call("advertise", network.handle, Convert.ToBase64String(owner.Pin), deviceName);
             }
+
+            pairingAddresses = FormatPairingAddresses(snapshot.networks.Where(network => receivers.ContainsKey(network.handle)).SelectMany(network => receivers[network.handle].Listeners.Select(listener => (network.usb, ((IPEndPoint)listener.LocalEndpoint).Address))));
+        }
+
+        private static string FormatPairingAddresses(IEnumerable<(bool Usb, IPAddress Address)> candidates)
+        {
+            // Within each transport, prefer IPv4, then IPv6 without a Desktop interface scope.
+            var addresses = candidates.Where(candidate => !candidate.Address.Equals(IPAddress.Any) && !candidate.Address.Equals(IPAddress.IPv6Any)).OrderBy(candidate => candidate.Usb).ThenBy(candidate => candidate.Address.IsIPv6LinkLocal).ThenBy(candidate => candidate.Address.AddressFamily != AddressFamily.InterNetwork).GroupBy(candidate => candidate.Usb).Select(group =>
+            {
+                var ip = group.First().Address;
+                if (ip.IsIPv6LinkLocal) ip = new IPAddress(ip.GetAddressBytes());
+                return $"{(group.Key ? "USB" : "Wi-Fi")}: {ip}";
+            });
+            return string.Join("\n", addresses);
         }
 
         public string Summary => session == null ? "Connection unavailable" : session.ReceptionState != AnatomyReceptionState.Idle ? "Receiving..." : session.IsReady ? pairing?.IsConnected == true || session.IsSynchronizationConnected ? "Connected" : "Offline" : pairing?.IsPaired == true ? "Paired" : "Pairing";
@@ -327,7 +341,7 @@ namespace HBP.Quest
                         ShowPairingProgressAsync(pairing, lifetime.Token).Forget(Debug.LogException);
                 }
 
-                statusPanel.ShowPairing(state.Value, address);
+                statusPanel.ShowPairing(state.Value, pairingAddresses);
             }
         }
 

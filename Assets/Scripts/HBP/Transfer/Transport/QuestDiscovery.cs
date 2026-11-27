@@ -10,7 +10,7 @@ namespace HBP.Transfer.Transport
         public QuestEndpoint Endpoint;
         public string Id => Convert.ToBase64String(Pin);
         public string RouteKey => Endpoint.RouteKey(Id);
-        public string Label => Name + " · " + (Endpoint.Path == QuestNetworkPath.Usb ? "USB" : "Local network") + " · " + (Endpoint.InterfaceName ?? Endpoint.AddressText) + " · " + BitConverter.ToString(Pin, 0, 3).Replace("-", "");
+        public string Label => Name + " · " + (Endpoint.Path == QuestNetworkPath.Usb ? $"USB · {Endpoint.InterfaceName ?? Endpoint.AddressText}" : $"Local network · {Endpoint.AddressText}") + " · " + BitConverter.ToString(Pin, 0, 3).Replace("-", "");
     }
 
     // The TLS description command keeps its wire format; it is independent of discovery.

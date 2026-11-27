@@ -31,16 +31,21 @@ namespace HBP.Quest
 
         public void ShowUsb(string message, bool canRetry)
         {
-            if (usbStatus) usbStatus.text = message ?? "";
+            if (usbStatus)
+            {
+                usbStatus.text = message ?? "";
+                usbStatus.gameObject.SetActive(!string.IsNullOrEmpty(message));
+            }
+
             if (retryUsb) retryUsb.gameObject.SetActive(canRetry);
         }
 
-        public void ShowPairing(PairingStatus state, string ip)
+        public void ShowPairing(PairingStatus state, string addresses)
         {
             unpairedContent.SetActive(true);
             pairedContent.SetActive(false);
             bool available = state.Phase == PairingPhase.Available;
-            SetDetails(available ? state.Code.Substring(0, 3) + " " + state.Code.Substring(3) : "", ip);
+            SetDetails(available ? state.Code.Substring(0, 3) + " " + state.Code.Substring(3) : "", addresses);
             timer.SetActive(available);
             int seconds = (int)Math.Ceiling(state.Remaining.TotalSeconds);
             countdown.text = $"{seconds / 60:00}:{seconds % 60:00}";
@@ -76,12 +81,12 @@ namespace HBP.Quest
             GetComponent<QuestWindow>()?.Open();
         }
 
-        private void SetDetails(string pairingCode, string ip)
+        private void SetDetails(string pairingCode, string addresses)
         {
             code.text = pairingCode;
             code.gameObject.SetActive(!string.IsNullOrEmpty(pairingCode));
-            address.text = ip ?? "";
-            address.gameObject.SetActive(!string.IsNullOrEmpty(ip));
+            address.text = addresses ?? "";
+            address.gameObject.SetActive(!string.IsNullOrEmpty(addresses));
         }
     }
 }

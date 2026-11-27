@@ -31,7 +31,7 @@ public final class NetworkMonitor implements AutoCloseable {
     private final ConnectivityManager.NetworkCallback wifi;
     private final BroadcastReceiver cable;
     private boolean closed, foreground, declined, cableConnected;
-    private String usbStatus = "USB waiting for connection";
+    private String usbStatus;
     private long generation;
 
     private static final class Link {
@@ -108,7 +108,7 @@ public final class NetworkMonitor implements AutoCloseable {
     private synchronized void requestUsb() {
         if (closed || !foreground || !cableConnected || declined || usb!=null) return;
         if (Build.VERSION.SDK_INT<33) { usbStatus="USB networking requires a newer Horizon OS. Wi-Fi remains available."; listener.changedNetwork(); return; }
-        usbStatus="Waiting for USB system approval";
+        usbStatus="For USB pairing, approve networking in the headset.";
         ConnectivityManager.NetworkCallback callback=new ConnectivityManager.NetworkCallback() {
             @Override public void onLinkPropertiesChanged(Network n, LinkProperties p) { synchronized(NetworkMonitor.this) { if(usb==this && !closed) update(n,p,true); } }
             @Override public void onLost(Network n) { synchronized(NetworkMonitor.this) { if(usb==this && !closed) lost(n); } }
@@ -117,7 +117,7 @@ public final class NetworkMonitor implements AutoCloseable {
                     if (closed || usb!=this) return;
                     // Android has already released/unregistered this request.
                     usb=null; declined=true;
-                    usbStatus="USB not approved or unavailable. Select Retry USB.";
+                    usbStatus="USB pairing unavailable. Select Retry USB to try again.";
                     listener.changedNetwork();
                 }
             }
@@ -137,6 +137,7 @@ public final class NetworkMonitor implements AutoCloseable {
         JSONObject result=new JSONObject(); JSONArray networks=new JSONArray();
         try {
             result.put("usbStatus", usbStatus);
+            result.put("cableConnected", cableConnected);
             result.put("canRetry", declined && foreground);
             for (Link link:links.values()) {
                 String name=link.properties.getInterfaceName();

@@ -130,15 +130,11 @@ namespace HBP.UI.Quest
             {
                 string result = await connection.RefreshDiscoveryAsync(stop);
                 if (result == null || !this || !isActiveAndEnabled) return;
-                string help = Application.platform switch
-                {
-                    RuntimePlatform.WindowsPlayer or RuntimePlatform.WindowsEditor => "In Windows, check that the USB Ethernet adapter appears when you plug in the Quest. Ask your administrator to check incoming mDNS (UDP 5353) for HiBoP on that adapter and its active firewall profile.",
-                    RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor => "On macOS, open HiBoP from Finder and allow it in System Settings > Privacy & Security > Local Network.",
-                    _ => "On Linux, check that the CDC NCM interface has a link-local IPv6 address (ip -6 addr). If it is filtered, allow mDNS (UDP 5353) in the firewall zone for that interface."
-                };
-                await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "No Quest found", result +
-                    "\n\nKeep the headset awake, open HiBoP on it and approve USB networking. Check the cable or use the same local network.\n\n" + help +
-                    "\n\nIf you know the Quest IP address, you can connect using Manual mode.", stop, "OK");
+                Debug.Log(result);
+                string networkHelp = "For Wi-Fi pairing, connect the headset and Desktop to the same local network.";
+                if (Application.platform is RuntimePlatform.OSXPlayer or RuntimePlatform.OSXEditor)
+                    networkHelp += " On macOS, allow HiBoP in System Settings > Privacy & Security > Local Network.";
+                await DialogBoxManager.OpenScrollableAsync(DialogBoxType.Informational, "No Quest found", "Keep the headset awake and open HiBoP on it.\n\n" + networkHelp + " If discovery still fails, enter the IP address shown on Quest in Manual mode." + "\n\nFor USB pairing, connect the cable and approve USB networking in the headset.", stop, "OK");
             }
             catch (OperationCanceledException) when (stop.IsCancellationRequested)
             {
@@ -204,14 +200,11 @@ namespace HBP.UI.Quest
             var family = ip?.AddressFamily ?? AddressFamily.InterNetworkV6;
             var networks = QuestEndpoint.LocalInterfaces(family).Select(n => (Network: n, Index: QuestEndpoint.GetInterfaceIndex(n, family)));
             if (ip == null)
-                networks = networks.Concat(QuestEndpoint.LocalInterfaces(AddressFamily.InterNetwork).Select(n => (Network: n, Index: QuestEndpoint.GetInterfaceIndex(n, AddressFamily.InterNetwork))))
-                    .GroupBy(item => item.Network.Id).Select(group => group.First());
-            return networks.Where(item => ip?.IsIPv6LinkLocal != true || item.Network.GetIPProperties().UnicastAddresses.Any(a => a.Address.IsIPv6LinkLocal))
-                .OrderBy(item => item.Network.Name).ThenBy(item => item.Network.Id).ToArray();
+                networks = networks.Concat(QuestEndpoint.LocalInterfaces(AddressFamily.InterNetwork).Select(n => (Network: n, Index: QuestEndpoint.GetInterfaceIndex(n, AddressFamily.InterNetwork)))).GroupBy(item => item.Network.Id).Select(group => group.First());
+            return networks.Where(item => ip?.IsIPv6LinkLocal != true || item.Network.GetIPProperties().UnicastAddresses.Any(a => a.Address.IsIPv6LinkLocal)).OrderBy(item => item.Network.Name).ThenBy(item => item.Network.Id).ToArray();
         }
 
-        private static QuestEndpoint ScopedRoute(IPAddress ip, QuestNetworkPath path, (NetworkInterface Network, int Index) route) =>
-            new(ip, path: path, interfaceIndex: route.Index, interfaceId: route.Network.Id, interfaceName: route.Network.Name);
+        private static QuestEndpoint ScopedRoute(IPAddress ip, QuestNetworkPath path, (NetworkInterface Network, int Index) route) => new(ip, path: path, interfaceIndex: route.Index, interfaceId: route.Network.Id, interfaceName: route.Network.Name);
 
         private static async Task<int> FindRespondingInterfaceAsync(IPAddress ip, (NetworkInterface Network, int Index)[] candidates, CancellationToken stop)
         {
@@ -329,6 +322,7 @@ namespace HBP.UI.Quest
                 var labels = interfaces.Select(item => $"{item.Network.Name} ({item.Index})").Prepend(interfaces.Length == 0 ? "No interface available" : "Select an interface").ToList();
                 SetOptions(usbInterfaces, labels, selectedInterface + 1);
             }
+
             automaticFields.SetActive(!manual.isOn);
             manualFields.SetActive(manual.isOn);
             manualTransport.SetActive(manual.isOn);

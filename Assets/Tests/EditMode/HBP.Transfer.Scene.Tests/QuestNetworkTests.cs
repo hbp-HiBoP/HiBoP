@@ -13,6 +13,19 @@ namespace HBP.Tests.Transfer
 {
     public sealed class QuestNetworkTests
     {
+        [TestCase(QuestNetworkPath.LocalNetwork, "Quest · Local network · 192.168.1.18 · 000000")]
+        [TestCase(QuestNetworkPath.Usb, "Quest · USB · Ethernet · 000000")]
+        public void DeviceLabelUsesTheDesktopInterfaceNameOnlyForUsb(QuestNetworkPath path, string expected)
+        {
+            var device = new QuestDevice
+            {
+                Name = "Quest",
+                Pin = new byte[32],
+                Endpoint = new QuestEndpoint(IPAddress.Parse("192.168.1.18"), path: path, interfaceName: "Ethernet")
+            };
+            Assert.That(device.Label, Is.EqualTo(expected));
+        }
+
         [TestCase("127.0.0.1"), TestCase("::1")]
         public async Task CancelledConnectionDoesNotDereferenceTheDisposedTcpClient(string host)
         {
@@ -255,6 +268,7 @@ namespace HBP.Tests.Transfer
                     Assert.That(errors, Is.Empty, string.Join("; ", errors));
                     Assert.Ignore("No usable IPv4 multicast route on this host.");
                 }
+
                 Assert.That(found.Any(device => device.Name == "Quest" && device.Endpoint.Path == QuestNetworkPath.Usb), Is.True, "Closing the discovery window must retain its final result. " + string.Join("; ", errors));
             }
             finally
